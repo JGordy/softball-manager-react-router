@@ -4,7 +4,6 @@ import {
     redirect,
     Form,
     Link,
-    // createCookieSessionStorage,
 } from 'react-router';
 
 import {
@@ -12,7 +11,7 @@ import {
     Center,
     Container,
     Group,
-    Loader,
+    // Loader,
     Paper,
     PasswordInput,
     Stack,
@@ -21,7 +20,7 @@ import {
     Title,
 } from '@mantine/core';
 
-import { notifications } from '@mantine/notifications';
+// import { notifications } from '@mantine/notifications';
 
 import AutocompleteEmail from '@/components/AutoCompleteEmail';
 
@@ -34,20 +33,19 @@ import { account } from '@/appwrite';
 export async function clientLoader({ request }) {
     console.log('loader: ', request)
     try {
-        const session = await account.getSession('current');
+        const session = await account.getSession();
+
         if (session) {
-            // const user = await account.get();
             return redirect("/");
         }
+        return null;
     } catch (error) {
         console.log("No active session found");
-    } finally {
         return null;
     }
 }
 
 export async function action({ request }) {
-    console.log('action');
     const formData = await request.formData();
     const email = formData.get('email');
     const password = formData.get('password');
@@ -64,30 +62,30 @@ export async function action({ request }) {
 
 export default function Register({ actionData }) {
 
-    useEffect(() => {
-        if (actionData?.error) {
-            notifications.show({
-                title: 'Error',
-                message: actionData.error,
-                color: 'red',
-                position: 'top-right',
-            });
-        }
-    }, [actionData?.error]);
+    // useEffect(() => {
+    //     if (actionData?.error) {
+    //         notifications.show({
+    //             title: 'Error',
+    //             message: actionData.error,
+    //             color: 'red',
+    //             position: 'top-right',
+    //             icon: <IconX />,
+    //         });
+    //     }
+    // }, [actionData?.error]);
 
     useEffect(() => {
-        console.log('actionData: ', actionData);
         const createUserSession = async () => {
             await account.createEmailPasswordSession(actionData.email, actionData.password);
         };
 
         if (actionData?.session) {
-            notifications.show({
-                title: 'Success',
-                message: 'Account created successfully',
-                color: 'teal',
-                position: 'top-right',
-            });
+            // notifications.show({
+            //     title: 'Success',
+            //     message: 'Account created successfully',
+            //     color: 'green',
+            //     position: 'top-right',
+            // });
             createUserSession();
             redirect('/login');
         }
@@ -129,6 +127,9 @@ export default function Register({ actionData }) {
                             Login here
                         </Text>
                     </Group>
+                    <Center>
+                        {actionData?.error && <Text c="red.5">{actionData?.error}</Text>}
+                    </Center>
                 </Paper>
             </Center>
         </Container>

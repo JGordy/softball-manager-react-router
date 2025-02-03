@@ -1,5 +1,6 @@
+import React, { useEffect } from 'react';
+
 import {
-    createCookieSessionStorage,
     redirect,
     Form,
     Link,
@@ -13,37 +14,30 @@ import {
     Paper,
     PasswordInput,
     Text,
-    TextInput,
     Title,
 } from '@mantine/core';
+
+// import { notifications } from '@mantine/notifications';
+
+// const IconX = React.lazy(() => import('@tabler/icons-react').then(mod => ({
+//     default: mod.IconX
+// })));
 
 import login from '@/utils/auth/login';
 
 import { account } from '@/appwrite';
 
-const sessionStorage = createCookieSessionStorage({
-    cookie: {
-        name: "session",
-        secrets: ["your-secret-key"], // TODO: Replace with actual secret from env
-        sameSite: "lax",
-        path: "/",
-        maxAge: 60 * 60 * 24 * 30, // 30 days
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-    },
-});
+import AutocompleteEmail from '@/components/AutoCompleteEmail';
 
 export async function clientLoader({ request }) {
-    console.log('ClientLoader request', { request });
     try {
         const session = await account.getSession('current');
         if (session) {
-            // const user = await account.get();
             return redirect("/");
         }
+        return null;
     } catch (error) {
         console.log("No active session found");
-    } finally {
         return null;
     }
 }
@@ -56,14 +50,34 @@ export async function action({ request }) {
     const response = await login({ email, password });
 
     if (response?.error) {
-        return { error: response.error };
+        return { error: response.error?.message || response.error };
     }
 
     return { email, password, session: response.session };
 }
 
 export default function Login({ actionData }) {
-    console.log({ actionData });
+    console.log('actionData: ', actionData);
+
+    useEffect(() => {
+        if (actionData?.session) {
+            redirect('/');
+        }
+
+    }, [actionData]);
+
+    // useEffect(() => {
+    //     if (actionData?.error) {
+    //         notifications.show({
+    //             title: 'Error',
+    //             message: actionData.error,
+    //             color: 'red',
+    //             position: 'top-right',
+    //             icon: <IconX />,
+    //             autoClose: 1000000,
+    //         });
+    //     }
+    // }, [actionData?.error]);
 
     return (
         <Container size="xs">
@@ -73,12 +87,10 @@ export default function Login({ actionData }) {
                         Welcome to Rocket Roster!
                     </Title>
                     <Form method="post">
-                        <TextInput
-                            label="Email address"
-                            placeholder="hello@gmail.com"
-                            size="md"
-                        />
+                        <AutocompleteEmail />
                         <PasswordInput
+                            type="password"
+                            name="password"
                             label="Password"
                             placeholder="Your password"
                             mt="md"
@@ -94,11 +106,9 @@ export default function Login({ actionData }) {
                             Register
                         </Text>
                     </Group>
-                    {actionData?.error ? (
-                        <div>
-                            <p>{actionData?.error}</p>
-                        </div>
-                    ) : null}
+                    <Center>
+                        {actionData?.error && <Text c="red.5">{actionData?.error}</Text>}
+                    </Center>
                 </Paper>
             </Center>
         </Container>

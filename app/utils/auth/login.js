@@ -8,8 +8,8 @@ export default async function login({ email, password, redirectTo }) {
     };
 
     try {
-        await account.createEmailPasswordSession(email, password);
-        return redirect(redirectTo || '/');
+        const session = await account.createEmailPasswordSession(email, password);
+        return { session };
     } catch (error) {
         console.error(error);
         return { error };
