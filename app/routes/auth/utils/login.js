@@ -1,4 +1,3 @@
-import { redirect } from 'react-router';
 import { account } from '@/appwrite';
 
 export default async function login({ email, password }) {

@@ -23,11 +23,11 @@ import {
 //     default: mod.IconX
 // })));
 
-import login from '@/utils/auth/login';
-
 import { account } from '@/appwrite';
 
 import AutocompleteEmail from '@/components/AutoCompleteEmail';
+
+import login from './utils/login';
 
 export async function clientLoader({ request }) {
     try {
@@ -42,7 +42,7 @@ export async function clientLoader({ request }) {
     }
 }
 
-export async function action({ request }) {
+export async function clientAction({ request }) {
     const formData = await request.formData();
     const email = formData.get("email");
     const password = formData.get("password");
@@ -65,6 +65,22 @@ export default function Login({ actionData }) {
         }
 
     }, [actionData]);
+
+    useEffect(() => {
+        const checkCurrentSession = async () => {
+            try {
+                const session = await account.getSession('current');
+                if (session) {
+                    return redirect("/");
+                }
+                return null;
+            } catch (error) {
+                console.log("No active session found");
+                return null;
+            }
+        };
+        checkCurrentSession();
+    }, []);
 
     // useEffect(() => {
     //     if (actionData?.error) {

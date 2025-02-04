@@ -1,5 +1,3 @@
-import { redirect } from 'react-router';
-
 import { account, ID } from '@/appwrite';;
 
 export default async function register({ email, password, name }) {
@@ -11,6 +9,8 @@ export default async function register({ email, password, name }) {
 
     try {
         const session = await account.create(ID.unique(), email, password, name);
+
+        await account.createVerification('http://localhost:5173/verify');
 
         return ({ email, password, session });
     } catch (error) {

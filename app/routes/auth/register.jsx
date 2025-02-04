@@ -24,11 +24,13 @@ import {
 
 import AutocompleteEmail from '@/components/AutoCompleteEmail';
 
-import register from '@/utils/auth/register';
+import register from './utils/register';
 
 import { account } from '@/appwrite';
 
-// import { IconX } from '@tabler/icons-react';
+// const IconX = React.lazy(() => import('@tabler/icons-react').then(mod => ({
+//     default: mod.IconX
+// })));
 
 export async function clientLoader({ request }) {
     console.log('loader: ', request)
@@ -77,6 +79,7 @@ export default function Register({ actionData }) {
     useEffect(() => {
         const createUserSession = async () => {
             await account.createEmailPasswordSession(actionData.email, actionData.password);
+            redirect('/login');
         };
 
         if (actionData?.session) {
@@ -87,7 +90,6 @@ export default function Register({ actionData }) {
             //     position: 'top-right',
             // });
             createUserSession();
-            redirect('/login');
         }
 
     }, [actionData]);
