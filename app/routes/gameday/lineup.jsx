@@ -8,6 +8,8 @@ import {
 
 import PlayerChart from '@components/PlayerChart';
 
+import { IconWand, IconPrinter } from '@tabler/icons-react';
+
 import createBattingOrder from './utils/createBattingOrder';
 import createFieldingChart from './utils/createFieldingChart';
 
@@ -86,12 +88,18 @@ function Lineup() {
                         color="green"
                         onClick={handleGenerateLineup}
                     >
+                        <IconWand size={18} />
                         Generate Lineup
                     </Button>
                 </Group>
             </Center>
             <PlayerChart playerChart={playerChart} />
-            {playerChart && <Button onClick={handlePrint}>Print/Download</Button>}
+            {playerChart && (
+                <Button onClick={handlePrint}>
+                    <IconPrinter size={18} />
+                    Print/Download
+                </Button>
+            )}
         </Container>
     );
 }

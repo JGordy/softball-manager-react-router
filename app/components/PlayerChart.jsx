@@ -9,7 +9,7 @@ const PlayerChart = ({ playerChart }) => {
     const columns = useMemo(() => [
         {
             accessor: 'battingOrder',
-            title: 'Batting Order',
+            title: 'Batting',
         },
         {
             accessor: 'player',
