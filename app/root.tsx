@@ -12,7 +12,7 @@ import {
 import { ColorSchemeScript, MantineProvider, createTheme } from '@mantine/core';
 
 import type { Route } from "./+types/root";
-import "./app.css";
+import "@/styles/app.css";
 
 import theme from './theme';
 
