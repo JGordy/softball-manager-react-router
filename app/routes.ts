@@ -17,6 +17,7 @@ export default [
 
         // Gameday Routes
         route('/gameday/lineup', 'routes/gameday/lineup.jsx'),
+        route('/api/generate/lineup', 'routes/api/generate/lineup.js'),
     ]),
 
 ] satisfies RouteConfig;
