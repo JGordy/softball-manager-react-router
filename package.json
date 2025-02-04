@@ -9,6 +9,7 @@
         "typecheck": "react-router typegen && tsc"
     },
     "dependencies": {
+        "@google/generative-ai": "^0.21.0",
         "@mantine/core": "^7.16.2",
         "@mantine/hooks": "^7.16.2",
         "@mantine/notifications": "^7.16.2",
