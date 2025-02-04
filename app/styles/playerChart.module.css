@@ -1,0 +1,106 @@
+.tableContainer {
+    overflow-x: auto;
+    border: 1px solid #fff;
+    border-radius: 3px;
+    margin: 2rem 0;
+}
+
+.header {
+    position: sticky;
+    top: 0;
+    background-color: var(--mantine-color-body);
+    transition: box-shadow 150ms ease;
+
+    &::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-bottom: 1px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-3));
+    }
+}
+
+.scrolled {
+    box-shadow: var(--mantine-shadow-sm);
+}
+
+.tableContainer table td {
+    /* Or target the specific table if needed */
+    white-space: nowrap;
+    /* Prevents text from wrapping */
+    overflow: hidden;
+    /* Optional: Hides any overflowing text */
+    text-overflow: ellipsis;
+    /* Optional: Adds ellipsis (...) for overflow */
+}
+
+/* If you want to target the header cells as well: */
+.tableContainer table th {
+    white-space: nowrap;
+}
+
+/* If you want to target specific columns: */
+.tableContainer table td:nth-child(3),
+/* Example: Target the 3rd column */
+.tableContainer table th:nth-child(3) {
+    white-space: nowrap;
+}
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    .tableContainer,
+    .tableContainer * {
+        visibility: visible;
+    }
+
+    .tableContainer {
+        position: absolute;
+        left: 0;
+        top: 0;
+        /* width: 100%; */
+        /* Important: Full width for container */
+        overflow-x: auto;
+        /* Allow horizontal scroll if absolutely necessary */
+        transform-origin: top left;
+    }
+
+    table {
+        width: 100% !important;
+        /* Make sure table is 100% width */
+        table-layout: fixed;
+        /* Important for controlling cell widths */
+        transform: scale(0.9);
+    }
+
+    th,
+    td {
+        word-wrap: break-word;
+        /* Allow words to break within cells */
+        overflow: hidden;
+        /* Hide overflowing content (or use text-overflow: ellipsis) */
+        text-overflow: ellipsis;
+        /* Optional: Add ellipsis for overflow */
+        padding: 3px;
+        /* Add some padding for better readability */
+        box-sizing: border-box;
+        /* Include padding in cell width calculation */
+    }
+
+    /* Optional: Adjust font size for print */
+    body {
+        font-size: 8pt;
+        /* Adjust as needed */
+    }
+
+    /* Optional: Landscape orientation */
+    @page {
+        size: landscape;
+        /* Or 'portrait' */
+        margin: 10mm;
+        /* Adjust margins as needed */
+    }
+}
