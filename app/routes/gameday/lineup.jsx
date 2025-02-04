@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+
 import {
     Button,
     Group,
@@ -13,39 +14,50 @@ import { IconWand, IconPrinter } from '@tabler/icons-react';
 import createBattingOrder from './utils/createBattingOrder';
 import createFieldingChart from './utils/createFieldingChart';
 
-function Lineup() {
-    const [players, setPlayers] = useState();
+export async function clientLoader() {
+    try {
+        const response = await fetch('/players.json', {
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+        });
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error:', error);
+        return { error };
+    }
+}
+
+function Lineup({ loaderData, actionData }) {
+    const { players, error: loaderError } = loaderData;
+
     const [playerChart, setPlayerChart] = useState();
     const [error, setError] = useState();
     const [isLoading, setIsLoading] = useState();
 
     useEffect(() => {
-        const fetchPlayers = async () => {
-            try {
-                const response = await fetch('/players.json', {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    }
-                });
-                const data = await response.json();
-                setPlayers(data.players);
-            } catch (error) {
-                console.error('Error:', error);
-                setError('An error occurred. Please try again later.');
-            }
-        };
-
-        if (!players) {
-            fetchPlayers();
-        };
-    }, []);
+        if (actionData?.generatedChart) {
+            setPlayerChart(actionData.generatedChart);
+            setIsLoading(false);
+        }
+        if (actionData?.error) {
+            console.error(actionData.error);
+            setIsLoading(false);
+            setError(actionData.error);
+        }
+        if (loaderError) {
+            setError(loaderError);
+        }
+    }, [actionData, loaderData]);
 
 
+    // Create batting order and fielding chart
     const handleCreateLineup = () => {
         setPlayerChart();
         setIsLoading(true);
-        // Create batting order and fielding chart
+
         const batting = createBattingOrder(players);
 
         if (batting?.length > 0) {
@@ -58,13 +70,29 @@ function Lineup() {
         setIsLoading(false);
     };
 
+    // Generate Lineup and fielding chart using generative AI
     const handleGenerateLineup = async () => {
+        setPlayerChart();
+        setIsLoading(true);
         try {
-            const response = await fetch('/api/generate/lineup');
-            const data = await response.json();
-            // Handle the response data here
+
+            const response = await fetch('/api/generate/lineup', {
+                method: 'POST',
+                body: JSON.stringify(players),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData?.error || `HTTP error! status: ${response.status}`);
+            }
+
+            const actionData = await response.json();
+
+            setPlayerChart(actionData.generatedChart);
+            setIsLoading(false);
         } catch (error) {
-            console.error('Error generating lineup:', error);
+            console.error("Error generating lineup:", error);
+            setIsLoading(false);
         }
     };
 
@@ -86,6 +114,8 @@ function Lineup() {
                     <Button
                         variant="filled"
                         color="green"
+                        disabled={!players}
+                        loading={isLoading}
                         onClick={handleGenerateLineup}
                     >
                         <IconWand size={18} />
@@ -93,6 +123,8 @@ function Lineup() {
                     </Button>
                 </Group>
             </Center>
+            {isLoading && <div>Generating batting and fielding charts...</div>}
+            {error && <div>Error: {error?.message || error}</div>}
             <PlayerChart playerChart={playerChart} />
             {playerChart && (
                 <Button onClick={handlePrint}>
