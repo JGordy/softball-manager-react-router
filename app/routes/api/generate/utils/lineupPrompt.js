@@ -2,6 +2,7 @@ import positions from "@constants/positions";
 
 const prompt = `Fielding Positions: ${JSON.stringify(positions)}
 
+** Steps to implement the below rules. This is most important **
 Inning #1: For each position find a player that has that position listed in thier preferredPositions list. Assign them to that position. Assign the rest of the players as "Out" for that inning.
 Inning #2: First look for players assigned "Out" in inning #1 and assign them a position according to their preferredPositions list. Then look through the remaining players and find positions for them as well.
 Inning #3: First look for players assigned "Out" in inning #2 and assign them a position according to their preferredPositions list. Then look through the remaining players and find positions for them as well.

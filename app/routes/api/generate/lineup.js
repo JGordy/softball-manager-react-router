@@ -3,8 +3,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import schema from './utils/lineupSchema';
 import prompt from './utils/lineupPrompt';
 
-export async function action({ params, request }) {
-    console.log({ params, request });
+export async function action({ request }) {
     try {
         const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 
@@ -31,7 +30,6 @@ export async function action({ params, request }) {
         const result = await model.generateContent(updatedPrompt);
         const response = await result.response;
         const output = await response.text();
-        console.log({ output });
 
         if (output) {
             // Send the llm output as a server reponse object
