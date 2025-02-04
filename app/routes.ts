@@ -12,8 +12,11 @@ export default [
         // Authentication routes
         route("/login", "routes/auth/login.jsx"),
         route("/register", "routes/auth/register.jsx"),
-        // route("/forgot-password", "routes/auth/recover.jsx"),
         route("/verify", "routes/auth/verify.jsx"),
+        // route("/forgot-password", "routes/auth/recover.jsx"),
+
+        // Gameday Routes
+        route('/gameday/lineup', 'routes/gameday/lineup.jsx'),
     ]),
 
 ] satisfies RouteConfig;
