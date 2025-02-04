@@ -9,6 +9,7 @@ export default defineConfig({
         alias: {
             '@': '/app',
             '@components': '/app/components',
+            '@constants': '/app/constants',
             '@routes': '/app/routes',
             '@styles': '/app/styles',
         },
