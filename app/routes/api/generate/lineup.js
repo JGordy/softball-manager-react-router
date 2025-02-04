@@ -6,7 +6,7 @@ import prompt from './utils/lineupPrompt';
 export async function action({ params, request }) {
     console.log({ params, request });
     try {
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
 
         // Initalise a generative model
         const model = genAI.getGenerativeModel({
@@ -18,13 +18,12 @@ export async function action({ params, request }) {
         });
 
         // Retrieve the data we recieve as part of the request body
-        const data = await req.json();
-        const body = data.body;
+        const players = await request.json();
 
         const updatedPrompt = `
             Generate a softball batting order and fielding chart for the following players, adhering to the specified rules:
 
-            ${JSON.stringify(body)}
+            ${JSON.stringify(players)}
             
             ${prompt}`;
 
@@ -36,7 +35,7 @@ export async function action({ params, request }) {
 
         if (output) {
             // Send the llm output as a server reponse object
-            return new Response(JSON.stringify({ output: JSON.parse(output) }), {
+            return new Response(JSON.stringify({ generatedChart: JSON.parse(output) }), {
                 headers: { "Content-Type": "application/json" },
             });
         }
