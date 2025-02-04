@@ -1,9 +1,15 @@
 import { useMemo, useState } from 'react';
-import { Button, ScrollArea, Table } from '@mantine/core';
+import {
+    ScrollArea,
+    Select,
+    Table,
+} from '@mantine/core';
+
+import fieldingPositions from '@/constants/positions';
 
 import styles from '../styles/playerChart.module.css';
 
-const PlayerChart = ({ playerChart }) => {
+const PlayerChart = ({ playerChart, setPlayerChart }) => {
     const [scrolled, setScrolled] = useState(false);
 
     const columns = useMemo(() => [
@@ -31,6 +37,20 @@ const PlayerChart = ({ playerChart }) => {
         };
     }), [playerChart]);
 
+    const handlePositionChange = (playerName, inning, position) => {
+        setPlayerChart(prevChart => {
+            return prevChart.map(player => {
+                if (player.name === playerName) {
+                    const inningIndex = parseInt(inning.replace('inning', ''), 10) - 1;
+                    const updatedPositions = [...player.positions];
+                    updatedPositions[inningIndex] = position;
+                    return { ...player, positions: updatedPositions };
+                }
+                return player;
+            });
+        });
+    };
+
     const headerClassName = scrolled ? styles.header + ' ' + styles.scrolled : styles.header;
 
     if (!playerChart) {
@@ -49,11 +69,25 @@ const PlayerChart = ({ playerChart }) => {
                         </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>
-                        {rows.map((row, index) => (
-                            <Table.Tr key={index}>
-                                {columns.map((column) => (
-                                    <Table.Td key={column.accessor}>{row[column.accessor]}</Table.Td>
-                                ))}
+                        {rows.map((row) => (
+                            <Table.Tr key={row.player}>
+                                {columns.map((column) => {
+                                    if (column.accessor.startsWith('inning')) {
+                                        const inning = column.accessor;
+                                        return (
+                                            <Table.Td key={column.accessor}>
+                                                <Select
+                                                    value={row[column.accessor]}
+                                                    onChange={(value) => handlePositionChange(row.player, inning, value)}
+                                                    data={['Out', ...fieldingPositions]}
+                                                    style={{ minWidth: '150px' }}
+                                                />
+                                            </Table.Td>
+                                        );
+                                    } else {
+                                        return <Table.Td key={column.accessor}>{row[column.accessor]}</Table.Td>;
+                                    }
+                                })}
                             </Table.Tr>
                         ))}
                     </Table.Tbody>

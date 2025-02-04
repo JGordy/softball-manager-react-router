@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 
 import {
     Button,
-    Group,
     Center,
     Container,
+    Group,
+    Text,
 } from '@mantine/core';
 
 import PlayerChart from '@components/PlayerChart';
@@ -103,7 +104,7 @@ function Lineup({ loaderData, actionData }) {
     return (
         <Container>
             <Center>
-                <Group position="center" spacing="md" mt="xl">
+                <Group position="center" spacing="md" mt="xl" mb="xl">
                     <Button
                         variant="filled"
                         color="blue"
@@ -123,9 +124,14 @@ function Lineup({ loaderData, actionData }) {
                     </Button>
                 </Group>
             </Center>
-            {isLoading && <div>Generating batting and fielding charts...</div>}
-            {error && <div>Error: {error?.message || error}</div>}
-            <PlayerChart playerChart={playerChart} />
+            <Center>
+                {isLoading && <Text c="gray.2">Generating batting and fielding charts...</Text>}
+                {error && <Text c="red.5">{error?.message || error}</Text>}
+            </Center>
+            <PlayerChart
+                playerChart={playerChart}
+                setPlayerChart={setPlayerChart}
+            />
             {playerChart && (
                 <Button onClick={handlePrint}>
                     <IconPrinter size={18} />

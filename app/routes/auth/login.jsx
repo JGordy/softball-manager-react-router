@@ -57,7 +57,6 @@ export async function clientAction({ request }) {
 }
 
 export default function Login({ actionData }) {
-    console.log('actionData: ', actionData);
 
     useEffect(() => {
         if (actionData?.session) {
