@@ -1,15 +1,15 @@
 import positions from "@constants/positions";
 
-const prompt = `Fielding Positions: ${JSON.stringify(positions)}
+const prompt = `Available Fielding Positions: ${JSON.stringify(positions)}
 
 ** Steps to implement the below rules. This is most important **
 Inning #1: For each position find a player that has that position listed in thier preferredPositions list. Assign them to that position. Assign the rest of the players as "Out" for that inning.
-Inning #2: First look for players assigned "Out" in inning #1 and assign them a position according to their preferredPositions list. Then look through the remaining players and find positions for them as well.
-Inning #3: First look for players assigned "Out" in inning #2 and assign them a position according to their preferredPositions list. Then look through the remaining players and find positions for them as well.
-Inning #4: First look for players assigned "Out" in inning #3 and assign them a position according to their preferredPositions list. Then look through the remaining players and find positions for them as well.
-Inning #5: First look for players assigned "Out" in inning #4 and assign them a position according to their preferredPositions list. Then look through the remaining players and find positions for them as well.
-Inning #6: First look for players assigned "Out" in inning #5 and assign them a position according to their preferredPositions list. Then look through the remaining players and find positions for them as well.
-Inning #7: First look for players assigned "Out" in inning #6 and assign them a position according to their preferredPositions list. Then look through the remaining players and find positions for them as well.
+Inning #2: First look for players assigned "Out" in inning #1 and assign them an availble fielding position according to their preferredPositions list. Then look through the remaining players and find positions for them as well. When all positions are full, mark the players not assigned a position as "Out"
+Inning #3: First look for players assigned "Out" in inning #2 and assign them an availble fielding position according to their preferredPositions list. Then look through the remaining players and find positions for them as well. When all positions are full, mark the players not assigned a position as "Out"
+Inning #4: First look for players assigned "Out" in inning #3 and assign them an availble fielding position according to their preferredPositions list. Then look through the remaining players and find positions for them as well. When all positions are full, mark the players not assigned a position as "Out"
+Inning #5: First look for players assigned "Out" in inning #4 and assign them an availble fielding position according to their preferredPositions list. Then look through the remaining players and find positions for them as well. When all positions are full, mark the players not assigned a position as "Out"
+Inning #6: First look for players assigned "Out" in inning #5 and assign them an availble fielding position according to their preferredPositions list. Then look through the remaining players and find positions for them as well. When all positions are full, mark the players not assigned a position as "Out"
+Inning #7: First look for players assigned "Out" in inning #6 and assign them an availble fielding position according to their preferredPositions list. Then look through the remaining players and find positions for them as well. When all positions are full, mark the players not assigned a position as "Out"
 
 Rules:
 
