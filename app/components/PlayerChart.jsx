@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
 import {
+    Group,
     ScrollArea,
     Select,
     Table,
+    Text,
 } from '@mantine/core';
 
 import fieldingPositions from '@/constants/positions';
@@ -74,6 +76,19 @@ const PlayerChart = ({ playerChart, setPlayerChart }) => {
                                 {columns.map((column) => {
                                     if (column.accessor.startsWith('inning')) {
                                         const inning = column.accessor;
+
+                                        const renderSelectOption = ({ option, checked }) => {
+                                            const player = playerChart.find(p => p.name === row.player);
+                                            const preferredPositions = player?.preferredPositions;
+                                            const isPreferred = preferredPositions?.includes(option.value) || option.value === "Out";
+
+                                            return (
+                                                <Group noWrap spacing={0}>
+                                                    <Text style={isPreferred ? { color: 'green' } : { color: 'red' }}>{option.label}</Text> {/* Display option.label */}
+                                                </Group>
+                                            );
+                                        };
+
                                         return (
                                             <Table.Td key={column.accessor}>
                                                 <Select
@@ -81,6 +96,7 @@ const PlayerChart = ({ playerChart, setPlayerChart }) => {
                                                     onChange={(value) => handlePositionChange(row.player, inning, value)}
                                                     data={['Out', ...fieldingPositions]}
                                                     style={{ minWidth: '150px' }}
+                                                    renderOption={renderSelectOption}
                                                 />
                                             </Table.Td>
                                         );
