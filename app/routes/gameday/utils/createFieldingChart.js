@@ -25,7 +25,7 @@ const assignPosition = (player, availablePositions) => {
 };
 
 export default function createFieldingChart(players, innings = 7) {
-    const MAX_OUTS = 2;
+    const MAX_OUTS = (players.length > 13) ? 3 : 2;
     const playersCopy = [...players];
 
     // Loop through the number of innings
