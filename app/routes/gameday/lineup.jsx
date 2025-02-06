@@ -128,15 +128,17 @@ function Lineup({ loaderData, actionData }) {
                 {isLoading && <Text c="gray.2">Generating batting and fielding charts...</Text>}
                 {error && <Text c="red.5">{error?.message || error}</Text>}
             </Center>
-            <PlayerChart
-                playerChart={playerChart}
-                setPlayerChart={setPlayerChart}
-            />
             {playerChart && (
-                <Button onClick={handlePrint}>
-                    <IconPrinter size={18} />
-                    Print/Download
-                </Button>
+                <>
+                    <PlayerChart
+                        playerChart={playerChart}
+                        setPlayerChart={setPlayerChart}
+                    />
+                    <Button onClick={handlePrint}>
+                        <IconPrinter size={18} />
+                        Print/Download
+                    </Button>
+                </>
             )}
         </Container>
     );
