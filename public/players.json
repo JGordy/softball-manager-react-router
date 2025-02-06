@@ -17,7 +17,8 @@
             "name": "Joe",
             "preferredPositions": [
                 "Left Field",
-                "Left Center Field"
+                "Left Center Field",
+                "First Base"
             ],
             "positions": [],
             "battingRating": 8,
@@ -52,7 +53,8 @@
             "name": "Finn",
             "preferredPositions": [
                 "Right Center Field",
-                "Right Field"
+                "Right Field",
+                "Left Center Field"
             ],
             "positions": [],
             "battingRating": 6,
@@ -63,7 +65,8 @@
             "name": "Grace",
             "preferredPositions": [
                 "Catcher",
-                "Second Base"
+                "Second Base",
+                "Right Field"
             ],
             "positions": [],
             "battingRating": 1,
@@ -74,7 +77,8 @@
             "name": "MJ",
             "preferredPositions": [
                 "Right Field",
-                "Second Base"
+                "Second Base",
+                "Third Base"
             ],
             "positions": [],
             "battingRating": 6,
@@ -121,7 +125,8 @@
             "name": "Caroline",
             "preferredPositions": [
                 "Second Base",
-                "Right Field"
+                "Right Field",
+                "Right Center Field"
             ],
             "positions": [],
             "battingRating": 5,
@@ -156,7 +161,8 @@
             "name": "Hannah",
             "preferredPositions": [
                 "Catcher",
-                "Second Base"
+                "Second Base",
+                "Right Field"
             ],
             "positions": [],
             "battingRating": 2,
