@@ -12,8 +12,17 @@ import fieldingPositions from '@/constants/positions';
 import styles from '../styles/playerChart.module.css';
 
 const PositionSelect = React.memo(({ row, inning, handlePositionChange, positionData, playerChart }) => {
+    const playerLookup = useMemo(() => {  // Create lookup map
+        const lookup = {};
+        playerChart.forEach(player => {
+            lookup[player.name] = player;
+        });
+        return lookup;
+    }, [playerChart]);
+
     const renderSelectOption = useCallback(({ option, checked }) => {
-        const player = playerChart.find(p => p.name === row.player);
+
+        const player = playerLookup[row.player];
         const preferredPositions = player?.preferredPositions;
         const isPreferred = preferredPositions?.includes(option.value);
 
@@ -62,19 +71,21 @@ const PlayerChart = ({ playerChart, setPlayerChart }) => {
 
     const rows = useMemo(() => {
         return playerChart.map((player, index) => {
-            const playerInningPositions = Array.from({ length: 7 }, (_, i) => {
-                const inningKey = `inning${i + 1}`;
-                return inningPositions[player.name]?.[inningKey] || player.positions[i] || 'Out';
-            });
+            const inningPositionsForPlayer = inningPositions[player.name] || {}; // Get positions or empty object
+            const playerInningPositions = [];
+            for (let i = 1; i <= 7; i++) {
+                const inningKey = `inning${i}`;
+                playerInningPositions.push(inningPositionsForPlayer[inningKey] || player.positions[i - 1] || 'Out');
+            }
 
-            return {
+            const row = {
                 battingOrder: index + 1,
                 player: player.name,
-                ...playerInningPositions.reduce((acc, position, i) => {
-                    acc[`inning${i + 1}`] = position;
-                    return acc;
-                }, {}),
             };
+            playerInningPositions.forEach((position, i) => {
+                row[`inning${i + 1}`] = position;
+            });
+            return row;
         });
     }, [playerChart, inningPositions]);
 
