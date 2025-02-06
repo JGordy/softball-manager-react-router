@@ -6,6 +6,7 @@ const countOutPositions = (player) => {
 };
 
 const assignPosition = (player, availablePositions) => {
+    // 1. Prioritize Preferred Positions: Iterate through preferred positions FIRST.
     for (let preferredPosition of player.preferredPositions) {
         if (availablePositions.includes(preferredPosition)) {
             player.positions.push(preferredPosition);
@@ -24,7 +25,7 @@ const assignPosition = (player, availablePositions) => {
 };
 
 export default function createFieldingChart(players, innings = 7) {
-    const MAX_OUTS = (players.length > 12) ? 3 : 2;
+    const MAX_OUTS = 2;
     const playersCopy = [...players];
 
     // Loop through the number of innings
@@ -48,6 +49,20 @@ export default function createFieldingChart(players, innings = 7) {
                 // Remove assignPosition from availablePositions
                 availablePositions = availablePositions.filter(pos => pos !== assignedPosition);
             });
+        }
+
+        const pitcherPosition = "Pitcher";
+        if (availablePositions.includes(pitcherPosition)) {
+            const eligiblePitchers = playersCopy.filter(player =>
+                player.preferredPositions.includes(pitcherPosition) && !assignedPlayers.includes(player.name)
+            );
+
+            if (eligiblePitchers.length > 0) {
+                const pitcher = eligiblePitchers[0]; // Assign to the first eligible pitcher
+                const { assignedPlayer, assignedPosition } = assignPosition(pitcher, [pitcherPosition]); // Force pitcher position
+                assignedPlayers.push(assignedPlayer);
+                availablePositions = availablePositions.filter(pos => pos !== assignedPosition);
+            }
         }
 
         availablePositions?.forEach(position => {
