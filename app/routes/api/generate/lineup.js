@@ -40,6 +40,4 @@ export async function action({ request }) {
     } catch (error) {
         console.error('Error generating lineup: ', error)
     }
-    // const userId = params.id;
-    // const user = await fetch(`https://your-api/users/${userId}`);
 }
