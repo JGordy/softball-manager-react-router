@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
     Group,
     ScrollArea,
@@ -11,8 +11,39 @@ import fieldingPositions from '@/constants/positions';
 
 import styles from '../styles/playerChart.module.css';
 
+const PositionSelect = React.memo(({ row, inning, handlePositionChange, positionData, playerChart }) => {
+    const renderSelectOption = useCallback(({ option, checked }) => {
+        const player = playerChart.find(p => p.name === row.player);
+        const preferredPositions = player?.preferredPositions;
+        const isPreferred = preferredPositions?.includes(option.value);
+
+        let color = 'gray';
+        if (option.value !== "Out") {
+            color = isPreferred ? 'green' : 'red';
+        }
+
+        return (
+            <Group spacing={0}>
+                <Text style={{ color }}>{option.label}</Text>
+            </Group>
+        );
+    }, [playerChart]); // Add playerChart as dependency
+
+    return (
+        <Select
+            key={`${row.player}-${inning}`}
+            value={row[inning]}
+            onChange={(event) => handlePositionChange(event, row.player, inning)}
+            data={positionData}
+            style={{ minWidth: '160px' }}
+            renderOption={renderSelectOption}
+        />
+    );
+});
+
 const PlayerChart = ({ playerChart, setPlayerChart }) => {
     const [scrolled, setScrolled] = useState(false);
+    const [inningPositions, setInningPositions] = useState({});
 
     const columns = useMemo(() => [
         {
@@ -29,17 +60,35 @@ const PlayerChart = ({ playerChart, setPlayerChart }) => {
         })),
     ], []);
 
-    const rows = useMemo(() => playerChart?.map((player, index) => {
-        return {
-            battingOrder: index + 1,
-            player: player.name,
-            ...Array.from({ length: 7 }, (_, i) => ({
-                [`inning${i + 1}`]: player.positions[i] || 'Out',
-            })).reduce((acc, curr) => ({ ...acc, ...curr }), {}),
-        };
-    }), [playerChart]);
+    const rows = useMemo(() => {
+        return playerChart.map((player, index) => {
+            const playerInningPositions = Array.from({ length: 7 }, (_, i) => {
+                const inningKey = `inning${i + 1}`;
+                return inningPositions[player.name]?.[inningKey] || player.positions[i] || 'Out';
+            });
 
-    const handlePositionChange = (playerName, inning, position) => {
+            return {
+                battingOrder: index + 1,
+                player: player.name,
+                ...playerInningPositions.reduce((acc, position, i) => {
+                    acc[`inning${i + 1}`] = position;
+                    return acc;
+                }, {}),
+            };
+        });
+    }, [playerChart, inningPositions]);
+
+    const handlePositionChange = useCallback((position, playerName, inning) => {
+        console.log('Handle position change!', { playerName, inning, newPosition: position });
+        setInningPositions(prevPositions => {
+            const updatedPositions = { ...prevPositions };
+            if (!updatedPositions[playerName]) {
+                updatedPositions[playerName] = {};
+            }
+            updatedPositions[playerName][inning] = position;
+            return updatedPositions;
+        });
+
         setPlayerChart(prevChart => {
             return prevChart.map(player => {
                 if (player.name === playerName) {
@@ -51,13 +100,30 @@ const PlayerChart = ({ playerChart, setPlayerChart }) => {
                 return player;
             });
         });
-    };
+    }, [setPlayerChart]);
+
+    const getPositionOptions = useCallback((preferredPositions) => {
+        if (!preferredPositions) {
+            return ['Out', ...fieldingPositions];
+        }
+
+        const preferred = [...preferredPositions];
+        const nonPreferred = fieldingPositions.filter(position => !preferred.includes(position));
+
+        return [
+            { group: 'Preferred Positions', items: preferred },
+            { group: 'Other Positions', items: nonPreferred },
+            'Out',
+        ];
+    }, [fieldingPositions]);
 
     const headerClassName = scrolled ? styles.header + ' ' + styles.scrolled : styles.header;
 
     if (!playerChart) {
         return null;
     }
+
+    console.log({ playerChart });
 
     return (
         <div className={styles.tableContainer}>
@@ -76,27 +142,18 @@ const PlayerChart = ({ playerChart, setPlayerChart }) => {
                                 {columns.map((column) => {
                                     if (column.accessor.startsWith('inning')) {
                                         const inning = column.accessor;
-
-                                        const renderSelectOption = ({ option, checked }) => {
-                                            const player = playerChart.find(p => p.name === row.player);
-                                            const preferredPositions = player?.preferredPositions;
-                                            const isPreferred = preferredPositions?.includes(option.value) || option.value === "Out";
-
-                                            return (
-                                                <Group noWrap spacing={0}>
-                                                    <Text style={isPreferred ? { color: 'green' } : { color: 'red' }}>{option.label}</Text> {/* Display option.label */}
-                                                </Group>
-                                            );
-                                        };
+                                        const player = playerChart.find(p => p.name === row.player);
+                                        const preferredPositions = player?.preferredPositions;
+                                        const positionData = getPositionOptions(preferredPositions);
 
                                         return (
                                             <Table.Td key={column.accessor}>
-                                                <Select
-                                                    value={row[column.accessor]}
-                                                    onChange={(value) => handlePositionChange(row.player, inning, value)}
-                                                    data={['Out', ...fieldingPositions]}
-                                                    style={{ minWidth: '150px' }}
-                                                    renderOption={renderSelectOption}
+                                                <PositionSelect
+                                                    row={row}
+                                                    inning={inning}
+                                                    handlePositionChange={handlePositionChange}
+                                                    positionData={positionData}
+                                                    playerChart={playerChart}
                                                 />
                                             </Table.Td>
                                         );
