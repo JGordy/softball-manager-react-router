@@ -74,17 +74,10 @@ const TeamsPage = ({ loaderData, actionData }) => {
                     Create New Team
                 </Button>
 
-                <DatePickerInput
-                    leftSection={<IconCalendar size={18} stroke={1.5} />}
-                    label="Season Start Date"
-                    name="seasonStart"
-                    placeholder="Pick a date"
-                />
-
                 <Modal opened={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create New Team">
                     {error && <Alert type="error" mb="md">{error}</Alert>}
                     <Form method="post" onSubmit={handleAfterSubmit}>
-                        {/* <TextInput label="Team Name" name="teamName" required />
+                        <TextInput label="Team Name" name="teamName" required />
                         <TextInput label="League Name" name="leagueName" required />
                         <Select
                             label="Type"
@@ -100,18 +93,20 @@ const TeamsPage = ({ loaderData, actionData }) => {
                             label="Sign Up Fee"
                             name="signUpFee"
                             min={0}
-                        /> */}
+                        />
                         <DatePickerInput
                             leftSection={<IconCalendar size={18} stroke={1.5} />}
                             label="Season Start Date"
                             name="seasonStart"
+                            placeholder="Pick a date"
                         />
                         <DatePickerInput
                             leftSection={<IconCalendar size={18} stroke={1.5} />}
                             label="Season End Date"
                             name="seasonEnd"
+                            placeholder="Pick a date"
                         />
-                        {/* 
+
                         <Group position="right" mt="md">
                             <Button type="submit">Create Team</Button>
                             <Button
@@ -124,7 +119,7 @@ const TeamsPage = ({ loaderData, actionData }) => {
                             >
                                 Cancel
                             </Button>
-                        </Group> */}
+                        </Group>
                     </Form>
                 </Modal>
             </Box>
