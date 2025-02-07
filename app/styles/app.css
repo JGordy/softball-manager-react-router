@@ -13,9 +13,3 @@ body {
         color-scheme: dark;
     }
 }
-
-svg.mantine-DatePickerInput-calendarHeaderControlIcon {
-    width: 5% !important;
-    height: 5% !important;
-    display: inline !important;
-}

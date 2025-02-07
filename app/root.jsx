@@ -10,6 +10,7 @@ import {
 } from "react-router";
 
 import { ColorSchemeScript, MantineProvider } from '@mantine/core';
+import '@mantine/dates/styles.css';
 
 import "@/styles/app.css";
 
