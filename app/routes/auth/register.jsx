@@ -33,7 +33,6 @@ import { account } from '@/appwrite';
 // })));
 
 export async function clientLoader({ request }) {
-    console.log('loader: ', request)
     try {
         const session = await account.getSession();
 

@@ -1,4 +1,5 @@
-import { account, ID } from '@/appwrite';;
+import { account, ID } from '@/appwrite';
+import { createDocument } from '@/utils/databases';
 
 export default async function register({ email, password, name }) {
     console.log({ email, password, name });
@@ -8,13 +9,28 @@ export default async function register({ email, password, name }) {
     }
 
     try {
-        const session = await account.create(ID.unique(), email, password, name);
+        const user = await account.create(ID.unique(), email, password, name);
+        console.log({ user });
 
-        await account.createVerification('http://localhost:5173/verify');
+        // await account.createVerification('http://localhost:5173/verify');
 
-        return ({ email, password, session });
+        // Now, create the user document in the database
+        const userDocument = await createDocument(
+            'users',
+            user.$id, // Use the Appwrite user ID as the document ID
+            {
+                userId: user.$id,  // Store the userId (important!)
+                firstName: name.split(' ')[0],
+                lastName: name.split(' ').slice(1).join(' '),
+                email,
+            }
+        );
+
+        console.log("User document created:", userDocument);
+
+        return ({ email, password, session: user, user });
     } catch (error) {
         console.log('Registration error:', error);
-        return { error };
+        return { error: error.message || error };
     }
 };
