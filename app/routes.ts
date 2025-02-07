@@ -7,7 +7,7 @@ import {
 
 export default [
     layout("routes/layout.jsx", [
-        index("routes/home.tsx"),
+        index("routes/home/home.jsx"),
 
         // Authentication routes
         route("/login", "routes/auth/login.jsx"),
