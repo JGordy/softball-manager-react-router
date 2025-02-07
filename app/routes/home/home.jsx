@@ -1,24 +1,34 @@
 import { useState } from 'react';
+
 import {
-    Center,
-    List,
-    Button,
-    Modal,
-    TextInput,
-    Select,
-    NumberInput,
-    Group,
-    Box,
-    Title,
     Alert,
+    Box,
+    Button,
+    Center,
+    ColorInput,
+    Group,
+    List,
+    Modal,
+    NumberInput,
+    Select,
+    TextInput,
+    Title,
 } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 
-import { IconCalendar } from '@tabler/icons-react';
+import {
+    IconCalendar,
+    IconCurrencyDollar,
+    IconFriends,
+    IconMan,
+    IconWoman,
+} from '@tabler/icons-react';
 
 import { Form } from 'react-router';
 
-import createTeamAction from './action';
+import classes from '@/styles/inputs.module.css';
+
+import { createTeamAction } from './action';
 
 export function meta() {
     return [
@@ -28,6 +38,7 @@ export function meta() {
 }
 
 export async function action({ request }) {
+    console.log('Home > action', { request });
     return createTeamAction({ request });
 }
 
@@ -38,6 +49,17 @@ const TeamsPage = ({ loaderData, actionData }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [teamList, setTeamList] = useState(teams || []);
     const [error, setError] = useState(null);
+
+    const iconProps = {
+        color: 'currentColor',
+        size: 18,
+    };
+
+    const genderIcons = {
+        'Men': <IconMan {...iconProps} />,
+        'Women': <IconWoman {...iconProps} />,
+        'Coed': <IconFriends {...iconProps} />,
+    };
 
     const handleAfterSubmit = async (data) => {
         try {
@@ -77,33 +99,70 @@ const TeamsPage = ({ loaderData, actionData }) => {
                 <Modal opened={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create New Team">
                     {error && <Alert type="error" mb="md">{error}</Alert>}
                     <Form method="post" onSubmit={handleAfterSubmit}>
-                        <TextInput label="Team Name" name="teamName" required />
-                        <TextInput label="League Name" name="leagueName" required />
-                        <Select
-                            label="Type"
-                            name="type"
-                            data={['Men\'s', 'Women\'s', 'Coed']}
+                        <TextInput
+                            className={classes.inputs}
+                            label="Team Name"
+                            name="name"
+                            placeholder='What do you call yourselves?'
                             required
                         />
                         <TextInput
-                            label="Game Day"
-                            name="gameDay"
+                            className={classes.inputs}
+                            label="League Name"
+                            name="leagueName"
+                            placeholder='Super rad weekend league'
+                            required
+                        />
+                        <Select
+                            className={classes.inputs}
+                            label="Gender mix"
+                            name="genderMix"
+                            placeholder="Choose the league's gender composition"
+                            data={['Men', 'Women', 'Coed']}
+                            renderOption={({ option }) => (
+                                <Group flex="1" gap="xs">
+                                    {genderIcons[option.value]}
+                                    {option.label}
+                                </Group>
+                            )}
+                            required
+                        />
+                        <Select
+                            className={classes.inputs}
+                            label="Game Days"
+                            name="gameDays"
+                            placeholder="Day of the week"
+                            data={['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']}
+                        />
+                        <ColorInput
+                            className={classes.inputs}
+                            label="Primary Color"
+                            placeholder="White"
+                            name="primaryColor"
                         />
                         <NumberInput
+                            className={classes.inputs}
                             label="Sign Up Fee"
                             name="signUpFee"
+                            clampBehavior="strict"
+                            leftSection={<IconCurrencyDollar size={18} />}
                             min={0}
+                            max={200}
+                            defaultValue={50}
+                            step={5}
                         />
                         <DatePickerInput
+                            className={classes.inputs}
                             leftSection={<IconCalendar size={18} stroke={1.5} />}
                             label="Season Start Date"
-                            name="seasonStart"
+                            name="seasonStartDate"
                             placeholder="Pick a date"
                         />
                         <DatePickerInput
+                            className={classes.inputs}
                             leftSection={<IconCalendar size={18} stroke={1.5} />}
                             label="Season End Date"
-                            name="seasonEnd"
+                            name="seasonEndDate"
                             placeholder="Pick a date"
                         />
 
