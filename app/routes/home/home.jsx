@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
     Alert,
@@ -24,7 +24,7 @@ import {
     IconWoman,
 } from '@tabler/icons-react';
 
-import { Form } from 'react-router';
+import { Form, useActionData } from 'react-router';
 
 import classes from '@/styles/inputs.module.css';
 
@@ -42,9 +42,10 @@ export async function action({ request }) {
     return createTeamAction({ request });
 }
 
-// Example usage (in your route component):
-const TeamsPage = ({ loaderData, actionData }) => {
+const TeamsPage = ({ loaderData }) => {
     const teams = loaderData?.teams;
+
+    const actionData = useActionData();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [teamList, setTeamList] = useState(teams || []);
@@ -61,22 +62,26 @@ const TeamsPage = ({ loaderData, actionData }) => {
         'Coed': <IconFriends {...iconProps} />,
     };
 
-    const handleAfterSubmit = async (data) => {
-        try {
-            if (data && data.status === 200) {
-                const response = await data.json(); // Parse the JSON from the successful response
-                setTeamList((prevTeams) => [...prevTeams, response]); // Update the teams list with the parsed JSON data
-                setError(null);
-                setIsModalOpen(false); // Close the modal immediately
-                navigate('/teams');
-            } else if (data instanceof Error) {
-                setError(data.message);
+    useEffect(() => {
+        const handleAfterSubmit = async () => {
+            console.log('Does this even work?', { actionData });
+            try {
+                if (actionData && actionData.status === 200) {
+                    const response = await actionData.json();
+                    setTeamList((prevTeams) => [...prevTeams, response]);
+                    setError(null);
+                    setIsModalOpen(false);
+                } else if (actionData instanceof Error) {
+                    setError(actionData.message);
+                }
+            } catch (jsonError) {
+                console.error("Error parsing JSON:", jsonError);
+                setError("An error occurred during team creation.");
             }
-        } catch (jsonError) {
-            console.error("Error parsing JSON:", jsonError);
-            setError("An error occurred during team creation.");
-        }
-    };
+        };
+
+        handleAfterSubmit();
+    }, [actionData]);
 
     return (
         <Center>
@@ -97,8 +102,8 @@ const TeamsPage = ({ loaderData, actionData }) => {
                 </Button>
 
                 <Modal opened={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create New Team">
-                    {error && <Alert type="error" mb="md">{error}</Alert>}
-                    <Form method="post" onSubmit={handleAfterSubmit}>
+                    {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
+                    <Form method="post">
                         <TextInput
                             className={classes.inputs}
                             label="Team Name"
