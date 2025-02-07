@@ -3,6 +3,8 @@ export async function createTeamAction({ request }) {
     const newTeam = Object.fromEntries(formData.entries());
     console.log('createTeamAction > newTeam: ', { newTeam });
 
+    return { response: newTeam, status: 200 };
+
     // try {
     //     const response = await fetch('/api/teams', { // Replace with your API endpoint
     //         method: 'POST',
