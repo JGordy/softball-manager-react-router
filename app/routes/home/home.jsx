@@ -24,9 +24,11 @@ import {
     IconWoman,
 } from '@tabler/icons-react';
 
-import { Form, useActionData } from 'react-router';
+import { Form, useActionData, redirect } from 'react-router';
 
 import classes from '@/styles/inputs.module.css';
+
+import { account } from '@/appwrite';
 
 import { createTeamAction } from './action';
 
@@ -35,6 +37,19 @@ export function meta() {
         { title: "Rocket Roster" },
         { name: "description", content: "Welcome to Rocker Roster!" },
     ];
+}
+
+export async function clientLoader({ request }) {
+    try {
+        const session = await account.getSession('current');
+        if (!session) {
+            return redirect("/login");
+        }
+        return null;
+    } catch (error) {
+        console.log("No active session found");
+        return redirect("/login");
+    }
 }
 
 export async function action({ request }) {
