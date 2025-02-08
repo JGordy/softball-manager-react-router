@@ -1,4 +1,4 @@
-import { Query } from '@/appwrite';
+import { Query, functions } from '@/appwrite';
 import { listDocuments } from '@/utils/databases';
 
 export async function getTeams({ userId }) {
@@ -11,14 +11,13 @@ export async function getTeams({ userId }) {
     // 2. Extract teamIds
     const teamIds = memberships.documents.map(m => m.teamId);
 
-    // 3. Get the teams
+    // 3. Call the Appwrite function
     let teams = [];
     if (teamIds.length > 0) {
         // Make multiple queries
         const promises = teamIds.map(async (teamId) => {
             const result = await listDocuments('teams', [
                 Query.equal('$id', teamId),
-                Query.orderDesc("$updatedAt"),
             ]);
             return result.documents; // Extract the documents
         });
@@ -27,6 +26,5 @@ export async function getTeams({ userId }) {
         teams = results.flat(); // Flatten the array of arrays into a single array
     }
 
-    console.log({ teams });
     return teams;
 }
