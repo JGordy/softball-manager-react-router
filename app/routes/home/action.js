@@ -1,25 +1,32 @@
-export async function createTeamAction({ request }) {
+import { ID } from '@/appwrite';
+import { createDocument } from '@/utils/databases.js';
+
+export async function createTeam({ request, params }) {
+    console.log({ request, params });
+    const { userId } = params;
+
     const formData = await request.formData();
-    const newTeam = Object.fromEntries(formData.entries());
-    console.log('createTeamAction > newTeam: ', { newTeam });
+    const teamData = Object.fromEntries(formData.entries());
 
-    return { response: newTeam, status: 200 };
+    console.log('createTeamAction > teamData: ', { teamData });
 
-    // try {
-    //     const response = await fetch('/api/teams', { // Replace with your API endpoint
-    //         method: 'POST',
-    //         headers: { 'Content-Type': 'application/json' },
-    //         body: JSON.stringify(newTeam),
-    //     });
 
-    //     if (!response.ok) {
-    //         const errorData = await response.json();
-    //         throw new Error(errorData.message || "Failed to create team");
-    //     }
+    try {
+        const teamId = ID.unique(); // Create this now so it's easier to use later
 
-    //     return response; // Or return the created team data if your API does so.
-    // } catch (error) {
-    //     console.error("Error creating team:", error);
-    //     throw error; // Re-throw the error for React Router to handle
-    // }
+        const team = await createDocument(
+            'teams', // Your teams collection ID
+            teamId, // Generates a unique team ID in the handler
+            teamData,
+        );
+
+        // Create document in relationship table for the user and team id's. Assume the user creating the team is a coach
+        const membership = await createDocument('memberships', null, { userId, teamId, role: 'coach' });
+        console.log({ membership });
+
+        return { response: team, status: 200 };
+    } catch (error) {
+        console.error("Error creating team:", error);
+        throw error;
+    }
 }

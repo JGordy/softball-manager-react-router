@@ -39,6 +39,10 @@ export function meta() {
     ];
 }
 
+export async function loader({ request }) {
+
+};
+
 export async function clientLoader({ request }) {
     try {
         const session = await account.getSession('current');
@@ -50,7 +54,7 @@ export async function clientLoader({ request }) {
         console.log("No active session found");
         return redirect("/login");
     }
-}
+};
 
 export async function action({ request }) {
     console.log('Home > action', { request });
