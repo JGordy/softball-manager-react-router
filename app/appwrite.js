@@ -9,4 +9,4 @@ client
 export const account = new Account(client);
 export const databases = new Databases(client);
 
-export { ID } from 'appwrite';
+export { ID, Query } from 'appwrite';
