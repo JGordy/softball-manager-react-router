@@ -4,38 +4,25 @@ import {
     Alert,
     Box,
     Button,
-    Card,
     Center,
-    ColorInput,
     Group,
-    List,
     Modal,
-    NumberInput,
-    Select,
     Text,
-    TextInput,
     Title,
-    ThemeIcon
 } from '@mantine/core';
-import { DatePickerInput } from '@mantine/dates';
 
 import {
-    IconCalendar,
-    IconCurrencyDollar,
-    IconFriends,
-    IconMan,
-    IconWoman,
-    IconMapPin,
-} from '@tabler/icons-react';
-
-import { Form, useActionData, redirect } from 'react-router';
-
-import classes from '@/styles/inputs.module.css';
+    useActionData,
+    redirect,
+} from 'react-router';
 
 import { account } from '@/appwrite';
 
 import { createTeam } from './action';
 import { getTeams } from './loader';
+
+import TeamCard from './components/TeamCard';
+import TeamForm from './components/NewTeamForm';
 
 export function meta() {
     return [
@@ -79,18 +66,6 @@ const UserDashboard = ({ loaderData }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [teamList, setTeamList] = useState(teams || []);
     const [error, setError] = useState(null);
-    console.warn({ teamList, loaderData });
-
-    const iconProps = {
-        color: 'currentColor',
-        size: 18,
-    };
-
-    const genderIcons = {
-        'Men': <IconMan {...iconProps} />,
-        'Women': <IconWoman {...iconProps} />,
-        'Coed': <IconFriends {...iconProps} />,
-    };
 
     useEffect(() => {
         const handleAfterSubmit = async () => {
@@ -121,7 +96,7 @@ const UserDashboard = ({ loaderData }) => {
                     Teams
                 </Title>
                 {(teamList.length > 0) && (
-                    <Group direction="column" spacing="xl"> {/* Use Group for card layout */}
+                    <Group direction="column" spacing="xl">
                         {teamList.map((team) => {
                             // const navigate = useNavigate();
                             // const handleCardClick = () => {
@@ -129,76 +104,7 @@ const UserDashboard = ({ loaderData }) => {
                             // };
 
                             return (
-                                <Card
-                                    key={team.$id} // Use $id as key
-                                    p="lg"
-                                    shadow="sm"
-                                    radius="md"
-                                    withBorder
-                                    // onClick={handleCardClick} // Add click handler
-                                    style={{ cursor: 'pointer' }} // Indicate clickable
-                                >
-                                    <Card.Section>
-                                        <Text weight={500} size="lg">
-                                            {team.name}
-                                        </Text>
-                                    </Card.Section>
-
-                                    <Card.Section mt="sm">
-                                        <Group spacing="xs">
-                                            <ThemeIcon variant="light" color="blue">
-                                                <IconMapPin size={14} />
-                                            </ThemeIcon>
-                                            <Text size="sm" color="dimmed">
-                                                {team.location || "Location not specified"} {/* Handle null location */}
-                                            </Text>
-                                        </Group>
-                                    </Card.Section>
-
-
-                                    <Card.Section mt="xs">
-                                        <Group spacing="xs">
-                                            <ThemeIcon variant="light" color="green">
-                                                <IconCalendar size={14} />
-                                            </ThemeIcon>
-                                            <Text size="sm" color="dimmed">
-                                                {new Date(team.seasonStartDate).toLocaleDateString()} - {new Date(team.seasonEndDate).toLocaleDateString()}
-                                            </Text>
-                                        </Group>
-                                    </Card.Section>
-
-                                    <Card.Section mt="xs">
-                                        <Group spacing="xs">
-                                            <ThemeIcon variant="light" color="yellow">
-                                                <IconCurrencyDollar size={14} />
-                                            </ThemeIcon>
-                                            <Text size="sm" color="dimmed">
-                                                {team.signUpFee}
-                                            </Text>
-                                        </Group>
-                                    </Card.Section>
-
-                                    <Card.Section mt="xs">
-                                        <Group spacing="xs">
-                                            <Text size="sm" color="dimmed">
-                                                {team.genderMix}
-                                            </Text>
-                                        </Group>
-                                    </Card.Section>
-
-                                    <Card.Section mt="xs">
-                                        <Text size="sm" color="dimmed">
-                                            League: {team.leagueName}
-                                        </Text>
-                                    </Card.Section>
-
-                                    <Card.Section mt="xs">
-                                        <Text size="sm" color="dimmed">
-                                            Game Days: {team.gameDays}
-                                        </Text>
-                                    </Card.Section>
-
-                                </Card>
+                                <TeamCard {...team} />
                             );
                         })}
                     </Group>
@@ -214,88 +120,7 @@ const UserDashboard = ({ loaderData }) => {
 
                 <Modal opened={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create New Team">
                     {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
-                    <Form method="post">
-                        <TextInput
-                            className={classes.inputs}
-                            label="Team Name"
-                            name="name"
-                            placeholder='What do you call yourselves?'
-                            required
-                        />
-                        <TextInput
-                            className={classes.inputs}
-                            label="League Name"
-                            name="leagueName"
-                            placeholder='Super rad weekend league'
-                            required
-                        />
-                        <Select
-                            className={classes.inputs}
-                            label="Gender mix"
-                            name="genderMix"
-                            placeholder="Choose the league's gender composition"
-                            data={['Men', 'Women', 'Coed']}
-                            renderOption={({ option }) => (
-                                <Group flex="1" gap="xs">
-                                    {genderIcons[option.value]}
-                                    {option.label}
-                                </Group>
-                            )}
-                            required
-                        />
-                        <Select
-                            className={classes.inputs}
-                            label="Game Days"
-                            name="gameDays"
-                            placeholder="Day of the week"
-                            data={['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']}
-                        />
-                        <ColorInput
-                            className={classes.inputs}
-                            label="Primary Color"
-                            placeholder="White"
-                            name="primaryColor"
-                        />
-                        <NumberInput
-                            className={classes.inputs}
-                            label="Sign Up Fee"
-                            name="signUpFee"
-                            clampBehavior="strict"
-                            leftSection={<IconCurrencyDollar size={18} />}
-                            min={0}
-                            max={200}
-                            defaultValue={50}
-                            step={5}
-                        />
-                        <DatePickerInput
-                            className={classes.inputs}
-                            leftSection={<IconCalendar size={18} stroke={1.5} />}
-                            label="Season Start Date"
-                            name="seasonStartDate"
-                            placeholder="Pick a date"
-                        />
-                        <DatePickerInput
-                            className={classes.inputs}
-                            leftSection={<IconCalendar size={18} stroke={1.5} />}
-                            label="Season End Date"
-                            name="seasonEndDate"
-                            placeholder="Pick a date"
-                        />
-
-                        <Group position="right" mt="md">
-                            <Button type="submit">Create Team</Button>
-                            <Button
-                                variant="outline"
-                                color="gray"
-                                onClick={() => {
-                                    setIsModalOpen(false);
-                                    setError(null);
-                                }}
-                            >
-                                Cancel
-                            </Button>
-                        </Group>
-                    </Form>
+                    <TeamForm />
                 </Modal>
             </Box>
         </Center>
