@@ -4,6 +4,7 @@ import {
     Alert,
     Box,
     Button,
+    Card,
     Center,
     ColorInput,
     Group,
@@ -14,6 +15,7 @@ import {
     Text,
     TextInput,
     Title,
+    ThemeIcon
 } from '@mantine/core';
 import { DatePickerInput } from '@mantine/dates';
 
@@ -23,6 +25,7 @@ import {
     IconFriends,
     IconMan,
     IconWoman,
+    IconMapPin,
 } from '@tabler/icons-react';
 
 import { Form, useActionData, redirect } from 'react-router';
@@ -118,13 +121,87 @@ const UserDashboard = ({ loaderData }) => {
                     Teams
                 </Title>
                 {(teamList.length > 0) && (
-                    <List size="sm" maw={400} mx="auto">
-                        {teamList.map((team, index) => (
-                            <List.Item key={index}>
-                                {team.name} ({team.leagueName})
-                            </List.Item>
-                        ))}
-                    </List>
+                    <Group direction="column" spacing="xl"> {/* Use Group for card layout */}
+                        {teamList.map((team) => {
+                            // const navigate = useNavigate();
+                            // const handleCardClick = () => {
+                            //     navigate(`/team/${team.$id}`); // Navigate to team page
+                            // };
+
+                            return (
+                                <Card
+                                    key={team.$id} // Use $id as key
+                                    p="lg"
+                                    shadow="sm"
+                                    radius="md"
+                                    withBorder
+                                    // onClick={handleCardClick} // Add click handler
+                                    style={{ cursor: 'pointer' }} // Indicate clickable
+                                >
+                                    <Card.Section>
+                                        <Text weight={500} size="lg">
+                                            {team.name}
+                                        </Text>
+                                    </Card.Section>
+
+                                    <Card.Section mt="sm">
+                                        <Group spacing="xs">
+                                            <ThemeIcon variant="light" color="blue">
+                                                <IconMapPin size={14} />
+                                            </ThemeIcon>
+                                            <Text size="sm" color="dimmed">
+                                                {team.location || "Location not specified"} {/* Handle null location */}
+                                            </Text>
+                                        </Group>
+                                    </Card.Section>
+
+
+                                    <Card.Section mt="xs">
+                                        <Group spacing="xs">
+                                            <ThemeIcon variant="light" color="green">
+                                                <IconCalendar size={14} />
+                                            </ThemeIcon>
+                                            <Text size="sm" color="dimmed">
+                                                {new Date(team.seasonStartDate).toLocaleDateString()} - {new Date(team.seasonEndDate).toLocaleDateString()}
+                                            </Text>
+                                        </Group>
+                                    </Card.Section>
+
+                                    <Card.Section mt="xs">
+                                        <Group spacing="xs">
+                                            <ThemeIcon variant="light" color="yellow">
+                                                <IconCurrencyDollar size={14} />
+                                            </ThemeIcon>
+                                            <Text size="sm" color="dimmed">
+                                                {team.signUpFee}
+                                            </Text>
+                                        </Group>
+                                    </Card.Section>
+
+                                    <Card.Section mt="xs">
+                                        <Group spacing="xs">
+                                            <Text size="sm" color="dimmed">
+                                                {team.genderMix}
+                                            </Text>
+                                        </Group>
+                                    </Card.Section>
+
+                                    <Card.Section mt="xs">
+                                        <Text size="sm" color="dimmed">
+                                            League: {team.leagueName}
+                                        </Text>
+                                    </Card.Section>
+
+                                    <Card.Section mt="xs">
+                                        <Text size="sm" color="dimmed">
+                                            Game Days: {team.gameDays}
+                                        </Text>
+                                    </Card.Section>
+
+                                </Card>
+                            );
+                        })}
+                    </Group>
                 )}
 
                 {!teamList.length && (
