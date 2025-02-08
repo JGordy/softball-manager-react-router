@@ -12,9 +12,7 @@ export default async function register({ email, password, name }) {
         const user = await account.create(ID.unique(), email, password, name);
         console.log({ user });
 
-        // await account.createVerification('http://localhost:5173/verify');
-
-        // Now, create the user document in the database
+        // Create the user document in the database
         const userDocument = await createDocument(
             'users',
             user.$id, // Use the Appwrite user ID as the document ID
