@@ -32,8 +32,9 @@ import login from './utils/login';
 export async function clientLoader({ request }) {
     try {
         const session = await account.getSession('current');
+
         if (session) {
-            return redirect("/");
+            return redirect(`/user/${session.userId}`);
         }
         return null;
     } catch (error) {

@@ -37,7 +37,7 @@ export async function clientLoader({ request }) {
         const session = await account.getSession();
 
         if (session) {
-            return redirect("/");
+            return redirect(`/user/${session.userId}`);
         }
         return null;
     } catch (error) {
@@ -78,6 +78,7 @@ export default function Register({ actionData }) {
     useEffect(() => {
         const createUserSession = async () => {
             await account.createEmailPasswordSession(actionData.email, actionData.password);
+            await account.createVerification('http://localhost:5173/verify');
             redirect('/login');
         };
 
