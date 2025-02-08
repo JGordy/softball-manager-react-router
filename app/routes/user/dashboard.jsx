@@ -121,7 +121,7 @@ const UserDashboard = ({ loaderData }) => {
                     <List size="sm" maw={400} mx="auto">
                         {teamList.map((team, index) => (
                             <List.Item key={index}>
-                                {team.teamName} ({team.leagueName})
+                                {team.name} ({team.leagueName})
                             </List.Item>
                         ))}
                     </List>
