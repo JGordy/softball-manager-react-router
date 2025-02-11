@@ -139,7 +139,7 @@ const PlayerChart = ({ playerChart, setPlayerChart }) => {
     return (
         <div className={styles.tableContainer}>
             <ScrollArea mih={300} onScrollPositionChange={({ y }) => setScrolled(y !== 0)}>
-                <Table>
+                <Table striped highlightOnHover withTableBorder>
                     <Table.Thead className={headerClassName}>
                         <Table.Tr>
                             {columns.map((column) => (
