@@ -11,7 +11,7 @@ const popularEmailProviders = [
     'protonmail.com',
 ];
 
-export default function AutocompleteEmail() {
+export default function AutocompleteEmail({ classes }) {
 
     const timeoutRef = useRef(-1);
     const [emailSuggestions, setEmailSuggestions] = useState([]);
@@ -19,6 +19,7 @@ export default function AutocompleteEmail() {
 
     return (
         <Autocomplete
+            className={classes}
             label="Email"
             name="email"
             placeholder="your@email.com"
