@@ -1,4 +1,4 @@
-import { Query, functions } from '@/appwrite';
+import { Query } from '@/appwrite';
 import { listDocuments } from '@/utils/databases';
 
 export async function getTeams({ userId }) {
