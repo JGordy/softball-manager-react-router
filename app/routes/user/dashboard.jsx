@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 
 import {
     Alert,
-    Box,
     Button,
-    Center,
+    Flex,
+    Container,
     Group,
     Modal,
     Text,
@@ -31,7 +31,7 @@ export function meta() {
     ];
 }
 
-export async function loader({ request, params }) {
+export async function loader({ params }) {
     const { userId } = params;
 
     if (userId) {
@@ -41,18 +41,27 @@ export async function loader({ request, params }) {
     }
 };
 
-export async function clientLoader({ request }) {
+export async function clientLoader({ params, serverLoader }) {
+    const { userId } = params;
+    const { teams: serverTeams } = await serverLoader();
+
     try {
-        const session = await account.getSession('current');
+        const session = await account.getSession("current");
         if (!session) {
             return redirect("/login");
         }
-        return null;
+
+        const teams = serverTeams.length > 0  // Check if serverTeams has data
+            ? serverTeams // Use server-loaded teams if available
+            : userId ? await getTeams({ userId }) : []; // Otherwise, fetch if userId exists
+
+        return { teams };
+
     } catch (error) {
-        console.log("No active session found");
+        console.error("Error in clientLoader:", error);
         return redirect("/login");
     }
-};
+}
 
 export async function action({ request, params }) {
     return createTeam({ request, params });
@@ -90,23 +99,23 @@ const UserDashboard = ({ loaderData }) => {
     }, [actionData]);
 
     return (
-        <Center>
-            <Box mx="auto">
+        <Container>
+            <Flex
+                style={{ minHeight: '100vh' }}
+                mih={50}
+                bg="rgba(0, 0, 0, .3)"
+                gap="md"
+                justify="flex-start"
+                align="center"
+                direction="column"
+                wrap="wrap"
+            >
                 <Title order={2} mb="sm">
-                    Teams
+                    My Teams
                 </Title>
                 {(teamList.length > 0) && (
-                    <Group direction="column" spacing="xl">
-                        {teamList.map((team) => {
-                            // const navigate = useNavigate();
-                            // const handleCardClick = () => {
-                            //     navigate(`/team/${team.$id}`); // Navigate to team page
-                            // };
-
-                            return (
-                                <TeamCard {...team} />
-                            );
-                        })}
+                    <Group spacing="xl">
+                        {teamList.map((team) => <TeamCard key={team.$id} {...team} />)}
                     </Group>
                 )}
 
@@ -114,7 +123,7 @@ const UserDashboard = ({ loaderData }) => {
                     <Text size="sm">You don't have any teams. Create one below</Text>
                 )}
 
-                <Button component="a" variant="link" mt="md" onClick={() => setIsModalOpen(true)}>
+                <Button component="div" variant="link" mt="md" onClick={() => setIsModalOpen(true)}>
                     Create New Team
                 </Button>
 
@@ -122,8 +131,8 @@ const UserDashboard = ({ loaderData }) => {
                     {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
                     <TeamForm />
                 </Modal>
-            </Box>
-        </Center>
+            </Flex>
+        </Container>
     );
 };
 
