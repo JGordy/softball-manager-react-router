@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import {
+    Avatar,
     Table,
     ScrollArea,
 } from '@mantine/core'
@@ -45,14 +46,21 @@ export default function PlayerList({ players }) {
                         </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>
-                        {players.map((row) => (
-                            <Table.Tr key={row.$id}>
-                                <Table.Td>{' '}</Table.Td>
-                                <Table.Td>{row.firstName + ' ' + row.lastName}</Table.Td>
-                                <Table.Td>{' '}</Table.Td>
-                                <Table.Td>{row.email}</Table.Td>
-                            </Table.Tr>
-                        ))}
+                        {players.map((row) => {
+                            const name = `${row.firstName} ${row.lastName}`;
+
+                            return (
+                                <Table.Tr key={row.$id}>
+                                    <Table.Td>
+                                        {/* TODO: Let users upload an avatar */}
+                                        <Avatar name={name} alt={name} color="initials" />
+                                    </Table.Td>
+                                    <Table.Td>{name}</Table.Td>
+                                    <Table.Td>{' '}</Table.Td>
+                                    <Table.Td>{row.email}</Table.Td>
+                                </Table.Tr>
+                            )
+                        })}
                     </Table.Tbody>
                 </Table>
             </ScrollArea>
