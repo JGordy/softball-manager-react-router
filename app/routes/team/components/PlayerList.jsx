@@ -36,7 +36,7 @@ export default function PlayerList({ players }) {
 
     return (
         <div className={styles.tableContainer}>
-            <ScrollArea mih={300} onScrollPositionChange={({ y }) => setScrolled(y !== 0)}>
+            <ScrollArea mah={300} onScrollPositionChange={({ y }) => setScrolled(y !== 0)}>
                 <Table striped highlightOnHover withTableBorder>
                     <Table.Thead className={headerClassName}>
                         <Table.Tr>
