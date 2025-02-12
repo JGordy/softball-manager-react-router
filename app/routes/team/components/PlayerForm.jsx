@@ -19,7 +19,7 @@ import positions from '@/constants/positions';
 
 import classes from '@/styles/inputs.module.css';
 
-export default function TeamForm({ setIsModalOpen, setError }) {
+export default function TeamForm({ setIsModalOpen, setError, primaryColor }) {
 
     // const iconProps = {
     //     color: 'currentColor',
@@ -40,7 +40,7 @@ export default function TeamForm({ setIsModalOpen, setError }) {
                 name="lastName"
                 required
             />
-            <AutocompleteEmail classes={classes.inputs} />
+            <AutocompleteEmail classes={classes.inputs} required />
             <Input.Wrapper className={classes.inputs}>
                 <Input.Label>Phone Number</Input.Label>
                 <Input
@@ -57,6 +57,7 @@ export default function TeamForm({ setIsModalOpen, setError }) {
                 placeholder="Select Gender"
                 data={['Male', 'Female']}
                 mb="sm"
+                required
             />
             <MultiSelect
                 className={classes.inputs}
@@ -66,6 +67,7 @@ export default function TeamForm({ setIsModalOpen, setError }) {
                 mb="sm"
                 clearable
                 searchable
+                required
             />
             <TextInput
                 className={classes.inputs}
@@ -75,7 +77,13 @@ export default function TeamForm({ setIsModalOpen, setError }) {
             />
 
             <Group position="right" mt="lg">
-                <Button type="submit">Submit</Button>
+                <Button
+                    type="submit"
+                    color={primaryColor}
+                    autoContrast
+                >
+                    Submit
+                </Button>
                 <Button
                     variant="outline"
                     color="gray"

@@ -11,7 +11,7 @@ const popularEmailProviders = [
     'protonmail.com',
 ];
 
-export default function AutocompleteEmail({ classes }) {
+export default function AutocompleteEmail({ classes, required }) {
 
     const timeoutRef = useRef(-1);
     const [emailSuggestions, setEmailSuggestions] = useState([]);
@@ -23,6 +23,7 @@ export default function AutocompleteEmail({ classes }) {
             label="Email"
             name="email"
             placeholder="your@email.com"
+            required={required}
             data={emailSuggestions}
             rightSection={loading ? <Loader size={16} /> : null}
             onChange={(value) => {
