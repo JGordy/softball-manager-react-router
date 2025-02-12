@@ -157,6 +157,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                 <PlayerForm
                     setIsModalOpen={setIsModalOpen}
                     setError={setError}
+                    primaryColor={primaryColor}
                 />
             </Modal>
         </Container >
