@@ -24,7 +24,6 @@ export default function TeamCard(team) {
                 shadow="sm"
                 radius="md"
                 withBorder
-                // onClick={handleCardClick} // Add click handler
                 style={{ cursor: 'pointer' }}
             >
                 <Card.Section>
