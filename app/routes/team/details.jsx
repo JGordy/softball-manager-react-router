@@ -17,6 +17,7 @@ import {
 import { IconCurrencyDollar, IconCalendar, IconMapPin } from '@tabler/icons-react';
 
 import { listDocuments, readDocument } from '@/utils/databases';
+import { adjustColorBasedOnDarkness } from '@/utils/adjustHexColor';
 
 import { Query } from '@/appwrite';
 
@@ -68,6 +69,14 @@ export default function TeamDetails({ actionData, loaderData }) {
     const [teamDetails, setTeamDetails] = useState(teamData || {});
     const [error, setError] = useState(null);
 
+    let { primaryColor } = teamDetails;
+    const adjustedColor = adjustColorBasedOnDarkness(primaryColor, 50);
+
+    const iconProps = {
+        variant: 'gradient',
+        gradient: { from: primaryColor, to: adjustedColor, deg: 270 },
+        autoContrast: true,
+    };
 
     return (
         <Container size="xl" p="xl">
@@ -78,7 +87,7 @@ export default function TeamDetails({ actionData, loaderData }) {
 
             <Stack spacing="sm">
                 <Group spacing="xs">
-                    <ThemeIcon variant="light" color="blue">
+                    <ThemeIcon {...iconProps}>
                         <IconMapPin size={14} />
                     </ThemeIcon>
                     <Text size="sm" c="dimmed">
@@ -87,7 +96,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                 </Group>
 
                 <Group spacing="xs">
-                    <ThemeIcon variant="light" color="green">
+                    <ThemeIcon {...iconProps}>
                         <IconCalendar size={14} />
                     </ThemeIcon>
                     <Text size="sm" c="dimmed">
@@ -96,7 +105,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                 </Group>
 
                 <Group spacing="xs">
-                    <ThemeIcon variant="light" color="yellow">
+                    <ThemeIcon {...iconProps}>
                         <IconCurrencyDollar size={14} />
                     </ThemeIcon>
                     <Text size="sm" c="dimmed">
