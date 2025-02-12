@@ -25,7 +25,7 @@ export default function TeamCard(team) {
                 radius="md"
                 withBorder
                 // onClick={handleCardClick} // Add click handler
-                style={{ cursor: 'pointer', width: '100%' }}
+                style={{ cursor: 'pointer' }}
             >
                 <Card.Section>
                     <Text weight={500} size="lg">
