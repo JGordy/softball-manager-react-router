@@ -100,38 +100,33 @@ const UserDashboard = ({ loaderData }) => {
 
     return (
         <Container>
+            <Title order={2} mb="sm">
+                My Teams
+            </Title>
+
             <Flex
-                style={{ minHeight: '100vh' }}
-                mih={50}
-                bg="rgba(0, 0, 0, .3)"
-                gap="md"
-                justify="flex-start"
-                align="center"
-                direction="column"
+                direction={{ base: 'column', sm: 'row' }}
+                justify={{ base: 'center', sm: 'start' }}
+                align={{ base: 'stretch', sm: 'center' }}
                 wrap="wrap"
+                gap={{ base: 'sm', sm: 'lg' }}
+                mih={50}
             >
-                <Title order={2} mb="sm">
-                    My Teams
-                </Title>
-                {(teamList.length > 0) && (
-                    <Group spacing="xl">
-                        {teamList.map((team) => <TeamCard key={team.$id} {...team} />)}
-                    </Group>
-                )}
-
-                {!teamList.length && (
-                    <Text size="sm">You don't have any teams. Create one below</Text>
-                )}
-
-                <Button component="div" variant="link" mt="md" onClick={() => setIsModalOpen(true)}>
-                    Create New Team
-                </Button>
-
-                <Modal opened={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create New Team">
-                    {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
-                    <TeamForm />
-                </Modal>
+                {(teamList.length > 0) && teamList.map((team) => <TeamCard key={team.$id} {...team} />)}
             </Flex>
+
+            {!teamList.length && (
+                <Text size="sm">You don't have any teams. Create one below</Text>
+            )}
+
+            <Button component="div" variant="link" mt="md" onClick={() => setIsModalOpen(true)}>
+                Create New Team
+            </Button>
+
+            <Modal opened={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create New Team">
+                {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
+                <TeamForm />
+            </Modal>
         </Container>
     );
 };
