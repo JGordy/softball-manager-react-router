@@ -64,6 +64,8 @@ export default function TeamForm({ setIsModalOpen, setError }) {
                 placeholder="Select Positions"
                 data={positions}
                 mb="sm"
+                clearable
+                searchable
             />
             <TextInput
                 className={classes.inputs}
