@@ -54,6 +54,7 @@ export default function TeamForm({ setIsModalOpen, setError, primaryColor }) {
             <Select
                 className={classes.inputs}
                 label="Gender"
+                name="gender"
                 placeholder="Select Gender"
                 data={['Male', 'Female']}
                 mb="sm"
@@ -62,6 +63,7 @@ export default function TeamForm({ setIsModalOpen, setError, primaryColor }) {
             <MultiSelect
                 className={classes.inputs}
                 label="Preferred Positions"
+                name="preferredPositions"
                 placeholder="Select Positions"
                 data={positions}
                 mb="sm"
@@ -72,6 +74,7 @@ export default function TeamForm({ setIsModalOpen, setError, primaryColor }) {
             <TextInput
                 className={classes.inputs}
                 label="Walk Up Song"
+                name="walkUpSong"
                 placeholder="Walk Up Song"
                 mb="sm"
             />
