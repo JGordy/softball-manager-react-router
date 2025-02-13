@@ -13,10 +13,10 @@ import {
     IconMapPin,
 } from '@tabler/icons-react';
 
-export default function TeamCard(team) {
+export default function TeamCard({ team, userId }) {
 
     return (
-        <Link to={`/teams/${team.$id}`}>
+        <Link to={`/user/${userId}/teams/${team.$id}`}>
             <Card
                 key={team.$id}
                 p="lg"
