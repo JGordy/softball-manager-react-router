@@ -1,5 +1,5 @@
 import { Query } from '@/appwrite';
-import { listDocuments } from '@/utils/databases';
+import { listDocuments, readDocument } from '@/utils/databases';
 
 export async function getTeams({ userId }) {
     // 1. Check relationships table to list memberships for the userId, coach
@@ -27,4 +27,8 @@ export async function getTeams({ userId }) {
     }
 
     return teams;
+}
+
+export async function getProfile({ userId }) {
+    return await readDocument('users', userId);
 }
