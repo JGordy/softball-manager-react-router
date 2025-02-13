@@ -1,0 +1,12 @@
+.navLinksContainer {
+    width: 100vw;
+    position: absolute;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+}
+
+.navLinks {
+    /* width: 80%; */
+    margin-bottom: 10px;
+}
