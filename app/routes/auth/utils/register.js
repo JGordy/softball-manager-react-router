@@ -2,7 +2,6 @@ import { account, ID } from '@/appwrite';
 import { createDocument } from '@/utils/databases';
 
 export default async function register({ email, password, name }) {
-    console.log({ email, password, name });
     // Input validation
     if (!email || !password || !name) {
         return { error: 'Email, password and name are required.' };
@@ -10,7 +9,6 @@ export default async function register({ email, password, name }) {
 
     try {
         const user = await account.create(ID.unique(), email, password, name);
-        console.log({ user });
 
         // Create the user document in the database
         const userDocument = await createDocument(

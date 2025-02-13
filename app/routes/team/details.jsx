@@ -42,7 +42,6 @@ export default function TeamDetails({ actionData, loaderData }) {
 
     useEffect(() => {
         const handleAfterSubmit = async () => {
-            console.log('Does this even work?', { actionData });
             try {
                 if (actionData && actionData.status === 200) {
                     // const { response } = actionData;

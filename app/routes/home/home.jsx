@@ -57,7 +57,6 @@ export async function clientLoader({ request }) {
 };
 
 export async function action({ request }) {
-    console.log('Home > action', { request });
     return createTeamAction({ request });
 }
 
@@ -83,7 +82,6 @@ const TeamsPage = ({ loaderData }) => {
 
     useEffect(() => {
         const handleAfterSubmit = async () => {
-            console.log('Does this even work?', { actionData });
             try {
                 if (actionData && actionData.status === 200) {
                     const response = await actionData.json();

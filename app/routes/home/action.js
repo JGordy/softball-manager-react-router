@@ -2,13 +2,11 @@ import { ID } from '@/appwrite';
 import { createDocument } from '@/utils/databases.js';
 
 export async function createTeam({ request, params }) {
-    console.log({ request, params });
     const { userId } = params;
 
     const formData = await request.formData();
     const teamData = Object.fromEntries(formData.entries());
 
-    console.log('createTeamAction > teamData: ', { teamData });
 
 
     try {
@@ -22,7 +20,6 @@ export async function createTeam({ request, params }) {
 
         // Create document in relationship table for the user and team id's. Assume the user creating the team is a coach
         const membership = await createDocument('memberships', null, { userId, teamId, role: 'coach' });
-        console.log({ membership });
 
         return { response: team, status: 200 };
     } catch (error) {

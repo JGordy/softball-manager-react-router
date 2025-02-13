@@ -9,8 +9,6 @@ export const collections = {
     memberships: import.meta.env.VITE_APPWRITE_MEMBERSHIPS_COLLECTION_ID,
 };
 
-console.log({ collections });
-
 // Helper function to create a document
 export const createDocument = async (collectionType, id, data) => {
     const _id = id || ID.unique();

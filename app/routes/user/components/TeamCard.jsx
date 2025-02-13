@@ -14,7 +14,6 @@ import {
 } from '@tabler/icons-react';
 
 export default function TeamCard(team) {
-    console.log({ team });
 
     return (
         <Link to={`/teams/${team.$id}`}>
