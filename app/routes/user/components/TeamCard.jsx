@@ -2,6 +2,8 @@ import { Link } from "react-router";
 
 import {
     Card,
+    Center,
+    Divider,
     Text,
     Group,
     ThemeIcon,
@@ -19,71 +21,53 @@ export default function TeamCard({ team, userId }) {
         <Link to={`/user/${userId}/teams/${team.$id}`}>
             <Card
                 key={team.$id}
-                p="lg"
+                padding="lg"
                 shadow="sm"
-                radius="md"
-                withBorder
                 style={{ cursor: 'pointer' }}
+                radius="xl"
+                withBorder
             >
-                <Card.Section>
+                <Center>
                     <Text weight={500} size="lg">
                         {team.name}
                     </Text>
-                </Card.Section>
+                </Center>
 
-                <Card.Section mt="sm">
-                    <Group spacing="xs">
-                        <ThemeIcon variant="light" color="blue">
-                            <IconMapPin size={14} />
-                        </ThemeIcon>
-                        <Text size="sm" c="dimmed">
-                            {team.location || "Location not specified"} {/* Handle null location */}
-                        </Text>
-                    </Group>
-                </Card.Section>
+                <Divider my="sm" />
 
-
-                <Card.Section mt="xs">
-                    <Group spacing="xs">
+                <Group mb="xs">
+                    <Group>
                         <ThemeIcon variant="light" color="green">
-                            <IconCalendar size={14} />
+                            <IconCalendar size={16} />
                         </ThemeIcon>
                         <Text size="sm" c="dimmed">
                             {new Date(team.seasonStartDate).toLocaleDateString()} - {new Date(team.seasonEndDate).toLocaleDateString()}
                         </Text>
                     </Group>
-                </Card.Section>
 
-                <Card.Section mt="xs">
-                    <Group spacing="xs">
-                        <ThemeIcon variant="light" color="yellow">
-                            <IconCurrencyDollar size={14} />
+                    <Group>
+                        <ThemeIcon variant="light" color="blue">
+                            <IconMapPin size={16} />
                         </ThemeIcon>
                         <Text size="sm" c="dimmed">
-                            {team.signUpFee}
+                            {team.location || "Location not specified"} {/* Handle null location */}
                         </Text>
                     </Group>
-                </Card.Section>
+                </Group>
 
-                <Card.Section mt="xs">
-                    <Group spacing="xs">
-                        <Text size="sm" c="dimmed">
-                            {team.genderMix}
-                        </Text>
-                    </Group>
-                </Card.Section>
-
-                <Card.Section mt="xs">
+                <Group mb="xs">
                     <Text size="sm" c="dimmed">
-                        League: {team.leagueName}
+                        Gender Mix: {team.genderMix}
                     </Text>
-                </Card.Section>
+                </Group>
 
-                <Card.Section mt="xs">
-                    <Text size="sm" c="dimmed">
-                        Game Days: {team.gameDays}
-                    </Text>
-                </Card.Section>
+                <Text size="sm" c="dimmed" mb="xs">
+                    League: {team.leagueName}
+                </Text>
+
+                <Text size="sm" c="dimmed" mb="xs">
+                    Game Days: {team.gameDays}
+                </Text>
             </Card>
         </Link>
     );
