@@ -67,7 +67,7 @@ export default function TeamDetails({ actionData, loaderData }) {
         variant: 'gradient',
         gradient: { from: primaryColor, to: adjustedColor, deg: 270 },
         size: 'lg',
-        // autoContrast: true,
+        // autoContrast: true, // Only works when not using gradients?
     };
 
     const textProps = {
