@@ -1,31 +1,31 @@
 import { ID } from '@/appwrite';
 import { createDocument } from '@/utils/databases.js';
 
-export async function createTeam({ request, params }) {
-    console.log({ request, params });
-    const { userId } = params;
+export async function createPlayer({ request, params }) {
+    const { teamId } = params;
 
     const formData = await request.formData();
-    const teamData = Object.fromEntries(formData.entries());
-
-    console.log('createTeamAction > teamData: ', { teamData });
+    const playerData = Object.fromEntries(formData.entries());
 
     try {
-        const teamId = ID.unique(); // Create this now so it's easier to use later
+        const userId = ID.unique(); // Create this now so it's easier to use later
 
-        const team = await createDocument(
-            'teams', // Your teams collection ID
-            teamId, // Generates a unique team ID in the handler
-            { ...teamData, signUpFee: Number(teamData.signUpFee) },
+        const player = await createDocument(
+            'users', // Your users collection ID
+            userId, // Generates a unique user ID in the handler
+            {
+                ...playerData,
+                preferredPositions: playerData.preferredPositions.split(","), // Split into an array of positions
+                userId,
+            },
         );
 
-        // Create document in relationship table for the user and team id's. Assume the user creating the team is a coach
-        const membership = await createDocument('memberships', null, { userId, teamId, role: 'coach' });
-        console.log({ membership });
+        // Create document in relationship table for the user and team id's.
+        await createDocument('memberships', null, { userId, teamId, role: 'player' });
 
-        return { response: team, status: 200 };
+        return { response: player, status: 200 };
     } catch (error) {
-        console.error("Error creating team:", error);
+        console.error("Error creating player:", error);
         throw error;
     }
 }
