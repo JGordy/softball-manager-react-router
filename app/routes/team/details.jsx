@@ -16,15 +16,13 @@ import {
 
 import { IconCurrencyDollar, IconCalendar, IconMapPin, IconFriends, IconCalendarRepeat } from '@tabler/icons-react';
 
-import { listDocuments, readDocument } from '@/utils/databases';
 import { adjustColorBasedOnDarkness } from '@/utils/adjustHexColor';
-
-import { Query } from '@/appwrite';
 
 import PlayerForm from './components/PlayerForm';
 import PlayerList from './components/PlayerList';
 
-import { createPlayer } from '../user/action';
+import { createPlayer } from './action';
+import { getTeamData } from './loader';
 
 export async function action({ request, params }) {
     return createPlayer({ request, params });
@@ -32,36 +30,7 @@ export async function action({ request, params }) {
 
 export async function loader({ params }) {
     const { teamId } = params;
-
-    if (teamId) {
-        const memberships = await listDocuments('memberships', [
-            Query.equal('teamId', teamId),
-        ]);
-
-        // 2. Extract teamIds
-        const userIds = memberships.documents.map(m => m.userId);
-
-        let players = [];
-        if (userIds.length > 0) {
-            // Make multiple queries
-            const promises = userIds.map(async (userId) => {
-                const result = await listDocuments('users', [
-                    Query.equal('$id', userId),
-                ]);
-                return result.documents;
-            });
-
-            const results = await Promise.all(promises);
-            players = results.flat();
-        }
-
-        return {
-            teamData: await readDocument('teams', teamId),
-            players,
-        };
-    } else {
-        return { teamData: {} };
-    }
+    return getTeamData({ teamId });
 };
 
 export default function TeamDetails({ actionData, loaderData }) {
