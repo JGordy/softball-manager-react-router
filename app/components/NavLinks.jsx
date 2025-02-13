@@ -11,6 +11,15 @@ import {
 
 import classes from '@/styles/navLinks.module.css';
 
+function Label({ Icon, text }) {
+    return (
+        <Center style={{ gap: 10 }}>
+            <Icon size={24} />
+            <span>{text}</span>
+        </Center>
+    );
+}
+
 function NavLinks() {
     const navigate = useNavigate();
     const { userId } = useParams();
@@ -25,32 +34,17 @@ function NavLinks() {
 
     const links = [
         {
-            label: (
-                <Center style={{ gap: 10 }}>
-                    <IconUserSquareRounded size={24} />
-                    <span>Profile</span>
-                </Center>
-            ),
+            label: <Label Icon={IconUserSquareRounded} text="Profile" />,
             value: 'profile'
 
         },
         {
-            label: (
-                <Center style={{ gap: 10 }}>
-                    <IconBallBaseball size={24} />
-                    <span>Teams</span>
-                </Center>
-            ),
+            label: <Label Icon={IconBallBaseball} text="Teams" />,
             value: 'teams'
 
         },
         {
-            label: (
-                <Center style={{ gap: 10 }}>
-                    <IconCalendar size={24} />
-                    <span>Schedule</span>
-                </Center>
-            ),
+            label: <Label Icon={IconCalendar} text="Schedule" />,
             value: 'schedule',
             disabled: true,
         },
@@ -78,7 +72,7 @@ function NavLinks() {
                 data={links}
                 fullWidth
                 onChange={handleNavLinkClick}
-                size="lg"
+                size="md"
                 radius="xl"
                 value={value}
                 transitionDuration={500}
