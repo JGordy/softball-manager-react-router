@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import {
     Alert,
@@ -24,8 +24,10 @@ import { Query } from '@/appwrite';
 import PlayerForm from './components/PlayerForm';
 import PlayerList from './components/PlayerList';
 
-export async function action({ request }) {
-    console.log('TeamDetails.jsx > action', { request });
+import { createPlayer } from '../user/action';
+
+export async function action({ request, params }) {
+    return createPlayer({ request, params });
 };
 
 export async function loader({ params }) {
@@ -68,6 +70,27 @@ export default function TeamDetails({ actionData, loaderData }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [teamDetails, setTeamDetails] = useState(teamData || {});
     const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const handleAfterSubmit = async () => {
+            console.log('Does this even work?', { actionData });
+            try {
+                if (actionData && actionData.status === 200) {
+                    // const { response } = actionData;
+
+                    setError(null);
+                    setIsModalOpen(false);
+                } else if (actionData instanceof Error) {
+                    setError(actionData.message);
+                }
+            } catch (jsonError) {
+                console.error("Error parsing JSON:", jsonError);
+                setError("An error occurred during player creation.");
+            }
+        };
+
+        handleAfterSubmit();
+    }, [actionData]);
 
     const { primaryColor } = teamDetails;
     const adjustedColor = adjustColorBasedOnDarkness(primaryColor, 50);
