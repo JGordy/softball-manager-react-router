@@ -10,9 +10,10 @@ import {
 } from '@mantine/core';
 
 import {
-    IconCalendar,
-    // IconCurrencyDollar,
-    IconMapPin,
+    // IconCalendar,
+    IconCurrencyDollar,
+    IconFriends,
+    // IconMapPin,
 } from '@tabler/icons-react';
 
 export default function TeamCard({ team, userId }) {
@@ -55,14 +56,28 @@ export default function TeamCard({ team, userId }) {
                     </Group>
                 </Group> */}
 
-                <Group mb="xs">
-                    <Text size="sm" c="dimmed">
-                        Gender Mix: {team.genderMix}
-                    </Text>
+                <Group gap="lg">
+                    <Group gap="xs">
+                        <ThemeIcon variant="light" size="md">
+                            <IconFriends size={18} />
+                        </ThemeIcon>
+                        <Text size="md">
+                            {team.genderMix}
+                        </Text>
+                    </Group>
+
+                    <Group gap="xs">
+                        <ThemeIcon variant="light" size="md">
+                            <IconCurrencyDollar size={18} />
+                        </ThemeIcon>
+                        <Text size="md">
+                            {team.signUpFee}
+                        </Text>
+                    </Group>
                 </Group>
 
-                <Text size="sm" c="dimmed" mb="xs">
-                    League: {team.leagueName}
+                <Text size="md" c="dimmed" mt="sm">
+                    {team.leagueName} League
                 </Text>
 
                 {/* <Text size="sm" c="dimmed" mb="xs">
