@@ -59,13 +59,13 @@ export default function TeamForm({ setIsModalOpen, setError }) {
                     )}
                     required
                 />
-                <Select
+                {/* <Select
                     className={classes.inputs}
                     label="Game Days"
                     name="gameDays"
                     placeholder="Day of the week"
                     data={['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']}
-                />
+                /> */}
                 <ColorInput
                     className={classes.inputs}
                     label="Primary Color"
@@ -83,7 +83,7 @@ export default function TeamForm({ setIsModalOpen, setError }) {
                     defaultValue={50}
                     step={5}
                 />
-                <DatePickerInput
+                {/* <DatePickerInput
                     className={classes.inputs}
                     leftSection={<IconCalendar size={18} stroke={1.5} />}
                     label="Season Start Date"
@@ -96,7 +96,7 @@ export default function TeamForm({ setIsModalOpen, setError }) {
                     label="Season End Date"
                     name="seasonEndDate"
                     placeholder="Pick a date"
-                />
+                /> */}
 
                 <Group position="right" mt="md">
                     <Button type="submit">Create Team</Button>

@@ -11,7 +11,7 @@ import {
 
 import {
     IconCalendar,
-    IconCurrencyDollar,
+    // IconCurrencyDollar,
     IconMapPin,
 } from '@tabler/icons-react';
 
@@ -35,7 +35,7 @@ export default function TeamCard({ team, userId }) {
 
                 <Divider my="sm" />
 
-                <Group mb="xs">
+                {/* <Group mb="xs">
                     <Group>
                         <ThemeIcon variant="light" color="green">
                             <IconCalendar size={16} />
@@ -50,10 +50,10 @@ export default function TeamCard({ team, userId }) {
                             <IconMapPin size={16} />
                         </ThemeIcon>
                         <Text size="sm" c="dimmed">
-                            {team.location || "Location not specified"} {/* Handle null location */}
+                            {team.location || "Location not specified"}
                         </Text>
                     </Group>
-                </Group>
+                </Group> */}
 
                 <Group mb="xs">
                     <Text size="sm" c="dimmed">
@@ -65,9 +65,9 @@ export default function TeamCard({ team, userId }) {
                     League: {team.leagueName}
                 </Text>
 
-                <Text size="sm" c="dimmed" mb="xs">
+                {/* <Text size="sm" c="dimmed" mb="xs">
                     Game Days: {team.gameDays}
-                </Text>
+                </Text> */}
             </Card>
         </Link>
     );

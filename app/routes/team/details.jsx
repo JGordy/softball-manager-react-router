@@ -86,23 +86,23 @@ export default function TeamDetails({ actionData, loaderData }) {
             <Divider my="sm" />
 
             <Stack spacing="sm">
-                <Group spacing="xs">
+                {/* <Group spacing="xs">
                     <ThemeIcon {...iconProps}>
                         <IconMapPin size={18} />
                     </ThemeIcon>
                     <Text {...textProps}>
                         {teamDetails.location || "Location not specified"}
                     </Text>
-                </Group>
+                </Group> */}
 
-                <Group spacing="xs">
+                {/* <Group spacing="xs">
                     <ThemeIcon {...iconProps}>
                         <IconCalendar size={18} />
                     </ThemeIcon>
                     <Text {...textProps}>
                         {new Date(teamDetails.seasonStartDate).toLocaleDateString()} - {new Date(teamDetails.seasonEndDate).toLocaleDateString()}
                     </Text>
-                </Group>
+                </Group> */}
 
                 <Group spacing="xs">
                     <ThemeIcon {...iconProps}>
@@ -122,14 +122,14 @@ export default function TeamDetails({ actionData, loaderData }) {
                     </Text>
                 </Group>
 
-                <Group spacing="xs">
+                {/* <Group spacing="xs">
                     <ThemeIcon {...iconProps}>
                         <IconCalendarRepeat size={18} />
                     </ThemeIcon>
                     <Text {...textProps}>
                         {`${teamDetails.gameDays}s`}
                     </Text>
-                </Group>
+                </Group> */}
             </Stack>
 
             <PlayerList players={players} />
