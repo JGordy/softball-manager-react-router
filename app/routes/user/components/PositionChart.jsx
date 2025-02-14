@@ -9,8 +9,8 @@ import {
 } from '@mantine/core';
 
 const fieldPositions = {
-    Pitcher: { x: 50, y: 60, initials: 'P' },
-    Catcher: { x: 50, y: 80, initials: 'C' },
+    Pitcher: { x: 50, y: 62, initials: 'P' },
+    Catcher: { x: 50, y: 78, initials: 'C' },
     "First Base": { x: 66, y: 56, initials: '1B' },
     "Second Base": { x: 57, y: 49, initials: '2B' },
     "Third Base": { x: 34, y: 56, initials: '3B' },
