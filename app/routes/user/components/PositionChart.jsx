@@ -1,5 +1,12 @@
 import React from 'react';
-import { Avatar, Image } from '@mantine/core';
+import {
+    Avatar,
+    Card,
+    ColorSwatch,
+    Group,
+    Image,
+    Title,
+} from '@mantine/core';
 
 const fieldPositions = {
     Pitcher: { x: 50, y: 60 },
@@ -9,14 +16,17 @@ const fieldPositions = {
     "Third Base": { x: 34, y: 56 },
     "Shortstop": { x: 43, y: 49 },
     "Left Field": { x: 25, y: 35 },
-    "Left Center Field": { x: 40, y: 28 },
-    "Right Center Field": { x: 60, y: 28 },
+    "Left Center Field": { x: 40, y: 25 },
+    "Right Center Field": { x: 60, y: 25 },
     "Right Field": { x: 75, y: 35 },
 };
 
 const fieldSrc = 'https://cloud.appwrite.io/v1/storage/buckets/67af948b00375c741493/files/67af94a00000296fb831/view?project=679b95f10030c4821c90&mode=admin';
 
-function FieldPosition({ position, x, y }) {
+const preferredColor = 'rgba(0, 249, 50, 0.5)';
+const notPreferredColor = 'rgba(249, 0, 0, 0.25)';
+
+function FieldPosition({ position, x, y, isPreferred }) {
     return (
         <div
             style={{
@@ -30,7 +40,9 @@ function FieldPosition({ position, x, y }) {
                 size="sm"
                 name={position}
                 alt={position}
-                color="white"
+                variant="filled"
+                color={isPreferred ? preferredColor : notPreferredColor}
+                autoContrast
             />
         </div>
     );
@@ -39,17 +51,30 @@ function FieldPosition({ position, x, y }) {
 function PositionChart({ preferredPositions }) {
 
     return (
-        <div style={{ position: 'relative' }}> {/* Adjust size */}
-            <Image src={fieldSrc} alt="Field" style={{ width: '100%', height: '100%' }} />
+        <Card shadow="sm" padding="lg" radius="xl" mt="md" withBorder>
+            <Title order={4}>Preferred Positions</Title>
+            <div style={{ position: 'relative' }}> {/* Adjust size */}
+                <Image src={fieldSrc} alt="Field" style={{ width: '100%', height: '100%' }} />
 
-            {preferredPositions.map((position) => {
-                const coords = fieldPositions[position];
-                if (coords) {
-                    return <FieldPosition key={position} position={position} {...coords} />;
-                }
-                return null; // Handle cases where position isn't defined
-            })}
-        </div>
+                {Object.keys(fieldPositions).map((position) => {
+                    const coords = fieldPositions[position];
+                    if (coords) {
+                        return <FieldPosition key={position} position={position} isPreferred={preferredPositions.includes(position)} {...coords} />;
+                    }
+                    return null; // Handle cases where position isn't defined
+                })}
+            </div>
+            <Group justify='space-between'>
+                <Group gap="xs">
+                    <ColorSwatch color={preferredColor} />
+                    Preferred
+                </Group>
+                <Group gap="xs">
+                    <ColorSwatch color={notPreferredColor} />
+                    Not Preferred
+                </Group>
+            </Group>
+        </Card>
     );
 }
 
