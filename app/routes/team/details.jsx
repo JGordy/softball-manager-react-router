@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import {
     Alert,
     Button,
+    Card,
     Container,
     Divider,
     Group,
@@ -132,16 +133,18 @@ export default function TeamDetails({ actionData, loaderData }) {
                 </Group> */}
             </Stack>
 
-            <PlayerList players={players} />
+            <Card mt="lg" radius="md" padding="xs">
+                <PlayerList players={players} />
 
-            <Button
-                mt="md"
-                color={primaryColor}
-                onClick={() => setIsModalOpen(true)}
-                autoContrast
-            >
-                Add Player
-            </Button>
+                <Button
+                    mt="md"
+                    color={primaryColor}
+                    onClick={() => setIsModalOpen(true)}
+                    autoContrast
+                >
+                    Add Player
+                </Button>
+            </Card>
 
             <Modal opened={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add a Player">
                 {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
