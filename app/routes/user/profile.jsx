@@ -144,11 +144,7 @@ export default function UserProfile({ loaderData }) {
                 </List>
             </Card>
 
-            <Card shadow="sm" padding="lg" radius="xl" mt="md" withBorder>
-                <Title order={4}>Preferred Positions</Title>
-                <PositionChart preferredPositions={preferredPositions} />
-            </Card>
-
+            <PositionChart preferredPositions={preferredPositions} />
 
             {showAlert && (
                 <Alert
