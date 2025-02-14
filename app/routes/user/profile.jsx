@@ -1,28 +1,34 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useActionData } from 'react-router';
 
 import {
     Alert,
     Avatar,
+    Button,
     Card,
     Container,
     Divider,
     Group,
     List,
+    Modal,
     Text,
     Title,
-    // ThemeIcon,
     Stack,
 } from '@mantine/core';
 
 import {
     IconInfoCircle,
-    IconMail,
+    IconEdit,
     IconFriends,
     IconHeadphonesFilled,
+    IconMail,
     IconPhone,
 } from '@tabler/icons-react';
 
+import UpdateUserForm from './components/UpdateUserForm';
+
 import { getProfile } from "./loader";
+import { updateUser } from './action';
 
 const fieldsToDisplay = {
     email: {
@@ -50,10 +56,12 @@ export async function loader({ params }) {
 
 export async function action({ request, params }) {
     console.log({ request, params });
+    return updateUser({ request, params });
 }
 
 export default function UserProfile({ loaderData }) {
-    // console.log({ loaderData });
+    const actionData = useActionData();
+
     const { firstName, lastName, preferredPositions, ...restOfData } = loaderData;
     const fullName = `${firstName} ${lastName}`;
 
@@ -66,13 +74,44 @@ export default function UserProfile({ loaderData }) {
 
     const [showAlert, setShowAlert] = useState(incompleteData.length > 0);
 
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const handleAfterSubmit = async () => {
+            try {
+                if (actionData && actionData.status === 204) {
+                    setError(null);
+                    setIsModalOpen(false);
+                } else if (actionData instanceof Error) {
+                    setError(actionData.message);
+                }
+            } catch (jsonError) {
+                console.error("Error parsing JSON:", jsonError);
+                setError("An error occurred while updating user data.");
+            }
+        };
+
+        handleAfterSubmit();
+    }, [actionData]);
+
     const handleAlertClose = () => {
         setShowAlert(false);
     };
 
     return (
         <Container>
-            <Title order={2} align="center" mt="sm" mb="lg">My Profile</Title>
+            <Group mt="sm" mb="lg" justify='space-between'>
+                <Title order={2}>My Profile</Title>
+                <Group gap="5px">
+                    <Button variant="subtle" color="white" onClick={() => setIsModalOpen(true)}>
+                        <IconEdit size={18} />
+                        <Text size="sm">
+                            Edit
+                        </Text>
+                    </Button>
+                </Group>
+            </Group>
 
             <Card shadow="sm" padding="lg" radius="xl" withBorder>
                 <Group position="center" mb="lg">
@@ -139,6 +178,15 @@ export default function UserProfile({ loaderData }) {
                     </ol>
                 </Alert>
             )}
+
+            <Modal opened={isModalOpen} onClose={() => setIsModalOpen(false)} title="Update Profile">
+                {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
+                <UpdateUserForm
+                    setIsModalOpen={setIsModalOpen}
+                    setError={setError}
+                    user={loaderData}
+                />
+            </Modal>
         </Container>
     );
 }
