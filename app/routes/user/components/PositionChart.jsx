@@ -11,14 +11,14 @@ import {
 const fieldPositions = {
     Pitcher: { x: 50, y: 62, initials: 'P' },
     Catcher: { x: 50, y: 78, initials: 'C' },
-    "First Base": { x: 66, y: 56, initials: '1B' },
-    "Second Base": { x: 57, y: 49, initials: '2B' },
-    "Third Base": { x: 34, y: 56, initials: '3B' },
-    "Shortstop": { x: 43, y: 49, initials: 'SS' },
-    "Left Field": { x: 25, y: 35, initials: 'LF' },
-    "Left Center Field": { x: 40, y: 25, initials: 'LC' },
-    "Right Center Field": { x: 60, y: 25, initials: 'RC' },
-    "Right Field": { x: 75, y: 35, initials: 'RF' },
+    'First Base': { x: 66, y: 56, initials: '1B' },
+    'Second Base': { x: 57, y: 49, initials: '2B' },
+    'Third Base': { x: 34, y: 56, initials: '3B' },
+    'Shortstop': { x: 43, y: 49, initials: 'SS' },
+    'Left Field': { x: 25, y: 35, initials: 'LF' },
+    'Left Center Field': { x: 40, y: 25, initials: 'LC' },
+    'Right Center Field': { x: 60, y: 25, initials: 'RC' },
+    'Right Field': { x: 75, y: 35, initials: 'RF' },
 };
 
 const fieldSrc = 'https://cloud.appwrite.io/v1/storage/buckets/67af948b00375c741493/files/67af94a00000296fb831/view?project=679b95f10030c4821c90&mode=admin';
@@ -33,7 +33,7 @@ function FieldPosition({ position, x, y, initials, isPreferred }) {
                 position: 'absolute',
                 left: `${x}%`,
                 top: `${y}%`,
-                transform: 'translate(-50%, -50%)', // Center the avatar
+                transform: 'translate(-50%, -50%)', // Centers the avatar
             }}
         >
             <Avatar
@@ -53,8 +53,8 @@ function PositionChart({ preferredPositions }) {
     return (
         <Card shadow="sm" padding="lg" radius="xl" mt="md" withBorder>
             <Title order={4}>Preferred Positions</Title>
-            <div style={{ position: 'relative' }}> {/* Adjust size */}
-                <Image src={fieldSrc} alt="Field" style={{ width: '100%', height: '100%' }} />
+            <div style={{ position: 'relative' }}>
+                <Image src={fieldSrc} alt="Preferred Positions Chart" />
 
                 {Object.keys(fieldPositions).map((position) => {
                     const coords = fieldPositions[position];
