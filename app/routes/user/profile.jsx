@@ -101,6 +101,26 @@ export default function UserProfile({ loaderData }) {
 
     return (
         <Container>
+            {showAlert && (
+                <Alert
+                    mt="20px"
+                    autoContrast
+                    color="orange"
+                    icon={<IconInfoCircle />}
+                    onClose={handleAlertClose}
+                    radius="xl"
+                    title="Your profile is incomplete!"
+                    withCloseButton={true}
+                >
+                    <p>Please provide the following information:</p>
+                    <ol>
+                        {incompleteData?.map(({ label }) => (
+                            <li key={label}>{label}</li>
+                        ))}
+                    </ol>
+                </Alert>
+            )}
+
             <Group mt="sm" mb="lg" justify='space-between'>
                 <Title order={2}>My Profile</Title>
                 <Group gap="5px">
@@ -114,7 +134,7 @@ export default function UserProfile({ loaderData }) {
             </Group>
 
             <Card shadow="sm" padding="lg" radius="xl" withBorder>
-                <Group position="center" mb="lg">
+                <Group position="center">
                     <Avatar color="green" name={fullName} alt={fullName} />
                     <div>
                         <Title order={3}>{fullName}</Title>
@@ -145,26 +165,6 @@ export default function UserProfile({ loaderData }) {
             </Card>
 
             <PositionChart preferredPositions={preferredPositions} />
-
-            {showAlert && (
-                <Alert
-                    mt="20px"
-                    autoContrast
-                    color="orange"
-                    icon={<IconInfoCircle />}
-                    onClose={handleAlertClose}
-                    radius="xl"
-                    title="Your profile is incomplete!"
-                    withCloseButton={true}
-                >
-                    <p>Please provide the following information:</p>
-                    <ol>
-                        {incompleteData?.map(({ label }) => (
-                            <li key={label}>{label}</li>
-                        ))}
-                    </ol>
-                </Alert>
-            )}
 
             <Modal opened={isModalOpen} onClose={() => setIsModalOpen(false)} title="Update Profile">
                 {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
