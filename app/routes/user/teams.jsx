@@ -78,7 +78,7 @@ const UserDashboard = ({ loaderData }) => {
     useEffect(() => {
         const handleAfterSubmit = async () => {
             try {
-                if (actionData && actionData.status === 200) {
+                if (actionData?.status === 200) {
                     const { response } = actionData;
 
                     setTeamList((prevTeams) => [...prevTeams, response]);

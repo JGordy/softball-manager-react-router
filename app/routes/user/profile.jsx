@@ -80,7 +80,7 @@ export default function UserProfile({ loaderData }) {
     useEffect(() => {
         const handleAfterSubmit = async () => {
             try {
-                if (actionData && actionData.status === 204) {
+                if (actionData?.status === 204) {
                     setError(null);
                     setIsModalOpen(false);
                 } else if (actionData instanceof Error) {
