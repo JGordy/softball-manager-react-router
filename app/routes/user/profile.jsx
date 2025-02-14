@@ -13,7 +13,6 @@ import {
     Modal,
     Text,
     Title,
-    Stack,
 } from '@mantine/core';
 
 import {
@@ -29,6 +28,7 @@ import UpdateUserForm from './components/UpdateUserForm';
 
 import { getProfile } from "./loader";
 import { updateUser } from './action';
+import PositionChart from './components/PositionChart';
 
 const fieldsToDisplay = {
     email: {
@@ -123,20 +123,6 @@ export default function UserProfile({ loaderData }) {
 
                 <Divider my="md" />
 
-                <Stack>
-                    <Title order={4}>Preferred Positions</Title>
-                    <Group position="center" mb="lg">
-                        {!preferredPositions.length ? (
-                            <Text c="red">None listed*</Text>
-                        ) : preferredPositions?.map(position => (
-                            <Avatar color="initials" name={position} alt={position} key={position} />
-                        ))}
-                    </Group>
-                </Stack>
-            </Card>
-
-
-            <Card shadow="sm" padding="lg" radius="xl" mt="md" withBorder>
                 <List
                     spacing="xs"
                     size="sm"
@@ -156,6 +142,11 @@ export default function UserProfile({ loaderData }) {
                         );
                     })}
                 </List>
+            </Card>
+
+            <Card shadow="sm" padding="lg" radius="xl" mt="md" withBorder>
+                <Title order={4}>Preferred Positions</Title>
+                <PositionChart preferredPositions={preferredPositions} />
             </Card>
 
 
