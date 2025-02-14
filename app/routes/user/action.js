@@ -37,6 +37,10 @@ export async function updateUser({ request, params }) {
         userData.preferredPositions = userData.preferredPositions.split(",")
     }
 
+    if (userData.dislikedPositions) {
+        userData.dislikedPositions = userData.dislikedPositions.split(",")
+    }
+
     // Removes undefined or empty string values from data to update
     const dataToUpdate = {};
     for (const key in userData) {
