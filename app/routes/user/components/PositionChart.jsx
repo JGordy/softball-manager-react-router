@@ -21,12 +21,18 @@ const fieldPositions = {
     'Right Field': { x: 75, y: 35, initials: 'RF' },
 };
 
-const fieldSrc = 'https://cloud.appwrite.io/v1/storage/buckets/67af948b00375c741493/files/67af94a00000296fb831/view?project=679b95f10030c4821c90&mode=admin';
+const fieldSrc = `${import.meta.env.VITE_APPWRITE_HOST_URL}/storage/buckets/67af948b00375c741493/files/67af94a00000296fb831/view?project=${import.meta.env.VITE_APPWRITE_PROJECT_ID}&mode=admin`;
 
 const preferredColor = 'rgba(0, 249, 50, 0.5)';
-const notPreferredColor = 'rgba(249, 0, 0, 0.25)';
+const neutralColor = 'rgba(208, 210, 209, 0.5)';
+const notPreferredColor = 'rgba(249, 0, 0, 0.5)';
 
-function FieldPosition({ position, x, y, initials, isPreferred }) {
+function FieldPosition({ position, x, y, initials, isPreferred, isDisliked }) {
+    let color = neutralColor;
+
+    if (isDisliked) color = notPreferredColor;
+    if (isPreferred) color = preferredColor;
+
     return (
         <div
             style={{
@@ -41,25 +47,33 @@ function FieldPosition({ position, x, y, initials, isPreferred }) {
                 name={initials}
                 alt={position}
                 variant="filled"
-                color={isPreferred ? preferredColor : notPreferredColor}
+                color={color}
                 autoContrast
             />
         </div>
     );
 }
 
-function PositionChart({ preferredPositions }) {
+function PositionChart({ preferredPositions, dislikedPositions }) {
 
     return (
         <Card shadow="sm" padding="lg" radius="xl" mt="md" withBorder>
-            <Title order={4}>Preferred Positions</Title>
-            <div style={{ position: 'relative' }}>
+            <Title order={4}>Fielding Chart</Title>
+            <div style={{ position: 'relative', minHeight: '338px' }}>
                 <Image src={fieldSrc} alt="Preferred Positions Chart" />
 
                 {Object.keys(fieldPositions).map((position) => {
                     const coords = fieldPositions[position];
                     if (coords) {
-                        return <FieldPosition key={position} position={position} isPreferred={preferredPositions.includes(position)} {...coords} />;
+                        return (
+                            <FieldPosition
+                                key={position}
+                                position={position}
+                                isPreferred={preferredPositions.includes(position)}
+                                isDisliked={dislikedPositions.includes(position)}
+                                {...coords}
+                            />
+                        );
                     }
                     return null; // Handle cases where position isn't defined
                 })}
@@ -70,8 +84,12 @@ function PositionChart({ preferredPositions }) {
                     Preferred
                 </Group>
                 <Group gap="xs">
+                    <ColorSwatch color={neutralColor} />
+                    Open
+                </Group>
+                <Group gap="xs">
                     <ColorSwatch color={notPreferredColor} />
-                    Not Preferred
+                    Disliked
                 </Group>
             </Group>
         </Card>
