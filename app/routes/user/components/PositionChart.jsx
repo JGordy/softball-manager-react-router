@@ -9,16 +9,16 @@ import {
 } from '@mantine/core';
 
 const fieldPositions = {
-    Pitcher: { x: 50, y: 60 },
-    Catcher: { x: 50, y: 80 },
-    "First Base": { x: 66, y: 56 },
-    "Second Base": { x: 57, y: 49 },
-    "Third Base": { x: 34, y: 56 },
-    "Shortstop": { x: 43, y: 49 },
-    "Left Field": { x: 25, y: 35 },
-    "Left Center Field": { x: 40, y: 25 },
-    "Right Center Field": { x: 60, y: 25 },
-    "Right Field": { x: 75, y: 35 },
+    Pitcher: { x: 50, y: 60, initials: 'P' },
+    Catcher: { x: 50, y: 80, initials: 'C' },
+    "First Base": { x: 66, y: 56, initials: '1B' },
+    "Second Base": { x: 57, y: 49, initials: '2B' },
+    "Third Base": { x: 34, y: 56, initials: '3B' },
+    "Shortstop": { x: 43, y: 49, initials: 'SS' },
+    "Left Field": { x: 25, y: 35, initials: 'LF' },
+    "Left Center Field": { x: 40, y: 25, initials: 'LC' },
+    "Right Center Field": { x: 60, y: 25, initials: 'RC' },
+    "Right Field": { x: 75, y: 35, initials: 'RF' },
 };
 
 const fieldSrc = 'https://cloud.appwrite.io/v1/storage/buckets/67af948b00375c741493/files/67af94a00000296fb831/view?project=679b95f10030c4821c90&mode=admin';
@@ -26,7 +26,7 @@ const fieldSrc = 'https://cloud.appwrite.io/v1/storage/buckets/67af948b00375c741
 const preferredColor = 'rgba(0, 249, 50, 0.5)';
 const notPreferredColor = 'rgba(249, 0, 0, 0.25)';
 
-function FieldPosition({ position, x, y, isPreferred }) {
+function FieldPosition({ position, x, y, initials, isPreferred }) {
     return (
         <div
             style={{
@@ -38,7 +38,7 @@ function FieldPosition({ position, x, y, isPreferred }) {
         >
             <Avatar
                 size="sm"
-                name={position}
+                name={initials}
                 alt={position}
                 variant="filled"
                 color={isPreferred ? preferredColor : notPreferredColor}
