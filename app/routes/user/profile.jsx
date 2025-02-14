@@ -67,7 +67,7 @@ export default function UserProfile({ loaderData }) {
 
     const incompleteData = Object.entries({ ...fieldsToDisplay, preferredPositions: { label: 'preferred positions' } })
         .filter(([key]) => {
-            const value = restOfData[key];
+            const value = key === 'preferredPositions' ? preferredPositions : restOfData[key];
             return value === null || value === undefined || (Array.isArray(value) && value.length === 0);
         })
         .map(([key, data]) => (data));
