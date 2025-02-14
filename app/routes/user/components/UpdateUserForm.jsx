@@ -55,7 +55,17 @@ export default function UpdateUserForm({ user, setIsModalOpen, setError }) {
                 className={classes.inputs}
                 label="Preferred Positions"
                 name="preferredPositions"
-                placeholder="Select Positions"
+                placeholder="What positions are you interested in?"
+                data={positions}
+                mb="sm"
+                clearable
+                searchable
+            />
+            <MultiSelect
+                className={classes.inputs}
+                label="Disliked Positions"
+                name="dislikedPositions"
+                placeholder="What positions are you NOT interested in?"
                 data={positions}
                 mb="sm"
                 clearable
