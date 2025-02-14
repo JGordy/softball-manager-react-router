@@ -2,40 +2,42 @@ import { useState } from 'react';
 
 import {
     Avatar,
+    Card,
     Table,
+    Tooltip,
     ScrollArea,
 } from '@mantine/core'
 
 import styles from '@/styles/playerChart.module.css';
+
+const columns = [
+    {
+        accessor: 'initials',
+        title: '',
+    },
+    {
+        accessor: 'name',
+        title: 'Name',
+    },
+    {
+        accessor: 'positions',
+        title: 'Positions'
+    },
+    {
+        accessor: 'email',
+        title: 'Email',
+    },
+];
 
 export default function PlayerList({ players }) {
     // console.log({ players });
 
     const [scrolled, setScrolled] = useState(false);
 
-    const columns = [
-        {
-            accessor: 'initials',
-            title: '',
-        },
-        {
-            accessor: 'name',
-            title: 'Name',
-        },
-        {
-            accessor: 'positions',
-            title: 'Positions'
-        },
-        {
-            accessor: 'email',
-            title: 'Email',
-        },
-    ];
-
     const headerClassName = scrolled ? styles.header + ' ' + styles.scrolled : styles.header;
 
     return (
-        <div className={styles.tableContainer}>
+        <Card className={styles.tableContainer} radius="md" padding="xs">
             <ScrollArea mah={300} onScrollPositionChange={({ y }) => setScrolled(y !== 0)}>
                 <Table striped highlightOnHover withTableBorder>
                     <Table.Thead className={headerClassName}>
@@ -46,24 +48,33 @@ export default function PlayerList({ players }) {
                         </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>
-                        {players.map((row) => {
-                            const name = `${row.firstName} ${row.lastName}`;
+                        {players.map((player) => {
+                            const name = `${player.firstName} ${player.lastName}`;
 
                             return (
-                                <Table.Tr key={row.$id}>
+                                <Table.Tr key={player.$id}>
                                     <Table.Td>
                                         {/* TODO: Let users upload an avatar */}
                                         <Avatar name={name} alt={name} color="initials" />
                                     </Table.Td>
                                     <Table.Td>{name}</Table.Td>
-                                    <Table.Td>{' '}</Table.Td>
-                                    <Table.Td>{row.email}</Table.Td>
+                                    {/* TODO: List preferred positions here */}
+                                    <Table.Td>
+                                        <Avatar.Group>
+                                            {player?.preferredPositions?.map(position => (
+                                                <Tooltip label={position} withArrow>
+                                                    <Avatar key={position} name={position} alt={position} color="initials" />
+                                                </Tooltip>
+                                            ))}
+                                        </Avatar.Group>
+                                    </Table.Td>
+                                    <Table.Td>{player.email}</Table.Td>
                                 </Table.Tr>
                             )
                         })}
                     </Table.Tbody>
                 </Table>
             </ScrollArea>
-        </div>
+        </Card>
     )
 };
