@@ -99,7 +99,7 @@ const UserDashboard = ({ loaderData }) => {
 
     return (
         <Container>
-            <Title order={2} mb="sm">
+            <Title order={2} mt="sm" mb="lg">
                 My Teams
             </Title>
 
