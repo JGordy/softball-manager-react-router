@@ -13,6 +13,7 @@ import {
     Modal,
     Text,
     Title,
+    useComputedColorScheme,
 } from '@mantine/core';
 
 import {
@@ -60,9 +61,11 @@ export async function action({ request, params }) {
 }
 
 export default function UserProfile({ loaderData }) {
+    const computedColorScheme = useComputedColorScheme('light');
+
     const actionData = useActionData();
 
-    const { firstName, lastName, preferredPositions, ...restOfData } = loaderData;
+    const { firstName, lastName, preferredPositions, dislikedPositions, ...restOfData } = loaderData;
     const fullName = `${firstName} ${lastName}`;
 
     const incompleteData = Object.entries({ ...fieldsToDisplay, preferredPositions: { label: 'preferred positions' } })
@@ -123,14 +126,20 @@ export default function UserProfile({ loaderData }) {
 
             <Group mt="sm" mb="lg" justify='space-between'>
                 <Title order={2}>My Profile</Title>
-                <Group gap="5px">
-                    <Button variant="subtle" color="white" onClick={() => setIsModalOpen(true)}>
+                <Button
+                    variant="subtle"
+                    color={computedColorScheme === 'light' ? 'black' : 'white'}
+                    onClick={() => setIsModalOpen(true)}
+                    p="0"
+                    autoContrast
+                >
+                    <Group gap="5px">
                         <IconEdit size={18} />
                         <Text size="sm">
                             Edit
                         </Text>
-                    </Button>
-                </Group>
+                    </Group>
+                </Button>
             </Group>
 
             <Card shadow="sm" padding="lg" radius="xl" withBorder>
@@ -164,7 +173,10 @@ export default function UserProfile({ loaderData }) {
                 </List>
             </Card>
 
-            <PositionChart preferredPositions={preferredPositions} />
+            <PositionChart
+                preferredPositions={preferredPositions}
+                dislikedPositions={dislikedPositions}
+            />
 
             <Modal opened={isModalOpen} onClose={() => setIsModalOpen(false)} title="Update Profile">
                 {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
