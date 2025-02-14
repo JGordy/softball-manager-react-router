@@ -92,7 +92,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                         <IconMapPin size={18} />
                     </ThemeIcon>
                     <Text {...textProps}>
-                        {teamDetails.location || "Location not specified"}
+                        {season.location || "Location not specified"}
                     </Text>
                 </Group> */}
 
@@ -101,7 +101,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                         <IconCalendar size={18} />
                     </ThemeIcon>
                     <Text {...textProps}>
-                        {new Date(teamDetails.seasonStartDate).toLocaleDateString()} - {new Date(teamDetails.seasonEndDate).toLocaleDateString()}
+                        {new Date(season.startDate).toLocaleDateString()} - {new Date(season.endDate).toLocaleDateString()}
                     </Text>
                 </Group> */}
 
@@ -128,7 +128,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                         <IconCalendarRepeat size={18} />
                     </ThemeIcon>
                     <Text {...textProps}>
-                        {`${teamDetails.gameDays}s`}
+                        {`${season.gameDays}s`}
                     </Text>
                 </Group> */}
             </Stack>
