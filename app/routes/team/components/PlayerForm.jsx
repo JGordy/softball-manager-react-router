@@ -19,7 +19,7 @@ import positions from '@/constants/positions';
 
 import classes from '@/styles/inputs.module.css';
 
-export default function TeamForm({ setIsModalOpen, setError, primaryColor }) {
+export default function PlayerForm({ setIsModalOpen, setError, primaryColor }) {
 
     // const iconProps = {
     //     color: 'currentColor',
