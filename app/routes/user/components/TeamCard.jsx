@@ -7,16 +7,33 @@ import {
     Text,
     Group,
     ThemeIcon,
+    useComputedColorScheme,
 } from '@mantine/core';
 
 import {
-    // IconCalendar,
+    IconCalendar,
     IconCurrencyDollar,
     IconFriends,
-    // IconMapPin,
+    IconMapPin,
 } from '@tabler/icons-react';
 
-export default function TeamCard({ team, userId }) {
+import { adjustColorBasedOnDarkness } from '@/utils/adjustHexColor';
+
+export default function TeamCard({ team, userId, season }) {
+
+    const computedColorScheme = useComputedColorScheme('light');
+
+    const { primaryColor } = team;
+    const adjustedColor = adjustColorBasedOnDarkness(primaryColor, computedColorScheme === 'light' ? 100 : 50);
+
+    const latestSeasonDates = season?.startDate ? `${new Date(season.startDate).toLocaleDateString()} - ${new Date(season.endDate).toLocaleDateString()}` : 'No season data listed';
+
+    const iconProps = {
+        variant: 'gradient',
+        gradient: { from: primaryColor, to: adjustedColor, deg: 155 },
+        size: 'md',
+        // autoContrast: true, // Only works when not using gradients?
+    };
 
     return (
         <Link to={`/user/${userId}/teams/${team.$id}`}>
@@ -36,48 +53,47 @@ export default function TeamCard({ team, userId }) {
 
                 <Divider my="sm" />
 
-                {/* <Group mb="xs">
-                    <Group>
-                        <ThemeIcon variant="light" color="green">
+                <Group mb="xs" gap="xs">
+                    <Group gap="xs">
+                        <ThemeIcon {...iconProps}>
                             <IconCalendar size={16} />
                         </ThemeIcon>
-                        <Text size="sm" c="dimmed">
-                            {new Date(team.seasonStartDate).toLocaleDateString()} - {new Date(team.seasonEndDate).toLocaleDateString()}
+                        <Text size="md">
+                            {latestSeasonDates}
                         </Text>
                     </Group>
-
-                    <Group>
-                        <ThemeIcon variant="light" color="blue">
+                    <Group gap="xs">
+                        <ThemeIcon {...iconProps}>
                             <IconMapPin size={16} />
                         </ThemeIcon>
-                        <Text size="sm" c="dimmed">
-                            {team.location || "Location not specified"}
+                        <Text size="md">
+                            {season?.location || "Location not specified"}
                         </Text>
                     </Group>
-                </Group> */}
+                </Group>
 
                 <Group gap="lg">
                     <Group gap="xs">
-                        <ThemeIcon variant="light" size="md">
+                        <ThemeIcon {...iconProps}>
                             <IconFriends size={18} />
                         </ThemeIcon>
                         <Text size="md">
-                            {team.genderMix}
+                            {team.genderMix || 'Not Specified'}
                         </Text>
                     </Group>
 
                     <Group gap="xs">
-                        <ThemeIcon variant="light" size="md">
+                        <ThemeIcon {...iconProps}>
                             <IconCurrencyDollar size={18} />
                         </ThemeIcon>
                         <Text size="md">
-                            {team.signUpFee}
+                            {team.signUpFee || 'Not Specified'}
                         </Text>
                     </Group>
                 </Group>
 
                 <Text size="md" c="dimmed" mt="sm">
-                    {team.leagueName} League
+                    {team.leagueName}
                 </Text>
 
                 {/* <Text size="sm" c="dimmed" mb="xs">
