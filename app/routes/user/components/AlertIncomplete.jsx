@@ -4,7 +4,7 @@ import { IconInfoCircle } from "@tabler/icons-react";
 export default function AlertIncomplete({ incompleteData, handleAlertClose }) {
     return (
         <Alert
-            mt="20px"
+            my="sm"
             autoContrast
             color="orange"
             icon={<IconInfoCircle />}
