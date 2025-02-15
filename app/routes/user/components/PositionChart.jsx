@@ -21,7 +21,7 @@ const fieldPositions = {
     'Right Field': { x: 75, y: 35, initials: 'RF' },
 };
 
-const fieldSrc = `${import.meta.env.VITE_APPWRITE_HOST_URL}/storage/buckets/67af948b00375c741493/files/67af94a00000296fb831/view?project=${import.meta.env.VITE_APPWRITE_PROJECT_ID}&mode=admin`;
+const fieldSrc = `${import.meta.env.VITE_APPWRITE_HOST_URL}/storage/buckets/67af948b00375c741493/files/67b00f90002a66960ba4/view?project=${import.meta.env.VITE_APPWRITE_PROJECT_ID}&mode=admin`;
 
 const preferredColor = 'rgba(0, 249, 50, 0.5)';
 const neutralColor = 'rgba(208, 210, 209, 0.5)';
