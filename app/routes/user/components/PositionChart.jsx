@@ -23,15 +23,17 @@ const fieldPositions = {
 
 const fieldSrc = `${import.meta.env.VITE_APPWRITE_HOST_URL}/storage/buckets/67af948b00375c741493/files/67b00f90002a66960ba4/view?project=${import.meta.env.VITE_APPWRITE_PROJECT_ID}&mode=admin`;
 
-const preferredColor = 'rgba(0, 249, 50, 0.5)';
-const neutralColor = 'rgba(208, 210, 209, 0.5)';
-const notPreferredColor = 'rgba(249, 0, 0, 0.5)';
+const colors = {
+    PREFERRED: 'rgba(0, 249, 50, 0.5)',
+    NEUTRAL: 'rgba(208, 210, 209, 0.5)',
+    DISLIKED: 'rgba(249, 0, 0, 0.5)',
+};
 
 function FieldPosition({ position, x, y, initials, isPreferred, isDisliked }) {
-    let color = neutralColor;
+    let color = colors.NEUTRAL;
 
-    if (isDisliked) color = notPreferredColor;
-    if (isPreferred) color = preferredColor;
+    if (isDisliked) color = colors.DISLIKED;
+    if (isPreferred) color = colors.PREFERRED;
 
     return (
         <div
@@ -83,15 +85,15 @@ function PositionChart({ preferredPositions, dislikedPositions, editButton }) {
             </div>
             <Group justify='space-between'>
                 <Group gap="xs">
-                    <ColorSwatch color={preferredColor} />
+                    <ColorSwatch color={colors.PREFERRED} />
                     Preferred
                 </Group>
                 <Group gap="xs">
-                    <ColorSwatch color={neutralColor} />
+                    <ColorSwatch color={colors.NEUTRAL} />
                     Open
                 </Group>
                 <Group gap="xs">
-                    <ColorSwatch color={notPreferredColor} />
+                    <ColorSwatch color={colors.DISLIKED} />
                     Disliked
                 </Group>
             </Group>
