@@ -8,6 +8,7 @@ import {
     Card,
     Container,
     Divider,
+    Stack,
     Group,
     List,
     Modal,
@@ -17,19 +18,20 @@ import {
 } from '@mantine/core';
 
 import {
-    IconInfoCircle,
     IconEdit,
-    IconFriends,
+    // IconFriends,
     IconHeadphonesFilled,
     IconMail,
     IconPhone,
 } from '@tabler/icons-react';
 
-import UpdateUserForm from './components/UpdateUserForm';
+import AlertIncomplete from './components/AlertIncomplete';
+import DetailsForm from './components/DetailsForm';
+import PositionForm from './components/PositionForm';
+import PositionChart from './components/PositionChart';
 
 import { getProfile } from "./loader";
 import { updateUser } from './action';
-import PositionChart from './components/PositionChart';
 
 const fieldsToDisplay = {
     email: {
@@ -40,15 +42,36 @@ const fieldsToDisplay = {
         icon: <IconPhone size={20} />,
         label: 'phone number',
     },
-    gender: {
-        icon: <IconFriends size={20} />,
-        label: 'gender',
-    },
+    // gender: {
+    //     icon: <IconFriends size={20} />,
+    //     label: 'gender',
+    // },
     walkUpSong: {
         icon: <IconHeadphonesFilled size={20} />,
         label: ' walk up song',
     },
 };
+
+function EditButton({ setIsModalOpen }) {
+    const computedColorScheme = useComputedColorScheme('light');
+
+    return (
+        <Button
+            variant="subtle"
+            color={computedColorScheme === 'light' ? 'black' : 'white'}
+            onClick={() => setIsModalOpen(true)}
+            p="0"
+            autoContrast
+        >
+            <Group gap="5px">
+                <IconEdit size={18} />
+                <Text size="sm">
+                    Edit
+                </Text>
+            </Group>
+        </Button>
+    );
+}
 
 export async function loader({ params }) {
     const { userId } = params;
@@ -61,11 +84,10 @@ export async function action({ request, params }) {
 }
 
 export default function UserProfile({ loaderData }) {
-    const computedColorScheme = useComputedColorScheme('light');
 
     const actionData = useActionData();
 
-    const { firstName, lastName, preferredPositions, dislikedPositions, ...restOfData } = loaderData;
+    const { firstName, lastName, preferredPositions, dislikedPositions, gender, bats, ...restOfData } = loaderData;
     const fullName = `${firstName} ${lastName}`;
 
     const incompleteData = Object.entries({ ...fieldsToDisplay, preferredPositions: { label: 'preferred positions' } })
@@ -77,7 +99,8 @@ export default function UserProfile({ loaderData }) {
 
     const [showAlert, setShowAlert] = useState(incompleteData.length > 0);
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+    const [isPositionModalOpen, setIsPositionModalOpen] = useState(false);
     const [error, setError] = useState(null);
 
     useEffect(() => {
@@ -85,7 +108,8 @@ export default function UserProfile({ loaderData }) {
             try {
                 if (actionData?.status === 204) {
                     setError(null);
-                    setIsModalOpen(false);
+                    setIsPositionModalOpen(false);
+                    setIsDetailsModalOpen(false);
                 } else if (actionData instanceof Error) {
                     setError(actionData.message);
                 }
@@ -105,52 +129,42 @@ export default function UserProfile({ loaderData }) {
     return (
         <Container>
             {showAlert && (
-                <Alert
-                    mt="20px"
-                    autoContrast
-                    color="orange"
-                    icon={<IconInfoCircle />}
-                    onClose={handleAlertClose}
-                    radius="xl"
-                    title="Your profile is incomplete!"
-                    withCloseButton={true}
-                >
-                    <p>Please provide the following information:</p>
-                    <ol>
-                        {incompleteData?.map(({ label }) => (
-                            <li key={label}>{label}</li>
-                        ))}
-                    </ol>
-                </Alert>
+                <AlertIncomplete handlerAlertClose={handleAlertClose} incompleteData={incompleteData} />
             )}
 
             <Group mt="sm" mb="lg" justify='space-between'>
                 <Title order={2}>My Profile</Title>
-                <Button
-                    variant="subtle"
-                    color={computedColorScheme === 'light' ? 'black' : 'white'}
-                    onClick={() => setIsModalOpen(true)}
-                    p="0"
-                    autoContrast
-                >
-                    <Group gap="5px">
-                        <IconEdit size={18} />
-                        <Text size="sm">
-                            Edit
-                        </Text>
-                    </Group>
-                </Button>
             </Group>
 
             <Card shadow="sm" padding="lg" radius="xl" withBorder>
-                <Group position="center">
-                    <Avatar color="green" name={fullName} alt={fullName} />
-                    <div>
-                        <Title order={3}>{fullName}</Title>
-                    </div>
+                <Group justify="space-between">
+                    <Group>
+                        <Avatar color="green" name={fullName} alt={fullName} size="sm" />
+                        {/* <div> */}
+                        <Title order={4}>{fullName}</Title>
+                        {/* </div> */}
+                    </Group>
+                    <EditButton setIsModalOpen={setIsDetailsModalOpen} />
                 </Group>
 
-                <Divider my="md" />
+                <Divider my="xs" size="sm" />
+
+                <Group justify="space-around" gap="0px">
+                    <Stack align="center" gap="0px">
+                        <Text size="xs">Gender</Text>
+                        <Text size="small" c="green" fw={700} autoContrast>{gender}</Text>
+                    </Stack>
+
+
+                    <Divider orientation="vertical" size="sm" />
+
+                    <Stack align="center" gap="0px">
+                        <Text size="xs">Batting</Text>
+                        <Text size="small" c="green" fw={700} autoContrast>{bats}</Text>
+                    </Stack>
+                </Group>
+
+                <Divider my="xs" size="sm" />
 
                 <List
                     spacing="xs"
@@ -176,14 +190,22 @@ export default function UserProfile({ loaderData }) {
             <PositionChart
                 preferredPositions={preferredPositions}
                 dislikedPositions={dislikedPositions}
+                editButton={<EditButton setIsModalOpen={setIsPositionModalOpen} />}
             />
 
-            <Modal opened={isModalOpen} onClose={() => setIsModalOpen(false)} title="Update Profile">
+            <Modal opened={isDetailsModalOpen} onClose={() => setIsDetailsModalOpen(false)} title="Update Profile">
                 {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
-                <UpdateUserForm
-                    setIsModalOpen={setIsModalOpen}
+                <DetailsForm
+                    setIsModalOpen={setIsDetailsModalOpen}
                     setError={setError}
-                    user={loaderData}
+                />
+            </Modal>
+
+            <Modal opened={isPositionModalOpen} onClose={() => setIsPositionModalOpen(false)} title="Update Positions">
+                {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
+                <PositionForm
+                    setIsModalOpen={setIsPositionModalOpen}
+                    setError={setError}
                 />
             </Modal>
         </Container>
