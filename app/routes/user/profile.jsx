@@ -26,6 +26,7 @@ import {
 } from '@tabler/icons-react';
 
 import AlertIncomplete from './components/AlertIncomplete';
+import DetailCard from './components/DetailCard';
 import DetailsForm from './components/DetailsForm';
 import PositionForm from './components/PositionForm';
 import PositionChart from './components/PositionChart';
@@ -51,6 +52,14 @@ const fieldsToDisplay = {
         label: ' walk up song',
     },
 };
+
+const fieldsToValidate = {
+    ...fieldsToDisplay,
+    gender: { label: 'gender' },
+    bats: { label: 'bats' },
+    preferredPositions: { label: 'preferred positions' },
+    dislikedPositions: { label: 'disliked positions' }
+}
 
 function EditButton({ setIsModalOpen }) {
     const computedColorScheme = useComputedColorScheme('light');
@@ -79,7 +88,6 @@ export async function loader({ params }) {
 }
 
 export async function action({ request, params }) {
-    console.log({ request, params });
     return updateUser({ request, params });
 }
 
@@ -87,12 +95,13 @@ export default function UserProfile({ loaderData }) {
 
     const actionData = useActionData();
 
-    const { firstName, lastName, preferredPositions, dislikedPositions, gender, bats, ...restOfData } = loaderData;
-    const fullName = `${firstName} ${lastName}`;
+    const { preferredPositions, dislikedPositions, ...rest } = loaderData;
 
-    const incompleteData = Object.entries({ ...fieldsToDisplay, preferredPositions: { label: 'preferred positions' } })
+    const incompleteData = Object.entries({ ...fieldsToValidate })
         .filter(([key]) => {
-            const value = key === 'preferredPositions' ? preferredPositions : restOfData[key];
+            let value = rest[key];
+            if (key === 'preferredPositions') value = preferredPositions;
+            if (key === 'dislikedPositions') value = dislikedPositions;
             return value === null || value === undefined || (Array.isArray(value) && value.length === 0);
         })
         .map(([key, data]) => (data));
@@ -128,64 +137,19 @@ export default function UserProfile({ loaderData }) {
 
     return (
         <Container>
-            {showAlert && (
-                <AlertIncomplete handlerAlertClose={handleAlertClose} incompleteData={incompleteData} />
-            )}
-
             <Group mt="sm" mb="lg" justify='space-between'>
                 <Title order={2}>My Profile</Title>
             </Group>
 
-            <Card shadow="sm" padding="lg" radius="xl" withBorder>
-                <Group justify="space-between">
-                    <Group>
-                        <Avatar color="green" name={fullName} alt={fullName} size="sm" />
-                        {/* <div> */}
-                        <Title order={4}>{fullName}</Title>
-                        {/* </div> */}
-                    </Group>
-                    <EditButton setIsModalOpen={setIsDetailsModalOpen} />
-                </Group>
+            {showAlert && (
+                <AlertIncomplete handlerAlertClose={handleAlertClose} incompleteData={incompleteData} />
+            )}
 
-                <Divider my="xs" size="sm" />
-
-                <Group justify="space-around" gap="0px">
-                    <Stack align="center" gap="0px">
-                        <Text size="xs">Gender</Text>
-                        <Text size="small" c="green" fw={700} autoContrast>{gender}</Text>
-                    </Stack>
-
-
-                    <Divider orientation="vertical" size="sm" />
-
-                    <Stack align="center" gap="0px">
-                        <Text size="xs">Batting</Text>
-                        <Text size="small" c="green" fw={700} autoContrast>{bats}</Text>
-                    </Stack>
-                </Group>
-
-                <Divider my="xs" size="sm" />
-
-                <List
-                    spacing="xs"
-                    size="sm"
-                    center
-                >
-                    {Object.entries(fieldsToDisplay).map(([key, { icon, label }]) => {
-                        const value = restOfData[key];
-                        return (
-                            <List.Item key={key} icon={icon}>
-                                {/* <ThemeIcon size="lg">
-                                {icon}
-                                </ThemeIcon> */}
-                                <Text size="sm" c={!value ? 'red' : ''}>
-                                    {value || `${label} not listed*`}
-                                </Text>
-                            </List.Item>
-                        );
-                    })}
-                </List>
-            </Card>
+            <DetailCard
+                player={loaderData}
+                editButton={<EditButton setIsModalOpen={setIsDetailsModalOpen} />}
+                fieldsToDisplay={fieldsToDisplay}
+            />
 
             <PositionChart
                 preferredPositions={preferredPositions}
