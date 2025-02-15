@@ -54,11 +54,14 @@ function FieldPosition({ position, x, y, initials, isPreferred, isDisliked }) {
     );
 }
 
-function PositionChart({ preferredPositions, dislikedPositions }) {
+function PositionChart({ preferredPositions, dislikedPositions, editButton }) {
 
     return (
         <Card shadow="sm" padding="lg" radius="xl" mt="md" withBorder>
-            <Title order={4}>Fielding Chart</Title>
+            <Group justify="space-between">
+                <Title order={4}>Fielding Chart</Title>
+                {editButton}
+            </Group>
             <div style={{ position: 'relative', minHeight: '338px' }}>
                 <Image src={fieldSrc} alt="Preferred Positions Chart" />
 
