@@ -64,6 +64,8 @@ function PlayerDetails({ player, editButton }) {
                 {editButton}
             </Group>
 
+            {/* TODO: Display batting data */}
+
             <Divider my="sm" size="sm" />
 
             <Title order={5} pl="10px">Fielding Chart</Title>
