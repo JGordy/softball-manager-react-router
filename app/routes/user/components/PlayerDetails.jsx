@@ -3,6 +3,7 @@ import {
     Avatar,
     Card,
     ColorSwatch,
+    Divider,
     Group,
     Image,
     Title,
@@ -53,14 +54,19 @@ function FieldPosition({ position, initials, isPreferred, isDisliked }) {
     );
 }
 
-function PositionChart({ preferredPositions, dislikedPositions, editButton }) {
+function PlayerDetails({ preferredPositions, dislikedPositions, editButton }) {
 
     return (
         <Card shadow="sm" py="lg" px="xs" radius="xl" mt="md" withBorder>
             <Group justify="space-between" px="10px">
-                <Title order={4}>Fielding Chart</Title>
+                <Title order={4}>Player Details</Title>
                 {editButton}
             </Group>
+
+            <Divider my="sm" size="sm" />
+
+            <Title order={5} pl="10px">Fielding Chart</Title>
+
             <div className={styles.imageContainer}>
                 <Image src={fieldSrc} alt="Preferred Positions Chart" />
 
@@ -95,4 +101,4 @@ function PositionChart({ preferredPositions, dislikedPositions, editButton }) {
     );
 }
 
-export default PositionChart;
+export default PlayerDetails;
