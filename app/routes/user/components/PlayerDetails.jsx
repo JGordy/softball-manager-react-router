@@ -54,7 +54,8 @@ function FieldPosition({ position, initials, isPreferred, isDisliked }) {
     );
 }
 
-function PlayerDetails({ preferredPositions, dislikedPositions, editButton }) {
+function PlayerDetails({ player, editButton }) {
+    const { bats, preferredPositions, dislikedPositions } = player;
 
     return (
         <Card shadow="sm" py="lg" px="xs" radius="xl" mt="md" withBorder>
