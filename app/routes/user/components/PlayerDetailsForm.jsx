@@ -4,16 +4,25 @@ import {
     Button,
     Group,
     MultiSelect,
+    Select,
 } from '@mantine/core';
 
 import positions from '@/constants/positions';
 
 import classes from '@/styles/inputs.module.css';
 
-export default function PositionForm({ setIsModalOpen, setError }) {
+export default function PlayerDetailsForm({ setIsModalOpen, setError }) {
 
     return (
         <Form method="post">
+            <Select
+                className={classes.inputs}
+                label="Bats"
+                name="bats"
+                placeholder="On what side of the plate do you bat?"
+                data={['Right', 'Left', 'Switch']}
+                mb="sm"
+            />
             <MultiSelect
                 className={classes.inputs}
                 label="Preferred Positions"
