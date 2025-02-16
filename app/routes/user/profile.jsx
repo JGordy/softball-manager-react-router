@@ -3,6 +3,7 @@ import { useActionData } from 'react-router';
 
 import {
     Alert,
+    Avatar,
     Button,
     Container,
     Group,
@@ -20,10 +21,10 @@ import {
 } from '@tabler/icons-react';
 
 import AlertIncomplete from './components/AlertIncomplete';
-import DetailCard from './components/DetailCard';
-import DetailsForm from './components/DetailsForm';
-import PositionForm from './components/PositionForm';
-import PositionChart from './components/PositionChart';
+import PersonalDetails from './components/PersonalDetails';
+import PersonalDetailsForm from './components/PersonalDetailsForm';
+import PlayerDetailsForm from './components/PlayerDetailsForm';
+import PlayerDetails from './components/PlayerDetails';
 
 import { getProfile } from "./loader";
 import { updateUser } from './action';
@@ -106,6 +107,8 @@ export default function UserProfile({ loaderData }) {
     const [isPositionModalOpen, setIsPositionModalOpen] = useState(false);
     const [error, setError] = useState(null);
 
+    const fullName = `${loaderData.firstName} ${loaderData.lastName}`;
+
     useEffect(() => {
         const handleAfterSubmit = async () => {
             try {
@@ -131,21 +134,30 @@ export default function UserProfile({ loaderData }) {
 
     return (
         <Container>
-            <Group mt="sm" mb="lg" justify='space-between'>
-                <Title order={2}>My Profile</Title>
+            {/* <Group mt="sm" mb="lg" justify='space-between'>
+                <Title order={2}>Hello {loaderData.firstName}!</Title>
+            </Group> */}
+            <Group justify="space-between" py="lg">
+                <Group>
+                    <Avatar color="green" name={fullName} alt={fullName} size="md" />
+                    <div>
+                        <Title order={3}>{`Hello ${loaderData.firstName}!`}</Title>
+                        <Text size="0.6rem">Here are your personal and player details</Text>
+                    </div>
+                </Group>
             </Group>
 
             {showAlert && (
                 <AlertIncomplete handlerAlertClose={handleAlertClose} incompleteData={incompleteData} />
             )}
 
-            <DetailCard
+            <PersonalDetails
                 player={loaderData}
                 editButton={<EditButton setIsModalOpen={setIsDetailsModalOpen} />}
                 fieldsToDisplay={fieldsToDisplay}
             />
 
-            <PositionChart
+            <PlayerDetails
                 preferredPositions={preferredPositions}
                 dislikedPositions={dislikedPositions}
                 editButton={<EditButton setIsModalOpen={setIsPositionModalOpen} />}
@@ -153,7 +165,7 @@ export default function UserProfile({ loaderData }) {
 
             <Modal opened={isDetailsModalOpen} onClose={() => setIsDetailsModalOpen(false)} title="Update Profile">
                 {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
-                <DetailsForm
+                <PersonalDetailsForm
                     setIsModalOpen={setIsDetailsModalOpen}
                     setError={setError}
                 />
@@ -161,7 +173,7 @@ export default function UserProfile({ loaderData }) {
 
             <Modal opened={isPositionModalOpen} onClose={() => setIsPositionModalOpen(false)} title="Update Positions">
                 {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
-                <PositionForm
+                <PlayerDetailsForm
                     setIsModalOpen={setIsPositionModalOpen}
                     setError={setError}
                 />
