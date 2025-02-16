@@ -3,14 +3,9 @@ import { useActionData } from 'react-router';
 
 import {
     Alert,
-    Avatar,
     Button,
-    Card,
     Container,
-    Divider,
-    Stack,
     Group,
-    List,
     Modal,
     Text,
     Title,
@@ -19,7 +14,6 @@ import {
 
 import {
     IconEdit,
-    // IconFriends,
     IconHeadphonesFilled,
     IconMail,
     IconPhone,
