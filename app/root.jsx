@@ -30,6 +30,14 @@ export const links = () => [
     },
 ];
 
+export async function loader({ request }) {
+    // TODO: How would I find out the color scheme here? Set a cookie?
+    // const cookie = request.headers.get('Cookie'); // Or however you access cookies
+    // console.log({ cookie });
+    // const initialTheme = getThemeFromCookie(cookie) || 'light'; // Or 'dark'
+    // return json({ initialTheme });
+}
+
 export function Layout({ children }) {
     return (
         <html lang="en">
