@@ -103,7 +103,6 @@ export default function UserProfile({ loaderData }) {
         })
         .map(([key, data]) => (data));
 
-    const [showAlert, setShowAlert] = useState(incompleteData.length > 0);
     const [showIndicator, setShowIndicator] = useState(incompleteData.length > 0);
 
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
@@ -132,7 +131,7 @@ export default function UserProfile({ loaderData }) {
     }, [actionData]);
 
     const handleAlertClose = () => {
-        setShowAlert(false);
+        setShowIndicator(false);
     };
 
     return (
@@ -161,10 +160,6 @@ export default function UserProfile({ loaderData }) {
                     </Popover.Dropdown>
                 </Popover>
             </Group>
-
-            {showAlert && (
-                <AlertIncomplete handlerAlertClose={handleAlertClose} incompleteData={incompleteData} />
-            )}
 
             <PersonalDetails
                 player={player}
