@@ -15,7 +15,7 @@ import AutocompleteEmail from '@/components/AutoCompleteEmail';
 
 import classes from '@/styles/inputs.module.css';
 
-export default function DetailsForm({ setIsModalOpen, setError }) {
+export default function PersonalDetailsForm({ setIsModalOpen, setError }) {
 
     return (
         <Form method="post">
@@ -46,14 +46,6 @@ export default function DetailsForm({ setIsModalOpen, setError }) {
                 name="gender"
                 placeholder="Select Gender"
                 data={['Male', 'Female']}
-                mb="sm"
-            />
-            <Select
-                className={classes.inputs}
-                label="Bats"
-                name="bats"
-                placeholder="On what side of the plate do you bat?"
-                data={['Right', 'Left', 'Switch']}
                 mb="sm"
             />
             <TextInput
