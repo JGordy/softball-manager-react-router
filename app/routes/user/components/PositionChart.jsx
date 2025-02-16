@@ -8,17 +8,19 @@ import {
     Title,
 } from '@mantine/core';
 
+import styles from '@/styles/positionChart.module.css';
+
 const fieldPositions = {
-    Pitcher: { x: 50, y: 62, initials: 'P' },
-    Catcher: { x: 50, y: 78, initials: 'C' },
-    'First Base': { x: 66, y: 56, initials: '1B' },
-    'Second Base': { x: 57, y: 49, initials: '2B' },
-    'Third Base': { x: 34, y: 56, initials: '3B' },
-    'Shortstop': { x: 43, y: 49, initials: 'SS' },
-    'Left Field': { x: 25, y: 35, initials: 'LF' },
-    'Left Center Field': { x: 40, y: 25, initials: 'LC' },
-    'Right Center Field': { x: 60, y: 25, initials: 'RC' },
-    'Right Field': { x: 75, y: 35, initials: 'RF' },
+    Pitcher: { initials: 'P' },
+    Catcher: { initials: 'C' },
+    'First Base': { initials: '1B' },
+    'Second Base': { initials: '2B' },
+    'Third Base': { initials: '3B' },
+    'Shortstop': { initials: 'SS' },
+    'Left Field': { initials: 'LF' },
+    'Left Center Field': { initials: 'LC' },
+    'Right Center Field': { initials: 'RC' },
+    'Right Field': { initials: 'RF' },
 };
 
 const fieldSrc = `${import.meta.env.VITE_APPWRITE_HOST_URL}/storage/buckets/67af948b00375c741493/files/67b00f90002a66960ba4/view?project=${import.meta.env.VITE_APPWRITE_PROJECT_ID}&mode=admin`;
@@ -29,7 +31,7 @@ const colors = {
     DISLIKED: 'rgba(249, 0, 0, 0.5)',
 };
 
-function FieldPosition({ position, x, y, initials, isPreferred, isDisliked }) {
+function FieldPosition({ position, initials, isPreferred, isDisliked }) {
     let color = colors.NEUTRAL;
 
     if (isDisliked) color = colors.DISLIKED;
@@ -37,12 +39,7 @@ function FieldPosition({ position, x, y, initials, isPreferred, isDisliked }) {
 
     return (
         <div
-            style={{
-                position: 'absolute',
-                left: `${x}%`,
-                top: `${y}%`,
-                transform: 'translate(-50%, -50%)', // Centers the avatar
-            }}
+            className={`${styles.fieldingPosition} ${styles[position.toLowerCase().replace(/\s+/g, '')]}`}
         >
             <Avatar
                 size="sm"
@@ -59,31 +56,28 @@ function FieldPosition({ position, x, y, initials, isPreferred, isDisliked }) {
 function PositionChart({ preferredPositions, dislikedPositions, editButton }) {
 
     return (
-        <Card shadow="sm" padding="lg" radius="xl" mt="md" withBorder>
-            <Group justify="space-between">
+        <Card shadow="sm" py="lg" px="xs" radius="xl" mt="md" withBorder>
+            <Group justify="space-between" px="lg">
                 <Title order={4}>Fielding Chart</Title>
                 {editButton}
             </Group>
-            <div style={{ position: 'relative', minHeight: '338px' }}>
+            <div className={styles.imageContainer}>
                 <Image src={fieldSrc} alt="Preferred Positions Chart" />
 
                 {Object.keys(fieldPositions).map((position) => {
-                    const coords = fieldPositions[position];
-                    if (coords) {
-                        return (
-                            <FieldPosition
-                                key={position}
-                                position={position}
-                                isPreferred={preferredPositions.includes(position)}
-                                isDisliked={dislikedPositions.includes(position)}
-                                {...coords}
-                            />
-                        );
-                    }
-                    return null; // Handle cases where position isn't defined
+                    const { initials } = fieldPositions[position];
+                    return (
+                        <FieldPosition
+                            key={position}
+                            position={position}
+                            isPreferred={preferredPositions.includes(position)}
+                            isDisliked={dislikedPositions.includes(position)}
+                            initials={initials}
+                        />
+                    );
                 })}
             </div>
-            <Group justify='space-between'>
+            <Group justify='space-between' px="lg">
                 <Group gap="xs">
                     <ColorSwatch color={colors.PREFERRED} />
                     Preferred
