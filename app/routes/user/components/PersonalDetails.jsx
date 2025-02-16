@@ -10,15 +10,13 @@ import {
 } from "@mantine/core";
 
 export default function DetailCard({ editButton, player, fieldsToDisplay }) {
-    const { firstName, lastName, gender, bats, ...rest } = player;
-    const fullName = `${firstName} ${lastName}`;
+    const { gender, bats, ...rest } = player;
 
     return (
         <Card shadow="sm" padding="lg" radius="xl" withBorder>
             <Group justify="space-between">
                 <Group>
-                    <Avatar color="green" name={fullName} alt={fullName} size="sm" />
-                    <Title order={4}>{fullName}</Title>
+                    <Title order={4}>Personal Details</Title>
                 </Group>
                 {editButton}
             </Group>
