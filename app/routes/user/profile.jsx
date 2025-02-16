@@ -7,6 +7,8 @@ import {
     Button,
     Container,
     Group,
+    Indicator,
+    Popover,
     Modal,
     Text,
     Title,
@@ -14,6 +16,7 @@ import {
 } from '@mantine/core';
 
 import {
+    IconBellRingingFilled,
     IconEdit,
     IconFriends,
     IconHeadphonesFilled,
@@ -90,7 +93,6 @@ export async function action({ request, params }) {
 
 export default function UserProfile({ loaderData }) {
     const { player } = loaderData;
-    console.log({ player });
 
     const actionData = useActionData();
 
@@ -102,6 +104,7 @@ export default function UserProfile({ loaderData }) {
         .map(([key, data]) => (data));
 
     const [showAlert, setShowAlert] = useState(incompleteData.length > 0);
+    const [showIndicator, setShowIndicator] = useState(incompleteData.length > 0);
 
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [isPositionModalOpen, setIsPositionModalOpen] = useState(false);
@@ -142,6 +145,21 @@ export default function UserProfile({ loaderData }) {
                         <Text size="0.6rem">Here are your personal and player details</Text>
                     </div>
                 </Group>
+
+                <Popover position="bottom" withArrow shadow="md">
+                    <Popover.Target>
+                        <Indicator inline processing color="red" size={12} disabled={!showIndicator}>
+                            <IconBellRingingFilled size={24} />
+                        </Indicator>
+                    </Popover.Target>
+                    <Popover.Dropdown>
+                        {showIndicator ? (
+                            <AlertIncomplete handlerAlertClose={handleAlertClose} incompleteData={incompleteData} />
+                        ) : (
+                            <Text>No new notifications or alerts</Text>
+                        )}
+                    </Popover.Dropdown>
+                </Popover>
             </Group>
 
             {showAlert && (
