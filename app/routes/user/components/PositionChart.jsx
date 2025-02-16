@@ -57,7 +57,7 @@ function PositionChart({ preferredPositions, dislikedPositions, editButton }) {
 
     return (
         <Card shadow="sm" py="lg" px="xs" radius="xl" mt="md" withBorder>
-            <Group justify="space-between" px="lg">
+            <Group justify="space-between" px="10px">
                 <Title order={4}>Fielding Chart</Title>
                 {editButton}
             </Group>
@@ -77,7 +77,7 @@ function PositionChart({ preferredPositions, dislikedPositions, editButton }) {
                     );
                 })}
             </div>
-            <Group justify='space-between' px="lg">
+            <Group justify='space-between' px="10px">
                 <Group gap="xs">
                     <ColorSwatch color={colors.PREFERRED} />
                     Preferred
