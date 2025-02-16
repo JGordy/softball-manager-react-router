@@ -15,6 +15,7 @@ import {
 
 import {
     IconEdit,
+    IconFriends,
     IconHeadphonesFilled,
     IconMail,
     IconPhone,
@@ -38,10 +39,10 @@ const fieldsToDisplay = {
         icon: <IconPhone size={20} />,
         label: 'phone number',
     },
-    // gender: {
-    //     icon: <IconFriends size={20} />,
-    //     label: 'gender',
-    // },
+    gender: {
+        icon: <IconFriends size={20} />,
+        label: 'gender',
+    },
     walkUpSong: {
         icon: <IconHeadphonesFilled size={20} />,
         label: ' walk up song',
@@ -79,7 +80,8 @@ function EditButton({ setIsModalOpen }) {
 
 export async function loader({ params }) {
     const { userId } = params;
-    return userId ? getProfile({ userId }) : {};
+
+    return { player: userId ? await getProfile({ userId }) : {} }
 }
 
 export async function action({ request, params }) {
@@ -87,16 +89,14 @@ export async function action({ request, params }) {
 }
 
 export default function UserProfile({ loaderData }) {
+    const { player } = loaderData;
+    console.log({ player });
 
     const actionData = useActionData();
 
-    const { preferredPositions, dislikedPositions, ...rest } = loaderData;
-
     const incompleteData = Object.entries({ ...fieldsToValidate })
         .filter(([key]) => {
-            let value = rest[key];
-            if (key === 'preferredPositions') value = preferredPositions;
-            if (key === 'dislikedPositions') value = dislikedPositions;
+            let value = player[key];
             return value === null || value === undefined || (Array.isArray(value) && value.length === 0);
         })
         .map(([key, data]) => (data));
@@ -107,7 +107,7 @@ export default function UserProfile({ loaderData }) {
     const [isPositionModalOpen, setIsPositionModalOpen] = useState(false);
     const [error, setError] = useState(null);
 
-    const fullName = `${loaderData.firstName} ${loaderData.lastName}`;
+    const fullName = `${player.firstName} ${player.lastName}`;
 
     useEffect(() => {
         const handleAfterSubmit = async () => {
@@ -134,14 +134,11 @@ export default function UserProfile({ loaderData }) {
 
     return (
         <Container>
-            {/* <Group mt="sm" mb="lg" justify='space-between'>
-                <Title order={2}>Hello {loaderData.firstName}!</Title>
-            </Group> */}
             <Group justify="space-between" py="lg">
                 <Group>
                     <Avatar color="green" name={fullName} alt={fullName} size="md" />
                     <div>
-                        <Title order={3}>{`Hello ${loaderData.firstName}!`}</Title>
+                        <Title order={3}>{`Hello ${player.firstName}!`}</Title>
                         <Text size="0.6rem">Here are your personal and player details</Text>
                     </div>
                 </Group>
@@ -152,14 +149,13 @@ export default function UserProfile({ loaderData }) {
             )}
 
             <PersonalDetails
-                player={loaderData}
+                player={player}
                 editButton={<EditButton setIsModalOpen={setIsDetailsModalOpen} />}
                 fieldsToDisplay={fieldsToDisplay}
             />
 
             <PlayerDetails
-                preferredPositions={preferredPositions}
-                dislikedPositions={dislikedPositions}
+                player={player}
                 editButton={<EditButton setIsModalOpen={setIsPositionModalOpen} />}
             />
 
