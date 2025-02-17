@@ -17,12 +17,22 @@ export default function PlayerDetailsForm({ setIsModalOpen, setError }) {
         <Form method="post">
             <Select
                 className={classes.inputs}
+                label="Throws"
+                name="throws"
+                placeholder="Which hand do you throw with?"
+                data={['Right', 'Left']}
+                mb="sm"
+            />
+
+            <Select
+                className={classes.inputs}
                 label="Bats"
                 name="bats"
                 placeholder="On what side of the plate do you bat?"
                 data={['Right', 'Left', 'Switch']}
                 mb="sm"
             />
+
             <MultiSelect
                 className={classes.inputs}
                 label="Preferred Positions"
