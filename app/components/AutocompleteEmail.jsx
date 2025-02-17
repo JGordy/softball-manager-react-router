@@ -23,7 +23,7 @@ export default function AutocompleteEmail({ classes, defaultValue, required }) {
             defaultValue={defaultValue}
             label="Email"
             name="email"
-            placeholder="your@email.com"
+            placeholder="youremail@email.com"
             required={required}
             data={emailSuggestions}
             rightSection={loading ? <Loader size={16} /> : null}
