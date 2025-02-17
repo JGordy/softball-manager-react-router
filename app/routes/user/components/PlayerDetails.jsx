@@ -6,6 +6,7 @@ import {
     Divider,
     Group,
     Image,
+    Text,
     Title,
 } from '@mantine/core';
 
@@ -55,7 +56,7 @@ function FieldPosition({ position, initials, isPreferred, isDisliked }) {
 }
 
 function PlayerDetails({ player, editButton }) {
-    const { bats, preferredPositions, dislikedPositions } = player;
+    const { throws, bats, preferredPositions, dislikedPositions } = player;
 
     return (
         <Card shadow="sm" py="lg" px="xs" radius="xl" mt="md" withBorder>
@@ -64,11 +65,23 @@ function PlayerDetails({ player, editButton }) {
                 {editButton}
             </Group>
 
+            <Divider my="sm" size="sm" />
+
             {/* TODO: Display batting data */}
+            <Group gap="xl" px="xs">
+                <Group gap="4px">
+                    <Text>Throws</Text>
+                    <Text fw={700} c="green">{throws || "Not Specified"}</Text>
+                </Group>
+                <Group gap="4px">
+                    <Text>Bats</Text>
+                    <Text fw={700} c="green">{bats || "Not Specified"}</Text>
+                </Group>
+            </Group>
 
             <Divider my="sm" size="sm" />
 
-            <Title order={5} pl="10px">Fielding Chart</Title>
+            <Text pl="10px">Fielding Chart</Text>
 
             <div className={styles.imageContainer}>
                 <Image src={fieldSrc} alt="Preferred Positions Chart" />
