@@ -67,7 +67,6 @@ function PlayerDetails({ player, editButton }) {
 
             <Divider my="sm" size="sm" />
 
-            {/* TODO: Display batting data */}
             <Group gap="xl" px="xs">
                 <Group gap="4px">
                     <Text>Throws</Text>
@@ -81,7 +80,7 @@ function PlayerDetails({ player, editButton }) {
 
             <Divider my="sm" size="sm" />
 
-            <Text pl="10px">Fielding Chart</Text>
+            <Text pl="10px">Fielding Preferences</Text>
 
             <div className={styles.imageContainer}>
                 <Image src={fieldSrc} alt="Preferred Positions Chart" />
