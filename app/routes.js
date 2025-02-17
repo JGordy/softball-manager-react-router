@@ -1,19 +1,8 @@
 import {
-    type RouteConfig,
     index,
     layout,
     route,
 } from "@react-router/dev/routes";
-
-// const ProtectedLayout = ({ loaderData }: { loaderData: any }) => {
-
-//     // Check for the redirect flag set in your loader.
-//     if (loaderData?.redirectToLogin) {  // Changed this line
-//         throw redirect("/login");
-//     }
-
-//     return <Outlet context={ loaderData } />;
-// };
 
 export default [
     layout('routes/layout.jsx', [
@@ -39,4 +28,4 @@ export default [
         route('/api/generate/lineup', 'routes/api/generate/lineup.js'),
     ]),
 
-] satisfies RouteConfig;
+];
