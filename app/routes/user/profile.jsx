@@ -172,7 +172,7 @@ export default function UserProfile({ loaderData }) {
                 editButton={<EditButton setIsModalOpen={setIsPositionModalOpen} />}
             />
 
-            <Modal opened={isDetailsModalOpen} onClose={() => setIsDetailsModalOpen(false)} title="Update Profile">
+            <Modal opened={isDetailsModalOpen} onClose={() => setIsDetailsModalOpen(false)} title="Update Personal Details">
                 {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
                 <PersonalDetailsForm
                     setIsModalOpen={setIsDetailsModalOpen}
@@ -180,7 +180,7 @@ export default function UserProfile({ loaderData }) {
                 />
             </Modal>
 
-            <Modal opened={isPositionModalOpen} onClose={() => setIsPositionModalOpen(false)} title="Update Positions">
+            <Modal opened={isPositionModalOpen} onClose={() => setIsPositionModalOpen(false)} title="Update Player Details">
                 {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
                 <PlayerDetailsForm
                     setIsModalOpen={setIsPositionModalOpen}
