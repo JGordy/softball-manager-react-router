@@ -25,6 +25,8 @@ import {
 
 import { account } from '@/appwrite';
 
+import { useAuth } from '@/contexts/auth/useAuth';
+
 import AutocompleteEmail from '@/components/AutoCompleteEmail';
 
 import login from './utils/login';
@@ -59,13 +61,14 @@ export async function clientAction({ request }) {
 
 export default function Login({ actionData }) {
 
+    const { setUser } = useAuth();
 
     useEffect(() => {
         const checkCurrentSession = async () => {
             try {
                 const session = await account.getSession('current');
                 if (session) {
-                    return redirect("/");
+                    setUser();
                 }
                 return null;
             } catch (error) {
