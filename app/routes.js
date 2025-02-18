@@ -5,13 +5,14 @@ import {
 } from "@react-router/dev/routes";
 
 export default [
+    // Authentication routes
+    route('/login', 'routes/auth/login.jsx'),
+    route('/register', 'routes/auth/register.jsx'),
+    route('/verify', 'routes/auth/verify.jsx'),
+
     layout('routes/layout.jsx', [
         index('routes/home/home.jsx'),
 
-        // Authentication routes
-        route('/login', 'routes/auth/login.jsx'),
-        route('/register', 'routes/auth/register.jsx'),
-        route('/verify', 'routes/auth/verify.jsx'),
         // route("/forgot-password", "routes/auth/recover.jsx"),
 
         // User routes
