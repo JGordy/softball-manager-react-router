@@ -24,6 +24,8 @@ import {
     IconPhone,
 } from '@tabler/icons-react';
 
+import { useAuth } from '@/contexts/auth/useAuth';
+
 import AlertIncomplete from './components/AlertIncomplete';
 import PersonalDetails from './components/PersonalDetails';
 import PersonalDetailsForm from './components/PersonalDetailsForm';
@@ -92,7 +94,10 @@ export async function action({ request, params }) {
 }
 
 export default function UserProfile({ loaderData }) {
-    const { player } = loaderData;
+
+    const { user } = useAuth();
+    console.log('profile: ', { user });
+    const player = loaderData?.player;
 
     const actionData = useActionData();
 
