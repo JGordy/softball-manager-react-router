@@ -1,13 +1,19 @@
-import { Client, Account, Databases } from "node-appwrite"; // Using the server SDK
+import { Client, Account, Databases } from 'node-appwrite';
 
-export const adminClient = new Client();
+let client = null; // Initialize client to null
 
-adminClient
-    .setEndpoint(process.env.VITE_APPWRITE_HOST_URL)
-    .setProject(process.env.VITE_APPWRITE_PROJECT_ID)
-    .setKey(process.env.VITE_APPWRITE_API_KEY);
+export function getAppwriteClient() {
+    if (!client) {
+        client = new Client();
+        client
+            .setEndpoint(process.env.APPWRITE_HOST_URL)
+            .setProject(process.env.APPWRITE_PROJECT_ID)
+            .setKey(process.env.APPWRITE_API_KEY); // Server API Key
+    }
+    return client;
+}
 
-export const account = new Account(adminClient);
-export const databases = new Databases(adminClient);
+export const account = new Account(getAppwriteClient());
+export const databases = new Databases(getAppwriteClient());
 
 export { ID, Query } from 'appwrite';
