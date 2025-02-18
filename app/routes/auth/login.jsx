@@ -59,12 +59,6 @@ export async function clientAction({ request }) {
 
 export default function Login({ actionData }) {
 
-    useEffect(() => {
-        if (actionData?.session) {
-            redirect('/');
-        }
-
-    }, [actionData]);
 
     useEffect(() => {
         const checkCurrentSession = async () => {
