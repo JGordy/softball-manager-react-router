@@ -90,7 +90,6 @@ const PlayerChart = ({ playerChart, setPlayerChart }) => {
     }, [playerChart, inningPositions]);
 
     const handlePositionChange = useCallback((position, playerName, inning) => {
-        console.log('Handle position change!', { playerName, inning, newPosition: position });
         setInningPositions(prevPositions => {
             const updatedPositions = { ...prevPositions };
             if (!updatedPositions[playerName]) {
@@ -133,8 +132,6 @@ const PlayerChart = ({ playerChart, setPlayerChart }) => {
     if (!playerChart) {
         return null;
     }
-
-    console.log({ playerChart });
 
     return (
         <div className={styles.tableContainer}>

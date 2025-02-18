@@ -22,8 +22,6 @@ export default async function register({ email, password, name }) {
             }
         );
 
-        console.log("User document created:", userDocument);
-
         return ({ email, password, session: user, user });
     } catch (error) {
         console.log('Registration error:', error);
