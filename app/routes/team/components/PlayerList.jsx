@@ -29,7 +29,6 @@ const columns = [
 ];
 
 export default function PlayerList({ players }) {
-    // console.log({ players });
 
     const [scrolled, setScrolled] = useState(false);
 
