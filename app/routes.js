@@ -6,27 +6,29 @@ import {
 
 export default [
     // Authentication routes
-    route('/login', 'routes/auth/login.jsx'),
-    route('/register', 'routes/auth/register.jsx'),
-    route('/verify', 'routes/auth/verify.jsx'),
+    layout('components/LoggedWrapper.jsx', [
+        route('/login', 'routes/auth/login.jsx'),
+        route('/register', 'routes/auth/register.jsx'),
+        route('/verify', 'routes/auth/verify.jsx'),
 
-    layout('routes/layout.jsx', [
-        index('routes/home/home.jsx'),
 
-        // route("/forgot-password", "routes/auth/recover.jsx"),
+        layout('routes/layout.jsx', [
+            index('routes/home/home.jsx'),
 
-        // User routes
-        route('/user/:userId', 'routes/user/profile.jsx'),
-        route('/user/:userId/teams', 'routes/user/teams.jsx'),
+            // route("/forgot-password", "routes/auth/recover.jsx"),
 
-        // Team routes
-        route('/user/:userId/teams/:teamId', 'routes/team/details.jsx'),
+            // User routes
+            route('/user/:userId', 'routes/user/profile.jsx'),
+            route('/user/:userId/teams', 'routes/user/teams.jsx'),
 
-        // Gameday Routes
-        route('/gameday/lineup', 'routes/gameday/lineup.jsx'),
+            // Team routes
+            route('/user/:userId/teams/:teamId', 'routes/team/details.jsx'),
 
-        // Api routes
-        route('/api/generate/lineup', 'routes/api/generate/lineup.js'),
+            // Gameday Routes
+            route('/gameday/lineup', 'routes/gameday/lineup.jsx'),
+
+            // Api routes
+            route('/api/generate/lineup', 'routes/api/generate/lineup.js'),
+        ]),
     ]),
-
 ];
