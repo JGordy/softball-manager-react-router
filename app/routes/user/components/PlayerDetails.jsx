@@ -10,20 +10,9 @@ import {
     Title,
 } from '@mantine/core';
 
-import styles from '@/styles/positionChart.module.css';
+import fieldPositions from '@/constants/positions';
 
-const fieldPositions = {
-    Pitcher: { initials: 'P' },
-    Catcher: { initials: 'C' },
-    'First Base': { initials: '1B' },
-    'Second Base': { initials: '2B' },
-    'Third Base': { initials: '3B' },
-    'Shortstop': { initials: 'SS' },
-    'Left Field': { initials: 'LF' },
-    'Left Center Field': { initials: 'LC' },
-    'Right Center Field': { initials: 'RC' },
-    'Right Field': { initials: 'RF' },
-};
+import styles from '@/styles/positionChart.module.css';
 
 const fieldSrc = `${import.meta.env.VITE_APPWRITE_HOST_URL}/storage/buckets/67af948b00375c741493/files/67b00f90002a66960ba4/view?project=${import.meta.env.VITE_APPWRITE_PROJECT_ID}&mode=admin`;
 
@@ -85,18 +74,15 @@ function PlayerDetails({ player, editButton }) {
             <div className={styles.imageContainer}>
                 <Image src={fieldSrc} alt="Preferred Positions Chart" />
 
-                {Object.keys(fieldPositions).map((position) => {
-                    const { initials } = fieldPositions[position];
-                    return (
-                        <FieldPosition
-                            key={position}
-                            position={position}
-                            isPreferred={preferredPositions.includes(position)}
-                            isDisliked={dislikedPositions.includes(position)}
-                            initials={initials}
-                        />
-                    );
-                })}
+                {Object.keys(fieldPositions).map((position) => (
+                    <FieldPosition
+                        key={position}
+                        position={position}
+                        isPreferred={preferredPositions.includes(position)}
+                        isDisliked={dislikedPositions.includes(position)}
+                        {...fieldPositions[position]}
+                    />
+                ))}
             </div>
             <Group justify='space-between' px="10px">
                 <Group gap="xs">
