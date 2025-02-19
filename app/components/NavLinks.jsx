@@ -56,11 +56,10 @@ function NavLinks() {
 
     const handleNavLinkClick = (newValue) => {
         setValue(newValue);
-        let href = `/user/${userId}`;
         if (newValue === 'profile') {
-            navigate(href);
+            navigate(`/user/${userId}`);
         } else {
-            navigate(`${href}/${newValue}`);
+            navigate(`/${newValue}`);
         }
     };
 
