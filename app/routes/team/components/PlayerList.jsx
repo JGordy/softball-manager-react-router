@@ -7,6 +7,8 @@ import {
     ScrollArea,
 } from '@mantine/core'
 
+import positions from '@/constants/positions';
+
 import styles from '@/styles/playerChart.module.css';
 
 const columns = [
@@ -60,7 +62,7 @@ export default function PlayerList({ players }) {
                                     <Avatar.Group>
                                         {player?.preferredPositions?.map(position => (
                                             <Tooltip label={position} withArrow>
-                                                <Avatar key={position} name={position} alt={position} color="initials" />
+                                                <Avatar key={position} name={positions[position].initials} alt={position} color="initials" />
                                             </Tooltip>
                                         ))}
                                     </Avatar.Group>
