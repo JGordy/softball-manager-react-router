@@ -26,8 +26,7 @@ function NavLinks() {
     const location = useLocation();
 
     const getInitialValue = () => {
-        const pathParts = location.pathname.split('/');
-        return pathParts.includes('teams') ? 'teams' : 'profile';
+        return location.pathname.toLowerCase().includes("team") ? 'teams' : 'profile';
     };
 
     const [value, setValue] = useState(getInitialValue());
