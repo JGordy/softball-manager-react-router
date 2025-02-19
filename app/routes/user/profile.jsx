@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useActionData } from 'react-router';
+import { useActionData, useLoaderData } from 'react-router';
 
 import {
     Alert,
@@ -86,22 +86,30 @@ function EditButton({ setIsModalOpen }) {
 export async function loader({ params }) {
     const { userId } = params;
 
-    return { player: userId ? await getProfile({ userId }) : {} }
+    try {
+        if (userId) {
+            const player = await getProfile({ userId });
+            return { player }
+        }
+        return { player: {} }
+    } catch (error) {
+        return { player: {} }
+    }
 }
 
 export async function action({ request, params }) {
     return updateUser({ request, params });
 }
 
-export default function UserProfile({ loaderData }) {
+export default function UserProfile() {
 
     const { user } = useAuth();
     console.log('profile: ', { user });
-    const player = loaderData?.player;
 
+    const { player } = useLoaderData();
     const actionData = useActionData();
 
-    const incompleteData = Object.entries({ ...fieldsToValidate })
+    const incompleteData = Object.entries(fieldsToValidate)
         .filter(([key]) => {
             let value = player[key];
             return value === null || value === undefined || (Array.isArray(value) && value.length === 0);
