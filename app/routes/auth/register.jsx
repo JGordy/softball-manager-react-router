@@ -28,24 +28,6 @@ import register from './utils/register';
 
 import { account } from '@/appwrite';
 
-// const IconX = React.lazy(() => import('@tabler/icons-react').then(mod => ({
-//     default: mod.IconX
-// })));
-
-export async function clientLoader({ request }) {
-    try {
-        const session = await account.getSession();
-
-        if (session) {
-            return redirect(`/user/${session.userId}`);
-        }
-        return null;
-    } catch (error) {
-        console.log("No active session found");
-        return null;
-    }
-}
-
 export async function action({ request }) {
     const formData = await request.formData();
     const email = formData.get('email');
@@ -63,18 +45,6 @@ export async function action({ request }) {
 
 export default function Register({ actionData }) {
 
-    // useEffect(() => {
-    //     if (actionData?.error) {
-    //         notifications.show({
-    //             title: 'Error',
-    //             message: actionData.error,
-    //             color: 'red',
-    //             position: 'top-right',
-    //             icon: <IconX />,
-    //         });
-    //     }
-    // }, [actionData?.error]);
-
     useEffect(() => {
         const createUserSession = async () => {
             await account.createEmailPasswordSession(actionData.email, actionData.password);
@@ -83,15 +53,8 @@ export default function Register({ actionData }) {
         };
 
         if (actionData?.session) {
-            // notifications.show({
-            //     title: 'Success',
-            //     message: 'Account created successfully',
-            //     color: 'green',
-            //     position: 'top-right',
-            // });
             createUserSession();
         }
-
     }, [actionData]);
 
     return (
