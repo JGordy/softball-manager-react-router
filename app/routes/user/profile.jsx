@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useActionData, useLoaderData } from 'react-router';
+import { useActionData, useLoaderData, redirect } from 'react-router';
 
 import {
     Alert,
@@ -91,9 +91,9 @@ export async function loader({ params }) {
             const player = await getProfile({ userId });
             return { player }
         }
-        return { player: {} }
+        throw redirect('/login');
     } catch (error) {
-        return { player: {} }
+        throw redirect('/login');
     }
 }
 
@@ -147,7 +147,7 @@ export default function UserProfile() {
         setShowIndicator(false);
     };
 
-    return (
+    return player && (
         <Container>
             <Group justify="space-between" py="lg">
                 <Group>
