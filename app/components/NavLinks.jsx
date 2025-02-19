@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 
 import { Center, SegmentedControl } from '@mantine/core';
 
@@ -8,6 +8,8 @@ import {
     IconCalendar,
     IconUserSquareRounded
 } from '@tabler/icons-react';
+
+import { useAuth } from '@/contexts/auth/useAuth';
 
 import classes from '@/styles/navLinks.module.css';
 
@@ -21,8 +23,8 @@ function Label({ Icon, text }) {
 }
 
 function NavLinks() {
+    const { user } = useAuth();
     const navigate = useNavigate();
-    const { userId } = useParams();
     const location = useLocation();
 
     const getInitialValue = () => {
@@ -56,7 +58,7 @@ function NavLinks() {
     const handleNavLinkClick = (newValue) => {
         setValue(newValue);
         if (newValue === 'profile') {
-            navigate(`/user/${userId}`);
+            navigate(`/user/${user.$id}`);
         } else {
             navigate(`/${newValue}`);
         }
