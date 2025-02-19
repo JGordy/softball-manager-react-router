@@ -109,6 +109,8 @@ export default function UserProfile() {
     const { player } = useLoaderData();
     const actionData = useActionData();
 
+    const isCurrentUser = user.$id === player.$id;
+
     const incompleteData = Object.entries(fieldsToValidate)
         .filter(([key]) => {
             let value = player[key];
@@ -176,13 +178,13 @@ export default function UserProfile() {
 
             <PersonalDetails
                 player={player}
-                editButton={<EditButton setIsModalOpen={setIsDetailsModalOpen} />}
+                editButton={isCurrentUser && <EditButton setIsModalOpen={setIsDetailsModalOpen} />}
                 fieldsToDisplay={fieldsToDisplay}
             />
 
             <PlayerDetails
                 player={player}
-                editButton={<EditButton setIsModalOpen={setIsPositionModalOpen} />}
+                editButton={isCurrentUser && <EditButton setIsModalOpen={setIsPositionModalOpen} />}
             />
 
             <Modal opened={isDetailsModalOpen} onClose={() => setIsDetailsModalOpen(false)} title="Update Personal Details">
