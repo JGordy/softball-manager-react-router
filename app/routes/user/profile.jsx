@@ -91,9 +91,9 @@ export async function loader({ params }) {
             const player = await getProfile({ userId });
             return { player }
         }
-        throw redirect('/login');
+        return { player: {} };
     } catch (error) {
-        throw redirect('/login');
+        return { player: {} };
     }
 }
 
@@ -109,7 +109,7 @@ export default function UserProfile() {
     const { player } = useLoaderData();
     const actionData = useActionData();
 
-    const isCurrentUser = user.$id === player.$id;
+    const isCurrentUser = user?.$id === player?.$id;
 
     const incompleteData = Object.entries(fieldsToValidate)
         .filter(([key]) => {
@@ -149,7 +149,7 @@ export default function UserProfile() {
         setShowIndicator(false);
     };
 
-    return player && (
+    return !!Object.keys(player).length && (
         <Container>
             <Group justify="space-between" py="lg">
                 <Group>
