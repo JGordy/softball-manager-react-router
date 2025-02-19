@@ -5,17 +5,18 @@ import {
 } from "@react-router/dev/routes";
 
 export default [
-    // Authentication routes
-    layout('components/LoggedWrapper.jsx', [
+    // Determines logged in status and appropriate redirects
+    layout('components/AuthWrapper.jsx', [
+        // Authentication routes
         route('/login', 'routes/auth/login.jsx'),
         route('/register', 'routes/auth/register.jsx'),
         route('/verify', 'routes/auth/verify.jsx'),
+        // route("/forgot-password", "routes/auth/recover.jsx"),
 
 
         layout('routes/layout.jsx', [
             index('routes/home/home.jsx'),
 
-            // route("/forgot-password", "routes/auth/recover.jsx"),
 
             // User routes
             route('/user/:userId', 'routes/user/profile.jsx'),
