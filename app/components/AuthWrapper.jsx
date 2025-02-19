@@ -3,6 +3,9 @@ import { Outlet, redirect } from 'react-router';
 
 import { account } from '@/utils/appwrite/adminClient';
 import { account as clientAccount } from '@/utils/appwrite/sessionClient';
+
+import { useAuth } from '@/contexts/auth/useAuth';
+
 // import Logout from './logout/logout';
 
 export async function loader({ request }) {
@@ -20,7 +23,7 @@ export async function clientLoader({ request }) {
     try {
         const session = await clientAccount.getSession('current');
 
-        return { isLoggedIn: !!session, userId: session.userId, pathname: url.pathname };
+        return { isLoggedIn: !!session, userId: session.userId, pathname: url.pathname, session };
     } catch (error) {
         return { isLoggedIn: false };
     }
@@ -30,13 +33,19 @@ export default function AuthWrapper({ children, loaderData }) {
     const isLoggedIn = loaderData?.isLoggedIn;
     const userId = loaderData?.userId;
     const pathname = loaderData.pathname;
+    const session = loaderData?.session;
+
+    const { setUser } = useAuth();
 
     useEffect(() => {
+
         const authRoutes = ['/login', '/register'];
 
         if (!isLoggedIn && !authRoutes.includes(pathname)) {
             redirect('/login');
         }
+
+        setUser(session);
 
         if (isLoggedIn && authRoutes.includes(pathname)) {
             redirect(`/user/${userId}`);
