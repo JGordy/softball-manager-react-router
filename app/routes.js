@@ -20,14 +20,13 @@ export default [
 
             // User routes
             route('/user/:userId', 'routes/user/profile.jsx'),
-            route('/user/:userId/teams', 'routes/user/teams.jsx'),
+            route('/teams', 'routes/user/teams.jsx'),
             // route('/user/:userId/events', 'routes/user/events.jsx'),
 
 
             // Team routes TODO: With AuthContext implemented can we lose the "/user/:userId" part of the path?
-            route('/user/:userId/team/:teamId', 'routes/team/details.jsx'),
+            route('/team/:teamId', 'routes/team/details.jsx'),
             // TODO: Suggested
-            // route('/teams/:teamId', 'routes/team/details.jsx'),
             // route('/teams/:teamId/seasons', 'routes/team/seasons.jsx'),
             // route('/teams/:teamId/games', 'routes/team/games.jsx'),
 
@@ -36,6 +35,7 @@ export default [
 
             // Api routes
             route('/api/generate/lineup', 'routes/api/generate/lineup.js'),
+            route('/api/teams', 'routes/api/data/teams.js'),
         ]),
     ]),
 ];
