@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 
 import {
-    redirect,
     Form,
     Link,
+    useNavigate,
 } from 'react-router';
 
 import {
@@ -17,12 +17,6 @@ import {
     Title,
 } from '@mantine/core';
 
-// import { notifications } from '@mantine/notifications';
-
-// const IconX = React.lazy(() => import('@tabler/icons-react').then(mod => ({
-//     default: mod.IconX
-// })));
-
 import { account } from '@/appwrite';
 
 import { useAuth } from '@/contexts/auth/useAuth';
@@ -30,20 +24,6 @@ import { useAuth } from '@/contexts/auth/useAuth';
 import AutocompleteEmail from '@/components/AutoCompleteEmail';
 
 import login from './utils/login';
-
-export async function clientLoader({ request }) {
-    try {
-        const session = await account.getSession('current');
-
-        if (session) {
-            return redirect(`/user/${session.userId}`);
-        }
-        return null;
-    } catch (error) {
-        console.log("No active session found");
-        return null;
-    }
-}
 
 export async function clientAction({ request }) {
     const formData = await request.formData();
@@ -62,6 +42,7 @@ export async function clientAction({ request }) {
 export default function Login({ actionData }) {
 
     const { setUser } = useAuth();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const checkCurrentSession = async () => {
@@ -69,6 +50,7 @@ export default function Login({ actionData }) {
                 const session = await account.getSession('current');
                 if (session) {
                     setUser();
+                    navigate(`/user/${session.userId}`);
                 }
                 return null;
             } catch (error) {
@@ -78,19 +60,6 @@ export default function Login({ actionData }) {
         };
         checkCurrentSession();
     }, []);
-
-    // useEffect(() => {
-    //     if (actionData?.error) {
-    //         notifications.show({
-    //             title: 'Error',
-    //             message: actionData.error,
-    //             color: 'red',
-    //             position: 'top-right',
-    //             icon: <IconX />,
-    //             autoClose: 1000000,
-    //         });
-    //     }
-    // }, [actionData?.error]);
 
     return (
         <Container size="xs">
