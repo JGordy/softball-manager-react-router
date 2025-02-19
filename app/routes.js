@@ -25,7 +25,7 @@ export default [
 
 
             // Team routes TODO: With AuthContext implemented can we lose the "/user/:userId" part of the path?
-            route('/user/:userId/teams/:teamId', 'routes/team/details.jsx'),
+            route('/user/:userId/team/:teamId', 'routes/team/details.jsx'),
             // TODO: Suggested
             // route('/teams/:teamId', 'routes/team/details.jsx'),
             // route('/teams/:teamId/seasons', 'routes/team/seasons.jsx'),

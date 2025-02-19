@@ -36,7 +36,7 @@ export default function TeamCard({ team, userId, season }) {
     };
 
     return (
-        <Link to={`/user/${userId}/teams/${team.$id}`}>
+        <Link to={`/user/${userId}/team/${team.$id}`}>
             <Card
                 key={team.$id}
                 padding="lg"
