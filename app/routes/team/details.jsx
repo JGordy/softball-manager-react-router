@@ -19,6 +19,8 @@ import { IconCurrencyDollar, IconCalendar, IconMapPin, IconFriends, IconCalendar
 
 import { adjustColorBasedOnDarkness } from '@/utils/adjustHexColor';
 
+import BackButton from '@/components/BackButton';
+
 import { useAuth } from '@/contexts/auth/useAuth';
 
 import PlayerForm from './components/PlayerForm';
@@ -82,6 +84,9 @@ export default function TeamDetails({ actionData, loaderData }) {
 
     return (
         <Container size="xl" p="xl">
+            <div>
+                <BackButton text="Teams" />
+            </div>
             <Title order={2} align="center" mt="sm" mb="lg">
                 {teamDetails.name}
             </Title>
