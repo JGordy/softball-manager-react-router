@@ -60,6 +60,9 @@ export async function action({ request }) {
     return createTeamAction({ request });
 }
 
+// TODO: What to actually make this page?
+// If we make this the default page the user lands on, what all should show here?
+// Keep individual pages for profile, teams, gameday, etc...
 const TeamsPage = ({ loaderData }) => {
     const teams = loaderData?.teams;
 
