@@ -1,6 +1,6 @@
 import positions from "@constants/positions";
 
-const prompt = `Available Fielding Positions: ${JSON.stringify(positions)}
+const prompt = `Available Fielding Positions: ${JSON.stringify(Object.keys(positions))}
 
 ** Steps to implement the below rules. This is most important **
 Inning #1: For each position find a player that has that position listed in thier preferredPositions list. Assign them to that position. Assign the rest of the players as "Out" for that inning.

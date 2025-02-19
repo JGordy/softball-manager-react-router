@@ -65,7 +65,7 @@ export default function PlayerForm({ setIsModalOpen, setError, primaryColor }) {
                 label="Preferred Positions"
                 name="preferredPositions"
                 placeholder="Select Positions"
-                data={positions}
+                data={Object.keys(positions)}
                 mb="sm"
                 clearable
                 searchable

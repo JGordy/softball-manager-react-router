@@ -1,4 +1,6 @@
-import positions from "@constants/positions";
+import fieldingPositions from "@constants/positions";
+
+const positions = Object.keys(fieldingPositions);
 
 // Add helper function to count "Out" positions
 const countOutPositions = (player) => {

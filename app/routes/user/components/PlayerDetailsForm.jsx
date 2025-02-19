@@ -38,7 +38,7 @@ export default function PlayerDetailsForm({ setIsModalOpen, setError }) {
                 label="Preferred Positions"
                 name="preferredPositions"
                 placeholder="What positions are you interested in?"
-                data={positions}
+                data={Object.keys(positions)}
                 mb="sm"
                 clearable
                 searchable
@@ -49,7 +49,7 @@ export default function PlayerDetailsForm({ setIsModalOpen, setError }) {
                 label="Disliked Positions"
                 name="dislikedPositions"
                 placeholder="What positions are you NOT interested in?"
-                data={positions}
+                data={Object.keys(positions)}
                 mb="sm"
                 clearable
                 searchable
