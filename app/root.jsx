@@ -1,5 +1,3 @@
-import '@mantine/core/styles.css';
-
 import {
     isRouteErrorResponse,
     Links,
@@ -10,10 +8,17 @@ import {
 } from "react-router";
 
 import { ColorSchemeScript, MantineProvider } from '@mantine/core';
+
+import '@mantine/core/styles.css';
 import '@mantine/core/styles/global.css';
 import '@mantine/dates/styles.css';
 
 import "@/styles/app.css";
+
+import AuthProvider from '@/contexts/auth/authProvider';
+
+// import { account } from '@/utils/appwrite/adminClient';
+// import { Client, Account } from 'node-appwrite';
 
 import theme from './theme';
 
@@ -31,11 +36,7 @@ export const links = () => [
 ];
 
 export async function loader({ request }) {
-    // TODO: How would I find out the color scheme here? Set a cookie?
-    // const cookie = request.headers.get('Cookie'); // Or however you access cookies
-    // console.log({ cookie });
-    // const initialTheme = getThemeFromCookie(cookie) || 'light'; // Or 'dark'
-    // return json({ initialTheme });
+    // console.log({ request, cookies: request.headers.get("Cookie") })
 }
 
 export function Layout({ children }) {
@@ -49,12 +50,14 @@ export function Layout({ children }) {
                 <Links />
             </head>
             <body>
-                <MantineProvider
-                    defaultColorScheme="auto"
-                    theme={theme}
-                >
-                    {children}
-                </MantineProvider>
+                <AuthProvider>
+                    <MantineProvider
+                        defaultColorScheme="auto"
+                        theme={theme}
+                    >
+                        {children}
+                    </MantineProvider>
+                </AuthProvider>
                 <ScrollRestoration />
                 <Scripts />
             </body>
