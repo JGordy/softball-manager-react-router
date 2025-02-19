@@ -44,15 +44,15 @@ function NavLinks() {
 
         },
         {
-            label: <Label Icon={IconCalendar} text="Schedule" />,
-            value: 'schedule',
+            label: <Label Icon={IconCalendar} text="Events" />,
+            value: 'events',
             disabled: true,
         },
     ]
 
     useEffect(() => {
         setValue(getInitialValue()); // Update value when location changes
-    }, [location]); // Add location as a dependency
+    }, [location]);
 
     const handleNavLinkClick = (newValue) => {
         setValue(newValue);
