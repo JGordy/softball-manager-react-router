@@ -25,12 +25,17 @@ const columns = [
         title: 'Positions'
     },
     {
+        accessor: 'role',
+        title: 'Role',
+    },
+    {
         accessor: 'email',
         title: 'Email',
+        restricted: true,
     },
 ];
 
-export default function PlayerList({ players }) {
+export default function PlayerList({ players, coachId, coachView }) {
 
     const [scrolled, setScrolled] = useState(false);
 
@@ -41,9 +46,12 @@ export default function PlayerList({ players }) {
             <Table striped highlightOnHover withTableBorder>
                 <Table.Thead className={headerClassName}>
                     <Table.Tr>
-                        {columns.map((column) => (
-                            <Table.Th key={column.accessor}>{column.title}</Table.Th>
-                        ))}
+                        {columns.map((column) => {
+                            const showColumn = !column.restricted || (column.restricted && coachView)
+                            return showColumn && (
+                                <Table.Th key={column.accessor}>{column.title}</Table.Th>
+                            )
+                        })}
                     </Table.Tr>
                 </Table.Thead>
                 <Table.Tbody>
@@ -61,13 +69,14 @@ export default function PlayerList({ players }) {
                                 <Table.Td>
                                     <Avatar.Group>
                                         {player?.preferredPositions?.map(position => (
-                                            <Tooltip label={position} withArrow>
-                                                <Avatar key={position} name={positions[position].initials} alt={position} color="initials" />
+                                            <Tooltip key={player.$id + position} label={position} withArrow>
+                                                <Avatar name={positions[position].initials} alt={position} color="initials" />
                                             </Tooltip>
                                         ))}
                                     </Avatar.Group>
                                 </Table.Td>
-                                <Table.Td>{player.email}</Table.Td>
+                                <Table.Td>{player.$id === coachId ? 'Coach' : 'Player'}</Table.Td>
+                                {coachView && <Table.Td>{player.email}</Table.Td>}
                             </Table.Tr>
                         )
                     })}
