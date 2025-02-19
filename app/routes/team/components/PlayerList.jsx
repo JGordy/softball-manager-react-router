@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+// import { Link } from "react-router";
+
 import {
     Avatar,
     Table,
@@ -8,6 +10,8 @@ import {
 } from '@mantine/core'
 
 import positions from '@/constants/positions';
+
+// import { IconLink } from '@tabler/icons-react';
 
 import styles from '@/styles/playerChart.module.css';
 
@@ -64,8 +68,11 @@ export default function PlayerList({ players, coachId, coachView }) {
                                     {/* TODO: Let users upload an avatar */}
                                     <Avatar name={name} alt={name} color="initials" />
                                 </Table.Td>
-                                <Table.Td>{name}</Table.Td>
-                                {/* TODO: List preferred positions here */}
+                                <Table.Td>
+                                    {/* <Link to={`/user/${player.$id}`}> */}
+                                    {name}
+                                    {/* </Link> */}
+                                </Table.Td>
                                 <Table.Td>
                                     <Avatar.Group>
                                         {player?.preferredPositions?.map(position => (
