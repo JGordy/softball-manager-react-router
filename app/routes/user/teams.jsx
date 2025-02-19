@@ -30,29 +30,26 @@ export function meta() {
     ];
 }
 
-export async function loader({ params }) {
-    const { userId } = params;
-
-    if (userId) {
-        return { teams: await getTeams({ userId }), userId };
-    } else {
-        return { teams: [] };
-    }
-};
-
-export async function clientLoader({ params, serverLoader }) {
-    const { userId } = params;
-    const { teams: serverTeams } = await serverLoader();
-
+export async function clientLoader({ request }) {
     try {
         const session = await account.getSession("current");
+
         if (!session) {
-            return redirect("/login");
+            throw redirect("/login");
         }
 
-        const teams = serverTeams.length > 0  // Check if serverTeams has data
-            ? serverTeams // Use server-loaded teams if available
-            : userId ? await getTeams({ userId }) : []; // Otherwise, fetch if userId exists
+        const { userId } = session;
+        const response = await fetch('/api/teams', {
+            method: 'POST',
+            body: JSON.stringify({ userId }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Error fetching teams');
+        }
+
+        const teams = await response.json();
 
         return { teams, userId };
 
