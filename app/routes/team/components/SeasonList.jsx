@@ -86,7 +86,7 @@ export default function SeasonList({
                 <Group gap="5px">
                     <IconCurrencyDollar size={18} />
                     <Text {...textProps}>
-                        {season.signUpFee || "TBD"}
+                        {`${season.signUpFee}/player` || "TBD"}
                     </Text>
                 </Group>
             </Group>
