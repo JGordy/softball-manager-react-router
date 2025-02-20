@@ -47,7 +47,7 @@ export async function action({ request, params }) {
     const { teamId } = params;
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
-    console.log({ _action, values });
+    // console.log({ _action, values });
 
     if (_action === 'add-player') {
         return createPlayer({ values, teamId });
