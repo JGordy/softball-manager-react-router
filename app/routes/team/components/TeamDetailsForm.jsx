@@ -15,7 +15,6 @@ export default function TeamDetailsForm({ handleCloseModal, setError, primaryCol
     return (
         <div>
             <Form method="post">
-                <input type="hidden" name="teamId" value={teamId} />
                 <TextInput
                     className={classes.inputs}
                     label="Team Name"
@@ -54,7 +53,7 @@ export default function TeamDetailsForm({ handleCloseModal, setError, primaryCol
                         color={primaryColor}
                         autoContrast
                     >
-                        Create Team
+                        Update Team
                     </Button>
                     <Button
                         variant="outline"
