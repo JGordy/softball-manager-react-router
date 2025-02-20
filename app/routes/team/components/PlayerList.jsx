@@ -13,7 +13,7 @@ import {
 
 import positions from '@/constants/positions';
 
-// import { IconLink } from '@tabler/icons-react';
+import { IconPlus } from '@tabler/icons-react';
 
 import styles from '@/styles/playerChart.module.css';
 
@@ -110,6 +110,7 @@ export default function PlayerList({
                     autoContrast
                     fullWidth
                 >
+                    <IconPlus size={20} />
                     Add Player
                 </Button>
             )}
