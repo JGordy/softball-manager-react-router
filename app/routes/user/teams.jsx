@@ -98,7 +98,7 @@ const UserDashboard = ({ loaderData }) => {
 
     return (
         <Container>
-            <Title order={2} mt="sm" mb="lg">
+            <Title order={2} py="lg">
                 My Teams
             </Title>
 
