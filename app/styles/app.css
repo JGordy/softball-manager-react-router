@@ -15,14 +15,25 @@ body {
         body {
             background-color: #101720;
 
+            .mantine-Modal-root,
+            .mantine-Modal-header,
+            .mantine-Modal-content,
             .mantine-Card-root {
                 /* background-color: #192431; */
                 background-color: #1a242f;
             }
 
+            .mantine-Select-wrapper,
+            .mantine-Popover-dropdown,
+            .mantine-Select-options,
+            .mantine-Input-input {
+                background-color: #101720;
+            }
+
             .mantine-SegmentedControl-root {
                 background-color: #1a242f;
-                border: 1px solid #424242;
+                /* border: 1px solid #424242; */
+                border: 1px solid #101720;
             }
         }
     }
