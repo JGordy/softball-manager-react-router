@@ -3,11 +3,11 @@ import { Button } from '@mantine/core';
 
 import { IconChevronLeft } from '@tabler/icons-react';
 
-export default function BackButton({ text = 'Go Back' }) {
+export default function BackButton({ text = 'Go Back', to }) {
 
     const navigate = useNavigate();
 
-    const goBack = () => navigate(-1);
+    const goBack = () => navigate(to || -1);
 
     return (
         <Button
