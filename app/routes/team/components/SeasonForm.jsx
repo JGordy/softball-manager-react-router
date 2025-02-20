@@ -76,6 +76,7 @@ export default function SeasonForm({ handleCloseModal, setError, primaryColor, t
                 label="Season Start Date"
                 name="startDate"
                 placeholder="Pick a date"
+                firstDayOfWeek={0}
             />
             <DatePickerInput
                 className={classes.inputs}
@@ -83,6 +84,7 @@ export default function SeasonForm({ handleCloseModal, setError, primaryColor, t
                 label="Season End Date"
                 name="endDate"
                 placeholder="Pick a date"
+                firstDayOfWeek={0}
             />
 
             <Group position="right" mt="lg">
