@@ -59,11 +59,11 @@ export async function action({ request, params }) {
 };
 
 export default function TeamDetails({ actionData, loaderData }) {
-    const { teamData, players, coachId } = loaderData;
+    const { teamData, players, managerId } = loaderData;
 
     const { user } = useAuth();
 
-    const coachView = coachId === user?.$id;
+    const managerView = managerId === user?.$id;
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalContent, setModalContent] = useState(null);
@@ -72,7 +72,7 @@ export default function TeamDetails({ actionData, loaderData }) {
     const [playerList, setPlayerList] = useState(players || []);
     const [error, setError] = useState(null);
 
-    // console.log("team/details.jsx:", { teamDetails, seasons: teamDetails.seasons, playerList, coachId });
+    // console.log("team/details.jsx:", { teamDetails, seasons: teamDetails.seasons, playerList, managerId });
 
     useEffect(() => {
         const handleAfterSubmit = async () => {
@@ -179,8 +179,8 @@ export default function TeamDetails({ actionData, loaderData }) {
                 <Tabs.Panel value="roster">
                     <PlayerList
                         players={playerList}
-                        coachId={coachId}
-                        coachView={coachView}
+                        managerId={managerId}
+                        managerView={managerView}
                         handlePlayerListModal={handlePlayerListModal}
                         primaryColor={primaryColor}
                     />
@@ -189,7 +189,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                 <Tabs.Panel value="seasons">
                     <SeasonList
                         seasons={seasons}
-                        coachView={coachView}
+                        managerView={managerView}
                         primaryColor={primaryColor}
                         handleSeasonListModal={handleSeasonListModal}
                     />

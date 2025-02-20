@@ -15,7 +15,7 @@ import {
 
 export default function SeasonList({
     seasons,
-    coachView,
+    managerView,
     primaryColor,
     handleSeasonListModal,
 }) {
@@ -45,7 +45,7 @@ export default function SeasonList({
                 <Text mt="lg" align="center">
                     No seasons currently listed for this team.
                 </Text>
-                {coachView && addSeasonCta}
+                {managerView && addSeasonCta}
             </>
         );
     }
@@ -96,7 +96,7 @@ export default function SeasonList({
     return (
         <>
             {seasonContent}
-            {coachView && addSeasonCta}
+            {managerView && addSeasonCta}
         </>
     );
 }

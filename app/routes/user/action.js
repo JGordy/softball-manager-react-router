@@ -17,8 +17,8 @@ export async function createTeam({ request, params }) {
             { ...teamData, signUpFee: Number(teamData.signUpFee) },
         );
 
-        // Create document in relationship table for the user and team id's. Assume the user creating the team is a coach
-        await createDocument('memberships', null, { userId, teamId, role: 'coach' });
+        // Create document in relationship table for the user and team id's. Assume the user creating the team is a manager
+        await createDocument('memberships', null, { userId, teamId, role: 'manager' });
 
         return { response: team, status: 200 };
     } catch (error) {

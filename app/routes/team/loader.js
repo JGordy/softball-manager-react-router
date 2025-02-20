@@ -9,8 +9,8 @@ export async function getTeamData({ teamId }) {
             Query.equal('teamId', teamId),
         ]);
 
-        // 2. Get the coach's id
-        const { userId: coachId } = memberships.documents.find(document => document.role === 'coach');
+        // 2. Get the manager's id
+        const { userId: managerId } = memberships.documents.find(document => document.role === 'manager');
 
         // 3. Extract teamIds
         const userIds = memberships.documents.map(m => m.userId);
@@ -33,7 +33,7 @@ export async function getTeamData({ teamId }) {
         return {
             teamData: await readDocument('teams', teamId),
             players,
-            coachId,
+            managerId,
         };
     } else {
         return { teamData: {} };

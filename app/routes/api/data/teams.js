@@ -10,11 +10,11 @@ export async function action({ request, params }) {
     }
 
     try {
-        // 1. Check relationships table to list memberships for the userId, coach
-        // TODO: Get all teams the user either coaches (current function) or players for (role: player)
+        // 1. Check relationships table to list memberships for the userId, manager
+        // TODO: Get all teams the user either manages (current function) or players for (role: player)
         const memberships = await listDocuments('memberships', [
             Query.equal('userId', userId),
-            Query.equal('role', 'coach'),
+            Query.equal('role', 'manager'),
         ]);
 
         // 2. Extract teamIds

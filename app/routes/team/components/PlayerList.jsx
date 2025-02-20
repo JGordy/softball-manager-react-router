@@ -43,8 +43,8 @@ const columns = [
 
 export default function PlayerList({
     players,
-    coachId,
-    coachView,
+    managerId,
+    managerView,
     handlePlayerListModal,
     primaryColor,
 }) {
@@ -61,7 +61,7 @@ export default function PlayerList({
                         <Table.Thead className={headerClassName}>
                             <Table.Tr>
                                 {columns.map((column) => {
-                                    const showColumn = !column.restricted || (column.restricted && coachView)
+                                    const showColumn = !column.restricted || (column.restricted && managerView)
                                     return showColumn && (
                                         <Table.Th key={column.accessor}>{column.title}</Table.Th>
                                     )
@@ -92,8 +92,8 @@ export default function PlayerList({
                                                 ))}
                                             </Avatar.Group>
                                         </Table.Td>
-                                        <Table.Td>{player.$id === coachId ? 'Coach' : 'Player'}</Table.Td>
-                                        {coachView && <Table.Td>{player.email}</Table.Td>}
+                                        <Table.Td>{player.$id === managerId ? 'Manager' : 'Player'}</Table.Td>
+                                        {managerView && <Table.Td>{player.email}</Table.Td>}
                                     </Table.Tr>
                                 )
                             })}
@@ -102,7 +102,7 @@ export default function PlayerList({
                 </ScrollArea>
             </Card>
 
-            {coachView && (
+            {managerView && (
                 <Button
                     mt="md"
                     color={primaryColor}

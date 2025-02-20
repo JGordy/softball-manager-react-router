@@ -2,10 +2,10 @@ import { Query } from '@/appwrite';
 import { listDocuments, readDocument } from '@/utils/databases';
 
 export async function getTeams({ userId }) {
-    // 1. Check relationships table to list memberships for the userId, coach
+    // 1. Check relationships table to list memberships for the userId, manager
     const memberships = await listDocuments('memberships', [
         Query.equal('userId', userId),
-        Query.equal('role', 'coach'),
+        Query.equal('role', 'manager'),
     ]);
 
     // 2. Extract teamIds
