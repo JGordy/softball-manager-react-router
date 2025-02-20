@@ -18,7 +18,9 @@ import {
 import { account } from '@/appwrite';
 
 import { createTeam } from './action';
-import { getTeams } from './loader';
+// import { getTeams } from './loader';
+
+import { IconPlus } from '@tabler/icons-react';
 
 import TeamCard from './components/TeamCard';
 import TeamForm from './components/NewTeamForm';
@@ -124,6 +126,7 @@ const UserDashboard = ({ loaderData }) => {
             )}
 
             <Button component="div" variant="link" mt="md" onClick={() => setIsModalOpen(true)} fullWidth>
+                <IconPlus size={20} />
                 Create New Team
             </Button>
 
