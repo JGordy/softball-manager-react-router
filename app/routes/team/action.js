@@ -18,7 +18,7 @@ export async function createPlayer({ values, teamId }) {
         // Create document in relationship table for the user and team id's.
         await createDocument('memberships', null, { userId, teamId, role: 'player' });
 
-        return { response: { player }, status: 201 };
+        return { response: { player }, status: 201, success: true };
     } catch (error) {
         console.error("Error creating player:", error);
         throw error;
@@ -41,7 +41,7 @@ export async function createSeason({ values, teamId }) {
             },
         );
 
-        return { response: { season }, status: 201 };
+        return { response: { season }, status: 201, success: true };
     } catch (error) {
         console.error("Error creating season:", error);
         throw error;
@@ -60,7 +60,7 @@ export async function updateTeam({ values, teamId }) {
     try {
         const teamDetails = await updateDocument('teams', teamId, dataToUpdate);
 
-        return { response: { teamDetails }, status: 204 }
+        return { response: { teamDetails }, status: 204, success: true }
     } catch (error) {
         console.error("Error updating team:", error);
         throw error;
