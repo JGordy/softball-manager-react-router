@@ -20,13 +20,15 @@ export default [
 
             // User routes
             route('/user/:userId', 'routes/user/profile.jsx'),
+            // TODO: Eventually make this the profile route
+            // route('/user/:userId/profile', 'routes/user/profile.jsx'),
             route('/teams', 'routes/user/teams.jsx'),
             // route('/user/:userId/events', 'routes/user/events.jsx'),
 
 
-            // Team routes TODO: With AuthContext implemented can we lose the "/user/:userId" part of the path?
+            // Team routes
             route('/team/:teamId', 'routes/team/details.jsx'),
-            // TODO: Suggested
+            // TODO: Do we need seperate routes for these or display them in the team details in tabs?
             // route('/teams/:teamId/seasons', 'routes/team/seasons.jsx'),
             // route('/teams/:teamId/games', 'routes/team/games.jsx'),
 
