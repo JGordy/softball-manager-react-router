@@ -35,6 +35,7 @@ export async function createSeason({ values, teamId }) {
             {
                 ...values,
                 gameDays: values.gameDays.split(","), // Split into an array of positions
+                signUpFee: Number(values.signUpFee),
                 teamId,
                 teams: [teamId],
             },
