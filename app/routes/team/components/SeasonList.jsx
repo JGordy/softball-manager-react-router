@@ -3,10 +3,15 @@ import {
     Card,
     Group,
     Text,
-    ThemeIcon,
 } from '@mantine/core';
 
-import { IconCalendarRepeat, IconMapPin, IconFriends, IconPlus } from '@tabler/icons-react';
+import {
+    IconCalendarRepeat,
+    IconCurrencyDollar,
+    IconFriends,
+    IconMapPin,
+    IconPlus,
+} from '@tabler/icons-react';
 
 export default function SeasonList({
     seasons,
@@ -75,6 +80,13 @@ export default function SeasonList({
                     <IconFriends size={18} />
                     <Text {...textProps}>
                         {season.leagueType}
+                    </Text>
+                </Group>
+
+                <Group gap="5px">
+                    <IconCurrencyDollar size={18} />
+                    <Text {...textProps}>
+                        {season.signUpFee || "TBD"}
                     </Text>
                 </Group>
             </Group>
