@@ -5,12 +5,10 @@ import {
     Select,
     Group,
     ColorInput,
-    NumberInput,
     Button,
 } from '@mantine/core';
 
 import {
-    IconCurrencyDollar,
     IconMan,
     IconWoman,
     IconFriends,
@@ -41,6 +39,7 @@ export default function TeamForm({ setIsModalOpen, setError }) {
                     placeholder='What do you call yourselves?'
                     required
                 />
+
                 <TextInput
                     className={classes.inputs}
                     label="League Name"
@@ -48,6 +47,7 @@ export default function TeamForm({ setIsModalOpen, setError }) {
                     placeholder='Super rad weekend league'
                     required
                 />
+
                 <Select
                     className={classes.inputs}
                     label="Gender mix"
@@ -62,22 +62,12 @@ export default function TeamForm({ setIsModalOpen, setError }) {
                     )}
                     required
                 />
+
                 <ColorInput
                     className={classes.inputs}
                     label="Primary Color"
                     placeholder="White"
                     name="primaryColor"
-                />
-                <NumberInput
-                    className={classes.inputs}
-                    label="Sign Up Fee"
-                    name="signUpFee"
-                    clampBehavior="strict"
-                    leftSection={<IconCurrencyDollar size={18} />}
-                    min={0}
-                    max={200}
-                    defaultValue={50}
-                    step={5}
                 />
 
                 <Group position="right" mt="md">
