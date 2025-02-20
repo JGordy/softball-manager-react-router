@@ -1,22 +1,27 @@
 import { useNavigate } from "react-router";
-import { Button } from '@mantine/core';
+import { Anchor, Group, useComputedColorScheme } from '@mantine/core';
 
 import { IconChevronLeft } from '@tabler/icons-react';
 
 export default function BackButton({ text = 'Go Back', to }) {
+
+    const computedColorScheme = useComputedColorScheme('light');
 
     const navigate = useNavigate();
 
     const goBack = () => navigate(to || -1);
 
     return (
-        <Button
+        <Anchor
             p="0"
-            variant="subtle"
+            c={computedColorScheme === 'light' ? 'black' : 'white'}
             onClick={goBack}
+            component="button"
         >
-            <IconChevronLeft />
-            {text}
-        </Button>
+            <Group gap="0px">
+                <IconChevronLeft />
+                {text}
+            </Group>
+        </Anchor>
     );
 };
