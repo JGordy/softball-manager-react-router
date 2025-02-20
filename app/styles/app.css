@@ -11,10 +11,24 @@ body {
 
     @media (prefers-color-scheme: dark) {
         color-scheme: dark;
+
+        body {
+            background-color: #101720;
+
+            .mantine-Card-root {
+                /* background-color: #192431; */
+                background-color: #1a242f;
+            }
+
+            .mantine-SegmentedControl-root {
+                background-color: #1a242f;
+                border: 1px solid #424242;
+            }
+        }
     }
 }
 
 main {
     min-height: 100vh;
-    margin-bottom: 5vh;
+    padding-bottom: 8vh;
 }
