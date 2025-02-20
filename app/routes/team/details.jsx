@@ -3,8 +3,6 @@ import { useState, useEffect } from 'react';
 
 import {
     Alert,
-    Button,
-    Card,
     Container,
     Divider,
     Group,
@@ -17,7 +15,6 @@ import {
 } from '@mantine/core';
 
 import {
-    IconCurrencyDollar,
     IconFriends,
     IconCalendarMonth,
     IconUsersGroup,
@@ -34,6 +31,7 @@ import PlayerForm from './components/PlayerForm';
 import PlayerList from './components/PlayerList';
 import SeasonForm from './components/SeasonForm';
 import SeasonList from './components/SeasonList';
+import GamesList from './components/GamesList';
 
 import { getTeamData } from './loader';
 import { createPlayer, createSeason } from './action';
@@ -196,7 +194,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                 </Tabs.Panel>
 
                 <Tabs.Panel value="games">
-                    Games tab content
+                    <GamesList games={[]} primaryColor={teamDetails.primaryColor} />
                 </Tabs.Panel>
             </Tabs>
 
