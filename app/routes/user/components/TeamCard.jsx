@@ -19,13 +19,14 @@ import {
 
 import { adjustColorBasedOnDarkness } from '@/utils/adjustHexColor';
 
-export default function TeamCard({ team, userId, season }) {
+export default function TeamCard({ team, userId }) {
 
     const computedColorScheme = useComputedColorScheme('light');
 
     const { primaryColor } = team;
     const adjustedColor = adjustColorBasedOnDarkness(primaryColor, computedColorScheme === 'light' ? 100 : 50);
 
+    const season = team.seasons?.[0];
     const latestSeasonDates = season?.startDate ? `${new Date(season.startDate).toLocaleDateString()} - ${new Date(season.endDate).toLocaleDateString()}` : 'No season data listed';
 
     const iconProps = {
