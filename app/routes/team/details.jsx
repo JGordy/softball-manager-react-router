@@ -24,6 +24,7 @@ import {
 import { adjustColorBasedOnDarkness } from '@/utils/adjustHexColor';
 
 import BackButton from '@/components/BackButton';
+import EditButton from '@/components/EditButton';
 
 import { useAuth } from '@/contexts/auth/useAuth';
 
@@ -32,9 +33,10 @@ import PlayerList from './components/PlayerList';
 import SeasonForm from './components/SeasonForm';
 import SeasonList from './components/SeasonList';
 import GamesList from './components/GamesList';
+import TeamDetailsForm from './components/TeamDetailsForm';
 
 import { getTeamData } from './loader';
-import { createPlayer, createSeason } from './action';
+import { createPlayer, createSeason, updateTeam } from './action';
 
 export async function loader({ params }) {
     const { teamId } = params;
@@ -53,6 +55,10 @@ export async function action({ request, params }) {
 
     if (_action === 'add-season') {
         return createSeason({ values, teamId })
+    }
+
+    if (_action === 'edit-team') {
+        return updateTeam({ values, teamId })
     }
 };
 
@@ -75,7 +81,7 @@ export default function TeamDetails({ actionData, loaderData }) {
     useEffect(() => {
         const handleAfterSubmit = async () => {
             try {
-                if (actionData && actionData.status === 201) {
+                if (actionData?.success) {
                     console.log('team details > after submit: ', actionData);
                     setError(null);
                     setIsModalOpen(false);
@@ -94,6 +100,13 @@ export default function TeamDetails({ actionData, loaderData }) {
                             ...list,
                             ...actionData.response.player,
                         ]));
+                    }
+
+                    if (actionData.response.teamDetails) {
+                        setTeamDetails(details => ({
+                            ...details,
+                            ...actionData.response.teamDetails,
+                        }))
                     }
                 } else if (actionData instanceof Error) {
                     setError(actionData.message);
@@ -132,6 +145,11 @@ export default function TeamDetails({ actionData, loaderData }) {
         setIsModalOpen(true);
     };
 
+    const handleEditTeamDetailsModal = () => {
+        setModalContent('details');
+        setIsModalOpen(true);
+    }
+
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setModalContent(null);
@@ -139,9 +157,10 @@ export default function TeamDetails({ actionData, loaderData }) {
 
     return (
         <Container size="xl" p="xl">
-            <div>
+            <Group justify="space-between">
                 <BackButton text="Teams" />
-            </div>
+                <EditButton setIsModalOpen={handleEditTeamDetailsModal} />
+            </Group>
             <Title order={2} align="center" mt="sm" mb="lg">
                 {teamDetails.name}
             </Title>
@@ -209,6 +228,14 @@ export default function TeamDetails({ actionData, loaderData }) {
                 )}
                 {modalContent === 'seasonList' && (
                     <SeasonForm
+                        handleCloseModal={handleCloseModal}
+                        setError={setError}
+                        primaryColor={primaryColor}
+                        teamId={teamDetails.$id}
+                    />
+                )}
+                {modalContent === 'details' && (
+                    <TeamDetailsForm
                         handleCloseModal={handleCloseModal}
                         setError={setError}
                         primaryColor={primaryColor}
