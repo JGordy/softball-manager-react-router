@@ -49,7 +49,7 @@ export default function TeamDetailsForm({ handleCloseModal, setError, primaryCol
                     <Button
                         type="submit"
                         name="_action"
-                        value="add-season"
+                        value="edit-team"
                         color={primaryColor}
                         autoContrast
                     >
