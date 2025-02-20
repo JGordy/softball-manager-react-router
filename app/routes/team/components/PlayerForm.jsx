@@ -11,20 +11,13 @@ import {
 
 import { IMaskInput } from 'react-imask';
 
-// import { IconMan, IconWoman, IconFriends } from '@tabler/icons-react';
-
 import AutocompleteEmail from '@/components/AutoCompleteEmail';
 
 import positions from '@/constants/positions';
 
 import classes from '@/styles/inputs.module.css';
 
-export default function PlayerForm({ setIsModalOpen, setError, primaryColor }) {
-
-    // const iconProps = {
-    //     color: 'currentColor',
-    //     size: 18,
-    // };
+export default function PlayerForm({ handleCloseModal, setError, primaryColor }) {
 
     return (
         <Form method="post">
@@ -83,6 +76,8 @@ export default function PlayerForm({ setIsModalOpen, setError, primaryColor }) {
                 <Button
                     type="submit"
                     color={primaryColor}
+                    name="_action"
+                    value="add-player"
                     autoContrast
                 >
                     Submit
@@ -91,7 +86,7 @@ export default function PlayerForm({ setIsModalOpen, setError, primaryColor }) {
                     variant="outline"
                     color="gray"
                     onClick={() => {
-                        setIsModalOpen(false);
+                        handleCloseModal();
                         setError(null);
                     }}
                 >
