@@ -46,7 +46,7 @@ export default function SeasonList({
     }
 
     const seasonContent = seasons.map((season) => (
-        <Card key={season.id} mt="sm" radius="md" padding="sm" withBorder>
+        <Card key={season.$id} mt="sm" radius="md" padding="sm" withBorder>
             <Group justify="space-between">
                 <Text>{season.seasonName}</Text>
                 <Group spacing="xs">
