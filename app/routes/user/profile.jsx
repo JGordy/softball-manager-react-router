@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useActionData, useLoaderData, redirect } from 'react-router';
+import { useActionData, useLoaderData } from 'react-router';
 
 import {
     Alert,
     Avatar,
-    Button,
     Container,
     Group,
     Indicator,
@@ -12,12 +11,10 @@ import {
     Modal,
     Text,
     Title,
-    useComputedColorScheme,
 } from '@mantine/core';
 
 import {
     IconBellRingingFilled,
-    IconEdit,
     IconFriends,
     IconHeadphonesFilled,
     IconMail,
@@ -25,6 +22,8 @@ import {
 } from '@tabler/icons-react';
 
 import { useAuth } from '@/contexts/auth/useAuth';
+
+import EditButton from '@/components/EditButton';
 
 import AlertIncomplete from './components/AlertIncomplete';
 import PersonalDetails from './components/PersonalDetails';
@@ -60,27 +59,6 @@ const fieldsToValidate = {
     bats: { label: 'bats' },
     preferredPositions: { label: 'preferred positions' },
     dislikedPositions: { label: 'disliked positions' }
-}
-
-function EditButton({ setIsModalOpen }) {
-    const computedColorScheme = useComputedColorScheme('light');
-
-    return (
-        <Button
-            variant="subtle"
-            color={computedColorScheme === 'light' ? 'black' : 'white'}
-            onClick={() => setIsModalOpen(true)}
-            p="0"
-            autoContrast
-        >
-            <Group gap="5px">
-                <IconEdit size={18} />
-                <Text size="sm">
-                    Edit
-                </Text>
-            </Group>
-        </Button>
-    );
 }
 
 export async function loader({ params }) {
