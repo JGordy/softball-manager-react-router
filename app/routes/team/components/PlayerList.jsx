@@ -55,7 +55,7 @@ export default function PlayerList({
 
     return (
         <>
-            <Card mt="lg" radius="md" padding="xs">
+            <Card mt="lg" radius="md" padding="xs" withBorder>
                 <ScrollArea mah={300} onScrollPositionChange={({ y }) => setScrolled(y !== 0)}>
                     <Table striped highlightOnHover withTableBorder>
                         <Table.Thead className={headerClassName}>
