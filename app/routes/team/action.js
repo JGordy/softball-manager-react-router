@@ -1,5 +1,5 @@
 import { ID } from '@/appwrite';
-import { createDocument } from '@/utils/databases.js';
+import { createDocument, updateDocument } from '@/utils/databases.js';
 
 export async function createPlayer({ values, teamId }) {
     try {
@@ -44,6 +44,25 @@ export async function createSeason({ values, teamId }) {
         return { response: { season }, status: 201 };
     } catch (error) {
         console.error("Error creating season:", error);
+        throw error;
+    }
+}
+
+export async function updateTeam({ values, teamId }) {
+    // Removes undefined or empty string values from data to update
+    const dataToUpdate = {};
+    for (const key in values) {
+        if (values.hasOwnProperty(key) && values[key] !== undefined && values[key] !== "") {
+            dataToUpdate[key] = values[key];
+        }
+    }
+
+    try {
+        const teamDetails = await updateDocument('teams', teamId, dataToUpdate);
+
+        return { response: { teamDetails }, status: 204 }
+    } catch (error) {
+        console.error("Error updating team:", error);
         throw error;
     }
 }
