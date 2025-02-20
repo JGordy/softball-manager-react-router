@@ -155,15 +155,6 @@ export default function TeamDetails({ actionData, loaderData }) {
             <Stack spacing="sm">
                 <Group spacing="xs">
                     <ThemeIcon {...iconProps}>
-                        <IconCurrencyDollar size={18} />
-                    </ThemeIcon>
-                    <Text {...textProps}>
-                        {teamDetails.signUpFee}
-                    </Text>
-                </Group>
-
-                <Group spacing="xs">
-                    <ThemeIcon {...iconProps}>
                         <IconFriends size={18} />
                     </ThemeIcon>
                     <Text {...textProps}>
