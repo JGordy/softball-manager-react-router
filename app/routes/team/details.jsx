@@ -72,7 +72,7 @@ export default function TeamDetails({ actionData, loaderData }) {
     const [playerList, setPlayerList] = useState(players || []);
     const [error, setError] = useState(null);
 
-    console.log("team/details.jsx:", { teamDetails, seasons: teamDetails.seasons, playerList, coachId });
+    // console.log("team/details.jsx:", { teamDetails, seasons: teamDetails.seasons, playerList, coachId });
 
     useEffect(() => {
         const handleAfterSubmit = async () => {
