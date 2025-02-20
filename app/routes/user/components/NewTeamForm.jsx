@@ -9,9 +9,12 @@ import {
     Button,
 } from '@mantine/core';
 
-import { DatePickerInput } from '@mantine/dates';
-
-import { IconCurrencyDollar, IconCalendar, IconMan, IconWoman, IconFriends } from '@tabler/icons-react';
+import {
+    IconCurrencyDollar,
+    IconMan,
+    IconWoman,
+    IconFriends,
+} from '@tabler/icons-react';
 
 import classes from '@/styles/inputs.module.css';
 
@@ -59,13 +62,6 @@ export default function TeamForm({ setIsModalOpen, setError }) {
                     )}
                     required
                 />
-                {/* <Select
-                    className={classes.inputs}
-                    label="Game Days"
-                    name="gameDays"
-                    placeholder="Day of the week"
-                    data={['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']}
-                /> */}
                 <ColorInput
                     className={classes.inputs}
                     label="Primary Color"
@@ -83,20 +79,6 @@ export default function TeamForm({ setIsModalOpen, setError }) {
                     defaultValue={50}
                     step={5}
                 />
-                {/* <DatePickerInput
-                    className={classes.inputs}
-                    leftSection={<IconCalendar size={18} stroke={1.5} />}
-                    label="Season Start Date"
-                    name="seasonStartDate"
-                    placeholder="Pick a date"
-                />
-                <DatePickerInput
-                    className={classes.inputs}
-                    leftSection={<IconCalendar size={18} stroke={1.5} />}
-                    label="Season End Date"
-                    name="seasonEndDate"
-                    placeholder="Pick a date"
-                /> */}
 
                 <Group position="right" mt="md">
                     <Button type="submit">Create Team</Button>
