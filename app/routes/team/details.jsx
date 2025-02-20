@@ -60,7 +60,6 @@ export async function action({ request, params }) {
 
 export default function TeamDetails({ actionData, loaderData }) {
     const { teamData, players, coachId } = loaderData;
-    console.log("team/details.jsx:", { teamData, players, coachId });
 
     const { user } = useAuth();
 
@@ -70,7 +69,10 @@ export default function TeamDetails({ actionData, loaderData }) {
     const [modalContent, setModalContent] = useState(null);
 
     const [teamDetails, setTeamDetails] = useState(teamData || {});
+    const [playerList, setPlayerList] = useState(players || []);
     const [error, setError] = useState(null);
+
+    console.log("team/details.jsx:", { teamDetails, seasons: teamDetails.seasons, playerList, coachId });
 
     useEffect(() => {
         const handleAfterSubmit = async () => {
@@ -80,11 +82,20 @@ export default function TeamDetails({ actionData, loaderData }) {
                     setError(null);
                     setIsModalOpen(false);
 
+                    // TODO: Determine if this is needed?
                     if (actionData.response.season) {
                         setTeamDetails(details => ({
                             ...details,
                             seasons: [...details.seasons, actionData.response.season],
                         }));
+                    }
+
+                    // TODO: Determine if this is needed?
+                    if (actionData.response.season) {
+                        setPlayerList(list => ([
+                            ...list,
+                            ...actionData.response.player,
+                        ]));
                     }
                 } else if (actionData instanceof Error) {
                     setError(actionData.message);
@@ -176,7 +187,7 @@ export default function TeamDetails({ actionData, loaderData }) {
 
                 <Tabs.Panel value="roster">
                     <PlayerList
-                        players={players}
+                        players={playerList}
                         coachId={coachId}
                         coachView={coachView}
                         handlePlayerListModal={handlePlayerListModal}
