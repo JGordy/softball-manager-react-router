@@ -2,7 +2,6 @@ import { Link } from "react-router";
 
 import {
     Card,
-    Center,
     Divider,
     Text,
     Group,
@@ -12,7 +11,6 @@ import {
 
 import {
     IconCalendar,
-    IconCurrencyDollar,
     IconFriends,
     IconMapPin,
 } from '@tabler/icons-react';
@@ -46,11 +44,14 @@ export default function TeamCard({ team, userId }) {
                 radius="xl"
                 withBorder
             >
-                <Center>
+                <Group justify="space-between">
                     <Text weight={500} size="lg">
                         {team.name}
                     </Text>
-                </Center>
+                    <Text size="md" c="dimmed">
+                        {team.leagueName}
+                    </Text>
+                </Group>
 
                 <Divider my="sm" />
 
@@ -65,6 +66,14 @@ export default function TeamCard({ team, userId }) {
                     </Group>
                     <Group gap="xs">
                         <ThemeIcon {...iconProps}>
+                            <IconFriends size={18} />
+                        </ThemeIcon>
+                        <Text size="md">
+                            {team.genderMix || 'Not Specified'}
+                        </Text>
+                    </Group>
+                    <Group gap="xs">
+                        <ThemeIcon {...iconProps}>
                             <IconMapPin size={16} />
                         </ThemeIcon>
                         <Text size="md">
@@ -72,34 +81,6 @@ export default function TeamCard({ team, userId }) {
                         </Text>
                     </Group>
                 </Group>
-
-                <Group gap="lg">
-                    <Group gap="xs">
-                        <ThemeIcon {...iconProps}>
-                            <IconFriends size={18} />
-                        </ThemeIcon>
-                        <Text size="md">
-                            {team.genderMix || 'Not Specified'}
-                        </Text>
-                    </Group>
-
-                    <Group gap="xs">
-                        <ThemeIcon {...iconProps}>
-                            <IconCurrencyDollar size={18} />
-                        </ThemeIcon>
-                        <Text size="md">
-                            {team.signUpFee || 'Not Specified'}
-                        </Text>
-                    </Group>
-                </Group>
-
-                <Text size="md" c="dimmed" mt="sm">
-                    {team.leagueName}
-                </Text>
-
-                {/* <Text size="sm" c="dimmed" mb="xs">
-                    Game Days: {team.gameDays}
-                </Text> */}
             </Card>
         </Link>
     );
