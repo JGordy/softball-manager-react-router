@@ -4,13 +4,14 @@ import {
     Button,
     Group,
     MultiSelect,
+    NumberInput,
     Select,
     TextInput,
 } from '@mantine/core';
 
 import { DatePickerInput } from '@mantine/dates';
 
-import { IconCalendar } from '@tabler/icons-react';
+import { IconCalendar, IconCurrencyDollar } from '@tabler/icons-react';
 
 import classes from '@/styles/inputs.module.css';
 
@@ -57,6 +58,17 @@ export default function SeasonForm({ handleCloseModal, setError, primaryColor, t
                 mb="sm"
                 searchable
                 required
+            />
+            <NumberInput
+                className={classes.inputs}
+                label="Sign Up Fee"
+                name="signUpFee"
+                clampBehavior="strict"
+                leftSection={<IconCurrencyDollar size={18} />}
+                min={0}
+                max={200}
+                defaultValue={50}
+                step={5}
             />
             <DatePickerInput
                 className={classes.inputs}
