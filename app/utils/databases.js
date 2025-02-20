@@ -7,6 +7,8 @@ export const collections = {
     users: import.meta.env.VITE_APPWRITE_USERS_COLLECTION_ID,
     teams: import.meta.env.VITE_APPWRITE_TEAMS_COLLECTION_ID,
     memberships: import.meta.env.VITE_APPWRITE_MEMBERSHIPS_COLLECTION_ID,
+    seasons: import.meta.env.VITE_APPWRITE_SEASONS_COLLECTION_ID,
+    games: import.meta.env.VITE_APPWRITE_GAMES_COLLECTION_ID,
 };
 
 // Helper function to create a document
