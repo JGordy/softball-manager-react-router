@@ -65,6 +65,7 @@ export async function action({ request, params }) {
 
 const UserDashboard = ({ loaderData }) => {
     const { teams, userId } = loaderData;
+    console.log('/teams.jsx', { teams });
 
     const actionData = useActionData();
 
@@ -99,28 +100,30 @@ const UserDashboard = ({ loaderData }) => {
                 My Teams
             </Title>
 
-            <Flex
-                direction={{ base: 'column', sm: 'row' }}
-                justify={{ base: 'center', sm: 'start' }}
-                align={{ base: 'stretch', sm: 'center' }}
-                wrap="wrap"
-                gap={{ base: 'sm', sm: 'lg' }}
-                mih={50}
-            >
-                {(teamList.length > 0) && teamList.map((team) => (
-                    <TeamCard
-                        key={team.$id}
-                        team={team}
-                        userId={userId}
-                    />
-                ))}
-            </Flex>
+            {(teamList.length > 0) && (
+                <Flex
+                    direction={{ base: 'column', sm: 'row' }}
+                    justify={{ base: 'center', sm: 'start' }}
+                    align={{ base: 'stretch', sm: 'center' }}
+                    wrap="wrap"
+                    gap={{ base: 'sm', sm: 'lg' }}
+                    mih={50}
+                >
+                    {teamList.map((team) => (
+                        <TeamCard
+                            key={team.$id}
+                            team={team}
+                            userId={userId}
+                        />
+                    ))}
+                </Flex>
+            )}
 
             {!teamList.length && (
                 <Text size="sm">You don't have any teams. Create one below</Text>
             )}
 
-            <Button component="div" variant="link" mt="md" onClick={() => setIsModalOpen(true)}>
+            <Button component="div" variant="link" mt="md" onClick={() => setIsModalOpen(true)} fullWidth>
                 Create New Team
             </Button>
 
