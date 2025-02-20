@@ -36,6 +36,7 @@ export default function TeamDetailsForm({ handleCloseModal, setError, primaryCol
                     name="genderMix"
                     placeholder="Choose the league's gender composition"
                     data={['Men', 'Women', 'Coed']}
+                    searchable
                 />
 
                 <ColorInput
