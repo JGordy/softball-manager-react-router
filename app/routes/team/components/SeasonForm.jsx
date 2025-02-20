@@ -55,20 +55,21 @@ export default function SeasonForm({ handleCloseModal, setError, primaryColor, t
                 placeholder="Select Gender"
                 data={['Men', 'Women', 'Coed']}
                 mb="sm"
+                searchable
                 required
             />
             <DatePickerInput
                 className={classes.inputs}
                 leftSection={<IconCalendar {...iconProps} />}
                 label="Season Start Date"
-                name="seasonStartDate"
+                name="startDate"
                 placeholder="Pick a date"
             />
             <DatePickerInput
                 className={classes.inputs}
                 leftSection={<IconCalendar {...iconProps} />}
                 label="Season End Date"
-                name="seasonEndDate"
+                name="endDate"
                 placeholder="Pick a date"
             />
 
