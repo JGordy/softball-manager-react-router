@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import {
     Button,
@@ -14,8 +14,10 @@ import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
 
 import GameGenerator from './components/GameGenerator';
+import SeasonDetailsForm from './components/SeasonDetailsForm';
 
 import { getSeasonDetails } from './loader';
+import { addGames, updateSeason } from './action';
 
 export async function loader({ params }) {
     const { seasonId } = params;
@@ -23,13 +25,47 @@ export async function loader({ params }) {
     return getSeasonDetails({ seasonId });
 }
 
-export default function SeasonDetails({ loaderData }) {
+export async function action({ request, params }) {
+    const { seasonId } = params;
+
+    const formData = await request.formData();
+    const { _action, ...values } = Object.fromEntries(formData);
+    console.log({ _action, values });
+
+    if (_action === 'add-games') {
+        // return addGames({ values, seasonId })
+    }
+
+    if (_action === 'edit-season') {
+        return updateSeason({ values, seasonId })
+    }
+};
+
+export default function SeasonDetails({ loaderData, actionData }) {
     const { season } = loaderData;
-    console.log('/season/details.jsx: ', { season });
+    // console.log('/season/details.jsx: ', { season });
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalContents, setModalContents] = useState();
     const [error, setError] = useState();
+
+    useEffect(() => {
+        const handleAfterSubmit = async () => {
+            try {
+                if (actionData?.success) {
+                    setError(null);
+                    setIsModalOpen(false);
+                } else if (actionData instanceof Error) {
+                    setError(actionData.message);
+                }
+            } catch (jsonError) {
+                console.error("Error parsing JSON:", jsonError);
+                setError("An error occurred during player creation.");
+            }
+        };
+
+        handleAfterSubmit();
+    }, [actionData]);
 
     const handleEditSeasonDetails = () => {
         setModalContents('edit-season');
@@ -92,7 +128,11 @@ export default function SeasonDetails({ loaderData }) {
                     />
                 )}
                 {modalContents === 'edit-season' && (
-                    <div>Update Season Details</div>
+                    <SeasonDetailsForm
+                        season={season}
+                        handleCloseModal={handleCloseModal}
+                        setError={setError}
+                    />
                 )}
             </Modal>
         </Container>
