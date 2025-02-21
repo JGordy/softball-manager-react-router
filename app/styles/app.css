@@ -41,6 +41,10 @@ body {
                 /* background-color: #192431; */
                 background-color: #1a242f00;
             }
+
+            .mantine-Table-tbody {
+                --table-striped-color: #101720 !important;
+            }
         }
     }
 }
