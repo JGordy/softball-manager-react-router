@@ -14,10 +14,11 @@ import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
 
 import GameGenerator from './components/GameGenerator';
+import GamesTable from './components/GamesTable';
 import SeasonDetailsForm from './components/SeasonDetailsForm';
 
 import { getSeasonDetails } from './loader';
-import { addGames, updateSeason } from './action';
+import { createGames, updateSeason } from './action';
 
 export async function loader({ params }) {
     const { seasonId } = params;
@@ -33,7 +34,7 @@ export async function action({ request, params }) {
     console.log({ _action, values });
 
     if (_action === 'add-games') {
-        // return addGames({ values, seasonId })
+        return createGames({ values, seasonId })
     }
 
     if (_action === 'edit-season') {
@@ -43,7 +44,7 @@ export async function action({ request, params }) {
 
 export default function SeasonDetails({ loaderData, actionData }) {
     const { season } = loaderData;
-    // console.log('/season/details.jsx: ', { season });
+    console.log('/season/details.jsx: ', { season });
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalContents, setModalContents] = useState();
@@ -104,18 +105,27 @@ export default function SeasonDetails({ loaderData, actionData }) {
             <Text>{season.location}</Text>
             <Text>{season.leagueType}</Text>
             <Text>{`$${season.signUpFee}/player`}</Text>
+
             <Divider size="sm" my="sm" />
-            <Title order={4} mb="sm">Games</Title>
-            <Text>There are {season.games.length} games listed for the upcoming season.</Text>
+
+            <Title order={4} mb="sm">Games ({season.games.length})</Title>
+
             {!hasGames && (
-                <Button
-                    mt="md"
-                    onClick={handleGenerateGamesClick}
-                    fullWidth
-                    autoContrast
-                >
-                    Generate Games
-                </Button>
+                <>
+                    <Text>There are no games listed for the upcoming season.</Text>
+                    <Button
+                        mt="md"
+                        onClick={handleGenerateGamesClick}
+                        fullWidth
+                        autoContrast
+                    >
+                        Generate Games
+                    </Button>
+                </>
+            )}
+
+            {hasGames && (
+                <GamesTable games={season.games} />
             )}
 
             <Modal opened={isModalOpen} onClose={handleCloseModal} title={modalTitle}>
