@@ -23,7 +23,7 @@ export default function GameGenerator({ season, handleCloseModal, setError }) {
     const [gameTimes, setGameTimes] = useState(() => {
         const now = new Date();
         const sevenPM = new Date(now);
-        sevenPM.setHours(19, 0, 0, 0); // Set to 7 PM
+        sevenPM.setHours(19, 0, 0, 0); // Set to 7 PM as default
         return sevenPM;
     });
 
@@ -31,8 +31,6 @@ export default function GameGenerator({ season, handleCloseModal, setError }) {
 
     // Used for games generated but not yet saved/confirmed
     const [generatedGames, setGeneratedGames] = useState([]);
-    // Used for games that have been confirmed and saved
-    const [games, setGames] = useState([]);
 
     const seasonStartDate = new Date(season.startDate).toLocaleDateString();
     const seasonEndDate = new Date(season.endDate).toLocaleDateString();
@@ -60,7 +58,6 @@ export default function GameGenerator({ season, handleCloseModal, setError }) {
             const timeString = gameTimes.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
             const [hours, minutes] = timeString.split(':');
             currentDate.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
-            // currentDate.setHours(19, 0, 0, 0); // 7 PM (19:00 in 24-hour format)
 
             while (currentDate <= end) {
                 if (getDayName(currentDate.getDay()) === gameDay) {
@@ -69,7 +66,6 @@ export default function GameGenerator({ season, handleCloseModal, setError }) {
                         teamId,
                         seasonId: season.$id,
                         seasons: [season.$id],
-                        // ... other game data
                     });
                 }
                 currentDate.setDate(currentDate.getDate() + 1); // Increment by one day
@@ -117,8 +113,6 @@ export default function GameGenerator({ season, handleCloseModal, setError }) {
         </ActionIcon>
     );
 
-    console.log({ generatedGames });
-
     return (
         <Form
             method="post"
@@ -152,6 +146,7 @@ export default function GameGenerator({ season, handleCloseModal, setError }) {
                 mb="sm"
                 defaultValue="19:00"
             />
+            <input type="hidden" name="games" value={JSON.stringify(generatedGames)} /> {/* Hidden input to capture generated games */}
 
 
             {generatedGames.length === 0 && (
