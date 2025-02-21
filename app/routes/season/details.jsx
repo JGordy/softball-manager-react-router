@@ -44,7 +44,7 @@ export async function action({ request, params }) {
 
 export default function SeasonDetails({ loaderData, actionData }) {
     const { season } = loaderData;
-    console.log('/season/details.jsx: ', { season });
+    // console.log('/season/details.jsx: ', { season });
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalContents, setModalContents] = useState();
@@ -93,7 +93,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
         <Container size="xl" p="xl">
             <Group justify="space-between">
                 <BackButton text="Teams" />
-                <EditButton setIsModalOpen={handleEditSeasonDetails} />
+                <EditButton setIsModalOpen={handleEditSeasonDetails} to={`/teams/${season.teamId}`} />
             </Group>
             <Title order={2} align="center" mt="sm" mb="lg">
                 {season.seasonName}
@@ -125,7 +125,12 @@ export default function SeasonDetails({ loaderData, actionData }) {
             )}
 
             {hasGames && (
-                <GamesTable games={season.games} />
+                <GamesTable
+                    columns={['opponent', 'score', 'opponentScore', 'result']}
+                    games={season.games}
+                    variant="vertical"
+                    striped
+                />
             )}
 
             <Modal opened={isModalOpen} onClose={handleCloseModal} title={modalTitle}>
