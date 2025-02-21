@@ -65,7 +65,7 @@ export default function GameGenerator({ season, handleCloseModal, setError }) {
                         gameDate: currentDate.toISOString(),
                         teamId,
                         seasonId: season.$id,
-                        seasons: [season.$id],
+                        seasons: season.$id,
                     });
                 }
                 currentDate.setDate(currentDate.getDate() + 1); // Increment by one day
@@ -176,7 +176,7 @@ export default function GameGenerator({ season, handleCloseModal, setError }) {
                         <Button
                             type="submit"
                             name="_action"
-                            value="generate-games"
+                            value="add-games"
                             autoContrast
                         >
                             Save Games
