@@ -18,6 +18,7 @@ body {
             .mantine-Modal-root,
             .mantine-Modal-header,
             .mantine-Modal-content,
+            .mantine-ColorInput-dropdown,
             .mantine-Card-root {
                 /* background-color: #192431; */
                 background-color: #1a242f;
