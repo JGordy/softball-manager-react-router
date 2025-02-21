@@ -36,6 +36,11 @@ body {
                 /* border: 1px solid #424242; */
                 border: 1px solid #101720;
             }
+
+            .mantine-LoadingOverlay-overlay {
+                /* background-color: #192431; */
+                background-color: #1a242f00;
+            }
         }
     }
 }
