@@ -1,3 +1,5 @@
+import { Link } from 'react-router';
+
 import {
     Button,
     Card,
@@ -51,46 +53,48 @@ export default function SeasonList({
     }
 
     const seasonContent = seasons.map((season) => (
-        <Card key={season.$id} mt="sm" radius="md" padding="sm" withBorder>
-            <Group justify="space-between">
-                <Text>{season.seasonName}</Text>
-                <Group spacing="xs">
-                    <Text {...textProps}>
-                        {new Date(season.startDate).toLocaleDateString()} - {new Date(season.endDate).toLocaleDateString()}
-                    </Text>
-                </Group>
-            </Group>
-
-            <Group mt="sm" gap="lg">
-                <Group gap="5px">
-                    <IconMapPin size={18} />
-                    <Text {...textProps}>
-                        {season.location || "Not specified"}
-                    </Text>
+        <Link to={`/season/${season.$id}`} key={season.$id}>
+            <Card key={season.$id} mt="sm" radius="md" padding="sm" withBorder>
+                <Group justify="space-between">
+                    <Text>{season.seasonName}</Text>
+                    <Group spacing="xs">
+                        <Text {...textProps}>
+                            {new Date(season.startDate).toLocaleDateString()} - {new Date(season.endDate).toLocaleDateString()}
+                        </Text>
+                    </Group>
                 </Group>
 
-                <Group gap="5px">
-                    <IconCalendarRepeat size={18} />
-                    <Text {...textProps}>
-                        {`${season.gameDays}s`}
-                    </Text>
-                </Group>
+                <Group mt="sm" gap="lg">
+                    <Group gap="5px">
+                        <IconMapPin size={18} />
+                        <Text {...textProps}>
+                            {season.location || "Not specified"}
+                        </Text>
+                    </Group>
 
-                <Group gap="5px">
-                    <IconFriends size={18} />
-                    <Text {...textProps}>
-                        {season.leagueType}
-                    </Text>
-                </Group>
+                    <Group gap="5px">
+                        <IconCalendarRepeat size={18} />
+                        <Text {...textProps}>
+                            {`${season.gameDays}s`}
+                        </Text>
+                    </Group>
 
-                <Group gap="5px">
-                    <IconCurrencyDollar size={18} />
-                    <Text {...textProps}>
-                        {`${season.signUpFee || 'TBD'}/player`}
-                    </Text>
+                    <Group gap="5px">
+                        <IconFriends size={18} />
+                        <Text {...textProps}>
+                            {season.leagueType}
+                        </Text>
+                    </Group>
+
+                    <Group gap="5px">
+                        <IconCurrencyDollar size={18} />
+                        <Text {...textProps}>
+                            {`${season.signUpFee || 'TBD'}/player`}
+                        </Text>
+                    </Group>
                 </Group>
-            </Group>
-        </Card>
+            </Card>
+        </Link>
     ));
 
     return (
