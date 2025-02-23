@@ -37,7 +37,7 @@ export default function GamesTable({ games, columns, variant = '', striped = fal
 
     return (
         <Card withBorder>
-            <ScrollArea maw={'100vw'} h={'50vh'}>
+            <ScrollArea maw="100vw" mih="30vh" mah="50vh">
                 <Table
                     layout={variant}
                     striped={striped}
