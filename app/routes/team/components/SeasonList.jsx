@@ -8,10 +8,10 @@ import {
 } from '@mantine/core';
 
 import {
-    IconCalendarRepeat,
-    IconCurrencyDollar,
-    IconFriends,
-    IconMapPin,
+    // IconCalendarRepeat,
+    // IconCurrencyDollar,
+    // IconFriends,
+    // IconMapPin,
     IconPlus,
 } from '@tabler/icons-react';
 
