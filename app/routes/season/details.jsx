@@ -10,6 +10,13 @@ import {
     Title,
 } from '@mantine/core';
 
+import {
+    IconCalendarRepeat,
+    IconCurrencyDollar,
+    IconFriends,
+    IconMapPin,
+} from '@tabler/icons-react';
+
 import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
 
@@ -89,24 +96,60 @@ export default function SeasonDetails({ loaderData, actionData }) {
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
 
+    const textProps = {
+        size: "md",
+        // c: "dimmed",
+    };
+
+    console.log({ season });
+
     return (
         <Container size="xl" p="xl">
             <Group justify="space-between">
                 <BackButton text="Teams" />
                 <EditButton setIsModalOpen={handleEditSeasonDetails} to={`/teams/${season.teamId}`} />
             </Group>
-            <Title order={2} align="center" mt="sm" mb="lg">
+            <Title order={2} align="center" mt="sm">
                 {season.seasonName}
             </Title>
+
+            <Divider my="md" size="sm" />
+
             <Text>
                 {new Date(season.startDate).toLocaleDateString()} - {new Date(season.endDate).toLocaleDateString()}
             </Text>
-            <Text>{`${season.gameDays}s`}</Text>
-            <Text>{season.location}</Text>
-            <Text>{season.leagueType}</Text>
-            <Text>{`$${season.signUpFee}/player`}</Text>
 
-            <Divider size="sm" my="sm" />
+            <Group mt="sm" justify="space-between">
+                <Group gap="5px">
+                    <IconMapPin size={18} />
+                    <Text {...textProps}>
+                        {season.location || "Not specified"}
+                    </Text>
+                </Group>
+
+                <Group gap="5px">
+                    <IconCalendarRepeat size={18} />
+                    <Text {...textProps}>
+                        {`${season.gameDays}s`}
+                    </Text>
+                </Group>
+
+                <Group gap="5px">
+                    <IconFriends size={18} />
+                    <Text {...textProps}>
+                        {season.leagueType}
+                    </Text>
+                </Group>
+
+                <Group gap="5px">
+                    <IconCurrencyDollar size={18} />
+                    <Text {...textProps}>
+                        {`${season.signUpFee || 'TBD'}/player`}
+                    </Text>
+                </Group>
+            </Group>
+
+            <Divider size="sm" my="md" />
 
             <Title order={4} mb="sm">Games ({season.games.length})</Title>
 
