@@ -64,35 +64,37 @@ export default function SeasonList({
                     </Group>
                 </Group>
 
-                <Group mt="sm" gap="lg">
-                    <Group gap="5px">
+                {/* TODO: Add current or past record based on game results */}
+
+                {/* <Group mt="sm" gap="lg"> */}
+                {/* <Group gap="5px">
                         <IconMapPin size={18} />
                         <Text {...textProps}>
                             {season.location || "Not specified"}
                         </Text>
-                    </Group>
+                    </Group> */}
 
-                    <Group gap="5px">
+                {/* <Group gap="5px">
                         <IconCalendarRepeat size={18} />
                         <Text {...textProps}>
                             {`${season.gameDays}s`}
                         </Text>
-                    </Group>
+                    </Group> */}
 
-                    <Group gap="5px">
+                {/* <Group gap="5px">
                         <IconFriends size={18} />
                         <Text {...textProps}>
                             {season.leagueType}
                         </Text>
-                    </Group>
+                    </Group> */}
 
-                    <Group gap="5px">
+                {/* <Group gap="5px">
                         <IconCurrencyDollar size={18} />
                         <Text {...textProps}>
                             {`${season.signUpFee || 'TBD'}/player`}
                         </Text>
-                    </Group>
-                </Group>
+                    </Group> */}
+                {/* </Group> */}
             </Card>
         </Link>
     ));
