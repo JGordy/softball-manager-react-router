@@ -103,6 +103,11 @@ export default function TeamDetails({ actionData, loaderData }) {
         setIsModalOpen(true);
     };
 
+    // const handleGameListModal = () => {
+    //     setModalContent('gameList');
+    //     setIsModalOpen(true);
+    // };
+
     const handleEditTeamDetailsModal = () => {
         setModalContent('details');
         setIsModalOpen(true);
@@ -159,7 +164,11 @@ export default function TeamDetails({ actionData, loaderData }) {
                 </Tabs.Panel>
 
                 <Tabs.Panel value="games">
-                    <GamesList games={seasons[0].games} primaryColor={primaryColor} />
+                    <GamesList
+                        games={seasons[0].games}
+                        // handleGameListModal={handleGameListModal}
+                        primaryColor={primaryColor}
+                    />
                 </Tabs.Panel>
             </Tabs>
 
