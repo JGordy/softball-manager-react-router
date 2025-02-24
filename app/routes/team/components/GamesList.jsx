@@ -58,7 +58,7 @@ export default function GamesList({ games, primaryColor }) {
                     <Card key={game.$id} mt="sm" radius="md" padding="sm" withBorder>
                         <Group justify="space-between">
                             <Text size="lg">
-                                {game.isHomeGame ? 'vs' : '@'} {game.opponent || 'Opponent TBD'}
+                                {game.isHomeGame ? 'vs' : '@'} {game.opponent || 'TBD'}
                             </Text>
                             {getGameStatus(game)}
                             <Text>
