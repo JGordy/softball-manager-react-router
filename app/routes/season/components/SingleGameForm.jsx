@@ -13,11 +13,17 @@ import { DatePickerInput, TimeInput } from '@mantine/dates';
 
 import { IconCalendar, IconClock } from '@tabler/icons-react';
 
+import { getUserTimeZone } from '@/utils/dateTime';
+
+import timeZones from '@/constants/timeZones';
+
 import classes from '@/styles/inputs.module.css';
 
 export default function SingleGameForm({ handleCloseModal, setError, primaryColor, season }) {
 
     const ref = useRef(null);
+
+    const currentTimeZone = getUserTimeZone();
 
     const iconProps = {
         color: 'currentColor',
@@ -69,6 +75,16 @@ export default function SingleGameForm({ handleCloseModal, setError, primaryColo
                 mb="sm"
                 defaultValue="19:00"
                 required
+            />
+            <Select
+                className={classes.inputs}
+                label="Time Zone"
+                name="timeZone"
+                description="Select time zone if game is not in your current time zone (Uncommon)"
+                data={timeZones}
+                defaultValue={currentTimeZone}
+                mb="sm"
+                searchable
             />
 
             <Group position="right" mt="lg">
