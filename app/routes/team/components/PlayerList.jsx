@@ -5,7 +5,6 @@ import {
     Flex,
     Text,
     Tooltip,
-    ScrollArea,
 } from '@mantine/core'
 
 import positions from '@/constants/positions';
@@ -16,7 +15,6 @@ export default function PlayerList({
     players,
     managerId,
     managerView,
-    handlePlayerListModal,
     handleAddPlayerModal,
     handlePlayerDetailsModal,
     primaryColor,
@@ -28,38 +26,34 @@ export default function PlayerList({
 
     return (
         <>
-            <ScrollArea w="100%">
-                {players.map(player => {
-                    return (
-                        <Card
-                            key={player.$id}
-                            mt="sm"
-                            radius="md"
-                            padding="sm"
-                            withBorder
-                            w={750}
-                            onClick={() => handlePlayerCardClick(player.$id)}
-                        >
-                            <Flex wrap="nowrap" justify="space-between" align="center">
-                                <Text size="lg">
-                                    {player.firstName} {player.lastName}
-                                </Text>
-                                <Avatar.Group>
-                                    {player?.preferredPositions?.map(position => (
-                                        <Tooltip key={player.$id + position} label={position} withArrow>
-                                            <Avatar name={positions[position].initials} alt={position} color="initials" />
-                                        </Tooltip>
-                                    ))}
-                                </Avatar.Group>
-                                {/* {getPlayerStatus(player)} */}
-                                <Text>{player.$id === managerId ? 'Manager' : 'Player'}</Text>
-                                {managerView && <Text>{player.email}</Text>}
-                                {managerView && <Text>{player.phoneNumber}</Text>}
-                            </Flex>
-                        </Card>
-                    )
-                })}
-            </ScrollArea>
+            {players.map(player => {
+                return (
+                    <Card
+                        key={player.$id}
+                        mt="sm"
+                        radius="md"
+                        padding="sm"
+                        withBorder
+                        onClick={() => handlePlayerCardClick(player.$id)}
+                    >
+                        <Flex justify="space-between" align="center">
+                            <Text size="lg">
+                                {player.firstName} {player.lastName}
+                            </Text>
+                            {player.$id === managerId && (
+                                <Text>Manager</Text>
+                            )}
+                            <Avatar.Group>
+                                {player?.preferredPositions?.map(position => (
+                                    <Tooltip key={player.$id + position} label={position} withArrow>
+                                        <Avatar name={positions[position].initials} alt={position} color="initials" />
+                                    </Tooltip>
+                                ))}
+                            </Avatar.Group>
+                        </Flex>
+                    </Card>
+                )
+            })}
 
             {managerView && (
                 <Button
