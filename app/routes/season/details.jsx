@@ -28,7 +28,7 @@ import SeasonDetailsForm from './components/SeasonDetailsForm';
 import SingleGameForm from './components/SingleGameForm';
 
 import { getSeasonDetails } from './loader';
-import { createGames, updateSeason } from './action';
+import { createGames, createSingleGame, updateSeason } from './action';
 
 export async function loader({ params }) {
     const { seasonId } = params;
@@ -41,14 +41,18 @@ export async function action({ request, params }) {
 
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
-    console.log({ _action, values });
+    // console.log({ _action, values });
+
+    if (_action === 'edit-season') {
+        return updateSeason({ values, seasonId })
+    }
 
     if (_action === 'add-games') {
         return createGames({ values, seasonId })
     }
 
-    if (_action === 'edit-season') {
-        return updateSeason({ values, seasonId })
+    if (_action === 'add-single-game') {
+        return createSingleGame({ values });
     }
 };
 
@@ -89,7 +93,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
     };
 
     const handleCreateGameClick = () => {
-        setModalContents('add-game');
+        setModalContents('add-single-game');
         setIsModalOpen(true);
     };
 
@@ -114,8 +118,8 @@ export default function SeasonDetails({ loaderData, actionData }) {
     return (
         <Container size="xl" p="xl">
             <Group justify="space-between">
-                <BackButton text="Teams" />
-                <EditButton setIsModalOpen={handleEditSeasonDetails} to={`/teams/${season.teamId}`} />
+                <BackButton text="Teams" to={`/team/${season.teamId}`} />
+                <EditButton setIsModalOpen={handleEditSeasonDetails} />
             </Group>
             <Title order={2} align="center" mt="sm">
                 {season.seasonName}
@@ -213,8 +217,9 @@ export default function SeasonDetails({ loaderData, actionData }) {
                         setError={setError}
                     />
                 )}
-                {modalContents === 'add-game' && (
+                {modalContents === 'add-single-game' && (
                     <SingleGameForm
+                        season={season}
                         handleCloseModal={handleCloseModal}
                         setError={setError}
                     />
