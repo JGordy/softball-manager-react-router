@@ -15,7 +15,7 @@ import { IconCalendar, IconClock } from '@tabler/icons-react';
 
 import classes from '@/styles/inputs.module.css';
 
-export default function SingleGameForm({ handleCloseModal, setError, primaryColor, seasonId }) {
+export default function SingleGameForm({ handleCloseModal, setError, primaryColor, season }) {
 
     const ref = useRef(null);
 
@@ -25,8 +25,6 @@ export default function SingleGameForm({ handleCloseModal, setError, primaryColo
         stroke: 1.5
     };
 
-    const handleSetGameTimeChange = () => { };
-
     const pickerControl = (
         <ActionIcon variant="subtle" color="gray" onClick={() => ref.current?.showPicker()}>
             <IconClock size={16} stroke={1.5} />
@@ -35,7 +33,8 @@ export default function SingleGameForm({ handleCloseModal, setError, primaryColo
 
     return (
         <Form method="post">
-            <input type="hidden" name="teamId" value={seasonId} />
+            <input type="hidden" name="seasonId" value={season.$id} />
+            <input type="hidden" name="teamId" value={season.teamId} />
             <TextInput
                 className={classes.inputs}
                 label="Opponent's Name"
@@ -46,8 +45,8 @@ export default function SingleGameForm({ handleCloseModal, setError, primaryColo
                 className={classes.inputs}
                 label="Is home game?"
                 name="isHomeGame"
-                placeholder="Home or Away?"
-                data={['Home', 'Away']}
+                data={['true', 'false']}
+                defaultValue="true"
                 mb="sm"
                 searchable
             />
@@ -56,8 +55,9 @@ export default function SingleGameForm({ handleCloseModal, setError, primaryColo
                 leftSection={<IconCalendar {...iconProps} />}
                 label="Game Date"
                 name="gameDate"
-                placeholder="When is this game scheduled?"
+                placeholder="When should this game be scheduled?"
                 firstDayOfWeek={0}
+                required
             />
             <TimeInput
                 label="Game Start Time"
@@ -68,6 +68,7 @@ export default function SingleGameForm({ handleCloseModal, setError, primaryColo
                 format="24"
                 mb="sm"
                 defaultValue="19:00"
+                required
             />
 
             <Group position="right" mt="lg">
@@ -75,7 +76,7 @@ export default function SingleGameForm({ handleCloseModal, setError, primaryColo
                     type="submit"
                     color={primaryColor}
                     name="_action"
-                    value="add-game"
+                    value="add-single-game"
                     autoContrast
                 >
                     Create game
