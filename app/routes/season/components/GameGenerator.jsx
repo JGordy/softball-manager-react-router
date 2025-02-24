@@ -23,7 +23,7 @@ export default function GameGenerator({ season, handleCloseModal, setError }) {
     const [gameTimes, setGameTimes] = useState(() => {
         const now = new Date();
         const sevenPM = new Date(now);
-        sevenPM.setHours(19, 0, 0, 0); // Set to 7 PM as default
+        sevenPM.setUTCHours(19, 0, 0, 0); // Set to 7 PM as default
         return sevenPM;
     });
 
@@ -57,7 +57,7 @@ export default function GameGenerator({ season, handleCloseModal, setError }) {
             // Parse the time string (gameTimes)
             const timeString = gameTimes.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
             const [hours, minutes] = timeString.split(':');
-            currentDate.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+            currentDate.setUTCHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
 
             while (currentDate <= end) {
                 if (getDayName(currentDate.getDay()) === gameDay) {
@@ -86,7 +86,7 @@ export default function GameGenerator({ season, handleCloseModal, setError }) {
             const [hours, minutes] = timeString.split(':');
             const now = new Date();
             const selectedTime = new Date(now);
-            selectedTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+            selectedTime.setUTCHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
             setGameTimes(selectedTime); // Store the Date object
 
             // Update generated games with the new time
@@ -94,7 +94,7 @@ export default function GameGenerator({ season, handleCloseModal, setError }) {
                 setGeneratedGames((prevGames) => {
                     return prevGames.map((game) => {
                         const gameDate = new Date(game.gameDate);
-                        gameDate.setHours(selectedTime.getHours(), selectedTime.getMinutes(), 0, 0);
+                        gameDate.setUTCHours(selectedTime.getHours(), selectedTime.getMinutes(), 0, 0);
                         return {
                             ...game,
                             gameDate: gameDate.toISOString(), // Update gameDate with new time
