@@ -52,9 +52,9 @@ export async function clientLoader({ request }) {
             throw new Error(errorData.message || 'Error fetching teams');
         }
 
-        const teams = await response.json();
+        const { managing, playing } = await response.json();
 
-        return { teams, userId };
+        return { managing, playing, userId };
 
     } catch (error) {
         console.error("Error in clientLoader:", error);
@@ -79,22 +79,18 @@ export async function action({ request, params }) {
 }
 
 const UserDashboard = ({ loaderData }) => {
-    const { teams, userId } = loaderData;
-    console.log('/teams.jsx', { teams });
+    const { managing, playing, userId } = loaderData;
+    console.log('/teams.jsx', { managing, playing });
 
     const actionData = useActionData();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [teamList, setTeamList] = useState(teams || []);
     const [error, setError] = useState(null);
 
     useEffect(() => {
         const handleAfterSubmit = async () => {
             try {
-                if (actionData?.status === 200) {
-                    const { response } = actionData;
-
-                    setTeamList((prevTeams) => [...prevTeams, response]);
+                if (actionData?.status === 201) {
                     setError(null);
                     setIsModalOpen(false);
                 } else if (actionData instanceof Error) {
@@ -109,32 +105,48 @@ const UserDashboard = ({ loaderData }) => {
         handleAfterSubmit();
     }, [actionData]);
 
+    const renderTeamList = (teamList) => {
+        return (teamList.length > 0) && (
+            <Flex
+                direction={{ base: 'column', sm: 'row' }}
+                justify={{ base: 'center', sm: 'start' }}
+                align={{ base: 'stretch', sm: 'center' }}
+                wrap="wrap"
+                gap={{ base: 'sm', sm: 'lg' }}
+                mih={50}
+            >
+                {teamList.map((team) => (
+                    <TeamCard
+                        key={team.$id}
+                        team={team}
+                        userId={userId}
+                    />
+                ))}
+            </Flex>
+        )
+    };
+
     return (
         <Container>
             <Title order={2} py="lg">
                 My Teams
             </Title>
 
-            {(teamList.length > 0) && (
-                <Flex
-                    direction={{ base: 'column', sm: 'row' }}
-                    justify={{ base: 'center', sm: 'start' }}
-                    align={{ base: 'stretch', sm: 'center' }}
-                    wrap="wrap"
-                    gap={{ base: 'sm', sm: 'lg' }}
-                    mih={50}
-                >
-                    {teamList.map((team) => (
-                        <TeamCard
-                            key={team.$id}
-                            team={team}
-                            userId={userId}
-                        />
-                    ))}
-                </Flex>
+            {managing.length > 0 && (
+                <>
+                    <Title order={4} mb="sm">Teams I Manage</Title>
+                    {renderTeamList(managing)}
+                </>
             )}
 
-            {!teamList.length && (
+            {playing.length > 0 && (
+                <>
+                    <Title order={4} mb="sm">Teams I Play For</Title>
+                    {renderTeamList(playing)}
+                </>
+            )}
+
+            {(!managing.length && !playing.length) && (
                 <Text size="sm">You don't have any teams. Create one below</Text>
             )}
 
