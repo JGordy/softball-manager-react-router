@@ -59,11 +59,11 @@ function PlayerDetails({ player, editButton }) {
             <Group gap="xl" px="xs">
                 <Group gap="4px">
                     <Text>Throws</Text>
-                    <Text fw={700} c="green">{throws || "Not Specified"}</Text>
+                    <Text fw={700} c={throws ? 'green' : 'red'}>{throws || "Not Specified"}</Text>
                 </Group>
                 <Group gap="4px">
                     <Text>Bats</Text>
-                    <Text fw={700} c="green">{bats || "Not Specified"}</Text>
+                    <Text fw={700} c={bats ? 'green' : 'red'}>{bats || "Not Specified"}</Text>
                 </Group>
             </Group>
 
