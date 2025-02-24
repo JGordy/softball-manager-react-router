@@ -16,7 +16,6 @@ export default function GamesTable({ games, columns, variant = '', striped = fal
         else if (column === 'time') headerText = 'Time';
         else if (column === 'opponentScore') headerText = "Opponent Score";
         else headerText = column.charAt(0).toUpperCase() + column.slice(1);
-        // ... more custom header text mappings
 
         return <Table.Th key={column} miw={100}>{headerText}</Table.Th>;
     });
