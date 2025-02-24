@@ -20,6 +20,31 @@ export async function createGames({ values }) {
     }
 }
 
+export async function createSingleGame({ values }) {
+    const { gameDate, gameTime, isHomeGame, ...gameData } = values;
+
+    try {
+        const [hours, minutes] = gameTime.split(':');
+
+        const selectedTime = new Date(gameDate);
+        selectedTime.setUTCHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+
+        const updatedGameData = {
+            ...gameData,
+            isHomeGame: isHomeGame === 'true',
+            gameDate: selectedTime.toISOString(),
+            seasons: values.seasonId,
+        };
+
+        const createdGame = await createDocument('games', ID.unique(), updatedGameData);
+
+        return { response: { game: createdGame }, status: 201, success: true };
+    } catch (error) {
+        console.error("Error creating game:", error);
+        throw error;
+    }
+}
+
 export async function updateSeason({ values, seasonId }) {
     // Removes undefined or empty string values from data to update
     const dataToUpdate = {};
