@@ -126,7 +126,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                 {team.leagueName}
             </Text>
 
-            <Tabs color={primaryColor} radius="md" defaultValue="roster" mt="xl">
+            <Tabs color={primaryColor} radius="md" defaultValue="seasons" mt="xl">
                 <Tabs.List grow justify="center">
                     <Tabs.Tab value="roster" size="lg" leftSection={<IconUsersGroup size={16} />}>
                         Roster
