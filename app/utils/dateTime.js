@@ -32,10 +32,8 @@ export function formatGameTime(dateString, timeZone, locale = 'en-US') {
             timeZone: timeZone,
         });
 
-        const formattedTime = formatter.format(date); // Store the formatted time
-
-
-        return formattedTime; // Use the formatter that was created in the function
+        const formattedTime = formatter.format(date);
+        return formattedTime;
     } catch (error) {
         console.error('Error formatting date:', error);
         return 'Error Formatting Date';
