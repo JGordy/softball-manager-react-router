@@ -2,44 +2,49 @@ import { Query } from '@/appwrite';
 import { listDocuments } from '@/utils/databases';
 
 export async function action({ request, params }) {
-
     const { userId } = await request.json();
 
     if (!userId) {
-        return [];
+        return { managing: [], playing: [] }; // Return empty arrays for both roles
     }
 
     try {
-        // 1. Check relationships table to list memberships for the userId, manager
-        // TODO: Get all teams the user either manages (current function) or players for (role: player)
+        // 1. Check relationships table to list memberships for the userId, both manager and player
         const memberships = await listDocuments('memberships', [
             Query.equal('userId', userId),
-            Query.equal('role', 'manager'),
+            Query.equal('role', ['manager', 'player']),
         ]);
 
-        // 2. Extract teamIds
-        const teamIds = memberships.documents.map(m => m.teamId);
+        // 2. Separate teamIds by role
+        const managerTeamIds = memberships.documents
+            .filter(m => m.role === 'manager')
+            .map(m => m.teamId);
 
-        if (teamIds.length === 0) {
-            return []; // No teams found, return empty array
-        }
+        const playerTeamIds = memberships.documents
+            .filter(m => m.role === 'player')
+            .map(m => m.teamId);
 
-        // 3. Call the Appwrite function
-        let teams = [];
-        if (teamIds.length > 0) {
-            // Make multiple queries
+        // 3. Fetch teams for managers and players
+        const fetchTeams = async (teamIds) => {
+            if (teamIds.length === 0) {
+                return [];
+            }
+
             const promises = teamIds.map(async (teamId) => {
                 const result = await listDocuments('teams', [
                     Query.equal('$id', teamId),
                 ]);
-                return result.documents; // Extract the documents
+                return result.documents;
             });
 
-            const results = await Promise.all(promises); // Wait for all queries to complete
-            teams = results.flat(); // Flatten the array of arrays into a single array
-        }
+            const results = await Promise.all(promises);
+            return results.flat();
+        };
 
-        return teams;
+        const managerTeams = await fetchTeams(managerTeamIds);
+        const playerTeams = await fetchTeams(playerTeamIds);
+
+        return { managing: managerTeams, playing: playerTeams };
 
     } catch (error) {
         console.error('Error getting teams: ', error);
