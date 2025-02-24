@@ -61,6 +61,14 @@ export default function TeamCard({ team }) {
             }
         }
 
+        if (seasons.length) {
+            const season = seasons[0];
+            const startDate = new Date(season.startDate);
+            const month = startDate?.getMonth?.() + 1;
+            const date = startDate?.getDate?.();
+            return `Season starts ${month}/${date}`;
+        }
+
         return 'No upcoming seasons';
     }
 
