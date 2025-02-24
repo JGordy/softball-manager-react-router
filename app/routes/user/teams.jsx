@@ -5,6 +5,7 @@ import {
     Button,
     Flex,
     Container,
+    Loader,
     Modal,
     Text,
     Title,
@@ -59,6 +60,18 @@ export async function clientLoader({ request }) {
         console.error("Error in clientLoader:", error);
         return redirect("/login");
     }
+}
+
+clientLoader.hydrate = true;
+
+export function HydrateFallback() {
+    return (
+        <Container h="100vh">
+            <Flex justify="center" align="center" h="100vh">
+                <Loader color="green" type="dots" size={50} />
+            </Flex>
+        </Container>
+    );
 }
 
 export async function action({ request, params }) {
