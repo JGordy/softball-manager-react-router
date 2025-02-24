@@ -20,7 +20,7 @@ export async function createTeam({ request, params }) {
         // Create document in relationship table for the user and team id's. Assume the user creating the team is a manager
         await createDocument('memberships', null, { userId, teamId, role: 'manager' });
 
-        return { response: team, status: 200 };
+        return { response: team, status: 201 };
     } catch (error) {
         console.error("Error creating team:", error);
         throw error;
