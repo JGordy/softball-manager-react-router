@@ -11,10 +11,12 @@ import {
 } from '@mantine/core';
 
 import {
+    IconCalendar,
     IconCalendarRepeat,
     IconCurrencyDollar,
     IconFriends,
     IconMapPin,
+    IconPlus,
 } from '@tabler/icons-react';
 
 import BackButton from '@/components/BackButton';
@@ -23,6 +25,7 @@ import EditButton from '@/components/EditButton';
 import GameGenerator from './components/GameGenerator';
 import GamesTable from './components/GamesTable';
 import SeasonDetailsForm from './components/SeasonDetailsForm';
+import SingleGameForm from './components/SingleGameForm';
 
 import { getSeasonDetails } from './loader';
 import { createGames, updateSeason } from './action';
@@ -82,6 +85,11 @@ export default function SeasonDetails({ loaderData, actionData }) {
 
     const handleGenerateGamesClick = () => {
         setModalContents('generate-games');
+        setIsModalOpen(true);
+    };
+
+    const handleCreateGameClick = () => {
+        setModalContents('add-game');
         setIsModalOpen(true);
     };
 
@@ -157,13 +165,16 @@ export default function SeasonDetails({ loaderData, actionData }) {
                 <>
                     <Text>There are no games listed for the upcoming season.</Text>
                     <Button
-                        mt="md"
+                        my="md"
                         onClick={handleGenerateGamesClick}
                         fullWidth
                         autoContrast
                     >
-                        Generate Games
+                        <IconCalendar size={18} />
+                        Generate games
                     </Button>
+
+                    <Text align="center">- OR -</Text>
                 </>
             )}
 
@@ -175,6 +186,16 @@ export default function SeasonDetails({ loaderData, actionData }) {
                     striped
                 />
             )}
+
+            <Button
+                mt="md"
+                onClick={handleCreateGameClick}
+                fullWidth
+                autoContrast
+            >
+                <IconPlus size={18} />
+                Create Single Game
+            </Button>
 
             <Modal opened={isModalOpen} onClose={handleCloseModal} title={modalTitle}>
                 {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
@@ -188,6 +209,12 @@ export default function SeasonDetails({ loaderData, actionData }) {
                 {modalContents === 'edit-season' && (
                     <SeasonDetailsForm
                         season={season}
+                        handleCloseModal={handleCloseModal}
+                        setError={setError}
+                    />
+                )}
+                {modalContents === 'add-game' && (
+                    <SingleGameForm
                         handleCloseModal={handleCloseModal}
                         setError={setError}
                     />
