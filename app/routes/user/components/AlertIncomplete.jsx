@@ -8,10 +8,8 @@ export default function AlertIncomplete({ incompleteData, handleAlertClose }) {
             autoContrast
             color="orange"
             icon={<IconInfoCircle />}
-            onClose={handleAlertClose}
             radius="xl"
             title="Your profile is incomplete!"
-            withCloseButton={true}
         >
             <p>Please provide the following information:</p>
             <ol>
