@@ -19,6 +19,8 @@ import {
 
 import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
+import PlayerDetails from '@/components/PlayerDetails';
+import PersonalDetails from '@/components/PersonalDetails';
 
 import { useAuth } from '@/contexts/auth/useAuth';
 
@@ -58,6 +60,7 @@ export async function action({ request, params }) {
 
 export default function TeamDetails({ actionData, loaderData }) {
     const { teamData: team, players, managerId } = loaderData;
+    console.log({ players });
 
     const { user } = useAuth();
 
@@ -65,6 +68,8 @@ export default function TeamDetails({ actionData, loaderData }) {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalContent, setModalContent] = useState(null);
+    const [selectedPlayerId, setSelectedPlayerId] = useState();
+    const selectedPlayer = selectedPlayerId && players.find(player => player.$id === selectedPlayerId)
 
     const [error, setError] = useState(null);
 
@@ -93,10 +98,16 @@ export default function TeamDetails({ actionData, loaderData }) {
         // c: "dimmed",
     }
 
-    const handlePlayerListModal = () => {
+    const handleAddPlayerModal = () => {
         setModalContent('playerList');
         setIsModalOpen(true);
     };
+
+    const handlePlayerDetailsModal = (playerId) => {
+        setSelectedPlayerId(playerId);
+        setModalContent('playerDetails');
+        setIsModalOpen(true);
+    }
 
     const handleSeasonListModal = () => {
         setModalContent('seasonList');
@@ -149,7 +160,8 @@ export default function TeamDetails({ actionData, loaderData }) {
                         players={players}
                         managerId={managerId}
                         managerView={managerView}
-                        handlePlayerListModal={handlePlayerListModal}
+                        handleAddPlayerModal={handleAddPlayerModal}
+                        handlePlayerDetailsModal={handlePlayerDetailsModal}
                         primaryColor={primaryColor}
                     />
                 </Tabs.Panel>
@@ -197,6 +209,13 @@ export default function TeamDetails({ actionData, loaderData }) {
                         teamId={team.$id}
                     />
                 )}
+                {modalContent === 'playerDetails' && (
+                    <>
+                        <PersonalDetails player={selectedPlayer} />
+                        <PlayerDetails player={selectedPlayer} />
+                    </>
+                )}
+
             </Modal>
         </Container >
     );
