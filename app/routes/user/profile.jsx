@@ -24,12 +24,12 @@ import {
 import { useAuth } from '@/contexts/auth/useAuth';
 
 import EditButton from '@/components/EditButton';
+import PersonalDetails from '@/components/PersonalDetails';
+import PlayerDetails from '@/components/PlayerDetails';
 
 import AlertIncomplete from './components/AlertIncomplete';
-import PersonalDetails from './components/PersonalDetails';
 import PersonalDetailsForm from './components/PersonalDetailsForm';
 import PlayerDetailsForm from './components/PlayerDetailsForm';
-import PlayerDetails from './components/PlayerDetails';
 
 import { getProfile } from "./loader";
 import { updateUser } from './action';
