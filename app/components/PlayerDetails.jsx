@@ -84,7 +84,7 @@ function PlayerDetails({ player, editButton }) {
                     />
                 ))}
             </div>
-            <Group justify='space-between' px="10px" mt="sm">
+            <Group justify='space-between' px="10px">
                 <Group gap="xs">
                     <ColorSwatch size={20} color={colors.PREFERRED} />
                     Preferred
