@@ -129,6 +129,21 @@ export default function TeamDetails({ actionData, loaderData }) {
         setModalContent(null);
     }
 
+    const getModalTitle = () => {
+        if (modalContent === 'playerDetails') {
+            return (
+                <Text span ml="sm">
+                    <Text span c='green'>
+                        {selectedPlayer.firstName} {selectedPlayer.lastName}
+                    </Text>
+                    {' '}
+                    details
+                </Text>
+            );
+        }
+        return modalContent === 'playerList' ? 'Add Player' : 'Add Season'
+    }
+
     return (
         <Container size="xl" p="xl">
             <Group justify="space-between">
@@ -184,7 +199,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                 </Tabs.Panel>
             </Tabs>
 
-            <Modal opened={isModalOpen} onClose={handleCloseModal} title={modalContent === 'playerList' ? 'Add Player' : 'Add Season'}>
+            <Modal opened={isModalOpen} onClose={handleCloseModal} title={getModalTitle()}>
                 {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
                 {modalContent === 'playerList' && (
                     <PlayerForm
