@@ -27,6 +27,56 @@ export default function SeasonList({
         // c: "dimmed",
     };
 
+    const getSeasonStatus = (season) => {
+
+        const today = new Date();
+        const oneMonthFromNow = new Date(today);
+        oneMonthFromNow.setMonth(today.getMonth() + 1);
+
+        const startDate = new Date(season.startDate);
+        const endDate = new Date(season.endDate);
+
+        if (startDate <= today && today <= endDate) {
+            const { games } = season;
+            if (games && games.length > 0) {
+                const upcomingGame = games
+                    .map(game => new Date(game.gameDate))
+                    .filter(gameDate => gameDate > today)
+                    .sort((a, b) => a - b)[0]; // Find the next game
+
+                if (upcomingGame) {
+                    const { isHomeGame, opponent } = upcomingGame;
+                    const timeDiff = upcomingGame.getTime() - today.getTime();
+                    const daysUntilGame = Math.ceil(timeDiff / (1000 * 3600 * 24)); // Calculate days
+
+                    const daysUntilText = `${daysUntilGame} day${daysUntilGame !== 1 ? 's' : ''}`;
+
+                    return (
+                        <Text span fw={700} c="green">
+                            Next game {isHomeGame ? 'vs' : '@'} {opponent} in {daysUntilText}!
+                        </Text>
+                    );
+                }
+            }
+            return 'Season in progress';
+        }
+
+        if (startDate > today && startDate <= oneMonthFromNow) {
+            const timeDiff = startDate.getTime() - today.getTime();
+            const daysUntilStart = Math.ceil(timeDiff / (1000 * 3600 * 24)); // Calculate days
+
+            const daysUntilText = `${daysUntilStart} day${daysUntilStart !== 1 ? 's' : ''}`;
+
+            return (
+                <Text span fw={700} c="green">
+                    Starts in {daysUntilText}!
+                </Text>
+            );
+        }
+
+        return null;
+    }
+
     const addSeasonCta = (
         <Button
             mt="md"
@@ -63,6 +113,8 @@ export default function SeasonList({
                         </Text>
                     </Group>
                 </Group>
+
+                {getSeasonStatus(season)}
 
                 {/* TODO: Add current or past record based on game results */}
 
