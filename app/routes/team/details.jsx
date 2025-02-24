@@ -226,7 +226,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                 )}
                 {modalContent === 'playerDetails' && (
                     <>
-                        <PersonalDetails player={selectedPlayer} />
+                        <PersonalDetails player={selectedPlayer} managerView={managerView} />
                         <PlayerDetails player={selectedPlayer} />
                     </>
                 )}
