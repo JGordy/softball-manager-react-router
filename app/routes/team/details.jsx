@@ -4,24 +4,18 @@ import { useState, useEffect } from 'react';
 import {
     Alert,
     Container,
-    Divider,
     Group,
     Modal,
-    Stack,
     Tabs,
     Text,
-    ThemeIcon,
     Title,
 } from '@mantine/core';
 
 import {
-    IconFriends,
     IconCalendarMonth,
     IconUsersGroup,
     IconBallBaseball,
 } from '@tabler/icons-react';
-
-import { adjustColorBasedOnDarkness } from '@/utils/adjustHexColor';
 
 import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
@@ -63,7 +57,7 @@ export async function action({ request, params }) {
 };
 
 export default function TeamDetails({ actionData, loaderData }) {
-    const { teamData, players, managerId } = loaderData;
+    const { teamData: team, players, managerId } = loaderData;
 
     const { user } = useAuth();
 
@@ -72,42 +66,14 @@ export default function TeamDetails({ actionData, loaderData }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalContent, setModalContent] = useState(null);
 
-    const [teamDetails, setTeamDetails] = useState(teamData || {});
-    const [playerList, setPlayerList] = useState(players || []);
     const [error, setError] = useState(null);
-
-    // console.log("team/details.jsx:", { teamDetails, seasons: teamDetails.seasons, playerList, managerId });
 
     useEffect(() => {
         const handleAfterSubmit = async () => {
             try {
                 if (actionData?.success) {
-                    console.log('team details > after submit: ', actionData);
                     setError(null);
                     setIsModalOpen(false);
-
-                    // TODO: Determine if this is needed?
-                    if (actionData.response.season) {
-                        setTeamDetails(details => ({
-                            ...details,
-                            seasons: [...details.seasons, actionData.response.season],
-                        }));
-                    }
-
-                    // TODO: Determine if this is needed?
-                    if (actionData.response.season) {
-                        setPlayerList(list => ([
-                            ...list,
-                            ...actionData.response.player,
-                        ]));
-                    }
-
-                    if (actionData.response.teamDetails) {
-                        setTeamDetails(details => ({
-                            ...details,
-                            ...actionData.response.teamDetails,
-                        }))
-                    }
                 } else if (actionData instanceof Error) {
                     setError(actionData.message);
                 }
@@ -120,15 +86,7 @@ export default function TeamDetails({ actionData, loaderData }) {
         handleAfterSubmit();
     }, [actionData]);
 
-    const { primaryColor, seasons } = teamDetails;
-    const adjustedColor = adjustColorBasedOnDarkness(primaryColor, 50);
-
-    const iconProps = {
-        variant: 'gradient',
-        gradient: { from: primaryColor, to: adjustedColor, deg: 270 },
-        size: 'lg',
-        // autoContrast: true, // Only works when not using gradients?
-    };
+    const { primaryColor, seasons } = team;
 
     const textProps = {
         size: "md",
@@ -158,29 +116,17 @@ export default function TeamDetails({ actionData, loaderData }) {
     return (
         <Container size="xl" p="xl">
             <Group justify="space-between">
-                <BackButton text="Teams" />
+                <BackButton text="Teams" to="/teams" />
                 <EditButton setIsModalOpen={handleEditTeamDetailsModal} />
             </Group>
             <Title order={2} align="center" mt="sm" mb="lg">
-                {teamDetails.name}
+                {team.name}
             </Title>
             <Text {...textProps} align="center">
-                {teamDetails.leagueName}
+                {team.leagueName}
             </Text>
-            <Divider my="sm" />
 
-            <Stack spacing="sm">
-                <Group spacing="xs">
-                    <ThemeIcon {...iconProps}>
-                        <IconFriends size={18} />
-                    </ThemeIcon>
-                    <Text {...textProps}>
-                        {teamDetails.genderMix}
-                    </Text>
-                </Group>
-            </Stack>
-
-            <Tabs color={primaryColor} radius="md" defaultValue="roster" mt="lg">
+            <Tabs color={primaryColor} radius="md" defaultValue="roster" mt="xl">
                 <Tabs.List grow justify="center">
                     <Tabs.Tab value="roster" size="lg" leftSection={<IconUsersGroup size={16} />}>
                         Roster
@@ -188,14 +134,14 @@ export default function TeamDetails({ actionData, loaderData }) {
                     <Tabs.Tab value="seasons" size="lg" leftSection={<IconCalendarMonth size={16} />}>
                         Seasons
                     </Tabs.Tab>
-                    <Tabs.Tab value="games" size="lg" leftSection={<IconBallBaseball size={16} />}>
+                    <Tabs.Tab value="games" size="lg" leftSection={<IconBallBaseball size={16} />} disabled>
                         Games
                     </Tabs.Tab>
                 </Tabs.List>
 
                 <Tabs.Panel value="roster">
                     <PlayerList
-                        players={playerList}
+                        players={players}
                         managerId={managerId}
                         managerView={managerView}
                         handlePlayerListModal={handlePlayerListModal}
@@ -213,7 +159,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                 </Tabs.Panel>
 
                 <Tabs.Panel value="games">
-                    <GamesList games={[]} primaryColor={teamDetails.primaryColor} />
+                    <GamesList games={[]} primaryColor={primaryColor} />
                 </Tabs.Panel>
             </Tabs>
 
@@ -231,7 +177,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                         handleCloseModal={handleCloseModal}
                         setError={setError}
                         primaryColor={primaryColor}
-                        teamId={teamDetails.$id}
+                        teamId={team.$id}
                     />
                 )}
                 {modalContent === 'details' && (
@@ -239,7 +185,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                         handleCloseModal={handleCloseModal}
                         setError={setError}
                         primaryColor={primaryColor}
-                        teamId={teamDetails.$id}
+                        teamId={team.$id}
                     />
                 )}
             </Modal>
