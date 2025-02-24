@@ -18,10 +18,12 @@ const fields = {
     email: {
         icon: <IconMail size={20} />,
         label: 'email',
+        restricted: true,
     },
     phoneNumber: {
         icon: <IconPhone size={20} />,
         label: 'phone number',
+        restricted: true,
     },
     gender: {
         icon: <IconFriends size={20} />,
@@ -33,7 +35,7 @@ const fields = {
     },
 };
 
-export default function DetailCard({ editButton, player, fieldsToDisplay }) {
+export default function DetailCard({ editButton, player, fieldsToDisplay, managerView }) {
 
     return (
         <Card shadow="sm" padding="lg" radius="xl" withBorder>
@@ -51,8 +53,11 @@ export default function DetailCard({ editButton, player, fieldsToDisplay }) {
                 size="sm"
                 center
             >
-                {Object.entries({ ...fields, ...fieldsToDisplay }).map(([key, { icon, label }]) => {
+                {Object.entries({ ...fields, ...fieldsToDisplay }).map(([key, { icon, label, restricted }]) => {
                     const value = player[key];
+                    if (restricted && !managerView) {
+                        return null;
+                    }
                     return (
                         <List.Item key={key} icon={icon}>
                             <Text size="sm" c={!value ? 'red' : ''}>
