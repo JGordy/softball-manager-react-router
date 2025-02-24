@@ -134,14 +134,14 @@ const UserDashboard = ({ loaderData }) => {
 
             {managing.length > 0 && (
                 <>
-                    <Title order={4} mb="sm">Teams I Manage</Title>
+                    <Title order={4} mb="sm" c="dimmed">Teams I Manage</Title>
                     {renderTeamList(managing)}
                 </>
             )}
 
             {playing.length > 0 && (
                 <>
-                    <Title order={4} mb="sm">Teams I Play For</Title>
+                    <Title order={4} mb="sm" c="dimmed">Teams I Play For</Title>
                     {renderTeamList(playing)}
                 </>
             )}
