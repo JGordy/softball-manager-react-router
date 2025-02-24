@@ -8,10 +8,6 @@ import {
 } from '@mantine/core';
 
 import {
-    // IconCalendarRepeat,
-    // IconCurrencyDollar,
-    // IconFriends,
-    // IconMapPin,
     IconPlus,
 } from '@tabler/icons-react';
 
@@ -21,11 +17,6 @@ export default function SeasonList({
     primaryColor,
     handleSeasonListModal,
 }) {
-
-    const textProps = {
-        size: "md",
-        // c: "dimmed",
-    };
 
     const getSeasonStatus = (season) => {
 
@@ -107,46 +98,15 @@ export default function SeasonList({
             <Card key={season.$id} mt="sm" radius="md" padding="sm" withBorder>
                 <Group justify="space-between">
                     <Text>{season.seasonName}</Text>
-                    <Group spacing="xs">
-                        <Text {...textProps}>
+                    {getSeasonStatus(season)}
+                    <Group>
+                        <Text>
                             {new Date(season.startDate).toLocaleDateString()} - {new Date(season.endDate).toLocaleDateString()}
                         </Text>
                     </Group>
                 </Group>
 
-                {getSeasonStatus(season)}
-
                 {/* TODO: Add current or past record based on game results */}
-
-                {/* <Group mt="sm" gap="lg"> */}
-                {/* <Group gap="5px">
-                        <IconMapPin size={18} />
-                        <Text {...textProps}>
-                            {season.location || "Not specified"}
-                        </Text>
-                    </Group> */}
-
-                {/* <Group gap="5px">
-                        <IconCalendarRepeat size={18} />
-                        <Text {...textProps}>
-                            {`${season.gameDays}s`}
-                        </Text>
-                    </Group> */}
-
-                {/* <Group gap="5px">
-                        <IconFriends size={18} />
-                        <Text {...textProps}>
-                            {season.leagueType}
-                        </Text>
-                    </Group> */}
-
-                {/* <Group gap="5px">
-                        <IconCurrencyDollar size={18} />
-                        <Text {...textProps}>
-                            {`${season.signUpFee || 'TBD'}/player`}
-                        </Text>
-                    </Group> */}
-                {/* </Group> */}
             </Card>
         </Link>
     ));
