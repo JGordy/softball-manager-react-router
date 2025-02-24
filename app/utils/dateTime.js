@@ -9,7 +9,6 @@ export function getUserTimeZone() {
 }
 
 export function formatGameTime(dateString, timeZone, locale = 'en-US') {
-    console.log({ dateString, timeZone });
     if (!dateString || !timeZone) {
         return 'Invalid Date or Time Zone';
     }
@@ -35,7 +34,6 @@ export function formatGameTime(dateString, timeZone, locale = 'en-US') {
 
         const formattedTime = formatter.format(date); // Store the formatted time
 
-        console.log({ formattedTime }); // Log the stored formatted time
 
         return formattedTime; // Use the formatter that was created in the function
     } catch (error) {
