@@ -49,7 +49,7 @@ const fieldsToDisplay = {
     },
     walkUpSong: {
         icon: <IconHeadphonesFilled size={20} />,
-        label: ' walk up song',
+        label: 'walk up song',
     },
 };
 
@@ -57,6 +57,7 @@ const fieldsToValidate = {
     ...fieldsToDisplay,
     gender: { label: 'gender' },
     bats: { label: 'bats' },
+    throws: { label: 'throws' },
     preferredPositions: { label: 'preferred positions' },
     dislikedPositions: { label: 'disliked positions' }
 }
@@ -123,10 +124,6 @@ export default function UserProfile() {
         handleAfterSubmit();
     }, [actionData]);
 
-    const handleAlertClose = () => {
-        setShowIndicator(false);
-    };
-
     return !!Object.keys(player).length && (
         <Container>
             <Group justify="space-between" py="lg">
@@ -138,20 +135,22 @@ export default function UserProfile() {
                     </div>
                 </Group>
 
-                <Popover position="bottom" withArrow shadow="md">
-                    <Popover.Target>
-                        <Indicator inline processing color="red" size={12} disabled={!showIndicator}>
-                            <IconBellRingingFilled size={24} />
-                        </Indicator>
-                    </Popover.Target>
-                    <Popover.Dropdown>
-                        {showIndicator ? (
-                            <AlertIncomplete handlerAlertClose={handleAlertClose} incompleteData={incompleteData} />
-                        ) : (
-                            <Text>No new notifications or alerts</Text>
-                        )}
-                    </Popover.Dropdown>
-                </Popover>
+                {isCurrentUser && (
+                    <Popover position="bottom" withArrow shadow="md">
+                        <Popover.Target>
+                            <Indicator inline processing color="red" size={12} disabled={!showIndicator}>
+                                <IconBellRingingFilled size={24} />
+                            </Indicator>
+                        </Popover.Target>
+                        <Popover.Dropdown>
+                            {showIndicator ? (
+                                <AlertIncomplete incompleteData={incompleteData} />
+                            ) : (
+                                <Text>No new notifications or alerts</Text>
+                            )}
+                        </Popover.Dropdown>
+                    </Popover>
+                )}
             </Group>
 
             <PersonalDetails
