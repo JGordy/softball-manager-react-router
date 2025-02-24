@@ -84,17 +84,17 @@ function PlayerDetails({ player, editButton }) {
                     />
                 ))}
             </div>
-            <Group justify='space-between' px="10px">
+            <Group justify='space-between' px="10px" mt="sm">
                 <Group gap="xs">
-                    <ColorSwatch color={colors.PREFERRED} />
+                    <ColorSwatch size={20} color={colors.PREFERRED} />
                     Preferred
                 </Group>
                 <Group gap="xs">
-                    <ColorSwatch color={colors.NEUTRAL} />
+                    <ColorSwatch size={20} color={colors.NEUTRAL} />
                     Open
                 </Group>
                 <Group gap="xs">
-                    <ColorSwatch color={colors.DISLIKED} />
+                    <ColorSwatch size={20} color={colors.DISLIKED} />
                     Disliked
                 </Group>
             </Group>
