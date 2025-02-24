@@ -1,6 +1,10 @@
 import { Card, ScrollArea, Table } from '@mantine/core';
 
+import sortByDate from '@/utils/sortByDate';
+
 export default function GamesTable({ games, columns, variant = '', striped = false }) {
+    const sortedGames = sortByDate(games, 'gameDate');
+
     const defaultColumns = ['date', 'time']; // Separate columns for date and time
     const otherColumns = columns ? columns.filter(col => !defaultColumns.includes(col)) : []; // Filter out default columns
     const allColumns = [...defaultColumns, ...otherColumns]; // Combine default and other columns
@@ -17,7 +21,7 @@ export default function GamesTable({ games, columns, variant = '', striped = fal
         return <Table.Th key={column} miw={100}>{headerText}</Table.Th>;
     });
 
-    const rows = games.map((game, index) => (
+    const rows = sortedGames.map((game, index) => (
         <Table.Tr key={index}>
             {allColumns.map((column) => {
                 let cellValue;
