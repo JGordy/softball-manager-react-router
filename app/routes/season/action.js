@@ -1,5 +1,6 @@
 import { ID } from '@/appwrite';
 import { createDocument, updateDocument } from '@/utils/databases';
+import { combineDateTime } from '@/utils/dateTime';
 
 export async function createGames({ values }) {
     const { games: generatedGames } = values;
@@ -24,15 +25,12 @@ export async function createSingleGame({ values }) {
     const { gameDate, gameTime, isHomeGame, ...gameData } = values;
 
     try {
-        const [hours, minutes] = gameTime.split(':');
-
-        const selectedTime = new Date(gameDate);
-        selectedTime.setUTCHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+        const updatedGameDate = combineDateTime(gameDate, gameTime);
 
         const updatedGameData = {
             ...gameData,
             isHomeGame: isHomeGame === 'true',
-            gameDate: selectedTime.toISOString(),
+            gameDate: updatedGameDate,
             seasons: values.seasonId,
         };
 
