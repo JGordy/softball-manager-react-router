@@ -1,0 +1,20 @@
+{
+    "short_name": "Rocket Roster",
+    "name": "Rocker Roster - easy team and game management",
+    "icons": [
+        {
+            "src": "/favicon.ico",
+            "sizes": "48x48",
+            "type": "image/ico"
+        },
+        {
+            "src": "/favicon.ico",
+            "sizes": "48x48",
+            "type": "image/ico"
+        }
+    ],
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#27a343"
+}
