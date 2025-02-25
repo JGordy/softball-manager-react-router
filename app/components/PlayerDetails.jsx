@@ -48,28 +48,43 @@ function PlayerDetails({ player, editButton }) {
     const { throws, bats, preferredPositions, dislikedPositions } = player;
 
     return (
-        <Card shadow="sm" py="lg" px="xs" radius="xl" mt="md" withBorder>
-            <Group justify="space-between" px="10px">
+        <Card shadow="sm" padding="lg" radius="xl" mt="md" withBorder>
+            <Group justify="space-between">
                 <Title order={4}>Player Details</Title>
                 {editButton}
             </Group>
 
             <Divider my="sm" size="sm" />
 
-            <Group gap="xl" px="xs">
+            <Group gap="xl">
                 <Group gap="4px">
                     <Text>Throws</Text>
-                    <Text fw={700} c={throws ? 'green' : 'red'}>{throws || "Not Specified"}</Text>
+                    <Text fw={700} c={throws ? 'green' : 'red'}>{throws || "Not Listed"}</Text>
                 </Group>
                 <Group gap="4px">
                     <Text>Bats</Text>
-                    <Text fw={700} c={bats ? 'green' : 'red'}>{bats || "Not Specified"}</Text>
+                    <Text fw={700} c={bats ? 'green' : 'red'}>{bats || "Not Listed"}</Text>
                 </Group>
             </Group>
 
             <Divider my="sm" size="sm" />
 
-            <Text pl="10px">Fielding Preferences</Text>
+            <Text>Fielding Preferences</Text>
+
+            <Group justify="space-between" mt="md">
+                <Group gap="xs">
+                    <ColorSwatch size={20} color={colors.PREFERRED} />
+                    Preferred
+                </Group>
+                <Group gap="xs">
+                    <ColorSwatch size={20} color={colors.NEUTRAL} />
+                    Open
+                </Group>
+                <Group gap="xs">
+                    <ColorSwatch size={20} color={colors.DISLIKED} />
+                    Disliked
+                </Group>
+            </Group>
 
             <div className={styles.imageContainer}>
                 <Image src={fieldSrc} alt="Preferred Positions Chart" />
@@ -84,7 +99,8 @@ function PlayerDetails({ player, editButton }) {
                     />
                 ))}
             </div>
-            <Group justify='space-between' px="10px">
+
+            {/* <Group justify='space-between' px="10px">
                 <Group gap="xs">
                     <ColorSwatch size={20} color={colors.PREFERRED} />
                     Preferred
@@ -97,7 +113,7 @@ function PlayerDetails({ player, editButton }) {
                     <ColorSwatch size={20} color={colors.DISLIKED} />
                     Disliked
                 </Group>
-            </Group>
+            </Group> */}
         </Card>
     );
 }
