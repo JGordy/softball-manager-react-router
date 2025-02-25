@@ -3,13 +3,14 @@ import {
     Button,
     Card,
     Flex,
+    Group,
     Text,
     Tooltip,
 } from '@mantine/core'
 
 import positions from '@/constants/positions';
 
-import { IconPlus } from '@tabler/icons-react';
+import { IconPlus, IconClipboardCheck } from '@tabler/icons-react';
 
 export default function PlayerList({
     players,
@@ -37,12 +38,16 @@ export default function PlayerList({
                         onClick={() => handlePlayerCardClick(player.$id)}
                     >
                         <Flex justify="space-between" align="center">
-                            <Text size="lg">
-                                {player.firstName} {player.lastName}
-                            </Text>
-                            {player.$id === managerId && (
-                                <Text>Manager</Text>
-                            )}
+                            <Group gap="3px">
+                                <Text size="lg">
+                                    {player.firstName} {player.lastName}
+                                </Text>
+                                {player.$id === managerId && (
+                                    <Text>
+                                        <IconClipboardCheck size={20} />
+                                    </Text>
+                                )}
+                            </Group>
                             <Avatar.Group>
                                 {player?.preferredPositions?.map(position => (
                                     <Tooltip key={player.$id + position} label={position} withArrow>
