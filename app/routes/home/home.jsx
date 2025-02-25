@@ -109,7 +109,7 @@ const TeamsPage = ({ loaderData }) => {
                 <Title order={2} mb="sm">
                     Teams
                 </Title>
-                <List size="sm" striped bordered maw={400} mx="auto">
+                <List size="sm" maw={400} mx="auto">
                     {teamList.map((team, index) => (
                         <List.Item key={index}>
                             {team.teamName} ({team.leagueName})
