@@ -141,6 +141,9 @@ export default function TeamDetails({ actionData, loaderData }) {
                 </Text>
             );
         }
+        if (modalContent === 'details') {
+            return 'Update Team Details';
+        }
         return modalContent === 'playerList' ? 'Add Player' : 'Add Season'
     }
 
