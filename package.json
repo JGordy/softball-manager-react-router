@@ -19,6 +19,7 @@
         "@tabler/icons-react": "^3.29.0",
         "appwrite": "^17.0.0",
         "clsx": "^2.1.1",
+        "cookie": "^1.0.2",
         "isbot": "^5.1.17",
         "node-appwrite": "^15.0.0",
         "react": "^19.0.0",
