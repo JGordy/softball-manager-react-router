@@ -17,6 +17,7 @@ export default function AddSeason({
     action = 'add-season',
     actionRoute,
     buttonColor,
+    confirmText = 'Create Season',
     // setError,
     teamId,
 }) {
@@ -32,7 +33,7 @@ export default function AddSeason({
             action={action}
             actionRoute={actionRoute}
             buttonColor={buttonColor}
-            confirmText="Create Season"
+            confirmText={confirmText}
         >
             <input type="hidden" name="teamId" value={teamId} />
             <TextInput
@@ -40,7 +41,7 @@ export default function AddSeason({
                 label="Season Name"
                 name="seasonName"
                 placeholder='Fall Season 2025'
-                required
+                required={action === 'add-season'}
             />
             <TextInput
                 className={classes.inputs}
@@ -66,7 +67,7 @@ export default function AddSeason({
                 data={['Men', 'Women', 'Coed']}
                 mb="sm"
                 searchable
-                required
+                required={action === 'add-season'}
             />
             <NumberInput
                 className={classes.inputs}
