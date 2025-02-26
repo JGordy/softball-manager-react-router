@@ -10,6 +10,7 @@ import {
     Text,
     Title,
 } from '@mantine/core';
+import { modals } from '@mantine/modals';
 
 import {
     IconCalendarMonth,
@@ -39,7 +40,7 @@ export async function action({ request, params }) {
     const { teamId } = params;
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
-    console.log({ _action, values, formData });
+    console.log({ _action, values });
 
     if (_action === 'add-player') {
         return createPlayer({ values, teamId });
@@ -69,8 +70,6 @@ export default function TeamDetails({ actionData, loaderData }) {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalContent, setModalContent] = useState(null);
-    const [selectedPlayerId, setSelectedPlayerId] = useState();
-    const selectedPlayer = selectedPlayerId && players.find(player => player.$id === selectedPlayerId)
 
     const [error, setError] = useState(null);
 
@@ -80,6 +79,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                 if (actionData?.success) {
                     setError(null);
                     setIsModalOpen(false);
+                    modals.closeAll();
                 } else if (actionData instanceof Error) {
                     setError(actionData.message);
                 }
@@ -115,17 +115,6 @@ export default function TeamDetails({ actionData, loaderData }) {
     }
 
     const getModalTitle = () => {
-        if (modalContent === 'playerDetails') {
-            return (
-                <Text span ml="sm">
-                    <Text span c='green'>
-                        {selectedPlayer.firstName} {selectedPlayer.lastName}
-                    </Text>
-                    {' '}
-                    details
-                </Text>
-            );
-        }
         if (modalContent === 'details') {
             return 'Update Team Details';
         }
@@ -164,6 +153,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                         managerId={managerId}
                         managerView={managerView}
                         primaryColor={primaryColor}
+                        teamId={team.$id}
                     />
                 </Tabs.Panel>
 
