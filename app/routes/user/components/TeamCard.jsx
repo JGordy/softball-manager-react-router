@@ -26,7 +26,7 @@ export default function TeamCard({ team }) {
     const getSeasonStatus = () => {
         const { seasons } = team;
         if (!seasons || seasons.length === 0) {
-            return null; // No seasons, no status
+            return 'No upcoming seasons';
         }
 
         const today = new Date();
@@ -68,8 +68,6 @@ export default function TeamCard({ team }) {
             const date = startDate?.getDate?.();
             return `Season starts ${month}/${date}`;
         }
-
-        return 'No upcoming seasons';
     }
 
     const iconProps = {
