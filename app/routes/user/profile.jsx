@@ -2,16 +2,15 @@ import { useState, useEffect } from 'react';
 import { useActionData, useLoaderData } from 'react-router';
 
 import {
-    Alert,
     Avatar,
     Container,
     Group,
     Indicator,
     Popover,
-    Modal,
     Text,
     Title,
 } from '@mantine/core';
+import { modals } from '@mantine/modals';
 
 import {
     IconBellRingingFilled,
@@ -27,9 +26,9 @@ import EditButton from '@/components/EditButton';
 import PersonalDetails from '@/components/PersonalDetails';
 import PlayerDetails from '@/components/PlayerDetails';
 
+import AddPlayer from '@/forms/AddPlayer';
+
 import AlertIncomplete from './components/AlertIncomplete';
-import PersonalDetailsForm from './components/PersonalDetailsForm';
-import PlayerDetailsForm from './components/PlayerDetailsForm';
 
 import { getProfile } from "./loader";
 import { updateUser } from './action';
@@ -99,30 +98,47 @@ export default function UserProfile() {
 
     const [showIndicator, setShowIndicator] = useState(incompleteData.length > 0);
 
-    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-    const [isPositionModalOpen, setIsPositionModalOpen] = useState(false);
-    const [error, setError] = useState(null);
-
     const fullName = `${player.firstName} ${player.lastName}`;
 
     useEffect(() => {
         const handleAfterSubmit = async () => {
             try {
                 if (actionData?.status === 204) {
-                    setError(null);
-                    setIsPositionModalOpen(false);
-                    setIsDetailsModalOpen(false);
+                    modals.closeAll();
                 } else if (actionData instanceof Error) {
-                    setError(actionData.message);
+                    console.error("An error occurred while updating user data", actionData.message);
                 }
             } catch (jsonError) {
                 console.error("Error parsing JSON:", jsonError);
-                setError("An error occurred while updating user data.");
             }
         };
 
         handleAfterSubmit();
     }, [actionData]);
+
+    const openPersonalDetailsModal = () => modals.open({
+        title: 'Update Personal Details',
+        children: (
+            <AddPlayer
+                action="edit-player"
+                actionRoute={`/user/${user.$id}`}
+                confirmText="Update Details"
+                inputsToDisplay={['name', 'contact', 'gender', 'song']}
+            />
+        ),
+    });
+
+    const openPlayerDetailsModal = () => modals.open({
+        title: 'Update Player Details',
+        children: (
+            <AddPlayer
+                action="edit-player"
+                actionRoute={`/user/${user.$id}`}
+                confirmText="Update Details"
+                inputsToDisplay={['positions', 'throws-bats']}
+            />
+        ),
+    });
 
     return !!Object.keys(player).length && (
         <Container>
@@ -155,30 +171,14 @@ export default function UserProfile() {
 
             <PersonalDetails
                 player={player}
-                editButton={isCurrentUser && <EditButton setIsModalOpen={setIsDetailsModalOpen} />}
+                editButton={isCurrentUser && <EditButton setIsModalOpen={openPersonalDetailsModal} />}
                 fieldsToDisplay={fieldsToDisplay}
             />
 
             <PlayerDetails
                 player={player}
-                editButton={isCurrentUser && <EditButton setIsModalOpen={setIsPositionModalOpen} />}
+                editButton={isCurrentUser && <EditButton setIsModalOpen={openPlayerDetailsModal} />}
             />
-
-            <Modal opened={isDetailsModalOpen} onClose={() => setIsDetailsModalOpen(false)} title="Update Personal Details">
-                {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
-                <PersonalDetailsForm
-                    setIsModalOpen={setIsDetailsModalOpen}
-                    setError={setError}
-                />
-            </Modal>
-
-            <Modal opened={isPositionModalOpen} onClose={() => setIsPositionModalOpen(false)} title="Update Player Details">
-                {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
-                <PlayerDetailsForm
-                    setIsModalOpen={setIsPositionModalOpen}
-                    setError={setError}
-                />
-            </Modal>
         </Container>
     );
 }
