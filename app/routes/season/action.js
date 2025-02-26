@@ -3,14 +3,14 @@ import { createDocument, updateDocument } from '@/utils/databases';
 import { combineDateTime } from '@/utils/dateTime';
 
 export async function createGames({ values }) {
-    const { games: generatedGames } = values;
+    const { games: generatedGames, timeZone } = values;
     let games = JSON.parse(generatedGames);
 
     try {
         const createdGames = [];
 
         for (const game of games) {
-            const createdGame = await createDocument('games', ID.unique(), game);
+            const createdGame = await createDocument('games', ID.unique(), { ...game, timeZone });
             createdGames.push(createdGame);
         }
 
