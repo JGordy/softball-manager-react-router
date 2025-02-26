@@ -9,6 +9,7 @@ import {
     Text,
     Title,
 } from '@mantine/core';
+import { modals } from '@mantine/modals';
 
 import {
     IconCalendar,
@@ -21,6 +22,8 @@ import {
 
 import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
+
+import AddSingleGame from '@/forms/AddSingleGame';
 
 import GameGenerator from './components/GameGenerator';
 import GamesTable from './components/GamesTable';
@@ -70,6 +73,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
                 if (actionData?.success) {
                     setError(null);
                     setIsModalOpen(false);
+                    modals.closeAll();
                 } else if (actionData instanceof Error) {
                     setError(actionData.message);
                 }
@@ -92,10 +96,17 @@ export default function SeasonDetails({ loaderData, actionData }) {
         setIsModalOpen(true);
     };
 
-    const handleCreateGameClick = () => {
-        setModalContents('add-single-game');
-        setIsModalOpen(true);
-    };
+    const openAddGameModal = () => modals.open({
+        title: 'Add a Single Game',
+        children: (
+            <AddSingleGame
+                action="add-single-game"
+                actionRoute={`/season/${season.$id}`}
+                seasonId={season.$id}
+            // buttonColor={primaryColor}
+            />
+        ),
+    });
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
@@ -193,7 +204,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
 
             <Button
                 mt="md"
-                onClick={handleCreateGameClick}
+                onClick={openAddGameModal}
                 fullWidth
                 autoContrast
             >
@@ -212,13 +223,6 @@ export default function SeasonDetails({ loaderData, actionData }) {
                 )}
                 {modalContents === 'edit-season' && (
                     <SeasonDetailsForm
-                        season={season}
-                        handleCloseModal={handleCloseModal}
-                        setError={setError}
-                    />
-                )}
-                {modalContents === 'add-single-game' && (
-                    <SingleGameForm
                         season={season}
                         handleCloseModal={handleCloseModal}
                         setError={setError}
