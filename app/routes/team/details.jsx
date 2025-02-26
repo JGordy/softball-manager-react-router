@@ -198,6 +198,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                         games={seasons[0].games}
                         seasons={seasons}
                         teamId={team.$id}
+                        managerView={managerView}
                         primaryColor={primaryColor}
                     />
                 </Tabs.Panel>
