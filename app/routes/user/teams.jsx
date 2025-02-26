@@ -74,7 +74,6 @@ export function HydrateFallback() {
 }
 
 export async function action({ request, params }) {
-    console.log('/teams action', { request, params });
     return createTeam({ request, params });
 }
 
