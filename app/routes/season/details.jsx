@@ -58,9 +58,9 @@ export async function action({ request, params }) {
 
 export default function SeasonDetails({ loaderData, actionData }) {
 
-    console.log('/season/details.jsx: ', { season });
-
     const { season } = loaderData;
+
+    console.log('/season/details.jsx: ', { season });
 
     useEffect(() => {
         const handleAfterSubmit = async () => {
