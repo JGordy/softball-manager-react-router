@@ -64,7 +64,7 @@ export default function AddSingleGame({
                 mb="sm"
                 searchable
             />
-            {(seasons.length > 0) && (
+            {(seasons?.length > 0) && (
                 <Select
                     className={classes.inputs}
                     label="Which season are we adding to?"
