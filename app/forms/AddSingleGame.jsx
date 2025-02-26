@@ -14,12 +14,12 @@ import FormWrapper from './FormWrapper';
 import classes from '@/styles/inputs.module.css';
 
 export default function AddSingleGame({
-    teamId,
-    seasonId,
-    seasons,
     action = 'add-single-game',
     actionRoute,
     buttonColor,
+    seasons,
+    seasonId,
+    teamId,
 }) {
 
     const ref = useRef();
