@@ -89,11 +89,10 @@ const UserDashboard = ({ loaderData }) => {
                 if (actionData?.status === 201) {
                     modals.closeAll();
                 } else if (actionData instanceof Error) {
-                    setError(actionData.message);
+                    console.error('An error occurred during team creation.', actionData.message);
                 }
             } catch (jsonError) {
                 console.error("Error parsing JSON:", jsonError);
-                setError("An error occurred during team creation.");
             }
         };
 
