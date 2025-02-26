@@ -33,6 +33,7 @@ export default function PlayerList({
             <AddPlayer
                 actionRoute={`/team/${teamId}`}
                 buttonColor={primaryColor}
+                inputsToDisplay={['name', 'gender', 'throws-bats', 'contact', 'positions']}
             />
         ),
     });
