@@ -1,12 +1,20 @@
 import { Button, Card, Group, Text, } from '@mantine/core';
 import { modals } from '@mantine/modals';
 
+import { IconPlus } from '@tabler/icons-react';
+
 import AddSingleGame from '@/forms/AddSingleGame';
 
 import sortByDate from '@/utils/sortByDate';
 import { formatGameTime } from '@/utils/dateTime';
 
-export default function GamesList({ games, seasons, teamId, primaryColor }) {
+export default function GamesList({
+    games,
+    seasons,
+    teamId,
+    primaryColor,
+    managerView,
+}) {
 
     const sortedGames = sortByDate(games, 'gameDate');
 
@@ -70,6 +78,7 @@ export default function GamesList({ games, seasons, teamId, primaryColor }) {
                     No games currently listed for this team.
                 </Text>
             )}
+
             {sortedGames.map(game => {
                 return (
                     <Card key={game.$id} mt="sm" radius="md" padding="sm" withBorder>
@@ -85,7 +94,19 @@ export default function GamesList({ games, seasons, teamId, primaryColor }) {
                     </Card>
                 )
             })}
-            <Button onClick={openModal} mt="md">Create Game</Button>
+
+            {managerView && (
+                <Button
+                    mt="md"
+                    color={primaryColor}
+                    onClick={openModal}
+                    autoContrast
+                    fullWidth
+                >
+                    <IconPlus size={20} />
+                    Add New Game
+                </Button>
+            )}
         </>
     );
 };
