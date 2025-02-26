@@ -1,6 +1,8 @@
 import { ID } from '@/appwrite';
 import { createDocument, updateDocument } from '@/utils/databases.js';
 
+import { combineDateTime } from '@/utils/dateTime';
+
 export async function createPlayer({ values, teamId }) {
     try {
         const userId = ID.unique(); // Create this now so it's easier to use later
@@ -45,6 +47,28 @@ export async function createSeason({ values, teamId }) {
         return { response: { season }, status: 201, success: true };
     } catch (error) {
         console.error("Error creating season:", error);
+        throw error;
+    }
+}
+
+export async function createSingleGame({ values }) {
+    const { gameDate, gameTime, isHomeGame, ...gameData } = values;
+
+    try {
+        const updatedGameDate = combineDateTime(gameDate, gameTime);
+
+        const updatedGameData = {
+            ...gameData,
+            isHomeGame: isHomeGame === 'true',
+            gameDate: updatedGameDate,
+            seasons: values.seasonId,
+        };
+
+        const createdGame = await createDocument('games', ID.unique(), updatedGameData);
+
+        return { response: { game: createdGame }, status: 201, success: true };
+    } catch (error) {
+        console.error("Error creating game:", error);
         throw error;
     }
 }
