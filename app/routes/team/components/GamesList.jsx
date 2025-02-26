@@ -1,9 +1,12 @@
-import { Card, Group, Text } from '@mantine/core';
+import { Button, Card, Group, Text, } from '@mantine/core';
+import { modals } from '@mantine/modals';
+
+import AddSingleGame from '@/forms/AddSingleGame';
 
 import sortByDate from '@/utils/sortByDate';
 import { formatGameTime } from '@/utils/dateTime';
 
-export default function GamesList({ games, primaryColor }) {
+export default function GamesList({ games, teamId, primaryColor }) {
 
     const sortedGames = sortByDate(games, 'gameDate');
 
@@ -46,6 +49,20 @@ export default function GamesList({ games, primaryColor }) {
         return null;
     };
 
+    const openModal = () => modals.open({
+        title: 'Add a New Game',
+        children: (
+            <AddSingleGame
+                action="add-single-game"
+                actionRoute={`/team/${teamId}`}
+                teamId={teamId}
+                seasonId={null}
+                confirmText="Create Game"
+            />
+        ),
+    });
+
+
     return (
         <>
             {!sortedGames.length && (
@@ -68,6 +85,7 @@ export default function GamesList({ games, primaryColor }) {
                     </Card>
                 )
             })}
+            <Button onClick={openModal} mt="md">Create Game</Button>
         </>
     );
 };
