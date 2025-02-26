@@ -79,6 +79,19 @@ export default function GamesList({
                 </Text>
             )}
 
+            {managerView && (
+                <Button
+                    mt="md"
+                    color={primaryColor}
+                    onClick={openModal}
+                    autoContrast
+                    fullWidth
+                >
+                    <IconPlus size={20} />
+                    Add New Game
+                </Button>
+            )}
+
             {sortedGames.map(game => {
                 return (
                     <Card key={game.$id} mt="sm" radius="md" padding="sm" withBorder>
@@ -94,19 +107,6 @@ export default function GamesList({
                     </Card>
                 )
             })}
-
-            {managerView && (
-                <Button
-                    mt="md"
-                    color={primaryColor}
-                    onClick={openModal}
-                    autoContrast
-                    fullWidth
-                >
-                    <IconPlus size={20} />
-                    Add New Game
-                </Button>
-            )}
         </>
     );
 };
