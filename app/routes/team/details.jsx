@@ -43,7 +43,7 @@ export async function action({ request, params }) {
     const { teamId } = params;
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
-    // console.log({ _action, values });
+    console.log({ _action, values, formData });
 
     if (_action === 'add-player') {
         return createPlayer({ values, teamId });
@@ -56,11 +56,16 @@ export async function action({ request, params }) {
     if (_action === 'edit-team') {
         return updateTeam({ values, teamId })
     }
+
+    // TODO: Add action 'add-single-game'
+    if (_action === 'add-single-game') {
+        // return updateTeam({ values, teamId })
+    }
 };
 
 export default function TeamDetails({ actionData, loaderData }) {
     const { teamData: team, players, managerId } = loaderData;
-    console.log({ players });
+    // console.log('/team/details >', { players, team, managerId });
 
     const { user } = useAuth();
 
@@ -108,11 +113,6 @@ export default function TeamDetails({ actionData, loaderData }) {
         setModalContent('playerDetails');
         setIsModalOpen(true);
     }
-
-    const handleSeasonListModal = () => {
-        setModalContent('seasonList');
-        setIsModalOpen(true);
-    };
 
     // const handleGameListModal = () => {
     //     setModalContent('gameList');
@@ -187,16 +187,17 @@ export default function TeamDetails({ actionData, loaderData }) {
                 <Tabs.Panel value="seasons">
                     <SeasonList
                         seasons={seasons}
+                        teamId={team.$id}
                         managerView={managerView}
                         primaryColor={primaryColor}
-                        handleSeasonListModal={handleSeasonListModal}
                     />
                 </Tabs.Panel>
 
                 <Tabs.Panel value="games">
                     <GamesList
                         games={seasons[0].games}
-                        // handleGameListModal={handleGameListModal}
+                        seasons={seasons}
+                        teamId={team.$id}
                         primaryColor={primaryColor}
                     />
                 </Tabs.Panel>
@@ -209,14 +210,6 @@ export default function TeamDetails({ actionData, loaderData }) {
                         handleCloseModal={handleCloseModal}
                         setError={setError}
                         primaryColor={primaryColor}
-                    />
-                )}
-                {modalContent === 'seasonList' && (
-                    <SeasonForm
-                        handleCloseModal={handleCloseModal}
-                        setError={setError}
-                        primaryColor={primaryColor}
-                        teamId={team.$id}
                     />
                 )}
                 {modalContent === 'details' && (
