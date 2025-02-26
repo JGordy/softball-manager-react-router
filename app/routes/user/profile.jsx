@@ -116,28 +116,23 @@ export default function UserProfile() {
         handleAfterSubmit();
     }, [actionData]);
 
+    const renderForm = (inputs) => (
+        <AddPlayer
+            action="edit-player"
+            actionRoute={`/user/${user.$id}`}
+            confirmText="Update Details"
+            inputsToDisplay={inputs}
+        />
+    );
+
     const openPersonalDetailsModal = () => modals.open({
         title: 'Update Personal Details',
-        children: (
-            <AddPlayer
-                action="edit-player"
-                actionRoute={`/user/${user.$id}`}
-                confirmText="Update Details"
-                inputsToDisplay={['name', 'contact', 'gender', 'song']}
-            />
-        ),
+        children: renderForm(['name', 'contact', 'gender', 'song']),
     });
 
     const openPlayerDetailsModal = () => modals.open({
         title: 'Update Player Details',
-        children: (
-            <AddPlayer
-                action="edit-player"
-                actionRoute={`/user/${user.$id}`}
-                confirmText="Update Details"
-                inputsToDisplay={['positions', 'throws-bats']}
-            />
-        ),
+        children: renderForm(['positions', 'throws-bats']),
     });
 
     return !!Object.keys(player).length && (
