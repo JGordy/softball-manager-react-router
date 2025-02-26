@@ -79,7 +79,7 @@ export async function action({ request, params }) {
 
 const UserDashboard = ({ loaderData }) => {
     const { managing, playing, userId } = loaderData;
-    console.log('/teams.jsx', { managing, playing });
+    // console.log('/teams.jsx', { managing, playing });
 
     const actionData = useActionData();
 

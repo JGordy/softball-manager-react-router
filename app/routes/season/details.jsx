@@ -60,7 +60,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
 
     const { season } = loaderData;
 
-    console.log('/season/details.jsx: ', { season });
+    // console.log('/season/details.jsx: ', { season });
 
     useEffect(() => {
         const handleAfterSubmit = async () => {

@@ -82,7 +82,7 @@ export async function action({ request, params }) {
 export default function UserProfile() {
 
     const { user } = useAuth();
-    console.log('profile: ', { user });
+    // console.log('profile: ', { user });
 
     const { player } = useLoaderData();
     const actionData = useActionData();
