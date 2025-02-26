@@ -7,6 +7,7 @@ import {
     Text,
     Tooltip,
 } from '@mantine/core'
+import { modals } from '@mantine/modals';
 
 import positions from '@/constants/positions';
 
@@ -27,7 +28,13 @@ export default function PlayerList({
 
     return (
         <>
-            {players.map(player => {
+            {(!players.length) && (
+                <Text mt="lg" align="center">
+                    No players currently listed for this team.
+                </Text>
+            )}
+
+            {(players.length > 0) && players.map(player => {
                 return (
                     <Card
                         key={player.$id}
