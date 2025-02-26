@@ -120,7 +120,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                     <Tabs.Tab value="seasons" size="lg" leftSection={<IconCalendarMonth size={16} />}>
                         Seasons
                     </Tabs.Tab>
-                    <Tabs.Tab value="games" size="lg" leftSection={<IconBallBaseball size={16} />}>
+                    <Tabs.Tab value="games" size="lg" leftSection={<IconBallBaseball size={16} />} disabled={seasons.length === 0}>
                         Games
                     </Tabs.Tab>
                 </Tabs.List>
@@ -146,7 +146,7 @@ export default function TeamDetails({ actionData, loaderData }) {
 
                 <Tabs.Panel value="games">
                     <GamesList
-                        games={seasons[0].games}
+                        games={seasons?.[0]?.games}
                         seasons={seasons}
                         teamId={team.$id}
                         managerView={managerView}
