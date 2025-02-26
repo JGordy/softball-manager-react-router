@@ -1,30 +1,29 @@
-import { useEffect, useState } from 'react';
-
-import {
-    Alert,
-    Button,
-    Flex,
-    Container,
-    Loader,
-    Modal,
-    Text,
-    Title,
-} from '@mantine/core';
-
+import { useEffect } from 'react';
 import {
     useActionData,
     redirect,
 } from 'react-router';
+
+import {
+    Button,
+    Flex,
+    Container,
+    Loader,
+    Text,
+    Title,
+} from '@mantine/core';
+import { modals } from '@mantine/modals';
+
+import { IconPlus } from '@tabler/icons-react';
+
+import AddTeam from '@/forms/AddTeam';
 
 import { account } from '@/appwrite';
 
 import { createTeam } from './action';
 // import { getTeams } from './loader';
 
-import { IconPlus } from '@tabler/icons-react';
-
 import TeamCard from './components/TeamCard';
-import TeamForm from './components/NewTeamForm';
 
 export function meta() {
     return [
@@ -75,6 +74,7 @@ export function HydrateFallback() {
 }
 
 export async function action({ request, params }) {
+    console.log('/teams action', { request, params });
     return createTeam({ request, params });
 }
 
@@ -84,15 +84,11 @@ const UserDashboard = ({ loaderData }) => {
 
     const actionData = useActionData();
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [error, setError] = useState(null);
-
     useEffect(() => {
         const handleAfterSubmit = async () => {
             try {
                 if (actionData?.status === 201) {
-                    setError(null);
-                    setIsModalOpen(false);
+                    modals.closeAll();
                 } else if (actionData instanceof Error) {
                     setError(actionData.message);
                 }
@@ -104,6 +100,16 @@ const UserDashboard = ({ loaderData }) => {
 
         handleAfterSubmit();
     }, [actionData]);
+
+    const openAddTeamModal = () => modals.open({
+        title: 'Add a New Team',
+        children: (
+            <AddTeam
+                actionRoute={'/teams'}
+                userId={userId}
+            />
+        ),
+    });
 
     const renderTeamList = (teamList) => {
         return (teamList.length > 0) && (
@@ -150,18 +156,10 @@ const UserDashboard = ({ loaderData }) => {
                 <Text size="sm">You don't have any teams. Create one below</Text>
             )}
 
-            <Button component="div" variant="link" mt="md" onClick={() => setIsModalOpen(true)} fullWidth>
+            <Button component="div" variant="link" mt="md" onClick={openAddTeamModal} fullWidth>
                 <IconPlus size={20} />
                 Create New Team
             </Button>
-
-            <Modal opened={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create New Team">
-                {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
-                <TeamForm
-                    setIsModalOpen={setIsModalOpen}
-                    setError={setError}
-                />
-            </Modal>
         </Container>
     );
 };
