@@ -11,6 +11,7 @@ export async function createPlayer({ values, teamId }) {
             {
                 ...values,
                 preferredPositions: values.preferredPositions.split(","), // Split into an array of positions
+                dislikedPositions: values.dislikedPositions.split(","), // Split into an array of positions
                 userId,
             },
         );
