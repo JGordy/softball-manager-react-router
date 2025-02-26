@@ -16,10 +16,12 @@ import classes from '@/styles/inputs.module.css';
 export default function AddSingleGame({
     teamId,
     seasonId,
+    seasons,
     action = 'add-single-game',
     actionRoute,
     buttonColor,
 }) {
+
     const ref = useRef();
 
     const currentTimeZone = getUserTimeZone();
@@ -29,6 +31,8 @@ export default function AddSingleGame({
         size: 18,
         stroke: 1.5
     };
+
+    const seasonOptions = seasons ? seasons.map(season => ({ label: season.seasonName, value: season.$id })) : null;
 
     const pickerControl = (
         <ActionIcon variant="subtle" color="gray" onClick={() => ref.current?.showPicker()}>
@@ -60,6 +64,16 @@ export default function AddSingleGame({
                 mb="sm"
                 searchable
             />
+            {(seasons.length > 0) && (
+                <Select
+                    className={classes.inputs}
+                    label="Which season are we adding to?"
+                    name="seasonId"
+                    data={seasonOptions}
+                    mb="sm"
+                    searchable
+                />
+            )}
             <DatePickerInput
                 className={classes.inputs}
                 leftSection={<IconCalendar {...iconProps} />}
