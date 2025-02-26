@@ -99,7 +99,6 @@ export default function SeasonDetails({ loaderData, actionData }) {
                 action="add-single-game"
                 actionRoute={`/season/${season.$id}`}
                 seasonId={season.$id}
-            // buttonColor={primaryColor}
             />
         ),
     });
