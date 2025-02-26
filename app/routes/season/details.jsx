@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 
 import {
     Button,
     Container,
     Divider,
     Group,
-    Modal,
     Text,
     Title,
 } from '@mantine/core';
@@ -22,14 +21,11 @@ import {
 
 import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
+import GamesTable from '@/components/GamesTable';
 
 import AddSingleGame from '@/forms/AddSingleGame';
 import AddSeason from '@/forms/AddSeason';
-
-import GameGenerator from './components/GameGenerator';
-import GamesTable from './components/GamesTable';
-import SeasonDetailsForm from './components/SeasonDetailsForm';
-import SingleGameForm from './components/SingleGameForm';
+import GenerateSeasonGames from '@/forms/GenerateSeasonGames';
 
 import { getSeasonDetails } from './loader';
 import { createGames, createSingleGame, updateSeason } from './action';
@@ -61,36 +57,36 @@ export async function action({ request, params }) {
 };
 
 export default function SeasonDetails({ loaderData, actionData }) {
-    const { season } = loaderData;
+
     console.log('/season/details.jsx: ', { season });
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [modalContents, setModalContents] = useState();
-    const [error, setError] = useState();
+    const { season } = loaderData;
 
     useEffect(() => {
         const handleAfterSubmit = async () => {
             try {
                 if (actionData?.success) {
-                    setError(null);
-                    setIsModalOpen(false);
                     modals.closeAll();
                 } else if (actionData instanceof Error) {
-                    setError(actionData.message);
+                    console.error("Error in actions:", actionData.message);
                 }
             } catch (jsonError) {
                 console.error("Error parsing JSON:", jsonError);
-                setError("An error occurred during player creation.");
             }
         };
 
         handleAfterSubmit();
     }, [actionData]);
 
-    const handleGenerateGamesClick = () => {
-        setModalContents('generate-games');
-        setIsModalOpen(true);
-    };
+    const openGenerateGamesModal = () => modals.open({
+        title: 'Generate Game Placeholders',
+        children: (
+            <GenerateSeasonGames
+                actionRoute={`/season/${season.$id}`}
+                season={season}
+            />
+        ),
+    });
 
     const openAddGameModal = () => modals.open({
         title: 'Add a Single Game',
@@ -115,23 +111,11 @@ export default function SeasonDetails({ loaderData, actionData }) {
         ),
     });
 
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setModalContents(null);
-    }
-
     const hasGames = season?.games?.length > 0;
-
-    const modalTitle = modalContents?.split('-')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
 
     const textProps = {
         size: "md",
-        // c: "dimmed",
     };
-
-    console.log({ season });
 
     return (
         <Container size="xl" p="xl">
@@ -188,7 +172,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
                     <Text>There are no games listed for the upcoming season.</Text>
                     <Button
                         my="md"
-                        onClick={handleGenerateGamesClick}
+                        onClick={openGenerateGamesModal}
                         fullWidth
                         autoContrast
                     >
@@ -218,17 +202,6 @@ export default function SeasonDetails({ loaderData, actionData }) {
                 <IconPlus size={18} />
                 Create Single Game
             </Button>
-
-            <Modal opened={isModalOpen} onClose={handleCloseModal} title={modalTitle}>
-                {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
-                {modalContents === 'generate-games' && (
-                    <GameGenerator
-                        season={season}
-                        handleCloseModal={handleCloseModal}
-                        setError={setError}
-                    />
-                )}
-            </Modal>
         </Container>
     );
 }
