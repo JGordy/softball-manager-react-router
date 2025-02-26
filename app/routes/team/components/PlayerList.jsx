@@ -14,6 +14,8 @@ import { IconPlus, IconClipboardCheck } from '@tabler/icons-react';
 import PlayerDetails from '@/components/PlayerDetails';
 import PersonalDetails from '@/components/PersonalDetails';
 
+import AddPlayer from '@/forms/AddPlayer';
+
 import positions from '@/constants/positions';
 
 export default function PlayerList({
@@ -21,20 +23,16 @@ export default function PlayerList({
     managerId,
     managerView,
     primaryColor,
+    teamId,
 }) {
 
     const openAddPlayerModal = () => modals.open({
         title: 'Add a New Player',
         children: (
-            <>Form Content</>
-            // <AddPlayer
-            //     action="add-single-game"
-            //     actionRoute={`/team/${teamId}`}
-            //     teamId={teamId}
-            //     seasonId={null}
-            //     seasons={seasons}
-            //     confirmText="Create Player"
-            // />
+            <AddPlayer
+                actionRoute={`/team/${teamId}`}
+                buttonColor={primaryColor}
+            />
         ),
     });
 
