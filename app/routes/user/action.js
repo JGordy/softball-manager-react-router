@@ -33,6 +33,10 @@ export async function updateUser({ request, params }) {
     const formData = await request.formData();
     const userData = Object.fromEntries(formData.entries());
 
+    if (userData._action) {
+        delete userData._action;
+    }
+
     if (userData.preferredPositions) {
         userData.preferredPositions = userData.preferredPositions.split(",")
     }
