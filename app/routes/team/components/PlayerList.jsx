@@ -9,22 +9,47 @@ import {
 } from '@mantine/core'
 import { modals } from '@mantine/modals';
 
-import positions from '@/constants/positions';
-
 import { IconPlus, IconClipboardCheck } from '@tabler/icons-react';
+
+import PlayerDetails from '@/components/PlayerDetails';
+import PersonalDetails from '@/components/PersonalDetails';
+
+import positions from '@/constants/positions';
 
 export default function PlayerList({
     players,
     managerId,
     managerView,
-    handleAddPlayerModal,
-    handlePlayerDetailsModal,
     primaryColor,
 }) {
 
-    const handlePlayerCardClick = (playerId) => {
-        handlePlayerDetailsModal(playerId);
-    }
+    const openAddPlayerModal = () => modals.open({
+        title: 'Add a New Player',
+        children: (
+            <>Form Content</>
+            // <AddPlayer
+            //     action="add-single-game"
+            //     actionRoute={`/team/${teamId}`}
+            //     teamId={teamId}
+            //     seasonId={null}
+            //     seasons={seasons}
+            //     confirmText="Create Player"
+            // />
+        ),
+    });
+
+    const openPlayerDetailsModal = (playerId) => {
+        const player = players.find(player => player.$id === playerId);
+        return modals.open({
+            title: `${player.firstName} ${player.lastName}'s Details`,
+            children: (
+                <>
+                    <PersonalDetails player={player} managerView={managerView} />
+                    <PlayerDetails player={player} />
+                </>
+            ),
+        })
+    };
 
     return (
         <>
@@ -42,7 +67,7 @@ export default function PlayerList({
                         radius="md"
                         padding="sm"
                         withBorder
-                        onClick={() => handlePlayerCardClick(player.$id)}
+                        onClick={() => openPlayerDetailsModal(player.$id)}
                     >
                         <Flex justify="space-between" align="center">
                             <Group gap="3px">
@@ -71,7 +96,7 @@ export default function PlayerList({
                 <Button
                     mt="sm"
                     color={primaryColor}
-                    onClick={handleAddPlayerModal}
+                    onClick={openAddPlayerModal}
                     autoContrast
                     fullWidth
                 >
