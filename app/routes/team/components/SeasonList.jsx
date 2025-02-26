@@ -73,7 +73,6 @@ export default function SeasonList({
         title: 'Add a New Season',
         children: (
             <AddSeason
-                action="add-season"
                 actionRoute={`/team/${teamId}`}
                 buttonColor={primaryColor}
                 teamId={teamId}
