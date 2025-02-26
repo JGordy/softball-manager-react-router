@@ -28,7 +28,7 @@ import SeasonList from './components/SeasonList';
 import GamesList from './components/GamesList';
 
 import { getTeamData } from './loader';
-import { createPlayer, createSeason, updateTeam } from './action';
+import { createPlayer, createSeason, createSingleGame, updateTeam } from './action';
 
 export async function loader({ params }) {
     const { teamId } = params;
@@ -53,9 +53,8 @@ export async function action({ request, params }) {
         return updateTeam({ values, teamId })
     }
 
-    // TODO: Add action 'add-single-game'
     if (_action === 'add-single-game') {
-        // return addSinglegame({ values, teamId })
+        return createSingleGame({ values, teamId })
     }
 };
 
