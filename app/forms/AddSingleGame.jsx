@@ -81,7 +81,7 @@ export default function AddSingleGame({
                 name="gameDate"
                 placeholder="When should this game be scheduled?"
                 firstDayOfWeek={0}
-                required
+                required={action === 'add-single-game'}
             />
             <TimeInput
                 label="Game Start Time"
@@ -92,7 +92,7 @@ export default function AddSingleGame({
                 format="24"
                 mb="sm"
                 defaultValue="19:00"
-                required
+                required={action === 'add-single-game'}
             />
             <Select
                 className={classes.inputs}
