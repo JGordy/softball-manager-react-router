@@ -45,17 +45,20 @@ export async function createSingleGame({ values }) {
 
 export async function updateSeason({ values, seasonId }) {
     // Removes undefined or empty string values from data to update
-    const dataToUpdate = {};
+    let dataToUpdate = {};
     for (const key in values) {
         if (values.hasOwnProperty(key) && values[key] !== undefined && values[key] !== "") {
             dataToUpdate[key] = values[key];
         }
     }
 
+    if (dataToUpdate.gameDays) dataToUpdate.gameDays = dataToUpdate.gameDays.split(",");
+    if (dataToUpdate.signUpFee) dataToUpdate.signUpFee = Number(dataToUpdate.signUpFee);
+
     try {
         const seasonDetails = await updateDocument('seasons', seasonId, dataToUpdate);
 
-        return { response: { seasonDetails }, status: 204, success: true }
+        return { response: { seasonDetails }, status: 204, success: true };
     } catch (error) {
         console.error("Error updating season:", error);
         throw error;
