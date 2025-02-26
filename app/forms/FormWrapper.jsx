@@ -10,6 +10,9 @@ export default function FormWrapper({
     children,
     confirmText = 'Confirm',
     cancelText = 'Cancel',
+    onCancelClick = modals.closeAll,
+    hideButtons,
+    ...rest
 }) {
 
     const submit = useSubmit();
@@ -26,27 +29,27 @@ export default function FormWrapper({
         <Form
             method="post"
             onSubmit={handleSubmit}
+            {...rest}
         >
             {children}
-            <Group position="right" mt="lg">
-                <Button
-                    type="submit"
-                    color={buttonColor || 'green'}
-                    autoContrast
-                >
-                    {confirmText}
-                </Button>
-                <Button
-                    variant="outline"
-                    color="gray"
-                    onClick={() => {
-                        modals.closeAll();
-                        // setError(null);
-                    }}
-                >
-                    {cancelText}
-                </Button>
-            </Group>
+            {!hideButtons && (
+                <Group position="right" mt="lg">
+                    <Button
+                        type="submit"
+                        color={buttonColor || 'green'}
+                        autoContrast
+                    >
+                        {confirmText}
+                    </Button>
+                    <Button
+                        variant="outline"
+                        color="gray"
+                        onClick={onCancelClick}
+                    >
+                        {cancelText}
+                    </Button>
+                </Group>
+            )}
         </Form>
     );
 };
