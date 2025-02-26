@@ -2,20 +2,18 @@ import { ID } from '@/appwrite';
 import { createDocument, updateDocument } from '@/utils/databases.js';
 
 export async function createTeam({ request, params }) {
-    const { userId } = params;
-
     const formData = await request.formData();
-    const teamData = Object.fromEntries(formData.entries());
 
+    const { userId, ...teamData } = Object.fromEntries(formData.entries());
+
+    if (teamData._action) {
+        delete teamData._action;
+    }
 
     try {
         const teamId = ID.unique(); // Create this now so it's easier to use later
 
-        const team = await createDocument(
-            'teams', // Your teams collection ID
-            teamId, // Generates a unique team ID in the handler
-            { ...teamData, signUpFee: Number(teamData.signUpFee) },
-        );
+        const team = await createDocument('teams', teamId, teamData);
 
         // Create document in relationship table for the user and team id's. Assume the user creating the team is a manager
         await createDocument('memberships', null, { userId, teamId, role: 'manager' });
