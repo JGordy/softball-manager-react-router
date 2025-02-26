@@ -6,7 +6,7 @@ import AddSingleGame from '@/forms/AddSingleGame';
 import sortByDate from '@/utils/sortByDate';
 import { formatGameTime } from '@/utils/dateTime';
 
-export default function GamesList({ games, teamId, primaryColor }) {
+export default function GamesList({ games, seasons, teamId, primaryColor }) {
 
     const sortedGames = sortByDate(games, 'gameDate');
 
@@ -57,11 +57,11 @@ export default function GamesList({ games, teamId, primaryColor }) {
                 actionRoute={`/team/${teamId}`}
                 teamId={teamId}
                 seasonId={null}
+                seasons={seasons}
                 confirmText="Create Game"
             />
         ),
     });
-
 
     return (
         <>
