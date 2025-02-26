@@ -1,11 +1,9 @@
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 
 import {
-    Alert,
     Container,
     Group,
-    Modal,
     Tabs,
     Text,
     Title,
@@ -21,12 +19,13 @@ import {
 import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
 
+import AddTeam from '@/forms/AddTeam';
+
 import { useAuth } from '@/contexts/auth/useAuth';
 
 import PlayerList from './components/PlayerList';
 import SeasonList from './components/SeasonList';
 import GamesList from './components/GamesList';
-import TeamDetailsForm from './components/TeamDetailsForm';
 
 import { getTeamData } from './loader';
 import { createPlayer, createSeason, updateTeam } from './action';
@@ -56,7 +55,7 @@ export async function action({ request, params }) {
 
     // TODO: Add action 'add-single-game'
     if (_action === 'add-single-game') {
-        // return updateTeam({ values, teamId })
+        // return addSinglegame({ values, teamId })
     }
 };
 
@@ -68,24 +67,16 @@ export default function TeamDetails({ actionData, loaderData }) {
 
     const managerView = managerId === user?.$id;
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [modalContent, setModalContent] = useState(null);
-
-    const [error, setError] = useState(null);
-
     useEffect(() => {
         const handleAfterSubmit = async () => {
             try {
                 if (actionData?.success) {
-                    setError(null);
-                    setIsModalOpen(false);
                     modals.closeAll();
                 } else if (actionData instanceof Error) {
-                    setError(actionData.message);
+                    console.error("Error parsing action data:", actionData);
                 }
             } catch (jsonError) {
-                console.error("Error parsing JSON:", jsonError);
-                setError("An error occurred during player creation.");
+                console.error("Error parsing JSON data:", jsonError);
             }
         };
 
@@ -96,36 +87,24 @@ export default function TeamDetails({ actionData, loaderData }) {
 
     const textProps = {
         size: "md",
-        // c: "dimmed",
     }
 
-    // const handleGameListModal = () => {
-    //     setModalContent('gameList');
-    //     setIsModalOpen(true);
-    // };
-
-    const handleEditTeamDetailsModal = () => {
-        setModalContent('details');
-        setIsModalOpen(true);
-    }
-
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setModalContent(null);
-    }
-
-    const getModalTitle = () => {
-        if (modalContent === 'details') {
-            return 'Update Team Details';
-        }
-        return modalContent === 'playerList' ? 'Add Player' : 'Add Season'
-    }
+    const openTeamDetailsForm = () => modals.open({
+        title: 'Update Team Details',
+        children: (
+            <AddTeam
+                action="edit-team"
+                actionRoute={`/team/${team.$id}`}
+                buttonColor={primaryColor}
+            />
+        ),
+    });
 
     return (
         <Container size="xl" p="xl">
             <Group justify="space-between">
                 <BackButton text="Teams" to="/teams" />
-                <EditButton setIsModalOpen={handleEditTeamDetailsModal} />
+                <EditButton setIsModalOpen={openTeamDetailsForm} />
             </Group>
             <Title order={2} align="center" mt="sm" mb="lg">
                 {team.name}
@@ -176,18 +155,6 @@ export default function TeamDetails({ actionData, loaderData }) {
                     />
                 </Tabs.Panel>
             </Tabs>
-
-            <Modal opened={isModalOpen} onClose={handleCloseModal} title={getModalTitle()}>
-                {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
-                {modalContent === 'details' && (
-                    <TeamDetailsForm
-                        handleCloseModal={handleCloseModal}
-                        setError={setError}
-                        primaryColor={primaryColor}
-                        teamId={team.$id}
-                    />
-                )}
-            </Modal>
         </Container >
     );
 };
