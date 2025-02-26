@@ -11,6 +11,7 @@ export default defineConfig({
             '@components': '/app/components',
             '@constants': '/app/constants',
             '@contexts': '/app/contexts',
+            '@forms': '/app/forms',
             '@routes': '/app/routes',
             '@styles': '/app/styles',
             // /esm/icons/index.mjs only exports the icons statically, so no separate chunks are created
