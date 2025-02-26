@@ -6,16 +6,17 @@ import {
     Group,
     Text,
 } from '@mantine/core';
+import { modals } from '@mantine/modals';
 
-import {
-    IconPlus,
-} from '@tabler/icons-react';
+import { IconPlus } from '@tabler/icons-react';
+
+import AddSeason from '@/forms/AddSeason';
 
 export default function SeasonList({
     seasons,
+    teamId,
     managerView,
     primaryColor,
-    handleSeasonListModal,
 }) {
 
     const getSeasonStatus = (season) => {
@@ -68,12 +69,24 @@ export default function SeasonList({
         return null;
     }
 
+    const openModal = () => modals.open({
+        title: 'Add a New Game',
+        children: (
+            <AddSeason
+                action="add-season"
+                actionRoute={`/team/${teamId}`}
+                buttonColor={primaryColor}
+                teamId={teamId}
+            />
+        ),
+    });
+
     const addSeasonCta = (
         <Button
             mt="md"
             variant="filled"
             color={primaryColor}
-            onClick={handleSeasonListModal}
+            onClick={openModal}
             autoContrast
             fullWidth
         >
