@@ -8,7 +8,7 @@ import classes from '@/styles/inputs.module.css';
 
 import FormWrapper from './FormWrapper';
 
-export default function TeamDetailsForm({
+export default function AddTeam({
     action = 'add-team',
     actionRoute,
     buttonColor,
