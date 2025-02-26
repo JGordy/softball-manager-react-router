@@ -24,6 +24,7 @@ import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
 
 import AddSingleGame from '@/forms/AddSingleGame';
+import AddSeason from '@/forms/AddSeason';
 
 import GameGenerator from './components/GameGenerator';
 import GamesTable from './components/GamesTable';
@@ -61,7 +62,7 @@ export async function action({ request, params }) {
 
 export default function SeasonDetails({ loaderData, actionData }) {
     const { season } = loaderData;
-    // console.log('/season/details.jsx: ', { season });
+    console.log('/season/details.jsx: ', { season });
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalContents, setModalContents] = useState();
@@ -86,11 +87,6 @@ export default function SeasonDetails({ loaderData, actionData }) {
         handleAfterSubmit();
     }, [actionData]);
 
-    const handleEditSeasonDetails = () => {
-        setModalContents('edit-season');
-        setIsModalOpen(true);
-    };
-
     const handleGenerateGamesClick = () => {
         setModalContents('generate-games');
         setIsModalOpen(true);
@@ -104,6 +100,18 @@ export default function SeasonDetails({ loaderData, actionData }) {
                 actionRoute={`/season/${season.$id}`}
                 seasonId={season.$id}
             // buttonColor={primaryColor}
+            />
+        ),
+    });
+
+    const openEditSeasonModal = () => modals.open({
+        title: 'Update Season Details',
+        children: (
+            <AddSeason
+                action="edit-season"
+                actionRoute={`/season/${season.$id}`}
+                confirmText="Update Season"
+                teamId={season.teamId}
             />
         ),
     });
@@ -130,7 +138,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
         <Container size="xl" p="xl">
             <Group justify="space-between">
                 <BackButton text="Teams" to={`/team/${season.teamId}`} />
-                <EditButton setIsModalOpen={handleEditSeasonDetails} />
+                <EditButton setIsModalOpen={openEditSeasonModal} />
             </Group>
             <Title order={2} align="center" mt="sm">
                 {season.seasonName}
@@ -216,13 +224,6 @@ export default function SeasonDetails({ loaderData, actionData }) {
                 {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
                 {modalContents === 'generate-games' && (
                     <GameGenerator
-                        season={season}
-                        handleCloseModal={handleCloseModal}
-                        setError={setError}
-                    />
-                )}
-                {modalContents === 'edit-season' && (
-                    <SeasonDetailsForm
                         season={season}
                         handleCloseModal={handleCloseModal}
                         setError={setError}
