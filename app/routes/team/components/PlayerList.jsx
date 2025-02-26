@@ -4,6 +4,7 @@ import {
     Card,
     Flex,
     Group,
+    ScrollArea,
     Text,
     Tooltip,
 } from '@mantine/core'
@@ -57,42 +58,9 @@ export default function PlayerList({
                 </Text>
             )}
 
-            {(players.length > 0) && players.map(player => {
-                return (
-                    <Card
-                        key={player.$id}
-                        mt="sm"
-                        radius="md"
-                        padding="sm"
-                        withBorder
-                        onClick={() => openPlayerDetailsModal(player.$id)}
-                    >
-                        <Flex justify="space-between" align="center">
-                            <Group gap="3px">
-                                <Text size="lg">
-                                    {player.firstName} {player.lastName}
-                                </Text>
-                                {player.$id === managerId && (
-                                    <Text>
-                                        <IconClipboardCheck size={20} />
-                                    </Text>
-                                )}
-                            </Group>
-                            <Avatar.Group>
-                                {player?.preferredPositions?.map(position => (
-                                    <Tooltip key={player.$id + position} label={position} withArrow>
-                                        <Avatar name={positions[position].initials} alt={position} color="initials" />
-                                    </Tooltip>
-                                ))}
-                            </Avatar.Group>
-                        </Flex>
-                    </Card>
-                )
-            })}
-
             {managerView && (
                 <Button
-                    mt="sm"
+                    mt="md"
                     color={primaryColor}
                     onClick={openAddPlayerModal}
                     autoContrast
@@ -102,6 +70,41 @@ export default function PlayerList({
                     Add Player
                 </Button>
             )}
+
+            <ScrollArea h="55vh">
+                {(players.length > 0) && players.map(player => {
+                    return (
+                        <Card
+                            key={player.$id}
+                            mt="sm"
+                            radius="md"
+                            padding="sm"
+                            withBorder
+                            onClick={() => openPlayerDetailsModal(player.$id)}
+                        >
+                            <Flex justify="space-between" align="center">
+                                <Group gap="3px">
+                                    <Text size="lg">
+                                        {player.firstName} {player.lastName}
+                                    </Text>
+                                    {player.$id === managerId && (
+                                        <Text>
+                                            <IconClipboardCheck size={20} />
+                                        </Text>
+                                    )}
+                                </Group>
+                                <Avatar.Group>
+                                    {player?.preferredPositions?.map(position => (
+                                        <Tooltip key={player.$id + position} label={position} withArrow>
+                                            <Avatar name={positions[position].initials} alt={position} color="initials" />
+                                        </Tooltip>
+                                    ))}
+                                </Avatar.Group>
+                            </Flex>
+                        </Card>
+                    )
+                })}
+            </ScrollArea>
         </>
     );
 };

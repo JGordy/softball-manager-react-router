@@ -1,4 +1,4 @@
-import { Button, Card, Group, Text, } from '@mantine/core';
+import { Button, Card, Group, ScrollArea, Text } from '@mantine/core';
 import { modals } from '@mantine/modals';
 
 import { IconPlus } from '@tabler/icons-react';
@@ -81,7 +81,7 @@ export default function GamesList({
 
             {managerView && (
                 <Button
-                    mt="md"
+                    my="md"
                     color={primaryColor}
                     onClick={openModal}
                     autoContrast
@@ -92,21 +92,23 @@ export default function GamesList({
                 </Button>
             )}
 
-            {sortedGames.map(game => {
-                return (
-                    <Card key={game.$id} mt="sm" radius="md" padding="sm" withBorder>
-                        <Group justify="space-between">
-                            <Text size="lg">
-                                {game.isHomeGame ? 'vs' : '@'} {game.opponent || 'TBD'}
-                            </Text>
-                            {getGameStatus(game)}
-                            <Text>
-                                {formatGameTime(game.gameDate, game.timeZone)}
-                            </Text>
-                        </Group>
-                    </Card>
-                )
-            })}
+            <ScrollArea h="55vh">
+                {sortedGames.map(game => {
+                    return (
+                        <Card key={game.$id} mb="sm" radius="md" padding="sm" withBorder>
+                            <Group justify="space-between">
+                                <Text size="lg">
+                                    {game.isHomeGame ? 'vs' : '@'} {game.opponent || 'TBD'}
+                                </Text>
+                                {getGameStatus(game)}
+                                <Text>
+                                    {formatGameTime(game.gameDate, game.timeZone)}
+                                </Text>
+                            </Group>
+                        </Card>
+                    )
+                })}
+            </ScrollArea>
         </>
     );
 };

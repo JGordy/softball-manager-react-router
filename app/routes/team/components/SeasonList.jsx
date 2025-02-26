@@ -4,6 +4,7 @@ import {
     Button,
     Card,
     Group,
+    ScrollArea,
     Text,
 } from '@mantine/core';
 import { modals } from '@mantine/modals';
@@ -97,36 +98,37 @@ export default function SeasonList({
     if (!seasons.length) {
         return (
             <>
+                {managerView && addSeasonCta}
                 <Text mt="lg" align="center">
                     No seasons currently listed for this team.
                 </Text>
-                {managerView && addSeasonCta}
             </>
         );
     }
 
-    const seasonContent = seasons.map((season) => (
-        <Link to={`/season/${season.$id}`} key={season.$id}>
-            <Card key={season.$id} mt="sm" radius="md" padding="sm" withBorder>
-                <Group justify="space-between">
-                    <Text>{season.seasonName}</Text>
-                    {getSeasonStatus(season)}
-                    <Group>
-                        <Text>
-                            {new Date(season.startDate).toLocaleDateString()} - {new Date(season.endDate).toLocaleDateString()}
-                        </Text>
-                    </Group>
-                </Group>
-
-                {/* TODO: Add current or past record based on game results */}
-            </Card>
-        </Link>
-    ));
-
     return (
         <>
-            {seasonContent}
             {managerView && addSeasonCta}
+            <ScrollArea h="55vh">
+
+                {seasons.map((season) => (
+                    <Link to={`/season/${season.$id}`} key={season.$id}>
+                        <Card key={season.$id} mt="sm" radius="md" padding="sm" withBorder>
+                            <Group justify="space-between">
+                                <Text>{season.seasonName}</Text>
+                                {getSeasonStatus(season)}
+                                <Group>
+                                    <Text>
+                                        {new Date(season.startDate).toLocaleDateString()} - {new Date(season.endDate).toLocaleDateString()}
+                                    </Text>
+                                </Group>
+                            </Group>
+
+                            {/* TODO: Add current or past record based on game results */}
+                        </Card>
+                    </Link>
+                ))}
+            </ScrollArea>
         </>
     );
 }
