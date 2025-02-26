@@ -19,14 +19,10 @@ import {
 
 import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
-import PlayerDetails from '@/components/PlayerDetails';
-import PersonalDetails from '@/components/PersonalDetails';
 
 import { useAuth } from '@/contexts/auth/useAuth';
 
-import PlayerForm from './components/PlayerForm';
 import PlayerList from './components/PlayerList';
-import SeasonForm from './components/SeasonForm';
 import SeasonList from './components/SeasonList';
 import GamesList from './components/GamesList';
 import TeamDetailsForm from './components/TeamDetailsForm';
@@ -103,17 +99,6 @@ export default function TeamDetails({ actionData, loaderData }) {
         // c: "dimmed",
     }
 
-    const handleAddPlayerModal = () => {
-        setModalContent('playerList');
-        setIsModalOpen(true);
-    };
-
-    const handlePlayerDetailsModal = (playerId) => {
-        setSelectedPlayerId(playerId);
-        setModalContent('playerDetails');
-        setIsModalOpen(true);
-    }
-
     // const handleGameListModal = () => {
     //     setModalContent('gameList');
     //     setIsModalOpen(true);
@@ -178,8 +163,6 @@ export default function TeamDetails({ actionData, loaderData }) {
                         players={players}
                         managerId={managerId}
                         managerView={managerView}
-                        handleAddPlayerModal={handleAddPlayerModal}
-                        handlePlayerDetailsModal={handlePlayerDetailsModal}
                         primaryColor={primaryColor}
                     />
                 </Tabs.Panel>
@@ -206,13 +189,6 @@ export default function TeamDetails({ actionData, loaderData }) {
 
             <Modal opened={isModalOpen} onClose={handleCloseModal} title={getModalTitle()}>
                 {error && <Alert type="error" mb="md" c="red">{error}</Alert>}
-                {modalContent === 'playerList' && (
-                    <PlayerForm
-                        handleCloseModal={handleCloseModal}
-                        setError={setError}
-                        primaryColor={primaryColor}
-                    />
-                )}
                 {modalContent === 'details' && (
                     <TeamDetailsForm
                         handleCloseModal={handleCloseModal}
@@ -221,13 +197,6 @@ export default function TeamDetails({ actionData, loaderData }) {
                         teamId={team.$id}
                     />
                 )}
-                {modalContent === 'playerDetails' && (
-                    <>
-                        <PersonalDetails player={selectedPlayer} managerView={managerView} />
-                        <PlayerDetails player={selectedPlayer} />
-                    </>
-                )}
-
             </Modal>
         </Container >
     );
