@@ -12,6 +12,7 @@ export default function AddTeam({
     action = 'add-team',
     actionRoute,
     buttonColor,
+    userId,
 }) {
 
     return (
@@ -21,6 +22,9 @@ export default function AddTeam({
             buttonColor={buttonColor}
             confirmText="Create Team"
         >
+
+            {userId && <input type="hidden" name="userId" value={userId} />}
+
             <TextInput
                 className={classes.inputs}
                 label="Team Name"
