@@ -9,7 +9,12 @@ import {
 
 import { parse } from 'cookie';
 
-import { ColorSchemeScript, MantineProvider, mantineHtmlProps } from '@mantine/core';
+import {
+    ColorSchemeScript,
+    MantineProvider,
+    mantineHtmlProps,
+} from '@mantine/core';
+import { ModalsProvider } from '@mantine/modals';
 
 import '@mantine/core/styles.css';
 import '@mantine/core/styles/global.css';
@@ -93,7 +98,9 @@ function Layout({ children, context }) {
                         defaultColorScheme={darkMode ? 'dark' : 'light'}
                         theme={theme}
                     >
-                        {children}
+                        <ModalsProvider>
+                            {children}
+                        </ModalsProvider>
                     </MantineProvider>
                 </AuthProvider>
                 <ScrollRestoration />
