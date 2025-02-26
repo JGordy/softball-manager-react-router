@@ -70,7 +70,7 @@ export default function SeasonList({
     }
 
     const openModal = () => modals.open({
-        title: 'Add a New Game',
+        title: 'Add a New Season',
         children: (
             <AddSeason
                 action="add-season"
