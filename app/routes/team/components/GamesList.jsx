@@ -73,12 +73,6 @@ export default function GamesList({
 
     return (
         <>
-            {!sortedGames.length && (
-                <Text mt="lg" align="center">
-                    No games currently listed for this team.
-                </Text>
-            )}
-
             {managerView && (
                 <Button
                     my="md"
@@ -90,6 +84,12 @@ export default function GamesList({
                     <IconPlus size={20} />
                     Add New Game
                 </Button>
+            )}
+
+            {!sortedGames.length && (
+                <Text mt="lg" align="center">
+                    No games currently listed for this team.
+                </Text>
             )}
 
             <ScrollArea h="55vh">
