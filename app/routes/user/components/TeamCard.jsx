@@ -96,7 +96,6 @@ export default function TeamCard({ team }) {
                     </Text>
                 </Group>
 
-
                 <Group mt="sm" gap="xs">
                     <Group gap="xs">
                         <ThemeIcon {...iconProps}>
