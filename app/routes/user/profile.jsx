@@ -22,6 +22,7 @@ import {
 
 import { useAuth } from '@/contexts/auth/useAuth';
 
+import UserHeader from '@/components/UserHeader';
 import EditButton from '@/components/EditButton';
 import PersonalDetails from '@/components/PersonalDetails';
 import PlayerDetails from '@/components/PlayerDetails';
@@ -98,8 +99,6 @@ export default function UserProfile() {
 
     const [showIndicator, setShowIndicator] = useState(incompleteData.length > 0);
 
-    const fullName = `${player.firstName} ${player.lastName}`;
-
     useEffect(() => {
         const handleAfterSubmit = async () => {
             try {
@@ -138,13 +137,10 @@ export default function UserProfile() {
     return !!Object.keys(player).length && (
         <Container>
             <Group justify="space-between" py="lg">
-                <Group>
-                    <Avatar color="green" name={fullName} alt={fullName} size="md" />
-                    <div>
-                        <Title order={3}>{`Hello ${player.firstName}!`}</Title>
-                        <Text size="0.6rem">Here are your personal and player details</Text>
-                    </div>
-                </Group>
+                <UserHeader
+                    user={player}
+                    subText="Here are your personal and player details"
+                />
 
                 {isCurrentUser && (
                     <Popover position="bottom" withArrow shadow="md">
