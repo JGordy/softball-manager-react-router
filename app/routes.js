@@ -30,6 +30,9 @@ export default [
             // Season routes
             route('/season/:seasonId', 'routes/season/details.jsx'),
 
+            // Events routes
+            route('/events', 'routes/events/details.jsx'),
+
             // Gameday Routes
             route('/gameday/lineup', 'routes/gameday/lineup.jsx'),
 
