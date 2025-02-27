@@ -83,7 +83,8 @@ export default function HomePage({ loaderData }) {
     // const actionData = useActionData();
     const [teamList, setTeamList] = useState(teamsData || []);
 
-    console.log({ upcomingGames: getGames({ teams: teamsData, future: true }) });
+    const { futureGames } = getGames({ teams: teamsData });
+    console.log({ futureGames });
 
     return (
         <Container p="md" h="100vh">
