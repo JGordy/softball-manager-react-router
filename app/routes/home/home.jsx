@@ -1,10 +1,13 @@
 import { useState } from 'react';
 
 import {
-    Card,
     Button,
+    Card,
     Container,
+    Divider,
+    Group,
     List,
+    Text,
     Title,
 } from '@mantine/core';
 
@@ -19,6 +22,7 @@ import LoaderDots from '@/components/LoaderDots';
 import UserHeader from '@/components/UserHeader';
 
 import getGames from '@/utils/getGames';
+import { formatGameTime } from '@/utils/dateTime';
 
 // import { createTeamAction } from './action';
 
@@ -74,7 +78,7 @@ export function HydrateFallback() {
 // If we make this the default page the user lands on, what all should show here?
 // Keep individual pages for profile, teams, gameday, etc...
 export default function HomePage({ loaderData }) {
-    console.log({ loaderData });
+    console.log('/home ', { loaderData });
     const teams = loaderData?.teams;
     const user = loaderData?.user;
 
@@ -84,18 +88,50 @@ export default function HomePage({ loaderData }) {
     const [teamList, setTeamList] = useState(teamsData || []);
 
     const { futureGames } = getGames({ teams: teamsData });
-    console.log({ futureGames });
+    const nextGame = futureGames?.slice(0, 1)?.[0];
+
+    const daysUntilNextGame = (date) => {
+        const today = new Date();
+        const gameDate = new Date(date);
+
+        const timeDiff = gameDate.getTime() - today.getTime();
+        const daysUntilGame = Math.ceil(timeDiff / (1000 * 3600 * 24)); // Calculate days
+        const daysUntilText = `${daysUntilGame} day${daysUntilGame !== 1 ? 's' : ''}`;
+
+        return ` in ${daysUntilText}!`;
+    };
+    console.log('/home ', { nextGame, futureGames });
 
     return (
         <Container p="md" h="100vh">
             <UserHeader user={user} />
 
-            {/* TODO: Add next game card */}
+            <Divider size="sm" my="sm" />
 
+            {(Object.keys(nextGame).length > 0) && (
+                <>
+                    <Title order={4} my="md">Up Next</Title>
+                    <Text>
+                        You have an upcoming game
+                        <Text span fw={700} c="green">
+                            {daysUntilNextGame(nextGame.gameDate)}
+                        </Text>
+                    </Text>
+                    <Card my="md">
+                        <Text fw={700}>
+                            {nextGame.teamName} {nextGame.isHomeGame ? 'vs' : '@'} {nextGame.opponent}
+                        </Text>
+                        <Text mt="xs">
+                            {formatGameTime(nextGame.gameDate, nextGame.timeZone)}
+                        </Text>
+                    </Card>
+                </>
+            )}
+
+            <Title order={4} my="md">
+                My Teams
+            </Title>
             <Card>
-                <Title order={2} mb="sm">
-                    Teams
-                </Title>
                 <List size="sm" maw={400}>
                     {teamList.map((team, index) => (
                         <List.Item key={index}>
