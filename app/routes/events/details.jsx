@@ -5,6 +5,7 @@ import { Container } from "@mantine/core";
 import { account } from '@/appwrite';
 
 import LoaderDots from '@/components/LoaderDots';
+import UserHeader from '@/components/UserHeader';
 
 export async function clientLoader({ request }) {
     try {
@@ -43,9 +44,15 @@ export function HydrateFallback() {
 
 export default function EventsDetails({ loaderData }) {
     console.log('/events ', { loaderData });
+    const teams = loaderData?.teams;
+    const user = loaderData?.user;
 
     return (
-        <Container h="100vh">
+        <Container p="md" h="100vh">
+            <UserHeader
+                user={user}
+                subText="Here are all of your events"
+            />
             <div>Events list</div>
         </Container>
     );
