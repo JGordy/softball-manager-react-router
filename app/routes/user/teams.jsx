@@ -16,6 +16,8 @@ import { modals } from '@mantine/modals';
 
 import { IconPlus } from '@tabler/icons-react';
 
+import LoaderDots from '@/components/LoaderDots';
+
 import AddTeam from '@/forms/AddTeam';
 
 import { account } from '@/appwrite';
@@ -64,13 +66,7 @@ export async function clientLoader({ request }) {
 clientLoader.hydrate = true;
 
 export function HydrateFallback() {
-    return (
-        <Container h="100vh">
-            <Flex justify="center" align="center" h="100vh">
-                <Loader color="green" type="dots" size={50} />
-            </Flex>
-        </Container>
-    );
+    return <LoaderDots message="Fetching your teams..." />;
 }
 
 export async function action({ request, params }) {
