@@ -17,6 +17,7 @@ import { modals } from '@mantine/modals';
 import { IconPlus } from '@tabler/icons-react';
 
 import LoaderDots from '@/components/LoaderDots';
+import UserHeader from '@/components/UserHeader';
 
 import AddTeam from '@/forms/AddTeam';
 
@@ -55,7 +56,7 @@ export async function clientLoader({ request }) {
 
         const { managing, playing } = await response.json();
 
-        return { managing, playing, userId };
+        return { managing, playing, userId, user: session };
 
     } catch (error) {
         console.error("Error in clientLoader:", error);
@@ -74,8 +75,8 @@ export async function action({ request, params }) {
 }
 
 const UserDashboard = ({ loaderData }) => {
-    const { managing, playing, userId } = loaderData;
-    // console.log('/teams.jsx', { managing, playing });
+    const { managing, playing, userId, user } = loaderData;
+    console.log('/teams.jsx', { loaderData });
 
     const actionData = useActionData();
 
@@ -127,10 +128,11 @@ const UserDashboard = ({ loaderData }) => {
     };
 
     return (
-        <Container>
-            <Title order={2} py="lg">
-                My Teams
-            </Title>
+        <Container p="md" mih="90vh">
+            <UserHeader
+                user={user}
+                subText="Here are all of your teams"
+            />
 
             {managing.length > 0 && (
                 <>

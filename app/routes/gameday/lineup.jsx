@@ -102,7 +102,7 @@ function Lineup({ loaderData, actionData }) {
     };
 
     return (
-        <Container>
+        <Container p="md" mih="90vh">
             <Center>
                 <Group position="center" spacing="md" mt="xl" mb="xl">
                     <Button

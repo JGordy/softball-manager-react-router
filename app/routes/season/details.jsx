@@ -118,7 +118,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
     };
 
     return (
-        <Container size="xl" p="xl">
+        <Container p="md" mih="90vh">
             <Group justify="space-between">
                 <BackButton text="Teams" to={`/team/${season.teamId}`} />
                 <EditButton setIsModalOpen={openEditSeasonModal} />

@@ -135,7 +135,7 @@ export default function UserProfile() {
     });
 
     return !!Object.keys(player).length && (
-        <Container>
+        <Container p="md" mih="90vh">
             <Group justify="space-between" py="lg">
                 <UserHeader
                     user={player}

@@ -100,7 +100,7 @@ export default function TeamDetails({ actionData, loaderData }) {
     });
 
     return (
-        <Container size="xl" p="xl">
+        <Container p="md" mih="90vh">
             <Group justify="space-between">
                 <BackButton text="Teams" to="/teams" />
                 <EditButton setIsModalOpen={openTeamDetailsForm} />

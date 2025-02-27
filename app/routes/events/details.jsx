@@ -48,7 +48,7 @@ export default function EventsDetails({ loaderData }) {
     const user = loaderData?.user;
 
     return (
-        <Container p="md" h="100vh">
+        <Container p="md" mih="90vh">
             <UserHeader
                 user={user}
                 subText="Here are all of your events"

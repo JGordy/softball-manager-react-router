@@ -103,14 +103,15 @@ export default function HomePage({ loaderData }) {
     console.log('/home ', { nextGame, futureGames });
 
     return (
-        <Container p="md" h="100vh">
-            <UserHeader user={user} />
-
-            <Divider size="sm" my="sm" />
+        <Container p="md" mih="90vh">
+            <UserHeader
+                user={user}
+                subText="Here is a summary of all of your team and event info"
+            />
 
             {(Object.keys(nextGame).length > 0) && (
                 <>
-                    <Title order={4} my="md">Up Next</Title>
+                    <Title order={4} mt="xl" mb="md">Up Next</Title>
                     <Text>
                         You have an upcoming game
                         <Text span fw={700} c="green">
