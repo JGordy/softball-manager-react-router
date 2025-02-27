@@ -4,6 +4,7 @@ import {
     Box,
     Button,
     Center,
+    Container,
     List,
     Title,
 } from '@mantine/core';
@@ -13,9 +14,10 @@ import {
     redirect,
 } from 'react-router';
 
-// import classes from '@/styles/inputs.module.css';
-
 import { account } from '@/appwrite';
+
+import LoaderDots from '@/components/LoaderDots';
+import UserHeader from '@/components/UserHeader';
 
 // import { createTeamAction } from './action';
 
@@ -26,22 +28,42 @@ export function meta() {
     ];
 }
 
-export async function loader({ request }) {
-
-};
+export async function loader({ request }) { };
 
 export async function clientLoader({ request }) {
     try {
-        const session = await account.getSession('current');
+        const session = await account.getSession("current");
+
         if (!session) {
-            return redirect("/login");
+            throw redirect("/login");
         }
-        return null;
+
+        const { userId } = session;
+        const response = await fetch('/api/profile', {
+            method: 'POST',
+            body: JSON.stringify({ userId, teamRoles: ['manager', 'player'] }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Error fetching teams');
+        }
+
+        const { user, managing = [], playing = [] } = await response.json();
+
+        return { user, userId, managing, playing };
+
     } catch (error) {
-        console.log("No active session found");
+        console.error("Error in clientLoader:", error);
         return redirect("/login");
     }
-};
+}
+
+clientLoader.hydrate = true;
+
+export function HydrateFallback() {
+    return <LoaderDots message="Fetching your teams..." />;
+}
 
 // export async function action({ request }) {
 //     return createTeamAction({ request });
@@ -50,33 +72,38 @@ export async function clientLoader({ request }) {
 // TODO: What to actually make this page?
 // If we make this the default page the user lands on, what all should show here?
 // Keep individual pages for profile, teams, gameday, etc...
-const TeamsPage = ({ loaderData }) => {
+export default function HomePage({ loaderData }) {
+    console.log({ loaderData });
     const teams = loaderData?.teams;
+    const user = loaderData?.user;
 
     // const actionData = useActionData();
 
     const [teamList, setTeamList] = useState(teams || []);
 
     return (
-        <Center>
-            <Box mx="auto">
-                <Title order={2} mb="sm">
-                    Teams
-                </Title>
-                <List size="sm" maw={400} mx="auto">
-                    {teamList.map((team, index) => (
-                        <List.Item key={index}>
-                            {team.teamName} ({team.leagueName})
-                        </List.Item>
-                    ))}
-                </List>
+        <Container p="md" h="100vh">
 
-                <Button component="a" variant="link" mt="md" onClick={() => { }}>
-                    Create New Team
-                </Button>
-            </Box>
-        </Center>
+            <UserHeader user={user} />
+
+            <Center>
+                <Box mx="auto">
+                    <Title order={2} mb="sm">
+                        Teams
+                    </Title>
+                    <List size="sm" maw={400} mx="auto">
+                        {teamList.map((team, index) => (
+                            <List.Item key={index}>
+                                {team.teamName} ({team.leagueName})
+                            </List.Item>
+                        ))}
+                    </List>
+
+                    <Button component="a" variant="link" mt="md" onClick={() => { }}>
+                        Create New Team
+                    </Button>
+                </Box>
+            </Center>
+        </Container>
     );
 };
-
-export default TeamsPage;
