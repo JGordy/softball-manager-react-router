@@ -1,9 +1,8 @@
 import { useState } from 'react';
 
 import {
-    Box,
+    Card,
     Button,
-    Center,
     Container,
     List,
     Title,
@@ -18,6 +17,8 @@ import { account } from '@/appwrite';
 
 import LoaderDots from '@/components/LoaderDots';
 import UserHeader from '@/components/UserHeader';
+
+import getGames from '@/utils/getGames';
 
 // import { createTeamAction } from './action';
 
@@ -51,7 +52,7 @@ export async function clientLoader({ request }) {
 
         const { user, managing = [], playing = [] } = await response.json();
 
-        return { user, userId, managing, playing };
+        return { user, userId, teams: { managing, playing } };
 
     } catch (error) {
         console.error("Error in clientLoader:", error);
@@ -77,33 +78,35 @@ export default function HomePage({ loaderData }) {
     const teams = loaderData?.teams;
     const user = loaderData?.user;
 
-    // const actionData = useActionData();
+    const teamsData = [...teams?.managing, ...teams?.playing];
 
-    const [teamList, setTeamList] = useState(teams || []);
+    // const actionData = useActionData();
+    const [teamList, setTeamList] = useState(teamsData || []);
+
+    console.log({ upcomingGames: getGames({ teams: teamsData, future: true }) });
 
     return (
         <Container p="md" h="100vh">
-
             <UserHeader user={user} />
 
-            <Center>
-                <Box mx="auto">
-                    <Title order={2} mb="sm">
-                        Teams
-                    </Title>
-                    <List size="sm" maw={400} mx="auto">
-                        {teamList.map((team, index) => (
-                            <List.Item key={index}>
-                                {team.teamName} ({team.leagueName})
-                            </List.Item>
-                        ))}
-                    </List>
+            {/* TODO: Add next game card */}
 
-                    <Button component="a" variant="link" mt="md" onClick={() => { }}>
-                        Create New Team
-                    </Button>
-                </Box>
-            </Center>
+            <Card>
+                <Title order={2} mb="sm">
+                    Teams
+                </Title>
+                <List size="sm" maw={400}>
+                    {teamList.map((team, index) => (
+                        <List.Item key={index}>
+                            {team.name} ({team.leagueName})
+                        </List.Item>
+                    ))}
+                </List>
+
+                <Button component="a" variant="link" mt="md" onClick={() => { }}>
+                    Create New Team
+                </Button>
+            </Card>
         </Container>
     );
 };
