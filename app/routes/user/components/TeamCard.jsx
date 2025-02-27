@@ -96,9 +96,8 @@ export default function TeamCard({ team }) {
                     </Text>
                 </Group>
 
-                <Divider my="sm" />
 
-                <Group mb="xs" gap="xs">
+                <Group mt="sm" gap="xs">
                     <Group gap="xs">
                         <ThemeIcon {...iconProps}>
                             <IconCalendar size={16} />
