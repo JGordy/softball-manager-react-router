@@ -39,7 +39,7 @@ export async function action({ request, params }) {
 
         const teams = await fetchTeams(memberships);
 
-        const games = getGames({ teams, futureOnly: true });
+        const games = getGames({ teams });
 
         return { user, games };
 
