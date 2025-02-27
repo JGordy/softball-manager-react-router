@@ -56,7 +56,8 @@ export async function clientLoader({ request }) {
 
         const { managing, playing } = await response.json();
 
-        return { managing, playing, userId, user: session };
+        // TODO: Get the user data here
+        return { managing, playing, userId, user: {} };
 
     } catch (error) {
         console.error("Error in clientLoader:", error);

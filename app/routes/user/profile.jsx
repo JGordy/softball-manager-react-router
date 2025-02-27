@@ -136,7 +136,7 @@ export default function UserProfile() {
 
     return !!Object.keys(player).length && (
         <Container p="md" mih="90vh">
-            <Group justify="space-between" py="lg">
+            <Group justify="space-between">
                 <UserHeader
                     user={player}
                     subText="Here are your personal and player details"

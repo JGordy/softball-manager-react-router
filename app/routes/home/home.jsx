@@ -4,7 +4,6 @@ import {
     Button,
     Card,
     Container,
-    Divider,
     Group,
     List,
     Text,
@@ -67,7 +66,7 @@ export async function clientLoader({ request }) {
 clientLoader.hydrate = true;
 
 export function HydrateFallback() {
-    return <LoaderDots message="Fetching your teams..." />;
+    return <LoaderDots message="Fetching your teams and events..." />;
 }
 
 // export async function action({ request }) {
@@ -111,9 +110,9 @@ export default function HomePage({ loaderData }) {
 
             {(Object.keys(nextGame).length > 0) && (
                 <>
-                    <Title order={4} mt="xl" mb="md">Up Next</Title>
+                    <Title order={4} mt="xl" mb="md">Upcoming Events</Title>
                     <Text>
-                        You have an upcoming game
+                        You have a game
                         <Text span fw={700} c="green">
                             {daysUntilNextGame(nextGame.gameDate)}
                         </Text>
