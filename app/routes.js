@@ -36,6 +36,7 @@ export default [
             // Api routes
             route('/api/generate/lineup', 'routes/api/generate/lineup.js'),
             route('/api/teams', 'routes/api/data/teams.js'),
+            route('/api/profile', 'routes/api/data/profile.js'),
         ]),
     ]),
 ];
