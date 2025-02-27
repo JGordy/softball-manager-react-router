@@ -6,6 +6,7 @@ import { Center, SegmentedControl } from '@mantine/core';
 import {
     IconBallBaseball,
     IconCalendar,
+    IconHome,
     IconUserSquareRounded
 } from '@tabler/icons-react';
 
@@ -29,26 +30,36 @@ function NavLinks() {
 
     const getInitialValue = () => {
         const keywords = ["team", "game", "season"];
-        return keywords.some(keyword => location.pathname.toLowerCase().includes(keyword))
-            ? 'teams'
-            : 'profile';
+        if (keywords.some(keyword => location.pathname.toLowerCase().includes(keyword))) {
+            return 'teams';
+        };
+
+        if (location.pathname.toLowerCase().includes('user')) {
+            return 'user';
+        }
+
+        return 'home';
     };
 
     const [value, setValue] = useState(getInitialValue());
 
     const links = [
         {
-            label: <Label Icon={IconUserSquareRounded} text="Profile" />,
-            value: 'profile'
+            label: <Label Icon={IconHome} text={(value === 'home') && "Home"} />,
+            value: 'home'
 
         },
         {
-            label: <Label Icon={IconBallBaseball} text="Teams" />,
+            label: <Label Icon={IconUserSquareRounded} text={(value === 'user') && "Profile"} />,
+            value: 'user'
+
+        },
+        {
+            label: <Label Icon={IconBallBaseball} text={(value === 'teams') && "Teams"} />,
             value: 'teams'
-
         },
         {
-            label: <Label Icon={IconCalendar} text="Events" />,
+            label: <Label Icon={IconCalendar} text={(value === 'events') && "Events"} />,
             value: 'events',
             disabled: true,
         },
@@ -60,8 +71,11 @@ function NavLinks() {
 
     const handleNavLinkClick = (newValue) => {
         setValue(newValue);
-        if (newValue === 'profile') {
+
+        if (newValue === 'user') {
             navigate(`/user/${user.$id}`);
+        } else if (newValue === 'home') {
+            navigate('/');
         } else {
             navigate(`/${newValue}`);
         }
