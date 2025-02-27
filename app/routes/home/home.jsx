@@ -15,6 +15,8 @@ import {
     redirect,
 } from 'react-router';
 
+import { IconMapPin } from '@tabler/icons-react';
+
 import { account } from '@/appwrite';
 
 import LoaderDots from '@/components/LoaderDots';
@@ -117,13 +119,21 @@ export default function HomePage({ loaderData }) {
                             {daysUntilNextGame(nextGame.gameDate)}
                         </Text>
                     </Text>
-                    <Card my="md">
+                    <Card my="md" radius="xl" py="lg">
                         <Text fw={700}>
                             {nextGame.teamName} {nextGame.isHomeGame ? 'vs' : '@'} {nextGame.opponent}
                         </Text>
-                        <Text mt="xs">
-                            {formatGameTime(nextGame.gameDate, nextGame.timeZone)}
-                        </Text>
+                        <Group mt="xs" gap="lg">
+                            <Text>
+                                {formatGameTime(nextGame.gameDate, nextGame.timeZone)}
+                            </Text>
+                            <Text>
+                                <Group gap="2px">
+                                    <IconMapPin size={16} />
+                                    {nextGame.location}
+                                </Group>
+                            </Text>
+                        </Group>
                     </Card>
                 </>
             )}
@@ -131,7 +141,7 @@ export default function HomePage({ loaderData }) {
             <Title order={4} my="md">
                 My Teams
             </Title>
-            <Card>
+            <Card radius="xl" py="lg">
                 <List size="sm" maw={400}>
                     {teamList.map((team, index) => (
                         <List.Item key={index}>
