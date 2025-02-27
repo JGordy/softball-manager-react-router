@@ -38,6 +38,10 @@ function NavLinks() {
             return 'user';
         }
 
+        if (location.pathname.toLowerCase().includes('events')) {
+            return 'events';
+        }
+
         return 'home';
     };
 
@@ -56,7 +60,6 @@ function NavLinks() {
         {
             label: <Label Icon={IconCalendar} text={(value === 'events') && "Events"} />,
             value: 'events',
-            disabled: true,
         },
         {
             label: <Label Icon={IconUserSquareRounded} text={(value === 'user') && "Profile"} />,
