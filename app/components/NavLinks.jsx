@@ -50,11 +50,6 @@ function NavLinks() {
 
         },
         {
-            label: <Label Icon={IconUserSquareRounded} text={(value === 'user') && "Profile"} />,
-            value: 'user'
-
-        },
-        {
             label: <Label Icon={IconBallBaseball} text={(value === 'teams') && "Teams"} />,
             value: 'teams'
         },
@@ -62,6 +57,11 @@ function NavLinks() {
             label: <Label Icon={IconCalendar} text={(value === 'events') && "Events"} />,
             value: 'events',
             disabled: true,
+        },
+        {
+            label: <Label Icon={IconUserSquareRounded} text={(value === 'user') && "Profile"} />,
+            value: 'user'
+
         },
     ]
 
