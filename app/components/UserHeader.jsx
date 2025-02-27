@@ -7,8 +7,8 @@ export default function UserHeader({ user, subText }) {
         <Group my="md">
             <Avatar color="green" name={fullName} alt={fullName} size="md" />
             <div>
-                <Title order={3}>{`Hello ${user.firstName}!`}</Title>
-                {subText && <Text size="0.6rem">{subText}</Text>}
+                <Title order={3}>{`Hello, ${user.firstName}!`}</Title>
+                {subText && <Text size="0.8rem">{subText}</Text>}
             </div>
         </Group>
     );
