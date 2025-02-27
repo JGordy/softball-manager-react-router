@@ -14,7 +14,13 @@ export default function getGames({
         // 2. FlatMap: Extract all seasons from the matched team(s), handle missing seasons
         .flatMap(team => team.seasons || [])
         // 3. FlatMap: Extract all games from all seasons, handle missing games
-        .flatMap(season => season.games || [])
+        .flatMap(season => {
+            // Add season reference to each game to extract location later.
+            return season.games.map(game => ({
+                ...game,
+                location: season.location,
+            }));
+        })
         // 4. Populate futureGames and pastGames
         .forEach(game => {
             try {
