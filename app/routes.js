@@ -15,22 +15,17 @@ export default [
 
         // The App shell (NavBar) in layout.jsx
         layout('routes/layout.jsx', [
-            // TODO: What to make this?
             index('routes/home/home.jsx'),
 
             // User routes
             route('/user/:userId', 'routes/user/profile.jsx'),
-            // TODO: Eventually make this the profile route
+            // TODO: Eventually make this the profile route?
             // route('/user/:userId/profile', 'routes/user/profile.jsx'),
             route('/teams', 'routes/user/teams.jsx'),
             // route('/user/:userId/events', 'routes/user/events.jsx'),
 
-
             // Team routes
             route('/team/:teamId', 'routes/team/details.jsx'),
-            // TODO: Do we need seperate routes for these or display them in the team details in tabs?
-            // route('/teams/:teamId/seasons', 'routes/team/seasons.jsx'),
-            // route('/teams/:teamId/games', 'routes/team/games.jsx'),
 
             // Season routes
             route('/season/:seasonId', 'routes/season/details.jsx'),
