@@ -5,47 +5,40 @@
         "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
-html,
-body {
-    @apply bg-white dark:bg-gray-950;
+:root[data-mantine-color-scheme='dark'] {
+    --mantine-color-body: #101720;
 
-    @media (prefers-color-scheme: dark) {
-        color-scheme: dark;
+    background-color: #101720;
 
-        body {
-            background-color: #101720;
+    .mantine-Modal-root,
+    .mantine-Modal-header,
+    .mantine-Modal-content,
+    .mantine-ColorInput-dropdown,
+    .mantine-Card-root {
+        /* background-color: #192431; */
+        background-color: #1a242f;
+    }
 
-            .mantine-Modal-root,
-            .mantine-Modal-header,
-            .mantine-Modal-content,
-            .mantine-ColorInput-dropdown,
-            .mantine-Card-root {
-                /* background-color: #192431; */
-                background-color: #1a242f;
-            }
+    .mantine-Select-wrapper,
+    .mantine-Popover-dropdown,
+    .mantine-Select-options,
+    .mantine-Input-input {
+        background-color: #101720;
+    }
 
-            .mantine-Select-wrapper,
-            .mantine-Popover-dropdown,
-            .mantine-Select-options,
-            .mantine-Input-input {
-                background-color: #101720;
-            }
+    .mantine-SegmentedControl-root {
+        background-color: #1a242f;
+        /* border: 1px solid #424242; */
+        border: 1px solid #101720;
+    }
 
-            .mantine-SegmentedControl-root {
-                background-color: #1a242f;
-                /* border: 1px solid #424242; */
-                border: 1px solid #101720;
-            }
+    .mantine-LoadingOverlay-overlay {
+        /* background-color: #192431; */
+        background-color: #1a242f00;
+    }
 
-            .mantine-LoadingOverlay-overlay {
-                /* background-color: #192431; */
-                background-color: #1a242f00;
-            }
-
-            .mantine-Table-tbody {
-                --table-striped-color: #101720 !important;
-            }
-        }
+    .mantine-Table-tbody {
+        --table-striped-color: #101720 !important;
     }
 }
 

@@ -88,14 +88,20 @@ function Layout({ children, context }) {
             <head>
                 <meta charSet="utf-8" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
-                <ColorSchemeScript defaultColorScheme={darkMode ? 'dark' : 'light'} />
+                <ColorSchemeScript
+                    // TODO: Figure out the mismatch of themes before turning this back on
+                    // defaultColorScheme={darkMode ? 'dark' : 'light'}
+                    defaultColorScheme="auto"
+                />
                 <Meta />
                 <Links />
             </head>
             <body>
                 <AuthProvider>
                     <MantineProvider
-                        defaultColorScheme={darkMode ? 'dark' : 'light'}
+                        // TODO: Figure out the mismatch of themes before turning this back on
+                        // defaultColorScheme={darkMode ? 'dark' : 'light'}
+                        defaultColorScheme="auto"
                         theme={theme}
                     >
                         <ModalsProvider>
