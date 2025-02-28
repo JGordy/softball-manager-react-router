@@ -6,7 +6,6 @@ import NavLinks from "@/components/NavLinks";
 import { account } from '@/appwrite';
 
 export async function clientLoader() {
-    console.log('Fetching user data in Layout loader');
     try {
         const session = await account.getSession("current");
 
@@ -32,6 +31,20 @@ export async function clientLoader() {
         console.error('Error fetching user:', error);
         return { user: {} };
     }
+}
+
+clientLoader.hydrate = true;
+
+export function HydrateFallback() {
+    return (
+        <div>
+            <main>
+                <Notifications />
+                <Outlet />
+                <NavLinks />
+            </main>
+        </div>
+    );;
 }
 
 export default function Layout({ loaderData }) {
