@@ -19,6 +19,7 @@
         background-color: #1a242f;
     }
 
+    .mantine-Menu-dropdown,
     .mantine-Select-wrapper,
     .mantine-Popover-dropdown,
     .mantine-Select-options,
@@ -42,7 +43,12 @@
     }
 }
 
+
 main {
     min-height: 100vh;
     padding-bottom: 8vh;
+}
+
+.mantine-Menu-label {
+    font-size: 16px;
 }
