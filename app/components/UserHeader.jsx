@@ -1,6 +1,9 @@
+import { useOutletContext } from 'react-router';
+
 import { Avatar, Group, Text, Title } from '@mantine/core';
 
-export default function UserHeader({ user, subText }) {
+export default function UserHeader({ subText }) {
+    const { user } = useOutletContext();
     const fullName = `${user.firstName} ${user.lastName}`;
 
     return (
