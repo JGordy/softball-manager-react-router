@@ -114,11 +114,11 @@ export default function HomePage({ loaderData }) {
             {(Object.keys(nextGame).length > 0) && (
                 <>
                     <Title order={4} mt="xl" mb="md">Upcoming Events</Title>
-                    <Text>
+                    <Text span>
                         You have a game
-                        <Text span fw={700} c="green">
-                            {daysUntilNextGame(nextGame.gameDate)}
-                        </Text>
+                    </Text>
+                    <Text span fw={700} c="green">
+                        {daysUntilNextGame(nextGame.gameDate)}
                     </Text>
                     <Card my="md" radius="xl" py="lg">
                         <Text fw={700}>
@@ -128,12 +128,10 @@ export default function HomePage({ loaderData }) {
                             <Text>
                                 {formatGameTime(nextGame.gameDate, nextGame.timeZone)}
                             </Text>
-                            <Text>
-                                <Group gap="2px">
-                                    <IconMapPin size={16} />
-                                    {nextGame.location}
-                                </Group>
-                            </Text>
+                            <Group gap="2px">
+                                <IconMapPin size={16} />
+                                <Text>{nextGame.location}</Text>
+                            </Group>
                         </Group>
                     </Card>
                 </>
