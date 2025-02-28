@@ -117,7 +117,7 @@ export default function HomePage({ loaderData }) {
                     <Text span fw={700} c="green">
                         {daysUntilNextGame(nextGame.gameDate)}
                     </Text>
-                    <Card my="md" radius="md" py="lg">
+                    <Card my="md" radius="md" py="lg" withBorder>
                         <Text fw={700}>
                             {nextGame.teamName} {nextGame.isHomeGame ? 'vs' : '@'} {nextGame.opponent}
                         </Text>
@@ -137,7 +137,7 @@ export default function HomePage({ loaderData }) {
             <Title order={4} my="md">
                 My Teams
             </Title>
-            <Card radius="md" py="lg">
+            <Card radius="md" py="lg" withBorder>
                 <List size="sm" maw={400}>
                     {teamList.map((team, index) => (
                         <List.Item key={index}>
