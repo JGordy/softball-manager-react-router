@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import {
     useActionData,
     redirect,
+    useOutletContext,
 } from 'react-router';
 
 import {
@@ -57,7 +58,7 @@ export async function clientLoader({ request }) {
         const { managing, playing } = await response.json();
 
         // TODO: Get the user data here
-        return { managing, playing, userId, user: {} };
+        return { managing, playing, userId };
 
     } catch (error) {
         console.error("Error in clientLoader:", error);
@@ -76,8 +77,9 @@ export async function action({ request, params }) {
 }
 
 const UserDashboard = ({ loaderData }) => {
-    const { managing, playing, userId, user } = loaderData;
-    console.log('/teams.jsx', { loaderData });
+    const { managing, playing, userId } = loaderData;
+
+    const { user } = useOutletContext();
 
     const actionData = useActionData();
 
