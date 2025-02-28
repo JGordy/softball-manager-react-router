@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useActionData, useLoaderData } from 'react-router';
+import { useActionData, useOutletContext } from 'react-router';
 
 import {
-    Avatar,
     Container,
     Group,
     Indicator,
     Popover,
     Text,
-    Title,
 } from '@mantine/core';
 import { modals } from '@mantine/modals';
 
@@ -31,7 +29,6 @@ import AddPlayer from '@/forms/AddPlayer';
 
 import AlertIncomplete from './components/AlertIncomplete';
 
-import { getProfile } from "./loader";
 import { updateUser } from './action';
 
 const fieldsToDisplay = {
@@ -62,20 +59,6 @@ const fieldsToValidate = {
     dislikedPositions: { label: 'disliked positions' }
 }
 
-export async function loader({ params }) {
-    const { userId } = params;
-
-    try {
-        if (userId) {
-            const player = await getProfile({ userId });
-            return { player }
-        }
-        return { player: {} };
-    } catch (error) {
-        return { player: {} };
-    }
-}
-
 export async function action({ request, params }) {
     return updateUser({ request, params });
 }
@@ -83,9 +66,8 @@ export async function action({ request, params }) {
 export default function UserProfile() {
 
     const { user } = useAuth();
-    // console.log('profile: ', { user });
+    const { user: player } = useOutletContext();
 
-    const { player } = useLoaderData();
     const actionData = useActionData();
 
     const isCurrentUser = user?.$id === player?.$id;
@@ -137,10 +119,7 @@ export default function UserProfile() {
     return !!Object.keys(player).length && (
         <Container p="md" mih="90vh">
             <Group justify="space-between">
-                <UserHeader
-                    user={player}
-                    subText="Here are your personal and player details"
-                />
+                <UserHeader subText="Here are your personal and player details" />
 
                 {isCurrentUser && (
                     <Popover position="bottom" withArrow shadow="md">

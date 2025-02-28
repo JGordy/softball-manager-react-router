@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import {
     useActionData,
     redirect,
-    useOutletContext,
 } from 'react-router';
 
 import {
@@ -57,7 +56,6 @@ export async function clientLoader({ request }) {
 
         const { managing, playing } = await response.json();
 
-        // TODO: Get the user data here
         return { managing, playing, userId };
 
     } catch (error) {
@@ -78,8 +76,6 @@ export async function action({ request, params }) {
 
 const UserDashboard = ({ loaderData }) => {
     const { managing, playing, userId } = loaderData;
-
-    const { user } = useOutletContext();
 
     const actionData = useActionData();
 
@@ -132,10 +128,7 @@ const UserDashboard = ({ loaderData }) => {
 
     return (
         <Container p="md" mih="90vh">
-            <UserHeader
-                user={user}
-                subText="Here are all of your teams"
-            />
+            <UserHeader subText="Here are all of your teams" />
 
             {managing.length > 0 && (
                 <>

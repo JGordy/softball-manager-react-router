@@ -106,10 +106,7 @@ export default function HomePage({ loaderData }) {
 
     return (
         <Container p="md" mih="90vh">
-            <UserHeader
-                user={user}
-                subText="Here is a summary of all of your team and event info"
-            />
+            <UserHeader subText="Here is a summary of all of your team and event info" />
 
             {(Object.keys(nextGame).length > 0) && (
                 <>
@@ -120,7 +117,7 @@ export default function HomePage({ loaderData }) {
                     <Text span fw={700} c="green">
                         {daysUntilNextGame(nextGame.gameDate)}
                     </Text>
-                    <Card my="md" radius="xl" py="lg">
+                    <Card my="md" radius="md" py="lg">
                         <Text fw={700}>
                             {nextGame.teamName} {nextGame.isHomeGame ? 'vs' : '@'} {nextGame.opponent}
                         </Text>
@@ -140,7 +137,7 @@ export default function HomePage({ loaderData }) {
             <Title order={4} my="md">
                 My Teams
             </Title>
-            <Card radius="xl" py="lg">
+            <Card radius="md" py="lg">
                 <List size="sm" maw={400}>
                     {teamList.map((team, index) => (
                         <List.Item key={index}>
