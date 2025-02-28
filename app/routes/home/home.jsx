@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useOutletContext } from 'react-router';
 
 import {
     Button,
@@ -45,7 +46,7 @@ export async function clientLoader({ request }) {
         }
 
         const { userId } = session;
-        const response = await fetch('/api/profile', {
+        const response = await fetch('/api/teams', {
             method: 'POST',
             body: JSON.stringify({ userId, teamRoles: ['manager', 'player'] }),
         });
@@ -55,9 +56,9 @@ export async function clientLoader({ request }) {
             throw new Error(errorData.message || 'Error fetching teams');
         }
 
-        const { user, managing = [], playing = [] } = await response.json();
+        const { managing = [], playing = [] } = await response.json();
 
-        return { user, userId, teams: { managing, playing } };
+        return { userId, teams: { managing, playing } };
 
     } catch (error) {
         console.error("Error in clientLoader:", error);
@@ -79,9 +80,9 @@ export function HydrateFallback() {
 // If we make this the default page the user lands on, what all should show here?
 // Keep individual pages for profile, teams, gameday, etc...
 export default function HomePage({ loaderData }) {
+    const { user } = useOutletContext();
     console.log('/home ', { loaderData });
     const teams = loaderData?.teams;
-    const user = loaderData?.user;
 
     const teamsData = [...teams?.managing, ...teams?.playing];
 
