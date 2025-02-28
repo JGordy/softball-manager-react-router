@@ -30,7 +30,7 @@ export async function clientLoader() {
         return { user };
     } catch (error) {
         console.error('Error fetching user:', error);
-        return { user: null }; // Or handle the error as needed
+        return { user: {} };
     }
 }
 
