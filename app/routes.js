@@ -40,6 +40,7 @@ export default [
             route('/api/generate/lineup', 'routes/api/generate/lineup.js'),
             route('/api/teams', 'routes/api/data/teams.js'),
             route('/api/profile', 'routes/api/data/profile.js'),
+            route('/api/user', 'routes/api/data/user.js'),
         ]),
     ]),
 ];
