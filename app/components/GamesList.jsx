@@ -1,3 +1,5 @@
+import { Link } from 'react-router';
+
 import {
     Card,
     Center,
@@ -65,17 +67,19 @@ export default function GamesList({
         <ScrollArea h={height} mt="md">
             {games.map(game => {
                 return (
-                    <Card key={game.$id} mb="sm" radius="md" padding="sm" withBorder>
-                        <Group justify="space-between">
-                            <Text fw={700}>
-                                {showTeam && game.teamName + " "}{game.isHomeGame ? 'vs' : '@'} {game.opponent || 'TBD'}
-                            </Text>
-                            {getGameStatus(game)}
-                            <Text>
-                                {formatGameTime(game.gameDate, game.timeZone)}
-                            </Text>
-                        </Group>
-                    </Card>
+                    <Link key={game.$id} to={`/events/${game.$id}`}>
+                        <Card mb="sm" radius="md" padding="sm" withBorder>
+                            <Group justify="space-between">
+                                <Text fw={700}>
+                                    {showTeam && game.teamName + " "}{game.isHomeGame ? 'vs' : '@'} {game.opponent || 'TBD'}
+                                </Text>
+                                {getGameStatus(game)}
+                                <Text>
+                                    {formatGameTime(game.gameDate, game.timeZone)}
+                                </Text>
+                            </Group>
+                        </Card>
+                    </Link>
                 )
             })}
         </ScrollArea>
