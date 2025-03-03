@@ -58,6 +58,19 @@ export function formatDate(date, locale = 'en-US') {
     }
 }
 
+export function formatTime(dateString, timeZone = 'UTC') {
+    const dateObj = new Date(dateString);
+
+    const timeFormatter = new Intl.DateTimeFormat('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false, // Use 24-hour format
+        timeZone: timeZone,
+    });
+
+    return timeFormatter.format(dateObj);
+}
+
 export const combineDateTime = (gameDate, gameTime, userTimeZone) => {
     const date = new Date(gameDate);
     const [hours, minutes] = gameTime.split(':').map(Number);
