@@ -3,7 +3,6 @@ import { combineDateTime } from '@/utils/dateTime';
 
 export async function updateGame({ values, eventId }) {
     // Removes undefined or empty string values from data to update
-    console.log({ values });
     let dataToUpdate = {};
     for (const key in values) {
         if (values.hasOwnProperty(key) && values[key] !== undefined && values[key] !== "") {
@@ -12,7 +11,7 @@ export async function updateGame({ values, eventId }) {
     }
 
     if (values.gameDate && values.gameTime) {
-        dataToUpdate.gameTime = combineDateTime(values.gameDate, values.gameTime);
+        dataToUpdate.gameDate = combineDateTime(values.gameDate, values.gameTime);
     }
 
     if (values.isHomeGame) {
