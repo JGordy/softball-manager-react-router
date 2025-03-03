@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useOutletContext } from 'react-router';
+import { useOutletContext, Link } from 'react-router';
 
 import {
     Button,
@@ -117,20 +117,22 @@ export default function HomePage({ loaderData }) {
                     <Text span fw={700} c="green">
                         {daysUntilNextGame(nextGame.gameDate)}
                     </Text>
-                    <Card my="md" radius="md" py="lg" withBorder>
-                        <Text fw={700}>
-                            {nextGame.teamName} {nextGame.isHomeGame ? 'vs' : '@'} {nextGame.opponent}
-                        </Text>
-                        <Group mt="xs" gap="lg">
-                            <Text>
-                                {formatGameTime(nextGame.gameDate, nextGame.timeZone)}
+                    <Link to={`/events/${nextGame.$id}`}>
+                        <Card my="md" radius="md" py="lg" withBorder>
+                            <Text fw={700}>
+                                {nextGame.teamName} {nextGame.isHomeGame ? 'vs' : '@'} {nextGame.opponent}
                             </Text>
-                            <Group gap="2px">
-                                <IconMapPin size={16} />
-                                <Text>{nextGame.location}</Text>
+                            <Group mt="xs" gap="lg">
+                                <Text>
+                                    {formatGameTime(nextGame.gameDate, nextGame.timeZone)}
+                                </Text>
+                                <Group gap="2px">
+                                    <IconMapPin size={16} />
+                                    <Text>{nextGame.location}</Text>
+                                </Group>
                             </Group>
-                        </Group>
-                    </Card>
+                        </Card>
+                    </Link>
                 </>
             )}
 
