@@ -23,7 +23,7 @@ export default function EventDetails({ loaderData }) {
     return (
         <Container p="md" mih="90vh">
             <Group justify="space=between">
-                <BackButton />
+                <BackButton text="Back to Events" />
             </Group>
             {Object.keys(game) && (
                 <Flex mt="lg" direction="column">
