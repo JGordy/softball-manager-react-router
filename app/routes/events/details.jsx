@@ -18,7 +18,7 @@ import EditButton from '@/components/EditButton';
 
 import AddSingleGame from '@/forms/AddSingleGame';
 
-import { formatGameTime } from '@/utils/dateTime';
+import { formatGameTime, formatTime } from '@/utils/dateTime';
 
 import { getEventDetails } from './loader';
 import { updateGame } from './action';
@@ -86,7 +86,7 @@ export default function EventDetails({ loaderData, actionData }) {
                 actionRoute={`/events/${game.$id}`}
                 defaults={{
                     isHomeGame: 'false',
-                    gameTime: '13:15',
+                    gameTime: formatTime(game.gameDate, game.timeZone),
                     gameDate: game.gameDate,
                 }}
                 teamId={team.$id}
