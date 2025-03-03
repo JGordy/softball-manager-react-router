@@ -1,5 +1,6 @@
 import {
     Button,
+    Center,
     Container,
     Divider,
     Group,
@@ -22,13 +23,14 @@ import { getEventDetails } from './loader';
 export async function loader({ params }) {
     const { eventId } = params;
 
-    return { game: await getEventDetails({ eventId }) }
+    return await getEventDetails({ eventId });
 }
 
 export default function EventDetails({ loaderData }) {
     console.log('/events/:eventId > ', { loaderData });
 
-    const { game } = loaderData;
+    const { game, season, teams, players } = loaderData;
+    const team = teams?.[0];
 
     const {
         gameDate,
@@ -38,14 +40,11 @@ export default function EventDetails({ loaderData }) {
         playerChart,
         result,
         score,
-        seasons,
         timeZone,
     } = game;
 
     const chart = playerChart && JSON.parse(playerChart);
     console.log({ chart });
-
-    const team = seasons?.teams[0]?.name;
 
     const formattedGameTime = formatGameTime(gameDate, timeZone);
 
@@ -56,7 +55,7 @@ export default function EventDetails({ loaderData }) {
                 action="update-game"
                 actionRoute={`/events/${game.$id}`}
                 teamId={team.$id}
-                seasonId={seasons.$id}
+                seasonId={season.$id}
                 confirmText="Update Game"
             />
         ),
@@ -71,14 +70,14 @@ export default function EventDetails({ loaderData }) {
             {Object.keys(game) && (
                 <>
                     <Title order={4} mt="xl">
-                        {team} {isHomeGame ? 'vs' : ''} {opponent}
+                        {team?.name} {isHomeGame ? 'vs' : ''} {opponent}
                     </Title>
 
                     {result && (
-                        <Group>
+                        <Center>
                             <Text>{result}</Text>
                             <Text>{score} - {opponentScore}</Text>
-                        </Group>
+                        </Center>
                     )}
 
                     <Group mt="md">
@@ -88,7 +87,7 @@ export default function EventDetails({ loaderData }) {
                         </Group>
                         <Group gap="xs">
                             <IconMapPin size={18} />
-                            {seasons?.location}
+                            {season?.location}
                         </Group>
                     </Group>
 
