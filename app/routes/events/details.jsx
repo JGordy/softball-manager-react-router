@@ -104,30 +104,37 @@ export default function EventDetails({ loaderData, actionData }) {
             </Group>
             {Object.keys(game) && (
                 <>
-                    <Title order={4} mt="xl">
+                    <Title order={4} mt="xl" align="center">
                         {team?.name} {isHomeGame ? 'vs' : '@'} {opponent}
                     </Title>
 
                     {result && (
-                        <Center>
-                            <Text>{result}</Text>
-                            <Text>{score} - {opponentScore}</Text>
-                        </Center>
+                        <>
+                            <Divider size="sm" my="md" />
+
+                            <Center>
+                                <Text>{result}</Text>
+                                <Text>{score} - {opponentScore}</Text>
+                            </Center>
+
+                            <Divider size="sm" my="md" />
+                        </>
                     )}
 
-                    <Group mt="md">
-                        <Group gap="xs">
-                            <IconClock size={18} />
-                            {formattedGameTime}
-                        </Group>
-                        <Group gap="xs">
-                            <IconMapPin size={18} />
-                            {season?.location}
-                        </Group>
+                    <Group gap="xs" justify="center" mt="md">
+                        <IconClock size={18} />
+                        {formattedGameTime}
+                    </Group>
+
+                    <Group gap="xs" justify="center" mt="md">
+                        <IconMapPin size={18} />
+                        {season?.location}
                     </Group>
 
                     <Divider size="sm" my="md" />
 
+                    {/* TODO: For this section we need to know all players that have checked in for this game */}
+                    {/* TODO: We would need the polling in place for this to work */}
                     <Title order={4}>Lineup and field chart</Title>
                     {!chart && (
                         <>
