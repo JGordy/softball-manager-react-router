@@ -18,10 +18,12 @@ export default function AddSingleGame({
     actionRoute,
     buttonColor,
     confirmText = 'Create Game',
+    defaults = {},
     seasons,
     seasonId,
     teamId,
 }) {
+    console.log({ defaults });
 
     const ref = useRef();
 
@@ -61,7 +63,7 @@ export default function AddSingleGame({
                 label="Is home game?"
                 name="isHomeGame"
                 data={['true', 'false']}
-                defaultValue="true"
+                defaultValue={defaults.isHomegame || "true"}
                 mb="sm"
                 searchable
             />
@@ -82,7 +84,9 @@ export default function AddSingleGame({
                 name="gameDate"
                 placeholder="When should this game be scheduled?"
                 firstDayOfWeek={0}
+                defaultValue={new Date(defaults.gameDate)}
                 required={action === 'add-single-game'}
+                highlightToday
             />
             <TimeInput
                 label="Game Start Time"
@@ -92,7 +96,7 @@ export default function AddSingleGame({
                 rightSection={pickerControl}
                 format="24"
                 mb="sm"
-                defaultValue="19:00"
+                defaultValue={defaults.gameTime || "19:00"}
                 required={action === 'add-single-game'}
             />
             <Select
