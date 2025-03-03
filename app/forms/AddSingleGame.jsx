@@ -17,6 +17,7 @@ export default function AddSingleGame({
     action = 'add-single-game',
     actionRoute,
     buttonColor,
+    confirmText = 'Create Game',
     seasons,
     seasonId,
     teamId,
@@ -45,7 +46,7 @@ export default function AddSingleGame({
             action={action}
             actionRoute={actionRoute}
             buttonColor={buttonColor}
-            confirmText="Create Game"
+            confirmText={confirmText}
         >
             {seasonId && <input type="hidden" name="seasonId" value={seasonId} />}
             <input type="hidden" name="teamId" value={teamId} />
