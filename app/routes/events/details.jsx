@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 import {
     Button,
     Center,
@@ -19,6 +21,18 @@ import AddSingleGame from '@/forms/AddSingleGame';
 import { formatGameTime } from '@/utils/dateTime';
 
 import { getEventDetails } from './loader';
+import { updateGame } from './action';
+
+export async function action({ request, params }) {
+    const { eventId } = params;
+    const formData = await request.formData();
+    const { _action, ...values } = Object.fromEntries(formData);
+    console.log({ _action, values });
+
+    if (_action === 'update-game') {
+        return updateGame({ values, eventId });
+    }
+};
 
 export async function loader({ params }) {
     const { eventId } = params;
@@ -26,7 +40,7 @@ export async function loader({ params }) {
     return await getEventDetails({ eventId });
 }
 
-export default function EventDetails({ loaderData }) {
+export default function EventDetails({ loaderData, actionData }) {
     console.log('/events/:eventId > ', { loaderData });
 
     const { game, season, teams, players } = loaderData;
@@ -48,12 +62,33 @@ export default function EventDetails({ loaderData }) {
 
     const formattedGameTime = formatGameTime(gameDate, timeZone);
 
+    useEffect(() => {
+        const handleAfterSubmit = async () => {
+            try {
+                if (actionData?.success) {
+                    modals.closeAll();
+                } else if (actionData instanceof Error) {
+                    console.error("Error parsing action data:", actionData);
+                }
+            } catch (jsonError) {
+                console.error("Error parsing JSON data:", jsonError);
+            }
+        };
+
+        handleAfterSubmit();
+    }, [actionData]);
+
     const openModal = () => modals.open({
         title: 'Update Game Details',
         children: (
             <AddSingleGame
                 action="update-game"
                 actionRoute={`/events/${game.$id}`}
+                defaults={{
+                    isHomeGame: 'false',
+                    gameTime: '13:15',
+                    gameDate: game.gameDate,
+                }}
                 teamId={team.$id}
                 seasonId={season.$id}
                 confirmText="Update Game"
@@ -70,7 +105,7 @@ export default function EventDetails({ loaderData }) {
             {Object.keys(game) && (
                 <>
                     <Title order={4} mt="xl">
-                        {team?.name} {isHomeGame ? 'vs' : ''} {opponent}
+                        {team?.name} {isHomeGame ? 'vs' : '@'} {opponent}
                     </Title>
 
                     {result && (
