@@ -40,7 +40,7 @@ export default [
             // Api routes
             route('/api/lineup', 'routes/api/generate/lineup.js'),
             route('/api/create-attendance', 'routes/api/generate/create-attendance.js'),
-            route('/api/get-attendance', 'routes/api/generate/get-attendance.js'),
+            route('/api/get-availability', 'routes/api/generate/get-availability.js'),
             route('/api/teams', 'routes/api/data/teams.js'),
             route('/api/profile', 'routes/api/data/profile.js'),
             route('/api/user', 'routes/api/data/user.js'),
