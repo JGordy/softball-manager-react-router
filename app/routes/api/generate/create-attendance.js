@@ -1,5 +1,8 @@
+import { ID } from '@/appwrite';
+import { createDocument } from '@/utils/databases';
+
 import authorize from './utils/authorizeForms';
-import formBody from './utils/formBody';
+import getFormBody from './utils/formBody';
 
 async function createGameAttendanceForm(gameDate, team, opponent) {
     try {
@@ -7,22 +10,23 @@ async function createGameAttendanceForm(gameDate, team, opponent) {
         const formRes = await forms.forms.create({
             requestBody: {
                 info: {
-                    title: `Game Attendance: ${team} vs ${opponent}`,
-                    description: `Will you be able to attend the game on ${gameDate}?`,
+                    title: `Game Attendance: ${team.name} vs ${opponent || "TBD"}`,
                 },
             },
         });
+
 
         const formId = formRes.data.formId;
 
         const questionRes = await forms.forms.batchUpdate({
             formId: formId,
-            requestBody: formBody,
+            requestBody: getFormBody({ gameDate, opponent }),
         });
 
         const questionId = questionRes.data.replies[0].createItem.questionId;
 
         const formUrl = `https://docs.google.com/forms/d/${formId}/viewform`;
+
         return { formUrl, formId, questionId };
 
     } catch (error) {
@@ -37,20 +41,19 @@ async function createGameAttendanceForm(gameDate, team, opponent) {
 // });
 
 export async function action({ request }) {
-    const formData = await request.formData();
-    const gameDate = formData.get("gameDate");
-    const team = formData.get("team");
-    const opponent = formData.get("opponent");
-
     try {
-        const { formUrl, formId, questionId } = await createGameAttendanceForm(gameDate, team, opponent);
-        console.log('Form URL:', formUrl);
-        console.log('Form ID:', formId);
-        console.log('Question ID:', questionId);
+        const { team, opponent, gameDate, gameId } = await request.json();
 
-        // TODO: In your Remix/React app, store formId, formUrl, and questionId in Appwrite
-        // Example (replace with your Appwrite logic):
-        // await createDocument('games', 'unique-id', { formId, formUrl, questionId });
+        const { formUrl, formId, questionId } = await createGameAttendanceForm(gameDate, team, opponent);
+        // console.log({ formUrl, formId, questionId });
+
+        await createDocument('forms', ID.unique(), {
+            formId,
+            formUrl,
+            questionId: questionId[0],
+            teamId: team.$id,
+            gameId,
+        });
 
         return { formUrl, formId, questionId };
     } catch (error) {
