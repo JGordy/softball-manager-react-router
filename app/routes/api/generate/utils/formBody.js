@@ -4,6 +4,14 @@ export default function getFormBody({ gameDate, opponent }) {
     return {
         requests: [
             {
+                updateSettings: {
+                    settings: {
+                        emailCollectionType: "VERIFIED",
+                    },
+                    updateMask: "emailCollectionType",
+                },
+            },
+            {
                 createItem: {
                     item: {
                         title: `Will you be attending the game on ${formatDate(new Date(gameDate))} against ${opponent || "TBD"}?`,
