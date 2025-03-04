@@ -77,7 +77,7 @@ function Lineup({ loaderData, actionData }) {
         setIsLoading(true);
         try {
 
-            const response = await fetch('/api/generate/lineup', {
+            const response = await fetch('/api/lineup', {
                 method: 'POST',
                 body: JSON.stringify(players),
             });
