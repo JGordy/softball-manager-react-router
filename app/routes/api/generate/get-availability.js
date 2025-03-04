@@ -16,7 +16,6 @@ async function readFormResponses(formId) {
 
 async function parseResponses(formResponses, questionId) {
     return formResponses.map(response => {
-        console.log('parseResponses', { response });
         const answer = response.answers[questionId];
         return {
             respondentEmail: response.respondentEmail,
@@ -32,9 +31,7 @@ export async function action({ request }) {
 
     try {
         const responses = await readFormResponses(formId);
-        console.log({ responses });
         const parsedResponses = await parseResponses(responses, questionId);
-        console.log({ parsedResponses });
 
         return { responses: parsedResponses };
     } catch (error) {
