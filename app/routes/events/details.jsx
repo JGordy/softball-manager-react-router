@@ -97,7 +97,7 @@ export default function EventDetails({ loaderData, actionData }) {
     });
 
     const handleAttendanceFormClick = async () => {
-        const body = { team, gameDate, opponent }
+        const body = { team, gameDate, opponent, gameId: game.$id }
         try {
             const response = await fetch('/api/create-attendance', {
                 method: 'POST',
