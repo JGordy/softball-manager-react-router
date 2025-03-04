@@ -27,7 +27,6 @@ async function parseResponses(formResponses, questionId) {
 
 export async function action({ request }) {
     const { formId, questionId } = await request.json();
-    console.log({ formId, questionId });
 
     try {
         const responses = await readFormResponses(formId);
