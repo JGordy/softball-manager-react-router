@@ -27,7 +27,6 @@ export async function action({ request, params }) {
     const { eventId } = params;
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
-    console.log({ _action, values });
 
     if (_action === 'update-game') {
         return updateGame({ values, eventId });
