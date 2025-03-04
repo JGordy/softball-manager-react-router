@@ -1,9 +1,10 @@
 import { Query } from '@/appwrite';
 import { listDocuments, readDocument } from '@/utils/databases';
 
-export async function getEventDetails({ eventId }) {
+export async function getEventDetails({ request, eventId }) {
     const { seasons: season, ...game } = await readDocument('games', eventId);
     const { teams = [] } = season;
+
     const { documents: userIds } = await await listDocuments('memberships', [
         Query.equal('teamId', [teams[0].$id]),
     ]);
@@ -17,5 +18,31 @@ export async function getEventDetails({ eventId }) {
 
     const users = await Promise.all(promises);
 
-    return { game, season, teams, players: users.flat() };
+    const availabilityForm = await listDocuments('forms', [
+        Query.equal('gameId', eventId),
+    ]);
+
+    if (availabilityForm.documents.length === 0) {
+        return {
+            game, season, teams, players: users.flat(), availability: { form: null, responses: null }
+        }
+    }
+
+    const form = availabilityForm.documents[0]
+
+    const origin = new URL(request.url).origin; // Get origin from request
+
+    const response = await fetch(`${origin}/api/get-availability`, {
+        method: "POST",
+        body: JSON.stringify(form),
+    });
+
+    const availability = {
+        form,
+        ...({ ...await response.json() }),
+    }
+
+    return {
+        game, season, teams, players: users.flat(), availability
+    };
 }
