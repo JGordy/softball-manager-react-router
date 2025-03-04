@@ -98,6 +98,7 @@ export default function EventDetails({ loaderData, actionData }) {
         ),
     });
 
+    // TODO: Put this in an action so that we can refresh the ui when the action completes?
     const handleAttendanceFormClick = async () => {
         try {
             const response = await fetch('/api/create-attendance', {
