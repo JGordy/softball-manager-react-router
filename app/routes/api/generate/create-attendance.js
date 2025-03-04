@@ -15,7 +15,6 @@ async function createGameAttendanceForm(gameDate, team, opponent) {
             },
         });
 
-
         const formId = formRes.data.formId;
 
         const questionRes = await forms.forms.batchUpdate({
@@ -23,7 +22,7 @@ async function createGameAttendanceForm(gameDate, team, opponent) {
             requestBody: getFormBody({ gameDate, opponent }),
         });
 
-        const questionId = questionRes.data.replies[0].createItem.questionId;
+        const questionId = questionRes.data.replies[1].createItem.questionId;
 
         const formUrl = `https://docs.google.com/forms/d/${formId}/viewform`;
 
