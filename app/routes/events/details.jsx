@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
     Button,
@@ -21,6 +21,8 @@ import AddSingleGame from '@/forms/AddSingleGame';
 
 import { formatGameTime, formatTime } from '@/utils/dateTime';
 
+import AvailabliityContainer from './components/AvailabliityContainer';
+
 import { getEventDetails } from './loader';
 import { updateGame } from './action';
 
@@ -34,16 +36,16 @@ export async function action({ request, params }) {
     }
 };
 
-export async function loader({ params }) {
+export async function loader({ params, request }) {
     const { eventId } = params;
 
-    return await getEventDetails({ eventId });
+    return await getEventDetails({ eventId, request });
 }
 
 export default function EventDetails({ loaderData, actionData }) {
     console.log('/events/:eventId > ', { loaderData });
 
-    const { game, season, teams, players, attendance } = loaderData;
+    const { game, season, teams, players, availability } = loaderData;
     const team = teams?.[0];
 
     const {
@@ -97,11 +99,10 @@ export default function EventDetails({ loaderData, actionData }) {
     });
 
     const handleAttendanceFormClick = async () => {
-        const body = { team, gameDate, opponent, gameId: game.$id }
         try {
             const response = await fetch('/api/create-attendance', {
                 method: 'POST',
-                body: JSON.stringify(body),
+                body: JSON.stringify({ team, gameDate, opponent, gameId: game.$id }),
             });
 
             if (!response.ok) {
@@ -157,8 +158,8 @@ export default function EventDetails({ loaderData, actionData }) {
                             <Tabs.Tab value="lineup" size="lg">
                                 Lineup
                             </Tabs.Tab>
-                            <Tabs.Tab value="attendance" size="lg">
-                                Attendance
+                            <Tabs.Tab value="availabliity" size="lg">
+                                Availabliity
                             </Tabs.Tab>
                         </Tabs.List>
 
@@ -179,21 +180,11 @@ export default function EventDetails({ loaderData, actionData }) {
                             )}
                         </Tabs.Panel>
 
-                        <Tabs.Panel value="attendance" pt="md">
-                            {/* TODO: For this section we need to know all players that have checked in for this game */}
-                            {/* TODO: We would need the polling in place for this to work */}
-                            <Title order={4} align="center">This games attendance</Title>
-                            {!attendance && (
-                                <>
-                                    <Text align="center" c="dimmed" my="lg">An attendance form for this game has not yet been created. Create one below.</Text>
-                                    <Button mt="sm" onClick={handleAttendanceFormClick} fullWidth>
-                                        Generate attendance form
-                                    </Button>
-                                </>
-                            )}
-                            {attendance && (
-                                <Text>We have attendance!</Text>
-                            )}
+                        <Tabs.Panel value="availabliity" pt="md">
+                            <AvailabliityContainer
+                                availability={availability}
+                                handleAttendanceFormClick={handleAttendanceFormClick}
+                            />
                         </Tabs.Panel>
                     </Tabs>
                 </>
