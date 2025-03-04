@@ -23,7 +23,6 @@ export default function AddSingleGame({
     seasonId,
     teamId,
 }) {
-    console.log({ defaults });
 
     const ref = useRef();
 
@@ -57,6 +56,7 @@ export default function AddSingleGame({
                 label="Opponent's Name"
                 name="opponent"
                 placeholder="Who are we playing?"
+                defaultValue={defaults.opponent}
             />
             <Select
                 className={classes.inputs}
