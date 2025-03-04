@@ -6,6 +6,7 @@ import {
     Container,
     Divider,
     Group,
+    Tabs,
     Text,
     Title,
 } from '@mantine/core';
@@ -42,13 +43,13 @@ export async function loader({ params }) {
 export default function EventDetails({ loaderData, actionData }) {
     console.log('/events/:eventId > ', { loaderData });
 
-    const { game, season, teams, players } = loaderData;
+    const { game, season, teams, players, attendance } = loaderData;
     const team = teams?.[0];
 
     const {
         gameDate,
         isHomeGame,
-        opponent = "TBD",
+        opponent,
         opponentScore,
         playerChart,
         result,
@@ -95,6 +96,26 @@ export default function EventDetails({ loaderData, actionData }) {
         ),
     });
 
+    const handleAttendanceFormClick = async () => {
+        const body = { team, gameDate, opponent }
+        try {
+            const response = await fetch('/api/create-attendance', {
+                method: 'POST',
+                body: JSON.stringify(body),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData?.error || `HTTP error! status: ${response.status}`);
+            }
+
+            const formResponse = await response.json();
+            console.log({ formResponse });
+        } catch (error) {
+
+        }
+    };
+
     return (
         <Container p="md" mih="90vh">
             <Group justify="space-between">
@@ -104,7 +125,7 @@ export default function EventDetails({ loaderData, actionData }) {
             {Object.keys(game) && (
                 <>
                     <Title order={4} mt="xl" align="center">
-                        {team?.name} {isHomeGame ? 'vs' : '@'} {opponent}
+                        {team?.name} {isHomeGame ? 'vs' : '@'} {opponent || "TBD"}
                     </Title>
 
                     {result && (
@@ -130,22 +151,51 @@ export default function EventDetails({ loaderData, actionData }) {
                         {season?.location}
                     </Group>
 
-                    <Divider size="sm" my="md" />
+                    {/* <Title order={5} mt="lg" align="center">See detailed information for your upcoming and past games</Title> */}
+                    <Tabs radius="md" defaultValue="lineup" mt="xl">
+                        <Tabs.List grow justify="center">
+                            <Tabs.Tab value="lineup" size="lg">
+                                Lineup
+                            </Tabs.Tab>
+                            <Tabs.Tab value="attendance" size="lg">
+                                Attendance
+                            </Tabs.Tab>
+                        </Tabs.List>
 
-                    {/* TODO: For this section we need to know all players that have checked in for this game */}
-                    {/* TODO: We would need the polling in place for this to work */}
-                    <Title order={4}>Lineup and field chart</Title>
-                    {!chart && (
-                        <>
-                            <Text>Charts for this game have not yet been created. Start creating them below.</Text>
-                            <Button mt="sm" onClick={() => { }} fullWidth>
-                                Generate lineup and fielding chart
-                            </Button>
-                        </>
-                    )}
-                    {chart && (
-                        <Text>We have a chart!</Text>
-                    )}
+                        <Tabs.Panel value="lineup" pt="md">
+                            {/* TODO: For this section we need to know all players that have checked in for this game */}
+                            {/* TODO: We would need the polling in place for this to work */}
+                            <Title order={4} align="center">Lineup and field chart</Title>
+                            {!chart && (
+                                <>
+                                    <Text align="center" c="dimmed" my="lg">Charts for this game have not yet been created. Start creating them below.</Text>
+                                    <Button mt="sm" onClick={() => { }} fullWidth>
+                                        Generate lineup and fielding chart
+                                    </Button>
+                                </>
+                            )}
+                            {chart && (
+                                <Text>We have a chart!</Text>
+                            )}
+                        </Tabs.Panel>
+
+                        <Tabs.Panel value="attendance" pt="md">
+                            {/* TODO: For this section we need to know all players that have checked in for this game */}
+                            {/* TODO: We would need the polling in place for this to work */}
+                            <Title order={4} align="center">This games attendance</Title>
+                            {!attendance && (
+                                <>
+                                    <Text align="center" c="dimmed" my="lg">An attendance form for this game has not yet been created. Create one below.</Text>
+                                    <Button mt="sm" onClick={handleAttendanceFormClick} fullWidth>
+                                        Generate attendance form
+                                    </Button>
+                                </>
+                            )}
+                            {attendance && (
+                                <Text>We have attendance!</Text>
+                            )}
+                        </Tabs.Panel>
+                    </Tabs>
                 </>
             )}
         </Container>
