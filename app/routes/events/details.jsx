@@ -160,10 +160,10 @@ export default function EventDetails({ loaderData, actionData }) {
                     <Tabs radius="md" defaultValue="lineup" mt="xl">
                         <Tabs.List grow justify="center">
                             <Tabs.Tab value="lineup" size="lg">
-                                Lineup
+                                Batting & Fielding
                             </Tabs.Tab>
                             <Tabs.Tab value="availabliity" size="lg">
-                                Availabliity
+                                Player Availabliity
                             </Tabs.Tab>
                         </Tabs.List>
 
