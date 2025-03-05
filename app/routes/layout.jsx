@@ -1,5 +1,7 @@
-import { Notifications } from "@mantine/notifications";
+import { memo } from 'react';
+
 import { Outlet } from "react-router";
+import { Notifications } from "@mantine/notifications";
 
 import NavLinks from "@/components/NavLinks";
 
@@ -47,7 +49,7 @@ export function HydrateFallback() {
     );;
 }
 
-export default function Layout({ loaderData }) {
+function Layout({ loaderData }) {
     const { user } = loaderData;
 
     return (
@@ -60,3 +62,5 @@ export default function Layout({ loaderData }) {
         </div>
     );
 }
+
+export default memo(Layout);
