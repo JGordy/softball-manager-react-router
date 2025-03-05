@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Title, Button, Text } from '@mantine/core';
 
-export default function LineupContainer({ availablePlayers, playerChart }) {
+export default function LineupContainer({ availablePlayers, managerView, playerChart }) {
+
     const parsedChart = playerChart && JSON.parse(playerChart);
 
     const [localChart, setLocalChart] = useState(parsedChart);
@@ -13,7 +14,7 @@ export default function LineupContainer({ availablePlayers, playerChart }) {
             {/* TODO: We would need the polling in place for this to work */}
             <Title order={4} align="center">Lineup and field chart</Title>
 
-            {!localChart && (
+            {(managerView && !localChart) && (
                 <>
                     <Text align="center" c="dimmed" my="lg">Charts for this game have not yet been created. Start creating them below.</Text>
                     <Button mt="sm" onClick={() => { }} fullWidth>

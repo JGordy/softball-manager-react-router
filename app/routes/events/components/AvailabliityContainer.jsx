@@ -50,10 +50,11 @@ function categorizePlayersByResponse(responses, players) {
 }
 
 export default function AvailabliityContainer({
-    gameDate,
-    players,
     availability,
+    gameDate,
     handleAttendanceFormClick,
+    managerView,
+    players,
 }) {
 
     const { user } = useOutletContext();
@@ -70,10 +71,18 @@ export default function AvailabliityContainer({
     if (!formCreated) {
         return (
             <>
-                <Text align="center" c="dimmed" my="lg">An availabliity form for this game has not yet been created. Create one below.</Text >
-                <Button mt="sm" onClick={handleAttendanceFormClick} fullWidth>
-                    Generate availabliity form
-                </Button>
+                {managerView ? (
+                    <>
+                        <Text align="center" c="dimmed" my="lg">An availabliity form for this game has not yet been created. Create one below.</Text >
+                        <Button mt="sm" onClick={handleAttendanceFormClick} fullWidth>
+                            Generate availabliity form
+                        </Button>
+                    </>
+                ) : (
+                    <Text align="center" c="dimmed" my="lg">
+                        Availability form not yet ready. Come back later
+                    </Text>
+                )}
             </>
         );
     }
