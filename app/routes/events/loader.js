@@ -9,6 +9,8 @@ export async function getEventDetails({ request, eventId }) {
         Query.equal('teamId', [teams[0].$id]),
     ]);
 
+    const { userId: managerId } = userIds.find(userId => userId.role === 'manager');
+
     const promises = userIds.map(async ({ userId }) => {
         const result = await listDocuments('users', [
             Query.equal('$id', userId),
@@ -43,6 +45,11 @@ export async function getEventDetails({ request, eventId }) {
     }
 
     return {
-        game, season, teams, players: users.flat(), availability
+        availability,
+        game,
+        managerId,
+        players: users.flat(),
+        season,
+        teams,
     };
 }
