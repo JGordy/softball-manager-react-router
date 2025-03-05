@@ -75,7 +75,7 @@ export default function AvailabliityContainer({
                     <>
                         <Text align="center" c="dimmed" my="lg">An availabliity form for this game has not yet been created. Create one below.</Text >
                         <Button mt="sm" onClick={handleAttendanceFormClick} fullWidth>
-                            Generate availabliity form
+                            Generate Availabliity Form
                         </Button>
                     </>
                 ) : (
