@@ -42,7 +42,13 @@ function categorizePlayersByResponse(responses, players) {
     return players;
 }
 
-export default function AvailabliityContainer({ players, availability, handleAttendanceFormClick }) {
+export default function AvailabliityContainer({
+    gameDate,
+    players,
+    availability,
+    handleAttendanceFormClick,
+}) {
+
     const { user } = useOutletContext();
     const currentUserId = user.$id;
 
@@ -96,7 +102,7 @@ export default function AvailabliityContainer({ players, availability, handleAtt
         <>
             <Group mb="lg" justify="space-between">
                 {Object.keys(availabilityIcon).map(key => (
-                    <Group gap="2px">
+                    <Group gap="2px" key={key}>
                         {availabilityIcon[key]} - {key.toLowerCase()}
                     </Group>
                 ))}
