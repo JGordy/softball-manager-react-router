@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
 
+import { useOutletContext } from 'react-router';
+
 import {
     Center,
     Container,
@@ -44,9 +46,13 @@ export async function loader({ params, request }) {
 
 export default function EventDetails({ loaderData, actionData }) {
     console.log('/events/:eventId > ', { loaderData });
+    const { user } = useOutletContext();
+    const currentUserId = user.$id;
 
-    const { game, season, teams, players, availability } = loaderData;
+    const { game, managerId, season, teams, players, availability } = loaderData;
+
     const team = teams?.[0];
+    const managerView = managerId === currentUserId;
 
     const {
         gameDate,
@@ -119,7 +125,7 @@ export default function EventDetails({ loaderData, actionData }) {
         <Container p="md" mih="90vh">
             <Group justify="space-between">
                 <BackButton text="Back to Events" />
-                <EditButton setIsModalOpen={openModal} />
+                {managerView && <EditButton setIsModalOpen={openModal} />}
             </Group>
             {Object.keys(game) && (
                 <>
@@ -164,16 +170,18 @@ export default function EventDetails({ loaderData, actionData }) {
                         <Tabs.Panel value="lineup" pt="md">
                             <LineupContainer
                                 availablePlayers={players}
+                                managerView={managerView}
                                 playerChart={playerChart}
                             />
                         </Tabs.Panel>
 
                         <Tabs.Panel value="availabliity" pt="md">
                             <AvailabliityContainer
-                                gameDate={gameDate}
-                                players={players}
                                 availability={availability}
+                                gameDate={gameDate}
                                 handleAttendanceFormClick={handleAttendanceFormClick}
+                                managerView={managerView}
+                                players={players}
                             />
                         </Tabs.Panel>
                     </Tabs>
