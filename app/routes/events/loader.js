@@ -1,6 +1,30 @@
 import { Query } from '@/appwrite';
 import { listDocuments, readDocument } from '@/utils/databases';
 
+const getAvailabilityDetails = async ({ eventId }) => {
+    const availabilityForm = await listDocuments('forms', [
+        Query.equal('gameId', eventId),
+    ]);
+
+    if (availabilityForm.documents.length === 0) {
+        return { form: null, responses: null };
+    }
+
+    const form = availabilityForm.documents[0]
+
+    const origin = new URL(request.url).origin; // Get origin from request
+
+    const response = await fetch(`${origin}/api/get-availability`, {
+        method: "POST",
+        body: JSON.stringify(form),
+    });
+
+    return {
+        form,
+        ...({ ...await response.json() }),
+    }
+};
+
 export async function getEventDetails({ request, eventId }) {
     const { seasons: season, ...game } = await readDocument('games', eventId);
     const { teams = [] } = season;
@@ -20,41 +44,12 @@ export async function getEventDetails({ request, eventId }) {
 
     const users = await Promise.all(promises);
 
-    const availabilityForm = await listDocuments('forms', [
-        Query.equal('gameId', eventId),
-    ]);
-
-    const responseObject = {
+    return {
         game,
         managerId,
         season,
         teams,
         players: users.flat(),
-    };
-
-    if (availabilityForm.documents.length === 0) {
-        return {
-            ...responseObject,
-            availability: { form: null, responses: null },
-        }
-    }
-
-    const form = availabilityForm.documents[0]
-
-    const origin = new URL(request.url).origin; // Get origin from request
-
-    const response = await fetch(`${origin}/api/get-availability`, {
-        method: "POST",
-        body: JSON.stringify(form),
-    });
-
-    const availability = {
-        form,
-        ...({ ...await response.json() }),
-    }
-
-    return {
-        ...responseObject,
-        availability,
+        availability: await getAvailabilityDetails({ eventId }),
     };
 }
