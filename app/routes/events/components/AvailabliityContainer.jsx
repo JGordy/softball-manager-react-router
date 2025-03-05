@@ -1,12 +1,19 @@
 import { useOutletContext } from 'react-router';
-import { Anchor, Button, Group, Paper, Text } from '@mantine/core';
 
 import {
-    IconExternalLink,
-    IconCircleCheckFilled,
-    IconSquareXFilled,
-    IconHelpTriangleFilled,
+    Anchor,
+    Button,
+    Group,
+    Paper,
+    Text,
+} from '@mantine/core';
+
+import {
     IconCancel,
+    IconCircleCheckFilled,
+    IconExternalLink,
+    IconHelpTriangleFilled,
+    IconSquareXFilled,
 } from '@tabler/icons-react';
 
 const availabilityIcon = {
@@ -52,7 +59,6 @@ export default function AvailabliityContainer({
     const { user } = useOutletContext();
     const currentUserId = user.$id;
 
-    console.log('AvailabliityContainer: ', { players, availability });
     const { form, responses } = availability;
 
     const formCreated = !!form?.formId;
@@ -60,7 +66,6 @@ export default function AvailabliityContainer({
     const today = new Date();
     const gameDay = new Date(gameDate);
     const isGameToday = gameDay.toDateString() === today.toDateString();
-
 
     if (!formCreated) {
         return (
@@ -78,8 +83,6 @@ export default function AvailabliityContainer({
     const sortedPlayers = formHasResponses && categorizePlayersByResponse(responses, players);
 
     const currentUserHasResponded = !responses?.noResponse?.includes(currentUserId);
-
-    console.log('/events/:eventId > AvailabilityContainer: ', { sortedPlayers, currentUserHasResponded });
 
     const renderPlayerAvailability = () => players.map(player => (
         <Paper
