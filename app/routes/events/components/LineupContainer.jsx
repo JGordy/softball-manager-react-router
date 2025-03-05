@@ -1,7 +1,13 @@
 import { useState } from 'react';
-import { Title, Button, Text } from '@mantine/core';
 
-export default function LineupContainer({ availablePlayers, managerView, playerChart }) {
+import { Button, Text } from '@mantine/core';
+
+export default function LineupContainer({
+    availablePlayers,
+    handleGenerateCharts,
+    managerView,
+    playerChart,
+}) {
 
     const parsedChart = playerChart && JSON.parse(playerChart);
 
@@ -10,16 +16,18 @@ export default function LineupContainer({ availablePlayers, managerView, playerC
 
     return (
         <>
-            {/* TODO: For this section we need to know all players that have checked in for this game */}
-            {/* TODO: We would need the polling in place for this to work */}
-            <Title order={4} align="center">Lineup and field chart</Title>
-
-            {(managerView && !localChart) && (
+            {!localChart && (
                 <>
-                    <Text align="center" c="dimmed" my="lg">Charts for this game have not yet been created. Start creating them below.</Text>
-                    <Button mt="sm" onClick={() => { }} fullWidth>
-                        Generate lineup and fielding chart
-                    </Button>
+                    {managerView ? (
+                        <>
+                            <Text align="center" c="dimmed" my="lg">Charts for this game have not yet been created. You can create them below.</Text>
+                            <Button mt="sm" onClick={handleGenerateCharts} fullWidth>
+                                Generate Batting and Fielding Charts
+                            </Button>
+                        </>
+                    ) : (
+                        <Text>Batting Lineup and Fielding Chart have not yet been created. Come back later.</Text>
+                    )}
                 </>
             )}
 
