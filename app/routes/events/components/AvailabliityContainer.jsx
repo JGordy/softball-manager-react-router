@@ -80,7 +80,7 @@ export default function AvailabliityContainer({
 
     const formHasResponses = responses && Object.keys(responses).length > 0;
 
-    const sortedPlayers = formHasResponses && categorizePlayersByResponse(responses, players);
+    if (formHasResponses) categorizePlayersByResponse(responses, players);
 
     const currentUserHasResponded = !responses?.noResponse?.includes(currentUserId);
 
