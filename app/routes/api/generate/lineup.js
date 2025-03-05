@@ -5,7 +5,7 @@ import prompt from './utils/lineupPrompt';
 
 export async function action({ request }) {
     try {
-        const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY);
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
         // Initalise a generative model
         const model = genAI.getGenerativeModel({
