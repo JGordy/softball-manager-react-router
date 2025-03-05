@@ -71,7 +71,7 @@ export async function loader({ params, request }) {
 }
 
 export default function EventDetails({ loaderData, actionData }) {
-    console.log('/events/:eventId > ', { loaderData });
+    // console.log('/events/:eventId > ', { loaderData });
     const { user } = useOutletContext();
     const currentUserId = user.$id;
 
@@ -106,8 +106,7 @@ export default function EventDetails({ loaderData, actionData }) {
 
     if (formHasResponses) updatePlayerAvailability(responses, players);
 
-    const availablePlayers = players.filter(player => player.available);
-    console.log({ availablePlayers });
+    const availablePlayers = players.filter(player => player.available === 'yes');
 
     useEffect(() => {
         const handleAfterSubmit = async () => {
