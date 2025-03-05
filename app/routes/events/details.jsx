@@ -35,23 +35,25 @@ const availabilityOptions = [
 ];
 
 function updatePlayerAvailability(responses, players) {
+    const playersCopy = [...players];
+
     const availabilityMap = {};
     availabilityOptions.forEach(option => {
         availabilityMap[option.value] = option.key;
     });
 
-    players.forEach(player => {
+    playersCopy.forEach(player => {
         player.availability = 'noResponse';
     });
 
     responses.forEach(response => {
-        const player = players.find(p => p.email === response.respondentEmail);
+        const player = playersCopy.find(p => p.email === response.respondentEmail);
         if (player) {
             player.available = availabilityMap[response.answer] || 'noResponse';
         }
     });
 
-    return players;
+    return playersCopy;
 }
 
 export async function action({ request, params }) {
@@ -197,12 +199,12 @@ export default function EventDetails({ loaderData, actionData }) {
             </Group>
 
             {/* <Title order={5} mt="lg" align="center">See detailed information for your upcoming and past games</Title> */}
-            <Tabs radius="md" defaultValue="lineup" mt="xl">
+            <Tabs radius="md" defaultValue={(availablePlayers?.length > 7) ? 'lineup' : 'availability'} mt="xl">
                 <Tabs.List grow justify="center">
                     <Tabs.Tab value="lineup" size="lg">
                         Batting & Fielding
                     </Tabs.Tab>
-                    <Tabs.Tab value="availabliity" size="lg">
+                    <Tabs.Tab value="availability" size="lg">
                         Player Availabliity
                     </Tabs.Tab>
                 </Tabs.List>
@@ -215,7 +217,7 @@ export default function EventDetails({ loaderData, actionData }) {
                     />
                 </Tabs.Panel>
 
-                <Tabs.Panel value="availabliity" pt="md">
+                <Tabs.Panel value="availability" pt="md">
                     <AvailabliityContainer
                         availability={availability}
                         gameDate={gameDate}
