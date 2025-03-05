@@ -183,6 +183,7 @@ export default function EventDetails({ loaderData, actionData }) {
 
                         <Tabs.Panel value="availabliity" pt="md">
                             <AvailabliityContainer
+                                players={players}
                                 availability={availability}
                                 handleAttendanceFormClick={handleAttendanceFormClick}
                             />
