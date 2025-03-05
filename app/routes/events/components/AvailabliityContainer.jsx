@@ -51,6 +51,11 @@ export default function AvailabliityContainer({ players, availability, handleAtt
 
     const formCreated = !!form?.formId;
 
+    const today = new Date();
+    const gameDay = new Date(gameDate);
+    const isGameToday = gameDay.toDateString() === today.toDateString();
+
+
     if (!formCreated) {
         return (
             <>
@@ -102,17 +107,23 @@ export default function AvailabliityContainer({ players, availability, handleAtt
                 <Text align="center" my="sm">No responses yet!</Text>
             )}
 
-            {!currentUserHasResponded && (
-                <Anchor
-                    href={form.formUrl}
-                    target="_blank"
-                    fw={700}
-                >
-                    <Button mt="lg" fullWidth>
-                        <IconExternalLink size={18} style={{ display: 'inline', marginRight: '5px' }} />
-                        Add your availability
-                    </Button>
-                </Anchor>
+            {isGameToday ? (
+                <Text align="center" mt="lg" fw={700} c="red">
+                    The availability form for this game is now closed.
+                </Text>
+            ) : (
+                !currentUserHasResponded && (
+                    <Anchor
+                        href={form.formUrl}
+                        target="_blank"
+                        fw={700}
+                    >
+                        <Button mt="lg" fullWidth>
+                            <IconExternalLink size={18} style={{ display: 'inline', marginRight: '5px' }} />
+                            Add your availability
+                        </Button>
+                    </Anchor>
+                )
             )}
         </>
     );
