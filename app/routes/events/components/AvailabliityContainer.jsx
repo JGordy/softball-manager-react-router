@@ -23,32 +23,6 @@ const availabilityIcon = {
     noResponse: <IconCancel size={24} color="orange" />,
 }
 
-const availabilityOptions = [
-    { value: 'Yes, I will be there', key: 'yes' },
-    { value: 'No, I cannot attend', key: 'no' },
-    { value: 'Maybe, I will let you know', key: 'maybe' },
-];
-
-function categorizePlayersByResponse(responses, players) {
-    const availabilityMap = {};
-    availabilityOptions.forEach(option => {
-        availabilityMap[option.value] = option.key;
-    });
-
-    players.forEach(player => {
-        player.availability = 'noResponse';
-    });
-
-    responses.forEach(response => {
-        const player = players.find(p => p.email === response.respondentEmail);
-        if (player) {
-            player.availability = availabilityMap[response.answer] || 'noResponse';
-        }
-    });
-
-    return players;
-}
-
 export default function AvailabliityContainer({
     availability,
     gameDate,
@@ -89,8 +63,6 @@ export default function AvailabliityContainer({
 
     const formHasResponses = responses && Object.keys(responses).length > 0;
 
-    if (formHasResponses) categorizePlayersByResponse(responses, players);
-
     const currentUserHasResponded = !responses?.noResponse?.includes(currentUserId);
 
     const renderPlayerAvailability = () => players.map(player => (
@@ -105,7 +77,7 @@ export default function AvailabliityContainer({
             <Group justify="space-between">
                 <Text fw={700}>{player.firstName} {player.lastName}</Text>
                 <Text>{player.preferredPositions?.[0]}</Text>
-                {availabilityIcon[player.availability]}
+                {availabilityIcon[player.available]}
             </Group>
         </Paper>
     ));

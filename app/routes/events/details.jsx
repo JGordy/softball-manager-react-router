@@ -28,6 +28,32 @@ import LineupContainer from './components/LineupContainer';
 import { getEventDetails } from './loader';
 import { updateGame } from './action';
 
+const availabilityOptions = [
+    { value: 'Yes, I will be there', key: 'yes' },
+    { value: 'No, I cannot attend', key: 'no' },
+    { value: 'Maybe, I will let you know', key: 'maybe' },
+];
+
+function updatePlayerAvailability(responses, players) {
+    const availabilityMap = {};
+    availabilityOptions.forEach(option => {
+        availabilityMap[option.value] = option.key;
+    });
+
+    players.forEach(player => {
+        player.availability = 'noResponse';
+    });
+
+    responses.forEach(response => {
+        const player = players.find(p => p.email === response.respondentEmail);
+        if (player) {
+            player.available = availabilityMap[response.answer] || 'noResponse';
+        }
+    });
+
+    return players;
+}
+
 export async function action({ request, params }) {
     const { eventId } = params;
     const formData = await request.formData();
@@ -49,7 +75,14 @@ export default function EventDetails({ loaderData, actionData }) {
     const { user } = useOutletContext();
     const currentUserId = user.$id;
 
-    const { game, managerId, season, teams, players, availability } = loaderData;
+    const {
+        game,
+        managerId,
+        season,
+        teams,
+        players,
+        availability,
+    } = loaderData;
 
     const team = teams?.[0];
     const managerView = managerId === currentUserId;
@@ -66,6 +99,15 @@ export default function EventDetails({ loaderData, actionData }) {
     } = game;
 
     const formattedGameTime = formatGameTime(gameDate, timeZone);
+
+    const { responses } = availability;
+
+    const formHasResponses = responses && Object.keys(responses).length > 0;
+
+    if (formHasResponses) updatePlayerAvailability(responses, players);
+
+    const availablePlayers = players.filter(player => player.available);
+    console.log({ availablePlayers });
 
     useEffect(() => {
         const handleAfterSubmit = async () => {
@@ -127,66 +169,63 @@ export default function EventDetails({ loaderData, actionData }) {
                 <BackButton text="Back to Events" />
                 {managerView && <EditButton setIsModalOpen={openModal} />}
             </Group>
-            {Object.keys(game) && (
+
+            <Title order={4} mt="xl" align="center">
+                {team?.name} {isHomeGame ? 'vs' : '@'} {opponent || "TBD"}
+            </Title>
+
+            {result && (
                 <>
-                    <Title order={4} mt="xl" align="center">
-                        {team?.name} {isHomeGame ? 'vs' : '@'} {opponent || "TBD"}
-                    </Title>
+                    <Divider size="sm" my="md" />
 
-                    {result && (
-                        <>
-                            <Divider size="sm" my="md" />
+                    <Center>
+                        <Text>{result}</Text>
+                        <Text>{score} - {opponentScore}</Text>
+                    </Center>
 
-                            <Center>
-                                <Text>{result}</Text>
-                                <Text>{score} - {opponentScore}</Text>
-                            </Center>
-
-                            <Divider size="sm" my="md" />
-                        </>
-                    )}
-
-                    <Group gap="xs" justify="center" mt="md">
-                        <IconClock size={18} />
-                        {formattedGameTime}
-                    </Group>
-
-                    <Group gap="xs" justify="center" mt="md">
-                        <IconMapPin size={18} />
-                        {season?.location}
-                    </Group>
-
-                    {/* <Title order={5} mt="lg" align="center">See detailed information for your upcoming and past games</Title> */}
-                    <Tabs radius="md" defaultValue="lineup" mt="xl">
-                        <Tabs.List grow justify="center">
-                            <Tabs.Tab value="lineup" size="lg">
-                                Batting & Fielding
-                            </Tabs.Tab>
-                            <Tabs.Tab value="availabliity" size="lg">
-                                Player Availabliity
-                            </Tabs.Tab>
-                        </Tabs.List>
-
-                        <Tabs.Panel value="lineup" pt="md">
-                            <LineupContainer
-                                availablePlayers={players}
-                                managerView={managerView}
-                                playerChart={playerChart}
-                            />
-                        </Tabs.Panel>
-
-                        <Tabs.Panel value="availabliity" pt="md">
-                            <AvailabliityContainer
-                                availability={availability}
-                                gameDate={gameDate}
-                                handleAttendanceFormClick={handleAttendanceFormClick}
-                                managerView={managerView}
-                                players={players}
-                            />
-                        </Tabs.Panel>
-                    </Tabs>
+                    <Divider size="sm" my="md" />
                 </>
             )}
+
+            <Group gap="xs" justify="center" mt="md">
+                <IconClock size={18} />
+                {formattedGameTime}
+            </Group>
+
+            <Group gap="xs" justify="center" mt="md">
+                <IconMapPin size={18} />
+                {season?.location}
+            </Group>
+
+            {/* <Title order={5} mt="lg" align="center">See detailed information for your upcoming and past games</Title> */}
+            <Tabs radius="md" defaultValue="lineup" mt="xl">
+                <Tabs.List grow justify="center">
+                    <Tabs.Tab value="lineup" size="lg">
+                        Batting & Fielding
+                    </Tabs.Tab>
+                    <Tabs.Tab value="availabliity" size="lg">
+                        Player Availabliity
+                    </Tabs.Tab>
+                </Tabs.List>
+
+                <Tabs.Panel value="lineup" pt="md">
+                    <LineupContainer
+                        availablePlayers={availablePlayers}
+                        managerView={managerView}
+                        playerChart={playerChart}
+                    />
+                </Tabs.Panel>
+
+                <Tabs.Panel value="availabliity" pt="md">
+                    <AvailabliityContainer
+                        availability={availability}
+                        gameDate={gameDate}
+                        handleAttendanceFormClick={handleAttendanceFormClick}
+                        managerView={managerView}
+                        players={players}
+                    />
+                </Tabs.Panel>
+            </Tabs>
         </Container>
     );
 }
