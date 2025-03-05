@@ -23,7 +23,6 @@ export default function LineupContainer({
         message = 'You do not have enough players to generate a lineup. A minimum of 8 players is required.';
     }
 
-    // hasEnoughPlayer
     return (
         <>
             {!localChart && (
