@@ -1,7 +1,7 @@
 import { Query } from '@/appwrite';
 import { listDocuments, readDocument } from '@/utils/databases';
 
-const getAvailabilityDetails = async ({ eventId }) => {
+const getAvailabilityDetails = async ({ request, eventId }) => {
     const availabilityForm = await listDocuments('forms', [
         Query.equal('gameId', eventId),
     ]);
@@ -50,6 +50,6 @@ export async function getEventDetails({ request, eventId }) {
         season,
         teams,
         players: users.flat(),
-        availability: await getAvailabilityDetails({ eventId }),
+        availability: await getAvailabilityDetails({ request, eventId }),
     };
 }
