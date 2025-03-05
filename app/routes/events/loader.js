@@ -24,9 +24,18 @@ export async function getEventDetails({ request, eventId }) {
         Query.equal('gameId', eventId),
     ]);
 
+    const responseObject = {
+        game,
+        managerId,
+        season,
+        teams,
+        players: users.flat(),
+    };
+
     if (availabilityForm.documents.length === 0) {
         return {
-            game, season, teams, players: users.flat(), availability: { form: null, responses: null }
+            ...responseObject,
+            availability: { form: null, responses: null },
         }
     }
 
@@ -45,11 +54,7 @@ export async function getEventDetails({ request, eventId }) {
     }
 
     return {
+        ...responseObject,
         availability,
-        game,
-        managerId,
-        players: users.flat(),
-        season,
-        teams,
     };
 }
