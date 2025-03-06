@@ -58,3 +58,11 @@ export async function createAttendanceForm({ values, request }) {
         return { success: false, error: error.message };
     }
 }
+
+export async function savePlayerChart() {
+    // TODO: Save created lineup to appwrite database
+}
+
+export async function generatepLayerChart() {
+    // TODO: Generate a batting lineup and fielding chart using gen AI
+}
