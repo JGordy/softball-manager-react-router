@@ -42,6 +42,7 @@ async function createGameAttendanceForm(gameDate, team, opponent) {
 export async function action({ request }) {
     try {
         const { team, opponent, gameDate, gameId } = await request.json();
+        console.log({ team });
 
         const { formUrl, formId, questionId } = await createGameAttendanceForm(gameDate, team, opponent);
         // console.log({ formUrl, formId, questionId });

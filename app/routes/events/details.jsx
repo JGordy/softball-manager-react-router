@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { useOutletContext } from 'react-router';
+import { useOutletContext, useSubmit } from 'react-router';
 
 import {
     Center,
@@ -63,8 +63,37 @@ export async function action({ request, params }) {
 
     if (_action === 'update-game') {
         return updateGame({ values, eventId });
+    } else if (_action === 'create-attendance') {
+        try {
+            const team = formData.get('team');
+            const gameDate = formData.get('gameDate');
+            const opponent = formData.get('opponent');
+            const gameId = formData.get('gameId');
+
+            const url = new URL(request.url);
+            const baseUrl = url.origin;
+
+            const response = await fetch(`${baseUrl}/api/create-attendance`, {
+                method: 'POST',
+                body: JSON.stringify({ team: JSON.parse(team), gameDate, opponent, gameId }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData?.error || `HTTP error! status: ${response.status}`);
+            }
+
+            const formResponse = await response.json();
+
+            // Return a success message or the form response
+            return { success: true, formResponse };
+
+        } catch (error) {
+            console.error("Error creating attendance:", error);
+            return { success: false, error: error.message };
+        }
     }
-};
+}
 
 export async function loader({ params, request }) {
     const { eventId } = params;
@@ -74,6 +103,8 @@ export async function loader({ params, request }) {
 
 export default function EventDetails({ loaderData, actionData }) {
     // console.log('/events/:eventId > ', { loaderData });
+    const submit = useSubmit();
+
     const { user } = useOutletContext();
     const currentUserId = user.$id;
 
@@ -147,20 +178,20 @@ export default function EventDetails({ loaderData, actionData }) {
     // TODO: Put this in an action so that we can refresh the ui when the action completes?
     const handleAttendanceFormClick = async () => {
         try {
-            const response = await fetch('/api/create-attendance', {
-                method: 'POST',
-                body: JSON.stringify({ team, gameDate, opponent, gameId: game.$id }),
-            });
+            // Prepare the data to submit
+            const formData = new FormData();
+            formData.append('_action', 'create-attendance'); // Add an action identifier
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData?.error || `HTTP error! status: ${response.status}`);
-            }
+            // Add any other necessary data to the FormData
+            formData.append('team', JSON.stringify(team));
+            formData.append('gameDate', gameDate);
+            formData.append('opponent', opponent);
+            formData.append('gameId', game.$id);
 
-            const formResponse = await response.json();
-            console.log({ formResponse });
+            // Use submit to trigger the action
+            submit(formData, { method: 'post', action: `/events/${game.$id}` });
         } catch (error) {
-
+            console.error("Error submitting attendance form:", error);
         }
     };
 
