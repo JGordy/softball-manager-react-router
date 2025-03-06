@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { useOutletContext, useSubmit } from 'react-router';
+import { useOutletContext } from 'react-router';
 
 import {
     Center,
@@ -103,7 +103,6 @@ export async function loader({ params, request }) {
 
 export default function EventDetails({ loaderData, actionData }) {
     // console.log('/events/:eventId > ', { loaderData });
-    const submit = useSubmit();
 
     const { user } = useOutletContext();
     const currentUserId = user.$id;
@@ -175,26 +174,6 @@ export default function EventDetails({ loaderData, actionData }) {
         ),
     });
 
-    // TODO: Put this in an action so that we can refresh the ui when the action completes?
-    const handleAttendanceFormClick = async () => {
-        try {
-            // Prepare the data to submit
-            const formData = new FormData();
-            formData.append('_action', 'create-attendance'); // Add an action identifier
-
-            // Add any other necessary data to the FormData
-            formData.append('team', JSON.stringify(team));
-            formData.append('gameDate', gameDate);
-            formData.append('opponent', opponent);
-            formData.append('gameId', game.$id);
-
-            // Use submit to trigger the action
-            submit(formData, { method: 'post', action: `/events/${game.$id}` });
-        } catch (error) {
-            console.error("Error submitting attendance form:", error);
-        }
-    };
-
     return (
         <Container p="md" mih="90vh">
             <Group justify="space-between">
@@ -251,10 +230,10 @@ export default function EventDetails({ loaderData, actionData }) {
                 <Tabs.Panel value="availability" pt="md">
                     <AvailabliityContainer
                         availability={availability}
-                        gameDate={gameDate}
-                        handleAttendanceFormClick={handleAttendanceFormClick}
+                        game={game}
                         managerView={managerView}
                         players={players}
+                        team={team}
                     />
                 </Tabs.Panel>
             </Tabs>
