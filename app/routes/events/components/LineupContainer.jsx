@@ -3,6 +3,9 @@ import { useState } from 'react';
 
 import { Button, Text } from '@mantine/core';
 
+import createBattingOrder from '../utils/createBattingOrder';
+import createFieldingChart from '../utils/createFieldingChart';
+
 export default function LineupContainer({
     availablePlayers,
     managerView,
@@ -28,15 +31,17 @@ export default function LineupContainer({
 
     // NOTE: Uses an algorithim I created to generate a lineup and fielding chart
     const handleCreateCharts = () => {
-        setLocalChart();
+        if (hasEnoughPlayers) {
+            setLocalChart();
 
-        const batting = createBattingOrder(availablePlayers);
+            const batting = createBattingOrder(availablePlayers);
 
-        if (batting?.length > 0) {
-            const fieldingChart = createFieldingChart(batting);
+            if (batting?.length > 0) {
+                const fieldingChart = createFieldingChart(batting);
 
-            if (fieldingChart?.length > 0) {
-                setLocalChart(fieldingChart);
+                if (fieldingChart?.length > 0) {
+                    setLocalChart(fieldingChart);
+                }
             }
         }
     };
