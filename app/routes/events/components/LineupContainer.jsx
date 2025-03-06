@@ -1,22 +1,26 @@
 import { useState } from 'react';
-// import { useFetcher } from 'react-router';
+import { useFetcher } from 'react-router';
 
-import { Button, Text } from '@mantine/core';
+import { Button, Group, Text } from '@mantine/core';
+
+import PlayerChart from '@/components/PlayerChart';
 
 import createBattingOrder from '../utils/createBattingOrder';
 import createFieldingChart from '../utils/createFieldingChart';
 
 export default function LineupContainer({
     availablePlayers,
+    game,
     managerView,
     playerChart,
 }) {
 
-    // const fetcher = useFetcher();
+    const fetcher = useFetcher();
 
     const parsedChart = playerChart && JSON.parse(playerChart);
 
     const [localChart, setLocalChart] = useState(parsedChart);
+    const [hasBeenEdited, setHasBeenEdited] = useState(false);
     console.log('/event/:eventId > LineupContainer: ', { availablePlayers, playerChart, parsedChart, localChart });
 
     // NOTE: Most leagues require at least 8 players in the field to allow the teams to take the field
@@ -28,6 +32,23 @@ export default function LineupContainer({
     if (!hasEnoughPlayers) {
         message = 'You do not have enough players to generate a lineup. A minimum of 8 players is required.';
     }
+
+    const handleOnSave = () => {
+        try {
+            const formData = new FormData();
+            formData.append('_action', 'save-chart');
+            formData.append('playerChart', JSON.stringify(localChart));
+
+            fetcher.submit(formData, { method: 'post', action: `/events/${game.$id}` });
+        } catch (error) {
+            console.error('Error submitting attendance form:', error);
+        }
+    };
+
+    const handleResetChart = () => {
+        setLocalChart(parsedChart);
+        setHasBeenEdited(false);
+    };
 
     // NOTE: Uses an algorithim I created to generate a lineup and fielding chart
     // TODO: We need to make a request to save this to the appwrite database
@@ -43,6 +64,8 @@ export default function LineupContainer({
                 if (fieldingChart?.length > 0) {
                     setLocalChart(fieldingChart);
                 }
+
+                handleOnSave();
             }
         }
     };
@@ -64,6 +87,22 @@ export default function LineupContainer({
     // }
     // };
 
+    const handleChartEdit = (position, playerName, inning) => {
+        setLocalChart(prevChart => {
+            return prevChart.map(player => {
+                if (player.name === playerName) {
+                    const inningIndex = parseInt(inning.replace('inning', ''), 10) - 1;
+                    const updatedPositions = [...player.positions];
+                    updatedPositions[inningIndex] = position;
+                    return { ...player, positions: updatedPositions };
+                }
+                return player;
+            });
+        });
+
+        setHasBeenEdited(true);
+    };
+
     if (!localChart) {
         return (
             <>
@@ -84,7 +123,27 @@ export default function LineupContainer({
     return (
         <>
             {localChart && (
-                <Text>We have a chart!</Text>
+                <>
+                    <PlayerChart
+                        players={players}
+                        setPlayerChart={handleChartEdit}
+                    />
+
+                    {(managerView && hasBeenEdited) && (
+                        <Group justify="space-between">
+                            <Button
+                                loading={fetcher.state === 'loading'}
+                                onClick={handleOnSave}
+                            >
+                                Save Changes
+                            </Button>
+
+                            <Button onClick={handleResetChart} >
+                                Reset Chart
+                            </Button>
+                        </Group>
+                    )}
+                </>
             )}
         </>
     );
