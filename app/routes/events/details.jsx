@@ -67,6 +67,9 @@ export async function action({ request, params }) {
     if (_action === 'create-attendance') {
         return createAttendanceForm({ values, request });
     }
+    if (_action === 'save-chart') {
+        return savePlayerChart({ values, eventId })
+    }
 }
 
 export async function loader({ params, request }) {
@@ -196,6 +199,7 @@ export default function EventDetails({ loaderData, actionData }) {
                 <Tabs.Panel value="lineup" pt="md">
                     <LineupContainer
                         availablePlayers={availablePlayers}
+                        game={game}
                         managerView={managerView}
                         playerChart={playerChart}
                     />
