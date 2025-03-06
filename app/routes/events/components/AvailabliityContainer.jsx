@@ -92,7 +92,7 @@ export default function AvailabliityContainer({
 
     const formHasResponses = responses && Object.keys(responses).length > 0;
 
-    const currentUserHasResponded = !responses?.noResponse?.includes(currentUserId);
+    const currentUserHasResponded = responses?.filter(response => response.respondentEmail === user.email).length > 0;
 
     const renderPlayerAvailability = () => players.map(player => (
         <Paper
