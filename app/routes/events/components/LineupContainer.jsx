@@ -138,7 +138,10 @@ export default function LineupContainer({
                                 Save Changes
                             </Button>
 
-                            <Button onClick={handleResetChart} >
+                            <Button
+                                onClick={handleResetChart}
+                                disabled={fetcher.state === 'loading'}
+                            >
                                 Reset Chart
                             </Button>
                         </Group>
