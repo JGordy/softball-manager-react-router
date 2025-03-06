@@ -26,7 +26,7 @@ import AvailabliityContainer from './components/AvailabliityContainer';
 import LineupContainer from './components/LineupContainer';
 
 import { getEventDetails } from './loader';
-import { updateGame } from './action';
+import { createAttendanceForm, updateGame } from './action';
 
 const availabilityOptions = [
     { value: 'Yes, I will be there', key: 'yes' },
@@ -63,35 +63,9 @@ export async function action({ request, params }) {
 
     if (_action === 'update-game') {
         return updateGame({ values, eventId });
-    } else if (_action === 'create-attendance') {
-        try {
-            const team = formData.get('team');
-            const gameDate = formData.get('gameDate');
-            const opponent = formData.get('opponent');
-            const gameId = formData.get('gameId');
-
-            const url = new URL(request.url);
-            const baseUrl = url.origin;
-
-            const response = await fetch(`${baseUrl}/api/create-attendance`, {
-                method: 'POST',
-                body: JSON.stringify({ team: JSON.parse(team), gameDate, opponent, gameId }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData?.error || `HTTP error! status: ${response.status}`);
-            }
-
-            const formResponse = await response.json();
-
-            // Return a success message or the form response
-            return { success: true, formResponse };
-
-        } catch (error) {
-            console.error("Error creating attendance:", error);
-            return { success: false, error: error.message };
-        }
+    }
+    if (_action === 'create-attendance') {
+        return createAttendanceForm({ values, request });
     }
 }
 
