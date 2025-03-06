@@ -29,3 +29,32 @@ export async function updateGame({ values, eventId }) {
         throw error;
     }
 }
+
+export async function createAttendanceForm({ values, request }) {
+    const { team, gameDate, opponent, gameId } = values;
+
+    try {
+
+        const url = new URL(request.url);
+        const baseUrl = url.origin;
+
+        const response = await fetch(`${baseUrl}/api/create-attendance`, {
+            method: 'POST',
+            body: JSON.stringify({ team: JSON.parse(team), gameDate, opponent, gameId }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData?.error || `HTTP error! status: ${response.status}`);
+        }
+
+        const formResponse = await response.json();
+
+        // Return a success message or the form response
+        return { success: true, formResponse };
+
+    } catch (error) {
+        console.error("Error creating attendance:", error);
+        return { success: false, error: error.message };
+    }
+}
