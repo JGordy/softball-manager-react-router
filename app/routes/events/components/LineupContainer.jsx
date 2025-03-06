@@ -30,6 +30,7 @@ export default function LineupContainer({
     }
 
     // NOTE: Uses an algorithim I created to generate a lineup and fielding chart
+    // TODO: We need to make a request to save this to the appwrite database
     const handleCreateCharts = () => {
         if (hasEnoughPlayers) {
             setLocalChart();
