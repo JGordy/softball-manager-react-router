@@ -50,7 +50,7 @@ const PositionSelect = React.memo(({ row, inning, handlePositionChange, position
     );
 });
 
-const PlayerChart = ({ playerChart, setPlayerChart }) => {
+const PlayerChart = ({ playerChart, setPlayerChart, managerView }) => {
     const [scrolled, setScrolled] = useState(false);
     const [inningPositions, setInningPositions] = useState({});
 
@@ -99,17 +99,8 @@ const PlayerChart = ({ playerChart, setPlayerChart }) => {
             return updatedPositions;
         });
 
-        setPlayerChart(prevChart => {
-            return prevChart.map(player => {
-                if (player.name === playerName) {
-                    const inningIndex = parseInt(inning.replace('inning', ''), 10) - 1;
-                    const updatedPositions = [...player.positions];
-                    updatedPositions[inningIndex] = position;
-                    return { ...player, positions: updatedPositions };
-                }
-                return player;
-            });
-        });
+        setPlayerChart(position, playerName, inning);
+
     }, [setPlayerChart]);
 
     const getPositionOptions = useCallback((preferredPositions) => {
@@ -156,13 +147,17 @@ const PlayerChart = ({ playerChart, setPlayerChart }) => {
 
                                         return (
                                             <Table.Td key={column.accessor}>
-                                                <PositionSelect
-                                                    row={row}
-                                                    inning={inning}
-                                                    handlePositionChange={handlePositionChange}
-                                                    positionData={positionData}
-                                                    playerChart={playerChart}
-                                                />
+                                                {managerView ? (
+                                                    <PositionSelect
+                                                        row={row}
+                                                        inning={inning}
+                                                        handlePositionChange={handlePositionChange}
+                                                        positionData={positionData}
+                                                        playerChart={playerChart}
+                                                    />
+                                                ) : (
+                                                    <Text>{row[inning]}</Text>
+                                                )}
                                             </Table.Td>
                                         );
                                     } else {
