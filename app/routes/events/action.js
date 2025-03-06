@@ -59,10 +59,12 @@ export async function createAttendanceForm({ values, request }) {
     }
 }
 
-export async function savePlayerChart() {
+export async function savePlayerChart({ values }) {
+    console.log('savePlayerChart: ', { values });
     // TODO: Save created lineup to appwrite database
 }
 
-export async function generatepLayerChart() {
+export async function generatePlayerChart({ values }) {
+    console.log('generatePlayerChart: ', { values });
     // TODO: Generate a batting lineup and fielding chart using gen AI
 }
