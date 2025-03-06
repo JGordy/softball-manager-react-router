@@ -1,4 +1,4 @@
-import { useOutletContext } from 'react-router';
+import { useOutletContext, useFetcher } from 'react-router';
 
 import {
     Anchor,
@@ -25,15 +25,18 @@ const availabilityIcon = {
 
 export default function AvailabliityContainer({
     availability,
-    gameDate,
-    handleAttendanceFormClick,
+    game,
     managerView,
     players,
+    team,
 }) {
+
+    const fetcher = useFetcher();
 
     const { user } = useOutletContext();
     const currentUserId = user.$id;
 
+    const { gameDate, opponent, $id: gameId } = game;
     const { form, responses } = availability;
 
     const formCreated = !!form?.formId;
@@ -42,15 +45,41 @@ export default function AvailabliityContainer({
     const gameDay = new Date(gameDate);
     const isGameToday = gameDay.toDateString() === today.toDateString();
 
+    const handleAttendanceFormClick = async () => {
+        try {
+            const formData = new FormData();
+            formData.append('_action', 'create-attendance');
+            formData.append('team', JSON.stringify(team));
+            formData.append('gameDate', gameDate);
+            formData.append('opponent', opponent);
+            formData.append('gameId', gameId);
+
+            fetcher.submit(formData, { method: 'post', action: `/events/${gameId}` }); // Use fetcher.submit
+        } catch (error) {
+            console.error('Error submitting attendance form:', error);
+        }
+    };
+
     if (!formCreated) {
         return (
             <>
                 {managerView ? (
                     <>
                         <Text align="center" c="dimmed" my="lg">An availabliity form for this game has not yet been created. Create one below.</Text >
-                        <Button mt="sm" onClick={handleAttendanceFormClick} fullWidth>
+                        <Button
+                            mt="sm"
+                            onClick={handleAttendanceFormClick}
+                            loading={fetcher.state === 'loading'}
+                            disabled={fetcher.state === 'loading'}
+                            fullWidth
+                        >
                             Generate Availabliity Form
                         </Button>
+                        {fetcher.state === 'error' && (
+                            <Text c="red" mt="sm">
+                                An error occurred while generating the form.
+                            </Text>
+                        )}
                     </>
                 ) : (
                     <Text align="center" c="dimmed" my="lg">
