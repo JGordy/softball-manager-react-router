@@ -20,7 +20,7 @@ import {
     Title,
 } from '@mantine/core';
 
-import AutocompleteEmail from '@/components/AutoCompleteEmail';
+import AutocompleteEmail from '@/components/AutocompleteEmail';
 
 import register from './utils/register';
 

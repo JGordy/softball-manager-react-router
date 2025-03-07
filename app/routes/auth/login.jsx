@@ -21,7 +21,7 @@ import { account } from '@/appwrite';
 
 import { useAuth } from '@/contexts/auth/useAuth';
 
-import AutocompleteEmail from '@/components/AutoCompleteEmail';
+import AutocompleteEmail from '@/components/AutocompleteEmail';
 
 import login from './utils/login';
 

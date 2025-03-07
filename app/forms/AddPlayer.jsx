@@ -7,7 +7,7 @@ import {
 
 import { IMaskInput } from 'react-imask';
 
-import AutocompleteEmail from '@/components/AutoCompleteEmail';
+import AutocompleteEmail from '@/components/AutocompleteEmail';
 
 import positions from '@/constants/positions';
 
