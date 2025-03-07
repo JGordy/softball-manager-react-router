@@ -5,6 +5,10 @@ import tsconfigPaths from "vite-tsconfig-paths";
 import netlifyPlugin from '@netlify/vite-plugin-react-router'
 
 export default defineConfig({
+    build: {
+        manifest: true,
+        outDir: 'build/client',
+    },
     plugins: [
         tailwindcss(),
         reactRouter(),
