@@ -13,7 +13,7 @@ import {
 } from '@mantine/core';
 import { modals } from '@mantine/modals';
 
-import { IconClock, IconMapPin } from '@tabler/icons-react';
+// import { IconClock, IconMapPin } from '@tabler/icons-react';
 
 import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
@@ -176,12 +176,12 @@ export default function EventDetails({ loaderData, actionData }) {
             )}
 
             <Group gap="xs" justify="center" mt="md">
-                <IconClock size={18} />
+                {/* <IconClock size={18} /> */}
                 {formattedGameTime}
             </Group>
 
             <Group gap="xs" justify="center" mt="md">
-                <IconMapPin size={18} />
+                {/* <IconMapPin size={18} /> */}
                 {season?.location}
             </Group>
 

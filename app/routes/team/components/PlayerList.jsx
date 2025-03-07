@@ -10,7 +10,7 @@ import {
 } from '@mantine/core'
 import { modals } from '@mantine/modals';
 
-import { IconPlus, IconClipboardCheck } from '@tabler/icons-react';
+// import { IconPlus, IconClipboardCheck } from '@tabler/icons-react';
 
 import PlayerDetails from '@/components/PlayerDetails';
 import PersonalDetails from '@/components/PersonalDetails';
@@ -67,7 +67,7 @@ export default function PlayerList({
                     autoContrast
                     fullWidth
                 >
-                    <IconPlus size={20} />
+                    {/* <IconPlus size={20} /> */}
                     Add Player
                 </Button>
             )}
@@ -90,7 +90,7 @@ export default function PlayerList({
                                     </Text>
                                     {player.$id === managerId && (
                                         <Text>
-                                            <IconClipboardCheck size={20} />
+                                            {/* <IconClipboardCheck size={20} /> */}
                                         </Text>
                                     )}
                                 </Group>

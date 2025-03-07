@@ -3,25 +3,25 @@ import { useNavigate, useLocation } from 'react-router';
 
 import { Center, SegmentedControl } from '@mantine/core';
 
-import {
-    IconBallBaseball,
-    IconCalendar,
-    IconHome,
-    IconUserSquareRounded
-} from '@tabler/icons-react';
+// import {
+//     IconBallBaseball,
+//     IconCalendar,
+//     IconHome,
+//     IconUserSquareRounded
+// } from '@tabler/icons-react';
 
 import { useAuth } from '@/contexts/auth/useAuth';
 
 import classes from '@/styles/navlinks.module.css';
 
-function Label({ Icon, text }) {
-    return (
-        <Center style={{ gap: 10 }}>
-            <Icon size={24} />
-            <span>{text}</span>
-        </Center>
-    );
-}
+// function Label({ Icon, text }) {
+//     return (
+//         <Center style={{ gap: 10 }}>
+//             <Icon size={24} />
+//             <span>{text}</span>
+//         </Center>
+//     );
+// }
 
 function NavLinks() {
     const { user } = useAuth();
@@ -49,20 +49,20 @@ function NavLinks() {
 
     const links = [
         {
-            label: <Label Icon={IconHome} text={(value === 'home') && "Home"} />,
+            // label: <Label Icon={IconHome} text={(value === 'home') && "Home"} />,
             value: 'home'
 
         },
         {
-            label: <Label Icon={IconBallBaseball} text={(value === 'teams') && "Teams"} />,
+            // label: <Label Icon={IconBallBaseball} text={(value === 'teams') && "Teams"} />,
             value: 'teams'
         },
         {
-            label: <Label Icon={IconCalendar} text={(value === 'events') && "Events"} />,
+            // label: <Label Icon={IconCalendar} text={(value === 'events') && "Events"} />,
             value: 'events',
         },
         {
-            label: <Label Icon={IconUserSquareRounded} text={(value === 'user') && "Profile"} />,
+            // label: <Label Icon={IconUserSquareRounded} text={(value === 'user') && "Profile"} />,
             value: 'user'
 
         },

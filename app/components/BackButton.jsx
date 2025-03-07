@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router";
 import { Anchor, Group, useComputedColorScheme } from '@mantine/core';
 
-import { IconChevronLeft } from '@tabler/icons-react';
+// import { IconChevronLeft } from '@tabler/icons-react';
 
 export default function BackButton({ text = 'Go Back', to }) {
 
@@ -19,7 +19,7 @@ export default function BackButton({ text = 'Go Back', to }) {
             component="button"
         >
             <Group gap="0px">
-                <IconChevronLeft />
+                {/* <IconChevronLeft /> */}
                 {text}
             </Group>
         </Anchor>

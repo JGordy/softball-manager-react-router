@@ -12,7 +12,7 @@ import {
 } from '@mantine/core';
 
 import { TimeInput } from '@mantine/dates';
-import { IconClock } from '@tabler/icons-react';
+// import { IconClock } from '@tabler/icons-react';
 
 import GamesTable from '@/components/GamesTable';
 
@@ -123,7 +123,7 @@ export default function GenerateSeasonGames({
 
     const pickerControl = (
         <ActionIcon variant="subtle" color="gray" onClick={() => ref.current?.showPicker()}>
-            <IconClock size={16} stroke={1.5} />
+            {/* <IconClock size={16} stroke={1.5} /> */}
         </ActionIcon>
     );
 

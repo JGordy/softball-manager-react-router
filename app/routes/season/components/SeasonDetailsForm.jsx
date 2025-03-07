@@ -11,7 +11,7 @@ import {
 
 import { DatePickerInput } from '@mantine/dates';
 
-import { IconCalendar, IconCurrencyDollar } from '@tabler/icons-react';
+// import { IconCalendar, IconCurrencyDollar } from '@tabler/icons-react';
 
 import classes from '@/styles/inputs.module.css';
 
@@ -72,14 +72,14 @@ export default function SeasonForm({
                 label="Sign Up Fee"
                 name="signUpFee"
                 clampBehavior="strict"
-                leftSection={<IconCurrencyDollar size={18} />}
+                // leftSection={<IconCurrencyDollar size={18} />}
                 min={0}
                 max={200}
                 step={5}
             />
             <DatePickerInput
                 className={classes.inputs}
-                leftSection={<IconCalendar {...iconProps} />}
+                // leftSection={<IconCalendar {...iconProps} />}
                 label="Season Start Date"
                 name="startDate"
                 placeholder="Pick a date"

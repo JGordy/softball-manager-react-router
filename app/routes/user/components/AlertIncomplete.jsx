@@ -1,5 +1,5 @@
 import { Alert } from "@mantine/core";
-import { IconInfoCircle } from "@tabler/icons-react";
+// import { IconInfoCircle } from "@tabler/icons-react";
 
 export default function AlertIncomplete({ incompleteData, handleAlertClose }) {
     return (
@@ -7,7 +7,7 @@ export default function AlertIncomplete({ incompleteData, handleAlertClose }) {
             my="sm"
             autoContrast
             color="orange"
-            icon={<IconInfoCircle />}
+            // icon={<IconInfoCircle />}
             radius="xl"
             title="Your profile is incomplete!"
         >
