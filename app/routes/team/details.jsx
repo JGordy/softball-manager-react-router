@@ -10,11 +10,11 @@ import {
 } from '@mantine/core';
 import { modals } from '@mantine/modals';
 
-// import {
-//     IconCalendarMonth,
-//     IconUsersGroup,
-//     IconBallBaseball,
-// } from '@tabler/icons-react';
+import {
+    IconCalendarMonth,
+    IconUsersGroup,
+    IconBallBaseball,
+} from '@tabler/icons-react';
 
 import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
@@ -113,26 +113,13 @@ export default function TeamDetails({ actionData, loaderData }) {
 
             <Tabs color={primaryColor} radius="md" defaultValue="seasons" mt="xl">
                 <Tabs.List grow justify="center">
-                    <Tabs.Tab
-                        value="roster"
-                        size="lg"
-                    // leftSection={<IconUsersGroup size={16} />}
-                    >
+                    <Tabs.Tab value="roster" size="lg" leftSection={<IconUsersGroup size={16} />}>
                         Roster
                     </Tabs.Tab>
-                    <Tabs.Tab
-                        value="seasons"
-                        size="lg"
-                    // leftSection={<IconCalendarMonth size={16} />}
-                    >
+                    <Tabs.Tab value="seasons" size="lg" leftSection={<IconCalendarMonth size={16} />}>
                         Seasons
                     </Tabs.Tab>
-                    <Tabs.Tab
-                        value="games"
-                        size="lg"
-                        // leftSection={<IconBallBaseball size={16} />}
-                        disabled={seasons.length === 0}
-                    >
+                    <Tabs.Tab value="games" size="lg" leftSection={<IconBallBaseball size={16} />} disabled={seasons.length === 0}>
                         Games
                     </Tabs.Tab>
                 </Tabs.List>

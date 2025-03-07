@@ -10,7 +10,7 @@ import {
 
 import PlayerChart from '@components/PlayerChart';
 
-// import { IconWand, IconPrinter, IconSparkles } from '@tabler/icons-react';
+import { IconWand, IconPrinter, IconSparkles } from '@tabler/icons-react';
 
 import createBattingOrder from './utils/createBattingOrder';
 import createFieldingChart from './utils/createFieldingChart';
@@ -119,7 +119,7 @@ function Lineup({ loaderData, actionData }) {
                         loading={isLoading}
                         onClick={handleGenerateLineup}
                     >
-                        {/* <IconSparkles size={18} /> */}
+                        <IconSparkles size={18} />
                         Generate Lineup
                     </Button>
                 </Group>
@@ -135,7 +135,7 @@ function Lineup({ loaderData, actionData }) {
                         setPlayerChart={setPlayerChart}
                     />
                     <Button onClick={handlePrint}>
-                        {/* <IconPrinter size={18} /> */}
+                        <IconPrinter size={18} />
                         Print/Download
                     </Button>
                 </>

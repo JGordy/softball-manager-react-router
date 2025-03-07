@@ -8,20 +8,20 @@ import {
     Text,
 } from '@mantine/core';
 
-// import {
-//     IconCancel,
-//     IconCircleCheckFilled,
-//     IconExternalLink,
-//     IconHelpTriangleFilled,
-//     IconSquareXFilled,
-// } from '@tabler/icons-react';
+import {
+    IconCancel,
+    IconCircleCheckFilled,
+    IconExternalLink,
+    IconHelpTriangleFilled,
+    IconSquareXFilled,
+} from '@tabler/icons-react';
 
-// const availabilityIcon = {
-//     yes: <IconCircleCheckFilled size={24} color="green" />,
-//     no: <IconSquareXFilled size={24} color="red" />,
-//     maybe: <IconHelpTriangleFilled size={24} color="gray" />,
-//     noResponse: <IconCancel size={24} color="orange" />,
-// }
+const availabilityIcon = {
+    yes: <IconCircleCheckFilled size={24} color="green" />,
+    no: <IconSquareXFilled size={24} color="red" />,
+    maybe: <IconHelpTriangleFilled size={24} color="gray" />,
+    noResponse: <IconCancel size={24} color="orange" />,
+}
 
 export default function AvailabliityContainer({
     availability,
@@ -106,7 +106,7 @@ export default function AvailabliityContainer({
             <Group justify="space-between">
                 <Text fw={700}>{player.firstName} {player.lastName}</Text>
                 <Text>{player.preferredPositions?.[0]}</Text>
-                {/* {availabilityIcon[player.available]} */}
+                {availabilityIcon[player.available]}
             </Group>
         </Paper>
     ));
@@ -114,11 +114,11 @@ export default function AvailabliityContainer({
     return (
         <>
             <Group mb="lg" justify="space-between">
-                {/* {Object.keys(availabilityIcon).map(key => (
+                {Object.keys(availabilityIcon).map(key => (
                     <Group gap="2px" key={key}>
                         {availabilityIcon[key]} - {key.toLowerCase()}
                     </Group>
-                ))} */}
+                ))}
             </Group>
             {formHasResponses && renderPlayerAvailability()}
 
@@ -138,7 +138,7 @@ export default function AvailabliityContainer({
                         fw={700}
                     >
                         <Button mt="lg" fullWidth>
-                            {/* <IconExternalLink size={18} style={{ display: 'inline', marginRight: '5px' }} /> */}
+                            <IconExternalLink size={18} style={{ display: 'inline', marginRight: '5px' }} />
                             Add your availability
                         </Button>
                     </Anchor>

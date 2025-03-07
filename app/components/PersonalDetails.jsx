@@ -7,30 +7,30 @@ import {
     Title,
 } from "@mantine/core";
 
-// import {
-//     IconFriends,
-//     IconHeadphonesFilled,
-//     IconMail,
-//     IconPhone,
-// } from '@tabler/icons-react';
+import {
+    IconFriends,
+    IconHeadphonesFilled,
+    IconMail,
+    IconPhone,
+} from '@tabler/icons-react';
 
 const fields = {
     email: {
-        // icon: <IconMail size={20} />,
+        icon: <IconMail size={20} />,
         label: 'email',
         restricted: true,
     },
     phoneNumber: {
-        // icon: <IconPhone size={20} />,
+        icon: <IconPhone size={20} />,
         label: 'phone number',
         restricted: true,
     },
     gender: {
-        // icon: <IconFriends size={20} />,
+        icon: <IconFriends size={20} />,
         label: 'gender',
     },
     walkUpSong: {
-        // icon: <IconHeadphonesFilled size={20} />,
+        icon: <IconHeadphonesFilled size={20} />,
         label: 'walk up song',
     },
 };

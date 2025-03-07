@@ -9,10 +9,10 @@ import {
     useComputedColorScheme,
 } from '@mantine/core';
 
-// import {
-//     IconCalendar,
-//     IconFriends,
-// } from '@tabler/icons-react';
+import {
+    IconCalendar,
+    IconFriends,
+} from '@tabler/icons-react';
 
 import { adjustColorBasedOnDarkness } from '@/utils/adjustHexColor';
 
@@ -98,18 +98,18 @@ export default function TeamCard({ team }) {
 
                 <Group mt="sm" gap="xs">
                     <Group gap="xs">
-                        {/* <ThemeIcon {...iconProps}>
+                        <ThemeIcon {...iconProps}>
                             <IconCalendar size={16} />
-                        </ThemeIcon> */}
+                        </ThemeIcon>
                         <Text size="md">
                             {getSeasonStatus()}
                         </Text>
                     </Group>
                     {team.genderMix && (
                         <Group gap="xs">
-                            {/* <ThemeIcon {...iconProps}>
+                            <ThemeIcon {...iconProps}>
                                 <IconFriends size={18} />
-                            </ThemeIcon> */}
+                            </ThemeIcon>
                             <Text size="md">
                                 {team.genderMix}
                             </Text>

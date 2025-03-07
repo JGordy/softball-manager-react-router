@@ -9,7 +9,7 @@ import {
 } from '@mantine/core';
 import { modals } from '@mantine/modals';
 
-// import { IconPlus } from '@tabler/icons-react';
+import { IconPlus } from '@tabler/icons-react';
 
 import AddSeason from '@/forms/AddSeason';
 
@@ -90,7 +90,7 @@ export default function SeasonList({
             autoContrast
             fullWidth
         >
-            {/* <IconPlus size={20} /> */}
+            <IconPlus size={20} />
             Add New Season
         </Button>
     );

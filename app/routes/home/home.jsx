@@ -16,7 +16,7 @@ import {
     redirect,
 } from 'react-router';
 
-// import { IconMapPin } from '@tabler/icons-react';
+import { IconMapPin } from '@tabler/icons-react';
 
 import { account } from '@/appwrite';
 
@@ -127,7 +127,7 @@ export default function HomePage({ loaderData }) {
                                     {formatGameTime(nextGame.gameDate, nextGame.timeZone)}
                                 </Text>
                                 <Group gap="2px">
-                                    {/* <IconMapPin size={16} /> */}
+                                    <IconMapPin size={16} />
                                     <Text>{nextGame.location}</Text>
                                 </Group>
                             </Group>

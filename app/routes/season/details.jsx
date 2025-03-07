@@ -10,14 +10,14 @@ import {
 } from '@mantine/core';
 import { modals } from '@mantine/modals';
 
-// import {
-//     IconCalendar,
-//     IconCalendarRepeat,
-//     IconCurrencyDollar,
-//     IconFriends,
-//     IconMapPin,
-//     IconPlus,
-// } from '@tabler/icons-react';
+import {
+    IconCalendar,
+    IconCalendarRepeat,
+    IconCurrencyDollar,
+    IconFriends,
+    IconMapPin,
+    IconPlus,
+} from '@tabler/icons-react';
 
 import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
@@ -134,28 +134,28 @@ export default function SeasonDetails({ loaderData, actionData }) {
 
             <Group mt="sm" justify="space-between">
                 <Group gap="5px">
-                    {/* <IconMapPin size={18} /> */}
+                    <IconMapPin size={18} />
                     <Text {...textProps}>
                         {season.location || "Not specified"}
                     </Text>
                 </Group>
 
                 <Group gap="5px">
-                    {/* <IconCalendarRepeat size={18} /> */}
+                    <IconCalendarRepeat size={18} />
                     <Text {...textProps}>
                         {`${season.gameDays}s`}
                     </Text>
                 </Group>
 
                 <Group gap="5px">
-                    {/* <IconFriends size={18} /> */}
+                    <IconFriends size={18} />
                     <Text {...textProps}>
                         {season.leagueType}
                     </Text>
                 </Group>
 
                 <Group gap="5px">
-                    {/* <IconCurrencyDollar size={18} /> */}
+                    <IconCurrencyDollar size={18} />
                     <Text {...textProps}>
                         {`${season.signUpFee || 'TBD'}/player`}
                     </Text>
@@ -175,7 +175,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
                         fullWidth
                         autoContrast
                     >
-                        {/* <IconCalendar size={18} /> */}
+                        <IconCalendar size={18} />
                         Generate games
                     </Button>
 
@@ -198,7 +198,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
                 fullWidth
                 autoContrast
             >
-                {/* <IconPlus size={18} /> */}
+                <IconPlus size={18} />
                 Create Single Game
             </Button>
         </Container>

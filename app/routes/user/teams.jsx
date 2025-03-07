@@ -14,7 +14,7 @@ import {
 } from '@mantine/core';
 import { modals } from '@mantine/modals';
 
-// import { IconPlus } from '@tabler/icons-react';
+import { IconPlus } from '@tabler/icons-react';
 
 import LoaderDots from '@/components/LoaderDots';
 import UserHeader from '@/components/UserHeader';
@@ -149,7 +149,7 @@ const UserDashboard = ({ loaderData }) => {
             )}
 
             <Button component="div" variant="link" mt="md" onClick={openAddTeamModal} fullWidth>
-                {/* <IconPlus size={20} /> */}
+                <IconPlus size={20} />
                 Create New Team
             </Button>
         </Container>

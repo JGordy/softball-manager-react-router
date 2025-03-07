@@ -1,7 +1,7 @@
 import { Button, Card, Group, ScrollArea, Text } from '@mantine/core';
 import { modals } from '@mantine/modals';
 
-// import { IconPlus } from '@tabler/icons-react';
+import { IconPlus } from '@tabler/icons-react';
 
 import AddSingleGame from '@/forms/AddSingleGame';
 
@@ -81,7 +81,7 @@ export default function GamesList({
                     autoContrast
                     fullWidth
                 >
-                    {/* <IconPlus size={20} /> */}
+                    <IconPlus size={20} />
                     Add New Game
                 </Button>
             )}

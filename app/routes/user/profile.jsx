@@ -10,13 +10,13 @@ import {
 } from '@mantine/core';
 import { modals } from '@mantine/modals';
 
-// import {
-//     IconBellRingingFilled,
-//     IconFriends,
-//     IconHeadphonesFilled,
-//     IconMail,
-//     IconPhone,
-// } from '@tabler/icons-react';
+import {
+    IconBellRingingFilled,
+    IconFriends,
+    IconHeadphonesFilled,
+    IconMail,
+    IconPhone,
+} from '@tabler/icons-react';
 
 import { useAuth } from '@/contexts/auth/useAuth';
 
@@ -33,19 +33,19 @@ import { updateUser } from './action';
 
 const fieldsToDisplay = {
     email: {
-        // icon: <IconMail size={20} />,
+        icon: <IconMail size={20} />,
         label: 'email',
     },
     phoneNumber: {
-        // icon: <IconPhone size={20} />,
+        icon: <IconPhone size={20} />,
         label: 'phone number',
     },
     gender: {
-        // icon: <IconFriends size={20} />,
+        icon: <IconFriends size={20} />,
         label: 'gender',
     },
     walkUpSong: {
-        // icon: <IconHeadphonesFilled size={20} />,
+        icon: <IconHeadphonesFilled size={20} />,
         label: 'walk up song',
     },
 };
@@ -125,7 +125,7 @@ export default function UserProfile() {
                     <Popover position="bottom" withArrow shadow="md">
                         <Popover.Target>
                             <Indicator inline processing color="red" size={12} disabled={!showIndicator}>
-                                {/* <IconBellRingingFilled size={24} /> */}
+                                <IconBellRingingFilled size={24} />
                             </Indicator>
                         </Popover.Target>
                         <Popover.Dropdown>
