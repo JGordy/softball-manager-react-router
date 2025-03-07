@@ -1,6 +1,8 @@
 import { memo } from 'react';
 
-import { Outlet } from "react-router";
+import { Outlet, useNavigation } from "react-router";
+
+import { LoadingOverlay } from '@mantine/core';
 import { Notifications } from "@mantine/notifications";
 
 import NavLinks from "@/components/NavLinks";
@@ -52,10 +54,14 @@ export function HydrateFallback() {
 function Layout({ loaderData }) {
     const { user } = loaderData;
 
+    const navigation = useNavigation();
+    const isNavigating = Boolean(navigation.location);
+
     return (
         <div>
             <main>
                 <Notifications />
+                <LoadingOverlay visible={isNavigating} zIndex={500} overlayProps={{ radius: "sm", blur: 3, }} />
                 <Outlet context={{ user }} />
                 <NavLinks />
             </main>
