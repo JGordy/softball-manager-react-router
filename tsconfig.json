@@ -29,25 +29,25 @@
                 "./app/*",
             ],
             "@/*": [
-                "app/*"
+                "./app/*"
             ],
             "@components/*": [
-                "app/components/*"
+                "./app/components/*"
             ],
             "@constants": [
-                "/app/constants/*"
+                "./app/constants/*"
             ],
             "@contexts": [
-                "/app/contexts/*"
+                "./app/contexts/*"
             ],
             "@form": [
-                "/app/forms/*"
+                "./app/forms/*"
             ],
             "@routes": [
-                "/app/routes/*"
+                "./app/routes/*"
             ],
             "@styles": [
-                "/app/styles/*"
+                "./app/styles/*"
             ],
         },
         "esModuleInterop": true,

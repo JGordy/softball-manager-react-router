@@ -9,7 +9,8 @@ export default defineConfig({
         tailwindcss(),
         reactRouter(),
         tsconfigPaths(),
-        netlifyPlugin()],
+        netlifyPlugin(),
+    ],
     resolve: {
         alias: {
             '@': '/app',
