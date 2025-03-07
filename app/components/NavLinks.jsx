@@ -12,7 +12,7 @@ import {
 
 import { useAuth } from '@/contexts/auth/useAuth';
 
-import classes from '@/styles/navLinks.module.css';
+import classes from '@/styles/navlinks.module.css';
 
 function Label({ Icon, text }) {
     return (
