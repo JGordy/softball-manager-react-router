@@ -61,7 +61,12 @@ function Layout({ loaderData }) {
         <div>
             <main>
                 <Notifications />
-                <LoadingOverlay visible={isNavigating} zIndex={500} overlayProps={{ radius: "sm", blur: 3, }} />
+                <LoadingOverlay
+                    visible={isNavigating}
+                    zIndex={500}
+                    loaderProps={{ color: 'green', size: 'xl', type: 'dots' }}
+                    overlayProps={{ radius: "sm", blur: 3, }}
+                />
                 <Outlet context={{ user }} />
                 <NavLinks />
             </main>
