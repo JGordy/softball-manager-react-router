@@ -26,8 +26,29 @@
         "baseUrl": ".",
         "paths": {
             "~/*": [
-                "./app/*"
-            ]
+                "./app/*",
+            ],
+            "@/*": [
+                "app/*"
+            ],
+            "@components/*": [
+                "app/components/*"
+            ],
+            "@constants": [
+                "/app/constants/*"
+            ],
+            "@contexts": [
+                "/app/contexts/*"
+            ],
+            "@form": [
+                "/app/forms/*"
+            ],
+            "@routes": [
+                "/app/routes/*"
+            ],
+            "@styles": [
+                "/app/styles/*"
+            ],
         },
         "esModuleInterop": true,
         "verbatimModuleSyntax": true,
