@@ -119,7 +119,11 @@ function Layout({ children, context }) {
 export default function App({ loaderData }) {
     const { darkMode } = loaderData;
 
-    return <Layout context={{ darkMode }}><Outlet /></Layout>; // Pass darkMode through context
+    return (
+        <Layout context={{ darkMode }}>
+            <Outlet />
+        </Layout>
+    );
 }
 
 export function ErrorBoundary({ error }) {
