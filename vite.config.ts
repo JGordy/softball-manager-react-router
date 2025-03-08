@@ -8,6 +8,8 @@ export default defineConfig({
     build: {
         manifest: true,
         outDir: 'build/client',
+        ssr: 'build/server/server.js',
+        ssrManifest: true,
     },
     plugins: [
         tailwindcss(),
