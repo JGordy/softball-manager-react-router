@@ -1,12 +1,12 @@
-import { useState } from 'react';
 import { useOutletContext, Link } from 'react-router';
 
 import {
+    ActionIcon,
     Button,
     Card,
     Container,
     Group,
-    List,
+    ScrollArea,
     Text,
     Title,
 } from '@mantine/core';
@@ -16,7 +16,7 @@ import {
     redirect,
 } from 'react-router';
 
-import { IconMapPin } from '@tabler/icons-react';
+import { IconMapPin, IconPlus } from '@tabler/icons-react';
 
 import { account } from '@/appwrite';
 
@@ -84,12 +84,11 @@ export default function HomePage({ loaderData }) {
     console.log('/home ', { loaderData });
     const teams = loaderData?.teams;
 
-    const teamsData = [...teams?.managing, ...teams?.playing];
+    const teamList = [...teams?.managing, ...teams?.playing];
 
     // const actionData = useActionData();
-    const [teamList, setTeamList] = useState(teamsData || []);
 
-    const { futureGames } = getGames({ teams: teamsData });
+    const { futureGames } = getGames({ teams: teamList });
     const nextGame = futureGames?.slice(0, 1)?.[0];
 
     const daysUntilNextGame = (date) => {
@@ -140,17 +139,26 @@ export default function HomePage({ loaderData }) {
                 My Teams
             </Title>
             <Card radius="md" py="lg" withBorder>
-                <List size="sm" maw={400}>
-                    {teamList.map((team, index) => (
-                        <List.Item key={index}>
-                            {team.name} ({team.leagueName})
-                        </List.Item>
-                    ))}
-                </List>
-
-                <Button component="a" variant="link" mt="md" onClick={() => { }}>
-                    Create New Team
-                </Button>
+                <ScrollArea.Autosize scrollbars="x">
+                    <Group miw={400} wrap="nowrap">
+                        <Card align="center" px="0">
+                            {/* TODO: Open create team modal here */}
+                            <Button variant="transparent" onClick={() => { }}>
+                                <Text align="center" style={{ whiteSpace: 'nowrap' }}>
+                                    <IconPlus size={18} />
+                                    Add Team
+                                </Text>
+                            </Button>
+                        </Card>
+                        {teamList.map((team, index) => (
+                            <Card key={index} bg={team.primaryColor}>
+                                <Text style={{ whiteSpace: 'nowrap' }}>
+                                    {team.name}
+                                </Text>
+                            </Card>
+                        ))}
+                    </Group>
+                </ScrollArea.Autosize>
             </Card>
         </Container>
     );
