@@ -19,6 +19,7 @@
         "@react-router/node": "^7.3.0",
         "@react-router/serve": "^7.3.0",
         "@tabler/icons-react": "^3.29.0",
+        "@vercel/react-router": "^1.1.0",
         "appwrite": "^17.0.0",
         "clsx": "^2.1.1",
         "cookie": "^1.0.2",
