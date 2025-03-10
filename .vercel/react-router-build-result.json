@@ -3,7 +3,7 @@
         "serverBundles": {
             "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0": {
                 "id": "nodejs_eyJydW50aW1lIjoibm9kZWpzIn0",
-                "file": "build/server/nodejs_eyJydW50aW1lIjoibm9kZWpzIn0/index.js",
+                "file": "build/server/nodejs_eyJydW50aW1lIjoibm9kZWpzIn0/server.js",
                 "config": {
                     "runtime": "nodejs"
                 }
@@ -300,7 +300,7 @@
                 "path": "/api/user"
             }
         },
-        "serverBuildFile": "index.js",
+        "serverBuildFile": "server.js",
         "serverModuleFormat": "esm",
         "ssr": true
     },
