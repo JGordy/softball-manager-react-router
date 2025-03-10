@@ -3,9 +3,9 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vite build --ssr",
-        "start": "node server.js",
+        "build": "react-router build",
         "dev": "react-router dev",
+        "start": "react-router-serve ./build/server/server.js",
         "typecheck": "react-router typegen && tsc"
     },
     "dependencies": {
