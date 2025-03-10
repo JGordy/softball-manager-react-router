@@ -88,8 +88,9 @@ export default function HomePage({ loaderData }) {
 
     // const actionData = useActionData();
 
-    const { futureGames } = getGames({ teams: teamList });
+    const { futureGames, pastGames } = getGames({ teams: teamList });
     const nextGame = futureGames?.slice(0, 1)?.[0];
+    const mostRecentGame = pastGames?.slice(0, 1)?.[0];
 
     const daysUntilNextGame = (date) => {
         const today = new Date();
@@ -101,7 +102,20 @@ export default function HomePage({ loaderData }) {
 
         return ` in ${daysUntilText}!`;
     };
-    console.log('/home ', { nextGame, futureGames });
+
+    const getRecentGameResult = () => {
+        const result = mostRecentGame?.result;
+        if (result === 'win') {
+            return 'green';
+        }
+
+        if (result === 'loss') {
+            return 'red';
+        }
+
+        return 'yellow';
+    }
+    console.log('/home ', { nextGame, futureGames, pastGames });
 
     return (
         <Container p="md" mih="90vh">
@@ -135,11 +149,32 @@ export default function HomePage({ loaderData }) {
                 </>
             )}
 
+            {(Object.keys(mostRecentGame).length > 0) && (
+                <>
+                    <Title order={4} mt="xl" mb="md">Most Recent Game</Title>
+                    <Link to={`/events/${mostRecentGame.$id}`}>
+                        <Card my="md" radius="md" py="lg" withBorder>
+                            <Text fw={700}>
+                                {mostRecentGame.teamName} {mostRecentGame.isHomeGame ? 'vs' : '@'} {mostRecentGame.opponent}
+                            </Text>
+                            <Group mt="xs" gap="lg">
+                                <Text>
+                                    {formatGameTime(mostRecentGame.gameDate, mostRecentGame.timeZone)}
+                                </Text>
+                                <Group gap="2px">
+                                    <Text c={getRecentGameResult()}>{mostRecentGame.result || "Results not yet live"}</Text>
+                                </Group>
+                            </Group>
+                        </Card>
+                    </Link>
+                </>
+            )}
+
             <Title order={4} my="md">
                 My Teams
             </Title>
             <Card radius="md" py="lg" withBorder>
-                <ScrollArea.Autosize scrollbars="x">
+                <ScrollArea.Autosize>
                     <Group miw={400} wrap="nowrap">
                         <Card align="center" px="0">
                             {/* TODO: Open create team modal here */}
