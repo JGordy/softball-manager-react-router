@@ -8,7 +8,7 @@ export default defineConfig({
     build: {
         manifest: true,
         outDir: 'build/client',
-        ssr: 'build/server/server.js',
+        ssr: 'build/server/nodejs_eyJydW50aW1lIjoibm9kZWpzIn0/server.js',
         ssrManifest: true,
     },
     plugins: [
