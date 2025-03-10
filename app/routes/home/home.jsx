@@ -174,7 +174,7 @@ export default function HomePage({ loaderData }) {
                 My Teams
             </Title>
             <Card radius="md" py="lg" withBorder>
-                <ScrollArea.Autosize>
+                <ScrollArea.Autosize py="5px">
                     <Group miw={400} wrap="nowrap">
                         <Card align="center" px="0">
                             {/* TODO: Open create team modal here */}
