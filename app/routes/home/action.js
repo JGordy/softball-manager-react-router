@@ -7,8 +7,6 @@ export async function createTeam({ request, params }) {
     const formData = await request.formData();
     const teamData = Object.fromEntries(formData.entries());
 
-
-
     try {
         const teamId = ID.unique(); // Create this now so it's easier to use later
 
