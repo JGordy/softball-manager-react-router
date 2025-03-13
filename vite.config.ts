@@ -20,10 +20,12 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': '/app',
+            '@actions': '/actions',
             '@components': '/app/components',
             '@constants': '/app/constants',
             '@contexts': '/app/contexts',
             '@forms': '/app/forms',
+            '@loaders': '/app/loaders',
             '@routes': '/app/routes',
             '@styles': '/app/styles',
             // /esm/icons/index.mjs only exports the icons statically, so no separate chunks are created

@@ -31,6 +31,9 @@
             "@/*": [
                 "./app/*"
             ],
+            "@actions/*": [
+                "./app/actions/*"
+            ],
             "@components/*": [
                 "./app/components/*"
             ],
@@ -42,6 +45,9 @@
             ],
             "@form": [
                 "./app/forms/*"
+            ],
+            "@loaders": [
+                "./app/loaders/*"
             ],
             "@routes": [
                 "./app/routes/*"
