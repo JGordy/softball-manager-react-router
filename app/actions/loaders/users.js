@@ -1,4 +1,5 @@
-import { readDocument } from '@/utils/databases';
+import { Query } from '@/appwrite';
+import { listDocuments, readDocument } from '@/utils/databases';
 
 export async function getUserById({ userId }) {
     return await readDocument('users', userId);
