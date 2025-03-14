@@ -77,6 +77,11 @@ export default function GamesList({
                                 <Text>
                                     {formatGameTime(game.gameDate, game.timeZone)}
                                 </Text>
+                                {game.result && (
+                                    <Text c={game.result === 'win' ? 'green' : 'red'}>
+                                        {game.result === 'win' ? 'W' : 'L'} {game.score} - {game.opponentScore}
+                                    </Text>
+                                )}
                             </Group>
                         </Card>
                     </Link>
