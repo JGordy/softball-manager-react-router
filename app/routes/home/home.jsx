@@ -1,4 +1,4 @@
-import { useOutletContext, Link } from 'react-router';
+import { Link } from 'react-router';
 
 import {
     Button,
@@ -9,11 +9,9 @@ import {
     Text,
     Title,
 } from '@mantine/core';
+import { modals } from '@mantine/modals';
 
-import {
-    // useActionData,
-    redirect,
-} from 'react-router';
+import { redirect } from 'react-router';
 
 import { IconMapPin, IconPlus } from '@tabler/icons-react';
 
@@ -22,10 +20,12 @@ import { account } from '@/appwrite';
 import LoaderDots from '@/components/LoaderDots';
 import UserHeader from '@/components/UserHeader';
 
+import AddTeam from '@/forms/AddTeam';
+import { createTeam } from '@/actions/teams';
+
 import getGames from '@/utils/getGames';
 import { formatGameTime } from '@/utils/dateTime';
 
-// import { createTeamAction } from './action';
 
 export function meta() {
     return [
@@ -34,7 +34,7 @@ export function meta() {
     ];
 }
 
-export async function loader({ request }) { };
+// export async function loader({ request }) { };
 
 export async function clientLoader({ request }) {
     try {
@@ -71,17 +71,20 @@ export function HydrateFallback() {
     return <LoaderDots message="Fetching your teams and events..." />;
 }
 
-// export async function action({ request }) {
-//     return createTeamAction({ request });
-// }
+export async function action({ request }) {
+    const formData = await request.formData();
+    const { _action, ...values } = formData;
 
-// TODO: What to actually make this page?
-// If we make this the default page the user lands on, what all should show here?
-// Keep individual pages for profile, teams, gameday, etc...
+    if (_action === 'add-team') {
+        return createTeam({ values });
+    }
+}
+
 export default function HomePage({ loaderData }) {
-    const { user } = useOutletContext();
+    // const { userId } = useOutletContext();
     console.log('/home ', { loaderData });
     const teams = loaderData?.teams;
+    const userId = loaderData?.userId;
 
     const teamList = [...teams?.managing, ...teams?.playing];
 
@@ -114,7 +117,17 @@ export default function HomePage({ loaderData }) {
 
         return 'yellow';
     }
-    console.log('/home ', { nextGame, futureGames, pastGames });
+    console.log('/home ', { nextGame, futureGames, pastGames, userId });
+
+    const openAddTeamModal = () => modals.open({
+        title: 'Add a New Team',
+        children: (
+            <AddTeam
+                actionRoute={'/'}
+                userId={userId}
+            />
+        ),
+    });
 
     return (
         <Container p="md" mih="90vh">
@@ -176,8 +189,7 @@ export default function HomePage({ loaderData }) {
                 <ScrollArea.Autosize py="5px">
                     <Group miw={400} wrap="nowrap">
                         <Card align="center" px="0">
-                            {/* TODO: Open create team modal here */}
-                            <Button variant="transparent" onClick={() => { }}>
+                            <Button variant="transparent" onClick={openAddTeamModal}>
                                 <Text align="center" style={{ whiteSpace: 'nowrap' }}>
                                     <IconPlus size={18} />
                                     Add Team
