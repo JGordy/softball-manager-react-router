@@ -42,6 +42,8 @@ const getGameStatus = (date) => {
     return null;
 };
 
+// TODO: If the game is in the past but doesn't yet have results, display a message to the user saying that.
+
 export default function GameCard({
     $id,
     gameDate,
