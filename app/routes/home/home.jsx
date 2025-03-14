@@ -80,15 +80,13 @@ export async function action({ request }) {
     }
 }
 
-export default function HomePage({ loaderData }) {
+export default function HomePage({ loaderData, actionData }) {
     // const { userId } = useOutletContext();
     console.log('/home ', { loaderData });
     const teams = loaderData?.teams;
     const userId = loaderData?.userId;
 
     const teamList = [...teams?.managing, ...teams?.playing];
-
-    // const actionData = useActionData();
 
     const { futureGames, pastGames } = getGames({ teams: teamList });
     const nextGame = futureGames?.slice(0, 1)?.[0];
