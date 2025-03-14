@@ -191,7 +191,7 @@ export default function HomePage({ loaderData, actionData }) {
                                     {formatGameTime(mostRecentGame.gameDate, mostRecentGame.timeZone)}
                                 </Text>
                                 <Group gap="2px">
-                                    <Text c={getRecentGameResult()}>{mostRecentGame.result || "Results not yet live"}</Text>
+                                    <Text c={getRecentGameResult()}>{mostRecentGame.result || "Results not posted"}</Text>
                                 </Group>
                             </Group>
                         </Card>
