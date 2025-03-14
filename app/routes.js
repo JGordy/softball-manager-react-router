@@ -15,7 +15,8 @@ export default [
 
         // The App shell (NavBar) in layout.jsx
         layout('routes/layout.jsx', [
-            index('routes/home/home.jsx'),
+            // index('routes/home/home.jsx'),
+            route('/', 'routes/home/home.jsx'),
 
             // User routes
             route('/user/:userId', 'routes/user/profile.jsx'),
