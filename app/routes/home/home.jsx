@@ -200,7 +200,7 @@ export default function HomePage({ loaderData, actionData }) {
             )}
 
             <Title order={4} my="md">
-                My Teams
+                My Teams ({teamList?.length || '0'})
             </Title>
             <Card radius="md" py="lg" withBorder>
                 <ScrollArea.Autosize py="5px">
