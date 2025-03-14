@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 import { Link } from 'react-router';
 
 import {
@@ -73,10 +75,10 @@ export function HydrateFallback() {
 
 export async function action({ request }) {
     const formData = await request.formData();
-    const { _action, ...values } = formData;
+    const { _action, userId, ...values } = Object.fromEntries(formData);
 
     if (_action === 'add-team') {
-        return createTeam({ values });
+        return createTeam({ values, userId });
     }
 }
 
@@ -115,6 +117,23 @@ export default function HomePage({ loaderData, actionData }) {
 
         return 'yellow';
     }
+
+    useEffect(() => {
+        const handleAfterSubmit = async () => {
+            try {
+                if (actionData?.status === 201) {
+                    modals.closeAll();
+                } else if (actionData instanceof Error) {
+                    console.error('An error occurred during team creation.', actionData.message);
+                }
+            } catch (jsonError) {
+                console.error("Error parsing JSON:", jsonError);
+            }
+        };
+
+        handleAfterSubmit();
+    }, [actionData]);
+
     console.log('/home ', { nextGame, futureGames, pastGames, userId });
 
     const openAddTeamModal = () => modals.open({
