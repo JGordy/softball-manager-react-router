@@ -42,6 +42,18 @@ const getGameStatus = (date) => {
     return null;
 };
 
+const getGameResultColor = (result) => {
+    if (result === 'win') {
+        return 'green';
+    }
+
+    if (result === 'loss') {
+        return 'red';
+    }
+
+    return 'yellow';
+}
+
 // TODO: If the game is in the past but doesn't yet have results, display a message to the user saying that.
 
 export default function GameCard({
@@ -78,7 +90,7 @@ export default function GameCard({
                         {formattedGameTime}
                     </Text>
                     {result && (
-                        <Text c={didWin ? 'green' : 'red'}>
+                        <Text c={getGameResultColor(result)}>
                             {formattedResult}
                         </Text>
                     )}
