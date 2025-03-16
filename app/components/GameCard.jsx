@@ -4,7 +4,20 @@ import { Card, Group, Text } from '@mantine/core';
 
 import { formatGameTime } from '@/utils/dateTime';
 
-const getGameStatus = (date) => {
+const getGameDateStatus = (date) => {
+    const today = new Date();
+    const gameDate = new Date(date);
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+
+    const isPast = gameDate < todayStart;
+    const isToday = gameDate >= todayStart && gameDate < todayEnd;
+    const isFuture = gameDate >= todayEnd;
+
+    return { isPast, isToday, isFuture };
+};
+
+const getGameStatusText = (date, status) => {
     const today = new Date();
     const gameDate = new Date(date);
     const oneWeekFromNow = new Date(today);
@@ -71,12 +84,15 @@ export default function GameCard({
 
     const formattedHeader = `${showTeam && teamName + " "}${isHomeGame ? 'vs' : '@'} ${opponent || 'TBD'}`;
 
-    const gameStatus = getGameStatus(gameDate);
+    const gameStatus = getGameDateStatus(gameDate);
+    const { isPast, isFuture, isToday } = gameStatus;
+    const gameStatusText = getGameStatusText(gameDate, gameStatus);
 
     const formattedGameTime = formatGameTime(gameDate, timeZone);
 
     const didWin = result === 'win';
     const formattedResult = `${didWin ? 'W' : 'L'} ${score} - ${opponentScore}`;
+
 
     return (
         <Link key={$id} to={`/events/${$id}`}>
@@ -85,7 +101,7 @@ export default function GameCard({
                     <Text fw={700}>
                         {formattedHeader}
                     </Text>
-                    {gameStatus}
+                    {gameStatusText}
                     <Text>
                         {formattedGameTime}
                     </Text>
