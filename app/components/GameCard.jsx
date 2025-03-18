@@ -79,11 +79,11 @@ export default function GameCard({
 
     return (
         <Link key={$id} to={`/events/${$id}`}>
-            <Card mb="sm" radius="md" padding="sm" withBorder>
+            <Card my="md" radius="md" py="lg" withBorder>
                 <Group justify="space-between">
                     <Text fw={700}>{formattedHeader}</Text>
-                    {gameStatus.text}
                     <Text>{formattedGameTime}</Text>
+                    {gameStatus.text}
                 </Group>
             </Card>
         </Link>
