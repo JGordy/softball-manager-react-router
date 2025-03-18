@@ -1,7 +1,5 @@
 import { useEffect } from 'react';
 
-import { Link } from 'react-router';
-
 import {
     Button,
     Card,
@@ -15,18 +13,18 @@ import { modals } from '@mantine/modals';
 
 import { redirect } from 'react-router';
 
-import { IconMapPin, IconPlus } from '@tabler/icons-react';
+import { IconPlus } from '@tabler/icons-react';
 
 import { account } from '@/appwrite';
 
 import LoaderDots from '@/components/LoaderDots';
 import UserHeader from '@/components/UserHeader';
+import GameCard from '@/components/GameCard';
 
 import AddTeam from '@/forms/AddTeam';
 import { createTeam } from '@/actions/teams';
 
 import getGames from '@/utils/getGames';
-import { formatGameTime } from '@/utils/dateTime';
 
 
 export function meta() {
@@ -105,19 +103,6 @@ export default function HomePage({ loaderData, actionData }) {
         return ` in ${daysUntilText}!`;
     };
 
-    const getRecentGameResult = () => {
-        const result = mostRecentGame?.result;
-        if (result === 'win') {
-            return 'green';
-        }
-
-        if (result === 'loss') {
-            return 'red';
-        }
-
-        return 'yellow';
-    }
-
     useEffect(() => {
         const handleAfterSubmit = async () => {
             try {
@@ -159,43 +144,14 @@ export default function HomePage({ loaderData, actionData }) {
                     <Text span fw={700} c="green">
                         {daysUntilNextGame(nextGame.gameDate)}
                     </Text>
-                    <Link to={`/events/${nextGame.$id}`}>
-                        <Card my="md" radius="md" py="lg" withBorder>
-                            <Text fw={700}>
-                                {nextGame.teamName} {nextGame.isHomeGame ? 'vs' : '@'} {nextGame.opponent}
-                            </Text>
-                            <Group mt="xs" gap="lg">
-                                <Text>
-                                    {formatGameTime(nextGame.gameDate, nextGame.timeZone)}
-                                </Text>
-                                <Group gap="2px">
-                                    <IconMapPin size={16} />
-                                    <Text>{nextGame.location}</Text>
-                                </Group>
-                            </Group>
-                        </Card>
-                    </Link>
+                    <GameCard {...nextGame} />
                 </>
             )}
 
             {(Object.keys(mostRecentGame).length > 0) && (
                 <>
                     <Title order={4} mt="xl" mb="md">Most Recent Game</Title>
-                    <Link to={`/events/${mostRecentGame.$id}`}>
-                        <Card my="md" radius="md" py="lg" withBorder>
-                            <Text fw={700}>
-                                {mostRecentGame.teamName} {mostRecentGame.isHomeGame ? 'vs' : '@'} {mostRecentGame.opponent}
-                            </Text>
-                            <Group mt="xs" gap="lg">
-                                <Text>
-                                    {formatGameTime(mostRecentGame.gameDate, mostRecentGame.timeZone)}
-                                </Text>
-                                <Group gap="2px">
-                                    <Text c={getRecentGameResult()}>{mostRecentGame.result || "Results not posted"}</Text>
-                                </Group>
-                            </Group>
-                        </Card>
-                    </Link>
+                    <GameCard {...mostRecentGame} />
                 </>
             )}
 
