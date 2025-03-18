@@ -22,6 +22,7 @@ import {
 import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
 import GamesTable from '@/components/GamesTable';
+// TODO: Add GameCard and loop through data to display them.
 
 import AddSingleGame from '@/forms/AddSingleGame';
 import AddSeason from '@/forms/AddSeason';
@@ -183,6 +184,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
                 </>
             )}
 
+            // TODO: Replace with GameCards
             {hasGames && (
                 <GamesTable
                     columns={['opponent', 'score', 'opponentScore', 'result']}
