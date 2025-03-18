@@ -11,8 +11,10 @@ const getGameResultColor = (result) => {
 const getGameStatus = (date, result, score, opponentScore) => {
     const today = new Date();
     const gameDate = new Date(date);
+
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+
     const oneWeekFromNow = new Date(today);
     oneWeekFromNow.setDate(today.getDate() + 7);
 
