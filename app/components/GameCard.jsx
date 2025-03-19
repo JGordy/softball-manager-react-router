@@ -25,7 +25,7 @@ const getGameStatus = (date, result, score, opponentScore) => {
 
         return {
             status: 'past',
-            text: <Text c={getGameResultColor(result)}>{resultsText}</Text>,
+            text: <Text align={'right'} c={getGameResultColor(result)}>{resultsText}</Text>,
         };
     }
 
@@ -37,7 +37,7 @@ const getGameStatus = (date, result, score, opponentScore) => {
         return {
             status: 'today',
             text: (hoursUntilGame > 0)
-                ? <Text span fw={700} c="green">{hoursUntilText} away!</Text>
+                ? <Text align={'right'} span fw={700} c="green">{hoursUntilText} away!</Text>
                 : null,
         };
     }
@@ -49,7 +49,7 @@ const getGameStatus = (date, result, score, opponentScore) => {
 
         return {
             status: 'future',
-            text: <Text span fw={700} c="green">{daysUntilText} away!</Text>,
+            text: <Text align={'right'} span fw={700} c="green">{daysUntilText} away!</Text>,
         };
     }
 
@@ -71,7 +71,7 @@ export default function GameCard({
     opponentScore,
     timeZone,
 }) {
-    const formattedHeader = `${showTeam && teamName + " "}${isHomeGame ? 'vs' : '@'} ${opponent || 'TBD'}`;
+    const formattedHeader = `${(showTeam && teamName) ? teamName + " " : ""}${isHomeGame ? 'vs' : '@'} ${opponent || 'TBD'}`;
 
     const gameStatus = getGameStatus(gameDate, result, score, opponentScore);
 
@@ -82,8 +82,8 @@ export default function GameCard({
             <Card my="md" radius="md" py="lg" withBorder>
                 <Group justify="space-between">
                     <Text fw={700}>{formattedHeader}</Text>
-                    <Text>{formattedGameTime}</Text>
                     {gameStatus.text}
+                    <Text>{formattedGameTime}</Text>
                 </Group>
             </Card>
         </Link>
