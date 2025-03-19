@@ -21,8 +21,7 @@ import {
 
 import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
-import GamesTable from '@/components/GamesTable';
-// TODO: Add GameCard and loop through data to display them.
+import GameCard from '@/components/GameCard';
 
 import AddSingleGame from '@/forms/AddSingleGame';
 import AddSeason from '@/forms/AddSeason';
@@ -60,7 +59,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
 
     const { season } = loaderData;
 
-    // console.log('/season/details.jsx: ', { season });
+    // console.log('/season/details.jsx: ', { loaderData });
 
     useEffect(() => {
         const handleAfterSubmit = async () => {
@@ -184,15 +183,13 @@ export default function SeasonDetails({ loaderData, actionData }) {
                 </>
             )}
 
-            // TODO: Replace with GameCards
-            {hasGames && (
-                <GamesTable
-                    columns={['opponent', 'score', 'opponentScore', 'result']}
-                    games={season.games}
-                    variant="vertical"
-                    striped
+            {hasGames && season.games.map(game => (
+                <GameCard
+                    {...game}
+                    // teamName={season?.teams?.[0]?.name}
+                    key={game.$id}
                 />
-            )}
+            ))}
 
             <Button
                 mt="md"
