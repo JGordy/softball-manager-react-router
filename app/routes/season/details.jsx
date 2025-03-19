@@ -21,7 +21,7 @@ import {
 
 import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
-import GameCard from '@/components/GameCard';
+import GamesList from '@/components/GamesList';
 
 import AddSingleGame from '@/forms/AddSingleGame';
 import AddSeason from '@/forms/AddSeason';
@@ -183,13 +183,10 @@ export default function SeasonDetails({ loaderData, actionData }) {
                 </>
             )}
 
-            {hasGames && season.games.map(game => (
-                <GameCard
-                    {...game}
-                    // teamName={season?.teams?.[0]?.name}
-                    key={game.$id}
-                />
-            ))}
+            <GamesList
+                games={season.games}
+                height={'50vh'}
+            />
 
             <Button
                 mt="md"
