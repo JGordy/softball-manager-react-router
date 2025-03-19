@@ -18,6 +18,8 @@ import {
 
 import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
+// TODO: Swap to this:
+// import GamesList from '@/components/GamesList';
 
 import AddTeam from '@/forms/AddTeam';
 
