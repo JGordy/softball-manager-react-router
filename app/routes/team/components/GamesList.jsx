@@ -5,10 +5,12 @@ import { IconPlus } from '@tabler/icons-react';
 
 import AddSingleGame from '@/forms/AddSingleGame';
 
+import GamesList from '@/components/GamesList';
+
 import sortByDate from '@/utils/sortByDate';
 import { formatGameTime } from '@/utils/dateTime';
 
-export default function GamesList({
+export default function GamesListContainer({
     games,
     seasons,
     teamId,
@@ -92,23 +94,11 @@ export default function GamesList({
                 </Text>
             )}
 
-            <ScrollArea h="55vh">
-                {sortedGames.map(game => {
-                    return (
-                        <Card key={game.$id} mb="sm" radius="md" padding="sm" withBorder>
-                            <Group justify="space-between">
-                                <Text size="lg">
-                                    {game.isHomeGame ? 'vs' : '@'} {game.opponent || 'TBD'}
-                                </Text>
-                                {getGameStatus(game)}
-                                <Text>
-                                    {formatGameTime(game.gameDate, game.timeZone)}
-                                </Text>
-                            </Group>
-                        </Card>
-                    )
-                })}
-            </ScrollArea>
+            <GamesList
+                games={sortedGames}
+                height={'60vh'}
+                showTeam={false}
+            />
         </>
     );
 };
