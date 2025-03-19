@@ -26,7 +26,6 @@ import { createTeam } from '@/actions/teams';
 
 import getGames from '@/utils/getGames';
 
-
 export function meta() {
     return [
         { title: "Rocket Roster" },
