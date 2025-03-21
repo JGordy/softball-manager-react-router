@@ -17,10 +17,12 @@ import {
 
 import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
-// TODO: Swap to this:
-// import GamesList from '@/components/GamesList';
 
 import AddTeam from '@/forms/AddTeam';
+import { createSingleGame } from '@/actions/games';
+import { createPlayer } from '@/actions/users';
+import { createSeason } from '@/actions/seasons';
+import { updateTeam } from '@/actions/teams';
 
 import { useAuth } from '@/contexts/auth/useAuth';
 
@@ -29,7 +31,6 @@ import SeasonList from './components/SeasonList';
 import GamesList from './components/GamesList';
 
 import { getTeamData } from './loader';
-import { createPlayer, createSeason, createSingleGame, updateTeam } from './action';
 
 export async function loader({ params }) {
     const { teamId } = params;
