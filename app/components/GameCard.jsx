@@ -1,5 +1,6 @@
 import { Link } from 'react-router';
 import { Card, Group, Text } from '@mantine/core';
+
 import { formatGameTime } from '@/utils/dateTime';
 
 const getGameResultColor = (result) => {
@@ -70,7 +71,7 @@ export default function GameCard({
     opponentScore,
     timeZone,
 }) {
-    const formattedHeader = `${(teamName) ? teamName + " " : ""}${isHomeGame ? 'vs' : '@'} ${opponent || 'TBD'}`;
+    const formattedHeader = `${isHomeGame ? 'vs' : '@'} ${opponent || 'TBD'}`;
 
     const gameStatus = getGameStatus(gameDate, result, score, opponentScore);
 
@@ -80,7 +81,10 @@ export default function GameCard({
         <Link key={$id} to={`/events/${$id}`}>
             <Card my="md" radius="md" py="lg" withBorder>
                 <Group justify="space-between">
-                    <Text fw={700}>{formattedHeader}</Text>
+                    <Text fw={400} span>
+                        {teamName && <Text fw={700} span>{teamName + ' '}</Text>}
+                        {formattedHeader}
+                    </Text>
                     <Text>{formattedGameTime}</Text>
                     {gameStatus.text}
                 </Group>
