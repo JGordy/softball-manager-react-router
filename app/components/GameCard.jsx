@@ -82,8 +82,8 @@ export default function GameCard({
             <Card my="md" radius="md" py="lg" withBorder>
                 <Group justify="space-between">
                     <Text fw={700}>{formattedHeader}</Text>
-                    {gameStatus.text}
                     <Text>{formattedGameTime}</Text>
+                    {gameStatus.text}
                 </Group>
             </Card>
         </Link>
