@@ -30,7 +30,7 @@ export default function LineupContainer({
     let message = 'Charts for this game have not yet been created. You can create them below.';
 
     if (!hasEnoughPlayers) {
-        message = 'You do not have enough players to generate a lineup. A minimum of 8 players is required.';
+        message = `There are not have enough available players to generate a lineup. A minimum of 8 players is required (${availablePlayers.length} available).`;
     }
 
     const handleOnSave = () => {
