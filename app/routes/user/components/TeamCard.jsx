@@ -84,7 +84,7 @@ export default function TeamCard({ team }) {
                 padding="lg"
                 shadow="sm"
                 style={{ cursor: 'pointer' }}
-                radius="xl"
+                radius="md"
                 withBorder
             >
                 <Group justify="space-between">
