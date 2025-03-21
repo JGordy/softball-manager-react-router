@@ -21,7 +21,6 @@ export default function SeasonList({
 }) {
 
     const getSeasonStatus = (season) => {
-
         const today = new Date();
         const oneMonthFromNow = new Date(today);
         oneMonthFromNow.setMonth(today.getMonth() + 1);
@@ -32,43 +31,27 @@ export default function SeasonList({
         if (startDate <= today && today <= endDate) {
             const { games } = season;
             if (games && games.length > 0) {
+                // Find the upcoming game object, not just the date
                 const upcomingGame = games
-                    .map(game => new Date(game.gameDate))
-                    .filter(gameDate => gameDate > today)
-                    .sort((a, b) => a - b)[0]; // Find the next game
+                    .filter(game => new Date(game.gameDate) > today)
+                    .sort((a, b) => new Date(a.gameDate) - new Date(b.gameDate))[0];
 
                 if (upcomingGame) {
-                    const { isHomeGame, opponent } = upcomingGame;
-                    const timeDiff = upcomingGame.getTime() - today.getTime();
+                    const timeDiff = new Date(upcomingGame.gameDate).getTime() - today.getTime();
                     const daysUntilGame = Math.ceil(timeDiff / (1000 * 3600 * 24)); // Calculate days
 
                     const daysUntilText = `${daysUntilGame} day${daysUntilGame !== 1 ? 's' : ''}`;
 
                     return (
                         <Text span fw={700} c="green">
-                            Next game {isHomeGame ? 'vs' : '@'} {opponent} in {daysUntilText}!
+                            Next game {upcomingGame.isHomeGame ? 'vs' : '@'} {upcomingGame.opponent} in {daysUntilText}!
                         </Text>
                     );
                 }
             }
             return 'Season in progress';
         }
-
-        if (startDate > today && startDate <= oneMonthFromNow) {
-            const timeDiff = startDate.getTime() - today.getTime();
-            const daysUntilStart = Math.ceil(timeDiff / (1000 * 3600 * 24)); // Calculate days
-
-            const daysUntilText = `${daysUntilStart} day${daysUntilStart !== 1 ? 's' : ''}`;
-
-            return (
-                <Text span fw={700} c="green">
-                    Starts in {daysUntilText}!
-                </Text>
-            );
-        }
-
-        return null;
-    }
+    };
 
     const openModal = () => modals.open({
         title: 'Add a New Season',
@@ -110,18 +93,15 @@ export default function SeasonList({
         <>
             {managerView && addSeasonCta}
             <ScrollArea h="55vh">
-
                 {seasons.map((season) => (
                     <Link to={`/season/${season.$id}`} key={season.$id}>
                         <Card key={season.$id} mt="sm" radius="md" padding="sm" withBorder>
                             <Group justify="space-between">
                                 <Text>{season.seasonName}</Text>
+                                <Text>
+                                    {new Date(season.startDate).toLocaleDateString()} - {new Date(season.endDate).toLocaleDateString()}
+                                </Text>
                                 {getSeasonStatus(season)}
-                                <Group>
-                                    <Text>
-                                        {new Date(season.startDate).toLocaleDateString()} - {new Date(season.endDate).toLocaleDateString()}
-                                    </Text>
-                                </Group>
                             </Group>
 
                             {/* TODO: Add current or past record based on game results */}
