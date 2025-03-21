@@ -19,8 +19,8 @@ import {
 const availabilityIcon = {
     yes: <IconCircleCheckFilled size={24} color="green" />,
     no: <IconSquareXFilled size={24} color="red" />,
-    maybe: <IconHelpTriangleFilled size={24} color="gray" />,
-    noResponse: <IconCancel size={24} color="orange" />,
+    maybe: <IconHelpTriangleFilled size={24} color="orange" />,
+    noresponse: <IconCancel size={24} color="gray" />,
 }
 
 export default function AvailabliityContainer({
@@ -106,7 +106,7 @@ export default function AvailabliityContainer({
             <Group justify="space-between">
                 <Text fw={700}>{player.firstName} {player.lastName}</Text>
                 <Text>{player.preferredPositions?.[0]}</Text>
-                {availabilityIcon[player.available]}
+                {availabilityIcon[player.available || 'noresponse']}
             </Group>
         </Paper>
     ));
