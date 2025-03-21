@@ -9,7 +9,6 @@ import GameCard from '@/components/GameCard';
 export default function GamesList({
     games,
     height = "55vh",
-    showTeam = true,
 }) {
 
     if (!games.length) {
@@ -26,7 +25,6 @@ export default function GamesList({
                 <GameCard
                     {...game}
                     key={game.$id}
-                    showteam={showTeam}
                 />
             ))}
         </ScrollArea>

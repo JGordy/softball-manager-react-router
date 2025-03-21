@@ -62,7 +62,6 @@ const getGameStatus = (date, result, score, opponentScore) => {
 export default function GameCard({
     $id,
     gameDate,
-    showTeam = true,
     teamName,
     isHomeGame,
     result,
@@ -71,7 +70,7 @@ export default function GameCard({
     opponentScore,
     timeZone,
 }) {
-    const formattedHeader = `${(showTeam && teamName) ? teamName + " " : ""}${isHomeGame ? 'vs' : '@'} ${opponent || 'TBD'}`;
+    const formattedHeader = `${(teamName) ? teamName + " " : ""}${isHomeGame ? 'vs' : '@'} ${opponent || 'TBD'}`;
 
     const gameStatus = getGameStatus(gameDate, result, score, opponentScore);
 
