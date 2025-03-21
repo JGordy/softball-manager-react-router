@@ -9,18 +9,30 @@ import {
 } from '@mantine/core';
 
 import {
-    IconCancel,
+    IconMessageCircleOff,
     IconCircleCheckFilled,
     IconExternalLink,
     IconHelpTriangleFilled,
     IconSquareXFilled,
 } from '@tabler/icons-react';
 
-const availabilityIcon = {
-    yes: <IconCircleCheckFilled size={24} color="green" />,
-    no: <IconSquareXFilled size={24} color="red" />,
-    maybe: <IconHelpTriangleFilled size={24} color="orange" />,
-    noresponse: <IconCancel size={24} color="gray" />,
+const availabilityData = {
+    yes: {
+        icon: <IconCircleCheckFilled size={24} color="green" />,
+        label: 'Yes',
+    },
+    no: {
+        icon: <IconSquareXFilled size={24} color="red" />,
+        label: 'No',
+    },
+    maybe: {
+        icon: <IconHelpTriangleFilled size={24} color="orange" />,
+        label: 'Maybe',
+    },
+    noresponse: {
+        icon: <IconMessageCircleOff size={24} color="gray" />,
+        label: 'No Response',
+    },
 }
 
 export default function AvailabliityContainer({
@@ -106,7 +118,7 @@ export default function AvailabliityContainer({
             <Group justify="space-between">
                 <Text fw={700}>{player.firstName} {player.lastName}</Text>
                 <Text>{player.preferredPositions?.[0]}</Text>
-                {availabilityIcon[player.available || 'noresponse']}
+                {availabilityData[player.available || 'noresponse'].icon}
             </Group>
         </Paper>
     ));
@@ -114,9 +126,9 @@ export default function AvailabliityContainer({
     return (
         <>
             <Group mb="lg" justify="space-between">
-                {Object.keys(availabilityIcon).map(key => (
+                {Object.keys(availabilityData).map(key => (
                     <Group gap="2px" key={key}>
-                        {availabilityIcon[key]} - {key.toLowerCase()}
+                        {availabilityData[key].icon}{availabilityData[key].label}
                     </Group>
                 ))}
             </Group>
