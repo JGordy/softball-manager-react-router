@@ -19,8 +19,6 @@ export default function GamesListContainer({
 
     const sortedGames = sortByDate(games, 'gameDate');
 
-    console.log({ games, sortedGames });
-
     const openModal = () => modals.open({
         title: 'Add a New Game',
         children: (
