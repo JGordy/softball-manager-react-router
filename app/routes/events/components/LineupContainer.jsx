@@ -21,7 +21,7 @@ export default function LineupContainer({
 
     const [localChart, setLocalChart] = useState(parsedChart);
     const [hasBeenEdited, setHasBeenEdited] = useState(false);
-    console.log('/event/:eventId > LineupContainer: ', { availablePlayers, playerChart, parsedChart, localChart });
+    // console.log('/event/:eventId > LineupContainer: ', { availablePlayers, playerChart, parsedChart, localChart });
 
     // NOTE: Most leagues require at least 8 players in the field to allow the teams to take the field
     // TODO: Add a database field for minimum number of players?
