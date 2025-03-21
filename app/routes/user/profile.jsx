@@ -25,10 +25,9 @@ import PersonalDetails from '@/components/PersonalDetails';
 import PlayerDetails from '@/components/PlayerDetails';
 
 import AddPlayer from '@/forms/AddPlayer';
+import { updateUser } from '@/actions/users'
 
 import AlertIncomplete from './components/AlertIncomplete';
-
-import { updateUser } from './action';
 
 const fieldsToDisplay = {
     email: {
@@ -58,8 +57,13 @@ const fieldsToValidate = {
     dislikedPositions: { label: 'disliked positions' }
 }
 
-export async function action({ request, params }) {
-    return updateUser({ request, params });
+export async function action({ request }) {
+    const formData = await request.formData();
+    const { _action, userId, ...values } = Object.fromEntries(formData);
+
+    if (_action === 'edit-player') {
+        return updateUser({ values, userId });
+    }
 }
 
 export default function UserProfile() {

@@ -14,15 +14,13 @@ import { modals } from '@mantine/modals';
 
 import { IconPlus } from '@tabler/icons-react';
 
+import { account } from '@/appwrite';
+
 import LoaderDots from '@/components/LoaderDots';
 import UserHeader from '@/components/UserHeader';
 
 import AddTeam from '@/forms/AddTeam';
-
-import { account } from '@/appwrite';
-
-import { createTeam } from './action';
-// import { getTeams } from './loader';
+import { createTeam } from '@/actions/teams';
 
 import TeamCard from './components/TeamCard';
 
@@ -68,8 +66,14 @@ export function HydrateFallback() {
     return <LoaderDots message="Fetching your teams..." />;
 }
 
-export async function action({ request, params }) {
-    return createTeam({ request, params });
+
+export async function action({ request }) {
+    const formData = await request.formData();
+    const { _action, userId, ...values } = Object.fromEntries(formData);
+
+    if (_action === 'add-team') {
+        return createTeam({ values, userId });
+    }
 }
 
 const UserDashboard = ({ loaderData }) => {
