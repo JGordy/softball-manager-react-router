@@ -3,12 +3,10 @@ import { redirect, useOutletContext } from 'react-router';
 
 import {
     ActionIcon,
-    Container,
     Group,
     Menu,
     SegmentedControl,
     Tabs,
-    Text,
     Title,
     useComputedColorScheme,
 } from "@mantine/core";
@@ -94,7 +92,7 @@ export default function EventsDetails({ loaderData }) {
     }
 
     return (
-        <Container p="md" mih="90vh">
+        <>
             <Group justify="space-between">
                 <UserHeader subText="Track your game history" />
 
@@ -164,6 +162,6 @@ export default function EventsDetails({ loaderData }) {
                     />
                 </Tabs.Panel>
             </Tabs>
-        </Container>
+        </>
     );
 };

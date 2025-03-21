@@ -7,8 +7,6 @@ import {
 import {
     Button,
     Flex,
-    Container,
-    Loader,
     Text,
     Title,
 } from '@mantine/core';
@@ -127,7 +125,7 @@ const UserDashboard = ({ loaderData }) => {
     };
 
     return (
-        <Container p="md" mih="90vh">
+        <>
             <UserHeader subText="Here are all of your teams" />
 
             {managing.length > 0 && (
@@ -152,7 +150,7 @@ const UserDashboard = ({ loaderData }) => {
                 <IconPlus size={20} />
                 Create New Team
             </Button>
-        </Container>
+        </>
     );
 };
 

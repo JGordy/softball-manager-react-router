@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import {
     Button,
     Center,
-    Container,
     Group,
     Text,
 } from '@mantine/core';
@@ -102,7 +101,7 @@ function Lineup({ loaderData, actionData }) {
     };
 
     return (
-        <Container p="md" mih="90vh">
+        <>
             <Center>
                 <Group position="center" spacing="md" mt="xl" mb="xl">
                     <Button
@@ -140,7 +139,7 @@ function Lineup({ loaderData, actionData }) {
                     </Button>
                 </>
             )}
-        </Container>
+        </>
     );
 }
 

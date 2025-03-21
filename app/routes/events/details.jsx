@@ -4,7 +4,6 @@ import { useOutletContext } from 'react-router';
 
 import {
     Center,
-    Container,
     Divider,
     Group,
     Tabs,
@@ -152,7 +151,7 @@ export default function EventDetails({ loaderData, actionData }) {
     });
 
     return (
-        <Container p="md" mih="90vh">
+        <>
             <Group justify="space-between">
                 <BackButton text="Back to Events" />
                 {managerView && <EditButton setIsModalOpen={openModal} />}
@@ -215,6 +214,6 @@ export default function EventDetails({ loaderData, actionData }) {
                     />
                 </Tabs.Panel>
             </Tabs>
-        </Container>
+        </>
     );
 }

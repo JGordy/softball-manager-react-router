@@ -2,7 +2,6 @@
 import { useEffect } from 'react';
 
 import {
-    Container,
     Group,
     Tabs,
     Text,
@@ -101,7 +100,7 @@ export default function TeamDetails({ actionData, loaderData }) {
     });
 
     return (
-        <Container p="md" mih="90vh">
+        <>
             <Group justify="space-between">
                 <BackButton text="Teams" to="/teams" />
                 <EditButton setIsModalOpen={openTeamDetailsForm} />
@@ -155,6 +154,6 @@ export default function TeamDetails({ actionData, loaderData }) {
                     />
                 </Tabs.Panel>
             </Tabs>
-        </Container >
+        </>
     );
 };

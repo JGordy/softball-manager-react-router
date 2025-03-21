@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useActionData, useOutletContext } from 'react-router';
 
 import {
-    Container,
     Group,
     Indicator,
     Popover,
@@ -117,7 +116,7 @@ export default function UserProfile() {
     });
 
     return !!Object.keys(player).length && (
-        <Container p="md" mih="90vh">
+        <>
             <Group justify="space-between">
                 <UserHeader subText="Here are your personal and player details" />
 
@@ -149,6 +148,6 @@ export default function UserProfile() {
                 player={player}
                 editButton={isCurrentUser && <EditButton setIsModalOpen={openPlayerDetailsModal} />}
             />
-        </Container>
+        </>
     );
 }
