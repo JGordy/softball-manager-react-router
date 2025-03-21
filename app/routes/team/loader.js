@@ -30,11 +30,16 @@ export async function getTeamData({ teamId }) {
             players = results.flat();
         }
 
-        return {
-            teamData: await readDocument('teams', teamId),
-            players,
-            managerId,
-        };
+        const teamData = await readDocument('teams', teamId);
+
+        const formatGames = (season) => season?.games?.map(game => {
+            game.teamName = teamData.name;
+            return game;
+        });
+
+        teamData?.seasons?.map(season => formatGames(season));
+
+        return { teamData, players, managerId };
     } else {
         return { teamData: {} };
     }
