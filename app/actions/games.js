@@ -69,13 +69,13 @@ export async function updateGame({ values, eventId }) {
     }
 }
 
-export async function savePlayerChart({ values }) {
-    console.log('savePlayerChart: ', { values });
+export async function savePlayerChart({ values, eventId }) {
+    console.log('savePlayerChart: ', { values, eventId });
     // TODO: Save created lineup to appwrite database
 }
 
-export async function generatePlayerChart({ values }) {
-    console.log('generatePlayerChart: ', { values });
+export async function generatePlayerChart({ values, eventId }) {
+    console.log('generatePlayerChart: ', { values, eventId });
     // TODO: Generate a batting lineup and fielding chart using gen AI
 }
 
