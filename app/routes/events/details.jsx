@@ -18,6 +18,7 @@ import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
 
 import AddSingleGame from '@/forms/AddSingleGame';
+import { createAttendanceForm, updateGame } from '@/actions/games';
 
 import { formatGameTime, formatTime } from '@/utils/dateTime';
 
@@ -25,7 +26,6 @@ import AvailabliityContainer from './components/AvailabliityContainer';
 import LineupContainer from './components/LineupContainer';
 
 import { getEventDetails } from './loader';
-import { createAttendanceForm, updateGame } from './action';
 
 const availabilityOptions = [
     { value: 'Yes, I will be there', key: 'yes' },
