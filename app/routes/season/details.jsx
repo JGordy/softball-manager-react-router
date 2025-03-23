@@ -29,12 +29,12 @@ import GenerateSeasonGames from '@/forms/GenerateSeasonGames';
 import { createGames, createSingleGame } from '@/actions/games';
 import { updateSeason } from '@/actions/seasons';
 
-import { getSeasonDetails } from '@/loaders/seasons';
+import { getSeasonById } from '@/loaders/seasons';
 
 export async function loader({ params }) {
     const { seasonId } = params;
 
-    return getSeasonDetails({ seasonId });
+    return getSeasonById({ seasonId });
 }
 
 export async function action({ request, params }) {

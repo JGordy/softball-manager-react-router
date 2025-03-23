@@ -20,12 +20,12 @@ import EditButton from '@/components/EditButton';
 import AddSingleGame from '@/forms/AddSingleGame';
 import { createAttendanceForm, updateGame } from '@/actions/games';
 
+import { getEventById } from '@/loaders/games';
+
 import { formatGameTime, formatTime } from '@/utils/dateTime';
 
 import AvailabliityContainer from './components/AvailabliityContainer';
 import LineupContainer from './components/LineupContainer';
-
-import { getEventDetails } from './loader';
 
 const availabilityOptions = [
     { value: 'Yes, I will be there', key: 'yes' },
@@ -42,7 +42,7 @@ function updatePlayerAvailability(responses, players) {
     });
 
     playersCopy.forEach(player => {
-        player.availability = 'noResponse';
+        player.availability = 'noresponse';
     });
 
     responses.forEach(response => {
@@ -74,7 +74,7 @@ export async function action({ request, params }) {
 export async function loader({ params, request }) {
     const { eventId } = params;
 
-    return await getEventDetails({ eventId, request });
+    return await getEventById({ eventId, request });
 }
 
 export default function EventDetails({ loaderData, actionData }) {

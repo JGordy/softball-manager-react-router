@@ -24,17 +24,17 @@ import { createPlayer } from '@/actions/users';
 import { createSeason } from '@/actions/seasons';
 import { updateTeam } from '@/actions/teams';
 
+import { getTeamById } from '@/loaders/teams';
+
 import { useAuth } from '@/contexts/auth/useAuth';
 
 import PlayerList from './components/PlayerList';
 import SeasonList from './components/SeasonList';
 import GamesList from './components/GamesList';
 
-import { getTeamData } from './loader';
-
 export async function loader({ params }) {
     const { teamId } = params;
-    return getTeamData({ teamId });
+    return getTeamById({ teamId });
 };
 
 export async function action({ request, params }) {
