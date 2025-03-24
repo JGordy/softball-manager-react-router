@@ -47,15 +47,15 @@ export async function action({ request, params }) {
     }
 
     if (_action === 'add-season') {
-        return createSeason({ values, teamId })
+        return createSeason({ values, teamId });
     }
 
     if (_action === 'edit-team') {
-        return updateTeam({ values, teamId })
+        return updateTeam({ values, teamId });
     }
 
     if (_action === 'add-single-game') {
-        return createSingleGame({ values, teamId })
+        return createSingleGame({ values, teamId });
     }
 };
 
