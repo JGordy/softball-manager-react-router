@@ -4,6 +4,9 @@ import { createDocument, updateDocument } from '@/utils/databases.js';
 import { removeEmptyValues } from './utils/formUtils';
 
 export async function createSeason({ values, teamId }) {
+    const { locationDetails, ...rest } = values;
+    console.log({ locationDetails });
+
     try {
         const seasonId = ID.unique(); // Create this now so it's easier to use later
 
@@ -11,9 +14,9 @@ export async function createSeason({ values, teamId }) {
             'seasons', // Your users collection ID
             seasonId, // Generates a unique user ID in the handler
             {
-                ...values,
-                gameDays: values.gameDays.split(","), // Split into an array of positions
-                signUpFee: Number(values.signUpFee),
+                ...rest,
+                gameDays: rest.gameDays.split(","), // Split into an array of positions
+                signUpFee: Number(rest.signUpFee),
                 teamId,
                 teams: [teamId],
             },
@@ -27,8 +30,10 @@ export async function createSeason({ values, teamId }) {
 }
 
 export async function updateSeason({ values, seasonId }) {
+    const { locationDetails, ...rest } = values;
+    console.log({ locationDetails });
     // Removes undefined or empty string values from data to update
-    let dataToUpdate = removeEmptyValues({ values });
+    let dataToUpdate = removeEmptyValues({ values: rest });
 
     if (dataToUpdate.gameDays) dataToUpdate.gameDays = dataToUpdate.gameDays.split(",");
     if (dataToUpdate.signUpFee) dataToUpdate.signUpFee = Number(dataToUpdate.signUpFee);
