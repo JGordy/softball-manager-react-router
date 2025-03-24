@@ -135,7 +135,7 @@ export default function HomePage({ loaderData, actionData }) {
 
             {(Object.keys(nextGame).length > 0) && (
                 <>
-                    <Title order={4} mt="xl" mb="md">Upcoming Events</Title>
+                    <Title order={4} mt="xl">Upcoming Events</Title>
                     <Text span>
                         You have a game
                     </Text>
@@ -148,15 +148,15 @@ export default function HomePage({ loaderData, actionData }) {
 
             {(Object.keys(mostRecentGame).length > 0) && (
                 <>
-                    <Title order={4} mt="xl" mb="md">Most Recent Game</Title>
+                    <Title order={4} mt="xl">Most Recent Game</Title>
                     <GameCard {...mostRecentGame} />
                 </>
             )}
 
-            <Title order={4} my="md">
+            <Title order={4} mt="xl">
                 My Teams ({teamList?.length || '0'})
             </Title>
-            <Card radius="md" py="lg" withBorder>
+            <Card radius="md" py="lg" mt="md" withBorder>
                 <ScrollArea.Autosize py="5px">
                     <Group miw={400} wrap="nowrap">
                         <Card align="center" px="0">
