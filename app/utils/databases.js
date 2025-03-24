@@ -9,6 +9,7 @@ export const collections = {
     memberships: import.meta.env.VITE_APPWRITE_MEMBERSHIPS_COLLECTION_ID,
     seasons: import.meta.env.VITE_APPWRITE_SEASONS_COLLECTION_ID,
     games: import.meta.env.VITE_APPWRITE_GAMES_COLLECTION_ID,
+    parks: import.meta.env.VITE_APPWRITE_PARKS_COLLECTION_ID,
     forms: import.meta.env.VITE_APPWRITE_FORMS_COLLECTION_ID,
 };
 
