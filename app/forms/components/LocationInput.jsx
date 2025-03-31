@@ -1,16 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Autocomplete, Text } from '@mantine/core';
+import { Autocomplete, Loader, Text } from '@mantine/core';
 import { useLoadScript } from '@react-google-maps/api';
 
 const libraries = ['places'];
-
-const debounce = (func, wait) => {
-    let timeout;
-    return (...args) => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), wait);
-    };
-};
 
 export default function LocationInput({
     label = 'Location',
@@ -20,8 +12,9 @@ export default function LocationInput({
 }) {
     const [selectedLocation, setSelectedLocation] = useState();
     const [options, setOptions] = useState([]);
+    const [suggestions, setSuggestions] = useState([]);
     const [inputValue, setInputValue] = useState(defaultValue);
-    const [debouncedValue, setDebouncedValue] = useState(defaultValue);
+    const [isLoading, setIsLoading] = useState(false);
 
     const { isLoaded, loadError } = useLoadScript({
         googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
@@ -29,47 +22,47 @@ export default function LocationInput({
     });
 
     useEffect(() => {
-        const debounced = debounce((value) => {
-            setDebouncedValue(value);
-        }, 300);
-
-        debounced(inputValue);
-    }, [inputValue]);
+        setSuggestions(options.map(option => option.place_id));
+    }, [options]);
 
     useEffect(() => {
-        if (debouncedValue && isLoaded) {
+        if (inputValue && isLoaded) {
+            setIsLoading(true);
             const service = new window.google.maps.places.PlacesService(
                 document.createElement('div')
             );
             service.textSearch(
-                { query: debouncedValue, fields: ['geometry', 'formatted_address'] },
+                { query: inputValue, fields: ['geometry', 'formatted_address'] },
                 (results, status) => {
-                    console.log({ results, status });
+                    // console.log({ results, status });
                     if (status === window.google.maps.places.PlacesServiceStatus.OK && results?.length > 0) {
                         // Filter out duplicate name values
                         const uniqueResults = [];
                         const seenLocations = new Set();
                         for (const result of results) {
-                            if (!seenLocations.has(result.name)) {
+                            if (!seenLocations.has(result.place_id)) {
                                 uniqueResults.push(result);
-                                seenLocations.add(result.name);
+                                seenLocations.add(result.place_id);
                             }
                         }
 
                         setOptions(uniqueResults.map((result) => ({
-                            value: result.name,
+                            value: result.place_id,
                             ...result,
                         })));
+                        setIsLoading(false);
                     } else {
                         setOptions([]);
+                        setIsLoading(false);
                         console.error('Geocoding failed:', status);
                     }
                 }
             );
         } else {
             setOptions([]);
+            setIsLoading(false);
         }
-    }, [debouncedValue, isLoaded]);
+    }, [inputValue, isLoaded]);
 
     const handleInputChange = (value) => {
         setInputValue(value);
@@ -81,11 +74,18 @@ export default function LocationInput({
         }
     };
 
-    const renderAutocompleteOption = ({ option }) => {
-        console.log({ option });
+    const renderOption = ({ option }) => {
+        if (!option) return null;
+
+        const { value } = option;
+        const optionToDisplay = options.find((opt) => opt.place_id === value);
+
+        if (!optionToDisplay) return null;
+
+        console.log({ options, option, optionToDisplay });
         return (
             <div>
-                <Text size="sm">{option.value}</Text>
+                <Text size="sm">{optionToDisplay.name}</Text>
                 {/* <Text size="xs" opacity={0.5}>
                     {}
                 </Text> */}
@@ -93,9 +93,10 @@ export default function LocationInput({
         );
     };
 
-    const debouncedHandleInputChange = debounce(handleInputChange, 300);
-
     if (loadError) return <div>Error loading maps.</div>;
+
+
+    console.log({ options, suggestions });
 
     return (
         <div>
@@ -103,10 +104,11 @@ export default function LocationInput({
                 label={label}
                 name={name}
                 placeholder={placeholder}
-                value={inputValue}
-                data={options}
-                renderOption={renderAutocompleteOption}
-                onChange={debouncedHandleInputChange}
+                rightSection={isLoading ? <Loader size={16} /> : null}
+                // value={inputValue}
+                data={suggestions}
+                renderOption={renderOption}
+                onChange={handleInputChange}
             />
             <input type="hidden" name={`${name}Details`} value={JSON.stringify(selectedLocation)} />
         </div>
