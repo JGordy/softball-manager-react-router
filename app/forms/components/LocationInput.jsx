@@ -12,7 +12,7 @@ export default function LocationInput({
 }) {
     const [selectedLocation, setSelectedLocation] = useState();
     const [options, setOptions] = useState([]);
-    const [suggestions, setSuggestions] = useState([]);
+    const [autocompleteData, setAutocompleteData] = useState([]);
     const [inputValue, setInputValue] = useState(defaultValue);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -22,37 +22,33 @@ export default function LocationInput({
     });
 
     useEffect(() => {
-        setSuggestions(options.map(option => option.place_id));
-    }, [options]);
-
-    useEffect(() => {
         if (inputValue && isLoaded) {
             setIsLoading(true);
             const service = new window.google.maps.places.PlacesService(
                 document.createElement('div')
             );
             service.textSearch(
-                { query: inputValue, fields: ['geometry', 'formatted_address'] },
+                { query: inputValue, fields: ['geometry', 'formatted_address', 'name', 'place_id'] },
                 (results, status) => {
-                    // console.log({ results, status });
                     if (status === window.google.maps.places.PlacesServiceStatus.OK && results?.length > 0) {
-                        // Filter out duplicate name values
-                        const uniqueResults = [];
-                        const seenLocations = new Set();
+                        const uniqueResultsMap = new Map(); // Use a Map to track unique names
                         for (const result of results) {
-                            if (!seenLocations.has(result.place_id)) {
-                                uniqueResults.push(result);
-                                seenLocations.add(result.place_id);
+                            if (!uniqueResultsMap.has(result.name)) {
+                                uniqueResultsMap.set(result.name, {
+                                    place_id: result.place_id,
+                                    name: result.name,
+                                    formatted_address: result.formatted_address,
+                                    geometry: result.geometry,
+                                });
                             }
                         }
-
-                        setOptions(uniqueResults.map((result) => ({
-                            value: result.place_id,
-                            ...result,
-                        })));
+                        const uniqueResults = Array.from(uniqueResultsMap.values());
+                        setOptions(uniqueResults);
+                        setAutocompleteData(uniqueResults.map(option => option.name));
                         setIsLoading(false);
                     } else {
                         setOptions([]);
+                        setAutocompleteData([]);
                         setIsLoading(false);
                         console.error('Geocoding failed:', status);
                     }
@@ -60,43 +56,33 @@ export default function LocationInput({
             );
         } else {
             setOptions([]);
+            setAutocompleteData([]);
             setIsLoading(false);
         }
     }, [inputValue, isLoaded]);
 
     const handleInputChange = (value) => {
         setInputValue(value);
-        const selected = options.find((option) => option.value === value);
-        if (selected) {
-            setSelectedLocation(selected);
-        } else {
-            setSelectedLocation();
-        }
+        // When the input value changes, check if it matches an option name
+        const selected = options.find((option) => option.name === value);
+        setSelectedLocation(selected);
     };
 
     const renderOption = ({ option }) => {
-        if (!option) return null;
+        const foundOption = options.find(opt => opt.name === option.value);
+        if (!foundOption) return null;
 
-        const { value } = option;
-        const optionToDisplay = options.find((opt) => opt.place_id === value);
-
-        if (!optionToDisplay) return null;
-
-        console.log({ options, option, optionToDisplay });
         return (
             <div>
-                <Text size="sm">{optionToDisplay.name}</Text>
-                {/* <Text size="xs" opacity={0.5}>
-                    {}
-                </Text> */}
+                <Text size="sm">{foundOption.name}</Text>
+                <Text size="xs" opacity={0.5}>
+                    {foundOption.formatted_address}
+                </Text>
             </div>
         );
     };
 
     if (loadError) return <div>Error loading maps.</div>;
-
-
-    console.log({ options, suggestions });
 
     return (
         <div>
@@ -105,8 +91,8 @@ export default function LocationInput({
                 name={name}
                 placeholder={placeholder}
                 rightSection={isLoading ? <Loader size={16} /> : null}
-                // value={inputValue}
-                data={suggestions}
+                value={inputValue}
+                data={autocompleteData}
                 renderOption={renderOption}
                 onChange={handleInputChange}
             />
