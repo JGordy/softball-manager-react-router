@@ -4,7 +4,13 @@ import { IconCalendar } from '@tabler/icons-react';
 
 import classes from '@/styles/inputs.module.css';
 
-export default function DatePicker({ label, name }) {
+export default function DatePicker({
+    defaultValue,
+    label,
+    name,
+    placeholder = 'Pick a date',
+    required = false,
+}) {
 
     const iconProps = {
         color: 'currentColor',
@@ -15,13 +21,15 @@ export default function DatePicker({ label, name }) {
     return (
         <DatePickerInput
             className={classes.inputs}
+            defaultValue={defaultValue}
+            firstDayOfWeek={0}
+            highlightToday
             leftSection={<IconCalendar {...iconProps} />}
             label={label}
             name={name}
-            placeholder="Pick a date"
-            firstDayOfWeek={0}
-            highlightToday
+            placeholder={placeholder}
             popoverProps={{ position: 'top' }}
+            required={required}
         />
     );
 }
