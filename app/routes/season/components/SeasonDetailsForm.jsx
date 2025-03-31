@@ -9,9 +9,7 @@ import {
     TextInput,
 } from '@mantine/core';
 
-import { DatePickerInput } from '@mantine/dates';
-
-import { IconCalendar, IconCurrencyDollar } from '@tabler/icons-react';
+import { IconCurrencyDollar } from '@tabler/icons-react';
 
 import classes from '@/styles/inputs.module.css';
 
@@ -23,12 +21,6 @@ export default function SeasonForm({
     // primaryColor,
     // teamId,
 }) {
-
-    const iconProps = {
-        color: 'currentColor',
-        size: 18,
-        stroke: 1.5
-    };
 
     return (
         <Form
