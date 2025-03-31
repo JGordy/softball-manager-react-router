@@ -15,6 +15,8 @@ import { IconCalendar, IconCurrencyDollar } from '@tabler/icons-react';
 
 import classes from '@/styles/inputs.module.css';
 
+import DatePicker from '@/components/DatePicker';
+
 export default function SeasonForm({
     handleCloseModal,
     setError,
@@ -77,21 +79,15 @@ export default function SeasonForm({
                 max={200}
                 step={5}
             />
-            <DatePickerInput
-                className={classes.inputs}
-                leftSection={<IconCalendar {...iconProps} />}
+
+            <DatePicker
                 label="Season Start Date"
                 name="startDate"
-                placeholder="Pick a date"
-                firstDayOfWeek={0}
             />
-            <DatePickerInput
-                className={classes.inputs}
-                leftSection={<IconCalendar {...iconProps} />}
+
+            <DatePicker
                 label="Season End Date"
                 name="endDate"
-                placeholder="Pick a date"
-                firstDayOfWeek={0}
             />
 
             <Group position="right" mt="lg">
