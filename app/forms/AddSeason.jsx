@@ -5,11 +5,12 @@ import {
     TextInput,
 } from '@mantine/core';
 
-import { DatePickerInput } from '@mantine/dates';
+import { IconCurrencyDollar } from '@tabler/icons-react';
 
-import { IconCalendar, IconCurrencyDollar } from '@tabler/icons-react';
+import DatePicker from '@/components/DatePicker';
 
 import FormWrapper from './FormWrapper';
+import LocationInput from './components/LocationInput';
 
 import classes from '@/styles/inputs.module.css';
 
@@ -21,12 +22,6 @@ export default function AddSeason({
     // setError,
     teamId,
 }) {
-
-    const iconProps = {
-        color: 'currentColor',
-        size: 18,
-        stroke: 1.5
-    };
 
     return (
         <FormWrapper
@@ -43,12 +38,7 @@ export default function AddSeason({
                 placeholder='Fall Season 2025'
                 required={action === 'add-season'}
             />
-            <TextInput
-                className={classes.inputs}
-                label="Location"
-                name="location"
-                placeholder='Where will the games be played?'
-            />
+            <LocationInput classes={classes.inputs} />
             <MultiSelect
                 className={classes.inputs}
                 label="Game Days"
@@ -80,21 +70,13 @@ export default function AddSeason({
                 defaultValue={50}
                 step={5}
             />
-            <DatePickerInput
-                className={classes.inputs}
-                leftSection={<IconCalendar {...iconProps} />}
+            <DatePicker
                 label="Season Start Date"
                 name="startDate"
-                placeholder="Pick a date"
-                firstDayOfWeek={0}
             />
-            <DatePickerInput
-                className={classes.inputs}
-                leftSection={<IconCalendar {...iconProps} />}
+            <DatePicker
                 label="Season End Date"
                 name="endDate"
-                placeholder="Pick a date"
-                firstDayOfWeek={0}
             />
         </FormWrapper>
     );

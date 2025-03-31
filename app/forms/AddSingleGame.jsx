@@ -1,13 +1,15 @@
 import { useRef } from 'react';
 
 import { ActionIcon, TextInput, Select } from '@mantine/core';
-import { DatePickerInput, TimeInput } from '@mantine/dates';
+import { TimeInput } from '@mantine/dates';
 
-import { IconCalendar, IconClock } from '@tabler/icons-react';
+import { IconClock } from '@tabler/icons-react';
 
 import { getUserTimeZone } from '@/utils/dateTime';
 
 import timeZones from '@/constants/timeZones';
+
+import DatePicker from '@/components/DatePicker';
 
 import FormWrapper from './FormWrapper';
 
@@ -27,12 +29,6 @@ export default function AddSingleGame({
     const ref = useRef();
 
     const currentTimeZone = getUserTimeZone();
-
-    const iconProps = {
-        color: 'currentColor',
-        size: 18,
-        stroke: 1.5
-    };
 
     const seasonOptions = seasons ? seasons.map(season => ({ label: season.seasonName, value: season.$id })) : null;
 
@@ -77,16 +73,12 @@ export default function AddSingleGame({
                     searchable
                 />
             )}
-            <DatePickerInput
-                className={classes.inputs}
-                leftSection={<IconCalendar {...iconProps} />}
+            <DatePicker
                 label="Game Date"
                 name="gameDate"
                 placeholder="When should this game be scheduled?"
-                firstDayOfWeek={0}
                 defaultValue={new Date(defaults.gameDate)}
                 required={action === 'add-single-game'}
-                highlightToday
             />
             <TimeInput
                 label="Game Start Time"
