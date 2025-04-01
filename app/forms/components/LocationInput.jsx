@@ -24,36 +24,48 @@ export default function LocationInput({
     useEffect(() => {
         if (inputValue && isLoaded) {
             setIsLoading(true);
-            const service = new window.google.maps.places.PlacesService(
-                document.createElement('div')
-            );
-            service.textSearch(
-                { query: inputValue, fields: ['geometry', 'formatted_address', 'name', 'place_id'] },
-                (results, status) => {
-                    if (status === window.google.maps.places.PlacesServiceStatus.OK && results?.length > 0) {
-                        const uniqueResultsMap = new Map(); // Use a Map to track unique names
-                        for (const result of results) {
-                            if (!uniqueResultsMap.has(result.name)) {
-                                uniqueResultsMap.set(result.name, {
-                                    place_id: result.place_id,
-                                    name: result.name,
-                                    formatted_address: result.formatted_address,
-                                    geometry: result.geometry,
-                                });
+            (async () => {
+                try {
+                    const { Place } = window.google.maps.places;
+                    const request = {
+                        fields: ['displayName', 'formattedAddress', 'location', 'id', 'types', 'googleMapsURI'],
+                        textQuery: inputValue,
+                    };
+                    const { places } = await Place.searchByText(request);
+
+                    if (places?.length > 0) {
+                        const uniqueResultsMap = new Map();
+                        const formattedPlaces = places.map(place => ({
+                            displayName: place.displayName,
+                            formattedAddress: place.formattedAddress,
+                            googleMapsURI: place.googleMapsURI,
+                            location: place.location,
+                            placeId: place.id,
+                            types: place.types,
+                        }));
+
+                        for (const result of formattedPlaces) {
+                            if (!uniqueResultsMap.has(result.displayName)) {
+                                uniqueResultsMap.set(result.displayName, result);
                             }
                         }
                         const uniqueResults = Array.from(uniqueResultsMap.values());
+                        console.log({ uniqueResults });
                         setOptions(uniqueResults);
-                        setAutocompleteData(uniqueResults.map(option => option.name));
-                        setIsLoading(false);
+                        setAutocompleteData(uniqueResults.map(option => option.displayName));
                     } else {
                         setOptions([]);
                         setAutocompleteData([]);
-                        setIsLoading(false);
-                        console.error('Geocoding failed:', status);
+                        console.log('No places found for:', inputValue);
                     }
+                } catch (error) {
+                    console.error('Error searching for places:', error);
+                    setOptions([]);
+                    setAutocompleteData([]);
+                } finally {
+                    setIsLoading(false);
                 }
-            );
+            })();
         } else {
             setOptions([]);
             setAutocompleteData([]);
@@ -63,26 +75,26 @@ export default function LocationInput({
 
     const handleInputChange = (value) => {
         setInputValue(value);
-        // When the input value changes, check if it matches an option name
-        const selected = options.find((option) => option.name === value);
+        const selected = options.find((option) => option.displayName === value);
         setSelectedLocation(selected);
     };
 
     const renderOption = ({ option }) => {
-        const foundOption = options.find(opt => opt.name === option.value);
+        const foundOption = options.find(opt => opt.displayName === option.value);
         if (!foundOption) return null;
 
         return (
             <div>
-                <Text size="sm">{foundOption.name}</Text>
+                <Text size="sm">{foundOption.displayName}</Text>
                 <Text size="xs" opacity={0.5}>
-                    {foundOption.formatted_address}
+                    {foundOption.formattedAddress}
                 </Text>
             </div>
         );
     };
 
     if (loadError) return <div>Error loading maps.</div>;
+    if (!isLoaded) return <div>Loading Google Maps...</div>;
 
     return (
         <div>
