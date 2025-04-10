@@ -30,6 +30,7 @@ export default function LocationInput({
                     const request = {
                         fields: ['displayName', 'formattedAddress', 'location', 'id', 'types', 'googleMapsURI'],
                         textQuery: inputValue,
+                        // includedType: 'park',
                     };
                     const { places } = await Place.searchByText(request);
 
