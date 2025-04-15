@@ -57,29 +57,47 @@ export async function updateSeason({ values, seasonId }) {
     console.log({ locationDetails });
 
     let parkId;
-    if (locationDetails) {
-        const parsedLocationDetails = JSON.parse(locationDetails);
-        if (parsedLocationDetails?.placeId) {
-            const parkResponse = await findOrCreatePark({
-                values: parsedLocationDetails,
-                placeId: parsedLocationDetails.placeId
-            });
-            console.log({ parkResponse });
+
+    try {
+        if (locationDetails) {
+            let parsedLocationDetails;
+            try {
+                parsedLocationDetails = JSON.parse(locationDetails);
+            } catch (parseError) {
+                // TODO: Decide how to handle invalid JSON - maybe throw an error or proceed without park update
+                // For now, let's log and continue, assuming other fields might still be valid
+                console.error("Error parsing locationDetails:", parseError);
+            }
+
+            if (parsedLocationDetails?.placeId) {
+                const parkResponse = await findOrCreatePark({
+                    values: parsedLocationDetails,
+                    placeId: parsedLocationDetails.placeId
+                });
+
+                if (parkResponse?.$id) {
+                    parkId = parkResponse.$id;
+                }
+            }
         }
+
+        // Removes undefined or empty string values from data to update
+        let dataToUpdate = removeEmptyValues({ values: rest });
+
+        // Process other fields that need transformation
+        if (dataToUpdate.gameDays) dataToUpdate.gameDays = dataToUpdate.gameDays.split(",");
+        if (dataToUpdate.signUpFee) dataToUpdate.signUpFee = Number(dataToUpdate.signUpFee);
+
+        // Conditionally add parkId to the update payload if it was found/created
+        if (parkId) dataToUpdate.parkId = parkId;
+
+        const seasonDetails = await updateDocument('seasons', seasonId, dataToUpdate);
+
+        return { response: { seasonDetails }, status: 204, success: true };
+
+    } catch (error) {
+        console.error("Error updating season:", error);
+        // Re-throw the error to be handled by the caller (e.g., React Router action)
+        throw error;
     }
-    // // Removes undefined or empty string values from data to update
-    // let dataToUpdate = removeEmptyValues({ values: rest });
-
-    // if (dataToUpdate.gameDays) dataToUpdate.gameDays = dataToUpdate.gameDays.split(",");
-    // if (dataToUpdate.signUpFee) dataToUpdate.signUpFee = Number(dataToUpdate.signUpFee);
-    // if (parkId) dataToUpdate.parkId = parkId;
-
-    // try {
-    //     const seasonDetails = await updateDocument('seasons', seasonId, dataToUpdate);
-
-    //     return { response: { seasonDetails }, status: 204, success: true };
-    // } catch (error) {
-    //     console.error("Error updating season:", error);
-    //     throw error;
-    // }
 }
