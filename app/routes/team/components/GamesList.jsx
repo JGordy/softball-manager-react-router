@@ -54,10 +54,7 @@ export default function GamesListContainer({
                 </Text>
             )}
 
-            <GamesList
-                games={sortedGames}
-                height={'60vh'}
-            />
+            <GamesList games={sortedGames} />
         </>
     );
 };

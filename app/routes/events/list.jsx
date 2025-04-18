@@ -149,17 +149,11 @@ export default function EventsDetails({ loaderData }) {
                 </Tabs.List>
 
                 <Tabs.Panel value="upcoming">
-                    <GamesList
-                        games={filterGames(futureGames)}
-                        height="63vh"
-                    />
+                    <GamesList games={filterGames(futureGames)} />
                 </Tabs.Panel>
 
                 <Tabs.Panel value="past">
-                    <GamesList
-                        games={filterGames(pastGames)}
-                        height="63vh"
-                    />
+                    <GamesList games={filterGames(pastGames)} />
                 </Tabs.Panel>
             </Tabs>
         </>
