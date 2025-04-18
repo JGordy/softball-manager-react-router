@@ -14,7 +14,7 @@ export async function clientLoader() {
         const session = await account.getSession("current");
 
         if (!session) {
-            throw redirect("/login");
+            throw new Error('No active session found');
         }
 
         const { userId } = session;
@@ -33,6 +33,9 @@ export async function clientLoader() {
         return { user };
     } catch (error) {
         console.error('Error fetching user:', error);
+        if (error.message === 'No active session found') {
+            throw redirect("/login");
+        }
         return { user: {} };
     }
 }
