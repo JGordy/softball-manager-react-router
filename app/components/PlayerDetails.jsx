@@ -48,13 +48,11 @@ function PlayerDetails({ player, editButton }) {
     const { throws, bats, preferredPositions, dislikedPositions } = player;
 
     return (
-        <Card shadow="sm" padding="lg" radius="xl" mt="md" withBorder>
+        <Card shadow="sm" padding="lg" radius="lg" mt="md" withBorder>
             <Group justify="space-between">
                 <Title order={4}>Player Details</Title>
                 {editButton}
             </Group>
-
-            <Divider my="sm" size="sm" />
 
             <Group gap="xl">
                 <Group gap="4px">
@@ -99,21 +97,6 @@ function PlayerDetails({ player, editButton }) {
                     />
                 ))}
             </div>
-
-            {/* <Group justify='space-between' px="10px">
-                <Group gap="xs">
-                    <ColorSwatch size={20} color={colors.PREFERRED} />
-                    Preferred
-                </Group>
-                <Group gap="xs">
-                    <ColorSwatch size={20} color={colors.NEUTRAL} />
-                    Open
-                </Group>
-                <Group gap="xs">
-                    <ColorSwatch size={20} color={colors.DISLIKED} />
-                    Disliked
-                </Group>
-            </Group> */}
         </Card>
     );
 }

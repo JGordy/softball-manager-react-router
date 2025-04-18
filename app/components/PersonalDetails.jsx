@@ -38,15 +38,15 @@ const fields = {
 export default function DetailCard({ editButton, player, fieldsToDisplay, managerView }) {
 
     return (
-        <Card shadow="sm" padding="lg" radius="xl" mt="md" withBorder>
-            <Group justify="space-between">
+        <>
+            <Group justify="space-between" my="sm">
                 <Group>
                     <Title order={4}>Personal Details</Title>
                 </Group>
                 {editButton}
             </Group>
 
-            <Divider my="xs" size="sm" />
+            {/* <Divider my="xs" size="sm" /> */}
 
             <List
                 spacing="xs"
@@ -67,6 +67,6 @@ export default function DetailCard({ editButton, player, fieldsToDisplay, manage
                     );
                 })}
             </List>
-        </Card>
+        </>
     );
 };
