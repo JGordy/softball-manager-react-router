@@ -8,7 +8,7 @@ import GameCard from '@/components/GameCard';
 
 export default function GamesList({
     games,
-    height = "55vh",
+    height = "50vh",
 }) {
 
     if (!games.length) {
