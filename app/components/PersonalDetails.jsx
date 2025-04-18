@@ -38,7 +38,7 @@ const fields = {
 export default function DetailCard({ editButton, player, fieldsToDisplay, managerView }) {
 
     return (
-        <Card shadow="sm" padding="lg" radius="xl" withBorder>
+        <Card shadow="sm" padding="lg" radius="xl" mt="md" withBorder>
             <Group justify="space-between">
                 <Group>
                     <Title order={4}>Personal Details</Title>
