@@ -10,7 +10,7 @@ import {
 } from '@mantine/core';
 import { modals } from '@mantine/modals';
 
-import { redirect } from 'react-router';
+import { Link, redirect } from 'react-router';
 
 import { IconPlus } from '@tabler/icons-react';
 
@@ -168,11 +168,13 @@ export default function HomePage({ loaderData, actionData }) {
                             </Button>
                         </Card>
                         {teamList.map((team, index) => (
-                            <Card key={index} bg={team.primaryColor}>
-                                <Text style={{ whiteSpace: 'nowrap' }}>
-                                    {team.name}
-                                </Text>
-                            </Card>
+                            <Link to={`/team/${team.$id}`}>
+                                <Card key={index} bg={team.primaryColor}>
+                                    <Text style={{ whiteSpace: 'nowrap' }}>
+                                        {team.name}
+                                    </Text>
+                                </Card>
+                            </Link>
                         ))}
                     </Group>
                 </ScrollArea.Autosize>
