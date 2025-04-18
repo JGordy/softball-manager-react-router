@@ -168,8 +168,8 @@ export default function HomePage({ loaderData, actionData }) {
                             </Button>
                         </Card>
                         {teamList.map((team, index) => (
-                            <Link to={`/team/${team.$id}`}>
-                                <Card key={index} bg={team.primaryColor}>
+                            <Link to={`/team/${team.$id}`} key={index}>
+                                <Card bg={team.primaryColor} c="white">
                                     <Text style={{ whiteSpace: 'nowrap' }}>
                                         {team.name}
                                     </Text>
