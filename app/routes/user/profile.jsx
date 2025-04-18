@@ -15,6 +15,7 @@ import {
     IconBellRingingFilled,
     IconFriends,
     IconHeadphonesFilled,
+    IconHistory,
     IconMail,
     IconPhone,
     IconUserSquareRounded,
@@ -147,11 +148,14 @@ export default function UserProfile() {
 
             <Tabs radius="md" defaultValue="player" mt="xl">
                 <Tabs.List grow justify="center">
-                    <Tabs.Tab value="player" size="lg" leftSection={<IconBallBaseball size={16} />}>
+                    <Tabs.Tab value="player" leftSection={<IconBallBaseball size={16} />}>
                         Player
                     </Tabs.Tab>
-                    <Tabs.Tab value="personal" size="lg" leftSection={<IconUserSquareRounded size={16} />}>
+                    <Tabs.Tab value="personal" leftSection={<IconUserSquareRounded size={16} />}>
                         Personal
+                    </Tabs.Tab>
+                    <Tabs.Tab value="experience" leftSection={<IconHistory size={16} />} disabled>
+                        Experience
                     </Tabs.Tab>
                 </Tabs.List>
 
@@ -168,6 +172,10 @@ export default function UserProfile() {
                         editButton={isCurrentUser && <EditButton setIsModalOpen={openPersonalDetailsModal} />}
                         fieldsToDisplay={fieldsToDisplay}
                     />
+                </Tabs.Panel>
+
+                <Tabs.Panel value="experience">
+                    <Text>Experience</Text>
                 </Tabs.Panel>
 
             </Tabs>
