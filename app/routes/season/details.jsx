@@ -30,11 +30,19 @@ import { createGames, createSingleGame } from '@/actions/games';
 import { updateSeason } from '@/actions/seasons';
 
 import { getSeasonById } from '@/loaders/seasons';
+import { getParkById } from '@/loaders/parks';
 
 export async function loader({ params }) {
     const { seasonId } = params;
 
-    return getSeasonById({ seasonId });
+    let park = null;
+    const { season } = await getSeasonById({ seasonId });
+
+    if (season.parkId) {
+        park = await getParkById({ parkId: season.parkId });
+    }
+
+    return { season, park };
 }
 
 export async function action({ request, params }) {
@@ -60,7 +68,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
 
     const { season } = loaderData;
 
-    // console.log('/season/details.jsx: ', { loaderData });
+    console.log('/season/details.jsx: ', { loaderData });
 
     useEffect(() => {
         const handleAfterSubmit = async () => {
