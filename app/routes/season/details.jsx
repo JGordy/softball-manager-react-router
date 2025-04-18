@@ -184,10 +184,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
                 </>
             )}
 
-            <GamesList
-                games={season.games}
-                height={'50vh'}
-            />
+            <GamesList games={season.games} />
 
             <Button
                 mt="md"
