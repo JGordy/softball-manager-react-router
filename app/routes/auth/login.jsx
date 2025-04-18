@@ -31,6 +31,7 @@ export async function clientAction({ request }) {
     const password = formData.get("password");
 
     const response = await login({ email, password });
+    console.log({ response });
 
     if (response?.error) {
         return { error: response.error?.message || response.error };
@@ -46,8 +47,10 @@ export default function Login({ actionData }) {
 
     useEffect(() => {
         const checkCurrentSession = async () => {
+            console.log('Checking current session...')
             try {
                 const session = await account.getSession('current');
+                console.log({ session });
                 if (session) {
                     setUser();
                     navigate(`/user/${session.userId}`);
@@ -59,7 +62,7 @@ export default function Login({ actionData }) {
             }
         };
         checkCurrentSession();
-    }, []);
+    }, [actionData]);
 
     return (
         <Container size="xs">
