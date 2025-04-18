@@ -5,16 +5,19 @@ import {
     Group,
     Indicator,
     Popover,
+    Tabs,
     Text,
 } from '@mantine/core';
 import { modals } from '@mantine/modals';
 
 import {
+    IconBallBaseball,
     IconBellRingingFilled,
     IconFriends,
     IconHeadphonesFilled,
     IconMail,
     IconPhone,
+    IconUserSquareRounded,
 } from '@tabler/icons-react';
 
 import { useAuth } from '@/contexts/auth/useAuth';
@@ -142,16 +145,32 @@ export default function UserProfile() {
                 )}
             </Group>
 
-            <PersonalDetails
-                player={player}
-                editButton={isCurrentUser && <EditButton setIsModalOpen={openPersonalDetailsModal} />}
-                fieldsToDisplay={fieldsToDisplay}
-            />
+            <Tabs radius="md" defaultValue="player" mt="xl">
+                <Tabs.List grow justify="center">
+                    <Tabs.Tab value="player" size="lg" leftSection={<IconBallBaseball size={16} />}>
+                        Player
+                    </Tabs.Tab>
+                    <Tabs.Tab value="personal" size="lg" leftSection={<IconUserSquareRounded size={16} />}>
+                        Personal
+                    </Tabs.Tab>
+                </Tabs.List>
 
-            <PlayerDetails
-                player={player}
-                editButton={isCurrentUser && <EditButton setIsModalOpen={openPlayerDetailsModal} />}
-            />
+                <Tabs.Panel value="player">
+                    <PlayerDetails
+                        player={player}
+                        editButton={isCurrentUser && <EditButton setIsModalOpen={openPlayerDetailsModal} />}
+                    />
+                </Tabs.Panel>
+
+                <Tabs.Panel value="personal">
+                    <PersonalDetails
+                        player={player}
+                        editButton={isCurrentUser && <EditButton setIsModalOpen={openPersonalDetailsModal} />}
+                        fieldsToDisplay={fieldsToDisplay}
+                    />
+                </Tabs.Panel>
+
+            </Tabs>
         </>
     );
 }
