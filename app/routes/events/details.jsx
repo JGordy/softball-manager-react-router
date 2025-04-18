@@ -187,10 +187,10 @@ export default function EventDetails({ loaderData, actionData }) {
             {/* <Title order={5} mt="lg" align="center">See detailed information for your upcoming and past games</Title> */}
             <Tabs radius="md" defaultValue={(availablePlayers?.length > 7) ? 'lineup' : 'availability'} mt="xl">
                 <Tabs.List grow justify="center">
-                    <Tabs.Tab value="lineup" size="lg">
+                    <Tabs.Tab value="lineup">
                         Batting & Fielding
                     </Tabs.Tab>
-                    <Tabs.Tab value="availability" size="lg">
+                    <Tabs.Tab value="availability">
                         Player Availabliity
                     </Tabs.Tab>
                 </Tabs.List>

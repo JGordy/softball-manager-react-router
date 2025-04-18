@@ -140,10 +140,10 @@ export default function EventsDetails({ loaderData }) {
             <Title order={5} mt="lg" align="center">See detailed information for your upcoming and past games</Title>
             <Tabs radius="md" defaultValue="upcoming" mt="xl">
                 <Tabs.List grow justify="center">
-                    <Tabs.Tab value="upcoming" size="lg" leftSection={<IconCalendarMonth size={16} />}>
+                    <Tabs.Tab value="upcoming" leftSection={<IconCalendarMonth size={16} />}>
                         Upcoming
                     </Tabs.Tab>
-                    <Tabs.Tab value="past" size="lg" leftSection={<IconCalendarMonth size={16} />}>
+                    <Tabs.Tab value="past" leftSection={<IconCalendarMonth size={16} />}>
                         Past
                     </Tabs.Tab>
                 </Tabs.List>
