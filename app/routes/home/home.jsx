@@ -169,8 +169,8 @@ export default function HomePage({ loaderData, actionData }) {
                         </Card>
                         {teamList.map((team, index) => (
                             <Link to={`/team/${team.$id}`} key={index}>
-                                <Card bg={team.primaryColor} c="white">
-                                    <Text style={{ whiteSpace: 'nowrap' }}>
+                                <Card bg={team.primaryColor}>
+                                    <Text style={{ whiteSpace: 'nowrap' }} c="white">
                                         {team.name}
                                     </Text>
                                 </Card>
