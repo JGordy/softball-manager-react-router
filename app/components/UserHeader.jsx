@@ -55,7 +55,7 @@ export default function UserHeader({
                     color="red"
                     title="Email not yet verified"
                 >
-                    Your email is not verified. Please check your inbox for a verification email.
+                    Your email is not verified and certain features may not be available until complete. Please check your inbox for a verification email.
                     <Button
                         variant="filled"
                         size="xs"
