@@ -1,34 +1,74 @@
+import { useState } from 'react';
 import { useOutletContext } from 'react-router';
 
-import { Avatar, Group, Text, Title } from '@mantine/core';
+import { Alert, Avatar, Button, Group, Text, Title } from '@mantine/core';
 
 import { IconRosetteDiscountCheckFilled } from '@tabler/icons-react';
 
-export default function UserHeader({ subText }) {
+import { account } from '@/appwrite';
+
+export default function UserHeader({
+    children,
+    subText,
+}) {
+
     const context = useOutletContext();
     const { user, isVerified } = context;
-    console.log('UserHeader', { context });
+
+    const [emailSent, setEmailSent] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
     const fullName = `${user.firstName} ${user.lastName}`;
+
+    const handleReverificationEmailClick = async () => {
+        setIsLoading(true);
+        const currentUrl = new URL(window.location.href);
+        await account.createVerification(`${currentUrl.origin}/verify`);
+
+        setEmailSent(true);
+
+        setTimeout(() => setIsLoading(false), 1000);
+    }
 
     return (
         <>
-            <Group my="md">
-                <Avatar color="green" name={fullName} alt={fullName} size="md" />
-                <div>
-                    <Title order={3}>
-                        <Group gap="0px">
-                            {`Hello, ${user.firstName}!`}
-                            {isVerified && <IconRosetteDiscountCheckFilled size={16} color="green" />}
-                        </Group>
-                    </Title>
-                    {subText && <Text size="0.8rem">{subText}</Text>}
-                </div>
+            <Group justify="space-between">
+                <Group my="md">
+                    <Avatar color="green" name={fullName} alt={fullName} size="md" />
+                    <div>
+                        <Title order={3}>
+                            <Group gap="0px">
+                                {`Hello, ${user.firstName}!`}
+                                {isVerified && <IconRosetteDiscountCheckFilled size={16} color="green" />}
+                            </Group>
+                        </Title>
+                        {subText && <Text size="0.8rem">{subText}</Text>}
+                    </div>
+                </Group>
+                {children}
             </Group>
 
             {!isVerified && (
-                <Text mt="md" c="red">
+                <Alert
+                    mt="md"
+                    variant="outline"
+                    color="red"
+                    title="Email not yet verified"
+                >
                     Your email is not verified. Please check your inbox for a verification email.
-                </Text>
+                    <Button
+                        variant="filled"
+                        size="xs"
+                        color="red"
+                        mt="md"
+                        loading={isLoading}
+                        fullWidth
+                        onClick={handleReverificationEmailClick}
+                        disabled={emailSent}
+                    >
+                        {emailSent ? 'Email Sent!' : 'Resend Verification Email'}
+                    </Button>
+                </Alert>
             )}
         </>
     );
