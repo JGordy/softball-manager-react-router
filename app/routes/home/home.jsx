@@ -158,29 +158,41 @@ export default function HomePage({ loaderData, actionData }) {
             <Title order={4} mt="xl">
                 My Teams ({teamList?.length || '0'})
             </Title>
-            <Card radius="md" py="lg" mt="md" withBorder>
-                <ScrollArea.Autosize py="5px">
-                    <Group miw={400} wrap="nowrap">
-                        <Card align="center" px="0">
-                            <Button variant="transparent" onClick={openAddTeamModal}>
-                                <Text align="center" style={{ whiteSpace: 'nowrap' }}>
-                                    <IconPlus size={18} />
-                                    Add Team
-                                </Text>
-                            </Button>
-                        </Card>
-                        {teamList.map((team, index) => (
-                            <Link to={`/team/${team.$id}`} key={index}>
-                                <Card bg={team.primaryColor}>
-                                    <Text style={{ whiteSpace: 'nowrap' }} c="white">
-                                        {team.name}
+            {!teamList?.length && (
+                <Button
+                    fullWidth
+                    variant="filled"
+                    mt="md"
+                    onClick={openAddTeamModal}
+                >
+                    Create Your First Team
+                </Button>
+            )}
+            {!!teamList?.length && (
+                <Card radius="md" py="lg" mt="md" withBorder>
+                    <ScrollArea.Autosize py="5px">
+                        <Group miw={400} wrap="nowrap">
+                            <Card align="center" px="0">
+                                <Button variant="transparent" onClick={openAddTeamModal}>
+                                    <Text align="center" style={{ whiteSpace: 'nowrap' }}>
+                                        <IconPlus size={18} />
+                                        Add Team
                                     </Text>
-                                </Card>
-                            </Link>
-                        ))}
-                    </Group>
-                </ScrollArea.Autosize>
-            </Card>
+                                </Button>
+                            </Card>
+                            {teamList.map((team, index) => (
+                                <Link to={`/team/${team.$id}`} key={index}>
+                                    <Card bg={team.primaryColor}>
+                                        <Text style={{ whiteSpace: 'nowrap' }} c="white">
+                                            {team.name}
+                                        </Text>
+                                    </Card>
+                                </Link>
+                            ))}
+                        </Group>
+                    </ScrollArea.Autosize>
+                </Card>
+            )}
         </>
     );
 };
