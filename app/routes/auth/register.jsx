@@ -46,8 +46,10 @@ export default function Register({ actionData }) {
     useEffect(() => {
         const createUserSession = async () => {
             await account.createEmailPasswordSession(actionData.email, actionData.password);
-            await account.createVerification('http://localhost:5173/verify');
-            redirect('/login');
+
+            const currentUrl = new URL(window.location.href);
+            await account.createVerification(`${currentUrl.origin}/verify`);
+            redirect('/');
         };
 
         if (actionData?.session) {
