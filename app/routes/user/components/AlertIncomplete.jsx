@@ -4,11 +4,10 @@ import { IconInfoCircle } from "@tabler/icons-react";
 export default function AlertIncomplete({ incompleteData, handleAlertClose }) {
     return (
         <Alert
-            my="sm"
             autoContrast
             color="orange"
             icon={<IconInfoCircle />}
-            radius="xl"
+            radius="md"
             title="Your profile is incomplete!"
         >
             <p>Please provide the following information:</p>

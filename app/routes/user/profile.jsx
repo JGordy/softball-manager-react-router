@@ -130,7 +130,7 @@ export default function UserProfile() {
                     <IconBellRingingFilled size={24} />
                 </Indicator>
             </Popover.Target>
-            <Popover.Dropdown>
+            <Popover.Dropdown p="0">
                 {showIndicator ? (
                     <AlertIncomplete incompleteData={incompleteData} />
                 ) : (
