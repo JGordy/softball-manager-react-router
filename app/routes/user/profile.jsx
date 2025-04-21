@@ -123,28 +123,28 @@ export default function UserProfile() {
         children: renderForm(['positions', 'throws-bats']),
     });
 
+    const userNotification = isCurrentUser && (
+        <Popover position="bottom" withArrow shadow="md">
+            <Popover.Target>
+                <Indicator inline processing color="red" size={12} disabled={!showIndicator}>
+                    <IconBellRingingFilled size={24} />
+                </Indicator>
+            </Popover.Target>
+            <Popover.Dropdown>
+                {showIndicator ? (
+                    <AlertIncomplete incompleteData={incompleteData} />
+                ) : (
+                    <Text>No new notifications or alerts</Text>
+                )}
+            </Popover.Dropdown>
+        </Popover>
+    );
+
     return !!Object.keys(player).length && (
         <>
-            <Group justify="space-between">
-                <UserHeader subText="Here are your personal and player details" />
-
-                {isCurrentUser && (
-                    <Popover position="bottom" withArrow shadow="md">
-                        <Popover.Target>
-                            <Indicator inline processing color="red" size={12} disabled={!showIndicator}>
-                                <IconBellRingingFilled size={24} />
-                            </Indicator>
-                        </Popover.Target>
-                        <Popover.Dropdown>
-                            {showIndicator ? (
-                                <AlertIncomplete incompleteData={incompleteData} />
-                            ) : (
-                                <Text>No new notifications or alerts</Text>
-                            )}
-                        </Popover.Dropdown>
-                    </Popover>
-                )}
-            </Group>
+            <UserHeader subText="Here are your personal and player details">
+                {userNotification}
+            </UserHeader>
 
             <Tabs radius="md" defaultValue="player" mt="xl">
                 <Tabs.List grow justify="center">

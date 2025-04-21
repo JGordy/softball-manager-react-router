@@ -91,51 +91,51 @@ export default function EventsDetails({ loaderData }) {
         return games?.filter(game => game.teamId === filterId);
     }
 
+    const teamFilter = teamsData?.length > 1 && (
+        <Menu
+            position="bottom-end"
+            offset={0}
+            opened={showFilters}
+            onClose={handleMenuClose}
+            trigger="click"
+        >
+            <Menu.Target>
+                <ActionIcon variant="default" radius="xl" aria-label="Filter Games" size="lg" onClick={toggleMenu}>
+                    <IconAdjustments stroke={1.5} size={24} />
+                </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown
+                bg={(computedColorScheme === 'light') ? "gray.1" : undefined}
+                miw="60vw"
+            >
+                <Menu.Label>Filter Games by Team</Menu.Label>
+
+                <SegmentedControl
+                    styles={{ label: { marginBottom: '5px' } }}
+                    fullWidth
+                    color="green"
+                    transitionDuration={0}
+                    withItemsBorders={false}
+                    orientation="vertical"
+                    onChange={handleMenuItemChange}
+                    value={filterId}
+                    data={[{
+                        value: 'all',
+                        label: 'All Teams',
+                    }, ...teamsData?.map(team => ({
+                        value: team.$id,
+                        label: team.name,
+                    }))]}
+                />
+            </Menu.Dropdown>
+        </Menu>
+    );
+
     return (
         <>
-            <Group justify="space-between">
-                <UserHeader subText="Track your game history" />
-
-                {teamsData?.length > 1 && (
-                    <Menu
-                        position="bottom-end"
-                        offset={0}
-                        opened={showFilters}
-                        onClose={handleMenuClose}
-                        trigger="click"
-                    >
-                        <Menu.Target>
-                            <ActionIcon variant="default" radius="xl" aria-label="Filter Games" size="lg" onClick={toggleMenu}>
-                                <IconAdjustments stroke={1.5} size={24} />
-                            </ActionIcon>
-                        </Menu.Target>
-                        <Menu.Dropdown
-                            bg={(computedColorScheme === 'light') ? "gray.1" : undefined}
-                            miw="60vw"
-                        >
-                            <Menu.Label>Filter Games by Team</Menu.Label>
-
-                            <SegmentedControl
-                                styles={{ label: { marginBottom: '5px' } }}
-                                fullWidth
-                                color="green"
-                                transitionDuration={0}
-                                withItemsBorders={false}
-                                orientation="vertical"
-                                onChange={handleMenuItemChange}
-                                value={filterId}
-                                data={[{
-                                    value: 'all',
-                                    label: 'All Teams',
-                                }, ...teamsData?.map(team => ({
-                                    value: team.$id,
-                                    label: team.name,
-                                }))]}
-                            />
-                        </Menu.Dropdown>
-                    </Menu>
-                )}
-            </Group>
+            <UserHeader subText="Track your game history">
+                {teamFilter}
+            </UserHeader>
 
             <Title order={5} mt="lg" align="center">See detailed information for your upcoming and past games</Title>
             <Tabs radius="md" defaultValue="upcoming" mt="xl">
