@@ -12,6 +12,7 @@ import { account } from '@/appwrite';
 export async function clientLoader() {
     try {
         const session = await account.getSession("current");
+        const { emailVerification } = await account.get();
 
         if (!session) {
             throw new Error('No active session found');
@@ -30,13 +31,13 @@ export async function clientLoader() {
 
         const user = await response.json();
 
-        return { user };
+        return { user, isVerified: emailVerification };
     } catch (error) {
         console.error('Error fetching user:', error);
         if (error.message === 'No active session found') {
             throw redirect("/login");
         }
-        return { user: {} };
+        return { user: {}, isVerified: false };
     }
 }
 
@@ -57,7 +58,7 @@ export function HydrateFallback() {
 }
 
 function Layout({ loaderData }) {
-    const { user } = loaderData;
+    const { user, isVerified } = loaderData;
 
     const navigation = useNavigation();
     const isNavigating = Boolean(navigation.location);
@@ -73,7 +74,7 @@ function Layout({ loaderData }) {
                     overlayProps={{ radius: "sm", blur: 3, }}
                 />
                 <Container p="md" mih="90vh">
-                    <Outlet context={{ user }} />
+                    <Outlet context={{ user, isVerified }} />
                 </Container>
                 <NavLinks />
             </main>
