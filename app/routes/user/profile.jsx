@@ -134,7 +134,7 @@ export default function UserProfile() {
                 {showIndicator ? (
                     <AlertIncomplete incompleteData={incompleteData} />
                 ) : (
-                    <Text>No new notifications or alerts</Text>
+                    <Text p="sm">No new notifications or alerts</Text>
                 )}
             </Popover.Dropdown>
         </Popover>
