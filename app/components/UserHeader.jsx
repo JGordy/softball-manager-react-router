@@ -51,7 +51,7 @@ export default function UserHeader({
             {!isVerified && (
                 <Alert
                     mt="md"
-                    variant="outline"
+                    variant="light"
                     color="red"
                     title="Email not yet verified"
                 >
