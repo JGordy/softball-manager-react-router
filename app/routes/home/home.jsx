@@ -43,19 +43,21 @@ export async function clientLoader({ request }) {
         }
 
         const { userId } = session;
-        const response = await fetch('/api/teams', {
+        const teamsResponse = await fetch('/api/teams', {
             method: 'POST',
             body: JSON.stringify({ userId, teamRoles: ['manager', 'player'] }),
         });
-
-        if (!response.ok) {
-            const errorData = await response.json();
+        if (!teamsResponse.ok) {
+            const errorData = await teamsResponse.json();
             throw new Error(errorData.message || 'Error fetching teams');
         }
 
-        const { managing = [], playing = [] } = await response.json();
+        const { managing = [], playing = [] } = await teamsResponse.json();
 
-        return { userId, teams: { managing, playing } };
+        return {
+            teams: { managing, playing },
+            userId,
+        };
 
     } catch (error) {
         console.error("Error in clientLoader:", error);
@@ -79,7 +81,7 @@ export async function action({ request }) {
 }
 
 export default function HomePage({ loaderData, actionData }) {
-    // const { userId } = useOutletContext();
+
     console.log('/home ', { loaderData });
     const teams = loaderData?.teams;
     const userId = loaderData?.userId;
@@ -133,7 +135,7 @@ export default function HomePage({ loaderData, actionData }) {
         <>
             <UserHeader subText="Here is a summary of all of your team and event info" />
 
-            {(Object.keys(nextGame).length > 0) && (
+            {(nextGame && Object.keys(nextGame).length > 0) && (
                 <>
                     <Title order={4} mt="xl">Upcoming Events</Title>
                     <Text span>
@@ -146,7 +148,7 @@ export default function HomePage({ loaderData, actionData }) {
                 </>
             )}
 
-            {(Object.keys(mostRecentGame).length > 0) && (
+            {(mostRecentGame && Object.keys(mostRecentGame).length > 0) && (
                 <>
                     <Title order={4} mt="xl">Most Recent Game</Title>
                     <GameCard {...mostRecentGame} />
