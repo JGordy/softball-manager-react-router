@@ -38,6 +38,8 @@ export default [
             // Gameday Routes
             route('/gameday/lineup', 'routes/gameday/lineup.jsx'),
 
+            route('/settings', 'routes/settings/index.jsx'),
+
             // Api routes
             route('/api/lineup', 'routes/api/generate/lineup.js'),
             route('/api/create-attendance', 'routes/api/generate/create-attendance.js'),
