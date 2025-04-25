@@ -7,7 +7,8 @@ import {
     IconBallBaseball,
     IconCalendar,
     IconHome,
-    IconUserSquareRounded
+    IconSettings,
+    IconUserSquareRounded,
 } from '@tabler/icons-react';
 
 import { useAuth } from '@/contexts/auth/useAuth';
@@ -42,6 +43,10 @@ function NavLinks() {
             return 'events';
         }
 
+        if (location.pathname.toLowerCase().includes('settings')) {
+            return 'settings';
+        }
+
         return 'home';
     };
 
@@ -50,12 +55,11 @@ function NavLinks() {
     const links = [
         {
             label: <Label Icon={IconHome} text={(value === 'home') && "Home"} />,
-            value: 'home'
-
+            value: 'home',
         },
         {
             label: <Label Icon={IconBallBaseball} text={(value === 'teams') && "Teams"} />,
-            value: 'teams'
+            value: 'teams',
         },
         {
             label: <Label Icon={IconCalendar} text={(value === 'events') && "Events"} />,
@@ -63,8 +67,11 @@ function NavLinks() {
         },
         {
             label: <Label Icon={IconUserSquareRounded} text={(value === 'user') && "Profile"} />,
-            value: 'user'
-
+            value: 'user',
+        },
+        {
+            label: <Label Icon={IconSettings} text={(value === 'settings') && "Settings"} />,
+            value: 'settings',
         },
     ]
 
