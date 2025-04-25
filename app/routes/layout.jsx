@@ -31,13 +31,13 @@ export async function clientLoader() {
 
         const user = await response.json();
 
-        return { user, isVerified: emailVerification };
+        return { user, isVerified: emailVerification, session };
     } catch (error) {
         console.error('Error fetching user:', error);
         if (error.message === 'No active session found') {
             throw redirect("/login");
         }
-        return { user: {}, isVerified: false };
+        return { user: {}, isVerified: false, session: null };
     }
 }
 
@@ -58,8 +58,6 @@ export function HydrateFallback() {
 }
 
 function Layout({ loaderData }) {
-    const { user, isVerified } = loaderData;
-
     const navigation = useNavigation();
     const isNavigating = Boolean(navigation.location);
 
@@ -74,7 +72,7 @@ function Layout({ loaderData }) {
                     overlayProps={{ radius: "sm", blur: 3, }}
                 />
                 <Container p="md" mih="90vh">
-                    <Outlet context={{ user, isVerified }} />
+                    <Outlet context={{ ...loaderData }} />
                 </Container>
                 <NavLinks />
             </main>
