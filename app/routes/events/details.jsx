@@ -23,7 +23,7 @@ import { createAttendanceForm, updateGame } from '@/actions/games';
 
 import { getEventById } from '@/loaders/games';
 
-import { formatGameTime, formatTime } from '@/utils/dateTime';
+import { formatGameTime, formatTime, getGameDayStatus } from '@/utils/dateTime';
 
 import AvailabliityContainer from './components/AvailabliityContainer';
 import LineupContainer from './components/LineupContainer';
@@ -102,12 +102,15 @@ export default function EventDetails({ loaderData, actionData }) {
         opponent,
         opponentScore,
         playerChart,
-        result,
+        result = 'win',
         score,
         timeZone,
     } = game;
 
     const formattedGameTime = formatGameTime(gameDate, timeZone);
+
+    const gameDayStatus = getGameDayStatus(gameDate);
+    const gameIsPast = gameDayStatus === 'past';
 
     const { responses } = availability;
 
@@ -159,31 +162,37 @@ export default function EventDetails({ loaderData, actionData }) {
             </Group>
 
             <Card withBorder radius="md" mt="xl" p="md">
-                <Title order={4} align="center">
+                <Title order={4} align="center" mb="sm">
                     {team?.name} {isHomeGame ? 'vs' : '@'} {opponent || "TBD"}
                 </Title>
+                <Group justify="center" gap="xl" align="center">
+                    <Card withBorder radius="md" px="xl">
+                        <Text>{score || '0'}</Text>
+                    </Card>
 
-                {result && (
-                    <>
-                        <Divider size="sm" my="md" />
+                    <div>-</div>
 
-                        <Center>
-                            <Text>{result}</Text>
-                            <Text>{score} - {opponentScore}</Text>
-                        </Center>
-
-                        <Divider size="sm" my="md" />
-                    </>
-                )}
-
-                <Group gap="xs" justify="center" mt="md">
-                    <IconClock size={18} />
-                    {formattedGameTime}
+                    <Card withBorder radius="md" px="xl">
+                        <Text>{opponentScore || '0'}</Text>
+                    </Card>
                 </Group>
 
-                <Group gap="xs" justify="center" mt="md">
-                    <IconMapPin size={18} />
-                    {season?.location}
+                {gameIsPast && !result && (
+                    <Center mt="md">
+                        <Text size="sm" c="yellow">Game result pending*</Text>
+                    </Center>
+                )}
+
+                <Group justify="space-between" mt="md">
+                    <Group gap="xs" justify="center">
+                        <IconClock size={18} />
+                        {formattedGameTime}
+                    </Group>
+
+                    <Group gap="xs" justify="center">
+                        <IconMapPin size={18} />
+                        {season?.location}
+                    </Group>
                 </Group>
             </Card>
 
