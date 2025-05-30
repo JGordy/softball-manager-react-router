@@ -94,3 +94,31 @@ export const combineDateTime = (gameDate, gameTime, userTimeZone) => {
 
     return localDate.toISOString();
 };
+
+export function getGameDayStatus(gameDateString) {
+    if (!gameDateString) {
+        console.error('Invalid date string provided to getGameDayStatus');
+        return 'invalid'; // Or throw an error, or return a specific status
+    }
+
+    try {
+        const gameDate = new Date(gameDateString);
+        // Normalize gameDate to midnight in the local timezone
+        gameDate.setHours(0, 0, 0, 0);
+
+        const today = new Date();
+        // Normalize today's date to midnight in the local timezone
+        today.setHours(0, 0, 0, 0);
+
+        if (gameDate.getTime() < today.getTime()) {
+            return 'past';
+        } else if (gameDate.getTime() > today.getTime()) {
+            return 'future';
+        } else {
+            return 'today';
+        }
+    } catch (error) {
+        console.error('Error processing date in getGameDayStatus:', error);
+        return 'error'; // Or throw an error
+    }
+}
