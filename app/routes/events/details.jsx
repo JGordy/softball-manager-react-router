@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useOutletContext } from 'react-router';
 
 import {
+    Card,
     Center,
     Divider,
     Group,
@@ -78,7 +79,7 @@ export async function loader({ params, request }) {
 }
 
 export default function EventDetails({ loaderData, actionData }) {
-    // console.log('/events/:eventId > ', { loaderData });
+    console.log('/events/:eventId > ', { loaderData });
 
     const { user } = useOutletContext();
     const currentUserId = user.$id;
@@ -157,32 +158,34 @@ export default function EventDetails({ loaderData, actionData }) {
                 {managerView && <EditButton setIsModalOpen={openModal} />}
             </Group>
 
-            <Title order={4} mt="xl" align="center">
-                {team?.name} {isHomeGame ? 'vs' : '@'} {opponent || "TBD"}
-            </Title>
+            <Card withBorder radius="md" mt="xl" p="md">
+                <Title order={4} align="center">
+                    {team?.name} {isHomeGame ? 'vs' : '@'} {opponent || "TBD"}
+                </Title>
 
-            {result && (
-                <>
-                    <Divider size="sm" my="md" />
+                {result && (
+                    <>
+                        <Divider size="sm" my="md" />
 
-                    <Center>
-                        <Text>{result}</Text>
-                        <Text>{score} - {opponentScore}</Text>
-                    </Center>
+                        <Center>
+                            <Text>{result}</Text>
+                            <Text>{score} - {opponentScore}</Text>
+                        </Center>
 
-                    <Divider size="sm" my="md" />
-                </>
-            )}
+                        <Divider size="sm" my="md" />
+                    </>
+                )}
 
-            <Group gap="xs" justify="center" mt="md">
-                <IconClock size={18} />
-                {formattedGameTime}
-            </Group>
+                <Group gap="xs" justify="center" mt="md">
+                    <IconClock size={18} />
+                    {formattedGameTime}
+                </Group>
 
-            <Group gap="xs" justify="center" mt="md">
-                <IconMapPin size={18} />
-                {season?.location}
-            </Group>
+                <Group gap="xs" justify="center" mt="md">
+                    <IconMapPin size={18} />
+                    {season?.location}
+                </Group>
+            </Card>
 
             {/* <Title order={5} mt="lg" align="center">See detailed information for your upcoming and past games</Title> */}
             <Tabs radius="md" defaultValue={(availablePlayers?.length > 7) ? 'lineup' : 'availability'} mt="xl">
