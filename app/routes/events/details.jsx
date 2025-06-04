@@ -182,19 +182,19 @@ export default function EventDetails({ loaderData, actionData }) {
                         <Text size="sm" c="yellow">Game result pending*</Text>
                     </Center>
                 )}
-
-                <Group justify="space-between" mt="md">
-                    <Group gap="xs" justify="center">
-                        <IconClock size={18} />
-                        {formattedGameTime}
-                    </Group>
-
-                    <Group gap="xs" justify="center">
-                        <IconMapPin size={18} />
-                        {season?.location}
-                    </Group>
-                </Group>
             </Card>
+
+            <Group justify="space-between" mt="lg" px="md">
+                <Group gap="xs" justify="center">
+                    <IconClock size={18} />
+                    {formattedGameTime}
+                </Group>
+
+                <Group gap="xs" justify="center">
+                    <IconMapPin size={18} />
+                    {season?.location}
+                </Group>
+            </Group>
 
             {/* <Title order={5} mt="lg" align="center">See detailed information for your upcoming and past games</Title> */}
             <Tabs radius="md" defaultValue={(availablePlayers?.length > 7) ? 'lineup' : 'availability'} mt="xl">
