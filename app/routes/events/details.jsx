@@ -197,11 +197,11 @@ export default function EventDetails({ loaderData, actionData }) {
                 {(gameIsPast && managerView) && (
                     <Button
                         mt="md"
-                        variant="filled"
+                        variant={result ? 'light' : 'filled'}
                         onClick={openGameResultsModal}
                         fullWidth
                     >
-                        Add game results
+                        {`${result ? 'Update' : 'Add'} game results`}
                     </Button>
                 )}
             </Card>
