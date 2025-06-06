@@ -3,9 +3,9 @@ import { useEffect } from 'react';
 import { useOutletContext } from 'react-router';
 
 import {
+    Button,
     Card,
     Center,
-    Divider,
     Group,
     Tabs,
     Text,
@@ -18,6 +18,7 @@ import { IconClock, IconMapPin } from '@tabler/icons-react';
 import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
 
+import AddGameResults from '@forms/AddGameResults';
 import AddSingleGame from '@/forms/AddSingleGame';
 import { createAttendanceForm, updateGame } from '@/actions/games';
 
@@ -154,6 +155,16 @@ export default function EventDetails({ loaderData, actionData }) {
         ),
     });
 
+    const openGameResultsModal = () => modals.open({
+        title: 'Add Results for this game',
+        children: (
+            <AddGameResults
+                actionRoute={`/events/${game.$id}`}
+                teamId={team.$id}
+            />
+        ),
+    });
+
     return (
         <>
             <Group justify="space-between">
@@ -178,9 +189,20 @@ export default function EventDetails({ loaderData, actionData }) {
                 </Group>
 
                 {gameIsPast && !result && (
-                    <Center mt="md">
-                        <Text size="sm" c="yellow">Game result pending*</Text>
-                    </Center>
+                    <>
+                        <Center my="md">
+                            <Text size="sm" c="yellow">Game result pending*</Text>
+                        </Center>
+                        {managerView && (
+                            <Button
+                                variant="filled"
+                                onClick={openGameResultsModal}
+                                fullWidth
+                            >
+                                Add game results
+                            </Button>
+                        )}
+                    </>
                 )}
             </Card>
 
