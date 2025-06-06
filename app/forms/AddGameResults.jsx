@@ -5,12 +5,11 @@ import FormWrapper from './FormWrapper';
 import classes from '@/styles/inputs.module.css';
 
 export default function AddGameResults({
-    action = 'update-game-results',
+    action = 'update-game',
     actionRoute,
     buttonColor,
-    confirmText = 'Update Results',
+    confirmText = 'Update Game Results',
     defaults = {},
-    seasonId,
     teamId,
 }) {
 
@@ -21,7 +20,6 @@ export default function AddGameResults({
             buttonColor={buttonColor}
             confirmText={confirmText}
         >
-            {seasonId && <input type="hidden" name="seasonId" value={seasonId} />}
             <input type="hidden" name="teamId" value={teamId} />
             <TextInput
                 className={classes.inputs}

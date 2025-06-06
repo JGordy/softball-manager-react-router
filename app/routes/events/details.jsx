@@ -189,20 +189,20 @@ export default function EventDetails({ loaderData, actionData }) {
                 </Group>
 
                 {gameIsPast && !result && (
-                    <>
-                        <Center my="md">
-                            <Text size="sm" c="yellow">Game result pending*</Text>
-                        </Center>
-                        {managerView && (
-                            <Button
-                                variant="filled"
-                                onClick={openGameResultsModal}
-                                fullWidth
-                            >
-                                Add game results
-                            </Button>
-                        )}
-                    </>
+                    <Center mt="md">
+                        <Text size="sm" c="yellow">Game result pending*</Text>
+                    </Center>
+                )}
+
+                {(gameIsPast && managerView) && (
+                    <Button
+                        mt="md"
+                        variant="filled"
+                        onClick={openGameResultsModal}
+                        fullWidth
+                    >
+                        Add game results
+                    </Button>
                 )}
             </Card>
 
