@@ -57,6 +57,20 @@ export async function updateGame({ values, eventId }) {
         dataToUpdate.isHomeGame = values.isHomeGame === 'true';
     }
 
+    // Ensure score and opponentScore are strings that represent valid integers
+    ['score', 'opponentScore'].forEach(key => {
+        if (dataToUpdate.hasOwnProperty(key)) {
+            const value = dataToUpdate[key];
+
+            const trimmedValue = value.trim();
+            if (/^-?\d+$/.test(trimmedValue)) { // Checks if string is an integer
+                dataToUpdate[key] = trimmedValue;
+            } else {
+                delete dataToUpdate[key]; // Delete invalid integer string
+            }
+        }
+    });
+
     delete dataToUpdate.gameTime;
 
     try {
