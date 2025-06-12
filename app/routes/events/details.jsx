@@ -80,7 +80,7 @@ export async function loader({ params, request }) {
 }
 
 export default function EventDetails({ loaderData, actionData }) {
-    console.log('/events/:eventId > ', { loaderData });
+    console.log('/events/:eventId > ', { ...loaderData });
 
     const { user } = useOutletContext();
     const currentUserId = user.$id;
@@ -103,7 +103,7 @@ export default function EventDetails({ loaderData, actionData }) {
         opponent,
         opponentScore,
         playerChart,
-        result = 'win',
+        result,
         score,
         timeZone,
     } = game;
