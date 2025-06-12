@@ -21,7 +21,7 @@ const getGameStatus = (date, result, score, opponentScore) => {
 
     if (gameDate < todayStart) {
         const resultsText = result
-            ? `${result === 'won' ? 'W' : 'L'} ${score} - ${opponentScore}`
+            ? `${result.charAt(0).toUpperCase()} ${score} - ${opponentScore}`
             : 'Results Pending';
 
         return {
