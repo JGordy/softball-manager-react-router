@@ -37,7 +37,7 @@ export default function AddGameResults({
                 className={classes.inputs}
                 label="Our Result"
                 name="result"
-                data={['won', 'lost']}
+                data={['won', 'lost', 'tie']}
                 defaultValue={defaults.result}
                 mb="sm"
             />
