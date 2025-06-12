@@ -158,7 +158,7 @@ export default function EventsDetails({ loaderData }) {
                 <Tabs.Panel value="past">
                     <GamesList
                         games={filterGames(pastGames)}
-                        height="55vh"
+                        height="60vh"
                     />
                 </Tabs.Panel>
             </Tabs>
