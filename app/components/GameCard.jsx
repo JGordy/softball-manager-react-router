@@ -5,7 +5,7 @@ import { formatGameTime } from '@/utils/dateTime';
 
 const getGameResultColor = (result) => {
     if (result === 'won') return 'green';
-    if (result === 'loss') return 'red';
+    if (result === 'lost') return 'red';
     return 'yellow';
 };
 
@@ -80,11 +80,11 @@ export default function GameCard({
     return (
         <Link key={$id} to={`/events/${$id}`}>
             <Card my="md" radius="md" py="lg" withBorder>
+                <Text fw={400} size="lg" mb="md">
+                    {teamName && <Text fw={700} span>{teamName + ' '}</Text>}
+                    {formattedHeader}
+                </Text>
                 <Group justify="space-between">
-                    <Text fw={400} span>
-                        {teamName && <Text fw={700} span>{teamName + ' '}</Text>}
-                        {formattedHeader}
-                    </Text>
                     <Text>{formattedGameTime}</Text>
                     {gameStatus.text}
                 </Group>
