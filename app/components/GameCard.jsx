@@ -4,7 +4,7 @@ import { Card, Group, Text } from '@mantine/core';
 import { formatGameTime } from '@/utils/dateTime';
 
 const getGameResultColor = (result) => {
-    if (result === 'win') return 'green';
+    if (result === 'won') return 'green';
     if (result === 'loss') return 'red';
     return 'yellow';
 };
@@ -21,7 +21,7 @@ const getGameStatus = (date, result, score, opponentScore) => {
 
     if (gameDate < todayStart) {
         const resultsText = result
-            ? `${result === 'win' ? 'W' : 'L'} ${score} - ${opponentScore}`
+            ? `${result === 'won' ? 'W' : 'L'} ${score} - ${opponentScore}`
             : 'Results Pending';
 
         return {
