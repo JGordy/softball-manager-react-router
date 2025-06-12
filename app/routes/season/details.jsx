@@ -121,6 +121,20 @@ export default function SeasonDetails({ loaderData, actionData }) {
 
     const hasGames = season?.games?.length > 0;
 
+    const record = hasGames && season.games.reduce((acc, game) => {
+        if (game.result) {
+            const { score, opponentScore } = game;
+            const scoreFor = Number(score) || 0;
+            const scoreAgainst = Number(opponentScore) || 0;
+
+            acc.wins += scoreFor > scoreAgainst ? 1 : 0;
+            acc.losses += scoreFor < scoreAgainst ? 1 : 0;
+            acc.ties += scoreFor === scoreAgainst ? 1 : 0;
+        }
+        return acc;
+    }, { wins: 0, losses: 0, ties: 0 });
+    console.log('Season record:', record);
+
     const textProps = {
         size: "md",
     };
