@@ -133,7 +133,6 @@ export default function SeasonDetails({ loaderData, actionData }) {
         }
         return acc;
     }, { wins: 0, losses: 0, ties: 0 });
-    console.log('Season record:', record);
 
     const textProps = {
         size: "md",
@@ -187,7 +186,12 @@ export default function SeasonDetails({ loaderData, actionData }) {
 
             <Divider size="sm" my="md" />
 
-            <Title order={4} mb="sm">Games ({season.games.length})</Title>
+            <Title order={4} mb="sm">
+                <Group justify="space-between">
+                    Games ({season.games.length})
+                    <div>Record {record?.wins}-{record?.losses}-{record?.ties}</div>
+                </Group>
+            </Title>
 
             {!hasGames && (
                 <>
