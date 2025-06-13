@@ -3,9 +3,11 @@ import { useNavigate, useOutletContext } from 'react-router';
 import {
     Button,
     Divider,
+    Drawer,
     Group,
     Text,
 } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 
 import { IconLogout2 } from '@tabler/icons-react';
 
@@ -19,6 +21,8 @@ export default function Settings() {
 
     const navigate = useNavigate();
 
+    const [opened, { open, close }] = useDisclosure(false);
+
     const logOutUser = async () => {
         await account.deleteSession(session.$id);
         navigate("/login");
@@ -29,17 +33,17 @@ export default function Settings() {
             <UserHeader subText={user.email} />
 
             <Divider my="sm" />
-            <Text>Account</Text>
+            <Text>Leagues</Text>
 
             <Divider my="sm" />
-            <Text>Leagues</Text>
+            <Text>Account</Text>
 
             <Divider my="sm" />
             <Button
                 color="red"
-                onClick={logOutUser}
+                onClick={open}
                 variant="subtle"
-                px="0"
+                px="0px"
                 size="md"
             >
                 <Group gap="xs">
@@ -47,6 +51,31 @@ export default function Settings() {
                     Log out
                 </Group>
             </Button>
+
+            <Drawer
+                opened={opened}
+                onClose={close}
+                title="Confirm Log Out"
+                position="bottom"
+                radius="xl"
+                padding="xl"
+            >
+                <Text size="md" mb="xl">
+                    Are you sure you want to log out? You will need to log in again to access your content.
+                </Text>
+                <Button
+                    color="red"
+                    onClick={logOutUser}
+                    variant="filled"
+                    size="md"
+                    fullWidth
+                >
+                    <Group gap="xs">
+                        <IconLogout2 size={16} mr='xs' />
+                        Yes, Log out
+                    </Group>
+                </Button>
+            </Drawer>
         </div>
     );
 };
