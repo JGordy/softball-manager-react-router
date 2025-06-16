@@ -161,6 +161,11 @@ export default function EventDetails({ loaderData, actionData }) {
             <AddGameResults
                 actionRoute={`/events/${game.$id}`}
                 teamId={team.$id}
+                defaults={{
+                    score: game?.score || 0,
+                    opponentScore: game?.opponentScore || 0,
+                    result: game?.result || null,
+                }}
             />
         ),
     });
