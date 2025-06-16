@@ -77,7 +77,7 @@ export default function AddSingleGame({
                 label="Game Date"
                 name="gameDate"
                 placeholder="When should this game be scheduled?"
-                defaultValue={new Date(defaults.gameDate)}
+                defaultValue={defaults.gameDate && new Date(defaults.gameDate)}
                 required={action === 'add-single-game'}
             />
             <TimeInput
