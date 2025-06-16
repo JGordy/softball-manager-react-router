@@ -1,4 +1,4 @@
-import { TextInput, Select } from '@mantine/core';
+import { Group, NumberInput, Radio, Select } from '@mantine/core';
 
 import FormWrapper from './FormWrapper';
 
@@ -13,6 +13,16 @@ export default function AddGameResults({
     teamId,
 }) {
 
+    const numberInputProps = {
+        className: classes.inputs,
+        clampBehavior: 'strict',
+        labelProps: { mb: 'xs' },
+        size: 'lg',
+        min: 0,
+        max: 100,
+        step: 1,
+    };
+
     return (
         <FormWrapper
             action={action}
@@ -21,26 +31,33 @@ export default function AddGameResults({
             confirmText={confirmText}
         >
             <input type="hidden" name="teamId" value={teamId} />
-            <TextInput
+            <Group mb="md" justify="space-between" grow wrap="nowrap">
+                <NumberInput
+                    {...numberInputProps}
+                    label="Our Score"
+                    name="score"
+                    defaultValue={defaults?.score}
+                />
+                <NumberInput
+                    {...numberInputProps}
+                    label="Opponent's Score"
+                    name="opponentScore"
+                    defaultValue={defaults?.opponentScore}
+                />
+            </Group>
+            <Radio.Group
+                mb="xl"
                 className={classes.inputs}
-                label="Our Score"
-                name="score"
-                defaultValue={defaults.score}
-            />
-            <TextInput
-                className={classes.inputs}
-                label="Opponent's Score"
-                name="opponentScore"
-                defaultValue={defaults.opponentScore}
-            />
-            <Select
-                className={classes.inputs}
-                label="Our Result"
+                defaultValue={defaults?.result || 'won'}
                 name="result"
-                data={['won', 'lost', 'tie']}
-                defaultValue={defaults.result}
-                mb="sm"
-            />
+                label="Select the result for your team"
+            >
+                <Group mt="xs">
+                    <Radio color="green" value="won" label="Win" />
+                    <Radio color="red" value="lost" label="Loss" />
+                    <Radio color="yellow" value="tie" label="Tie" />
+                </Group>
+            </Radio.Group>
         </FormWrapper>
     );
 };
