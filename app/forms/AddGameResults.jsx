@@ -1,4 +1,4 @@
-import { Group, NumberInput, Radio, Select } from '@mantine/core';
+import { Group, NumberInput, Radio } from '@mantine/core';
 
 import FormWrapper from './FormWrapper';
 
