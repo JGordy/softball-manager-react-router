@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useOutletContext } from 'react-router';
 
 import {
+    Anchor,
     Button,
     Card,
     Center,
@@ -90,6 +91,7 @@ export default function EventDetails({ loaderData, actionData }) {
         managerId,
         season,
         teams,
+        park,
         players,
         availability,
     } = loaderData;
@@ -218,8 +220,22 @@ export default function EventDetails({ loaderData, actionData }) {
                 </Group>
 
                 <Group gap="xs" justify="center">
-                    <IconMapPin size={18} />
-                    {season?.location}
+                    {park?.googleMapsURI ? (
+                        <Anchor href={park.googleMapsURI} target="_blank" rel="noopener noreferrer">
+                            {/* <Card py="xs" fullWidth> */}
+                            <Group gap="xs">
+                                <IconMapPin size={18} />
+                                {season?.location}
+                            </Group>
+                            {/* </Card> */}
+                        </Anchor>
+
+                    ) : (
+                        <>
+                            <IconMapPin size={18} />
+                            {season?.location}
+                        </>
+                    )}
                 </Group>
             </Group>
 
