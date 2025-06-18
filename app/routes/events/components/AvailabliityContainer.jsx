@@ -56,6 +56,7 @@ export default function AvailabliityContainer({
     const today = new Date();
     const gameDay = new Date(gameDate);
     const isGameToday = gameDay.toDateString() === today.toDateString();
+    const isGamePast = gameDay < today && !isGameToday;
 
     const handleAttendanceFormClick = async () => {
         try {
@@ -72,7 +73,7 @@ export default function AvailabliityContainer({
         }
     };
 
-    if (!formCreated) {
+    if ((!formCreated && !isGamePast)) {
         return (
             <>
                 {managerView ? (
@@ -138,7 +139,7 @@ export default function AvailabliityContainer({
                 <Text align="center" my="sm">No responses yet!</Text>
             )}
 
-            {isGameToday ? (
+            {(isGameToday || isGamePast) ? (
                 <Text align="center" mt="lg" fw={700} c="red">
                     The availability form for this game is now closed.
                 </Text>
