@@ -8,6 +8,7 @@ import {
     Card,
     Center,
     Group,
+    Paper,
     Tabs,
     Text,
     Title,
@@ -179,7 +180,7 @@ export default function EventDetails({ loaderData, actionData }) {
                 {managerView && <EditButton setIsModalOpen={openModal} />}
             </Group>
 
-            <Card withBorder radius="md" mt="xl" p="md">
+            <Paper mt="xl">
                 <Title order={4} align="center" mb="sm">
                     {team?.name} {isHomeGame ? 'vs' : '@'} {opponent || "TBD"}
                 </Title>
@@ -204,30 +205,30 @@ export default function EventDetails({ loaderData, actionData }) {
                 {(gameIsPast && managerView) && (
                     <Button
                         mt="md"
-                        variant={result ? 'light' : 'filled'}
+                        variant={result ? 'subtle' : 'filled'}
                         onClick={openGameResultsModal}
                         fullWidth
                     >
                         {`${result ? 'Update' : 'Add'} game results`}
                     </Button>
                 )}
-            </Card>
+            </Paper>
 
-            <Group justify="space-between" mt="lg" px="md">
-                <Group gap="xs" justify="center">
-                    <IconClock size={18} />
-                    {formattedGameTime}
-                </Group>
+            <Card withBorder radius="md" mt="xl">
+                <Card.Section my="xs" inheritPadding>
+                    <Group gap="xs">
+                        <IconClock size={18} />
+                        {formattedGameTime}
+                    </Group>
+                </Card.Section>
 
-                <Group gap="xs" justify="center">
+                <Card.Section my="xs" inheritPadding>
                     {park?.googleMapsURI ? (
                         <Anchor href={park.googleMapsURI} target="_blank" rel="noopener noreferrer">
-                            {/* <Card py="xs" fullWidth> */}
                             <Group gap="xs">
                                 <IconMapPin size={18} />
                                 {season?.location}
                             </Group>
-                            {/* </Card> */}
                         </Anchor>
 
                     ) : (
@@ -236,10 +237,9 @@ export default function EventDetails({ loaderData, actionData }) {
                             {season?.location}
                         </>
                     )}
-                </Group>
-            </Group>
+                </Card.Section>
+            </Card>
 
-            {/* <Title order={5} mt="lg" align="center">See detailed information for your upcoming and past games</Title> */}
             <Tabs radius="md" defaultValue={(availablePlayers?.length > 7) ? 'lineup' : 'availability'} mt="xl">
                 <Tabs.List grow justify="center">
                     <Tabs.Tab value="lineup">
