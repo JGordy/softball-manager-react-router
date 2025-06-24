@@ -135,7 +135,7 @@ export default function AvailabliityContainer({
             </Group>
             {formHasResponses && renderPlayerAvailability()}
 
-            {!formHasResponses && (
+            {(!formHasResponses && !isGamePast) && (
                 <Text align="center" my="sm">No responses yet!</Text>
             )}
 
