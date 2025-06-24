@@ -15,7 +15,6 @@ import {
     Text,
     Title,
 } from '@mantine/core';
-import { modals } from '@mantine/modals';
 import { useDisclosure, useClipboard } from '@mantine/hooks';
 
 import { IconChevronRight, IconClock, IconLocationFilled, IconMapPin, IconCopy } from '@tabler/icons-react';
@@ -31,6 +30,8 @@ import { createAttendanceForm, updateGame } from '@/actions/games';
 import { getEventById } from '@/loaders/games';
 
 import { formatGameTime, formatTime, getGameDayStatus } from '@/utils/dateTime';
+
+import useModal from '@/hooks/useModal';
 
 import AvailabliityContainer from './components/AvailabliityContainer';
 import LineupContainer from './components/LineupContainer';
@@ -89,6 +90,7 @@ export default function EventDetails({ loaderData, actionData }) {
     console.log('/events/:eventId > ', { ...loaderData });
 
     const [opened, { open, close }] = useDisclosure(false);
+    const { openModal, closeAllModals } = useModal();
 
     const clipboard = useClipboard({ timeout: 500 });
 
@@ -136,7 +138,7 @@ export default function EventDetails({ loaderData, actionData }) {
         const handleAfterSubmit = async () => {
             try {
                 if (actionData?.success) {
-                    modals.closeAll();
+                    closeAllModals();
                 } else if (actionData instanceof Error) {
                     console.error("Error parsing action data:", actionData);
                 }
@@ -148,7 +150,7 @@ export default function EventDetails({ loaderData, actionData }) {
         handleAfterSubmit();
     }, [actionData]);
 
-    const openModal = () => modals.open({
+    const openEditGameModal = () => openModal({
         title: 'Update Game Details',
         children: (
             <AddSingleGame
@@ -166,7 +168,7 @@ export default function EventDetails({ loaderData, actionData }) {
         ),
     });
 
-    const openGameResultsModal = () => modals.open({
+    const openGameResultsModal = () => openModal({
         title: 'Add Results for this game',
         children: (
             <AddGameResults
@@ -185,7 +187,7 @@ export default function EventDetails({ loaderData, actionData }) {
         <>
             <Group justify="space-between">
                 <BackButton text="Back to Events" />
-                {managerView && <EditButton setIsModalOpen={openModal} />}
+                {managerView && <EditButton setIsModalOpen={openEditGameModal} />}
             </Group>
 
             <Paper mt="xl">
