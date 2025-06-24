@@ -7,7 +7,6 @@ import {
     Text,
     Title,
 } from '@mantine/core';
-import { modals } from '@mantine/modals';
 
 import {
     IconCalendarMonth,
@@ -27,6 +26,8 @@ import { updateTeam } from '@/actions/teams';
 import { getTeamById } from '@/loaders/teams';
 
 import { useAuth } from '@/contexts/auth/useAuth';
+
+import useModal from '@/hooks/useModal';
 
 import PlayerList from './components/PlayerList';
 import SeasonList from './components/SeasonList';
@@ -63,6 +64,8 @@ export default function TeamDetails({ actionData, loaderData }) {
     const { teamData: team, players, managerId } = loaderData;
     // console.log('/team/details >', { players, team, managerId });
 
+    const { openModal, closeAllModals } = useModal();
+
     const { user } = useAuth();
 
     const managerView = managerId === user?.$id;
@@ -71,7 +74,7 @@ export default function TeamDetails({ actionData, loaderData }) {
         const handleAfterSubmit = async () => {
             try {
                 if (actionData?.success) {
-                    modals.closeAll();
+                    closeAllModals();
                 } else if (actionData instanceof Error) {
                     console.error("Error parsing action data:", actionData);
                 }
@@ -89,7 +92,7 @@ export default function TeamDetails({ actionData, loaderData }) {
         size: "md",
     }
 
-    const openTeamDetailsForm = () => modals.open({
+    const openTeamDetailsForm = () => openModal({
         title: 'Update Team Details',
         children: (
             <AddTeam
