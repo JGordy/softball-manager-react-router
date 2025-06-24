@@ -59,6 +59,7 @@ export default function Settings() {
                 position="bottom"
                 radius="xl"
                 padding="xl"
+                zIndex={5000}
             >
                 <Text size="md" mb="xl">
                     Are you sure you want to log out? You will need to log in again to access your content.

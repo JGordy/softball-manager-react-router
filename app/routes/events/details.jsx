@@ -288,6 +288,7 @@ export default function EventDetails({ loaderData, actionData }) {
                 radius="xl"
                 padding="xl"
                 withCloseButton={false}
+                zIndex={5000}
             >
                 <Flex align="center" gap="md" mb="xl">
                     <div>
@@ -295,7 +296,7 @@ export default function EventDetails({ loaderData, actionData }) {
                     </div>
                     <div>
                         <Text size="lg" weight={500}>
-                            {season?.location}
+                            {park?.displayName}
                         </Text>
                         <Text size="sm">
                             {park?.formattedAddress}
@@ -328,7 +329,7 @@ export default function EventDetails({ loaderData, actionData }) {
                     </Group>
                 </Card>
 
-            </Drawer>
+            </Drawer >
         </>
     );
 }
