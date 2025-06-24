@@ -7,7 +7,6 @@ import {
     Text,
     Title,
 } from '@mantine/core';
-import { modals } from '@mantine/modals';
 
 import {
     IconCalendar,
@@ -31,6 +30,8 @@ import { updateSeason } from '@/actions/seasons';
 
 import { getSeasonById } from '@/loaders/seasons';
 import { getParkById } from '@/loaders/parks';
+
+import useModal from '@/hooks/useModal';
 
 export async function loader({ params }) {
     const { seasonId } = params;
@@ -66,6 +67,8 @@ export async function action({ request, params }) {
 
 export default function SeasonDetails({ loaderData, actionData }) {
 
+    const { openModal, closeAllModals } = useModal();
+
     const { season } = loaderData;
 
     console.log('/season/details.jsx: ', { loaderData });
@@ -74,7 +77,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
         const handleAfterSubmit = async () => {
             try {
                 if (actionData?.success) {
-                    modals.closeAll();
+                    closeAllModals();
                 } else if (actionData instanceof Error) {
                     console.error("Error in actions:", actionData.message);
                 }
@@ -86,7 +89,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
         handleAfterSubmit();
     }, [actionData]);
 
-    const openGenerateGamesModal = () => modals.open({
+    const openGenerateGamesModal = () => openModal({
         title: 'Generate Game Placeholders',
         children: (
             <GenerateSeasonGames
@@ -96,7 +99,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
         ),
     });
 
-    const openAddGameModal = () => modals.open({
+    const openAddGameModal = () => openModal({
         title: 'Add a Single Game',
         children: (
             <AddSingleGame
@@ -107,7 +110,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
         ),
     });
 
-    const openEditSeasonModal = () => modals.open({
+    const openEditSeasonModal = () => openModal({
         title: 'Update Season Details',
         children: (
             <AddSeason
