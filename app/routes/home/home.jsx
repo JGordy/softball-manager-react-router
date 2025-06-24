@@ -8,7 +8,6 @@ import {
     Text,
     Title,
 } from '@mantine/core';
-import { modals } from '@mantine/modals';
 
 import { Link, redirect } from 'react-router';
 
@@ -24,6 +23,8 @@ import AddTeam from '@/forms/AddTeam';
 import { createTeam } from '@/actions/teams';
 
 import getGames from '@/utils/getGames';
+
+import useModal from '@/hooks/useModal';
 
 export function meta() {
     return [
@@ -82,6 +83,8 @@ export async function action({ request }) {
 
 export default function HomePage({ loaderData, actionData }) {
 
+    const { openModal, closeAllModals } = useModal();
+
     console.log('/home ', { loaderData });
     const teams = loaderData?.teams;
     const userId = loaderData?.userId;
@@ -107,7 +110,7 @@ export default function HomePage({ loaderData, actionData }) {
         const handleAfterSubmit = async () => {
             try {
                 if (actionData?.status === 201) {
-                    modals.closeAll();
+                    closeAllModals();
                 } else if (actionData instanceof Error) {
                     console.error('An error occurred during team creation.', actionData.message);
                 }
@@ -121,7 +124,7 @@ export default function HomePage({ loaderData, actionData }) {
 
     console.log('/home ', { nextGame, futureGames, pastGames, userId });
 
-    const openAddTeamModal = () => modals.open({
+    const openAddTeamModal = () => openModal({
         title: 'Add a New Team',
         children: (
             <AddTeam
