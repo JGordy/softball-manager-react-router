@@ -24,6 +24,8 @@ import { createTeam } from '@/actions/teams';
 
 import TeamCard from './components/TeamCard';
 
+import sortTeams from '@/utils/sortTeamsBySeason';
+
 export function meta() {
     return [
         { title: "Rocket Roster" },
@@ -77,6 +79,7 @@ export async function action({ request }) {
 }
 
 const UserDashboard = ({ loaderData }) => {
+    console.log('/teams ', { ...loaderData });
     const { managing, playing, userId } = loaderData;
 
     const actionData = useActionData();
@@ -107,8 +110,14 @@ const UserDashboard = ({ loaderData }) => {
         ),
     });
 
+    // Helper functions for sorting logic
+
     const renderTeamList = (teamList) => {
-        return (teamList.length > 0) && (
+
+        // Create a shallow copy and sort it
+        const sortedTeamList = [...teamList].sort(sortTeams);
+
+        return (sortedTeamList.length > 0) && (
             <Flex
                 direction={{ base: 'column', sm: 'row' }}
                 justify={{ base: 'center', sm: 'start' }}
@@ -117,7 +126,7 @@ const UserDashboard = ({ loaderData }) => {
                 gap={{ base: 'sm', sm: 'lg' }}
                 mih={50}
             >
-                {teamList.map((team) => (
+                {sortedTeamList.map((team) => (
                     <TeamCard
                         key={team.$id}
                         team={team}
