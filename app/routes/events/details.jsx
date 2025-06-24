@@ -7,6 +7,9 @@ import {
     Button,
     Card,
     Center,
+    Divider,
+    Drawer,
+    Flex,
     Group,
     Paper,
     Tabs,
@@ -14,8 +17,9 @@ import {
     Title,
 } from '@mantine/core';
 import { modals } from '@mantine/modals';
+import { useDisclosure, useClipboard } from '@mantine/hooks';
 
-import { IconClock, IconMapPin } from '@tabler/icons-react';
+import { IconChevronRight, IconClock, IconLocationFilled, IconMapPin, IconCopy } from '@tabler/icons-react';
 
 import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
@@ -83,6 +87,10 @@ export async function loader({ params, request }) {
 
 export default function EventDetails({ loaderData, actionData }) {
     console.log('/events/:eventId > ', { ...loaderData });
+
+    const [opened, { open, close }] = useDisclosure(false);
+
+    const clipboard = useClipboard({ timeout: 500 });
 
     const { user } = useOutletContext();
     const currentUserId = user.$id;
@@ -214,7 +222,7 @@ export default function EventDetails({ loaderData, actionData }) {
                 )}
             </Paper>
 
-            <Card withBorder radius="md" mt="xl">
+            <Card withBorder radius="md" mt="xl" py="0px">
                 <Card.Section my="xs" inheritPadding>
                     <Group gap="xs">
                         <IconClock size={18} />
@@ -222,14 +230,17 @@ export default function EventDetails({ loaderData, actionData }) {
                     </Group>
                 </Card.Section>
 
+                <Divider />
+
                 <Card.Section my="xs" inheritPadding>
                     {park?.googleMapsURI ? (
-                        <Anchor href={park.googleMapsURI} target="_blank" rel="noopener noreferrer">
+                        <Group justify='space-between' onClick={open} c="green">
                             <Group gap="xs">
                                 <IconMapPin size={18} />
                                 {season?.location}
                             </Group>
-                        </Anchor>
+                            <IconChevronRight size={18} />
+                        </Group>
 
                     ) : (
                         <>
@@ -269,6 +280,55 @@ export default function EventDetails({ loaderData, actionData }) {
                     />
                 </Tabs.Panel>
             </Tabs>
+
+            <Drawer
+                opened={opened}
+                onClose={close}
+                position="bottom"
+                radius="xl"
+                padding="xl"
+                withCloseButton={false}
+            >
+                <Flex align="center" gap="md" mb="xl">
+                    <div>
+                        <IconMapPin size={20} />
+                    </div>
+                    <div>
+                        <Text size="lg" weight={500}>
+                            {season?.location}
+                        </Text>
+                        <Text size="sm">
+                            {park?.formattedAddress}
+                        </Text>
+                    </div>
+                </Flex>
+
+
+                <Anchor
+                    href={park.googleMapsURI}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <Card c="green">
+                        <Group gap="xs">
+                            <IconLocationFilled size={18} />
+                            <Text>View on Google Maps</Text>
+                        </Group>
+                    </Card>
+                </Anchor>
+
+                <Card
+                    c="green"
+                    mt="md"
+                    onClick={() => clipboard.copy(park.formattedAddress)}
+                >
+                    <Group gap="xs">
+                        <IconCopy size={18} />
+                        <Text>{clipboard.copied ? 'Copied!' : 'Copy Address'}</Text>
+                    </Group>
+                </Card>
+
+            </Drawer>
         </>
     );
 }
