@@ -16,7 +16,7 @@ export default function DrawerContainer({
             classNames={classes}
             opened={opened}
             onClose={onClose}
-            overlayProps={{ backgroundOpacity: 0.3, blur: 4 }}
+            overlayProps={{ backgroundOpacity: 0.55, blur: 3 }}
             position={position}
             padding="xl"
             radius="xl"
