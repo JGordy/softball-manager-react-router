@@ -1,7 +1,8 @@
 import { Form, useSubmit } from 'react-router';
 
 import { Button, Group } from '@mantine/core';
-import { modals } from '@mantine/modals';
+
+import useModal from '@/hooks/useModal';
 
 export default function FormWrapper({
     action,
@@ -10,10 +11,12 @@ export default function FormWrapper({
     children,
     confirmText = 'Confirm',
     cancelText = 'Cancel',
-    onCancelClick = modals.closeAll,
+    onCancelClick,
     hideButtons,
     ...rest
 }) {
+
+    const { closeAllModals } = useModal();
 
     const submit = useSubmit();
 
@@ -44,7 +47,7 @@ export default function FormWrapper({
                     <Button
                         variant="outline"
                         color="gray"
-                        onClick={onCancelClick}
+                        onClick={onCancelClick || closeAllModals}
                     >
                         {cancelText}
                     </Button>
