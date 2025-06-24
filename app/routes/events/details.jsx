@@ -8,7 +8,6 @@ import {
     Card,
     Center,
     Divider,
-    Drawer,
     Flex,
     Group,
     Paper,
@@ -324,7 +323,6 @@ export default function EventDetails({ loaderData, actionData }) {
                             <Text>{clipboard.copied ? 'Copied!' : 'Copy Address'}</Text>
                         </Group>
                     </Card>
-
                 </DrawerContainer>
             )}
         </>
