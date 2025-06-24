@@ -23,6 +23,7 @@ import { IconChevronRight, IconClock, IconLocationFilled, IconMapPin, IconCopy }
 
 import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
+import DrawerContainer from '@/components/DrawerContainer';
 
 import AddGameResults from '@forms/AddGameResults';
 import AddSingleGame from '@/forms/AddSingleGame';
@@ -281,20 +282,10 @@ export default function EventDetails({ loaderData, actionData }) {
             </Tabs>
 
             {park && (
-                <Drawer
+                <DrawerContainer
                     opened={opened}
                     onClose={close}
-                    position="bottom"
-                    radius="xl"
-                    padding="xl"
-                    styles={{
-                        content: {
-                            borderBottomRightRadius: '0px',
-                            borderBottomLeftRadius: '0px',
-                        },
-                    }}
                     title="Location Details"
-                    zIndex={5000}
                 >
                     <Flex align="center" gap="md" mb="xl">
                         <div>
@@ -334,7 +325,7 @@ export default function EventDetails({ loaderData, actionData }) {
                         </Group>
                     </Card>
 
-                </Drawer >
+                </DrawerContainer>
             )}
         </>
     );
