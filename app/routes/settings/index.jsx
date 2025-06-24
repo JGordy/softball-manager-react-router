@@ -3,7 +3,6 @@ import { useNavigate, useOutletContext } from 'react-router';
 import {
     Button,
     Divider,
-    Drawer,
     Group,
     Text,
 } from '@mantine/core';
@@ -13,6 +12,7 @@ import { IconLogout2 } from '@tabler/icons-react';
 
 import { account } from '@/appwrite';
 
+import DrawerContainer from '@/components/DrawerContainer';
 import UserHeader from '@/components/UserHeader';
 
 export default function Settings() {
@@ -52,20 +52,10 @@ export default function Settings() {
                 </Group>
             </Button>
 
-            <Drawer
+            <DrawerContainer
                 opened={opened}
                 onClose={close}
                 title="Confirm Log Out"
-                position="bottom"
-                radius="xl"
-                padding="xl"
-                zIndex={5000}
-                styles={{
-                    content: {
-                        borderBottomRightRadius: '0px',
-                        borderBottomLeftRadius: '0px',
-                    },
-                }}
             >
                 <Text size="md" mb="xl">
                     Are you sure you want to log out? You will need to log in again to access your content.
@@ -82,7 +72,7 @@ export default function Settings() {
                         Yes, Log out
                     </Group>
                 </Button>
-            </Drawer>
+            </DrawerContainer>
         </div>
     );
 };
