@@ -10,7 +10,6 @@ import {
     Text,
     Title,
 } from '@mantine/core';
-import { modals } from '@mantine/modals';
 
 import { IconPlus } from '@tabler/icons-react';
 
@@ -25,6 +24,8 @@ import { createTeam } from '@/actions/teams';
 import TeamCard from './components/TeamCard';
 
 import sortTeams from '@/utils/sortTeamsBySeason';
+
+import useModal from '@/hooks/useModal';
 
 export function meta() {
     return [
@@ -84,11 +85,13 @@ const UserDashboard = ({ loaderData }) => {
 
     const actionData = useActionData();
 
+    const { openModal, closeAllModals } = useModal();
+
     useEffect(() => {
         const handleAfterSubmit = async () => {
             try {
                 if (actionData?.status === 201) {
-                    modals.closeAll();
+                    closeAllModals();
                 } else if (actionData instanceof Error) {
                     console.error('An error occurred during team creation.', actionData.message);
                 }
@@ -100,7 +103,7 @@ const UserDashboard = ({ loaderData }) => {
         handleAfterSubmit();
     }, [actionData]);
 
-    const openAddTeamModal = () => modals.open({
+    const openAddTeamModal = () => openModal({
         title: 'Add a New Team',
         children: (
             <AddTeam

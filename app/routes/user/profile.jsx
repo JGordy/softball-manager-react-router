@@ -2,13 +2,11 @@ import { useState, useEffect } from 'react';
 import { useActionData, useOutletContext } from 'react-router';
 
 import {
-    Group,
     Indicator,
     Popover,
     Tabs,
     Text,
 } from '@mantine/core';
-import { modals } from '@mantine/modals';
 
 import {
     IconBallBaseball,
@@ -30,6 +28,8 @@ import PlayerDetails from '@/components/PlayerDetails';
 
 import AddPlayer from '@/forms/AddPlayer';
 import { updateUser } from '@/actions/users'
+
+import useModal from '@/hooks/useModal';
 
 import AlertIncomplete from './components/AlertIncomplete';
 
@@ -72,6 +72,8 @@ export async function action({ request }) {
 
 export default function UserProfile() {
 
+    const { openModal, closeAllModals } = useModal();
+
     const { user } = useAuth();
     const { user: player } = useOutletContext();
 
@@ -92,7 +94,7 @@ export default function UserProfile() {
         const handleAfterSubmit = async () => {
             try {
                 if (actionData?.status === 204) {
-                    modals.closeAll();
+                    closeAllModals();
                 } else if (actionData instanceof Error) {
                     console.error("An error occurred while updating user data", actionData.message);
                 }
@@ -113,12 +115,12 @@ export default function UserProfile() {
         />
     );
 
-    const openPersonalDetailsModal = () => modals.open({
+    const openPersonalDetailsModal = () => openModal({
         title: 'Update Personal Details',
         children: renderForm(['name', 'contact', 'gender', 'song']),
     });
 
-    const openPlayerDetailsModal = () => modals.open({
+    const openPlayerDetailsModal = () => openModal({
         title: 'Update Player Details',
         children: renderForm(['positions', 'throws-bats']),
     });
