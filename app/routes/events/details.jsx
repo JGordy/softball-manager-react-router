@@ -241,12 +241,11 @@ export default function EventDetails({ loaderData, actionData }) {
                             </Group>
                             <IconChevronRight size={18} />
                         </Group>
-
                     ) : (
-                        <>
+                        <Group gap="xs">
                             <IconMapPin size={18} />
                             {season?.location}
-                        </>
+                        </Group>
                     )}
                 </Card.Section>
             </Card>
@@ -281,55 +280,62 @@ export default function EventDetails({ loaderData, actionData }) {
                 </Tabs.Panel>
             </Tabs>
 
-            <Drawer
-                opened={opened}
-                onClose={close}
-                position="bottom"
-                radius="xl"
-                padding="xl"
-                withCloseButton={false}
-                zIndex={5000}
-            >
-                <Flex align="center" gap="md" mb="xl">
-                    <div>
-                        <IconMapPin size={20} />
-                    </div>
-                    <div>
-                        <Text size="lg" weight={500}>
-                            {park?.displayName}
-                        </Text>
-                        <Text size="sm">
-                            {park?.formattedAddress}
-                        </Text>
-                    </div>
-                </Flex>
-
-
-                <Anchor
-                    href={park.googleMapsURI}
-                    target="_blank"
-                    rel="noopener noreferrer"
+            {park && (
+                <Drawer
+                    opened={opened}
+                    onClose={close}
+                    position="bottom"
+                    radius="xl"
+                    padding="xl"
+                    styles={{
+                        content: {
+                            borderBottomRightRadius: '0px',
+                            borderBottomLeftRadius: '0px',
+                        },
+                    }}
+                    title="Location Details"
+                    zIndex={5000}
                 >
-                    <Card c="green">
+                    <Flex align="center" gap="md" mb="xl">
+                        <div>
+                            <IconMapPin size={20} />
+                        </div>
+                        <div>
+                            <Text size="lg" weight={500}>
+                                {park?.displayName}
+                            </Text>
+                            <Text size="sm">
+                                {park?.formattedAddress}
+                            </Text>
+                        </div>
+                    </Flex>
+
+                    <Anchor
+                        href={park?.googleMapsURI}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <Card c="green">
+                            <Group gap="xs">
+                                <IconLocationFilled size={18} />
+                                <Text>View on Google Maps</Text>
+                            </Group>
+                        </Card>
+                    </Anchor>
+
+                    <Card
+                        c="green"
+                        mt="md"
+                        onClick={() => clipboard.copy(park?.formattedAddress)}
+                    >
                         <Group gap="xs">
-                            <IconLocationFilled size={18} />
-                            <Text>View on Google Maps</Text>
+                            <IconCopy size={18} />
+                            <Text>{clipboard.copied ? 'Copied!' : 'Copy Address'}</Text>
                         </Group>
                     </Card>
-                </Anchor>
 
-                <Card
-                    c="green"
-                    mt="md"
-                    onClick={() => clipboard.copy(park.formattedAddress)}
-                >
-                    <Group gap="xs">
-                        <IconCopy size={18} />
-                        <Text>{clipboard.copied ? 'Copied!' : 'Copy Address'}</Text>
-                    </Group>
-                </Card>
-
-            </Drawer >
+                </Drawer >
+            )}
         </>
     );
 }

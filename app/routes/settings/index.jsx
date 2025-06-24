@@ -60,6 +60,12 @@ export default function Settings() {
                 radius="xl"
                 padding="xl"
                 zIndex={5000}
+                styles={{
+                    content: {
+                        borderBottomRightRadius: '0px',
+                        borderBottomLeftRadius: '0px',
+                    },
+                }}
             >
                 <Text size="md" mb="xl">
                     Are you sure you want to log out? You will need to log in again to access your content.
