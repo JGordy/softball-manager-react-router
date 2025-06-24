@@ -25,6 +25,7 @@ export default defineConfig({
             '@constants': '/app/constants',
             '@contexts': '/app/contexts',
             '@forms': '/app/forms',
+            '@hooks': '/app/hooks',
             '@loaders': '/app/loaders',
             '@routes': '/app/routes',
             '@styles': '/app/styles',

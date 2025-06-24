@@ -46,6 +46,9 @@
             "@form": [
                 "./app/forms/*"
             ],
+            "@hooks": [
+                "./app/hooks/*"
+            ],
             "@loaders": [
                 "./app/loaders/*"
             ],
