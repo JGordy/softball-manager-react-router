@@ -43,6 +43,12 @@
     }
 }
 
+:root[data-mantine-color-scheme='light'] {
+
+    .mantine-Card-root {
+        background-color: #f2f4f6;
+    }
+}
 
 main {
     min-height: 100vh;
