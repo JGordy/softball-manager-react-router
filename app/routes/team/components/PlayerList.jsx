@@ -8,7 +8,6 @@ import {
     Text,
     Tooltip,
 } from '@mantine/core'
-import { modals } from '@mantine/modals';
 
 import { IconPlus, IconClipboardCheck } from '@tabler/icons-react';
 
@@ -16,6 +15,8 @@ import PlayerDetails from '@/components/PlayerDetails';
 import PersonalDetails from '@/components/PersonalDetails';
 
 import AddPlayer from '@/forms/AddPlayer';
+
+import useModal from '@/hooks/useModal';
 
 import positions from '@/constants/positions';
 
@@ -27,7 +28,9 @@ export default function PlayerList({
     teamId,
 }) {
 
-    const openAddPlayerModal = () => modals.open({
+    const { openModal } = useModal();
+
+    const openAddPlayerModal = () => openModal({
         title: 'Add a New Player',
         children: (
             <AddPlayer
@@ -40,7 +43,7 @@ export default function PlayerList({
 
     const openPlayerDetailsModal = (playerId) => {
         const player = players.find(player => player.$id === playerId);
-        return modals.open({
+        return openModal({
             title: `${player.firstName} ${player.lastName}'s Details`,
             children: (
                 <>

@@ -7,11 +7,12 @@ import {
     ScrollArea,
     Text,
 } from '@mantine/core';
-import { modals } from '@mantine/modals';
 
 import { IconPlus } from '@tabler/icons-react';
 
 import AddSeason from '@/forms/AddSeason';
+
+import useModal from '@/hooks/useModal';
 
 export default function SeasonList({
     seasons,
@@ -19,6 +20,7 @@ export default function SeasonList({
     managerView,
     primaryColor,
 }) {
+    const { openModal } = useModal();
 
     const getSeasonStatus = (season) => {
         const today = new Date();
@@ -53,7 +55,7 @@ export default function SeasonList({
         }
     };
 
-    const openModal = () => modals.open({
+    const openAddSeasonModal = () => openModal({
         title: 'Add a New Season',
         children: (
             <AddSeason
@@ -69,7 +71,7 @@ export default function SeasonList({
             mt="md"
             variant="filled"
             color={primaryColor}
-            onClick={openModal}
+            onClick={openAddSeasonModal}
             autoContrast
             fullWidth
         >

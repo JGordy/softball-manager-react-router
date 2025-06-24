@@ -1,5 +1,4 @@
 import { Button, Text } from '@mantine/core';
-import { modals } from '@mantine/modals';
 
 import { IconPlus } from '@tabler/icons-react';
 
@@ -9,6 +8,8 @@ import GamesList from '@/components/GamesList';
 
 import sortByDate from '@/utils/sortByDate';
 
+import useModal from '@/hooks/useModal';
+
 export default function GamesListContainer({
     games,
     seasons,
@@ -16,10 +17,11 @@ export default function GamesListContainer({
     primaryColor,
     managerView,
 }) {
+    const { openModal } = useModal();
 
     const sortedGames = sortByDate(games, 'gameDate');
 
-    const openModal = () => modals.open({
+    const openAddGameModal = () => openModal({
         title: 'Add a New Game',
         children: (
             <AddSingleGame
@@ -39,7 +41,7 @@ export default function GamesListContainer({
                 <Button
                     my="md"
                     color={primaryColor}
-                    onClick={openModal}
+                    onClick={openAddGameModal}
                     autoContrast
                     fullWidth
                 >
