@@ -14,7 +14,8 @@
     .mantine-Modal-header,
     .mantine-Modal-content,
     .mantine-ColorInput-dropdown,
-    .mantine-Card-root {
+    .mantine-Card-root,
+    .mantine-Accordion-item {
         /* background-color: #192431; */
         background-color: #1a242f;
     }
@@ -45,6 +46,7 @@
 
 :root[data-mantine-color-scheme='light'] {
 
+    .mantine-Accordion-item,
     .mantine-Card-root {
         background-color: #f2f4f6;
     }
