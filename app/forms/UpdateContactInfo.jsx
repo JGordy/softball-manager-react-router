@@ -1,4 +1,4 @@
-import { Input } from '@mantine/core';
+import { Input, PasswordInput, Text } from '@mantine/core';
 
 import { IMaskInput } from 'react-imask';
 
@@ -14,8 +14,10 @@ export default function UpdateContactInfo({
     buttonColor,
     confirmText = 'Update Details',
     defaults = {},
-    userId,
+    user,
 }) {
+    const userCopy = { ...user };
+    delete userCopy.teams;
 
     return (
         <FormWrapper
@@ -24,8 +26,18 @@ export default function UpdateContactInfo({
             buttonColor={buttonColor}
             confirmText={confirmText}
         >
-            <input type="hidden" name="userId" value={userId} />
+            <input type="hidden" name="user" value={JSON.stringify(userCopy)} />
             <AutocompleteEmail classes={classes.inputs} defaultValue={defaults.email} />
+            <PasswordInput
+                className={classes.inputs}
+                type="password"
+                name="password"
+                label="Password"
+                placeholder="Your password"
+                description="Required to update your contact information"
+                mt="md"
+                withAsterisk
+            />
             <Input.Wrapper className={classes.inputs}>
                 <Input.Label>Phone Number</Input.Label>
                 <Input
