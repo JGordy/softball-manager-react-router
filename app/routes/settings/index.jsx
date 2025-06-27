@@ -1,12 +1,14 @@
-import { useNavigate, useOutletContext, useActionData } from 'react-router';
+import { useNavigate, useOutletContext } from 'react-router';
 import { useEffect, useState } from 'react';
 
 import {
     Accordion,
+    ActionIcon,
     Alert,
     Button,
     Divider,
     Group,
+    Stack,
     Text,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
@@ -16,9 +18,10 @@ import { account } from '@/appwrite';
 
 import useModal from '@/hooks/useModal';
 
-import { updateAccountInfo, updateUser } from '@/actions/users';
+import { updateAccountInfo, updatePassword, updateUser } from '@/actions/users';
 
 import UpdateContactInfo from '@/forms/UpdateContactInfo';
+import UpdatePassword from '@/forms/UpdatePassword';
 
 import DrawerContainer from '@/components/DrawerContainer';
 import UserHeader from '@/components/UserHeader';
@@ -42,6 +45,10 @@ export async function clientAction({ request, params }) {
         return updateAccountInfo({ values });
     }
 
+    if (_action === 'update-password') {
+        return updatePassword({ values });
+    }
+
     return null;
 };
 
@@ -57,6 +64,7 @@ export default function Settings({ actionData }) {
 
     const [userAccount, setUserAccount] = useState();
     const [formError, setFormError] = useState(null);
+    const [actionSuccess, setActionSuccess] = useState(false);
 
     console.log({ user, session, userAccount });
     // console.log({
@@ -86,6 +94,11 @@ export default function Settings({ actionData }) {
         ),
     });
 
+    const openUpdatePasswordModal = () => openModal({
+        title: 'Update Your Password',
+        children: <UpdatePassword actionRoute='/settings' />,
+    });
+
     useEffect(() => {
         const getUserAccount = async () => {
             try {
@@ -104,6 +117,7 @@ export default function Settings({ actionData }) {
         if (actionData?.success) {
             closeAllModals();
             setFormError(null);
+            setActionSuccess(actionData.message);
         }
 
         if (actionData?.status === 500) {
@@ -135,36 +149,16 @@ export default function Settings({ actionData }) {
                 <Accordion.Item value="account">
                     <Accordion.Control>Account</Accordion.Control>
                     <Accordion.Panel>
-                        <Group justify="space-between">
-                            <Text size="sm">Update Password</Text>
-                            <IconKey
-                                style={{ cursor: 'pointer' }}
-                                onClick={() => { }}
-                            />
-                        </Group>
-
-                        <Divider my="sm" />
-
-                        <Group justify="space-between">
-                            <Text size="sm">Contact Details</Text>
-                            <IconPencil
-                                style={{ cursor: 'pointer' }}
-                                onClick={openUpdateContactInfoModal}
-                            />
-                        </Group>
-
-                        <Group align="center" mt="md">
-                            <IconMail />
-                            <Text>
-                                {user.email || 'No email provided'}
-                            </Text>
-                        </Group>
-                        <Group align="center" mt="md">
-                            <IconPhone />
-                            <Text>
-                                {user.phoneNumber || 'No phone number provided'}
-                            </Text>
-                        </Group>
+                        {actionSuccess && (
+                            <Alert
+                                mt="md"
+                                variant="light"
+                                color="green"
+                                title="Success!"
+                            >
+                                {actionSuccess}
+                            </Alert>
+                        )}
 
                         {formError && (
                             <Alert
@@ -176,6 +170,53 @@ export default function Settings({ actionData }) {
                                 {formError}
                             </Alert>
                         )}
+
+                        <Text size="sm" mb="sm">Authentication</Text>
+
+                        <Group justify="space-between">
+                            <Text>Change Password</Text>
+                            <ActionIcon
+                                variant="subtle"
+                                color="gray"
+                                aria-label="Update Password"
+                                style={{ cursor: 'pointer' }}
+                                onClick={openUpdatePasswordModal}
+                                size="lg"
+                            >
+                                <IconKey size={20} />
+                            </ActionIcon>
+                        </Group>
+
+                        <Divider my="sm" />
+
+                        <Text size="sm" mb="sm">Contact Details</Text>
+                        <Group justify="space-between">
+                            <div>
+                                <Group align="center" mt="xs">
+                                    <IconMail />
+                                    <Text>
+                                        {user.email || 'No email provided'}
+                                    </Text>
+                                </Group>
+                                <Group align="center" mt="xs">
+                                    <IconPhone />
+                                    <Text>
+                                        {user.phoneNumber || 'No phone number provided'}
+                                    </Text>
+                                </Group>
+                            </div>
+
+                            <ActionIcon
+                                variant="subtle"
+                                color="gray"
+                                aria-label="Update Contact Information"
+                                style={{ cursor: 'pointer' }}
+                                onClick={openUpdateContactInfoModal}
+                                size="lg"
+                            >
+                                <IconPencil />
+                            </ActionIcon>
+                        </Group>
 
                         <Divider my="sm" />
 
