@@ -94,9 +94,21 @@ export async function updateAccountInfo({ values }) {
             await fetch('/settings', { method: 'POST', body: serverFormData });
         }
 
-        return { success: true, status: 204, message: "Account information updated successfully." };
+        return { success: true, status: 204, message: "Account information updated successfully.", action: 'update-account-info' };
     } catch (error) {
         console.error("Error updating account info:", error);
-        return { success: false, status: 500, message: error.message || "Failed to update account information." };
+        return { success: false, status: 500, message: error.message || "Failed to update account information.", action: 'update-account-info' };
+    }
+}
+
+export async function updatePassword({ values }) {
+    const { currentPassword, newPassword } = values;
+
+    try {
+        await account.updatePassword(newPassword, currentPassword);
+        return { success: true, status: 204, message: "Password updated successfully.", action: 'update-password' };
+    } catch (error) {
+        console.error("Error updating password:", error);
+        return { success: false, status: 500, message: error.message || "Failed to update password.", action: 'update-password' };
     }
 }
