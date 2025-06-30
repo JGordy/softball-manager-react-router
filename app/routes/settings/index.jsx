@@ -56,7 +56,7 @@ export default function Settings({ actionData }) {
 
     const [userAccount, setUserAccount] = useState();
 
-    console.log({ user, session, userAccount });
+    console.log('/settings ', { user, session, userAccount });
     // console.log({
     //     accountCompare: {
     //         user: {
@@ -98,7 +98,10 @@ export default function Settings({ actionData }) {
                 <Accordion.Item value="account">
                     <Accordion.Control>Account</Accordion.Control>
                     <Accordion.Panel>
-                        <AccountPanel actionData={actionData} openLogoutDrawer={open} />
+                        <AccountPanel
+                            actionData={actionData}
+                            openLogoutDrawer={open}
+                        />
                     </Accordion.Panel>
                 </Accordion.Item>
 
