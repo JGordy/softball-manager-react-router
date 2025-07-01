@@ -1,5 +1,5 @@
 import { ID } from '@/appwrite';
-import { createDocument, updateDocument } from '@/utils/databases.js';
+import { createDocument, deleteDocument, updateDocument } from '@/utils/databases.js';
 import { combineDateTime } from '@/utils/dateTime';
 
 import { removeEmptyValues } from './utils/formUtils';
@@ -79,6 +79,18 @@ export async function updateGame({ values, eventId }) {
         return { response: { gameDetails }, status: 204, success: true };
     } catch (error) {
         console.error("Error updating game:", error);
+        throw error;
+    }
+}
+
+export async function deleteGame({ eventId }) {
+    console.log('deleteGame: ', { eventId });
+    // TODO: Delete game from appwrite database
+    try {
+        const deleted = await deleteDocument('games', eventId);
+        return { response: { deleted }, status: 204, success: true };
+    } catch (error) {
+        console.error("Error deleting game:", error);
         throw error;
     }
 }
