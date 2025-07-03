@@ -3,13 +3,14 @@ import { useEffect } from 'react';
 import { useOutletContext } from 'react-router';
 
 import {
+    ActionIcon,
     Anchor,
-    Button,
     Card,
     Center,
     Divider,
     Flex,
     Group,
+    Menu,
     Paper,
     Tabs,
     Text,
@@ -17,10 +18,19 @@ import {
 } from '@mantine/core';
 import { useDisclosure, useClipboard } from '@mantine/hooks';
 
-import { IconChevronRight, IconClock, IconLocationFilled, IconMapPin, IconCopy } from '@tabler/icons-react';
+import {
+    IconChevronRight,
+    IconClock,
+    IconCopy,
+    IconDots,
+    IconEdit,
+    IconLocationFilled,
+    IconMapPin,
+    IconScoreboard,
+    IconTrashX,
+} from '@tabler/icons-react';
 
 import BackButton from '@/components/BackButton';
-import EditButton from '@/components/EditButton';
 import DrawerContainer from '@/components/DrawerContainer';
 
 import AddGameResults from '@forms/AddGameResults';
@@ -183,11 +193,41 @@ export default function EventDetails({ loaderData, actionData }) {
         ),
     });
 
+    const eventSettingsDropdown = (
+        <Menu shadow="md" withArrow offset={0}>
+            <Menu.Target>
+                <ActionIcon variant="light" radius="xl" size="lg">
+                    <IconDots />
+                </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown>
+                <Menu.Label>
+                    <Text size="xs">Game Details</Text>
+                </Menu.Label>
+                {gameIsPast && (
+                    <Menu.Item onClick={openGameResultsModal} leftSection={<IconScoreboard size={14} />}>
+                        <Text>{`${result ? 'Update' : 'Add'} game results`}</Text>
+                    </Menu.Item>
+                )}
+                <Menu.Item onClick={openEditGameModal} leftSection={<IconEdit size={14} />}>
+                    <Text>Edit Game Details</Text>
+                </Menu.Item>
+                <Menu.Divider />
+                <Menu.Label>
+                    <Text size="xs">Danger zone</Text>
+                </Menu.Label>
+                <Menu.Item leftSection={<IconTrashX size={14} />} color="red">
+                    <Text>Delete Game</Text>
+                </Menu.Item>
+            </Menu.Dropdown>
+        </Menu>
+    );
+
     return (
         <>
             <Group justify="space-between">
                 <BackButton text="Back to Events" />
-                {managerView && <EditButton setIsModalOpen={openEditGameModal} />}
+                {managerView && eventSettingsDropdown}
             </Group>
 
             <Paper mt="xl">
@@ -210,17 +250,6 @@ export default function EventDetails({ loaderData, actionData }) {
                     <Center mt="md">
                         <Text size="sm" c="yellow">Game result pending*</Text>
                     </Center>
-                )}
-
-                {(gameIsPast && managerView) && (
-                    <Button
-                        mt="md"
-                        variant={result ? 'subtle' : 'filled'}
-                        onClick={openGameResultsModal}
-                        fullWidth
-                    >
-                        {`${result ? 'Update' : 'Add'} game results`}
-                    </Button>
                 )}
             </Paper>
 
