@@ -1,5 +1,6 @@
 import { ID } from '@/appwrite';
 import { createDocument, deleteDocument, updateDocument } from '@/utils/databases.js';
+import { redirect } from 'react-router';
 import { combineDateTime } from '@/utils/dateTime';
 
 import { removeEmptyValues } from './utils/formUtils';
@@ -83,16 +84,17 @@ export async function updateGame({ values, eventId }) {
     }
 }
 
-export async function deleteGame({ eventId }) {
-    console.log('deleteGame: ', { eventId });
-    // TODO: Delete game from appwrite database
-    try {
-        const deleted = await deleteDocument('games', eventId);
-        return { response: { deleted }, status: 204, success: true };
-    } catch (error) {
-        console.error("Error deleting game:", error);
-        throw error;
-    }
+export async function deleteGame({ values, eventId }) {
+    console.log('deleteGame: ', { eventId, values });
+    // TODO: Add permission check here with values.userId
+    // try {
+    //     await deleteDocument('games', eventId);
+    //     // On success, redirect to the events list page.
+    //     return redirect('/events');
+    // } catch (error) {
+    //     console.error("Error deleting game:", error);
+    //     throw error;
+    // }
 }
 
 export async function savePlayerChart({ values, eventId }) {
