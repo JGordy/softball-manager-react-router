@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { useOutletContext } from 'react-router';
+import { Form, useNavigation, useOutletContext } from 'react-router';
 
 import {
     Anchor,
@@ -22,7 +22,7 @@ import {
 import BackButton from '@/components/BackButton';
 import DrawerContainer from '@/components/DrawerContainer';
 
-import { createAttendanceForm, updateGame } from '@/actions/games';
+import { createAttendanceForm, deleteGame, savePlayerChart, updateGame } from '@/actions/games';
 
 import { getEventById } from '@/loaders/games';
 
@@ -78,6 +78,9 @@ export async function action({ request, params }) {
     if (_action === 'save-chart') {
         return savePlayerChart({ values, eventId })
     }
+    if (_action === 'delete-game') {
+        return deleteGame({ eventId, values });
+    }
 }
 
 export async function loader({ params, request }) {
@@ -92,12 +95,16 @@ export default function EventDetails({ loaderData, actionData }) {
     const [locationDrawerOpened, locationDrawerHandlers] = useDisclosure(false);
     const [deleteDrawerOpened, deleteDrawerHandlers] = useDisclosure(false);
 
+    const navigation = useNavigation();
     const { closeAllModals } = useModal();
 
     const clipboard = useClipboard({ timeout: 500 });
 
     const { user } = useOutletContext();
     const currentUserId = user.$id;
+
+    const isDeleting = navigation.state === 'submitting' &&
+        navigation.formData?.get('_action') === 'delete-game';
 
     const {
         game,
@@ -213,7 +220,21 @@ export default function EventDetails({ loaderData, actionData }) {
                     title="Delete Game"
                 >
                     <Text>Are you sure you want to delete this game? There is no undoing this action.</Text>
-                    <Button color="red" variant="filled" mt="lg" fullWidth>Yes, Delete this Game</Button>
+                    <Form method="post">
+                        <input type="hidden" name="_action" value="delete-game" />
+                        <input type="hidden" name="userId" value={currentUserId} />
+                        <Button
+                            type="submit"
+                            color="red"
+                            variant="filled"
+                            mt="lg"
+                            fullWidth
+                            loading={isDeleting}
+                            disabled={isDeleting}
+                        >
+                            Yes, Delete this Game
+                        </Button>
+                    </Form>
                 </DrawerContainer>
             )}
 
