@@ -1,7 +1,8 @@
 import {
+    Group,
     Input,
     MultiSelect,
-    Select,
+    Radio,
     TextInput,
 } from '@mantine/core';
 
@@ -21,6 +22,7 @@ export default function AddPlayer({
     buttonColor,
     confirmText = 'Create Player',
     inputsToDisplay = [],
+    defaults = {},
 }) {
 
     const shouldDisplay = (field) => inputsToDisplay.includes(field);
@@ -64,34 +66,49 @@ export default function AddPlayer({
                 </>
             )}
             {shouldDisplay('gender') && (
-                <Select
+                <Radio.Group
+                    mb="md"
                     className={classes.inputs}
-                    label="Gender"
                     name="gender"
-                    placeholder="Select Gender"
-                    data={['Male', 'Female']}
-                    mb="sm"
+                    label="Gender"
                     required={action === 'add-player'}
-                />
+                >
+                    <Group mt="xs">
+                        <Radio value="Male" label="Male" />
+                        <Radio value="Female" label="Female" />
+                    </Group>
+                </Radio.Group>
+
             )}
             {shouldDisplay('throws-bats') && (
                 <>
-                    <Select
+                    <Radio.Group
+                        mb="md"
                         className={classes.inputs}
-                        label="Throws"
                         name="throws"
-                        placeholder="Which hand do you throw with?"
-                        data={['Right', 'Left']}
-                        mb="sm"
-                    />
-                    <Select
+                        label="Throws"
+                        description="Select which hand you throw with"
+                        defaultValue={defaults.throws || 'right'}
+                    >
+                        <Group mt="xs">
+                            <Radio value="left" label="Left" />
+                            <Radio value="right" label="Right" />
+                        </Group>
+                    </Radio.Group>
+                    <Radio.Group
+                        mb="md"
                         className={classes.inputs}
-                        label="Bats"
                         name="bats"
-                        placeholder="On what side of the plate do you bat?"
-                        data={['Right', 'Left', 'Switch']}
-                        mb="sm"
-                    />
+                        label="Bats"
+                        description="Select whether you bat left, right, or switch"
+                        defaultValue={defaults.bats || 'right'}
+                    >
+                        <Group mt="xs">
+                            <Radio value="left" label="Left" />
+                            <Radio value="right" label="Right" />
+                            <Radio value="switch" label="Switch" />
+                        </Group>
+                    </Radio.Group>
                 </>
             )}
 
