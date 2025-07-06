@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 
-import { ActionIcon, TextInput, Select } from '@mantine/core';
+import { ActionIcon, Group, Radio, TextInput, Select } from '@mantine/core';
 import { TimeInput } from '@mantine/dates';
 
 import { IconClock } from '@tabler/icons-react';
@@ -54,15 +54,19 @@ export default function AddSingleGame({
                 placeholder="Who are we playing?"
                 defaultValue={defaults.opponent}
             />
-            <Select
+            <Radio.Group
+                mb="md"
                 className={classes.inputs}
-                label="Is home game?"
+                defaultValue={defaults.isHomegame || "home"}
                 name="isHomeGame"
-                data={['true', 'false']}
-                defaultValue={defaults.isHomegame || "true"}
-                mb="sm"
-                searchable
-            />
+                label="Select the game location"
+                description="Select whether this game is at home or away"
+            >
+                <Group mt="xs">
+                    <Radio color="red" value="away" label="Away" />
+                    <Radio color="green" value="home" label="Home" />
+                </Group>
+            </Radio.Group>
             {(seasons?.length > 0) && (
                 <Select
                     className={classes.inputs}
