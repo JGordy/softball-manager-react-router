@@ -1,16 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useActionData, useOutletContext } from 'react-router';
 
 import {
-    Indicator,
-    Popover,
     Tabs,
     Text,
 } from '@mantine/core';
 
 import {
     IconBallBaseball,
-    IconBellRingingFilled,
     IconFriends,
     IconHeadphonesFilled,
     IconHistory,
@@ -88,7 +85,7 @@ export default function UserProfile() {
         })
         .map(([key, data]) => (data));
 
-    const [showIndicator, setShowIndicator] = useState(incompleteData.length > 0);
+    const showIncompleteAlert = incompleteData.length > 0;
 
     useEffect(() => {
         const handleAfterSubmit = async () => {
@@ -125,30 +122,15 @@ export default function UserProfile() {
         children: renderForm(['positions', 'throws-bats']),
     });
 
-    const userNotification = isCurrentUser && (
-        <Popover position="bottom" withArrow shadow="md">
-            <Popover.Target>
-                <Indicator inline processing color="red" size={12} disabled={!showIndicator}>
-                    <IconBellRingingFilled size={24} />
-                </Indicator>
-            </Popover.Target>
-            <Popover.Dropdown p="0">
-                {showIndicator ? (
-                    <AlertIncomplete incompleteData={incompleteData} />
-                ) : (
-                    <Text p="sm">No new notifications or alerts</Text>
-                )}
-            </Popover.Dropdown>
-        </Popover>
-    );
-
     return !!Object.keys(player).length && (
         <>
-            <UserHeader subText="Here are your personal and player details">
-                {userNotification}
-            </UserHeader>
+            <UserHeader subText="Here are your personal and player details" />
 
-            <Tabs radius="md" defaultValue="player" mt="xl">
+            {(isCurrentUser && showIncompleteAlert) && (
+                <AlertIncomplete incompleteData={incompleteData} />
+            )}
+
+            <Tabs radius="md" defaultValue="player" mt="md">
                 <Tabs.List grow justify="center">
                     <Tabs.Tab value="player" leftSection={<IconBallBaseball size={16} />}>
                         Player
