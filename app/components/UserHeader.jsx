@@ -34,7 +34,7 @@ export default function UserHeader({
         <>
             <Group justify="space-between">
                 <Group my="md">
-                    <Avatar color="green" name={fullName} alt={fullName} size="md" />
+                    <Avatar color="green" name={fullName} alt={fullName} size="lg" />
                     <div>
                         <Title order={3}>
                             <Group gap="0px">
