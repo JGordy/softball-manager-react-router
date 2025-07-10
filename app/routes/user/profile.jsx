@@ -85,8 +85,6 @@ export default function UserProfile() {
         })
         .map(([key, data]) => (data));
 
-    const showIncompleteAlert = incompleteData.length > 0;
-
     useEffect(() => {
         const handleAfterSubmit = async () => {
             try {
@@ -126,7 +124,7 @@ export default function UserProfile() {
         <>
             <UserHeader subText="Here are your personal and player details" />
 
-            {(isCurrentUser && showIncompleteAlert) && (
+            {(isCurrentUser && incompleteData.length > 0) && (
                 <AlertIncomplete incompleteData={incompleteData} />
             )}
 
