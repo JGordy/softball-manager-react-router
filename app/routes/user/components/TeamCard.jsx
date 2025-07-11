@@ -25,49 +25,54 @@ export default function TeamCard({ team }) {
 
     const getSeasonStatus = () => {
         const { seasons } = team;
-        if (!seasons || seasons.length === 0) {
+        if (!seasons || !seasons.length) {
             return 'No upcoming seasons';
         }
 
-        const today = new Date();
-        const oneMonthFromNow = new Date(today);
-        oneMonthFromNow.setMonth(today.getMonth() + 1);
+        // Create a shallow copy and sort seasons by start date, ascending
+        const sortedSeasons = [...seasons].sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
-        for (const season of seasons) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Compare date part only
+
+        // First, check for a season in progress
+        const currentSeason = sortedSeasons.find(season => {
             const startDate = new Date(season.startDate);
             const endDate = new Date(season.endDate);
+            return today >= startDate && today <= endDate;
+        });
 
-            if (startDate <= today && today <= endDate) {
-                return 'Season in progress';
-            }
+        if (currentSeason) {
+            return 'Season in progress';
+        }
 
-            if (startDate > today && startDate <= oneMonthFromNow) {
+        // If no current season, find the next upcoming season
+        const upcomingSeason = sortedSeasons.find(season => new Date(season.startDate) > today);
+
+        if (upcomingSeason) {
+            const startDate = new Date(upcomingSeason.startDate);
+            const oneMonthFromNow = new Date();
+            oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
+
+            if (startDate < oneMonthFromNow) {
                 const timeDiff = startDate.getTime() - today.getTime();
-                const daysUntilStart = Math.ceil(timeDiff / (1000 * 3600 * 24)); // Calculate days
-
+                const daysUntilStart = Math.ceil(timeDiff / (1000 * 3600 * 24));
                 const daysUntilText = `${daysUntilStart} day${daysUntilStart !== 1 ? 's' : ''}`;
-
                 const daysUntil = (
                     <Text span fw={700} c="green">
                         {daysUntilText}
                     </Text>
                 );
-
-                return (
-                    <>
-                        Season starts in {daysUntil}
-                    </>
-                );
+                return <>Season starts in {daysUntil}</>;
+            } else {
+                const month = startDate.getMonth() + 1;
+                const date = startDate.getDate();
+                return `Season starts ${month}/${date}`;
             }
         }
 
-        if (seasons.length) {
-            const season = seasons[0];
-            const startDate = new Date(season.startDate);
-            const month = startDate?.getMonth?.() + 1;
-            const date = startDate?.getDate?.();
-            return `Season starts ${month}/${date}`;
-        }
+        // All seasons are in the past
+        return 'No upcoming seasons';
     }
 
     const iconProps = {
