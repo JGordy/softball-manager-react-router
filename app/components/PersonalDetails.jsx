@@ -1,6 +1,4 @@
 import {
-    Card,
-    Divider,
     Group,
     List,
     Text,
@@ -13,6 +11,12 @@ import {
     IconMail,
     IconPhone,
 } from '@tabler/icons-react';
+
+import AddPlayer from '@/forms/AddPlayer';
+
+import EditButton from '@/components/EditButton';
+
+import useModal from '@/hooks/useModal';
 
 const fields = {
     email: {
@@ -35,7 +39,28 @@ const fields = {
     },
 };
 
-export default function DetailCard({ editButton, player, fieldsToDisplay, managerView }) {
+export default function PersonalDetails({
+    user,
+    player,
+    fieldsToDisplay,
+    managerView,
+    isCurrentUser,
+}) {
+
+    const { openModal } = useModal();
+
+    const openPersonalDetailsModal = () => openModal({
+        title: 'Update Personal Details',
+        children: (
+            <AddPlayer
+                action="edit-player"
+                actionRoute={`/user/${user?.$id}`}
+                confirmText="Update Details"
+                inputsToDisplay={['name', 'contact', 'gender', 'song']}
+                defaults={player}
+            />
+        ),
+    });
 
     return (
         <>
@@ -43,10 +68,8 @@ export default function DetailCard({ editButton, player, fieldsToDisplay, manage
                 <Group>
                     <Title order={4}>Personal Details</Title>
                 </Group>
-                {editButton}
+                {isCurrentUser && <EditButton setIsModalOpen={openPersonalDetailsModal} />}
             </Group>
-
-            {/* <Divider my="xs" size="sm" /> */}
 
             <List
                 spacing="xs"
