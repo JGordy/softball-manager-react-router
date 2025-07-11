@@ -44,7 +44,7 @@ export default function PlayerList({
     const openPlayerDetailsModal = (playerId) => {
         const player = players.find(player => player.$id === playerId);
         return openModal({
-            title: `${player.firstName} ${player.lastName}'s Details`,
+            title: `${player.firstName} ${player.lastName}'s Player Profile`,
             children: (
                 <>
                     <PersonalDetails player={player} managerView={managerView} />
