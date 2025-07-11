@@ -84,11 +84,11 @@ export default function AddPlayer({
                         name="throws"
                         label="Throws"
                         description="Select which hand you throw with"
-                        defaultValue={defaults.throws?.toLowerCase?.() || 'right'}
+                        defaultValue={defaults.throws || 'right'}
                     >
                         <Group mt="xs">
-                            <Radio value="left" label="Left" />
-                            <Radio value="right" label="Right" />
+                            <Radio value="Left" label="Left" />
+                            <Radio value="Right" label="Right" />
                         </Group>
                     </Radio.Group>
                     <Radio.Group
@@ -97,12 +97,12 @@ export default function AddPlayer({
                         name="bats"
                         label="Bats"
                         description="Select whether you bat left, right, or switch"
-                        defaultValue={defaults.bats?.toLowerCase?.() || 'right'}
+                        defaultValue={defaults.bats || 'Right'}
                     >
                         <Group mt="xs">
-                            <Radio value="left" label="Left" />
-                            <Radio value="right" label="Right" />
-                            <Radio value="switch" label="Switch" />
+                            <Radio value="Left" label="Left" />
+                            <Radio value="Right" label="Right" />
+                            <Radio value="Switch" label="Switch" />
                         </Group>
                     </Radio.Group>
                 </>
