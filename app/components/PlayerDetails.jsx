@@ -10,7 +10,13 @@ import {
     Title,
 } from '@mantine/core';
 
+import EditButton from '@/components/EditButton';
+
+import AddPlayer from '@/forms/AddPlayer';
+
 import fieldPositions from '@/constants/positions';
+
+import useModal from '@/hooks/useModal';
 
 import styles from '@/styles/positionChart.module.css';
 
@@ -44,14 +50,39 @@ function FieldPosition({ position, initials, isPreferred, isDisliked }) {
     );
 }
 
-function PlayerDetails({ player, editButton }) {
-    const { throws, bats, preferredPositions, dislikedPositions } = player;
+function PlayerDetails({
+    user,
+    player,
+    isCurrentUser,
+}) {
+
+    const {
+        throws,
+        bats,
+        preferredPositions,
+        dislikedPositions,
+    } = player;
+
+    const { openModal } = useModal();
+
+    const openPlayerDetailsModal = () => openModal({
+        title: 'Update Player Details',
+        children: (
+            <AddPlayer
+                action="edit-player"
+                actionRoute={`/user/${user.$id}`}
+                confirmText="Update Details"
+                inputsToDisplay={['positions', 'throws-bats']}
+                defaults={player}
+            />
+        ),
+    });
 
     return (
         <Card shadow="sm" padding="lg" radius="lg" mt="md" withBorder>
             <Group justify="space-between">
                 <Title order={4}>Player Details</Title>
-                {editButton}
+                {isCurrentUser && <EditButton setIsModalOpen={openPlayerDetailsModal} />}
             </Group>
 
             <Group gap="xl">
