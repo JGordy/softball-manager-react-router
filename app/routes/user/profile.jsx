@@ -56,9 +56,10 @@ const fieldsToValidate = {
     dislikedPositions: { label: 'disliked positions' }
 }
 
-export async function action({ request }) {
+export async function action({ request, params }) {
+    const { userId } = params;
     const formData = await request.formData();
-    const { _action, userId, ...values } = Object.fromEntries(formData);
+    const { _action, ...values } = Object.fromEntries(formData);
 
     if (_action === 'edit-player') {
         return updateUser({ values, userId });
