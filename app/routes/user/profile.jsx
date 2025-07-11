@@ -107,6 +107,7 @@ export default function UserProfile() {
             actionRoute={`/user/${user.$id}`}
             confirmText="Update Details"
             inputsToDisplay={inputs}
+            defaults={player}
         />
     );
 
