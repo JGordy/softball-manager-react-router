@@ -1,12 +1,9 @@
 import {
     Group,
-    Input,
     MultiSelect,
     Radio,
     TextInput,
 } from '@mantine/core';
-
-import { IMaskInput } from 'react-imask';
 
 import AutocompleteEmail from '@/components/AutocompleteEmail';
 
@@ -15,6 +12,7 @@ import positions from '@/constants/positions';
 import classes from '@/styles/inputs.module.css';
 
 import FormWrapper from './FormWrapper';
+import PhoneInput from './components/PhoneInput';
 
 export default function AddPlayer({
     action = 'add-player',
@@ -40,35 +38,33 @@ export default function AddPlayer({
                         className={classes.inputs}
                         label="First Name"
                         name="firstName"
+                        defaultValue={defaults.firstName || ''}
                         required={action === 'add-player'}
                     />
                     <TextInput
                         className={classes.inputs}
                         label="Last Name"
                         name="lastName"
+                        defaultValue={defaults.lastName || ''}
                         required={action === 'add-player'}
                     />
                 </>
             )}
             {shouldDisplay('contact') && (
                 <>
-                    <AutocompleteEmail classes={classes.inputs} required={action === 'add-player'} />
-                    <Input.Wrapper className={classes.inputs}>
-                        <Input.Label>Phone Number</Input.Label>
-                        <Input
-                            component={IMaskInput}
-                            label="Phone Number"
-                            mask="(000) 000-0000"
-                            name="phoneNumber"
-                            placeholder='(xxx) xxx-xxxx'
-                        />
-                    </Input.Wrapper>
+                    <AutocompleteEmail
+                        classes={classes.inputs}
+                        defaultValue={defaults.email}
+                        required={action === 'add-player'}
+                    />
+                    <PhoneInput defaultValue={defaults.phoneNumber} />
                 </>
             )}
             {shouldDisplay('gender') && (
                 <Radio.Group
                     mb="md"
                     className={classes.inputs}
+                    defaultValue={defaults.gender}
                     name="gender"
                     label="Gender"
                     required={action === 'add-player'}
@@ -88,7 +84,7 @@ export default function AddPlayer({
                         name="throws"
                         label="Throws"
                         description="Select which hand you throw with"
-                        defaultValue={defaults.throws || 'right'}
+                        defaultValue={defaults.throws?.toLowerCase?.() || 'right'}
                     >
                         <Group mt="xs">
                             <Radio value="left" label="Left" />
@@ -101,7 +97,7 @@ export default function AddPlayer({
                         name="bats"
                         label="Bats"
                         description="Select whether you bat left, right, or switch"
-                        defaultValue={defaults.bats || 'right'}
+                        defaultValue={defaults.bats?.toLowerCase?.() || 'right'}
                     >
                         <Group mt="xs">
                             <Radio value="left" label="Left" />
@@ -118,28 +114,33 @@ export default function AddPlayer({
                         className={classes.inputs}
                         label="Preferred Positions"
                         name="preferredPositions"
-                        placeholder="What positions do you prefer?"
+                        description="What positions do you prefer?"
                         data={Object.keys(positions)}
+                        defaultValue={defaults.preferredPositions}
                         mb="sm"
                         clearable
                         searchable
+                        hidePickedOptions
                         required={action === 'add-player'}
                     />
                     <MultiSelect
                         className={classes.inputs}
                         label="Disliked Positions"
                         name="dislikedPositions"
-                        placeholder="What positions are you NOT interested in?"
+                        description="What positions are you NOT interested in?"
                         data={Object.keys(positions)}
+                        defaultValue={defaults.dislikedPositions}
                         mb="sm"
                         clearable
                         searchable
+                        hidePickedOptions
                     />
                 </>
             )}
             {shouldDisplay('song') && (
                 <TextInput
                     className={classes.inputs}
+                    defaultValue={defaults.walkUpSong}
                     label="Walk Up Song"
                     name="walkUpSong"
                     placeholder="Walk Up Song"
