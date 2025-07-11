@@ -56,7 +56,7 @@ export default function PersonalDetails({
                 action="edit-player"
                 actionRoute={`/user/${user?.$id}`}
                 confirmText="Update Details"
-                inputsToDisplay={['name', 'contact', 'gender', 'song']}
+                inputsToDisplay={['name', 'gender', 'song']}
                 defaults={player}
             />
         ),
