@@ -19,11 +19,9 @@ import {
 import { useAuth } from '@/contexts/auth/useAuth';
 
 import UserHeader from '@/components/UserHeader';
-import EditButton from '@/components/EditButton';
 import PersonalDetails from '@/components/PersonalDetails';
 import PlayerDetails from '@/components/PlayerDetails';
 
-import AddPlayer from '@/forms/AddPlayer';
 import { updateUser } from '@/actions/users'
 
 import useModal from '@/hooks/useModal';
@@ -69,7 +67,7 @@ export async function action({ request }) {
 
 export default function UserProfile() {
 
-    const { openModal, closeAllModals } = useModal();
+    const { closeAllModals } = useModal();
 
     const { user } = useAuth();
     const { user: player } = useOutletContext();
@@ -101,26 +99,6 @@ export default function UserProfile() {
         handleAfterSubmit();
     }, [actionData]);
 
-    const renderForm = (inputs) => (
-        <AddPlayer
-            action="edit-player"
-            actionRoute={`/user/${user.$id}`}
-            confirmText="Update Details"
-            inputsToDisplay={inputs}
-            defaults={player}
-        />
-    );
-
-    const openPersonalDetailsModal = () => openModal({
-        title: 'Update Personal Details',
-        children: renderForm(['name', 'contact', 'gender', 'song']),
-    });
-
-    const openPlayerDetailsModal = () => openModal({
-        title: 'Update Player Details',
-        children: renderForm(['positions', 'throws-bats']),
-    });
-
     return !!Object.keys(player).length && (
         <>
             <UserHeader subText="Here are your personal and player details" />
@@ -144,15 +122,17 @@ export default function UserProfile() {
 
                 <Tabs.Panel value="player">
                     <PlayerDetails
+                        user={user}
                         player={player}
-                        editButton={isCurrentUser && <EditButton setIsModalOpen={openPlayerDetailsModal} />}
+                        isCurrentUser={isCurrentUser}
                     />
                 </Tabs.Panel>
 
                 <Tabs.Panel value="personal">
                     <PersonalDetails
+                        user={user}
                         player={player}
-                        editButton={isCurrentUser && <EditButton setIsModalOpen={openPersonalDetailsModal} />}
+                        isCurrentUser={isCurrentUser}
                         fieldsToDisplay={fieldsToDisplay}
                     />
                 </Tabs.Panel>
