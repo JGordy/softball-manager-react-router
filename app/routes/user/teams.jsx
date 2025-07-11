@@ -113,8 +113,6 @@ const UserDashboard = ({ loaderData }) => {
         ),
     });
 
-    // Helper functions for sorting logic
-
     const renderTeamList = (teamList) => {
 
         // Create a shallow copy and sort it
