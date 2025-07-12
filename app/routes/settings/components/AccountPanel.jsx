@@ -14,8 +14,10 @@ import {
 import {
     IconLogout2,
     IconPencil,
-    IconMail, IconPhone,
+    IconMail,
+    IconPhone,
     IconKey,
+    IconRestore,
 } from '@tabler/icons-react';
 
 import useModal from '@/hooks/useModal';
@@ -68,6 +70,19 @@ export default function AccountPanel({ actionData, openLogoutDrawer }) {
         children: <UpdatePassword actionRoute='/settings' />,
     });
 
+    const openResetPasswordModal = () => openModal({
+        title: 'Reset Your Password',
+        children: (
+            <UpdatePassword
+                action="password-reset"
+                actionRoute='/settings'
+                confirmText="Yes, Reset my Password"
+                user={user}
+            />
+        ),
+    });
+
+
     return (
         <>
             {actionSuccess && (
@@ -105,6 +120,20 @@ export default function AccountPanel({ actionData, openLogoutDrawer }) {
                     size="lg"
                 >
                     <IconKey size={20} />
+                </ActionIcon>
+            </Group>
+
+            <Group justify="space-between">
+                <Text>Reset Password</Text>
+                <ActionIcon
+                    variant="subtle"
+                    color="gray"
+                    aria-label="Reset Password"
+                    style={{ cursor: 'pointer' }}
+                    onClick={openResetPasswordModal}
+                    size="lg"
+                >
+                    <IconRestore size={20} />
                 </ActionIcon>
             </Group>
 
