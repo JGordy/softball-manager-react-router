@@ -112,3 +112,18 @@ export async function updatePassword({ values }) {
         return { success: false, status: 500, message: error.message || "Failed to update password.", action: 'update-password' };
     }
 }
+
+export async function resetPassword({ values, request }) {
+    const { email } = values;
+    const url = new URL(request.url);
+    // The URL the user will be redirected to from the email.
+    const resetUrl = `${url.origin}/recovery`;
+
+    try {
+        await account.createRecovery(email, resetUrl);
+        return { success: true, status: 200, message: "Password reset email sent successfully. Please check your inbox.", action: 'password-reset' };
+    } catch (error) {
+        console.error("Error sending password reset email:", error);
+        return { success: false, status: 500, message: error.message || "Failed to send password reset email.", action: 'password-reset' };
+    }
+}
