@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import {
     Avatar,
     Button,
@@ -5,12 +7,16 @@ import {
     Flex,
     Group,
     ScrollArea,
+    Tabs,
     Text,
     Tooltip,
 } from '@mantine/core'
 
-import { IconPlus, IconClipboardCheck } from '@tabler/icons-react';
+import { useDisclosure } from '@mantine/hooks';
 
+import { IconPlus, IconClipboardCheck, IconUserSquareRounded, IconBallBaseball } from '@tabler/icons-react';
+
+import DrawerContainer from '@/components/DrawerContainer';
 import PlayerDetails from '@/components/PlayerDetails';
 import PersonalDetails from '@/components/PersonalDetails';
 
@@ -28,6 +34,11 @@ export default function PlayerList({
     teamId,
 }) {
 
+    const [selectedPlayerId, setSelectedPlayerId] = useState(null);
+    const selectedPlayer = players.find(player => player.$id === selectedPlayerId);
+
+    const [opened, { open: openPlayerDetails, close }] = useDisclosure(false);
+
     const { openModal } = useModal();
 
     const openAddPlayerModal = () => openModal({
@@ -36,23 +47,15 @@ export default function PlayerList({
             <AddPlayer
                 actionRoute={`/team/${teamId}`}
                 buttonColor={primaryColor}
-                inputsToDisplay={['name', 'gender', 'throws-bats', 'contact', 'positions']}
+                inputsToDisplay={['name', 'gender', 'contact', 'positions']}
             />
         ),
     });
 
-    const openPlayerDetailsModal = (playerId) => {
-        const player = players.find(player => player.$id === playerId);
-        return openModal({
-            title: `${player.firstName} ${player.lastName}'s Player Profile`,
-            children: (
-                <>
-                    <PersonalDetails player={player} managerView={managerView} />
-                    <PlayerDetails player={player} />
-                </>
-            ),
-        })
-    };
+    const openPlayerDetailsDrawer = (playerId) => {
+        setSelectedPlayerId(playerId);
+        openPlayerDetails();
+    }
 
     return (
         <>
@@ -84,7 +87,7 @@ export default function PlayerList({
                             radius="md"
                             padding="sm"
                             withBorder
-                            onClick={() => openPlayerDetailsModal(player.$id)}
+                            onClick={() => openPlayerDetailsDrawer(player.$id)}
                         >
                             <Flex justify="space-between" align="center">
                                 <Group gap="3px">
@@ -109,6 +112,37 @@ export default function PlayerList({
                     )
                 })}
             </ScrollArea>
+
+            {selectedPlayerId && (
+                <DrawerContainer
+                    opened={opened}
+                    onClose={close}
+                    size="xl"
+                    title={`${selectedPlayer.firstName} ${selectedPlayer.lastName}'s Player Profile`}
+                >
+                    <Tabs radius="md" defaultValue="player" mt="md">
+                        <Tabs.List grow justify="center">
+                            <Tabs.Tab value="player" leftSection={<IconBallBaseball size={16} />}>
+                                Player
+                            </Tabs.Tab>
+                            <Tabs.Tab value="personal" leftSection={<IconUserSquareRounded size={16} />}>
+                                Personal
+                            </Tabs.Tab>
+                        </Tabs.List>
+
+                        <Tabs.Panel value="player">
+                            <PlayerDetails player={selectedPlayer} />
+                        </Tabs.Panel>
+
+                        <Tabs.Panel value="personal">
+                            <PersonalDetails
+                                player={selectedPlayer}
+                                managerView={managerView}
+                            />
+                        </Tabs.Panel>
+                    </Tabs>
+                </DrawerContainer>
+            )}
         </>
     );
 };
