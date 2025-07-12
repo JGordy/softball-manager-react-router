@@ -14,7 +14,7 @@ import { account } from '@/appwrite';
 
 // import useModal from '@/hooks/useModal';
 
-import { updateAccountInfo, updatePassword, updateUser } from '@/actions/users';
+import { updateAccountInfo, updatePassword, updateUser, resetPassword } from '@/actions/users';
 
 import DrawerContainer from '@/components/DrawerContainer';
 import UserHeader from '@/components/UserHeader';
@@ -41,6 +41,10 @@ export async function clientAction({ request, params }) {
 
     if (_action === 'update-password') {
         return updatePassword({ values });
+    }
+
+    if (_action === 'password-reset') {
+        return resetPassword({ values, request });
     }
 
     return null;
