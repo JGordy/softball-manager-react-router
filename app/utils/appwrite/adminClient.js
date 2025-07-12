@@ -1,4 +1,4 @@
-import { Client, Account, Databases, Users } from 'node-appwrite';
+import { Client, Account, Databases, Users, Teams } from 'node-appwrite';
 
 let client = null; // Initialize client to null
 
@@ -16,5 +16,6 @@ export function getAppwriteClient() {
 export const account = new Account(getAppwriteClient());
 export const databases = new Databases(getAppwriteClient());
 export const users = new Users(getAppwriteClient());
+export const teams = new Teams(getAppwriteClient());
 
 export { ID, Query } from 'appwrite';
