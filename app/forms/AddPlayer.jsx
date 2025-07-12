@@ -64,7 +64,7 @@ export default function AddPlayer({
                 <Radio.Group
                     mb="md"
                     className={classes.inputs}
-                    defaultValue={defaults.gender}
+                    defaultValue={defaults.gender || 'Male'}
                     name="gender"
                     label="Gender"
                     required={action === 'add-player'}
@@ -74,7 +74,6 @@ export default function AddPlayer({
                         <Radio value="Female" label="Female" />
                     </Group>
                 </Radio.Group>
-
             )}
             {shouldDisplay('throws-bats') && (
                 <>
@@ -84,7 +83,7 @@ export default function AddPlayer({
                         name="throws"
                         label="Throws"
                         description="Select which hand you throw with"
-                        defaultValue={defaults.throws || 'right'}
+                        defaultValue={defaults.throws || 'Right'}
                     >
                         <Group mt="xs">
                             <Radio value="Left" label="Left" />
