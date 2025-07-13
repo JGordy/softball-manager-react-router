@@ -11,7 +11,7 @@ export default [
         route('/login', 'routes/auth/login.jsx'),
         route('/register', 'routes/auth/register.jsx'),
         route('/verify', 'routes/auth/verify.jsx'),
-        // route("/forgot-password", "routes/auth/recover.jsx"),
+        route("/recovery", "routes/auth/recover.jsx"),
 
         // The App shell (NavBar) in layout.jsx
         layout('routes/layout.jsx', [
