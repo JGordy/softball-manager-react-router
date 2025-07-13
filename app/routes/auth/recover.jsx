@@ -37,6 +37,7 @@ export default function Verify({ actionData }) {
 
     const secret = searchParams.get('secret');
     const userId = searchParams.get('userId');
+    console.log({ secret, userId });
 
     useEffect(() => {
         if (actionData?.success) {
@@ -49,35 +50,42 @@ export default function Verify({ actionData }) {
     }, [actionData]);
 
     return (
-        <div className="password-recovery-container">
+        <div className="container">
             <h1>Password Reset</h1>
-            <Text>Please submit a new password.</Text>
-            <FormWrapper
-                action="reset-password"
-                actionRoute="/recovery"
-                hideButtons
-            >
-                <input type="hidden" name="secret" value={secret} />
-                <input type="hidden" name="userId" value={userId} />
-                <PasswordInput
-                    className={classes.inputs}
-                    type="password"
-                    name="newPassword"
-                    label="New Password"
-                    placeholder="Your new password"
-                    description="Must be at least 8 characters long"
-                    mt="md"
-                    withAsterisk
-                />
-                <Button
-                    type="submit"
-                    color="green"
-                    autoContrast
-                    fullWidth
-                >
-                    {confirmText}
-                </Button>
-            </FormWrapper>
+            {(secret && userId) ? (
+                <>
+                    <Text>Please submit a new password.</Text>
+                    <FormWrapper
+                        action="reset-password"
+                        actionRoute="/recovery"
+                        confirmText="Submit new password"
+                        hideButtons
+                    >
+                        {secret && <input type="hidden" name="secret" value={secret} />}
+                        {userId && <input type="hidden" name="userId" value={userId} />}
+                        <PasswordInput
+                            className={classes.inputs}
+                            type="password"
+                            name="newPassword"
+                            label="New Password"
+                            placeholder="Your new password"
+                            description="Must be at least 8 characters long"
+                            mt="md"
+                            withAsterisk
+                        />
+                        <Button
+                            type="submit"
+                            color="green"
+                            autoContrast
+                            fullWidth
+                        >
+                            Submit new password
+                        </Button>
+                    </FormWrapper>
+                </>
+            ) : (
+                <Text>You have reached an invalid password reset link.</Text>
+            )}
         </div>
     );
 };
