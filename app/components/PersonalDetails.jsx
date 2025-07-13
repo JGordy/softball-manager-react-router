@@ -64,32 +64,29 @@ export default function PersonalDetails({
 
     return (
         <>
-            <Group justify="space-between" my="sm">
-                <Group>
-                    <Title order={4}>Personal Details</Title>
-                </Group>
+            <Group justify="space-between" align="start" my="md">
+                <List
+                    spacing="xs"
+                    size="sm"
+                    mt="8px"
+                    center
+                >
+                    {Object.entries({ ...fields, ...fieldsToDisplay }).map(([key, { icon, label, restricted }]) => {
+                        const value = player[key];
+                        if (restricted && !managerView) {
+                            return null;
+                        }
+                        return (
+                            <List.Item key={key} icon={icon}>
+                                <Text size="sm" c={!value ? 'red' : ''}>
+                                    {value || `${label} not listed*`}
+                                </Text>
+                            </List.Item>
+                        );
+                    })}
+                </List>
                 {isCurrentUser && <EditButton setIsModalOpen={openPersonalDetailsModal} />}
             </Group>
-
-            <List
-                spacing="xs"
-                size="sm"
-                center
-            >
-                {Object.entries({ ...fields, ...fieldsToDisplay }).map(([key, { icon, label, restricted }]) => {
-                    const value = player[key];
-                    if (restricted && !managerView) {
-                        return null;
-                    }
-                    return (
-                        <List.Item key={key} icon={icon}>
-                            <Text size="sm" c={!value ? 'red' : ''}>
-                                {value || `${label} not listed*`}
-                            </Text>
-                        </List.Item>
-                    );
-                })}
-            </List>
         </>
     );
 };
