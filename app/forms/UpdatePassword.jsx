@@ -12,13 +12,15 @@ export default function UpdatePassword({
     user = {},
 }) {
 
+    const isPasswordReset = action === 'password-reset';
+
     return (
         <FormWrapper
             action={action}
             actionRoute={actionRoute}
-            hideButtons
+            hideButtons={isPasswordReset}
         >
-            {action === 'password-reset' ? (
+            {isPasswordReset ? (
                 <>
                     <Text c="red">
                         Do you want to continue?
