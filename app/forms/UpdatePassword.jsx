@@ -1,6 +1,4 @@
-import { PasswordInput, Text } from '@mantine/core';
-
-import AutocompleteEmail from '@/components/AutocompleteEmail';
+import { Button, PasswordInput, Text } from '@mantine/core';
 
 import FormWrapper from './FormWrapper';
 
@@ -9,6 +7,7 @@ import classes from '@/styles/inputs.module.css';
 export default function UpdatePassword({
     action = 'update-password',
     actionRoute,
+    buttonColor = 'red',
     confirmText = 'Update Password',
     user = {},
 }) {
@@ -17,15 +16,26 @@ export default function UpdatePassword({
         <FormWrapper
             action={action}
             actionRoute={actionRoute}
-            buttonColor="green"
-            confirmText={confirmText}
+            hideButtons
         >
             {action === 'password-reset' ? (
                 <>
-                    <Text size="sm" mb="md" c="yellow">
-                        Continue? We&apos;ll send a link to reset your password to your associated email address.
+                    <Text c="red">
+                        Do you want to continue?
+                    </Text>
+                    <Text mb="xl">
+                        We&apos;ll send a link to reset your password to your associated email address.
                     </Text>
                     <input type="hidden" name="email" value={user.email} />
+
+                    <Button
+                        type="submit"
+                        color={buttonColor}
+                        autoContrast
+                        fullWidth
+                    >
+                        {confirmText}
+                    </Button>
                 </>
             ) : (
                 <>
