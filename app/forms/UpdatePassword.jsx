@@ -19,6 +19,7 @@ export default function UpdatePassword({
             action={action}
             actionRoute={actionRoute}
             hideButtons={isPasswordReset}
+            confirmText={confirmText}
         >
             {isPasswordReset ? (
                 <>
