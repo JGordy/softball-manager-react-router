@@ -33,6 +33,11 @@ import PlayerList from './components/PlayerList';
 import SeasonList from './components/SeasonList';
 import GamesList from './components/GamesList';
 
+export function links() {
+    const fieldSrc = `${import.meta.env.VITE_APPWRITE_HOST_URL}/storage/buckets/67af948b00375c741493/files/67b00f90002a66960ba4/view?project=${import.meta.env.VITE_APPWRITE_PROJECT_ID}&mode=admin`;
+    return [{ rel: 'preload', href: fieldSrc, as: 'image' }];
+}
+
 export async function loader({ params }) {
     const { teamId } = params;
     return getTeamById({ teamId });
