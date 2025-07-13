@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router';
 
 import { Button, PasswordInput, Text } from '@mantine/core';
 
-import FormWrapper from '@/components/FormWrapper';
+import FormWrapper from '@/forms/FormWrapper';
 
 // import { account } from '@/appwrite';
 
