@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { useSearchParams } from 'react-router';
 
-import { PasswordInput } from '@mantine/core';
+import { Button, PasswordInput, Text } from '@mantine/core';
+
 import FormWrapper from '@/components/FormWrapper';
 
 // import { account } from '@/appwrite';
@@ -48,12 +49,12 @@ export default function Verify({ actionData }) {
     }, [actionData]);
 
     return (
-        <div className="verification-container">
+        <div className="password-recovery-container">
             <h1>Password Reset</h1>
+            <Text>Please submit a new password.</Text>
             <FormWrapper
                 action="reset-password"
                 actionRoute="/recovery"
-                confirmText="Submit new password"
                 hideButtons
             >
                 <input type="hidden" name="secret" value={secret} />
@@ -70,7 +71,7 @@ export default function Verify({ actionData }) {
                 />
                 <Button
                     type="submit"
-                    color={buttonColor}
+                    color="green"
                     autoContrast
                     fullWidth
                 >
