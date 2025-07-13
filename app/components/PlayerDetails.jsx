@@ -81,19 +81,17 @@ function PlayerDetails({
     return (
         <Card shadow="sm" padding="lg" radius="lg" mt="md" withBorder>
             <Group justify="space-between">
-                <Title order={4}>Player Details</Title>
+                <Group>
+                    <Group gap="4px">
+                        <Text>Throws</Text>
+                        <Text fw={700} c={throws ? 'green' : 'red'}>{throws || "Not Listed"}</Text>
+                    </Group>
+                    <Group gap="4px">
+                        <Text>Bats</Text>
+                        <Text fw={700} c={bats ? 'green' : 'red'}>{bats || "Not Listed"}</Text>
+                    </Group>
+                </Group>
                 {isCurrentUser && <EditButton setIsModalOpen={openPlayerDetailsModal} />}
-            </Group>
-
-            <Group gap="xl">
-                <Group gap="4px">
-                    <Text>Throws</Text>
-                    <Text fw={700} c={throws ? 'green' : 'red'}>{throws || "Not Listed"}</Text>
-                </Group>
-                <Group gap="4px">
-                    <Text>Bats</Text>
-                    <Text fw={700} c={bats ? 'green' : 'red'}>{bats || "Not Listed"}</Text>
-                </Group>
             </Group>
 
             <Divider my="sm" size="sm" />
