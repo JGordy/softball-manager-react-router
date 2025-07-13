@@ -11,6 +11,8 @@ import {
     Text,
 } from '@mantine/core';
 
+import { useDisclosure } from '@mantine/hooks';
+
 import {
     IconLogout2,
     IconPencil,
@@ -24,6 +26,7 @@ import useModal from '@/hooks/useModal';
 
 import UpdateContactInfo from '@/forms/UpdateContactInfo';
 import UpdatePassword from '@/forms/UpdatePassword';
+import DrawerContainer from '@/components/DrawerContainer';
 
 export default function AccountPanel({ actionData, openLogoutDrawer }) {
     // console.log({ actionData });
@@ -32,11 +35,16 @@ export default function AccountPanel({ actionData, openLogoutDrawer }) {
 
     const { openModal, closeAllModals } = useModal();
 
+    const [passwordResetOpened, { open: openResetPassword, close: closeResetPassword }] = useDisclosure();
+
     const [formError, setFormError] = useState(null);
     const [actionSuccess, setActionSuccess] = useState(false);
 
     useEffect(() => {
         if (actionData?.success) {
+            if (passwordResetOpened) {
+                closeResetPassword();
+            }
             closeAllModals();
             setFormError(null);
             setActionSuccess(actionData.message);
@@ -69,19 +77,6 @@ export default function AccountPanel({ actionData, openLogoutDrawer }) {
         title: 'Update Your Password',
         children: <UpdatePassword actionRoute='/settings' />,
     });
-
-    const openResetPasswordModal = () => openModal({
-        title: 'Reset Your Password',
-        children: (
-            <UpdatePassword
-                action="password-reset"
-                actionRoute='/settings'
-                confirmText="Yes, Reset my Password"
-                user={user}
-            />
-        ),
-    });
-
 
     return (
         <>
@@ -130,7 +125,7 @@ export default function AccountPanel({ actionData, openLogoutDrawer }) {
                     color="gray"
                     aria-label="Reset Password"
                     style={{ cursor: 'pointer' }}
-                    onClick={openResetPasswordModal}
+                    onClick={openResetPassword}
                     size="lg"
                 >
                     <IconRestore size={20} />
@@ -182,6 +177,19 @@ export default function AccountPanel({ actionData, openLogoutDrawer }) {
                     Log out
                 </Group>
             </Button>
+
+            <DrawerContainer
+                opened={passwordResetOpened}
+                onClose={closeResetPassword}
+                title="Reset Password"
+            >
+                <UpdatePassword
+                    action="password-reset"
+                    actionRoute='/settings'
+                    confirmText="Yes, Reset my Password"
+                    user={user}
+                />
+            </DrawerContainer>
         </>
     );
 }
