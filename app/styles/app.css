@@ -46,6 +46,11 @@
 
 :root[data-mantine-color-scheme='light'] {
 
+    --mantine-color-body: #e0ebe8;
+    /* body {
+        background: linear-gradient(#eeeeee, #d9ecdf);
+    } */
+
     .mantine-Accordion-item,
     .mantine-Card-root {
         background-color: #f2f4f6;
