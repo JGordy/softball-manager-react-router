@@ -19,6 +19,7 @@ import { updateAccountInfo, updatePassword, updateUser, resetPassword } from '@/
 import DrawerContainer from '@/components/DrawerContainer';
 import UserHeader from '@/components/UserHeader';
 import AccountPanel from './components/AccountPanel';
+import AuthPanel from './components/AuthPanel';
 
 export async function action({ request }) {
     const formData = await request.formData();
@@ -103,6 +104,16 @@ export default function Settings({ actionData }) {
                     <Accordion.Control>Account</Accordion.Control>
                     <Accordion.Panel>
                         <AccountPanel
+                            actionData={actionData}
+                            openLogoutDrawer={open}
+                        />
+                    </Accordion.Panel>
+                </Accordion.Item>
+
+                <Accordion.Item value="authentication">
+                    <Accordion.Control>Authentication</Accordion.Control>
+                    <Accordion.Panel>
+                        <AuthPanel
                             actionData={actionData}
                             openLogoutDrawer={open}
                         />
