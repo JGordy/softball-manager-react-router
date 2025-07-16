@@ -1,11 +1,20 @@
-import { useEffect } from 'react';
-import { useSearchParams } from 'react-router';
+import { useEffect, useState } from 'react';
+import { useSearchParams, redirect } from 'react-router';
 
-import { Button, PasswordInput, Text } from '@mantine/core';
+import {
+    Alert,
+    Button,
+    Paper,
+    PasswordInput,
+    Text,
+    Title,
+} from '@mantine/core';
+
+import { IconRosetteDiscountCheckFilled, IconExclamationCircleFilled } from '@tabler/icons-react';
 
 import FormWrapper from '@/forms/FormWrapper';
 
-// import { account } from '@/appwrite';
+import { account } from '@/appwrite';
 
 import classes from '@/styles/inputs.module.css';
 
@@ -13,48 +22,70 @@ export async function clientAction({ request }) {
     const formData = await request.formData();
     const userId = formData.get("userId");
     const secret = formData.get("secret");
-    const password = formData.get("password");
+    const newPassword = formData.get("newPassword");
+    const confirmPassword = formData.get("confirmPassword");
 
-    console.log({ userId, secret, password });
+    console.log({ userId, secret, newPassword, confirmPassword });
 
-    // const result = await account.updateRecovery(
-    //     userId, // userId
-    //     secret, // secret
-    //     password, // new password
-    // );
+    if (newPassword !== confirmPassword) {
+        return { success: false, message: "Passwords do not match" };
+    }
 
-    // const response = await login({ email, password });
+    try {
+        const response = await account.updateRecovery(userId, secret, newPassword);
+        console.log({ response });
 
-    // if (response?.error) {
-    //     return { error: response.error?.message || response.error };
-    // }
+        return {
+            success: true,
+            message: "Password updated successfully",
+        };
 
-    // return { email, password, session: response.session };
+    } catch (error) {
+        return {
+            message: error?.message || "Error: Could not update password.",
+            success: false
+        };
+    }
 }
 
 export default function Verify({ actionData }) {
     const [searchParams] = useSearchParams();
 
-    const secret = searchParams.get('secret');
-    const userId = searchParams.get('userId');
-    console.log({ secret, userId });
+    const [params] = useState({
+        secret: searchParams.get('secret'),
+        userId: searchParams.get('userId'),
+    });
+    const { secret, userId } = params;
 
     useEffect(() => {
         if (actionData?.success) {
-            // Do something
+
+            setTimeout(() => {
+                // Redirect to the home page?
+                redirect('/');
+            }, 2500);
         }
 
-        if (actionData?.status === 500) {
+        if (!actionData?.success) {
             // Do something
         }
     }, [actionData]);
 
     return (
-        <div className="container">
-            <h1>Password Reset</h1>
+        <Paper p="xl">
+            <Title order={2} mb="lg">Create a new password</Title>
             {(secret && userId) ? (
                 <>
-                    <Text>Please submit a new password.</Text>
+                    {actionData?.message && (
+                        <Alert
+                            variant="light"
+                            color={actionData.success ? 'green' : 'red'}
+                            icon={actionData.success ? <IconRosetteDiscountCheckFilled size={16} /> : <IconExclamationCircleFilled size={16} />}
+                        >
+                            {actionData.message}
+                        </Alert>
+                    )}
+                    <Text my="lg" c="dimmed">Your new password must be different from your previous used passwords.</Text>
                     <FormWrapper
                         action="reset-password"
                         actionRoute="/recovery"
@@ -68,24 +99,33 @@ export default function Verify({ actionData }) {
                             type="password"
                             name="newPassword"
                             label="New Password"
-                            placeholder="Your new password"
                             description="Must be at least 8 characters long"
                             mt="md"
                             withAsterisk
                         />
+                        <PasswordInput
+                            className={classes.inputs}
+                            type="password"
+                            name="confirmPassword"
+                            label="Confirm Password"
+                            description="Both passwords must match"
+                            mt="md"
+                            withAsterisk
+                        />
                         <Button
+                            mt="xl"
                             type="submit"
                             color="green"
                             autoContrast
                             fullWidth
                         >
-                            Submit new password
+                            Reset Password
                         </Button>
                     </FormWrapper>
                 </>
             ) : (
-                <Text>You have reached an invalid password reset link.</Text>
+                <Text mt="xl">You have reached an invalid password reset link.</Text>
             )}
-        </div>
+        </Paper>
     );
 };
