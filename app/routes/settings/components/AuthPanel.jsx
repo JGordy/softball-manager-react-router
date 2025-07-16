@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { useOutletContext } from 'react-router';
+import { useNavigate, useOutletContext } from 'react-router';
 
 import {
     ActionIcon,
@@ -24,14 +24,22 @@ import useModal from '@/hooks/useModal';
 import UpdatePassword from '@/forms/UpdatePassword';
 import DrawerContainer from '@/components/DrawerContainer';
 
-export default function AuthPanel({ actionData, openLogoutDrawer }) {
-    // console.log({ actionData });
+export default function AuthPanel({ actionData }) {
 
     const { user } = useOutletContext();
 
     const { openModal, closeAllModals } = useModal();
 
-    const [passwordResetOpened, { open: openResetPassword, close: closeResetPassword }] = useDisclosure();
+    const navigate = useNavigate();
+
+    const [passwordResetOpened, {
+        open: openResetPassword,
+        close: closeResetPassword,
+    }] = useDisclosure();
+    const [logoutDrawerOpened, {
+        open: openLogoutDrawer,
+        close: closeLogoutDrawer,
+    }] = useDisclosure();
 
     const [formError, setFormError] = useState(null);
     const [actionSuccess, setActionSuccess] = useState(false);
@@ -59,6 +67,11 @@ export default function AuthPanel({ actionData, openLogoutDrawer }) {
         title: 'Update Your Password',
         children: <UpdatePassword actionRoute='/settings' />,
     });
+
+    const logOutUser = async () => {
+        await account.deleteSession(session.$id);
+        navigate("/login");
+    }
 
     return (
         <>
@@ -138,6 +151,28 @@ export default function AuthPanel({ actionData, openLogoutDrawer }) {
                     confirmText="Yes, Reset my Password"
                     user={user}
                 />
+            </DrawerContainer>
+
+            <DrawerContainer
+                opened={logoutDrawerOpened}
+                onClose={closeLogoutDrawer}
+                title="Confirm Log Out"
+            >
+                <Text size="md" mb="xl">
+                    Are you sure you want to log out? You will need to log in again to access your content.
+                </Text>
+                <Button
+                    color="red"
+                    onClick={logOutUser}
+                    variant="filled"
+                    size="md"
+                    fullWidth
+                >
+                    <Group gap="xs">
+                        <IconLogout2 size={16} mr='xs' />
+                        Yes, Log out
+                    </Group>
+                </Button>
             </DrawerContainer>
         </>
     );

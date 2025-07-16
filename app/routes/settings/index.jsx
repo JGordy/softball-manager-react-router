@@ -1,22 +1,18 @@
-import { useNavigate, useOutletContext } from 'react-router';
+import { useOutletContext } from 'react-router';
 import { useEffect, useState } from 'react';
 
-import {
-    Accordion,
-    Button,
-    Group,
-    Text,
-} from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
-import { IconLogout2 } from '@tabler/icons-react';
+import { Accordion } from '@mantine/core';
+
 
 import { account } from '@/appwrite';
 
-// import useModal from '@/hooks/useModal';
+import {
+    updateAccountInfo,
+    updatePassword,
+    updateUser,
+    resetPassword,
+} from '@/actions/users';
 
-import { updateAccountInfo, updatePassword, updateUser, resetPassword } from '@/actions/users';
-
-import DrawerContainer from '@/components/DrawerContainer';
 import UserHeader from '@/components/UserHeader';
 import AccountPanel from './components/AccountPanel';
 import AuthPanel from './components/AuthPanel';
@@ -55,25 +51,9 @@ export default function Settings({ actionData }) {
 
     const { user, session } = useOutletContext();
 
-    const navigate = useNavigate();
-
-    const [opened, { open, close }] = useDisclosure(false);
-
     const [userAccount, setUserAccount] = useState();
 
     console.log('/settings ', { user, session, userAccount });
-    // console.log({
-    //     accountCompare: {
-    //         user: {
-    //             email: user?.email,
-    //             phoneNumber: user?.phoneNumber,
-    //         },
-    //         userAccount: {
-    //             email: userAccount?.email,
-    //             phoneNumber: userAccount?.phone,
-    //         },
-    //     },
-    // });
 
     useEffect(() => {
         const getUserAccount = async () => {
@@ -89,11 +69,6 @@ export default function Settings({ actionData }) {
         }
     }, [account, user.email])
 
-    const logOutUser = async () => {
-        await account.deleteSession(session.$id);
-        navigate("/login");
-    }
-
     return (
         <div className="settings-container">
             <UserHeader subText={user.email} />
@@ -103,20 +78,14 @@ export default function Settings({ actionData }) {
                 <Accordion.Item value="account">
                     <Accordion.Control>Account</Accordion.Control>
                     <Accordion.Panel>
-                        <AccountPanel
-                            actionData={actionData}
-                            openLogoutDrawer={open}
-                        />
+                        <AccountPanel actionData={actionData} />
                     </Accordion.Panel>
                 </Accordion.Item>
 
                 <Accordion.Item value="authentication">
-                    <Accordion.Control>Authentication</Accordion.Control>
+                    <Accordion.Control>Login Options</Accordion.Control>
                     <Accordion.Panel>
-                        <AuthPanel
-                            actionData={actionData}
-                            openLogoutDrawer={open}
-                        />
+                        <AuthPanel actionData={actionData} />
                     </Accordion.Panel>
                 </Accordion.Item>
 
@@ -127,28 +96,6 @@ export default function Settings({ actionData }) {
                     </Accordion.Panel>
                 </Accordion.Item>
             </Accordion>
-
-            <DrawerContainer
-                opened={opened}
-                onClose={close}
-                title="Confirm Log Out"
-            >
-                <Text size="md" mb="xl">
-                    Are you sure you want to log out? You will need to log in again to access your content.
-                </Text>
-                <Button
-                    color="red"
-                    onClick={logOutUser}
-                    variant="filled"
-                    size="md"
-                    fullWidth
-                >
-                    <Group gap="xs">
-                        <IconLogout2 size={16} mr='xs' />
-                        Yes, Log out
-                    </Group>
-                </Button>
-            </DrawerContainer>
         </div>
     );
 };
