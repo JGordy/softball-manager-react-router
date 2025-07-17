@@ -14,7 +14,7 @@ import {
     IconBallBaseball,
 } from '@tabler/icons-react';
 
-import { fieldSrc } from '@/constants/images';
+import images from '@/constants/images';
 
 import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
@@ -36,6 +36,7 @@ import SeasonList from './components/SeasonList';
 import GamesList from './components/GamesList';
 
 export function links() {
+    const { fieldSrc } = images;
     return [{ rel: 'preload', href: fieldSrc, as: 'image' }];
 }
 

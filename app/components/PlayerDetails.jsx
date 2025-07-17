@@ -15,11 +15,13 @@ import EditButton from '@/components/EditButton';
 import AddPlayer from '@/forms/AddPlayer';
 
 import fieldPositions from '@/constants/positions';
-import { fieldSrc } from '@/constants/images';
+import images from '@/constants/images';
 
 import useModal from '@/hooks/useModal';
 
 import styles from '@/styles/positionChart.module.css';
+
+const { fieldSrc } = images;
 
 const colors = {
     PREFERRED: 'rgba(0, 249, 50, 0.5)',
