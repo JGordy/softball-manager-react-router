@@ -14,6 +14,8 @@ import {
     IconBallBaseball,
 } from '@tabler/icons-react';
 
+import { fieldSrc } from '@/constants/images';
+
 import BackButton from '@/components/BackButton';
 import EditButton from '@/components/EditButton';
 
@@ -34,7 +36,6 @@ import SeasonList from './components/SeasonList';
 import GamesList from './components/GamesList';
 
 export function links() {
-    const fieldSrc = `${import.meta.env.VITE_APPWRITE_HOST_URL}/storage/buckets/67af948b00375c741493/files/67b00f90002a66960ba4/view?project=${import.meta.env.VITE_APPWRITE_PROJECT_ID}&mode=admin`;
     return [{ rel: 'preload', href: fieldSrc, as: 'image' }];
 }
 

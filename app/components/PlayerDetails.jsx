@@ -15,12 +15,11 @@ import EditButton from '@/components/EditButton';
 import AddPlayer from '@/forms/AddPlayer';
 
 import fieldPositions from '@/constants/positions';
+import { fieldSrc } from '@/constants/images';
 
 import useModal from '@/hooks/useModal';
 
 import styles from '@/styles/positionChart.module.css';
-
-const fieldSrc = `${import.meta.env.VITE_APPWRITE_HOST_URL}/storage/buckets/67af948b00375c741493/files/67b00f90002a66960ba4/view?project=${import.meta.env.VITE_APPWRITE_PROJECT_ID}&mode=admin`;
 
 const colors = {
     PREFERRED: 'rgba(0, 249, 50, 0.5)',
