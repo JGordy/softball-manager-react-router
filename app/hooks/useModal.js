@@ -5,6 +5,7 @@ const useModal = () => {
     const openModal = ({ title, children, ...rest }) => {
         return modals.open({
             title,
+            radius: 'lg',
             children,
             overlayProps: {
                 backgroundOpacity: 0.55,
