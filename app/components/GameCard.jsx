@@ -79,7 +79,13 @@ export default function GameCard({
 
     return (
         <Link key={$id} to={`/events/${$id}`}>
-            <Card my="md" radius="md" py="lg" withBorder>
+            <Card
+                className="game-card"
+                my="md"
+                radius="md"
+                py="lg"
+                withBorder
+            >
                 <Text fw={400} size="lg" mb="md">
                     {teamName && <Text fw={700} span>{teamName + ' '}</Text>}
                     {formattedHeader}

@@ -85,6 +85,7 @@ export default function TeamCard({ team }) {
     return (
         <Link to={`/team/${team.$id}`}>
             <Card
+                className="team-card"
                 key={team.$id}
                 padding="lg"
                 shadow="sm"
