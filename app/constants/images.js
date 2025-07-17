@@ -1,4 +1,13 @@
-const appwriteProjId = import.meta.env.VITE_APPWRITE_PROJECT_ID;
-const appwriteHostURL = import.meta.env.VITE_APPWRITE_HOST_URL;
+const awHostURL = import.meta.env.VITE_APPWRITE_HOST_URL;
+const awBucketId = '67af948b00375c741493';
+const awProjId = import.meta.env.VITE_APPWRITE_PROJECT_ID;
+const getSrc = (fileId) => `${awHostURL}/storage/buckets/${awBucketId}/files/${fileId}/view?project=${awProjId}`;
 
-export const fieldSrc = `${appwriteHostURL}/storage/buckets/67af948b00375c741493/files/67b00f90002a66960ba4/view?project=${appwriteProjId}&mode=admin`;
+import imageManifest from './imageManifest.json';
+
+const images = {};
+for (const [key, fileId] of Object.entries(imageManifest)) {
+    images[key] = getSrc(fileId);
+}
+
+export default images;
