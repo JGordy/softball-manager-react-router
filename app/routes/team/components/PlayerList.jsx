@@ -14,7 +14,13 @@ import {
 
 import { useDisclosure } from '@mantine/hooks';
 
-import { IconPlus, IconClipboardCheck, IconUserSquareRounded, IconBallBaseball } from '@tabler/icons-react';
+import {
+    IconBallBaseball,
+    IconChevronRight,
+    IconClipboardCheck,
+    IconPlus,
+    IconUserSquareRounded,
+} from '@tabler/icons-react';
 
 import DrawerContainer from '@/components/DrawerContainer';
 import PlayerDetails from '@/components/PlayerDetails';
@@ -100,13 +106,16 @@ export default function PlayerList({
                                         </Text>
                                     )}
                                 </Group>
-                                <Avatar.Group>
-                                    {player?.preferredPositions?.map(position => (
-                                        <Tooltip key={player.$id + position} label={position} withArrow>
-                                            <Avatar name={positions[position].initials} alt={position} color="initials" />
-                                        </Tooltip>
-                                    ))}
-                                </Avatar.Group>
+                                <Group>
+                                    <Avatar.Group>
+                                        {player?.preferredPositions?.map(position => (
+                                            <Tooltip key={player.$id + position} label={position} withArrow>
+                                                <Avatar name={positions[position].initials} alt={position} color="initials" />
+                                            </Tooltip>
+                                        ))}
+                                    </Avatar.Group>
+                                    <IconChevronRight size={20} />
+                                </Group>
                             </Flex>
                         </Card>
                     )
