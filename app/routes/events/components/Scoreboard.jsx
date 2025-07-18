@@ -21,22 +21,30 @@ export default function Scoreboard({
         result,
     } = game;
 
+    const isWin = result === 'won';
+    const isLoss = result === 'lost';
+
     return (
         <Box mt="xl">
             <Title order={4} align="center" mb="sm">
                 {team?.name} {isHomeGame ? 'vs' : '@'} {opponent || "TBD"}
             </Title>
-            <Group justify="center" gap="xl" align="center">
-                <Card withBorder radius="md" px="xl">
-                    <Text>{score || '0'}</Text>
-                </Card>
+            <Card
+                className="score-container"
+                radius="md"
+                p="xs"
+                maw="30%"
+                withBorder
+                mx="auto"
+            >
+                <Group justify="center" align="center">
+                    <Text size="xl" fw={700} c={isWin ? 'green' : ''}>{score || '0'}</Text>
 
-                <div>-</div>
+                    <div>-</div>
 
-                <Card withBorder radius="md" px="xl">
-                    <Text>{opponentScore || '0'}</Text>
-                </Card>
-            </Group>
+                    <Text size="xl" fw={700} c={isLoss ? 'red' : ''}>{opponentScore || '0'}</Text>
+                </Group>
+            </Card>
 
             {gameIsPast && !result && (
                 <Center mt="md">
