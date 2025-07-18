@@ -31,7 +31,7 @@ export default function Scoreboard({
             </Title>
             <Card
                 className="score-container"
-                radius="md"
+                radius="lg"
                 p="xs"
                 maw="30%"
                 withBorder
