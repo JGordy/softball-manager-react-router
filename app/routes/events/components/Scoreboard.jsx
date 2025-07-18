@@ -39,9 +39,7 @@ export default function Scoreboard({
             >
                 <Group justify="center" align="center">
                     <Text size="xl" fw={700} c={isWin ? 'green' : ''}>{score || '0'}</Text>
-
                     <div>-</div>
-
                     <Text size="xl" fw={700} c={isLoss ? 'red' : ''}>{opponentScore || '0'}</Text>
                 </Group>
             </Card>
