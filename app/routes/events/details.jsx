@@ -3,22 +3,13 @@ import { useEffect } from 'react';
 import { Form, useNavigation, useOutletContext } from 'react-router';
 
 import {
-    Anchor,
     Box,
     Button,
-    Card,
-    Flex,
     Group,
     Tabs,
     Text,
 } from '@mantine/core';
-import { useDisclosure, useClipboard } from '@mantine/hooks';
-
-import {
-    IconCopy,
-    IconLocationFilled,
-    IconMapPin,
-} from '@tabler/icons-react';
+import { useDisclosure } from '@mantine/hooks';
 
 import BackButton from '@/components/BackButton';
 import DrawerContainer from '@/components/DrawerContainer';
@@ -27,7 +18,7 @@ import { createAttendanceForm, deleteGame, savePlayerChart, updateGame } from '@
 
 import { getEventById } from '@/loaders/games';
 
-import { formatGameTime, getGameDayStatus } from '@/utils/dateTime';
+import { getGameDayStatus } from '@/utils/dateTime';
 
 import useModal from '@/hooks/useModal';
 
@@ -93,13 +84,10 @@ export async function loader({ params, request }) {
 export default function EventDetails({ loaderData, actionData }) {
     console.log('/events/:eventId > ', { ...loaderData });
 
-    const [locationDrawerOpened, locationDrawerHandlers] = useDisclosure(false);
     const [deleteDrawerOpened, deleteDrawerHandlers] = useDisclosure(false);
 
     const navigation = useNavigation();
     const { closeAllModals } = useModal();
-
-    const clipboard = useClipboard({ timeout: 500 });
 
     const { user } = useOutletContext();
     const currentUserId = user.$id;
@@ -124,10 +112,7 @@ export default function EventDetails({ loaderData, actionData }) {
         gameDate,
         playerChart,
         result,
-        timeZone,
     } = game;
-
-    const formattedGameTime = formatGameTime(gameDate, timeZone);
 
     const gameDayStatus = getGameDayStatus(gameDate);
     const gameIsPast = gameDayStatus === 'past';
@@ -184,10 +169,9 @@ export default function EventDetails({ loaderData, actionData }) {
             </Box>
 
             <DetailsCard
-                formattedGameTime={formattedGameTime}
+                game={game}
                 park={park}
                 season={season}
-                locationDrawerHandlers={locationDrawerHandlers}
             />
 
             <Tabs
@@ -247,52 +231,6 @@ export default function EventDetails({ loaderData, actionData }) {
                             Yes, Delete this Game
                         </Button>
                     </Form>
-                </DrawerContainer>
-            )}
-
-            {park && (
-                <DrawerContainer
-                    opened={locationDrawerOpened}
-                    onClose={locationDrawerHandlers.close}
-                    title="Location Details"
-                >
-                    <Flex align="center" gap="md" mb="xl">
-                        <div>
-                            <IconMapPin size={20} />
-                        </div>
-                        <div>
-                            <Text size="lg" weight={500}>
-                                {park?.displayName}
-                            </Text>
-                            <Text size="sm">
-                                {park?.formattedAddress}
-                            </Text>
-                        </div>
-                    </Flex>
-
-                    <Anchor
-                        href={park?.googleMapsURI}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        <Card c="green">
-                            <Group gap="xs">
-                                <IconLocationFilled size={18} />
-                                <Text>View on Google Maps</Text>
-                            </Group>
-                        </Card>
-                    </Anchor>
-
-                    <Card
-                        c="green"
-                        mt="md"
-                        onClick={() => clipboard.copy(park?.formattedAddress)}
-                    >
-                        <Group gap="xs">
-                            <IconCopy size={18} />
-                            <Text>{clipboard.copied ? 'Copied!' : 'Copy Address'}</Text>
-                        </Group>
-                    </Card>
                 </DrawerContainer>
             )}
         </>
