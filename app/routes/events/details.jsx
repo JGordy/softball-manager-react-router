@@ -4,6 +4,7 @@ import { Form, useNavigation, useOutletContext } from 'react-router';
 
 import {
     Anchor,
+    Box,
     Button,
     Card,
     Flex,
@@ -157,24 +158,30 @@ export default function EventDetails({ loaderData, actionData }) {
 
     return (
         <>
-            <Group justify="space-between">
-                <BackButton text="Back to Events" />
-                {managerView && (
-                    <MenuContainer
-                        game={game}
-                        gameIsPast={gameIsPast}
-                        openDeleteDrawer={deleteDrawerHandlers.open}
-                        result={result}
-                        team={team}
-                    />
-                )}
-            </Group>
+            <Box
+                className="event-details-hero"
+                pt="xl"
+                pb="100px"
+            >
+                <Group justify="space-between" mx="md">
+                    <BackButton text="Back to Events" />
+                    {managerView && (
+                        <MenuContainer
+                            game={game}
+                            gameIsPast={gameIsPast}
+                            openDeleteDrawer={deleteDrawerHandlers.open}
+                            result={result}
+                            team={team}
+                        />
+                    )}
+                </Group>
 
-            <Scoreboard
-                game={game}
-                gameIsPast={gameIsPast}
-                team={team}
-            />
+                <Scoreboard
+                    game={game}
+                    gameIsPast={gameIsPast}
+                    team={team}
+                />
+            </Box>
 
             <DetailsCard
                 formattedGameTime={formattedGameTime}
@@ -183,7 +190,12 @@ export default function EventDetails({ loaderData, actionData }) {
                 locationDrawerHandlers={locationDrawerHandlers}
             />
 
-            <Tabs radius="md" defaultValue={(availablePlayers?.length > 7) ? 'lineup' : 'availability'} mt="xl">
+            <Tabs
+                radius="md"
+                defaultValue={(availablePlayers?.length > 7) ? 'lineup' : 'availability'}
+                mt="xl"
+                mx="md"
+            >
                 <Tabs.List grow justify="center">
                     <Tabs.Tab value="lineup">
                         Batting & Fielding
