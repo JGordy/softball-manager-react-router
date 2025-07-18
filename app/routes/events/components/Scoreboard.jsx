@@ -1,8 +1,8 @@
 import {
+    Box,
     Card,
     Center,
     Group,
-    Paper,
     Text,
     Title,
 } from '@mantine/core';
@@ -22,7 +22,7 @@ export default function Scoreboard({
     } = game;
 
     return (
-        <Paper mt="xl">
+        <Box mt="xl">
             <Title order={4} align="center" mb="sm">
                 {team?.name} {isHomeGame ? 'vs' : '@'} {opponent || "TBD"}
             </Title>
@@ -43,6 +43,6 @@ export default function Scoreboard({
                     <Text size="sm" c="yellow">Game result pending*</Text>
                 </Center>
             )}
-        </Paper>
+        </Box>
     );
 }
