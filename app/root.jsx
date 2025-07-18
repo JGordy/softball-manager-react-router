@@ -81,7 +81,7 @@ export async function clientLoader({ request }) {
 }
 
 function Layout({ children, context }) {
-    const { darkMode } = context;
+    // const { darkMode } = context;
 
     return (
         <html lang="en" {...mantineHtmlProps}>
