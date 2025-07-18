@@ -18,7 +18,7 @@ export default function DetailsCard({
 }) {
 
     return (
-        <Card withBorder radius="lg" mt="-10%" mx="md" py="5px">
+        <Card withBorder radius="lg" mt="-12%" mx="md" py="5px">
             <Card.Section my="xs" inheritPadding>
                 <Group gap="xs">
                     <IconClock size={18} />
