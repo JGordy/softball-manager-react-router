@@ -71,7 +71,7 @@ function Layout({ loaderData }) {
                     loaderProps={{ color: 'green', size: 'xl', type: 'dots' }}
                     overlayProps={{ radius: "sm", blur: 3, }}
                 />
-                <Container p="md" mih="90vh">
+                <Container p="0" mih="90vh">
                     <Outlet context={{ ...loaderData }} />
                 </Container>
                 <NavLinks />
