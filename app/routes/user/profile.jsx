@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useActionData, useOutletContext } from 'react-router';
 
 import {
+    Container,
     Tabs,
     Text,
 } from '@mantine/core';
@@ -106,7 +107,7 @@ export default function UserProfile() {
     }, [actionData]);
 
     return !!Object.keys(player).length && (
-        <>
+        <Container>
             <UserHeader subText="Here are your personal and player details" />
 
             {(isCurrentUser && incompleteData.length > 0) && (
@@ -148,6 +149,6 @@ export default function UserProfile() {
                 </Tabs.Panel>
 
             </Tabs>
-        </>
+        </Container>
     );
 }

@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import {
     Button,
     Card,
+    Container,
     Group,
     ScrollArea,
     Text,
@@ -135,7 +136,7 @@ export default function HomePage({ loaderData, actionData }) {
     });
 
     return (
-        <>
+        <Container>
             <UserHeader subText="Here is a summary of all of your team and event info" />
 
             {(nextGame && Object.keys(nextGame).length > 0) && (
@@ -196,6 +197,6 @@ export default function HomePage({ loaderData, actionData }) {
                     </ScrollArea.Autosize>
                 </Card>
             )}
-        </>
+        </Container>
     );
 };

@@ -6,6 +6,7 @@ import {
 
 import {
     Button,
+    Container,
     Flex,
     Text,
     Title,
@@ -139,7 +140,7 @@ const UserDashboard = ({ loaderData }) => {
     };
 
     return (
-        <>
+        <Container>
             <UserHeader subText="Here are all of your teams" />
 
             {managing.length > 0 && (
@@ -164,7 +165,7 @@ const UserDashboard = ({ loaderData }) => {
                 <IconPlus size={20} />
                 Create New Team
             </Button>
-        </>
+        </Container>
     );
 };
 

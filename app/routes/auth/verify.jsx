@@ -1,5 +1,8 @@
-import { useSearchParams } from 'react-router';
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router';
+
+import { Container } from '@mantine/core';
+
 import { account } from '@/appwrite';
 
 export default function Verify() {
@@ -29,11 +32,11 @@ export default function Verify() {
     }, [searchParams]);
 
     return (
-        <div className="verification-container">
+        <Container className="verification-container">
             <h1>Account Verification</h1>
             <div className="status-message">
                 {status}
             </div>
-        </div>
+        </Container>
     );
 };

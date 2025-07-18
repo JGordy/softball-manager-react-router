@@ -1,7 +1,7 @@
 import { useOutletContext } from 'react-router';
 import { useEffect, useState } from 'react';
 
-import { Accordion } from '@mantine/core';
+import { Accordion, Container } from '@mantine/core';
 
 
 import { account } from '@/appwrite';
@@ -70,7 +70,7 @@ export default function Settings({ actionData }) {
     }, [account, user.email])
 
     return (
-        <div className="settings-container">
+        <Container className="settings-container">
             <UserHeader subText={user.email} />
 
             <Accordion variant="separated" radius="md" defaultValue="account" mt="xl">
@@ -96,6 +96,6 @@ export default function Settings({ actionData }) {
                     </Accordion.Panel>
                 </Accordion.Item>
             </Accordion>
-        </div>
+        </Container>
     );
 };

@@ -3,7 +3,7 @@ import { redirect, useOutletContext } from 'react-router';
 
 import {
     ActionIcon,
-    Group,
+    Container,
     Menu,
     SegmentedControl,
     Tabs,
@@ -132,7 +132,7 @@ export default function EventsDetails({ loaderData }) {
     );
 
     return (
-        <>
+        <Container>
             <UserHeader subText="Track your game history">
                 {teamFilter}
             </UserHeader>
@@ -162,6 +162,6 @@ export default function EventsDetails({ loaderData }) {
                     />
                 </Tabs.Panel>
             </Tabs>
-        </>
+        </Container>
     );
 };

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 
 import {
     Button,
+    Container,
     Divider,
     Group,
     Text,
@@ -142,7 +143,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
     };
 
     return (
-        <>
+        <Container pt="md">
             <Group justify="space-between">
                 <BackButton text="Teams" to={`/team/${season.teamId}`} />
                 <EditButton setIsModalOpen={openEditSeasonModal} />
@@ -224,6 +225,6 @@ export default function SeasonDetails({ loaderData, actionData }) {
                 <IconPlus size={18} />
                 Create Single Game
             </Button>
-        </>
+        </Container>
     );
 }
