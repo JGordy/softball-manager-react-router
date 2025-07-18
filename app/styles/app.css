@@ -20,6 +20,7 @@
         background-color: #1a242f;
     }
 
+    .event-details-hero,
     .game-card.mantine-Card-root {
         background-image:
             linear-gradient(rgb(26, 36, 47, 0.9),
@@ -67,6 +68,7 @@
         background-color: #f2f4f6;
     }
 
+    .event-details-hero,
     .game-card.mantine-Card-root {
         background-image:
             linear-gradient(rgba(222, 236, 226, 0.85),
