@@ -8,7 +8,7 @@ import {
     Text,
 } from '@mantine/core';
 
-import { IconPlus } from '@tabler/icons-react';
+import { IconChevronRight, IconPlus } from '@tabler/icons-react';
 
 import AddSeason from '@/forms/AddSeason';
 
@@ -97,12 +97,15 @@ export default function SeasonList({
             <ScrollArea h="55vh">
                 {seasons.map((season) => (
                     <Link to={`/season/${season.$id}`} key={season.$id}>
-                        <Card key={season.$id} mt="sm" radius="md" padding="sm" withBorder>
+                        <Card key={season.$id} mt="sm" radius="md" p="sm" py="md" withBorder>
                             <Group justify="space-between">
-                                <Text>{season.seasonName}</Text>
-                                <Text>
-                                    {new Date(season.startDate).toLocaleDateString()} - {new Date(season.endDate).toLocaleDateString()}
-                                </Text>
+                                <Text size="lg">{season.seasonName}</Text>
+                                <Group>
+                                    <Text c="dimmed">
+                                        {new Date(season.startDate).toLocaleDateString()} - {new Date(season.endDate).toLocaleDateString()}
+                                    </Text>
+                                    <IconChevronRight size={20} />
+                                </Group>
                                 {getSeasonStatus(season)}
                             </Group>
 
