@@ -127,10 +127,10 @@ export default function PlayerList({
                     opened={opened}
                     onClose={close}
                     size="xl"
-                    title={`${selectedPlayer.firstName} ${selectedPlayer.lastName}'s Player Profile`}
+                    title={`${selectedPlayer.firstName}'s Details`}
                 >
                     <Tabs radius="md" defaultValue="player" mt="md">
-                        <Tabs.List grow justify="center">
+                        <Tabs.List justify="center" grow>
                             <Tabs.Tab value="player" leftSection={<IconBallBaseball size={16} />}>
                                 Player
                             </Tabs.Tab>
