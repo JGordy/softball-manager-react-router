@@ -18,7 +18,7 @@ import DrawerContainer from '@/components/DrawerContainer';
 import ParkDetailsDrawer from './ParkDetailsDrawer';
 import CalendarDetails from './CalendarDetails';
 
-export default function DetailsCard({ game, park, season }) {
+export default function DetailsCard({ game, park, season, team }) {
 
     const {
         gameDate,
@@ -68,7 +68,11 @@ export default function DetailsCard({ game, park, season }) {
                 onClose={calendarDrawerHandlers.close}
                 title="Date & Time Details"
             >
-                <CalendarDetails game={game} />
+                <CalendarDetails
+                    game={game}
+                    park={park}
+                    team={team}
+                />
             </DrawerContainer>
 
             {park && (
