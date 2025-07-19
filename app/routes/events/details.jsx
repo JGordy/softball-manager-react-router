@@ -172,6 +172,7 @@ export default function EventDetails({ loaderData, actionData }) {
                 game={game}
                 park={park}
                 season={season}
+                team={team}
             />
 
             <Tabs
