@@ -24,7 +24,7 @@ export default function ParkDetailsDrawer({ park }) {
                     <IconMapPin size={20} />
                 </div>
                 <div>
-                    <Text size="lg" weight={500}>
+                    <Text size="lg" weight={700}>
                         {park?.displayName}
                     </Text>
                     <Text size="sm">
