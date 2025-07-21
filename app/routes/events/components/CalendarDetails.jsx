@@ -71,7 +71,7 @@ export default function CalendarDetails({ game, park, team }) {
     return (
         <>
             <div>Add game to calendar</div>
-            <Group gap="xs" mt="md" justify='space-between'>
+            <Group mt="md" justify='space-between'>
                 {calendarOrder().map((key, index) => {
                     const { href, icon, label } = calendarMap[key];
                     const isFirstItem = index === 0;
@@ -82,10 +82,10 @@ export default function CalendarDetails({ game, park, team }) {
                             href={href(event)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            w={isFirstItem ? '100%' : 'auto'}
+                            miw={isFirstItem ? '100%' : ''}
                         >
                             <Card c="green">
-                                <Group gap="xs" justify='center' mr={isFirstItem ? '10px' : ''}>
+                                <Group gap="5px" justify='center' mr={isFirstItem ? '10px' : ''}>
                                     {icon}
                                     <Text>{label}</Text>
                                 </Group>
