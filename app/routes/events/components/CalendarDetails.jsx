@@ -1,7 +1,11 @@
 import {
     Anchor,
     Card,
+    Divider,
     Group,
+    Paper,
+    Stack,
+    ThemeIcon,
     Text,
 } from '@mantine/core';
 import { useOs } from '@mantine/hooks';
@@ -11,6 +15,7 @@ import {
     IconBrandGoogleFilled,
     IconBrandOffice,
     IconBrandWindowsFilled,
+    // IconCalendarPlus,
 } from '@tabler/icons-react';
 
 import { google, ics, outlook, office365 } from "calendar-link";
@@ -39,6 +44,7 @@ const calendarMap = {
 };
 
 export default function CalendarDetails({ game, park, team }) {
+    console.log({ game, park, team });
 
     const os = useOs();
     const isGoogle = ['android', 'chromeos'].includes(os);
@@ -60,17 +66,55 @@ export default function CalendarDetails({ game, park, team }) {
         timeZone,
     } = game;
 
+    const parsedDate = new Date(gameDate);
+
+    const gameDateTime = {
+        date: parsedDate.toISOString().slice(0, 10),
+        startTime: parsedDate.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            timeZone,
+        }),
+        dayOfWeek: parsedDate.toLocaleDateString('en-US', {
+            weekday: 'long',
+            timeZone,
+        }),
+        month: parsedDate.toLocaleDateString('en-US', {
+            month: 'long',
+            timeZone,
+        }),
+    };
+
+    console.log({ gameDateTime });
+
     const event = {
         title: `${team?.name} ${isHomeGame ? 'vs' : '@'} ${opponent || "TBD"}`,
         location: park?.formattedAddress || location || '',
         start: gameDate,
         duration: [1, 'hour'],
         timeZone: timeZone,
-    }
+    };
 
     return (
         <>
-            <div>Add game to calendar</div>
+            <Card
+                radius="md"
+                my="xl"
+                p="0"
+                withBorder
+            >
+                <Group gap="0" radius="lg">
+                    <Stack p="md" style={{ backgroundColor: team?.primaryColor || '' }}>
+                        <Text size="xl" fw={700}>{gameDateTime.date}</Text>
+                        <Text fw={300}>{gameDateTime.month}</Text>
+                    </Stack>
+                    <Stack p="md">
+                        <Text size="xl" fw={700}>{gameDateTime.startTime}</Text>
+                        <Text fw={300}>{gameDateTime.dayOfWeek}</Text>
+                    </Stack>
+                </Group>
+            </Card>
+            <Text align='center' mt="xl" mb="lg">Add Game to Calendar</Text>
             <Group mt="md" justify='space-between'>
                 {calendarOrder().map((key, index) => {
                     const { href, icon, label } = calendarMap[key];
