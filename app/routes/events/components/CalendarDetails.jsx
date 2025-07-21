@@ -98,7 +98,7 @@ export default function CalendarDetails({ game, park, team }) {
     return (
         <>
             <Card
-                radius="md"
+                radius="lg"
                 my="xl"
                 p="0"
                 withBorder
