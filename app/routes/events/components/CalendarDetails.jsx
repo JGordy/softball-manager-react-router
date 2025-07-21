@@ -1,11 +1,9 @@
 import {
     Anchor,
     Card,
-    Divider,
+    // Divider,
+    Flex,
     Group,
-    Paper,
-    Stack,
-    ThemeIcon,
     Text,
 } from '@mantine/core';
 import { useOs } from '@mantine/hooks';
@@ -15,7 +13,7 @@ import {
     IconBrandGoogleFilled,
     IconBrandOffice,
     IconBrandWindowsFilled,
-    // IconCalendarPlus,
+    IconCalendarPlus,
 } from '@tabler/icons-react';
 
 import { google, ics, outlook, office365 } from "calendar-link";
@@ -97,24 +95,21 @@ export default function CalendarDetails({ game, park, team }) {
 
     return (
         <>
-            <Card
-                radius="lg"
-                my="xl"
-                p="0"
-                withBorder
-            >
-                <Group gap="0" radius="lg">
-                    <Stack p="md" style={{ backgroundColor: team?.primaryColor || '' }}>
-                        <Text size="xl" fw={700}>{gameDateTime.date}</Text>
-                        <Text fw={300}>{gameDateTime.month}</Text>
-                    </Stack>
-                    <Stack p="md">
-                        <Text size="xl" fw={700}>{gameDateTime.startTime}</Text>
-                        <Text fw={300}>{gameDateTime.dayOfWeek}</Text>
-                    </Stack>
-                </Group>
-            </Card>
-            <Text align='center' mt="xl" mb="lg">Add Game to Calendar</Text>
+            <Flex align="center" gap="md" mb="xl">
+                <div>
+                    <IconCalendarPlus size={20} />
+                </div>
+                {/* <Divider orientation="vertical" size="sm" /> */}
+                <div>
+                    <Text size="lg" weight={700}>
+                        {gameDateTime.startTime}
+                    </Text>
+                    <Text size="sm">
+                        {gameDateTime.dayOfWeek}, {gameDateTime.month} {gameDateTime.date}
+                    </Text>
+                </div>
+            </Flex>
+
             <Group mt="md" justify='space-between'>
                 {calendarOrder().map((key, index) => {
                     const { href, icon, label } = calendarMap[key];
