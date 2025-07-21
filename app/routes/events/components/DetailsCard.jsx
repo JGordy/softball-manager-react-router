@@ -67,7 +67,6 @@ export default function DetailsCard({ game, park, season, team }) {
                 opened={calendarDrawerOpened}
                 onClose={calendarDrawerHandlers.close}
                 title="Add Game to Calendar"
-                size="lg"
             >
                 <CalendarDetails
                     game={game}
