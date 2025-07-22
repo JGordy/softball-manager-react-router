@@ -93,6 +93,9 @@ export default function CalendarDetails({ game, park, team }) {
         timeZone: timeZone,
     };
 
+    const [firstkey, ...items] = calendarOrder();
+    const firstItem = calendarMap[firstkey];
+
     return (
         <>
             <Flex align="center" gap="md" mb="xl">
@@ -110,10 +113,23 @@ export default function CalendarDetails({ game, park, team }) {
                 </div>
             </Flex>
 
-            <Group mt="md" justify='space-between'>
-                {calendarOrder().map((key, index) => {
+            <Anchor
+                href={firstItem.href(event)}
+                target="_blank"
+                rel="noopener noreferrer"
+                miw="100%"
+            >
+                <Card c="green">
+                    <Group gap="md" justify='center' mr="10px">
+                        {firstItem.icon}
+                        <Text>{firstItem.label}</Text>
+                    </Group>
+                </Card>
+            </Anchor>
+
+            <Group mt="md" justify='space-between' grow>
+                {items.map((key) => {
                     const { href, icon, label } = calendarMap[key];
-                    const isFirstItem = index === 0;
 
                     return (
                         <Anchor
@@ -121,10 +137,9 @@ export default function CalendarDetails({ game, park, team }) {
                             href={href(event)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            miw={isFirstItem ? '100%' : ''}
                         >
                             <Card c="green">
-                                <Group gap="5px" justify='center' mr={isFirstItem ? '10px' : ''}>
+                                <Group gap="5px" justify="center" wrap="nowrap">
                                     {icon}
                                     <Text>{label}</Text>
                                 </Group>
