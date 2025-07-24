@@ -63,15 +63,15 @@ export default function MenuContainer({
     });
 
     return (
-        <Menu shadow="md" withArrow offset={0}>
+        <Menu shadow="md" radius="lg" withArrow offset={0}>
             <Menu.Target>
                 <ActionIcon variant="light" radius="xl" size="lg">
                     <IconDots />
                 </ActionIcon>
             </Menu.Target>
-            <Menu.Dropdown>
+            <Menu.Dropdown p="md">
                 <Menu.Label>
-                    <Text size="xs">Game Details</Text>
+                    <Text size="sm">Game Details</Text>
                 </Menu.Label>
                 {gameIsPast && (
                     <Menu.Item onClick={openGameResultsModal} leftSection={<IconScoreboard size={14} />}>
@@ -83,7 +83,7 @@ export default function MenuContainer({
                 </Menu.Item>
                 <Menu.Divider />
                 <Menu.Label>
-                    <Text size="xs">Danger zone</Text>
+                    <Text size="sm">Danger zone</Text>
                 </Menu.Label>
                 <Menu.Item leftSection={<IconTrashX size={14} />} color="red" onClick={openDeleteDrawer}>
                     <Text>Delete Game</Text>

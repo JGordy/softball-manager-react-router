@@ -98,6 +98,7 @@ export default function EventsDetails({ loaderData }) {
             opened={showFilters}
             onClose={handleMenuClose}
             trigger="click"
+            radius="lg"
         >
             <Menu.Target>
                 <ActionIcon variant="default" radius="xl" aria-label="Filter Games" size="lg" onClick={toggleMenu}>
@@ -107,6 +108,7 @@ export default function EventsDetails({ loaderData }) {
             <Menu.Dropdown
                 bg={(computedColorScheme === 'light') ? "gray.1" : undefined}
                 miw="60vw"
+                pt="md"
             >
                 <Menu.Label>Filter Games by Team</Menu.Label>
 
