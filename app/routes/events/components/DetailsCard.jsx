@@ -2,6 +2,7 @@ import {
     Card,
     Divider,
     Group,
+    Text,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 
@@ -33,6 +34,9 @@ export default function DetailsCard({ game, park, season, team }) {
     return (
         <>
             <Card withBorder radius="lg" mt="-12%" mx="md" py="5px">
+
+                <Text size="sm" mt="xs">Date & Location Details</Text>
+
                 <Card.Section my="xs" inheritPadding>
                     <Group justify="space-between" c="green" onClick={calendarDrawerHandlers.open}>
                         <Group gap="xs" c="green">
