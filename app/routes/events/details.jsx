@@ -26,34 +26,6 @@ import Scoreboard from './components/Scoreboard';
 import DetailsCard from './components/DetailsCard';
 import RosterDetails from './components/RosterDetails';
 
-const availabilityOptions = [
-    { value: 'Yes, I will be there', key: 'yes' },
-    { value: 'No, I cannot attend', key: 'no' },
-    { value: 'Maybe, I will let you know', key: 'maybe' },
-];
-
-function updatePlayerAvailability(responses, players) {
-    const playersCopy = [...players];
-
-    const availabilityMap = {};
-    availabilityOptions.forEach(option => {
-        availabilityMap[option.value] = option.key;
-    });
-
-    playersCopy.forEach(player => {
-        player.availability = 'noresponse';
-    });
-
-    responses.forEach(response => {
-        const player = playersCopy.find(p => p.email === response.respondentEmail);
-        if (player) {
-            player.available = availabilityMap[response.answer] || 'noResponse';
-        }
-    });
-
-    return playersCopy;
-}
-
 export async function action({ request, params }) {
     const { eventId } = params;
     const formData = await request.formData();
@@ -115,14 +87,6 @@ export default function EventDetails({ loaderData, actionData }) {
     const gameDayStatus = getGameDayStatus(gameDate);
     const gameIsPast = gameDayStatus === 'past';
 
-    const { responses } = availability;
-
-    const formHasResponses = responses && Object.keys(responses).length > 0;
-
-    if (formHasResponses) updatePlayerAvailability(responses, players);
-
-    const availablePlayers = players.filter(player => player.available === 'yes');
-
     useEffect(() => {
         const handleAfterSubmit = async () => {
             try {
@@ -175,7 +139,6 @@ export default function EventDetails({ loaderData, actionData }) {
 
             <RosterDetails
                 availability={availability}
-                availablePlayers={availablePlayers}
                 game={game}
                 managerView={managerView}
                 playerChart={playerChart}

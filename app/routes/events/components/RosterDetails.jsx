@@ -16,9 +16,36 @@ import DrawerContainer from '@/components/DrawerContainer';
 import AvailabliityContainer from './AvailabliityContainer';
 import LineupContainer from './LineupContainer';
 
+const availabilityOptions = [
+    { value: 'Yes, I will be there', key: 'yes' },
+    { value: 'No, I cannot attend', key: 'no' },
+    { value: 'Maybe, I will let you know', key: 'maybe' },
+];
+
+function updatePlayerAvailability(responses, players) {
+    const playersCopy = [...players];
+
+    const availabilityMap = {};
+    availabilityOptions.forEach(option => {
+        availabilityMap[option.value] = option.key;
+    });
+
+    playersCopy.forEach(player => {
+        player.availability = 'noresponse';
+    });
+
+    responses.forEach(response => {
+        const player = playersCopy.find(p => p.email === response.respondentEmail);
+        if (player) {
+            player.available = availabilityMap[response.answer] || 'noResponse';
+        }
+    });
+
+    return playersCopy;
+}
+
 export default function RosterDetails({
     availability,
-    availablePlayers,
     game,
     managerView,
     playerChart,
@@ -26,9 +53,16 @@ export default function RosterDetails({
     team,
 }) {
 
+    const { responses } = availability;
+
+    const formHasResponses = responses && Object.keys(responses).length > 0;
+
+    if (formHasResponses) updatePlayerAvailability(responses, players);
+
+    const availablePlayers = players.filter(player => player.available === 'yes');
+
     console.log('RosterDetails: ', { availability, game, managerView, playerChart, availablePlayers, players });
 
-    const { responses } = availability;
 
     const [lineupDrawerOpened, lineupDrawerHandlers] = useDisclosure(false);
     const [availabilityDrawerOpened, availabilityDrawerHandlers] = useDisclosure(false);
