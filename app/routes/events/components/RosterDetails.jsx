@@ -17,23 +17,25 @@ import AvailabliityContainer from './AvailabliityContainer';
 import LineupContainer from './LineupContainer';
 
 export default function RosterDetails({
+    availability,
+    availablePlayers,
     game,
     managerView,
     playerChart,
-    availablePlayers,
-    availability,
     players,
     team,
 }) {
 
-    console.log('RosterDetails: ', { game, managerView, playerChart, availablePlayers, players });
+    console.log('RosterDetails: ', { availability, game, managerView, playerChart, availablePlayers, players });
+
+    const { responses } = availability;
 
     const [lineupDrawerOpened, lineupDrawerHandlers] = useDisclosure(false);
     const [availabilityDrawerOpened, availabilityDrawerHandlers] = useDisclosure(false);
 
     return (
         <>
-            <Card withBorder radius="lg" mt="md" mx="md" py="5px">
+            <Card withBorder radius="lg" mt="xl" mx="md" py="5px">
 
                 <Text size="sm" mt="xs">Roster & Availability Details</Text>
 
@@ -45,7 +47,7 @@ export default function RosterDetails({
                         </Group>
                         <IconChevronRight size={18} />
                     </Group>
-                    {!playerChart && <Text size="xs" mt="5px" c="dimmed">Lineup & Fielding Chart currently not available</Text>}
+                    {!playerChart && <Text size="xs" mt="5px" ml="28px" c="dimmed">Charts currently not available</Text>}
                 </Card.Section>
 
                 <Divider />
@@ -58,6 +60,9 @@ export default function RosterDetails({
                         </Group>
                         <IconChevronRight size={18} />
                     </Group>
+                    <Text size="xs" mt="5px" ml="28px" c="dimmed">
+                        {`${responses?.length || 0} responses, ${availablePlayers?.length || 0} ${availablePlayers?.length === 1 ? 'player' : 'players'} available`}
+                    </Text>
                 </Card.Section>
             </Card>
 
