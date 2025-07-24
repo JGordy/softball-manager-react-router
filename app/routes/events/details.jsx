@@ -174,12 +174,13 @@ export default function EventDetails({ loaderData, actionData }) {
             />
 
             <RosterDetails
+                availability={availability}
+                availablePlayers={availablePlayers}
                 game={game}
                 managerView={managerView}
                 playerChart={playerChart}
-                availablePlayers={availablePlayers}
                 players={players}
-                availability={availability}
+                team={team}
             />
 
             {managerView && (
