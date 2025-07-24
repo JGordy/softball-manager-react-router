@@ -64,6 +64,7 @@ export default function DetailsCard({ game, park, season, team }) {
                             {season?.location}
                         </Group>
                     )}
+                    {park && <Text size="xs" mt="5px" ml="28px" c="dimmed">{park.formattedAddress}</Text>}
                 </Card.Section>
             </Card>
 
