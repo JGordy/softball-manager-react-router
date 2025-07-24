@@ -6,7 +6,6 @@ import {
     Box,
     Button,
     Group,
-    Tabs,
     Text,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
@@ -25,8 +24,7 @@ import useModal from '@/hooks/useModal';
 import MenuContainer from './components/MenuContainer';
 import Scoreboard from './components/Scoreboard';
 import DetailsCard from './components/DetailsCard';
-import AvailabliityContainer from './components/AvailabliityContainer';
-import LineupContainer from './components/LineupContainer';
+import RosterDetails from './components/RosterDetails';
 
 const availabilityOptions = [
     { value: 'Yes, I will be there', key: 'yes' },
@@ -175,40 +173,14 @@ export default function EventDetails({ loaderData, actionData }) {
                 team={team}
             />
 
-            <Tabs
-                radius="md"
-                defaultValue={(availablePlayers?.length > 7) ? 'lineup' : 'availability'}
-                mt="xl"
-                mx="md"
-            >
-                <Tabs.List grow justify="center">
-                    <Tabs.Tab value="lineup">
-                        Batting & Fielding
-                    </Tabs.Tab>
-                    <Tabs.Tab value="availability">
-                        Player Availabliity
-                    </Tabs.Tab>
-                </Tabs.List>
-
-                <Tabs.Panel value="lineup" pt="md">
-                    <LineupContainer
-                        availablePlayers={availablePlayers}
-                        game={game}
-                        managerView={managerView}
-                        playerChart={playerChart}
-                    />
-                </Tabs.Panel>
-
-                <Tabs.Panel value="availability" pt="md">
-                    <AvailabliityContainer
-                        availability={availability}
-                        game={game}
-                        managerView={managerView}
-                        players={players}
-                        team={team}
-                    />
-                </Tabs.Panel>
-            </Tabs>
+            <RosterDetails
+                game={game}
+                managerView={managerView}
+                playerChart={playerChart}
+                availablePlayers={availablePlayers}
+                players={players}
+                availability={availability}
+            />
 
             {managerView && (
                 <DrawerContainer
