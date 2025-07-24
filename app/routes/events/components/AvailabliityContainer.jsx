@@ -3,8 +3,10 @@ import { useOutletContext, useFetcher } from 'react-router';
 import {
     Anchor,
     Button,
+    Card,
     Group,
     Paper,
+    Stack,
     Text,
 } from '@mantine/core';
 
@@ -111,7 +113,7 @@ export default function AvailabliityContainer({
         <Paper
             key={player.$id}
             shadow="sm"
-            radius="lg"
+            radius="md"
             p="sm"
             mt="xs"
             withBorder
@@ -126,13 +128,14 @@ export default function AvailabliityContainer({
 
     return (
         <>
-            <Group mb="lg" justify="space-between">
+            <Group justify="space-between" wrap="nowrap" mb="lg">
                 {Object.keys(availabilityData).map(key => (
-                    <Group gap="2px" key={key}>
+                    <Stack align="center" gap="2px" key={key}>
                         {availabilityData[key].icon}{availabilityData[key].label}
-                    </Group>
+                    </Stack>
                 ))}
             </Group>
+
             {formHasResponses && renderPlayerAvailability()}
 
             {(!formHasResponses && !isGamePast) && (
