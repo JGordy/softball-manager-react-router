@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useFetcher } from 'react-router';
 
-import { Button, Group, Text } from '@mantine/core';
+import { Alert, Button, Group, Text } from '@mantine/core';
+
+import { IconInfoCircle } from '@tabler/icons-react';
 
 import PlayerChart from '@/components/PlayerChart';
 
@@ -108,7 +110,14 @@ export default function LineupContainer({
             <>
                 {managerView ? (
                     <>
-                        <Text align="center" c={!hasEnoughPlayers ? "red" : "dimmed"} my="lg">{message}</Text>
+                        <Alert
+                            title={hasEnoughPlayers ? 'Charts not yet created' : 'Not enough players'}
+                            variant="light"
+                            color={hasEnoughPlayers ? 'yellow' : 'red'}
+                            icon={<IconInfoCircle size={18} />}
+                        >
+                            {message}
+                        </Alert>
                         <Button mt="sm" onClick={handleCreateCharts} disabled={!hasEnoughPlayers} fullWidth>
                             Create Batting and Fielding Charts
                         </Button>
