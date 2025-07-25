@@ -29,7 +29,7 @@ export async function getEventById({ request, eventId }) {
     const { seasons: season, ...game } = await readDocument('games', eventId);
     const { teams = [], parkId } = season;
 
-    const park = parkId ? await readDocument('parks', parkId) : null;
+    const parkPromise = parkId ? readDocument('parks', parkId) : Promise.resolve(null);
 
     const { documents: userIds } = await await listDocuments('memberships', [
         Query.equal('teamId', [teams[0].$id]),
@@ -52,7 +52,7 @@ export async function getEventById({ request, eventId }) {
     return {
         game,
         managerId,
-        park,
+        park: parkPromise,
         season,
         teams,
         players: users.flat(),
