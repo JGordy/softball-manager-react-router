@@ -85,7 +85,7 @@ export default function RosterDetails({
                 opened={lineupDrawerOpened}
                 onClose={lineupDrawerHandlers.close}
                 title="Lineup Details"
-                size="xl"
+                size={playerChart ? 'xl' : 'sm'}
             >
                 <Suspense fallback={<Text>Loading lineup...</Text>}>
                     <Await resolve={availability}>
