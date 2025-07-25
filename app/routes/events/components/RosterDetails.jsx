@@ -1,6 +1,3 @@
-import { Suspense } from 'react';
-import { Await } from 'react-router';
-
 import {
     Card,
     Divider,
@@ -17,6 +14,7 @@ import {
 } from '@tabler/icons-react';
 
 import DrawerContainer from '@/components/DrawerContainer';
+import DeferredLoader from '@/components/DeferredLoader';
 
 import AvailablityContainer from './AvailablityContainer';
 import LineupContainer from './LineupContainer';
@@ -60,78 +58,70 @@ export default function RosterDetails({
                         </Group>
                         <IconChevronRight size={18} />
                     </Group>
-                    <Suspense fallback={<Skeleton height={16} width="70%" mt="5px" ml="28px" radius="xl" />}>
-                        <Await
-                            resolve={deferredData}
-                            errorElement={<Text size="xs" mt="5px" ml="28px" c="red">Error loading availability.</Text>}
-                        >
-                            {({ availability: resolvedAvailability, players }) => {
-                                const { responses } = resolvedAvailability;
-                                const playersWithAvailability = addPlayerAvailability(responses, players);
-                                const availablePlayers = playersWithAvailability.filter(p => p.available === 'yes');
-                                return (
-                                    <Text size="xs" mt="5px" ml="28px" c="dimmed">
-                                        {`${responses?.length || 0} responses, ${availablePlayers?.length || 0} ${availablePlayers?.length === 1 ? 'player' : 'players'} available`}
-                                    </Text>
-                                );
-                            }}
-                        </Await>
-                    </Suspense>
-                </Card.Section>
-            </Card>
-
-            <DrawerContainer
-                opened={lineupDrawerOpened}
-                onClose={lineupDrawerHandlers.close}
-                title="Lineup Details"
-                size={playerChart ? 'xl' : 'sm'}
-            >
-                <Suspense fallback={<Text>Loading lineup...</Text>}>
-                    <Await resolve={deferredData}>
-                        {({ availability: resolvedAvailability, players }) => {
-                            const { responses } = resolvedAvailability;
+                    <DeferredLoader
+                        resolve={deferredData}
+                        fallback={<Skeleton height={16} width="70%" mt="5px" ml="28px" radius="xl" />}
+                        errorElement={<Text size="xs" mt="5px" ml="28px" c="red">Error loading details.</Text>}
+                    >
+                        {({ availability, players }) => {
+                            const { responses } = availability;
                             const playersWithAvailability = addPlayerAvailability(responses, players);
                             const availablePlayers = playersWithAvailability.filter(p => p.available === 'yes');
                             return (
-                                <LineupContainer
-                                    availablePlayers={availablePlayers}
-                                    game={game}
-                                    managerView={managerView}
-                                    playerChart={playerChart}
-                                    players={players}
-                                />
+                                <Text size="xs" mt="5px" ml="28px" c="dimmed">
+                                    {`${responses?.length || 0} responses, ${availablePlayers?.length || 0} ${availablePlayers?.length === 1 ? 'player' : 'players'} available`}
+                                </Text>
                             );
                         }}
-                    </Await>
-                </Suspense>
-            </DrawerContainer>
+                    </DeferredLoader>
+                </Card.Section>
+            </Card>
 
-            <DrawerContainer
-                opened={availabilityDrawerOpened}
-                onClose={availabilityDrawerHandlers.close}
-                title="Availability Details"
-                size="xl"
-            >
-                <Suspense fallback={<Text>Loading availability details...</Text>}>
-                    <Await
-                        resolve={deferredData}
-                        errorElement={<Text size="xs" mt="5px" ml="28px" c="red">Error loading details.</Text>}
-                    >
-                        {({ availability: resolvedAvailability, players }) => {
-                            const playersWithAvailability = addPlayerAvailability(resolvedAvailability.responses, players);
-                            return (
-                                <AvailablityContainer
-                                    availability={resolvedAvailability}
-                                    game={game}
-                                    managerView={managerView}
-                                    players={playersWithAvailability}
-                                    team={team}
-                                />
-                            );
-                        }}
-                    </Await>
-                </Suspense>
-            </DrawerContainer>
+            <DeferredLoader resolve={deferredData}>
+                {({ availability, players }) => {
+                    const { responses } = availability;
+                    const playersWithAvailability = addPlayerAvailability(responses, players);
+                    const availablePlayers = playersWithAvailability.filter(p => p.available === 'yes');
+                    return (
+                        <DrawerContainer
+                            opened={lineupDrawerOpened}
+                            onClose={lineupDrawerHandlers.close}
+                            title="Lineup Details"
+                            size={playerChart ? 'xl' : 'sm'}
+                        >
+                            <LineupContainer
+                                availablePlayers={availablePlayers}
+                                game={game}
+                                managerView={managerView}
+                                playerChart={playerChart}
+                                players={players}
+                            />
+                        </DrawerContainer>
+                    );
+                }}
+            </DeferredLoader>
+
+            <DeferredLoader resolve={deferredData}>
+                {({ availability, players }) => {
+                    const playersWithAvailability = addPlayerAvailability(availability.responses, players);
+                    return (
+                        <DrawerContainer
+                            opened={availabilityDrawerOpened}
+                            onClose={availabilityDrawerHandlers.close}
+                            title="Availability Details"
+                            size={availability.responses?.length ? 'xl' : 'md'}
+                        >
+                            <AvailablityContainer
+                                availability={availability}
+                                game={game}
+                                managerView={managerView}
+                                players={playersWithAvailability}
+                                team={team}
+                            />
+                        </DrawerContainer>
+                    );
+                }}
+            </DeferredLoader>
         </>
     );
 }
