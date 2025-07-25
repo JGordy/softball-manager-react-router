@@ -1,5 +1,3 @@
-import { Suspense } from 'react';
-import { Await } from 'react-router';
 import {
     Card,
     Divider,
@@ -18,6 +16,7 @@ import {
 import { formatGameTime } from '@/utils/dateTime';
 
 import DrawerContainer from '@/components/DrawerContainer';
+import DeferredLoader from '@/components/DeferredLoader';
 
 import ParkDetailsDrawer from './ParkDetailsDrawer';
 import CalendarDetails from './CalendarDetails';
@@ -58,48 +57,47 @@ export default function DetailsCard({
                 <Divider />
 
                 <Card.Section my="xs" inheritPadding>
-                    <Suspense fallback={
-                        <>
-                            <Group gap="xs">
-                                <IconMapPin size={18} />
-                                <Text>{season?.location || 'Loading location...'}</Text>
-                            </Group>
-                            <Skeleton height={16} width="70%" mt="5px" ml="28px" radius="xl" />
-                        </>
-                    }>
-                        <Await
-                            resolve={deferredData}
-                            errorElement={<Text c="red" size="sm" ml="28px">Error loading location.</Text>}
-                        >
-                            {({ park: resolvedPark }) => (
-                                <>
-                                    {resolvedPark?.googleMapsURI ? (
-                                        <Group justify='space-between' onClick={locationDrawerHandlers.open} c="green">
-                                            <Group gap="xs">
-                                                <IconMapPin size={18} />
-                                                {season?.location}
-                                            </Group>
-                                            <IconChevronRight size={18} />
-                                        </Group>
-                                    ) : (
+                    <DeferredLoader
+                        resolve={deferredData}
+                        fallback={(
+                            <>
+                                <Group gap="xs">
+                                    <IconMapPin size={18} />
+                                    <Text>{season?.location || 'Loading location...'}</Text>
+                                </Group>
+                                <Skeleton height={16} width="70%" mt="5px" ml="28px" radius="xl" />
+                            </>
+                        )}
+                        errorElement={<Text c="red" size="sm" ml="28px">Error loading location.</Text>}
+                    >
+                        {({ park }) => (
+                            <>
+                                {park?.googleMapsURI ? (
+                                    <Group justify='space-between' onClick={locationDrawerHandlers.open} c="green">
                                         <Group gap="xs">
                                             <IconMapPin size={18} />
-                                            {season?.location || 'Location not specified'}
+                                            {season?.location}
                                         </Group>
-                                    )}
-                                    <Text size="xs" mt="5px" ml="28px" c="dimmed">
-                                        {resolvedPark?.formattedAddress || 'Address not listed'}
-                                    </Text>
-                                </>
-                            )}
-                        </Await>
-                    </Suspense>
+                                        <IconChevronRight size={18} />
+                                    </Group>
+                                ) : (
+                                    <Group gap="xs">
+                                        <IconMapPin size={18} />
+                                        {season?.location || 'Location not specified'}
+                                    </Group>
+                                )}
+                                <Text size="xs" mt="5px" ml="28px" c="dimmed">
+                                    {park?.formattedAddress || 'Address not listed'}
+                                </Text>
+                            </>
+                        )}
+                    </DeferredLoader>
                 </Card.Section>
             </Card>
 
-            <Suspense fallback={null}>
-                <Await resolve={deferredData}>
-                    {({ park }) => (
+            <DeferredLoader resolve={deferredData} fallback={null}>
+                {({ park }) => (
+                    <>
                         <DrawerContainer
                             opened={calendarDrawerOpened}
                             onClose={calendarDrawerHandlers.close}
@@ -111,25 +109,18 @@ export default function DetailsCard({
                                 team={team}
                             />
                         </DrawerContainer>
-                    )}
-                </Await>
-            </Suspense>
-
-            <Suspense fallback={null}>
-                <Await resolve={deferredData}>
-                    {({ park: resolvedPark }) => (
-                        resolvedPark && (
+                        {park && (
                             <DrawerContainer
                                 opened={locationDrawerOpened}
                                 onClose={locationDrawerHandlers.close}
                                 title="Location Details"
                             >
-                                <ParkDetailsDrawer park={resolvedPark} />
+                                <ParkDetailsDrawer park={park} />
                             </DrawerContainer>
-                        )
-                    )}
-                </Await>
-            </Suspense>
+                        )}
+                    </>
+                )}
+            </DeferredLoader>
         </>
     );
 }
