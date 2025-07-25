@@ -28,6 +28,7 @@ import { updateUser } from '@/actions/users'
 import useModal from '@/hooks/useModal';
 
 import AlertIncomplete from './components/AlertIncomplete';
+import { getAttendanceByUserId } from '@/loaders/users';
 
 const fieldsToDisplay = {
     email: {
@@ -72,7 +73,14 @@ export async function action({ request, params }) {
     }
 }
 
-export default function UserProfile() {
+export async function loader({ params, request }) {
+    const { userId } = params;
+
+    return { attendance: getAttendanceByUserId({ userId, request }) };
+}
+
+export default function UserProfile({ loaderData }) {
+    console.log('UserProfile: ', { ...loaderData });
 
     const { closeAllModals } = useModal();
 
