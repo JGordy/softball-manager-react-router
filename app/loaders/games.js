@@ -46,7 +46,7 @@ export async function getEventById({ request, eventId }) {
     const playersPromise = Promise.all(playerPromises).then(users => users.flat());
 
     const parkPromise = parkId ? readDocument('parks', parkId) : Promise.resolve(null);
-    const attendancePromise = listDocuments('attendance', [Query.equal('$id', eventId)]);
+    const attendancePromise = listDocuments('attendance', [Query.equal('games', eventId)]);
     const availabilityPromise = getAvailabilityDetails({ request, eventId });
 
     const deferredData = Promise.all([
