@@ -118,9 +118,11 @@ export default function LineupContainer({
                         >
                             {message}
                         </Alert>
-                        <Button mt="sm" onClick={handleCreateCharts} disabled={!hasEnoughPlayers} fullWidth>
-                            Create Batting and Fielding Charts
-                        </Button>
+                        {hasEnoughPlayers && (
+                            <Button mt="sm" onClick={handleCreateCharts} fullWidth>
+                                Create Batting and Fielding Charts
+                            </Button>
+                        )}
                     </>
                 ) : (
                     <Text>Batting Lineup and Fielding Chart have not yet been created. Come back later.</Text>

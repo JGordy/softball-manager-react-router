@@ -18,7 +18,7 @@ import {
 
 import DrawerContainer from '@/components/DrawerContainer';
 
-import AvailabliityContainer from './AvailabliityContainer';
+import AvailablityContainer from './AvailablityContainer';
 import LineupContainer from './LineupContainer';
 
 import addPlayerAvailability from '../utils/addPlayerAvailability';
@@ -120,7 +120,7 @@ export default function RosterDetails({
                         {(resolvedAvailability) => {
                             const playersWithAvailability = addPlayerAvailability(resolvedAvailability.responses, players);
                             return (
-                                <AvailabliityContainer
+                                <AvailablityContainer
                                     availability={resolvedAvailability}
                                     game={game}
                                     managerView={managerView}
