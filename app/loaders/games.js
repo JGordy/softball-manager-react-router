@@ -10,7 +10,7 @@ const getAvailabilityDetails = async ({ request, eventId }) => {
         return { form: null, responses: null };
     }
 
-    const form = availabilityForm.documents[0]
+    const form = availabilityForm.documents[0];
 
     const origin = new URL(request.url).origin; // Get origin from request
 
@@ -46,6 +46,9 @@ export async function getEventById({ request, eventId }) {
 
     const users = await Promise.all(promises);
 
+    // Defer loading availability details by not awaiting the promise
+    const availabilityPromise = getAvailabilityDetails({ request, eventId });
+
     return {
         game,
         managerId,
@@ -53,6 +56,6 @@ export async function getEventById({ request, eventId }) {
         season,
         teams,
         players: users.flat(),
-        availability: await getAvailabilityDetails({ request, eventId }),
+        availability: availabilityPromise,
     };
 }
