@@ -105,16 +105,14 @@ export async function updateAttendance({ values, eventId }) {
         // First, find the existing attendance document
         const response = await listDocuments(
             'attendance',
-            [
-                Query.equal('gameId', eventId),
-                Query.equal('userId', userId),
-            ]
+            [Query.equal('gameId', eventId), Query.equal('userId', userId)]
         );
 
         if (response.documents.length === 0) {
             const result = await createDocument('attendance', ID.unique(), {
                 gameId: eventId,
-                userId,
+                users: [userId],
+                games: [eventId],
                 ...updates,
             });
 
@@ -142,6 +140,7 @@ export async function generatePlayerChart({ values, eventId }) {
     // TODO: Generate a batting lineup and fielding chart using gen AI
 }
 
+// TODO: Remove this function once the Google Forms integration is no longer used
 export async function createAttendanceForm({ values, request }) {
     const { team, gameDate, opponent, gameId } = values;
 
