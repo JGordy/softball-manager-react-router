@@ -113,7 +113,10 @@ export default function RosterDetails({
                 size="xl"
             >
                 <Suspense fallback={<Text>Loading availability details...</Text>}>
-                    <Await resolve={availability}>
+                    <Await
+                        resolve={availability}
+                        errorElement={<Text size="xs" mt="5px" ml="28px" c="red">Error loading availability.</Text>}
+                    >
                         {(resolvedAvailability) => {
                             const playersWithAvailability = addPlayerAvailability(resolvedAvailability.responses, players);
                             return (
