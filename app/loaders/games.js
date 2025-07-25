@@ -1,6 +1,7 @@
 import { Query } from '@/appwrite';
 import { listDocuments, readDocument } from '@/utils/databases';
 
+// TODO: Remove this function once the Google Forms integration is no longer used
 const getAvailabilityDetails = async ({ request, eventId }) => {
     const availabilityForm = await listDocuments('forms', [
         Query.equal('gameId', eventId),

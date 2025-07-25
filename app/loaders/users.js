@@ -32,3 +32,11 @@ export async function getTeamsByUserId({ userId }) {
 
     return teams;
 }
+
+export async function getAttendanceByUserId({ userId }) {
+    const attendance = await listDocuments('attendance', [
+        Query.equal('users', userId),
+    ]);
+
+    return attendance.documents.length > 0 ? attendance.documents : [];
+}
