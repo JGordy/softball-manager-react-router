@@ -67,12 +67,10 @@ export default function EventDetails({ loaderData, actionData }) {
 
     const {
         game,
+        deferredData,
         managerId,
         season,
         teams,
-        park,
-        players,
-        availability,
     } = loaderData;
 
     const team = teams?.[0];
@@ -132,17 +130,16 @@ export default function EventDetails({ loaderData, actionData }) {
 
             <DetailsCard
                 game={game}
-                park={park}
+                deferredData={deferredData}
                 season={season}
                 team={team}
             />
 
             <RosterDetails
-                availability={availability}
+                deferredData={deferredData}
                 game={game}
                 managerView={managerView}
                 playerChart={playerChart}
-                players={players}
                 team={team}
             />
 

@@ -24,11 +24,10 @@ import LineupContainer from './LineupContainer';
 import addPlayerAvailability from '../utils/addPlayerAvailability';
 
 export default function RosterDetails({
-    availability,
+    deferredData,
     game,
     managerView,
     playerChart,
-    players,
     team,
 }) {
     const [lineupDrawerOpened, lineupDrawerHandlers] = useDisclosure(false);
@@ -63,10 +62,10 @@ export default function RosterDetails({
                     </Group>
                     <Suspense fallback={<Skeleton height={16} width="70%" mt="5px" ml="28px" radius="xl" />}>
                         <Await
-                            resolve={availability}
+                            resolve={deferredData}
                             errorElement={<Text size="xs" mt="5px" ml="28px" c="red">Error loading availability.</Text>}
                         >
-                            {(resolvedAvailability) => {
+                            {({ availability: resolvedAvailability, players }) => {
                                 const { responses } = resolvedAvailability;
                                 const playersWithAvailability = addPlayerAvailability(responses, players);
                                 const availablePlayers = playersWithAvailability.filter(p => p.available === 'yes');
@@ -88,8 +87,8 @@ export default function RosterDetails({
                 size={playerChart ? 'xl' : 'sm'}
             >
                 <Suspense fallback={<Text>Loading lineup...</Text>}>
-                    <Await resolve={availability}>
-                        {(resolvedAvailability) => {
+                    <Await resolve={deferredData}>
+                        {({ availability: resolvedAvailability, players }) => {
                             const { responses } = resolvedAvailability;
                             const playersWithAvailability = addPlayerAvailability(responses, players);
                             const availablePlayers = playersWithAvailability.filter(p => p.available === 'yes');
@@ -99,6 +98,7 @@ export default function RosterDetails({
                                     game={game}
                                     managerView={managerView}
                                     playerChart={playerChart}
+                                    players={players}
                                 />
                             );
                         }}
@@ -114,10 +114,10 @@ export default function RosterDetails({
             >
                 <Suspense fallback={<Text>Loading availability details...</Text>}>
                     <Await
-                        resolve={availability}
-                        errorElement={<Text size="xs" mt="5px" ml="28px" c="red">Error loading availability.</Text>}
+                        resolve={deferredData}
+                        errorElement={<Text size="xs" mt="5px" ml="28px" c="red">Error loading details.</Text>}
                     >
-                        {(resolvedAvailability) => {
+                        {({ availability: resolvedAvailability, players }) => {
                             const playersWithAvailability = addPlayerAvailability(resolvedAvailability.responses, players);
                             return (
                                 <AvailablityContainer

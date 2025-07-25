@@ -29,33 +29,42 @@ export async function getEventById({ request, eventId }) {
     const { seasons: season, ...game } = await readDocument('games', eventId);
     const { teams = [], parkId } = season;
 
-    const parkPromise = parkId ? readDocument('parks', parkId) : Promise.resolve(null);
-
-    const { documents: userIds } = await await listDocuments('memberships', [
+    const { documents: userIds } = await listDocuments('memberships', [
         Query.equal('teamId', [teams[0].$id]),
     ]);
 
     const { userId: managerId } = userIds.find(userId => userId.role === 'manager');
 
-    const promises = userIds.map(async ({ userId }) => {
+    // --- Start of deferred data ---
+    const playerPromises = userIds.map(async ({ userId }) => {
         const result = await listDocuments('users', [
             Query.equal('$id', userId),
         ]);
         return result.documents;
     });
+    const playersPromise = Promise.all(playerPromises).then(users => users.flat());
 
-    const users = await Promise.all(promises);
-
-    // Defer loading availability details by not awaiting the promise
+    const parkPromise = parkId ? readDocument('parks', parkId) : Promise.resolve(null);
+    const attendancePromise = listDocuments('attendance', [Query.equal('$id', eventId)]);
     const availabilityPromise = getAvailabilityDetails({ request, eventId });
 
+    const deferredData = Promise.all([
+        playersPromise,
+        parkPromise,
+        attendancePromise,
+        availabilityPromise,
+    ]).then(([players, park, attendance, availability]) => ({
+        players,
+        park,
+        attendance,
+        availability,
+    }));
+
     return {
+        deferredData,
         game,
         managerId,
-        park: parkPromise,
         season,
         teams,
-        players: users.flat(),
-        availability: availabilityPromise,
     };
 }

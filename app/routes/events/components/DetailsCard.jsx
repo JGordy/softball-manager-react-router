@@ -22,7 +22,12 @@ import DrawerContainer from '@/components/DrawerContainer';
 import ParkDetailsDrawer from './ParkDetailsDrawer';
 import CalendarDetails from './CalendarDetails';
 
-export default function DetailsCard({ game, park, season, team }) {
+export default function DetailsCard({
+    game,
+    deferredData,
+    season,
+    team,
+}) {
 
     const {
         gameDate,
@@ -63,10 +68,10 @@ export default function DetailsCard({ game, park, season, team }) {
                         </>
                     }>
                         <Await
-                            resolve={park}
+                            resolve={deferredData}
                             errorElement={<Text c="red" size="sm" ml="28px">Error loading location.</Text>}
                         >
-                            {(resolvedPark) => (
+                            {({ park: resolvedPark }) => (
                                 <>
                                     {resolvedPark?.googleMapsURI ? (
                                         <Group justify='space-between' onClick={locationDrawerHandlers.open} c="green">
@@ -92,21 +97,27 @@ export default function DetailsCard({ game, park, season, team }) {
                 </Card.Section>
             </Card>
 
-            <DrawerContainer
-                opened={calendarDrawerOpened}
-                onClose={calendarDrawerHandlers.close}
-                title="Add Game to Calendar"
-            >
-                <CalendarDetails
-                    game={game}
-                    park={park}
-                    team={team}
-                />
-            </DrawerContainer>
+            <Suspense fallback={null}>
+                <Await resolve={deferredData}>
+                    {({ park }) => (
+                        <DrawerContainer
+                            opened={calendarDrawerOpened}
+                            onClose={calendarDrawerHandlers.close}
+                            title="Add Game to Calendar"
+                        >
+                            <CalendarDetails
+                                game={game}
+                                park={park}
+                                team={team}
+                            />
+                        </DrawerContainer>
+                    )}
+                </Await>
+            </Suspense>
 
             <Suspense fallback={null}>
-                <Await resolve={park}>
-                    {(resolvedPark) => (
+                <Await resolve={deferredData}>
+                    {({ park: resolvedPark }) => (
                         resolvedPark && (
                             <DrawerContainer
                                 opened={locationDrawerOpened}
