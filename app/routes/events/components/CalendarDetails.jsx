@@ -1,7 +1,6 @@
 import {
     Anchor,
     Card,
-    // Divider,
     Flex,
     Group,
     Text,
@@ -42,7 +41,6 @@ const calendarMap = {
 };
 
 export default function CalendarDetails({ game, park, team }) {
-    console.log({ game, park, team });
 
     const os = useOs();
     const isGoogle = ['android', 'chromeos'].includes(os);
@@ -66,24 +64,18 @@ export default function CalendarDetails({ game, park, team }) {
 
     const parsedDate = new Date(gameDate);
 
-    const gameDateTime = {
-        date: parsedDate.toISOString().slice(0, 10),
-        startTime: parsedDate.toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
-            timeZone,
-        }),
-        dayOfWeek: parsedDate.toLocaleDateString('en-US', {
-            weekday: 'long',
-            timeZone,
-        }),
-        month: parsedDate.toLocaleDateString('en-US', {
-            month: 'long',
-            timeZone,
-        }),
+    const options = {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
     };
 
-    console.log({ gameDateTime });
+    const gameStartTime = parsedDate.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZone,
+    });
 
     const event = {
         title: `${team?.name} ${isHomeGame ? 'vs' : '@'} ${opponent || "TBD"}`,
@@ -102,13 +94,12 @@ export default function CalendarDetails({ game, park, team }) {
                 <div>
                     <IconCalendarPlus size={20} />
                 </div>
-                {/* <Divider orientation="vertical" size="sm" /> */}
                 <div>
                     <Text size="lg" weight={700}>
-                        {gameDateTime.startTime}
+                        {gameStartTime}
                     </Text>
                     <Text size="sm">
-                        {gameDateTime.dayOfWeek}, {gameDateTime.month} {gameDateTime.date}
+                        {parsedDate.toLocaleDateString('en-US', options)}
                     </Text>
                 </div>
             </Flex>
