@@ -2,8 +2,10 @@ import { useOutletContext, useFetcher } from 'react-router';
 
 import {
     Anchor,
+    Alert,
     Button,
     Card,
+    Divider,
     Group,
     Paper,
     Stack,
@@ -11,10 +13,11 @@ import {
 } from '@mantine/core';
 
 import {
-    IconMessageCircleOff,
     IconCircleCheckFilled,
     IconExternalLink,
     IconHelpTriangleFilled,
+    IconInfoCircle,
+    IconMessageCircleOff,
     IconSquareXFilled,
 } from '@tabler/icons-react';
 
@@ -136,16 +139,12 @@ export default function AvailabliityContainer({
                 ))}
             </Group>
 
-            {formHasResponses && renderPlayerAvailability()}
-
-            {(!formHasResponses && !isGamePast) && (
-                <Text align="center" my="sm">No responses yet!</Text>
-            )}
+            <Divider size="xs" mb="md" />
 
             {(isGameToday || isGamePast) ? (
-                <Text align="center" mt="lg" fw={700} c="red">
+                <Alert title="Availability Locked" variant="light" color="red" icon={<IconInfoCircle size={18} />}>
                     The availability form for this game is now closed.
-                </Text>
+                </Alert>
             ) : (
                 !currentUserHasResponded && (
                     <Anchor
@@ -159,6 +158,12 @@ export default function AvailabliityContainer({
                         </Button>
                     </Anchor>
                 )
+            )}
+
+            {formHasResponses && renderPlayerAvailability()}
+
+            {(!formHasResponses && !isGamePast) && (
+                <Text align="center" my="sm">No responses yet!</Text>
             )}
         </>
     );
