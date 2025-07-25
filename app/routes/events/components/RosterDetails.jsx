@@ -1,7 +1,11 @@
+import { Suspense } from 'react';
+import { Await } from 'react-router';
+
 import {
     Card,
     Divider,
     Group,
+    Skeleton,
     Text,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
@@ -13,36 +17,11 @@ import {
 } from '@tabler/icons-react';
 
 import DrawerContainer from '@/components/DrawerContainer';
+
 import AvailabliityContainer from './AvailabliityContainer';
 import LineupContainer from './LineupContainer';
 
-const availabilityOptions = [
-    { value: 'Yes, I will be there', key: 'yes' },
-    { value: 'No, I cannot attend', key: 'no' },
-    { value: 'Maybe, I will let you know', key: 'maybe' },
-];
-
-function updatePlayerAvailability(responses, players) {
-    const playersCopy = [...players];
-
-    const availabilityMap = {};
-    availabilityOptions.forEach(option => {
-        availabilityMap[option.value] = option.key;
-    });
-
-    playersCopy.forEach(player => {
-        player.availability = 'noresponse';
-    });
-
-    responses.forEach(response => {
-        const player = playersCopy.find(p => p.email === response.respondentEmail);
-        if (player) {
-            player.available = availabilityMap[response.answer] || 'noResponse';
-        }
-    });
-
-    return playersCopy;
-}
+import addPlayerAvailability from '../utils/addPlayerAvailability';
 
 export default function RosterDetails({
     availability,
@@ -52,18 +31,6 @@ export default function RosterDetails({
     players,
     team,
 }) {
-
-    const { responses } = availability;
-
-    const formHasResponses = responses && Object.keys(responses).length > 0;
-
-    if (formHasResponses) updatePlayerAvailability(responses, players);
-
-    const availablePlayers = players.filter(player => player.available === 'yes');
-
-    console.log('RosterDetails: ', { availability, game, managerView, playerChart, availablePlayers, players });
-
-
     const [lineupDrawerOpened, lineupDrawerHandlers] = useDisclosure(false);
     const [availabilityDrawerOpened, availabilityDrawerHandlers] = useDisclosure(false);
 
@@ -94,9 +61,23 @@ export default function RosterDetails({
                         </Group>
                         <IconChevronRight size={18} />
                     </Group>
-                    <Text size="xs" mt="5px" ml="28px" c="dimmed">
-                        {`${responses?.length || 0} responses, ${availablePlayers?.length || 0} ${availablePlayers?.length === 1 ? 'player' : 'players'} available`}
-                    </Text>
+                    <Suspense fallback={<Skeleton height={16} width="70%" mt="5px" ml="28px" radius="xl" />}>
+                        <Await
+                            resolve={availability}
+                            errorElement={<Text size="xs" mt="5px" ml="28px" c="red">Error loading availability.</Text>}
+                        >
+                            {(resolvedAvailability) => {
+                                const { responses } = resolvedAvailability;
+                                const playersWithAvailability = addPlayerAvailability(responses, players);
+                                const availablePlayers = playersWithAvailability.filter(p => p.available === 'yes');
+                                return (
+                                    <Text size="xs" mt="5px" ml="28px" c="dimmed">
+                                        {`${responses?.length || 0} responses, ${availablePlayers?.length || 0} ${availablePlayers?.length === 1 ? 'player' : 'players'} available`}
+                                    </Text>
+                                );
+                            }}
+                        </Await>
+                    </Suspense>
                 </Card.Section>
             </Card>
 
@@ -106,12 +87,23 @@ export default function RosterDetails({
                 title="Lineup Details"
                 size="xl"
             >
-                <LineupContainer
-                    availablePlayers={availablePlayers}
-                    game={game}
-                    managerView={managerView}
-                    playerChart={playerChart}
-                />
+                <Suspense fallback={<Text>Loading lineup...</Text>}>
+                    <Await resolve={availability}>
+                        {(resolvedAvailability) => {
+                            const { responses } = resolvedAvailability;
+                            const playersWithAvailability = addPlayerAvailability(responses, players);
+                            const availablePlayers = playersWithAvailability.filter(p => p.available === 'yes');
+                            return (
+                                <LineupContainer
+                                    availablePlayers={availablePlayers}
+                                    game={game}
+                                    managerView={managerView}
+                                    playerChart={playerChart}
+                                />
+                            );
+                        }}
+                    </Await>
+                </Suspense>
             </DrawerContainer>
 
             <DrawerContainer
@@ -120,13 +112,22 @@ export default function RosterDetails({
                 title="Availability Details"
                 size="xl"
             >
-                <AvailabliityContainer
-                    availability={availability}
-                    game={game}
-                    managerView={managerView}
-                    players={players}
-                    team={team}
-                />
+                <Suspense fallback={<Text>Loading availability details...</Text>}>
+                    <Await resolve={availability}>
+                        {(resolvedAvailability) => {
+                            const playersWithAvailability = addPlayerAvailability(resolvedAvailability.responses, players);
+                            return (
+                                <AvailabliityContainer
+                                    availability={resolvedAvailability}
+                                    game={game}
+                                    managerView={managerView}
+                                    players={playersWithAvailability}
+                                    team={team}
+                                />
+                            );
+                        }}
+                    </Await>
+                </Suspense>
             </DrawerContainer>
         </>
     );
