@@ -14,6 +14,7 @@ import BackButton from '@/components/BackButton';
 import DrawerContainer from '@/components/DrawerContainer';
 
 import { createAttendanceForm, deleteGame, savePlayerChart, updateGame } from '@/actions/games';
+import { updatePlayerAttendance } from '@/actions/attendance';
 
 import { getEventById } from '@/loaders/games';
 
@@ -32,16 +33,19 @@ export async function action({ request, params }) {
     const { _action, ...values } = Object.fromEntries(formData);
 
     if (_action === 'update-game') {
-        return updateGame({ values, eventId });
+        return updateGame({ eventId, values });
     }
     if (_action === 'create-attendance') {
-        return createAttendanceForm({ values, request });
+        return createAttendanceForm({ eventId, values, request });
     }
     if (_action === 'save-chart') {
-        return savePlayerChart({ values, eventId })
+        return savePlayerChart({ eventId, values });
     }
     if (_action === 'delete-game') {
         return deleteGame({ eventId, values });
+    }
+    if (_action === 'update-attendance') {
+        return updatePlayerAttendance({ eventId, values });
     }
 }
 
