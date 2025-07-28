@@ -21,6 +21,8 @@ import {
     IconSquareXFilled,
 } from '@tabler/icons-react';
 
+import positions from '@/constants/positions';
+
 const availabilityData = {
     accepted: {
         icon: <IconCircleCheckFilled size={24} color="green" />,
@@ -84,7 +86,7 @@ const AvailabilityOptionsContainer = ({ attendance, game, player, managerView, c
         >
             <Group justify="space-between">
                 <Text fw={700}>{player.firstName} {player.lastName}</Text>
-                <Text>{player.preferredPositions?.[0]}</Text>
+                <Text>{positions[player.preferredPositions?.[0]].initials}</Text>
                 <Group>
                     {availabilityData[attendance?.status || 'noresponse'].icon}
                     {(renderToggle) && (
