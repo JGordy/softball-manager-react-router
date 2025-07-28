@@ -7,6 +7,7 @@ import {
     Collapse,
     Divider,
     Group,
+    LoadingOverlay,
     Radio,
     Stack,
     Text,
@@ -83,7 +84,13 @@ const AvailabilityOptionsContainer = ({ attendance, game, player, managerView, c
             radius="md"
             p="sm"
             mt="xs"
+            pos="relative"
         >
+            <LoadingOverlay
+                visible={fetcher.state === 'loading'}
+                overlayProps={{ blur: 3 }}
+                loaderProps={{ color: 'green', type: 'dots', size: 'lg' }}
+            />
             <Group justify="space-between">
                 <Text fw={700}>{player.firstName} {player.lastName}</Text>
                 <Text>{positions[player.preferredPositions?.[0]].initials}</Text>
