@@ -11,10 +11,10 @@ import createBattingOrder from '../utils/createBattingOrder';
 import createFieldingChart from '../utils/createFieldingChart';
 
 export default function LineupContainer({
-    availablePlayers,
     game,
     managerView,
     playerChart,
+    players,
 }) {
 
     const fetcher = useFetcher();
@@ -23,7 +23,9 @@ export default function LineupContainer({
 
     const [localChart, setLocalChart] = useState(parsedChart);
     const [hasBeenEdited, setHasBeenEdited] = useState(false);
-    // console.log('/event/:eventId > LineupContainer: ', { availablePlayers, playerChart, parsedChart, localChart });
+
+    const availablePlayers = players?.filter(p => p.available === 'accepted');
+    console.log('/event/:eventId > LineupContainer: ', { availablePlayers, playerChart, parsedChart, localChart, players });
 
     // NOTE: Most leagues require at least 8 players in the field to allow the teams to take the field
     // TODO: Add a database field for minimum number of players?
