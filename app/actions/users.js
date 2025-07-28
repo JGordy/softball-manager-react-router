@@ -16,12 +16,12 @@ export async function createPlayer({ values, teamId, userId }) {
                 ...values,
                 preferredPositions: values.preferredPositions.split(","), // Split into an array of positions
                 dislikedPositions: values.dislikedPositions.split(","), // Split into an array of positions
-                userId,
+                userId: _userId,
             },
         );
 
         // Create document in relationship table for the user and team id's.
-        await createDocument('memberships', null, { userId, teamId, role: 'player' });
+        await createDocument('memberships', null, { userId: _userId, teamId, role: 'player' });
 
         return { response: { player }, status: 201, success: true };
     } catch (error) {
