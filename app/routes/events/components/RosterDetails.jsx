@@ -63,13 +63,13 @@ export default function RosterDetails({
                         fallback={<Skeleton height={16} width="70%" mt="5px" ml="28px" radius="xl" />}
                         errorElement={<Text size="xs" mt="5px" ml="28px" c="red">Error loading details.</Text>}
                     >
-                        {({ availability, players }) => {
-                            const { responses } = availability;
-                            const playersWithAvailability = addPlayerAvailability(responses, players);
-                            const availablePlayers = playersWithAvailability.filter(p => p.available === 'yes');
+                        {({ attendance, players }) => {
+                            const { documents } = attendance;
+                            const playersWithAvailability = addPlayerAvailability(documents, players);
+                            const availablePlayers = playersWithAvailability.filter(p => p.available === 'accepted');
                             return (
                                 <Text size="xs" mt="5px" ml="28px" c="dimmed">
-                                    {`${responses?.length || 0} responses, ${availablePlayers?.length || 0} ${availablePlayers?.length === 1 ? 'player' : 'players'} available`}
+                                    {`${documents?.length || 0} responses, ${availablePlayers?.length || 0} ${availablePlayers?.length === 1 ? 'player' : 'players'} available`}
                                 </Text>
                             );
                         }}
@@ -78,10 +78,10 @@ export default function RosterDetails({
             </Card>
 
             <DeferredLoader resolve={deferredData}>
-                {({ availability, players }) => {
-                    const { responses } = availability;
-                    const playersWithAvailability = addPlayerAvailability(responses, players);
-                    const availablePlayers = playersWithAvailability.filter(p => p.available === 'yes');
+                {({ attendance, players }) => {
+                    const { documents } = attendance;
+                    const playersWithAvailability = addPlayerAvailability(documents, players);
+                    const availablePlayers = playersWithAvailability.filter(p => p.available === 'accepted');
                     return (
                         <DrawerContainer
                             opened={lineupDrawerOpened}
@@ -102,20 +102,19 @@ export default function RosterDetails({
             </DeferredLoader>
 
             <DeferredLoader resolve={deferredData}>
-                {({ availability, players }) => {
-                    const playersWithAvailability = addPlayerAvailability(availability.responses, players);
+                {({ attendance, players }) => {
                     return (
                         <DrawerContainer
                             opened={availabilityDrawerOpened}
                             onClose={availabilityDrawerHandlers.close}
                             title="Availability Details"
-                            size={availability.responses?.length ? 'xl' : 'md'}
+                            size="xl"
                         >
                             <AvailablityContainer
-                                availability={availability}
+                                attendance={attendance}
                                 game={game}
                                 managerView={managerView}
-                                players={playersWithAvailability}
+                                players={players}
                                 team={team}
                             />
                         </DrawerContainer>
