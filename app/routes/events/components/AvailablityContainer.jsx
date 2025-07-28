@@ -88,7 +88,7 @@ const AvailabilityOptionsContainer = ({ attendance, game, player, managerView, c
         >
             <LoadingOverlay
                 visible={fetcher.state === 'loading'}
-                overlayProps={{ blur: 3 }}
+                overlayProps={{ blur: 2, radius: 'md' }}
                 loaderProps={{ color: 'green', type: 'dots', size: 'lg' }}
             />
             <Group justify="space-between">
