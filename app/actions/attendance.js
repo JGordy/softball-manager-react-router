@@ -3,13 +3,11 @@ import { createDocument, listDocuments, updateDocument } from '@/utils/databases
 
 export async function updatePlayerAttendance({ values, eventId }) {
     const { playerId, ...updates } = values;
-    console.log('updatePlayerAttendance', { values, eventId });
 
     try {
         const response = await listDocuments('attendance', [
             Query.equal('gameId', eventId),
         ]);
-        console.log('Attendance response:', response);
 
         if (response.documents.length === 0) {
             const result = await createDocument('attendance', ID.unique(), {
@@ -23,7 +21,6 @@ export async function updatePlayerAttendance({ values, eventId }) {
 
         if (response.documents.length > 0) {
             const currentPlayerAttendance = response.documents.find(doc => doc.playerId === playerId);
-            console.log('Current player attendance:', currentPlayerAttendance);
 
             // If the current player's attendance is not found, create a new document
             if (!currentPlayerAttendance) {
