@@ -97,39 +97,6 @@ export async function deleteGame({ values, eventId }) {
     // }
 }
 
-export async function updateAttendance({ values, eventId }) {
-    console.log('updateAttendance: ', { values, eventId });
-    const { userId, ...updates } = values;
-
-    try {
-        // First, find the existing attendance document
-        const response = await listDocuments(
-            'attendance',
-            [Query.equal('gameId', eventId), Query.equal('userId', userId)]
-        );
-
-        if (response.documents.length === 0) {
-            const result = await createDocument('attendance', ID.unique(), {
-                gameId: eventId,
-                users: [userId],
-                games: [eventId],
-                ...updates,
-            });
-
-            return { response: result, status: 201, success: true };
-        }
-
-        const attendanceDocId = response.documents[0].$id;
-
-        const updatedResponse = await updateDocument('attendance', attendanceDocId, { ...updates });
-
-        return { response: updatedResponse, status: 204, success: true };
-    } catch (error) {
-        console.error('Error updating attendance:', error);
-        throw error;
-    }
-}
-
 export async function savePlayerChart({ values, eventId }) {
     console.log('savePlayerChart: ', { values, eventId });
     // TODO: Save created lineup to appwrite database
