@@ -104,6 +104,7 @@ const AvailabilityOptionsContainer = ({ attendance, game, player, managerView, c
                     name="status"
                     mt="sm"
                     label="Will you be attending the game?"
+                    // description={`Last updated ${attendance?.$updatedAt}`}
                     defaultValue={attendance?.status || 'noresponse'}
                 >
                     <Group justify="space-between" mt="sm">
