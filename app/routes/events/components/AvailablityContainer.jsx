@@ -1,132 +1,163 @@
+import { useEffect } from 'react';
 import { useOutletContext, useFetcher } from 'react-router';
 
 import {
-    Anchor,
-    Alert,
-    Button,
+    ActionIcon,
     Card,
+    Collapse,
     Divider,
     Group,
-    Paper,
+    Radio,
     Stack,
     Text,
 } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 
 import {
+    IconChevronDown,
     IconCircleCheckFilled,
-    IconExternalLink,
     IconHelpTriangleFilled,
-    IconInfoCircle,
     IconMessageCircleOff,
     IconSquareXFilled,
 } from '@tabler/icons-react';
 
 const availabilityData = {
-    yes: {
+    accepted: {
         icon: <IconCircleCheckFilled size={24} color="green" />,
         label: 'Yes',
+        value: 'accepted',
     },
-    no: {
+    declined: {
         icon: <IconSquareXFilled size={24} color="red" />,
         label: 'No',
+        value: 'declined',
     },
-    maybe: {
+    tentative: {
         icon: <IconHelpTriangleFilled size={24} color="orange" />,
         label: 'Maybe',
+        value: 'tentative',
     },
     noresponse: {
         icon: <IconMessageCircleOff size={24} color="gray" />,
         label: 'No Response',
+        value: '',
     },
 }
 
+const AvailabilityOptionsContainer = ({ attendance, game, player, managerView, currentUserId, isGamePast }) => {
+
+    const fetcher = useFetcher();
+    const [opened, { close, toggle }] = useDisclosure(false);
+
+    const renderToggle = (managerView || currentUserId === player.$id) && !isGamePast;
+
+
+    // This effect will close the collapse after a successful submission.
+    useEffect(() => {
+        // Check for a successful action response from the fetcher
+        if (fetcher.state === 'idle' && fetcher.data?.success) {
+            close();
+        }
+    }, [fetcher.state, fetcher.data, close]);
+
+    const handleAttendanceChange = (text, playerId) => {
+        try {
+            const formData = new FormData();
+            formData.append('_action', 'update-attendance');
+            formData.append('playerId', playerId);
+            formData.append('status', availabilityData[text].value);
+            formData.append('updatedBy', currentUserId);
+
+            fetcher.submit(formData, { method: 'post', action: `/events/${game.$id}` });
+        } catch (error) {
+            console.error('Error submitting attendance form:', error);
+        }
+    };
+
+    return (
+        <Card
+            key={player.$id}
+            shadow="sm"
+            radius="md"
+            p="sm"
+            mt="xs"
+        >
+            <Group justify="space-between">
+                <Text fw={700}>{player.firstName} {player.lastName}</Text>
+                <Text>{player.preferredPositions?.[0]}</Text>
+                <Group>
+                    {availabilityData[attendance?.status || 'noresponse'].icon}
+                    {(renderToggle) && (
+                        <>
+                            <Divider orientation="vertical" />
+                            <ActionIcon variant="transparent" onClick={toggle}>
+                                <IconChevronDown style={{ width: '70%', height: '70%' }} stroke={1.5} />
+                            </ActionIcon>
+                        </>
+                    )}
+                </Group>
+            </Group>
+
+            <Collapse in={opened}>
+                <Radio.Group
+                    onChange={(value) => handleAttendanceChange(value, player.$id)}
+                    name="status"
+                    mt="sm"
+                    label="Will you be attending the game?"
+                    defaultValue={attendance?.status || 'noresponse'}
+                >
+                    <Group justify="space-between" mt="sm">
+                        {Object.keys(availabilityData).map(key => {
+                            const item = availabilityData[key];
+                            return key !== 'noresponse' && (
+                                <Radio.Card
+                                    radius="xl"
+                                    value={key}
+                                    key={`${key}-${player.$id}`}
+                                    maw="30%"
+                                    py="5px"
+                                >
+                                    <Group wrap="nowrap" align="center" justify="center" gap="5px">
+                                        {item.icon}
+                                        <Text>{item.label}</Text>
+                                    </Group>
+                                </Radio.Card>
+                            )
+                        })}
+                    </Group>
+                </Radio.Group>
+            </Collapse>
+        </Card>
+    );
+};
+
 export default function AvailabliityContainer({
-    availability,
+    attendance,
     game,
     managerView,
     players,
-    team,
 }) {
-
-    const fetcher = useFetcher();
 
     const { user } = useOutletContext();
     const currentUserId = user.$id;
 
-    const { gameDate, opponent, $id: gameId } = game;
-    const { form, responses } = availability;
-
-    const formCreated = !!form?.formId;
+    const { gameDate, $id: gameId } = game;
 
     const today = new Date();
     const gameDay = new Date(gameDate);
     const isGameToday = gameDay.toDateString() === today.toDateString();
     const isGamePast = gameDay < today && !isGameToday;
 
-    const handleAttendanceFormClick = async () => {
-        try {
-            const formData = new FormData();
-            formData.append('_action', 'create-attendance');
-            formData.append('team', JSON.stringify(team));
-            formData.append('gameDate', gameDate);
-            formData.append('opponent', opponent);
-            formData.append('gameId', gameId);
-
-            fetcher.submit(formData, { method: 'post', action: `/events/${gameId}` }); // Use fetcher.submit
-        } catch (error) {
-            console.error('Error submitting attendance form:', error);
-        }
-    };
-
-    if ((!formCreated && !isGamePast)) {
-        return (
-            <>
-                {managerView ? (
-                    <>
-                        <Text align="center" c="dimmed" my="lg">An availabliity form for this game has not yet been created. Create one below.</Text >
-                        <Button
-                            mt="sm"
-                            onClick={handleAttendanceFormClick}
-                            loading={fetcher.state === 'loading'}
-                            disabled={fetcher.state === 'loading'}
-                            fullWidth
-                        >
-                            Generate Availabliity Form
-                        </Button>
-                        {fetcher.state === 'error' && (
-                            <Text c="red" mt="sm">
-                                An error occurred while generating the form.
-                            </Text>
-                        )}
-                    </>
-                ) : (
-                    <Text align="center" c="dimmed" my="lg">
-                        Availability form not yet ready. Come back later
-                    </Text>
-                )}
-            </>
-        );
-    }
-
-    const formHasResponses = responses && Object.keys(responses).length > 0;
-
-    const currentUserHasResponded = responses?.filter(response => response.respondentEmail === user.email).length > 0;
-
     const renderPlayerAvailability = () => players.map(player => (
-        <Paper
+        <AvailabilityOptionsContainer
             key={player.$id}
-            shadow="sm"
-            radius="md"
-            p="sm"
-            mt="xs"
-            withBorder
-        >
-            <Group justify="space-between">
-                <Text fw={700}>{player.firstName} {player.lastName}</Text>
-                <Text>{player.preferredPositions?.[0]}</Text>
-                {availabilityData[player.available || 'noresponse'].icon}
-            </Group>
-        </Paper>
+            attendance={attendance?.documents?.find(a => a.playerId === player.$id)}
+            currentUserId={currentUserId}
+            game={game}
+            isGamePast={isGamePast}
+            managerView={managerView}
+            player={player}
+        />
     ));
 
     return (
@@ -141,30 +172,7 @@ export default function AvailabliityContainer({
 
             <Divider size="xs" mb="md" />
 
-            {(isGameToday || isGamePast) ? (
-                <Alert title="Availability Locked" variant="light" color="red" icon={<IconInfoCircle size={18} />}>
-                    The availability form for this game is now closed.
-                </Alert>
-            ) : (
-                !currentUserHasResponded && (
-                    <Anchor
-                        href={form.formUrl}
-                        target="_blank"
-                        fw={700}
-                    >
-                        <Button mt="lg" fullWidth>
-                            <IconExternalLink size={18} style={{ display: 'inline', marginRight: '5px' }} />
-                            Add your availability
-                        </Button>
-                    </Anchor>
-                )
-            )}
-
-            {formHasResponses && renderPlayerAvailability()}
-
-            {(!formHasResponses && !isGamePast) && (
-                <Text align="center" my="sm">No responses yet!</Text>
-            )}
+            {players?.length > 0 && renderPlayerAvailability()}
         </>
     );
 };
