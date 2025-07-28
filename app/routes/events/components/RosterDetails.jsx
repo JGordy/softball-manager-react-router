@@ -81,20 +81,18 @@ export default function RosterDetails({
                 {({ attendance, players }) => {
                     const { documents } = attendance;
                     const playersWithAvailability = addPlayerAvailability(documents, players);
-                    const availablePlayers = playersWithAvailability.filter(p => p.available === 'accepted');
                     return (
                         <DrawerContainer
                             opened={lineupDrawerOpened}
                             onClose={lineupDrawerHandlers.close}
                             title="Lineup Details"
-                            size={playerChart ? 'xl' : 'sm'}
+                            size="xl"
                         >
                             <LineupContainer
-                                availablePlayers={availablePlayers}
                                 game={game}
                                 managerView={managerView}
                                 playerChart={playerChart}
-                                players={players}
+                                players={playersWithAvailability}
                             />
                         </DrawerContainer>
                     );
