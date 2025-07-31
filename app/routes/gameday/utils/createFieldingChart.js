@@ -12,7 +12,7 @@ const assignPosition = (player, availablePositions) => {
     for (let preferredPosition of player.preferredPositions) {
         if (availablePositions.includes(preferredPosition)) {
             player.positions.push(preferredPosition);
-            return { assignedPlayer: player.name, assignedPosition: preferredPosition };
+            return { assignedPlayer: player.firstName + player.lastName, assignedPosition: preferredPosition };
         }
     }
 
@@ -20,10 +20,10 @@ const assignPosition = (player, availablePositions) => {
     if (availablePositions.length > 0) {
         const fallbackPosition = availablePositions[0];
         player.positions.push(fallbackPosition);
-        return { assignedPlayer: player.name, assignedPosition: fallbackPosition };
+        return { assignedPlayer: player.firstName + player.lastName, assignedPosition: fallbackPosition };
     }
 
-    return { assignedPlayer: player.name, assignedPosition: null };
+    return { assignedPlayer: player.firstName + player.lastName, assignedPosition: null };
 };
 
 export default function createFieldingChart(players, innings = 7) {
@@ -56,7 +56,7 @@ export default function createFieldingChart(players, innings = 7) {
         const pitcherPosition = "Pitcher";
         if (availablePositions.includes(pitcherPosition)) {
             const eligiblePitchers = playersCopy.filter(player =>
-                player.preferredPositions.includes(pitcherPosition) && !assignedPlayers.includes(player.name)
+                player.preferredPositions.includes(pitcherPosition) && !assignedPlayers.includes(player.firstName + player.lastName)
             );
 
             if (eligiblePitchers.length > 0) {
@@ -73,7 +73,7 @@ export default function createFieldingChart(players, innings = 7) {
 
             playersCopy.forEach(player => {
                 // Skip if player already assigned or no positions available
-                if (assignedPlayers.includes(player.name) || availablePositions.length === 0) return;
+                if (assignedPlayers.includes(player.firstName + player.lastName) || availablePositions.length === 0) return;
 
                 if (player.preferredPositions.includes(position)) {
                     const { assignedPlayer, assignedPosition } = assignPosition(player, availablePositions);
@@ -89,7 +89,7 @@ export default function createFieldingChart(players, innings = 7) {
         // Find players not assigned a position this inning
 
         // Get list of unassigned players
-        const unassignedPlayers = playersCopy.filter(player => !assignedPlayers.includes(player.name));
+        const unassignedPlayers = playersCopy.filter(player => !assignedPlayers.includes(player.firstName + player.lastName));
 
         // Sort unassigned players by number of "Out" positions (ascending)
         unassignedPlayers.sort((a, b) => countOutPositions(a) - countOutPositions(b));
