@@ -11,7 +11,14 @@ import fieldingPositions from '@/constants/positions';
 
 import styles from '../styles/playerChart.module.css';
 
-const PositionSelect = React.memo(({ row, inning, handlePositionChange, positionData, playerChart }) => {
+const PositionSelect = React.memo(({
+    row,
+    inning,
+    handlePositionChange,
+    positionData,
+    playerChart,
+}) => {
+
     const playerLookup = useMemo(() => {  // Create lookup map
         const lookup = {};
         playerChart.forEach(player => {
@@ -51,6 +58,7 @@ const PositionSelect = React.memo(({ row, inning, handlePositionChange, position
 });
 
 const PlayerChart = ({ playerChart, setPlayerChart, managerView }) => {
+    console.warn({ playerChart });
     const [scrolled, setScrolled] = useState(false);
     const [inningPositions, setInningPositions] = useState({});
 
@@ -80,7 +88,7 @@ const PlayerChart = ({ playerChart, setPlayerChart, managerView }) => {
 
             const row = {
                 battingOrder: index + 1,
-                player: player.name,
+                player: player.firstName + ' ' + player.lastName,
             };
             playerInningPositions.forEach((position, i) => {
                 row[`inning${i + 1}`] = position;
@@ -104,12 +112,13 @@ const PlayerChart = ({ playerChart, setPlayerChart, managerView }) => {
     }, [setPlayerChart]);
 
     const getPositionOptions = useCallback((preferredPositions) => {
+        console.log({ preferredPositions });
         if (!preferredPositions) {
-            return ['Out', ...fieldingPositions];
+            return ['Out', ...Object.keys(fieldingPositions)];
         }
 
         const preferred = [...preferredPositions];
-        const nonPreferred = fieldingPositions.filter(position => !preferred.includes(position));
+        const nonPreferred = Object.keys(fieldingPositions).filter(position => !preferred.includes(position));
 
         return [
             { group: 'Preferred Positions', items: preferred },
@@ -142,6 +151,7 @@ const PlayerChart = ({ playerChart, setPlayerChart, managerView }) => {
                                     if (column.accessor.startsWith('inning')) {
                                         const inning = column.accessor;
                                         const player = playerChart.find(p => p.name === row.player);
+                                        console.log({ player });
                                         const preferredPositions = player?.preferredPositions;
                                         const positionData = getPositionOptions(preferredPositions);
 
