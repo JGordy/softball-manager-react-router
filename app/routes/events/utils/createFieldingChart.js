@@ -12,7 +12,7 @@ const assignPosition = (player, availablePositions) => {
     for (let preferredPosition of player.preferredPositions) {
         if (availablePositions.includes(preferredPosition)) {
             player.positions.push(preferredPosition);
-            return { assignedPlayer: player.name, assignedPosition: preferredPosition };
+            return { assignedPlayer: player.lastName, assignedPosition: preferredPosition };
         }
     }
 
@@ -20,15 +20,20 @@ const assignPosition = (player, availablePositions) => {
     if (availablePositions.length > 0) {
         const fallbackPosition = availablePositions[0];
         player.positions.push(fallbackPosition);
-        return { assignedPlayer: player.name, assignedPosition: fallbackPosition };
+        return { assignedPlayer: player.lastName, assignedPosition: fallbackPosition };
     }
 
-    return { assignedPlayer: player.name, assignedPosition: null };
+
+    return { assignedPlayer: player.lastName, assignedPosition: null };
 };
 
 export default function createFieldingChart(players, innings = 7) {
     const MAX_OUTS = (players.length > 13) ? 3 : 2;
-    const playersCopy = [...players];
+    const playersCopy = [...players.map(player => ({
+        ...player,
+        positions: player?.positions || [],
+    }))];
+
 
     // Loop through the number of innings
     for (let inning = 0; inning < innings; inning++) {
@@ -36,13 +41,15 @@ export default function createFieldingChart(players, innings = 7) {
         let availablePositions = [...positions];
         let outPreviousInning;
 
+
         // Do this only if it's not the first inning
         if (inning !== 0) {
             // Find players out in the previous inning or who have met the max number of outs
-            outPreviousInning = players.filter(player =>
+            outPreviousInning = playersCopy.filter(player =>
                 player.positions[inning - 1] === "Out" || countOutPositions(player) >= MAX_OUTS
             );
         }
+
 
         if (outPreviousInning?.length > 0) {
             outPreviousInning.forEach(player => {
@@ -53,10 +60,11 @@ export default function createFieldingChart(players, innings = 7) {
             });
         }
 
+
         const pitcherPosition = "Pitcher";
         if (availablePositions.includes(pitcherPosition)) {
             const eligiblePitchers = playersCopy.filter(player =>
-                player.preferredPositions.includes(pitcherPosition) && !assignedPlayers.includes(player.name)
+                player.preferredPositions.includes(pitcherPosition) && !assignedPlayers.includes(player.lastName)
             );
 
             if (eligiblePitchers.length > 0) {
@@ -67,13 +75,14 @@ export default function createFieldingChart(players, innings = 7) {
             }
         }
 
+
         availablePositions?.forEach(position => {
             // Skip if no positions left to assign
             if (availablePositions.length === 0) return;
 
             playersCopy.forEach(player => {
                 // Skip if player already assigned or no positions available
-                if (assignedPlayers.includes(player.name) || availablePositions.length === 0) return;
+                if (assignedPlayers.includes(player.lastName) || availablePositions.length === 0) return;
 
                 if (player.preferredPositions.includes(position)) {
                     const { assignedPlayer, assignedPosition } = assignPosition(player, availablePositions);
@@ -89,7 +98,7 @@ export default function createFieldingChart(players, innings = 7) {
         // Find players not assigned a position this inning
 
         // Get list of unassigned players
-        const unassignedPlayers = playersCopy.filter(player => !assignedPlayers.includes(player.name));
+        const unassignedPlayers = playersCopy.filter(player => !assignedPlayers.includes(player.lastName));
 
         // Sort unassigned players by number of "Out" positions (ascending)
         unassignedPlayers.sort((a, b) => countOutPositions(a) - countOutPositions(b));
