@@ -19,9 +19,9 @@ export default function LineupContainer({
 
     const fetcher = useFetcher();
 
-    const parsedChart = playerChart && JSON.parse(playerChart);
+    // const parsedChart = playerChart && JSON.parse(playerChart);
 
-    const [localChart, setLocalChart] = useState(parsedChart);
+    const [localChart, setLocalChart] = useState(playerChart);
     const [hasBeenEdited, setHasBeenEdited] = useState(false);
 
     const availablePlayers = players?.filter(p => p.available === 'accepted');
@@ -50,7 +50,7 @@ export default function LineupContainer({
     };
 
     const handleResetChart = () => {
-        setLocalChart(parsedChart);
+        setLocalChart(playerChart);
         setHasBeenEdited(false);
     };
 
@@ -138,8 +138,10 @@ export default function LineupContainer({
             {localChart && (
                 <>
                     <PlayerChart
-                        players={players}
+                        // players={players}
                         setPlayerChart={handleChartEdit}
+                        playerChart={localChart}
+                        managerView={managerView}
                     />
 
                     {(managerView && hasBeenEdited) && (
