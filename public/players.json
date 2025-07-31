@@ -1,7 +1,8 @@
 {
     "players": [
         {
-            "name": "Stephen",
+            "firstName": "Stephen",
+            "lastName": ".",
             "preferredPositions": [
                 "Shortstop",
                 "Pitcher",
@@ -14,7 +15,8 @@
             "gender": "male"
         },
         {
-            "name": "Joe",
+            "firstName": "Joe",
+            "lastName": ".",
             "preferredPositions": [
                 "Left Field",
                 "Left Center Field",
@@ -26,7 +28,8 @@
             "gender": "male"
         },
         {
-            "name": "Whit",
+            "firstName": "Whit",
+            "lastName": ".",
             "preferredPositions": [
                 "Left Center Field",
                 "Left Field",
@@ -38,7 +41,8 @@
             "gender": "male"
         },
         {
-            "name": "Matt",
+            "firstName": "Matt",
+            "lastName": ".",
             "preferredPositions": [
                 "Pitcher",
                 "Left Center Field",
@@ -50,7 +54,8 @@
             "gender": "male"
         },
         {
-            "name": "Finn",
+            "firstName": "Finn",
+            "lastName": ".",
             "preferredPositions": [
                 "Right Center Field",
                 "Right Field",
@@ -62,7 +67,8 @@
             "gender": "male"
         },
         {
-            "name": "Grace",
+            "firstName": "Grace",
+            "lastName": ".",
             "preferredPositions": [
                 "Catcher",
                 "Second Base",
@@ -74,7 +80,8 @@
             "gender": "female"
         },
         {
-            "name": "MJ",
+            "firstName": "MJ",
+            "lastName": ".",
             "preferredPositions": [
                 "Right Field",
                 "Second Base",
@@ -86,7 +93,8 @@
             "gender": "female"
         },
         {
-            "name": "Kasey",
+            "firstName": "Kasey",
+            "lastName": ".",
             "preferredPositions": [
                 "Second Base",
                 "Shortstop",
@@ -98,7 +106,8 @@
             "gender": "female"
         },
         {
-            "name": "Kris",
+            "firstName": "Kris",
+            "lastName": ".",
             "preferredPositions": [
                 "First Base",
                 "Right Field",
@@ -110,7 +119,8 @@
             "gender": "male"
         },
         {
-            "name": "Nick",
+            "firstName": "Nick",
+            "lastName": ".",
             "preferredPositions": [
                 "Third Base",
                 "Shortstop",
@@ -122,7 +132,8 @@
             "gender": "male"
         },
         {
-            "name": "Caroline",
+            "firstName": "Caroline",
+            "lastName": ".",
             "preferredPositions": [
                 "Second Base",
                 "Right Field",
@@ -134,7 +145,8 @@
             "gender": "female"
         },
         {
-            "name": "Ethan",
+            "firstName": "Ethan",
+            "lastName": ".",
             "preferredPositions": [
                 "Left Center Field",
                 "Right Center Field",
@@ -146,7 +158,8 @@
             "gender": "male"
         },
         {
-            "name": "Hayden",
+            "firstName": "Hayden",
+            "lastName": ".",
             "preferredPositions": [
                 "Left Center Field",
                 "Right Center Field",
@@ -158,7 +171,8 @@
             "gender": "male"
         },
         {
-            "name": "Hannah",
+            "firstName": "Hannah",
+            "lastName": ".",
             "preferredPositions": [
                 "Catcher",
                 "Second Base",
