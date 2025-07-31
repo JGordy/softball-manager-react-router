@@ -1,6 +1,14 @@
 import { Query } from '@/appwrite';
 import { listDocuments, readDocument } from '@/utils/databases';
 
+const getAttendance = async ({ eventId, accepted = false }) => {
+    const { documents: attendance } = await listDocuments('attendance', [
+        Query.equal('gameId', eventId),
+        ...[accepted && Query.equal('status', 'accepted')],
+    ]);
+    return attendance;
+};
+
 export async function getEventById({ request, eventId }) {
     const { seasons: season, ...game } = await readDocument('games', eventId);
     const { teams = [], parkId } = season;
@@ -39,5 +47,38 @@ export async function getEventById({ request, eventId }) {
         managerId,
         season,
         teams,
+    };
+}
+
+export async function getEventWithPlayerCharts({ request, eventId }) {
+    const { seasons: season, ...game } = await readDocument('games', eventId);
+    const { teams = [] } = season;
+
+    const { documents: userIds } = await listDocuments('memberships', [
+        Query.equal('teamId', [teams[0].$id]),
+    ]);
+
+    const { userId: managerId } = userIds.find(userId => userId.role === 'manager');
+
+    // --- Start of deferred data ---
+    const playerPromises = userIds.map(async ({ userId }) => {
+        const result = await listDocuments('users', [
+            Query.equal('$id', userId),
+        ]);
+        return result.documents;
+    });
+    const players = await Promise.all(playerPromises).then(users => users.flat());
+
+    const playerChart = game.playerChart ? JSON.parse(game.playerChart) : null;
+
+    const attendance = await getAttendance({ eventId, accepted: true });
+
+    return {
+        attendance,
+        game,
+        managerId,
+        teams,
+        playerChart,
+        players,
     };
 }
