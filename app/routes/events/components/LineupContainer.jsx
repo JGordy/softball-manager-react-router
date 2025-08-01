@@ -138,14 +138,13 @@ export default function LineupContainer({
             {localChart && (
                 <>
                     <PlayerChart
-                        // players={players}
                         setPlayerChart={handleChartEdit}
                         playerChart={localChart}
                         managerView={managerView}
                     />
 
                     {(managerView && hasBeenEdited) && (
-                        <Group justify="space-between">
+                        <Group justify="space-between" mt="lg">
                             <Button
                                 loading={fetcher.state === 'loading'}
                                 onClick={handleOnSave}
