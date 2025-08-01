@@ -102,6 +102,7 @@ export default function DetailsCard({
                             opened={calendarDrawerOpened}
                             onClose={calendarDrawerHandlers.close}
                             title="Add Game to Calendar"
+                            size="sm"
                         >
                             <CalendarDetails
                                 game={game}
@@ -114,6 +115,7 @@ export default function DetailsCard({
                                 opened={locationDrawerOpened}
                                 onClose={locationDrawerHandlers.close}
                                 title="Location Details"
+                                size="sm"
                             >
                                 <ParkDetailsDrawer park={park} />
                             </DrawerContainer>
