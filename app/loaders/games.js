@@ -76,7 +76,7 @@ export async function getEventWithPlayerCharts({ request, eventId }) {
         game,
         managerId,
         teams,
-        playerChart: playerChart ? JSON.parse(game.playerChart) : null,
+        playerChart: playerChart ? JSON.parse(playerChart) : null,
         players,
     };
 }
