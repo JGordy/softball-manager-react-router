@@ -8,7 +8,10 @@ const schema = {
             id: {
                 type: SchemaType.STRING,
             },
-            name: {
+            firstName: {
+                type: SchemaType.STRING,
+            },
+            lastName: {
                 type: SchemaType.STRING,
             },
             gender: {
@@ -35,7 +38,8 @@ const schema = {
         },
         required: [
             "id",
-            "name",
+            "firstName",
+            "lastName",
             "gender",
             "battingRating",
             "fieldRating",
