@@ -43,7 +43,7 @@ export async function getEventById({ request, eventId }) {
 
     return {
         deferredData,
-        game,
+        game: { ...game, playerChart: JSON.parse(game.playerChart) },
         managerId,
         season,
         teams,
