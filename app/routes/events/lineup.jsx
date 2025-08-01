@@ -37,7 +37,7 @@ function Lineup({ loaderData }) {
     const playersWithAvailability = addPlayerAvailability(attendance, players);
 
     return (
-        <Container>
+        <Container p="md">
             <LineupContainer
                 managerView={managerView}
                 players={playersWithAvailability}
