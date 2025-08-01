@@ -22,7 +22,7 @@ const PositionSelect = React.memo(({
     const playerLookup = useMemo(() => {  // Create lookup map
         const lookup = {};
         playerChart.forEach(player => {
-            lookup[player.name] = player;
+            lookup[player.firstName + ' ' + player.lastName] = player;
         });
         return lookup;
     }, [playerChart]);
@@ -71,7 +71,7 @@ const PlayerChart = ({
     const columns = useMemo(() => [
         {
             accessor: 'battingOrder',
-            title: 'Batting',
+            title: 'Order',
         },
         {
             accessor: 'player',
@@ -85,7 +85,7 @@ const PlayerChart = ({
 
     const rows = useMemo(() => {
         return playerChart.map((player, index) => {
-            const inningPositionsForPlayer = inningPositions[player.name] || {}; // Get positions or empty object
+            const inningPositionsForPlayer = inningPositions[player.firstName + ' ' + player.lastName] || {}; // Get positions or empty object
             const playerInningPositions = [];
             for (let i = 1; i <= 7; i++) {
                 const inningKey = `inning${i}`;
@@ -118,7 +118,7 @@ const PlayerChart = ({
     }, [setPlayerChart]);
 
     const getPositionOptions = useCallback((preferredPositions) => {
-        // console.log({ preferredPositions });
+
         if (!preferredPositions) {
             return ['Out', ...Object.keys(fieldingPositions)];
         }
@@ -156,8 +156,8 @@ const PlayerChart = ({
                                 {columns.map((column) => {
                                     if (column.accessor.startsWith('inning')) {
                                         const inning = column.accessor;
-                                        const player = playerChart.find(p => p.name === row.player);
-                                        // console.log({ player });
+                                        const player = playerChart.find(p => p.firstName + ' ' + p.lastName === row.player);
+
                                         const preferredPositions = player?.preferredPositions;
                                         const positionData = getPositionOptions(preferredPositions);
 
