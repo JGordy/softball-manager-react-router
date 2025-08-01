@@ -20,9 +20,9 @@ import DrawerContainer from '@/components/DrawerContainer';
 import DeferredLoader from '@/components/DeferredLoader';
 
 import AvailablityContainer from './AvailablityContainer';
-import LineupContainer from './LineupContainer';
 
 import addPlayerAvailability from '../utils/addPlayerAvailability';
+import PlayerChart from '@/components/PlayerChart';
 
 export default function RosterDetails({
     deferredData,
@@ -92,11 +92,7 @@ export default function RosterDetails({
                             size="xl"
                         >
                             {playerChart ? (
-                                <LineupContainer
-                                    game={game}
-                                    playerChart={playerChart}
-                                    players={playersWithAvailability}
-                                />
+                                <PlayerChart playerChart={playerChart} />
                             ) : (
                                 <Alert
                                     title="Charts not yet created"
