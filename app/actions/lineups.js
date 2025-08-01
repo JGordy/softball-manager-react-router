@@ -31,7 +31,6 @@ export async function createAttendanceForm({ values, request }) {
 
 // Save a created lineup and field chart to appwrite database
 export async function savePlayerChart({ values, eventId }) {
-    console.log('savePlayerChart: ', { values });
     const { playerChart } = values;
     // NOTE: We must stringify the playerChart json before sending to appwrite
     try {
