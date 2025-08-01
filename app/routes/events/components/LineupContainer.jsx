@@ -37,13 +37,13 @@ export default function LineupContainer({
         message = `There aren't enough available players to create a lineup. A minimum of 8 players is required (${availablePlayers.length} available).`;
     }
 
-    const handleOnSave = () => {
+    const handleOnSave = (fieldingChart) => {
         try {
             const formData = new FormData();
             formData.append('_action', 'save-chart');
-            formData.append('playerChart', JSON.stringify(localChart));
+            formData.append('playerChart', JSON.stringify(fieldingChart || localChart));
 
-            fetcher.submit(formData, { method: 'post', action: `/events/${game.$id}` });
+            fetcher.submit(formData, { method: 'post', action: `/events/${game.$id}/lineup` });
         } catch (error) {
             console.error('Error submitting attendance form:', error);
         }
@@ -69,7 +69,7 @@ export default function LineupContainer({
                     setLocalChart(fieldingChart);
                 }
 
-                handleOnSave();
+                handleOnSave(fieldingChart);
             }
         }
     };
