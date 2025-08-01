@@ -1,4 +1,4 @@
-import { Text } from '@mantine/core';
+import { Container } from '@mantine/core';
 
 import { useOutletContext } from 'react-router';
 
@@ -37,13 +37,13 @@ function Lineup({ loaderData }) {
     const playersWithAvailability = addPlayerAvailability(attendance, players);
 
     return (
-        <>
+        <Container>
             <LineupContainer
                 managerView={managerView}
                 players={playersWithAvailability}
                 {...rest}
             />
-        </>
+        </Container>
     );
 }
 
