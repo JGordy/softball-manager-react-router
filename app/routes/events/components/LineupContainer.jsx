@@ -69,7 +69,7 @@ export default function LineupContainer({
                     setLocalChart(fieldingChart);
                 }
 
-                handleOnSave(fieldingChart);
+                // handleOnSave(fieldingChart);
             }
         }
     };
