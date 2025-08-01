@@ -91,10 +91,11 @@ export default function LineupContainer({
     // }
     // };
 
-    const handleChartEdit = (position, playerName, inning) => {
+    const handleChartEdit = (position, playerId, inning) => {
+
         setLocalChart(prevChart => {
             return prevChart.map(player => {
-                if (player.name === playerName) {
+                if (player.$id === playerId) {
                     const inningIndex = parseInt(inning.replace('inning', ''), 10) - 1;
                     const updatedPositions = [...player.positions];
                     updatedPositions[inningIndex] = position;
