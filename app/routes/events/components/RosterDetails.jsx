@@ -1,4 +1,6 @@
+import { Link } from 'react-router';
 import {
+    Alert,
     Card,
     Divider,
     Group,
@@ -10,6 +12,7 @@ import { useDisclosure } from '@mantine/hooks';
 import {
     IconChevronRight,
     IconClipboardList,
+    IconInfoCircle,
     IconUsersGroup,
 } from '@tabler/icons-react';
 
@@ -88,12 +91,33 @@ export default function RosterDetails({
                             title="Lineup Details"
                             size="xl"
                         >
-                            <LineupContainer
-                                game={game}
-                                managerView={managerView}
-                                playerChart={playerChart}
-                                players={playersWithAvailability}
-                            />
+                            {playerChart ? (
+                                <LineupContainer
+                                    game={game}
+                                    playerChart={playerChart}
+                                    players={playersWithAvailability}
+                                />
+                            ) : (
+                                <Alert
+                                    title="Charts not yet created"
+                                    variant="light"
+                                    color="yellow"
+                                    icon={<IconInfoCircle size={18} />}
+                                    mb="xl"
+                                >
+                                    Charts for this game have not yet been created. {managerView ? 'You can create them below.' : 'Please come back later.'}
+                                </Alert>
+                            )}
+                            {managerView && (
+                                <Link to={`/events/${game.$id}/lineup`}>
+                                    <Card c="green">
+                                        <Group gap="md" justify='center' mr="10px">
+                                            <IconClipboardList size={18} />
+                                            <Text>{playerChart ? 'Edit' : 'Create'} Lineup & Field Charts</Text>
+                                        </Group>
+                                    </Card>
+                                </Link>
+                            )}
                         </DrawerContainer>
                     );
                 }}
