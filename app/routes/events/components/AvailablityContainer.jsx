@@ -92,8 +92,11 @@ const AvailabilityOptionsContainer = ({ attendance, game, player, managerView, c
                 loaderProps={{ color: 'green', type: 'dots', size: 'lg' }}
             />
             <Group justify="space-between">
-                <Text fw={700}>{player.firstName} {player.lastName}</Text>
-                <Text>{positions[player.preferredPositions?.[0]].initials}</Text>
+                <Group gap="xs" justify="space-between">
+                    <Text c="dimmed" size="sm" miw="1.1rem">{positions[player.preferredPositions?.[0]].initials}</Text>
+                    <Divider orientation="vertical" />
+                    <Text fw={700}>{player.firstName} {player.lastName}</Text>
+                </Group>
                 <Group>
                     {availabilityData[attendance?.status || 'noresponse'].icon}
                     {(renderToggle) && (
