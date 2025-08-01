@@ -4,6 +4,8 @@ import { useOutletContext } from 'react-router';
 
 import { getEventWithPlayerCharts } from '@/loaders/games';
 
+import { savePlayerChart } from '@/actions/lineups';
+
 import LineupContainer from './components/LineupContainer';
 
 import addPlayerAvailability from './utils/addPlayerAvailability';
@@ -13,6 +15,16 @@ export async function loader({ params, request }) {
     console.log('/events/:eventId > ', { eventId });
 
     return await getEventWithPlayerCharts({ eventId, request });
+}
+
+export async function action({ request, params }) {
+    const { eventId } = params;
+    const formData = await request.formData();
+    const { _action, ...values } = Object.fromEntries(formData);
+
+    if (_action === 'save-chart') {
+        return savePlayerChart({ eventId, values });
+    }
 }
 
 function Lineup({ loaderData }) {
