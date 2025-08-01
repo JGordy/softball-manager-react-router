@@ -90,10 +90,15 @@ export default function RosterDetails({
                 {playerChart ? (
                     <PlayerChart playerChart={playerChart} />
                 ) : (
-                    <Stack align="center">
-                        {managerView ? <IconClipboardList size={48} /> : <IconZoomQuestion size={48} />}
-                        <Text mb="xl" align="center">Lineup and fielding chart for this game has not yet been created. {managerView ? 'As an admin, you can create them below.' : 'Please check back later.'}</Text>
-                    </Stack>
+                    <>
+                        <Group mb="md">
+                            {managerView ? <IconClipboardList size={24} /> : <IconZoomQuestion size={24} />}
+                            <Divider orientation="vertical" />
+                            Charts not yet created
+                        </Group>
+
+                        <Text mb="xl" c="dimmed">Lineup and fielding chart for this game has not yet been created. {managerView ? 'As an admin, you can create them below.' : 'Please check back later.'}</Text>
+                    </>
                 )}
                 {managerView && (
                     <Link to={`/events/${game.$id}/lineup`}>
