@@ -1,30 +1,39 @@
-function createBattingOrder(players) {
-    // Sort players by batting rating in descending order
-    const sortedPlayers = [...players].sort((a, b) => b.battingRating - a.battingRating);
+function createBattingOrder(players, maxConsecutiveMales = 3) {
+    const availablePlayers = [...players];
+
     const battingOrder = [];
-    let lastGender = null;
     let consecutiveMaleCount = 0;
 
-    while (sortedPlayers.length > 0) {
-        const currentPlayer = sortedPlayers.shift();
+    // Continue until all players are in the batting order
+    while (availablePlayers.length > 0) {
+        let playerToPick = null;
+        let playerIndexToPick;
 
-        if (currentPlayer.gender === 'male') {
+        // If we've reached the max consecutive males, we MUST pick a female.
+        if (consecutiveMaleCount >= maxConsecutiveMales) {
+            // Find the highest-rated available female player.
+            playerIndexToPick = availablePlayers.findIndex((p) => p.gender === 'Female');
+
+            // If no female is available, we have to pick a male, breaking the rule.
+            // This is a fallback to prevent an infinite loop.
+            if (playerIndexToPick === -1) {
+                playerIndexToPick = 0; // Pick the highest-rated player (who must be male).
+            }
+        } else {
+            // We can pick either gender. We'll just pick the highest-rated player available.
+            playerIndexToPick = availablePlayers.findIndex((p) => p.gender === 'Male');
+        }
+
+        // Get the player and remove them from the available list.
+        playerToPick = availablePlayers.splice(playerIndexToPick, 1)[0];
+        battingOrder.push(playerToPick);
+
+        // Update the consecutive male count.
+        if (playerToPick.gender === 'Male') {
             consecutiveMaleCount++;
         } else {
             consecutiveMaleCount = 0;
         }
-
-        if (consecutiveMaleCount >= 3) {
-            // If three male batters have occurred consecutively, find a female player to insert
-            const femalePlayerIndex = sortedPlayers.findIndex(p => p.gender === 'female');
-            if (femalePlayerIndex !== -1) {
-                battingOrder.push(sortedPlayers.splice(femalePlayerIndex, 1)[0]);
-                consecutiveMaleCount = 0; // Reset consecutive male count
-            }
-        }
-
-        battingOrder.push(currentPlayer);
-        lastGender = currentPlayer.gender;
     }
 
     return battingOrder;
