@@ -22,14 +22,15 @@ const PositionSelect = React.memo(({
     const playerLookup = useMemo(() => {  // Create lookup map
         const lookup = {};
         playerChart.forEach(player => {
-            lookup[player.firstName + ' ' + player.lastName] = player;
+            lookup[player.$id] = player;
         });
         return lookup;
     }, [playerChart]);
 
     const renderSelectOption = useCallback(({ option, checked }) => {
 
-        const player = playerLookup[row.player];
+        const player = playerLookup[row.playerId];
+
         const preferredPositions = player?.preferredPositions;
         const isPreferred = preferredPositions?.includes(option.value);
 
@@ -49,7 +50,7 @@ const PositionSelect = React.memo(({
         <Select
             key={`${row.player}-${inning}`}
             value={row[inning]}
-            onChange={(event) => handlePositionChange(event, row.player, inning)}
+            onChange={(event) => handlePositionChange(event, row.playerId, inning)}
             data={positionData}
             style={{ minWidth: '160px' }}
             renderOption={renderSelectOption}
@@ -63,10 +64,10 @@ const PlayerChart = ({
     managerView = false,
 }) => {
 
-    console.log({ playerChart });
 
     const [scrolled, setScrolled] = useState(false);
     const [inningPositions, setInningPositions] = useState({});
+    console.log({ playerChart, inningPositions });
 
     const columns = useMemo(() => [
         {
@@ -85,7 +86,7 @@ const PlayerChart = ({
 
     const rows = useMemo(() => {
         return playerChart.map((player, index) => {
-            const inningPositionsForPlayer = inningPositions[player.firstName + ' ' + player.lastName] || {}; // Get positions or empty object
+            const inningPositionsForPlayer = inningPositions[player.$id] || {}; // Get positions or empty object
             const playerInningPositions = [];
             for (let i = 1; i <= 7; i++) {
                 const inningKey = `inning${i}`;
@@ -94,7 +95,8 @@ const PlayerChart = ({
 
             const row = {
                 battingOrder: index + 1,
-                player: player.firstName + ' ' + player.lastName,
+                playerId: player.$id,
+                player: `${player.firstName} ${player.lastName}`,
             };
             playerInningPositions.forEach((position, i) => {
                 row[`inning${i + 1}`] = position;
@@ -103,17 +105,17 @@ const PlayerChart = ({
         });
     }, [playerChart, inningPositions]);
 
-    const handlePositionChange = useCallback((position, playerName, inning) => {
+    const handlePositionChange = useCallback((position, playerId, inning) => {
         setInningPositions(prevPositions => {
             const updatedPositions = { ...prevPositions };
-            if (!updatedPositions[playerName]) {
-                updatedPositions[playerName] = {};
+            if (!updatedPositions[playerId]) {
+                updatedPositions[playerId] = {};
             }
-            updatedPositions[playerName][inning] = position;
+            updatedPositions[playerId][inning] = position;
             return updatedPositions;
         });
 
-        setPlayerChart(position, playerName, inning);
+        setPlayerChart(position, playerId, inning);
 
     }, [setPlayerChart]);
 
