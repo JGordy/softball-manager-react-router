@@ -57,8 +57,14 @@ const PositionSelect = React.memo(({
     );
 });
 
-const PlayerChart = ({ playerChart, setPlayerChart, managerView }) => {
-    console.warn({ playerChart });
+const PlayerChart = ({
+    playerChart,
+    setPlayerChart,
+    managerView = false,
+}) => {
+
+    console.log({ playerChart });
+
     const [scrolled, setScrolled] = useState(false);
     const [inningPositions, setInningPositions] = useState({});
 
@@ -112,7 +118,7 @@ const PlayerChart = ({ playerChart, setPlayerChart, managerView }) => {
     }, [setPlayerChart]);
 
     const getPositionOptions = useCallback((preferredPositions) => {
-        console.log({ preferredPositions });
+        // console.log({ preferredPositions });
         if (!preferredPositions) {
             return ['Out', ...Object.keys(fieldingPositions)];
         }
@@ -151,7 +157,7 @@ const PlayerChart = ({ playerChart, setPlayerChart, managerView }) => {
                                     if (column.accessor.startsWith('inning')) {
                                         const inning = column.accessor;
                                         const player = playerChart.find(p => p.name === row.player);
-                                        console.log({ player });
+                                        // console.log({ player });
                                         const preferredPositions = player?.preferredPositions;
                                         const positionData = getPositionOptions(preferredPositions);
 
