@@ -10,7 +10,7 @@ const getAttendance = async ({ eventId, accepted = false }) => {
 };
 
 export async function getEventById({ request, eventId }) {
-    const { seasons: season, ...game } = await readDocument('games', eventId);
+    const { seasons: season, playerChart, ...game } = await readDocument('games', eventId);
     const { teams = [], parkId } = season;
 
     const { documents: userIds } = await listDocuments('memberships', [
@@ -43,7 +43,7 @@ export async function getEventById({ request, eventId }) {
 
     return {
         deferredData,
-        game: { ...game, playerChart: JSON.parse(game.playerChart) },
+        game: { ...game, playerChart: JSON.parse(playerChart) },
         managerId,
         season,
         teams,
@@ -51,7 +51,7 @@ export async function getEventById({ request, eventId }) {
 }
 
 export async function getEventWithPlayerCharts({ request, eventId }) {
-    const { seasons: season, ...game } = await readDocument('games', eventId);
+    const { seasons: season, playerChart, ...game } = await readDocument('games', eventId);
     const { teams = [] } = season;
 
     const { documents: userIds } = await listDocuments('memberships', [
@@ -69,8 +69,6 @@ export async function getEventWithPlayerCharts({ request, eventId }) {
     });
     const players = await Promise.all(playerPromises).then(users => users.flat());
 
-    const playerChart = game.playerChart ? JSON.parse(game.playerChart) : null;
-
     const attendance = await getAttendance({ eventId, accepted: true });
 
     return {
@@ -78,7 +76,7 @@ export async function getEventWithPlayerCharts({ request, eventId }) {
         game,
         managerId,
         teams,
-        playerChart,
+        playerChart: playerChart ? JSON.parse(game.playerChart) : null,
         players,
     };
 }
