@@ -80,44 +80,36 @@ export default function RosterDetails({
                 </Card.Section>
             </Card>
 
-            <DeferredLoader resolve={deferredData}>
-                {({ attendance, players }) => {
-                    const { documents } = attendance;
-                    const playersWithAvailability = addPlayerAvailability(documents, players);
-                    return (
-                        <DrawerContainer
-                            opened={lineupDrawerOpened}
-                            onClose={lineupDrawerHandlers.close}
-                            title="Lineup Details"
-                            size="xl"
-                        >
-                            {playerChart ? (
-                                <PlayerChart playerChart={playerChart} />
-                            ) : (
-                                <Alert
-                                    title="Charts not yet created"
-                                    variant="light"
-                                    color="yellow"
-                                    icon={<IconInfoCircle size={18} />}
-                                    mb="xl"
-                                >
-                                    Charts for this game have not yet been created. {managerView ? 'You can create them below.' : 'Please come back later.'}
-                                </Alert>
-                            )}
-                            {managerView && (
-                                <Link to={`/events/${game.$id}/lineup`}>
-                                    <Card c="green">
-                                        <Group gap="md" justify='center' mr="10px">
-                                            <IconClipboardList size={18} />
-                                            <Text>{playerChart ? 'Edit' : 'Create'} Lineup & Field Charts</Text>
-                                        </Group>
-                                    </Card>
-                                </Link>
-                            )}
-                        </DrawerContainer>
-                    );
-                }}
-            </DeferredLoader>
+            <DrawerContainer
+                opened={lineupDrawerOpened}
+                onClose={lineupDrawerHandlers.close}
+                title="Lineup Details"
+                size={playerChart ? 'xl' : 'sm'}
+            >
+                {playerChart ? (
+                    <PlayerChart playerChart={playerChart} />
+                ) : (
+                    <Alert
+                        title="Charts not yet created"
+                        variant="light"
+                        color="yellow"
+                        icon={<IconInfoCircle size={18} />}
+                        mb="xl"
+                    >
+                        Charts for this game have not yet been created. {managerView ? 'You can create them below.' : 'Please come back later.'}
+                    </Alert>
+                )}
+                {managerView && (
+                    <Link to={`/events/${game.$id}/lineup`}>
+                        <Card c="green">
+                            <Group gap="md" justify='center' mr="10px">
+                                <IconClipboardList size={18} />
+                                <Text>{playerChart ? 'Edit' : 'Create'} Lineup & Field Charts</Text>
+                            </Group>
+                        </Card>
+                    </Link>
+                )}
+            </DrawerContainer>
 
             <DeferredLoader resolve={deferredData}>
                 {({ attendance, players }) => {
