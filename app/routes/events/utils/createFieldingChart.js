@@ -29,8 +29,16 @@ const assignPosition = (player, availablePositions) => {
 
 export default function createFieldingChart(players, innings = 7) {
     const MAX_OUTS = (players.length > 13) ? 3 : 2;
+
+    // NOTE: We don't want all of the player data to be duplicated, so we create a copy of the players array with the relevant values
+    // This allows us to modify the positions without affecting the original player data.
     const playersCopy = [...players.map(player => ({
-        ...player,
+        $id: player.$id,
+        firstName: player.firstName,
+        lastName: player.lastName,
+        gender: player.gender,
+        preferredPositions: player.preferredPositions || [],
+        dislikedPositions: player.dislikedPositions || [],
         positions: player?.positions || [],
     }))];
 
