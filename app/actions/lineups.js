@@ -35,7 +35,7 @@ export async function savePlayerChart({ values, eventId }) {
     // NOTE: We must stringify the playerChart json before sending to appwrite
     try {
         const gameDetails = await updateDocument('games', eventId, {
-            playerChart: JSON.stringify(JSON.parse(playerChart)),
+            playerChart: JSON.stringify(playerChart),
         });
 
         return { response: { gameDetails }, status: 204, success: true };
