@@ -49,7 +49,12 @@ export default function RosterDetails({
                         </Group>
                         <IconChevronRight size={18} />
                     </Group>
-                    {!playerChart && <Text size="xs" mt="5px" ml="28px" c="dimmed">Charts currently not available</Text>}
+                    {!playerChart ? (
+                        <Text size="xs" mt="5px" ml="28px" c="dimmed">Charts currently not available</Text>
+                    ) : (
+                        <Text size="xs" mt="5px" ml="28px" c="dimmed">Charts available to view</Text>
+
+                    )}
                 </Card.Section>
 
                 <Divider />
@@ -97,15 +102,15 @@ export default function RosterDetails({
                             Charts not yet created
                         </Group>
 
-                        <Text mb="xl" c="dimmed">Lineup and fielding chart for this game has not yet been created. {managerView ? 'As an admin, you can create them below.' : 'Please check back later.'}</Text>
+                        <Text c="dimmed">Lineup and fielding chart for this game has not yet been created. {managerView ? 'As an admin, you can create them below.' : 'Please check back later.'}</Text>
                     </>
                 )}
                 {managerView && (
-                    <Link to={`/events/${game.$id}/lineup`}>
-                        <Card c="green">
+                    <Card c="green" mt="xl">
+                        <Link to={`/events/${game.$id}/lineup`}>
                             <Text align="center">{playerChart ? 'Edit' : 'Create'} Lineup & Field Charts</Text>
-                        </Card>
-                    </Link>
+                        </Link>
+                    </Card>
                 )}
             </DrawerContainer>
 
