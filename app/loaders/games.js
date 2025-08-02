@@ -43,7 +43,11 @@ export async function getEventById({ request, eventId }) {
 
     return {
         deferredData,
-        game: { ...game, playerChart: JSON.parse(playerChart) },
+        game: {
+            ...game,
+            // NOTE: We need to parse the string from the database twice before passing to the front end
+            playerChart: JSON.parse(JSON.parse(playerChart)),
+        },
         managerId,
         season,
         teams,
@@ -76,7 +80,8 @@ export async function getEventWithPlayerCharts({ request, eventId }) {
         game,
         managerId,
         teams,
-        playerChart: playerChart ? JSON.parse(playerChart) : null,
+        // NOTE: We need to parse the string from the database twice before passing to the front end
+        playerChart: playerChart ? JSON.parse(JSON.parse(playerChart)) : null,
         players,
     };
 }
