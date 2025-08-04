@@ -7,7 +7,7 @@ import {
     IconArrowBackUp,
     IconInfoCircle,
     IconPlus,
-    IconTrashX,
+    // IconTrashX,
 } from '@tabler/icons-react';
 
 import PlayerChart from '@/components/PlayerChart';
@@ -23,8 +23,6 @@ export default function LineupContainer({
 }) {
 
     const fetcher = useFetcher();
-
-    // const parsedChart = playerChart && JSON.parse(playerChart);
 
     const [localChart, setLocalChart] = useState(playerChart);
     const [hasBeenEdited, setHasBeenEdited] = useState(false);
@@ -59,24 +57,22 @@ export default function LineupContainer({
         setHasBeenEdited(false);
     };
 
-    const handleDeleteChart = () => {
-        setLocalChart(null);
-        setHasBeenEdited(false);
+    // const handleDeleteChart = () => {
+    //     setLocalChart(null);
+    //     setHasBeenEdited(false);
 
-        try {
-            const formData = new FormData();
-            formData.append('_action', 'save-chart');
-            formData.append('playerChart', null);
+    //     try {
+    //         const formData = new FormData();
+    //         formData.append('_action', 'save-chart');
+    //         formData.append('playerChart', null);
 
-            fetcher.submit(formData, { method: 'post', action: `/events/${game.$id}/lineup` });
-        } catch (error) {
-            console.error('Error deleting attendance form:', error);
-        }
-    };
-
+    //         fetcher.submit(formData, { method: 'post', action: `/events/${game.$id}/lineup` });
+    //     } catch (error) {
+    //         console.error('Error deleting attendance form:', error);
+    //     }
+    // };
 
     // NOTE: Uses an algorithim I created to generate a lineup and fielding chart
-    // TODO: We need to make a request to save this to the appwrite database
     const handleCreateCharts = () => {
         if (hasEnoughPlayers) {
             setLocalChart();
@@ -112,8 +108,7 @@ export default function LineupContainer({
     // }
     // };
 
-    const handleChartEdit = (position, playerId, inning) => {
-
+    const handleEditChart = (position, playerId, inning) => {
         setLocalChart(prevChart => {
             return prevChart.map(player => {
                 if (player.$id === playerId) {
@@ -166,41 +161,39 @@ export default function LineupContainer({
             {localChart && (
                 <>
                     <PlayerChart
-                        setPlayerChart={handleChartEdit}
+                        setPlayerChart={handleEditChart}
                         playerChart={localChart}
                         managerView={managerView}
                     />
 
                     {(managerView && hasBeenEdited) && (
-                        <>
-                            <Group justify="space-between" my="lg" grow>
-                                <Button
-                                    {...buttonProps}
-                                    color="blue"
-                                    leftSection={<IconArrowBackUp size={18} />}
-                                    onClick={handleResetChart}
-                                    variant="light"
-                                >
-                                    Reset
-                                </Button>
-                                {/* <Button
-                                    {...buttonProps}
-                                    color="red"
-                                    leftSection={<IconTrashX size={18} />}
-                                    onClick={handleDeleteChart}
-                                    variant="light"
-                                >
-                                    Delete
-                                </Button> */}
-                                <Button
-                                    {...buttonProps}
-                                    leftSection={<IconPlus size={18} />}
-                                    onClick={handleOnSave}
-                                >
-                                    Save Changes
-                                </Button>
-                            </Group>
-                        </>
+                        <Group justify="space-between" my="lg" grow>
+                            <Button
+                                {...buttonProps}
+                                color="blue"
+                                leftSection={<IconArrowBackUp size={18} />}
+                                onClick={handleResetChart}
+                                variant="light"
+                            >
+                                Reset
+                            </Button>
+                            {/* <Button
+                                {...buttonProps}
+                                color="red"
+                                leftSection={<IconTrashX size={18} />}
+                                onClick={handleDeleteChart}
+                                variant="light"
+                            >
+                                Delete
+                            </Button> */}
+                            <Button
+                                {...buttonProps}
+                                leftSection={<IconPlus size={18} />}
+                                onClick={handleOnSave}
+                            >
+                                Save Changes
+                            </Button>
+                        </Group>
                     )}
                 </>
             )}
