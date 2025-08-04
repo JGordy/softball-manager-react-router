@@ -155,6 +155,12 @@ export default function LineupContainer({
         )
     }
 
+    const buttonProps = {
+        disabled: fetcher.state === 'loading',
+        loading: fetcher.state === 'loading',
+        loaderProps: { type: 'dots' },
+    }
+
     return (
         <>
             {localChart && (
@@ -169,34 +175,31 @@ export default function LineupContainer({
                         <>
                             <Group justify="space-between" my="lg" grow>
                                 <Button
+                                    {...buttonProps}
                                     color="blue"
-                                    disabled={fetcher.state === 'loading'}
                                     leftSection={<IconArrowBackUp size={18} />}
-                                    loading={fetcher.state === 'loading'}
                                     onClick={handleResetChart}
                                     variant="light"
                                 >
                                     Reset
                                 </Button>
-                                <Button
+                                {/* <Button
+                                    {...buttonProps}
                                     color="red"
-                                    disabled={fetcher.state === 'loading'}
                                     leftSection={<IconTrashX size={18} />}
-                                    loading={fetcher.state === 'loading'}
                                     onClick={handleDeleteChart}
                                     variant="light"
                                 >
                                     Delete
+                                </Button> */}
+                                <Button
+                                    {...buttonProps}
+                                    leftSection={<IconPlus size={18} />}
+                                    onClick={handleOnSave}
+                                >
+                                    Save Changes
                                 </Button>
                             </Group>
-                            <Button
-                                fullWidth
-                                leftSection={<IconPlus size={18} />}
-                                loading={fetcher.state === 'loading'}
-                                onClick={handleOnSave}
-                            >
-                                Save Changes
-                            </Button>
                         </>
                     )}
                 </>
