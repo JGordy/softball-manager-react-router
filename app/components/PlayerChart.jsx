@@ -33,7 +33,7 @@ const PlayerChart = ({ playerChart }) => {
             const row = {
                 battingOrder: index + 1,
                 playerId: player.$id,
-                player: `${player.firstName} ${player.lastName}`,
+                player: `${player.firstName} ${player.lastName.charAt(0)}.`,
             };
             player.positions.forEach((position, i) => {
                 row[`inning${i + 1}`] = position || 'Out';
@@ -48,10 +48,7 @@ const PlayerChart = ({ playerChart }) => {
 
     return (
         <div className={styles.tableContainer}>
-            <ScrollArea.Autosize
-                mah={450}
-                offsetScrollbars
-            >
+            <ScrollArea.Autosize mah={450} offsetScrollbars>
                 <Table stickyHeader withTableBorder withColumnBorders striped>
                     <Table.Thead className={styles.header}>
                         <Table.Tr>
@@ -62,18 +59,16 @@ const PlayerChart = ({ playerChart }) => {
                     </Table.Thead>
                     <Table.Tbody>
                         {rows.map((row) => (
-                            <Table.Tr>
+                            <Table.Tr key={row.playerId}>
                                 {columns.map((column) => {
                                     if (column.accessor.startsWith('inning')) {
                                         const position = row[column.accessor];
-                                        let initials = 'Out';
-                                        if (position !== 'Out') initials = fieldingPositions[position].initials;
-
-                                        console.log({ position, initials });
+                                        let label = 'Out';
+                                        if (position !== 'Out') label = fieldingPositions[position].initials;
 
                                         return (
                                             <Table.Td key={column.accessor}>
-                                                {initials}
+                                                {label}
                                             </Table.Td>
                                         );
                                     } else {
