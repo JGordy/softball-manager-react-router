@@ -7,6 +7,10 @@ import {
     Text,
 } from '@mantine/core';
 
+import {
+    IconCheck,
+} from '@tabler/icons-react';
+
 import fieldingPositions from '@/constants/positions';
 
 import styles from '../styles/playerChart.module.css';
@@ -31,16 +35,21 @@ const PositionSelect = React.memo(({
 
         const player = playerLookup[row.playerId];
 
-        const preferredPositions = player?.preferredPositions;
-        const isPreferred = preferredPositions?.includes(option.value);
-
         let color = 'gray';
-        if (option.value !== "Out") {
-            color = isPreferred ? 'green' : 'red';
+
+        const preferredPositions = player?.preferredPositions;
+        if (preferredPositions?.includes(option.value)) {
+            color = 'green';
+        }
+
+        const dislikedPositions = player?.dislikedPositions;
+        if (dislikedPositions?.includes(option.value)) {
+            color = 'red';
         }
 
         return (
-            <Group spacing={0}>
+            <Group gap="xs">
+                {checked && <IconCheck style={{ color }} size={16} />}
                 <Text style={{ color }}>{option.label}</Text>
             </Group>
         );
@@ -119,18 +128,20 @@ const PlayerChart = ({
 
     }, [setPlayerChart]);
 
-    const getPositionOptions = useCallback((preferredPositions) => {
+    const getPositionOptions = useCallback((preferredPositions, dislikedPositions) => {
 
-        if (!preferredPositions) {
+        if (!preferredPositions && !dislikedPositions) {
             return ['Out', ...Object.keys(fieldingPositions)];
         }
 
         const preferred = [...preferredPositions];
-        const nonPreferred = Object.keys(fieldingPositions).filter(position => !preferred.includes(position));
+        const disliked = [...dislikedPositions];
+        const nonPreferred = Object.keys(fieldingPositions).filter(position => (!preferred.includes(position) && !disliked.includes(position)));
 
         return [
             { group: 'Preferred Positions', items: preferred },
             { group: 'Other Positions', items: nonPreferred },
+            { group: 'Disliked Positions', items: disliked },
             'Out',
         ];
     }, [fieldingPositions]);
@@ -161,7 +172,8 @@ const PlayerChart = ({
                                         const player = playerChart.find(p => p.firstName + ' ' + p.lastName === row.player);
 
                                         const preferredPositions = player?.preferredPositions;
-                                        const positionData = getPositionOptions(preferredPositions);
+                                        const dislikedPositions = player?.dislikedPositions;
+                                        const positionData = getPositionOptions(preferredPositions, dislikedPositions);
 
                                         return (
                                             <Table.Td key={column.accessor}>
