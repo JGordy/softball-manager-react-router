@@ -4,8 +4,6 @@ import { useFetcher } from 'react-router';
 import { Alert, Button, Group, Text } from '@mantine/core';
 import { useListState } from '@mantine/hooks';
 
-import { DragDropContext } from '@hello-pangea/dnd';
-
 import {
     IconArrowBackUp,
     IconInfoCircle,
@@ -13,7 +11,7 @@ import {
     // IconTrashX,
 } from '@tabler/icons-react';
 
-import PlayerChart from '@/components/PlayerChart';
+import EditablePlayerChart from '@/components/EditablePlayerChart';
 
 import createBattingOrder from '../utils/createBattingOrder';
 import createFieldingChart from '../utils/createFieldingChart';
@@ -172,13 +170,12 @@ export default function LineupContainer({
         <>
             {localChart && (
                 <>
-                    <DragDropContext onDragEnd={handleLineupReorder}>
-                        <PlayerChart
-                            setPlayerChart={handleEditChart}
-                            playerChart={listState}
-                            managerView={managerView}
-                        />
-                    </DragDropContext>
+                    <EditablePlayerChart
+                        setPlayerChart={handleEditChart}
+                        playerChart={listState}
+                        managerView={managerView}
+                        handleLineupReorder={handleLineupReorder}
+                    />
 
                     {(managerView && hasBeenEdited) && (
                         <Group justify="space-between" my="lg" grow>
