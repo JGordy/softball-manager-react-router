@@ -3,7 +3,12 @@ import { useFetcher } from 'react-router';
 
 import { Alert, Button, Group, Text } from '@mantine/core';
 
-import { IconInfoCircle } from '@tabler/icons-react';
+import {
+    IconArrowBackUp,
+    IconInfoCircle,
+    IconPlus,
+    IconTrashX,
+} from '@tabler/icons-react';
 
 import PlayerChart from '@/components/PlayerChart';
 
@@ -53,6 +58,22 @@ export default function LineupContainer({
         setLocalChart(playerChart);
         setHasBeenEdited(false);
     };
+
+    const handleDeleteChart = () => {
+        setLocalChart(null);
+        setHasBeenEdited(false);
+
+        try {
+            const formData = new FormData();
+            formData.append('_action', 'save-chart');
+            formData.append('playerChart', null);
+
+            fetcher.submit(formData, { method: 'post', action: `/events/${game.$id}/lineup` });
+        } catch (error) {
+            console.error('Error deleting attendance form:', error);
+        }
+    };
+
 
     // NOTE: Uses an algorithim I created to generate a lineup and fielding chart
     // TODO: We need to make a request to save this to the appwrite database
@@ -145,21 +166,38 @@ export default function LineupContainer({
                     />
 
                     {(managerView && hasBeenEdited) && (
-                        <Group justify="space-between" mt="lg">
+                        <>
+                            <Group justify="space-between" my="lg" grow>
+                                <Button
+                                    color="blue"
+                                    disabled={fetcher.state === 'loading'}
+                                    leftSection={<IconArrowBackUp size={18} />}
+                                    loading={fetcher.state === 'loading'}
+                                    onClick={handleResetChart}
+                                    variant="light"
+                                >
+                                    Reset
+                                </Button>
+                                <Button
+                                    color="red"
+                                    disabled={fetcher.state === 'loading'}
+                                    leftSection={<IconTrashX size={18} />}
+                                    loading={fetcher.state === 'loading'}
+                                    onClick={handleDeleteChart}
+                                    variant="light"
+                                >
+                                    Delete
+                                </Button>
+                            </Group>
                             <Button
+                                fullWidth
+                                leftSection={<IconPlus size={18} />}
                                 loading={fetcher.state === 'loading'}
                                 onClick={handleOnSave}
                             >
                                 Save Changes
                             </Button>
-
-                            <Button
-                                onClick={handleResetChart}
-                                disabled={fetcher.state === 'loading'}
-                            >
-                                Reset Chart
-                            </Button>
-                        </Group>
+                        </>
                     )}
                 </>
             )}
