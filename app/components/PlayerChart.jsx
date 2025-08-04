@@ -95,7 +95,7 @@ const PlayerChart = ({
 
     const rows = useMemo(() => {
         return playerChart.map((player, index) => {
-            const inningPositionsForPlayer = inningPositions[player.$id] || {}; // Get positions or empty object
+            const inningPositionsForPlayer = inningPositions[player.$id] || {};
             const playerInningPositions = [];
             for (let i = 1; i <= 7; i++) {
                 const inningKey = `inning${i}`;
@@ -154,8 +154,15 @@ const PlayerChart = ({
 
     return (
         <div className={styles.tableContainer}>
-            <ScrollArea mih={300} onScrollPositionChange={({ y }) => setScrolled(y !== 0)}>
-                <Table striped highlightOnHover withTableBorder>
+            <ScrollArea.Autosize
+                mah={450}
+                onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
+                offsetScrollbars
+            >
+                <Table
+                    striped
+                    withTableBorder
+                >
                     <Table.Thead className={headerClassName}>
                         <Table.Tr>
                             {columns.map((column) => (
@@ -198,7 +205,7 @@ const PlayerChart = ({
                         ))}
                     </Table.Tbody>
                 </Table>
-            </ScrollArea>
+            </ScrollArea.Autosize>
         </div>
     );
 };
