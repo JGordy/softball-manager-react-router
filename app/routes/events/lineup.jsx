@@ -1,10 +1,12 @@
-import { Container } from '@mantine/core';
+import { Container, Group } from '@mantine/core';
 
 import { useOutletContext } from 'react-router';
 
 import { getEventWithPlayerCharts } from '@/loaders/games';
 
 import { savePlayerChart } from '@/actions/lineups';
+
+import BackButton from '@/components/BackButton';
 
 import LineupContainer from './components/LineupContainer';
 
@@ -50,6 +52,9 @@ function Lineup({ loaderData }) {
 
     return (
         <Container p="md">
+            <Group mt="lg" mb="xl">
+                <BackButton text="Back to event details" />
+            </Group>
             <LineupContainer
                 managerView={managerView}
                 players={playersWithAvailability}
