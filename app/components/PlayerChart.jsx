@@ -9,7 +9,10 @@ import {
 
 import {
     IconCheck,
+    IconGripVertical,
 } from '@tabler/icons-react';
+
+import { Draggable, Droppable } from '@hello-pangea/dnd';
 
 import fieldingPositions from '@/constants/positions';
 
@@ -53,7 +56,7 @@ const PositionSelect = React.memo(({
                 <Text style={{ color }}>{option.label}</Text>
             </Group>
         );
-    }, [playerChart]); // Add playerChart as dependency
+    }, [playerChart]);
 
     return (
         <Select
@@ -73,15 +76,13 @@ const PlayerChart = ({
     managerView = false,
 }) => {
 
-
-    const [scrolled, setScrolled] = useState(false);
     const [inningPositions, setInningPositions] = useState({});
     console.log({ playerChart, inningPositions });
 
     const columns = useMemo(() => [
         {
             accessor: 'battingOrder',
-            title: 'Order',
+            title: '',
         },
         {
             accessor: 'player',
@@ -146,8 +147,6 @@ const PlayerChart = ({
         ];
     }, [fieldingPositions]);
 
-    const headerClassName = scrolled ? styles.header + ' ' + styles.scrolled : styles.header;
-
     if (!playerChart) {
         return null;
     }
@@ -156,54 +155,68 @@ const PlayerChart = ({
         <div className={styles.tableContainer}>
             <ScrollArea.Autosize
                 mah={450}
-                onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
                 offsetScrollbars
             >
-                <Table
-                    striped
-                    withTableBorder
-                >
-                    <Table.Thead className={headerClassName}>
+                <Table withTableBorder>
+                    <Table.Thead className={styles.header}>
                         <Table.Tr>
+                            {managerView && <Table.Th w={40} />}
                             {columns.map((column) => (
                                 <Table.Th key={column.accessor}>{column.title}</Table.Th>
                             ))}
                         </Table.Tr>
                     </Table.Thead>
-                    <Table.Tbody>
-                        {rows.map((row) => (
-                            <Table.Tr key={row.player}>
-                                {columns.map((column) => {
-                                    if (column.accessor.startsWith('inning')) {
-                                        const inning = column.accessor;
-                                        const player = playerChart.find(p => p.firstName + ' ' + p.lastName === row.player);
-
-                                        const preferredPositions = player?.preferredPositions;
-                                        const dislikedPositions = player?.dislikedPositions;
-                                        const positionData = getPositionOptions(preferredPositions, dislikedPositions);
-
-                                        return (
-                                            <Table.Td key={column.accessor}>
-                                                {managerView ? (
-                                                    <PositionSelect
-                                                        row={row}
-                                                        inning={inning}
-                                                        handlePositionChange={handlePositionChange}
-                                                        positionData={positionData}
-                                                        playerChart={playerChart}
-                                                    />
-                                                ) : (
-                                                    <Text>{row[inning]}</Text>
+                    <Droppable droppableId="dnd-list" direction="vertical">
+                        {(provided) => (
+                            <Table.Tbody {...provided.droppableProps} ref={provided.innerRef}>
+                                {provided.placeholder}
+                                {rows.map((row, index) => (
+                                    <Draggable key={row.playerId} draggableId={row.playerId} index={index}>
+                                        {(provided) => (
+                                            <Table.Tr ref={provided.innerRef} {...provided.draggableProps}>
+                                                {provided.placeholder}
+                                                {managerView && (
+                                                    <Table.Td>
+                                                        <div {...provided.dragHandleProps}>
+                                                            <IconGripVertical size={18} stroke={1.5} />
+                                                        </div>
+                                                    </Table.Td>
                                                 )}
-                                            </Table.Td>
-                                        );
-                                    } else {
-                                        return <Table.Td key={column.accessor}>{row[column.accessor]}</Table.Td>;
-                                    }
-                                })}
-                            </Table.Tr>
-                        ))}
-                    </Table.Tbody>
+                                                {columns.map((column) => {
+                                                    if (column.accessor.startsWith('inning')) {
+                                                        const inning = column.accessor;
+                                                        const player = playerChart.find(p => p.firstName + ' ' + p.lastName === row.player);
+
+                                                        const preferredPositions = player?.preferredPositions;
+                                                        const dislikedPositions = player?.dislikedPositions;
+                                                        const positionData = getPositionOptions(preferredPositions, dislikedPositions);
+
+                                                        return (
+                                                            <Table.Td key={column.accessor}>
+                                                                {managerView ? (
+                                                                    <PositionSelect
+                                                                        row={row}
+                                                                        inning={inning}
+                                                                        handlePositionChange={handlePositionChange}
+                                                                        positionData={positionData}
+                                                                        playerChart={playerChart}
+                                                                    />
+                                                                ) : (
+                                                                    <Text>{row[inning]}</Text>
+                                                                )}
+                                                            </Table.Td>
+                                                        );
+                                                    } else {
+                                                        return <Table.Td key={column.accessor}>{row[column.accessor]}</Table.Td>;
+                                                    }
+                                                })}
+                                            </Table.Tr>
+                                        )}
+                                    </Draggable>
+                                ))}
+                            </Table.Tbody>
+                        )}
+                    </Droppable>
                 </Table>
             </ScrollArea.Autosize>
         </div>

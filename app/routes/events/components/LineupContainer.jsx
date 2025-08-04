@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { useFetcher } from 'react-router';
 
 import { Alert, Button, Group, Text } from '@mantine/core';
+import { useListState } from '@mantine/hooks';
+
+import { DragDropContext } from '@hello-pangea/dnd';
 
 import {
     IconArrowBackUp,
@@ -27,6 +30,8 @@ export default function LineupContainer({
     const [localChart, setLocalChart] = useState(playerChart);
     const [hasBeenEdited, setHasBeenEdited] = useState(false);
 
+    const [listState, handlers] = useListState(localChart);
+
     const availablePlayers = players?.filter(p => p.available === 'accepted');
     // console.log('/event/:eventId > LineupContainer: ', { availablePlayers, playerChart, parsedChart, localChart, players });
 
@@ -44,7 +49,7 @@ export default function LineupContainer({
         try {
             const formData = new FormData();
             formData.append('_action', 'save-chart');
-            formData.append('playerChart', JSON.stringify(localChart));
+            formData.append('playerChart', JSON.stringify(listState));
 
             fetcher.submit(formData, { method: 'post', action: `/events/${game.$id}/lineup` });
         } catch (error) {
@@ -150,6 +155,13 @@ export default function LineupContainer({
         )
     }
 
+    const handleLineupReorder = ({ destination, source }) => {
+        if (destination.index !== source.index) {
+            setHasBeenEdited(true);
+        }
+        return handlers.reorder({ from: source.index, to: destination?.index || 0 });
+    }
+
     const buttonProps = {
         disabled: fetcher.state === 'loading',
         loading: fetcher.state === 'loading',
@@ -160,11 +172,13 @@ export default function LineupContainer({
         <>
             {localChart && (
                 <>
-                    <PlayerChart
-                        setPlayerChart={handleEditChart}
-                        playerChart={localChart}
-                        managerView={managerView}
-                    />
+                    <DragDropContext onDragEnd={handleLineupReorder}>
+                        <PlayerChart
+                            setPlayerChart={handleEditChart}
+                            playerChart={listState}
+                            managerView={managerView}
+                        />
+                    </DragDropContext>
 
                     {(managerView && hasBeenEdited) && (
                         <Group justify="space-between" my="lg" grow>
