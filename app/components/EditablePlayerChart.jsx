@@ -171,7 +171,6 @@ const EditablePlayerChart = ({
                         <Droppable droppableId="dnd-list" direction="vertical">
                             {(provided) => (
                                 <Table.Tbody {...provided.droppableProps} ref={provided.innerRef}>
-                                    {provided.placeholder}
                                     {rows.map((row, index) => (
                                         <Draggable key={row.playerId} draggableId={row.playerId} index={index}>
                                             {(provided) => (
