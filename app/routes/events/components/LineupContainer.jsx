@@ -25,13 +25,13 @@ export default function LineupContainer({
 
     const fetcher = useFetcher();
 
-    const [localChart, setLocalChart] = useState(playerChart);
     const [hasBeenEdited, setHasBeenEdited] = useState(false);
 
-    const [listState, handlers] = useListState(localChart);
+    const [listState, handlers] = useListState(playerChart);
+    console.log({ listState, handlers });
 
     const availablePlayers = players?.filter(p => p.available === 'accepted');
-    // console.log('/event/:eventId > LineupContainer: ', { availablePlayers, playerChart, parsedChart, localChart, players });
+    // console.log('/event/:eventId > LineupContainer: ', { availablePlayers, playerChart, parsedChart, listState, players });
 
     // NOTE: Most leagues require at least 8 players in the field to allow the teams to take the field
     // TODO: Add a database field for minimum number of players?
@@ -56,12 +56,12 @@ export default function LineupContainer({
     };
 
     const handleResetChart = () => {
-        setLocalChart(playerChart);
+        handlers.setState(playerChart);
         setHasBeenEdited(false);
     };
 
     // const handleDeleteChart = () => {
-    //     setLocalChart(null);
+    //     handlers.setState(null);
     //     setHasBeenEdited(false);
 
     //     try {
@@ -78,15 +78,13 @@ export default function LineupContainer({
     // NOTE: Uses an algorithim I created to generate a lineup and fielding chart
     const handleCreateCharts = () => {
         if (hasEnoughPlayers) {
-            setLocalChart();
-
             const batting = createBattingOrder(availablePlayers);
 
             if (batting?.length > 0) {
                 const fieldingChart = createFieldingChart(batting);
 
                 if (fieldingChart?.length > 0) {
-                    setLocalChart(fieldingChart);
+                    handlers.setState(fieldingChart);
                 }
 
                 handleOnSave();
@@ -112,22 +110,24 @@ export default function LineupContainer({
     // };
 
     const handleEditChart = (position, playerId, inning) => {
-        setLocalChart(prevChart => {
-            return prevChart.map(player => {
-                if (player.$id === playerId) {
-                    const inningIndex = parseInt(inning.replace('inning', ''), 10) - 1;
-                    const updatedPositions = [...player.positions];
-                    updatedPositions[inningIndex] = position;
-                    return { ...player, positions: updatedPositions };
-                }
-                return player;
-            });
-        });
+        const playerIndex = listState.findIndex(p => p.$id === playerId);
+
+        if (playerIndex === -1) {
+            return; // Or handle the case where the player is not found
+        }
+
+        const playerToUpdate = listState[playerIndex];
+        const inningIndex = parseInt(inning.replace('inning', ''), 10) - 1;
+
+        const updatedPositions = [...playerToUpdate.positions];
+        updatedPositions[inningIndex] = position;
+
+        handlers.setItemProp(playerIndex, 'positions', updatedPositions);
 
         setHasBeenEdited(true);
     };
 
-    if (!localChart) {
+    if (!listState) {
         return (
             <>
                 {managerView ? (
@@ -168,7 +168,7 @@ export default function LineupContainer({
 
     return (
         <>
-            {localChart && (
+            {listState && (
                 <>
                     <EditablePlayerChart
                         setPlayerChart={handleEditChart}
