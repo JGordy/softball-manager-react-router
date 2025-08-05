@@ -28,7 +28,6 @@ export default function LineupContainer({
     const [hasBeenEdited, setHasBeenEdited] = useState(false);
 
     const [listState, handlers] = useListState(playerChart);
-    console.log({ listState, handlers });
 
     const availablePlayers = players?.filter(p => p.available === 'accepted');
     // console.log('/event/:eventId > LineupContainer: ', { availablePlayers, playerChart, parsedChart, listState, players });
@@ -43,13 +42,15 @@ export default function LineupContainer({
         message = `There aren't enough available players to create a lineup. A minimum of 8 players is required (${availablePlayers.length} available).`;
     }
 
-    const handleOnSave = () => {
+    const handleOnSave = (chart) => {
         try {
             const formData = new FormData();
             formData.append('_action', 'save-chart');
-            formData.append('playerChart', JSON.stringify(listState));
+            formData.append('playerChart', JSON.stringify(chart || listState));
 
             fetcher.submit(formData, { method: 'post', action: `/events/${game.$id}/lineup` });
+
+            setHasBeenEdited(false);
         } catch (error) {
             console.error('Error submitting attendance form:', error);
         }
@@ -87,7 +88,7 @@ export default function LineupContainer({
                     handlers.setState(fieldingChart);
                 }
 
-                handleOnSave();
+                handleOnSave(fieldingChart);
             }
         }
     };
@@ -161,7 +162,7 @@ export default function LineupContainer({
     }
 
     const buttonProps = {
-        disabled: fetcher.state === 'loading',
+        disabled: fetcher.state === 'loading' || !hasBeenEdited,
         loading: fetcher.state === 'loading',
         loaderProps: { type: 'dots' },
     }
@@ -177,7 +178,7 @@ export default function LineupContainer({
                         handleLineupReorder={handleLineupReorder}
                     />
 
-                    {(managerView && hasBeenEdited) && (
+                    {managerView && (
                         <Group justify="space-between" my="lg" grow>
                             <Button
                                 {...buttonProps}
@@ -200,7 +201,7 @@ export default function LineupContainer({
                             <Button
                                 {...buttonProps}
                                 leftSection={<IconPlus size={18} />}
-                                onClick={handleOnSave}
+                                onClick={() => handleOnSave()}
                             >
                                 Save Changes
                             </Button>
