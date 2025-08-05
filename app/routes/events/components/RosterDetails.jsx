@@ -107,7 +107,7 @@ export default function RosterDetails({
                 )}
                 {managerView && (
                     <Card c="green" mt="xl">
-                        <Link to={`/events/${game.$id}/lineup`}>
+                        <Link to={`/events/${game.$id}/lineup`} onClick={lineupDrawerHandlers.close}>
                             <Text align="center">{playerChart ? 'Edit' : 'Create'} Lineup & Field Charts</Text>
                         </Link>
                     </Card>
