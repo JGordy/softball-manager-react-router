@@ -90,7 +90,7 @@ export default function RosterDetails({
                 opened={lineupDrawerOpened}
                 onClose={lineupDrawerHandlers.close}
                 title="Lineup Details"
-                size={playerChart ? '75%' : 'sm'}
+                size={playerChart ? 'xl' : 'sm'}
             >
                 {playerChart ? (
                     <Card p="sm" radius="lg">
@@ -123,7 +123,7 @@ export default function RosterDetails({
                             opened={availabilityDrawerOpened}
                             onClose={availabilityDrawerHandlers.close}
                             title="Availability Details"
-                            size="75%"
+                            size="xl"
                         >
                             <AvailablityContainer
                                 attendance={attendance}
