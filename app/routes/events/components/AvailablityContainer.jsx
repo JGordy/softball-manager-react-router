@@ -9,6 +9,7 @@ import {
     Group,
     LoadingOverlay,
     Radio,
+    ScrollArea,
     Stack,
     Text,
 } from '@mantine/core';
@@ -175,17 +176,24 @@ export default function AvailabliityContainer({
 
     return (
         <>
-            <Group justify="space-between" wrap="nowrap" mb="lg">
+            <Group
+                justify="space-between"
+                mb="lg"
+                wrap="nowrap"
+            >
                 {Object.keys(availabilityData).map(key => (
                     <Stack align="center" gap="2px" key={key}>
-                        {availabilityData[key].icon}{availabilityData[key].label}
+                        {availabilityData[key].icon}
+                        <Text size="sm">{availabilityData[key].label}</Text>
                     </Stack>
                 ))}
             </Group>
 
             <Divider size="xs" mb="md" />
 
-            {players?.length > 0 && renderPlayerAvailability()}
+            <ScrollArea h={525}>
+                {players?.length > 0 && renderPlayerAvailability()}
+            </ScrollArea>
         </>
     );
 };
