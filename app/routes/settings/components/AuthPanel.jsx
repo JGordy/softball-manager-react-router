@@ -97,7 +97,7 @@ export default function AuthPanel({ actionData }) {
                 </Alert>
             )}
 
-            <Group justify="space-between">
+            <Group justify="space-between" mb="sm">
                 <Text>Change Password</Text>
                 <ActionIcon
                     variant="subtle"
