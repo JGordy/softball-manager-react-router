@@ -34,7 +34,7 @@ const PositionSelect = React.memo(({
         return lookup;
     }, [playerChart]);
 
-    const renderSelectOption = useCallback(({ option, checked }) => {
+    const renderSelectOption = useCallback(({ option }) => {
 
         const player = playerLookup[row.playerId];
 
@@ -50,10 +50,14 @@ const PositionSelect = React.memo(({
             color = 'red';
         }
 
+        if (option.value === 'Out') {
+            color = 'yellow';
+        }
+
+
         return (
             <Group gap="xs">
-                {checked && <IconCheck style={{ color }} size={16} />}
-                <Text style={{ color }}>{option.label}</Text>
+                <Text c={color}>{option.label}</Text>
             </Group>
         );
     }, [playerChart]);
@@ -78,7 +82,6 @@ const EditablePlayerChart = ({
 }) => {
 
     const [inningPositions, setInningPositions] = useState({});
-    console.log({ playerChart, inningPositions });
 
     const columns = useMemo(() => [
         {
@@ -136,15 +139,20 @@ const EditablePlayerChart = ({
             return ['Out', ...Object.keys(fieldingPositions)];
         }
 
-        const preferred = [...preferredPositions];
-        const disliked = [...dislikedPositions];
-        const nonPreferred = Object.keys(fieldingPositions).filter(position => (!preferred.includes(position) && !disliked.includes(position)));
+        const positions = [];
+        if (preferredPositions.length > 0) {
+            positions.push({ group: 'Preferred Positions', items: preferredPositions });
+        }
+
+        positions.push({ group: 'Other Positions', items: Object.keys(fieldingPositions).filter(position => (!preferredPositions.includes(position) && !dislikedPositions.includes(position))) });
+
+        if (dislikedPositions?.length > 0) {
+            positions.push({ group: 'Disliked Positions', items: dislikedPositions });
+        }
 
         return [
-            { group: 'Preferred Positions', items: preferred },
-            { group: 'Other Positions', items: nonPreferred },
-            { group: 'Disliked Positions', items: disliked },
             'Out',
+            ...positions,
         ];
     }, [fieldingPositions]);
 
