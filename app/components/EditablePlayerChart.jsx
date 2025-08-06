@@ -163,10 +163,7 @@ const EditablePlayerChart = ({
     return (
         <div className={styles.tableContainer}>
             <DragDropContext onDragEnd={handleLineupReorder}>
-                <ScrollArea.Autosize
-                    mah={475}
-                    scrollbars={false}
-                >
+                <ScrollArea.Autosize mah={475}>
                     <Table withTableBorder>
                         <Table.Thead className={styles.header}>
                             <Table.Tr>

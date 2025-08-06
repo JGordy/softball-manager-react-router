@@ -191,7 +191,7 @@ export default function AvailabliityContainer({
 
             <Divider size="xs" mb="md" />
 
-            <ScrollArea h={525} scrollbars={false}>
+            <ScrollArea h="50vh">
                 {players?.length > 0 && renderPlayerAvailability()}
             </ScrollArea>
         </>
