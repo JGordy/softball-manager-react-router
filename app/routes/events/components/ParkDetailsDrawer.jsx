@@ -39,7 +39,7 @@ export default function ParkDetailsDrawer({ park }) {
                 rel="noopener noreferrer"
             >
                 <Card c="green">
-                    <Group gap="xs">
+                    <Group justify="center" gap="xs">
                         <IconLocationFilled size={18} />
                         <Text>View on Google Maps</Text>
                     </Group>
@@ -51,7 +51,7 @@ export default function ParkDetailsDrawer({ park }) {
                 mt="md"
                 onClick={() => clipboard.copy(park?.formattedAddress)}
             >
-                <Group gap="xs">
+                <Group justify="center" gap="xs">
                     <IconCopy size={18} />
                     <Text>{clipboard.copied ? 'Copied!' : 'Copy Address'}</Text>
                 </Group>
