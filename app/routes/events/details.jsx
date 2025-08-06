@@ -26,6 +26,7 @@ import MenuContainer from './components/MenuContainer';
 import Scoreboard from './components/Scoreboard';
 import DetailsCard from './components/DetailsCard';
 import RosterDetails from './components/RosterDetails';
+import WeatherDetails from './components/WeatherDetails';
 
 export async function action({ request, params }) {
     const { eventId } = params;
@@ -75,6 +76,7 @@ export default function EventDetails({ loaderData, actionData }) {
         managerId,
         season,
         teams,
+        weatherPromise,
     } = loaderData;
 
     const team = teams?.[0];
@@ -146,6 +148,8 @@ export default function EventDetails({ loaderData, actionData }) {
                 playerChart={playerChart}
                 team={team}
             />
+
+            <WeatherDetails weatherPromise={weatherPromise} />
 
             {managerView && (
                 <DrawerContainer
