@@ -93,21 +93,6 @@
     }
 
     .game-card.mantine-Card-root {
-        background-image:
-            linear-gradient(rgba(193, 225, 200, 0.85),
-                rgb(193, 225, 200, 0.85));
-        /* url('https://fra.cloud.appwrite.io/v1/storage/buckets/67af948b00375c741493/files/68793d820012b4a23cb3/view?project=679b95f10030c4821c90&mode=admin'); */
-
-        background-size: cover;
-        background-position: center center;
-    }
-
-    .team-card.mantine-Card-root {
-        background-image:
-            linear-gradient(rgba(182, 203, 188, 0.9),
-                rgb(182, 203, 188, 0.9)),
-            url('https://fra.cloud.appwrite.io/v1/storage/buckets/67af948b00375c741493/files/687a8cb40025ea271333/view?project=679b95f10030c4821c90&mode=admin');
-
         background-size: cover;
         background-position: center center;
     }
