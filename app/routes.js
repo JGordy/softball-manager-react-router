@@ -48,6 +48,9 @@ export default [
             route('/api/teams', 'routes/api/data/teams.js'),
             route('/api/profile', 'routes/api/data/profile.js'),
             route('/api/user', 'routes/api/data/user.js'),
+
+            // Catch all route, 404
+            route('*', 'routes/notfound/404.jsx'),
         ]),
     ]),
 ];
