@@ -1,3 +1,5 @@
+
+import { useNavigate } from 'react-router';
 import {
     Button,
     Container,
@@ -9,6 +11,12 @@ import {
 import classes from '@/styles/notfound.module.css';
 
 export default function Settings({ actionData }) {
+
+    const navigate = useNavigate();
+
+    const handleHomeButtonClick = () => {
+        navigate('/');
+    };
 
     return (
         <Container className={classes.root}>
@@ -26,7 +34,7 @@ export default function Settings({ actionData }) {
                         page has been moved to another URL. If you think this is an error contact support.
                     </Text>
                     <Group justify="center">
-                        <Button size="md">Take me back to home page</Button>
+                        <Button size="md" onClick={handleHomeButtonClick}>Take me back to home page</Button>
                     </Group>
                 </div>
             </div>
