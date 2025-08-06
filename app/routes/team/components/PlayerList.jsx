@@ -84,7 +84,7 @@ export default function PlayerList({
                 </Button>
             )}
 
-            <ScrollArea h="55vh">
+            <ScrollArea h="50vh">
                 {(players.length > 0) && players.map(player => {
                     return (
                         <Card

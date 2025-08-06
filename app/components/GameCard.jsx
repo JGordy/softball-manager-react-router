@@ -81,7 +81,7 @@ export default function GameCard({
         <Link key={$id} to={`/events/${$id}`}>
             <Card
                 className="game-card"
-                my="md"
+                mb="md"
                 radius="md"
                 py="lg"
                 withBorder
