@@ -10,10 +10,11 @@ import { useDisclosure } from '@mantine/hooks';
 import {
     IconChevronRight,
     IconClock,
+    IconCloudRain,
     IconMapPin,
 } from '@tabler/icons-react';
 
-import { formatGameTime } from '@/utils/dateTime';
+import { formatGameTime, getGameDayStatus } from '@/utils/dateTime';
 
 import DrawerContainer from '@/components/DrawerContainer';
 import DeferredLoader from '@/components/DeferredLoader';
@@ -26,6 +27,7 @@ export default function DetailsCard({
     deferredData,
     season,
     team,
+    weatherPromise,
 }) {
 
     const {
@@ -34,9 +36,12 @@ export default function DetailsCard({
     } = game;
 
     const formattedGameTime = formatGameTime(gameDate, timeZone);
+    const gameDayStatus = getGameDayStatus(gameDate);
+    const gameIsPast = gameDayStatus === 'past';
 
     const [locationDrawerOpened, locationDrawerHandlers] = useDisclosure(false);
     const [calendarDrawerOpened, calendarDrawerHandlers] = useDisclosure(false);
+    const [weatherDrawerOpened, weatherDrawerHandlers] = useDisclosure(false);
 
     return (
         <>
@@ -93,6 +98,35 @@ export default function DetailsCard({
                         )}
                     </DeferredLoader>
                 </Card.Section>
+
+                {!gameIsPast && (
+                    <>
+                        <Divider />
+
+                        <Card.Section my="xs" inheritPadding>
+                            <Group justify='space-between' onClick={weatherDrawerHandlers.open} c="green">
+                                <Group gap="xs">
+                                    <IconCloudRain size={18} />
+                                    Gameday Forecast
+                                </Group>
+                                <IconChevronRight size={18} />
+                            </Group>
+                            <DeferredLoader
+                                resolve={weatherPromise}
+                                fallback={<Skeleton height={16} width="70%" mt="5px" ml="28px" radius="xl" />}
+                                errorElement={<Text size="xs" mt="5px" ml="28px" c="red">Error loading weather details</Text>}
+                            >
+                                {(weather) => {
+                                    return (
+                                        <Text size="xs" mt="5px" ml="28px" c="dimmed">
+                                            {!weather ? 'Data unavailable at this time' : 'Some weather summary here'}
+                                        </Text>
+                                    );
+                                }}
+                            </DeferredLoader>
+                        </Card.Section>
+                    </>
+                )}
             </Card>
 
             <DeferredLoader resolve={deferredData} fallback={null}>
@@ -122,6 +156,21 @@ export default function DetailsCard({
                         )}
                     </>
                 )}
+            </DeferredLoader>
+
+            <DeferredLoader resolve={weatherPromise}>
+                {(weather) => {
+                    return (
+                        <DrawerContainer
+                            opened={weatherDrawerOpened}
+                            onClose={weatherDrawerHandlers.close}
+                            title="Weather Details"
+                            size="md"
+                        >
+                            {JSON.stringify(weather)}
+                        </DrawerContainer>
+                    );
+                }}
             </DeferredLoader>
         </>
     );
