@@ -10,6 +10,7 @@ export default function LocationInput({
     name = 'location',
     defaultValue = '',
 }) {
+
     const [selectedLocation, setSelectedLocation] = useState();
     const [options, setOptions] = useState([]);
     const [autocompleteData, setAutocompleteData] = useState([]);
@@ -17,7 +18,7 @@ export default function LocationInput({
     const [isLoading, setIsLoading] = useState(false);
 
     const { isLoaded, loadError } = useLoadScript({
-        googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+        googleMapsApiKey: import.meta.env.VITE_GOOGLE_SERVICES_API_KEY,
         libraries,
     });
 
