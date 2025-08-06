@@ -95,7 +95,8 @@ export async function getEventById({ request, eventId }) {
         managerId,
         season,
         teams,
-        weather: getWeatherData(parkId, game),
+        // Deferred data for weather, but is conditional so we didn't add it to the deferredData
+        weatherPromise: getWeatherData(parkId, game),
     };
 }
 
