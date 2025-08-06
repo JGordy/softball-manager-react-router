@@ -89,7 +89,6 @@ export default function RosterDetails({
             <DrawerContainer
                 opened={lineupDrawerOpened}
                 onClose={lineupDrawerHandlers.close}
-                padding="lg"
                 title="Lineup Details"
                 size={playerChart ? 'xl' : 'sm'}
             >
@@ -123,7 +122,6 @@ export default function RosterDetails({
                         <DrawerContainer
                             opened={availabilityDrawerOpened}
                             onClose={availabilityDrawerHandlers.close}
-                            padding="lg"
                             title="Availability Details"
                             size="xl"
                         >
