@@ -5,6 +5,7 @@ export default function DrawerContainer({
     classes,
     opened = false,
     onClose = () => { },
+    padding = 'xl',
     position = 'bottom',
     size = 'md',
     title,
@@ -18,7 +19,7 @@ export default function DrawerContainer({
             onClose={onClose}
             overlayProps={{ backgroundOpacity: 0.55, blur: 3 }}
             position={position}
-            padding="xl"
+            padding={padding}
             radius="xl"
             size={size}
             styles={{

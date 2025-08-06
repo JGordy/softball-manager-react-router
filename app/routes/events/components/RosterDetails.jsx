@@ -89,11 +89,14 @@ export default function RosterDetails({
             <DrawerContainer
                 opened={lineupDrawerOpened}
                 onClose={lineupDrawerHandlers.close}
+                padding="lg"
                 title="Lineup Details"
                 size={playerChart ? 'xl' : 'sm'}
             >
                 {playerChart ? (
-                    <PlayerChart playerChart={playerChart} />
+                    <Card p="sm" radius="lg">
+                        <PlayerChart playerChart={playerChart} />
+                    </Card>
                 ) : (
                     <>
                         <Group mb="md">
@@ -120,6 +123,7 @@ export default function RosterDetails({
                         <DrawerContainer
                             opened={availabilityDrawerOpened}
                             onClose={availabilityDrawerHandlers.close}
+                            padding="lg"
                             title="Availability Details"
                             size="xl"
                         >
