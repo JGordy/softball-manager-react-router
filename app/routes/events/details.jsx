@@ -149,7 +149,7 @@ export default function EventDetails({ loaderData, actionData }) {
                 team={team}
             />
 
-            <WeatherDetails weatherPromise={weatherPromise} />
+            {!gameIsPast && <WeatherDetails weatherPromise={weatherPromise} />}
 
             {managerView && (
                 <DrawerContainer
