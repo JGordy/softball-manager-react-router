@@ -36,6 +36,7 @@ export async function getTeamsByUserId({ userId }) {
 export async function getAttendanceByUserId({ userId }) {
     const attendance = await listDocuments('attendance', [
         Query.equal('playerId', userId),
+        Query.equal('status', 'accepted'),
     ]);
 
     return attendance.documents.length > 0 ? attendance.documents : [];
