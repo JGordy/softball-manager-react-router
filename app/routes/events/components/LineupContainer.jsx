@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useFetcher } from 'react-router';
 
-import { Alert, Button, Group, Text } from '@mantine/core';
+import { Alert, Button, Card, Group, Text } from '@mantine/core';
 import { useListState } from '@mantine/hooks';
 
 import {
@@ -171,12 +171,14 @@ export default function LineupContainer({
         <>
             {listState && (
                 <>
-                    <EditablePlayerChart
-                        setPlayerChart={handleEditChart}
-                        playerChart={listState}
-                        managerView={managerView}
-                        handleLineupReorder={handleLineupReorder}
-                    />
+                    <Card p="sm" radius="lg">
+                        <EditablePlayerChart
+                            setPlayerChart={handleEditChart}
+                            playerChart={listState}
+                            managerView={managerView}
+                            handleLineupReorder={handleLineupReorder}
+                        />
+                    </Card>
 
                     {managerView && (
                         <Group justify="space-between" my="lg" grow>
