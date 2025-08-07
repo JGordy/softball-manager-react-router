@@ -167,7 +167,9 @@ export default function DetailsCard({
                             title="Weather Details"
                             size="md"
                         >
-                            {JSON.stringify(weather)}
+                            {!weather ? (
+                                <Text>Weather data is generally available starting seven days before the scheduled date. Please check back at a later time.</Text>
+                            ) : JSON.stringify(weather)}
                         </DrawerContainer>
                     );
                 }}
