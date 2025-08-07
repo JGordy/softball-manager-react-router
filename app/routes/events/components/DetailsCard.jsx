@@ -3,6 +3,7 @@ import {
     Divider,
     Group,
     Skeleton,
+    Stack,
     Text,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
@@ -12,6 +13,7 @@ import {
     IconClock,
     IconCloudRain,
     IconMapPin,
+    IconSunset2,
 } from '@tabler/icons-react';
 
 import { formatGameTime, getGameDayStatus } from '@/utils/dateTime';
@@ -106,7 +108,7 @@ export default function DetailsCard({
                         <Card.Section my="xs" inheritPadding>
                             <Group justify='space-between' onClick={weatherDrawerHandlers.open} c="green">
                                 <Group gap="xs">
-                                    <IconCloudRain size={18} />
+                                    <IconSunset2 size={18} />
                                     Gameday Forecast
                                 </Group>
                                 <IconChevronRight size={18} />
@@ -168,7 +170,11 @@ export default function DetailsCard({
                             size="md"
                         >
                             {!weather ? (
-                                <Text>Weather data is generally available starting seven days before the scheduled date. Please check back at a later time.</Text>
+                                <Stack align="center">
+                                    <IconCloudRain size={72} />
+                                    <Text c="red">Weather data not yet available</Text>
+                                    <Text c="dimmed">Weather data is generally available starting seven days before the scheduled game date. Please check back at a later time.</Text>
+                                </Stack>
                             ) : JSON.stringify(weather)}
                         </DrawerContainer>
                     );
