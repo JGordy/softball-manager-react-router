@@ -1,6 +1,7 @@
 import {
     Card,
     Code,
+    Group,
     Skeleton,
     Stack,
     Text,
@@ -25,6 +26,13 @@ const renderWeatherDetails = (weather) => {
     return (
         <>
             <Code color="transparent" block>{JSON.stringify(weather, null, 2)}</Code>
+            <Group mt="md" gap="5px">
+                <Text size="sm" c="dimmed" span>Weather details powered by </Text>
+                <Text size="sm" fw={700} span>
+                    <a href="https://openweathermap.org/" target="_blank" rel="noreferrer">OpenWeatherMap</a>
+                    &nbsp;
+                </Text>
+            </Group>
         </>
     );
 }
