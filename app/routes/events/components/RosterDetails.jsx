@@ -10,7 +10,6 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 
 import {
-    IconChevronRight,
     IconClipboardList,
     IconUsersGroup,
     IconZoomQuestion,
@@ -18,11 +17,12 @@ import {
 
 import DrawerContainer from '@/components/DrawerContainer';
 import DeferredLoader from '@/components/DeferredLoader';
-
-import AvailablityContainer from './AvailablityContainer';
+import PlayerChart from '@/components/PlayerChart';
 
 import addPlayerAvailability from '../utils/addPlayerAvailability';
-import PlayerChart from '@/components/PlayerChart';
+
+import AvailablityContainer from './AvailablityContainer';
+import CardSection from './CardSection';
 
 export default function RosterDetails({
     deferredData,
@@ -37,53 +37,45 @@ export default function RosterDetails({
 
     return (
         <>
-            <Card withBorder radius="lg" mt="xl" mx="md" py="5px">
-
+            <Card withBorder radius="lg" mt="md" mx="md" py="5px">
                 <Text size="sm" mt="xs">Roster & Availability Details</Text>
 
-                <Card.Section my="xs" inheritPadding>
-                    <Group justify="space-between" c="green" onClick={lineupDrawerHandlers.open}>
-                        <Group gap="xs" c="green">
-                            <IconClipboardList size={18} />
-                            Lineup & Field Chart
-                        </Group>
-                        <IconChevronRight size={18} />
-                    </Group>
-                    {!playerChart ? (
+                <CardSection
+                    onClick={lineupDrawerHandlers.open}
+                    heading="Lineup & Field Chart"
+                    leftSection={<IconClipboardList size={20} />}
+                    subHeading={!playerChart ? (
                         <Text size="xs" mt="5px" ml="28px" c="dimmed">Charts currently not available</Text>
                     ) : (
                         <Text size="xs" mt="5px" ml="28px" c="dimmed">Charts available to view</Text>
-
                     )}
-                </Card.Section>
+                />
 
                 <Divider />
 
-                <Card.Section my="xs" inheritPadding>
-                    <Group justify='space-between' onClick={availabilityDrawerHandlers.open} c="green">
-                        <Group gap="xs">
-                            <IconUsersGroup size={18} />
-                            Player Availability
-                        </Group>
-                        <IconChevronRight size={18} />
-                    </Group>
-                    <DeferredLoader
-                        resolve={deferredData}
-                        fallback={<Skeleton height={16} width="70%" mt="5px" ml="28px" radius="xl" />}
-                        errorElement={<Text size="xs" mt="5px" ml="28px" c="red">Error loading details.</Text>}
-                    >
-                        {({ attendance, players }) => {
-                            const { documents } = attendance;
-                            const playersWithAvailability = addPlayerAvailability(documents, players);
-                            const availablePlayers = playersWithAvailability.filter(p => p.available === 'accepted');
-                            return (
-                                <Text size="xs" mt="5px" ml="28px" c="dimmed">
-                                    {`${documents?.length || 0} responses, ${availablePlayers?.length || 0} ${availablePlayers?.length === 1 ? 'player' : 'players'} available`}
-                                </Text>
-                            );
-                        }}
-                    </DeferredLoader>
-                </Card.Section>
+                <CardSection
+                    onClick={availabilityDrawerHandlers.open}
+                    heading="Player Availability"
+                    leftSection={<IconUsersGroup size={20} />}
+                    subHeading={(
+                        <DeferredLoader
+                            resolve={deferredData}
+                            fallback={<Skeleton height={16} width="70%" mt="5px" radius="xl" />}
+                            errorElement={<Text size="xs" mt="5px" c="red">Error loading details.</Text>}
+                        >
+                            {({ attendance, players }) => {
+                                const { documents } = attendance;
+                                const playersWithAvailability = addPlayerAvailability(documents, players);
+                                const availablePlayers = playersWithAvailability.filter(p => p.available === 'accepted');
+                                return (
+                                    <Text size="xs" mt="5px" ml="28px" c="dimmed">
+                                        {`${documents?.length || 0} responses, ${availablePlayers?.length || 0} ${availablePlayers?.length === 1 ? 'player' : 'players'} available`}
+                                    </Text>
+                                );
+                            }}
+                        </DeferredLoader>
+                    )}
+                />
             </Card>
 
             <DrawerContainer
