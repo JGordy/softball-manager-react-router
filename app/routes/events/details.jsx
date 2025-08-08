@@ -26,6 +26,7 @@ import MenuContainer from './components/MenuContainer';
 import Scoreboard from './components/Scoreboard';
 import DetailsCard from './components/DetailsCard';
 import RosterDetails from './components/RosterDetails';
+import WeatherCard from './components/WeatherCard';
 
 export async function action({ request, params }) {
     const { eventId } = params;
@@ -140,6 +141,8 @@ export default function EventDetails({ loaderData, actionData }) {
                 team={team}
                 weatherPromise={weatherPromise}
             />
+
+            {!gameIsPast && <WeatherCard />}
 
             <RosterDetails
                 deferredData={deferredData}
