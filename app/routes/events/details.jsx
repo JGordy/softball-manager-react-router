@@ -139,10 +139,9 @@ export default function EventDetails({ loaderData, actionData }) {
                 deferredData={deferredData}
                 season={season}
                 team={team}
-                weatherPromise={weatherPromise}
             />
 
-            {!gameIsPast && <WeatherCard />}
+            {!gameIsPast && <WeatherCard weatherPromise={weatherPromise} />}
 
             <RosterDetails
                 deferredData={deferredData}
