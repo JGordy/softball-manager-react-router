@@ -38,7 +38,7 @@ const getWeatherData = (parkId, game) => {
             exclude.push('hourly');
         }
 
-        const url = `${baseWeatherUrl}?lat=${park.latitude}&lon=${park.longitude}&exclude=${exclude.join(',')}&appid=${import.meta.env.VITE_OPEN_WEATHER_MAP_KEY}`;
+        const url = `${baseWeatherUrl}?lat=${park.latitude}&lon=${park.longitude}&units=imperial&exclude=${exclude.join(',')}&appid=${import.meta.env.VITE_OPEN_WEATHER_MAP_KEY}`;
 
         try {
             const response = await fetch(url);
