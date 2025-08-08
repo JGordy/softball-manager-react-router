@@ -1,5 +1,6 @@
 import {
     Card,
+    Code,
     Skeleton,
     Stack,
     Text,
@@ -19,6 +20,14 @@ const weatherFallback = (
         <Text c="dimmed">Weather data is generally available starting seven days before the scheduled game date. Please check back at a later time.</Text>
     </Stack>
 );
+
+const renderWeatherDetails = (weather) => {
+    return (
+        <>
+            <Code color="transparent" block>{JSON.stringify(weather, null, 2)}</Code>
+        </>
+    );
+}
 
 function findWeatherForGameDate(gameDate, weather) {
     if (!weather) return null;
@@ -77,7 +86,7 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
                             title="Weather Details"
                             size="md"
                         >
-                            {!gameDayWeather ? weatherFallback : JSON.stringify(gameDayWeather)}
+                            {!gameDayWeather ? weatherFallback : renderWeatherDetails(gameDayWeather)}
                         </DrawerContainer>
                     );
                 }}
