@@ -1,22 +1,17 @@
 import {
     Card,
     Divider,
-    Group,
     Skeleton,
-    Stack,
     Text,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 
 import {
-    IconChevronRight,
     IconClock,
-    IconCloudRain,
     IconMapPin,
-    IconSunset2,
 } from '@tabler/icons-react';
 
-import { formatGameTime, getGameDayStatus } from '@/utils/dateTime';
+import { formatGameTime } from '@/utils/dateTime';
 
 import DrawerContainer from '@/components/DrawerContainer';
 import DeferredLoader from '@/components/DeferredLoader';
@@ -30,7 +25,6 @@ export default function DetailsCard({
     deferredData,
     season,
     team,
-    weatherPromise,
 }) {
 
     const {
@@ -39,12 +33,9 @@ export default function DetailsCard({
     } = game;
 
     const formattedGameTime = formatGameTime(gameDate, timeZone);
-    const gameDayStatus = getGameDayStatus(gameDate);
-    const gameIsPast = gameDayStatus === 'past';
 
     const [locationDrawerOpened, locationDrawerHandlers] = useDisclosure(false);
     const [calendarDrawerOpened, calendarDrawerHandlers] = useDisclosure(false);
-    const [weatherDrawerOpened, weatherDrawerHandlers] = useDisclosure(false);
 
     return (
         <>
@@ -83,31 +74,6 @@ export default function DetailsCard({
                 />
             </Card>
 
-            {!gameIsPast && (
-                <Card withBorder radius="xl" mt="md" mx="md" py="5px">
-                    <CardSection
-                        onClick={weatherDrawerHandlers.open}
-                        heading="Gameday Forecast"
-                        leftSection={<IconSunset2 size={20} />}
-                        subHeading={(
-                            <DeferredLoader
-                                resolve={weatherPromise}
-                                fallback={<Skeleton height={16} width="70%" mt="5px" ml="28px" radius="xl" />}
-                                errorElement={<Text size="xs" mt="5px" ml="28px" c="red">Error loading weather details</Text>}
-                            >
-                                {(weather) => {
-                                    return (
-                                        <Text size="xs" mt="5px" ml="28px" c="dimmed">
-                                            {!weather ? 'Data unavailable at this time' : 'Some weather summary here'}
-                                        </Text>
-                                    );
-                                }}
-                            </DeferredLoader>
-                        )}
-                    />
-                </Card>
-            )}
-
             <DeferredLoader resolve={deferredData} fallback={null}>
                 {({ park }) => (
                     <>
@@ -135,27 +101,6 @@ export default function DetailsCard({
                         )}
                     </>
                 )}
-            </DeferredLoader>
-
-            <DeferredLoader resolve={weatherPromise}>
-                {(weather) => {
-                    return (
-                        <DrawerContainer
-                            opened={weatherDrawerOpened}
-                            onClose={weatherDrawerHandlers.close}
-                            title="Weather Details"
-                            size="md"
-                        >
-                            {!weather ? (
-                                <Stack align="center">
-                                    <IconCloudRain size={72} />
-                                    <Text c="red">Weather data not yet available</Text>
-                                    <Text c="dimmed">Weather data is generally available starting seven days before the scheduled game date. Please check back at a later time.</Text>
-                                </Stack>
-                            ) : JSON.stringify(weather)}
-                        </DrawerContainer>
-                    );
-                }}
             </DeferredLoader>
         </>
     );
