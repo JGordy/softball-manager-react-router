@@ -32,7 +32,7 @@ export default function WeatherCard({ weatherPromise }) {
                             {(weather) => {
                                 return (
                                     <Text size="xs" mt="5px" ml="28px" c="dimmed">
-                                        {!weather ? 'Data unavailable at this time' : 'Some weather summary here'}
+                                        {!weather ? 'Data unavailable at this time' : 'Click to view weather details'}
                                     </Text>
                                 );
                             }}
