@@ -12,6 +12,14 @@ import CardSection from './CardSection';
 import DeferredLoader from '@/components/DeferredLoader';
 import DrawerContainer from '@/components/DrawerContainer';
 
+const weatherFallback = (
+    <Stack align="center">
+        <IconCloudRain size={72} />
+        <Text c="red">Weather data not yet available</Text>
+        <Text c="dimmed">Weather data is generally available starting seven days before the scheduled game date. Please check back at a later time.</Text>
+    </Stack>
+);
+
 export default function WeatherCard({ weatherPromise }) {
 
     const [weatherDrawerOpened, weatherDrawerHandlers] = useDisclosure(false);
@@ -30,6 +38,7 @@ export default function WeatherCard({ weatherPromise }) {
                             errorElement={<Text size="xs" mt="5px" ml="28px" c="red">Error loading weather details</Text>}
                         >
                             {(weather) => {
+                                console.log({ weather });
                                 return (
                                     <Text size="xs" mt="5px" ml="28px" c="dimmed">
                                         {!weather ? 'Data unavailable at this time' : 'Click to view weather details'}
@@ -50,13 +59,7 @@ export default function WeatherCard({ weatherPromise }) {
                             title="Weather Details"
                             size="md"
                         >
-                            {!weather ? (
-                                <Stack align="center">
-                                    <IconCloudRain size={72} />
-                                    <Text c="red">Weather data not yet available</Text>
-                                    <Text c="dimmed">Weather data is generally available starting seven days before the scheduled game date. Please check back at a later time.</Text>
-                                </Stack>
-                            ) : JSON.stringify(weather)}
+                            {!weather ? weatherFallback : JSON.stringify(weather)}
                         </DrawerContainer>
                     );
                 }}
