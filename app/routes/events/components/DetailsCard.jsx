@@ -23,6 +23,7 @@ import DeferredLoader from '@/components/DeferredLoader';
 
 import ParkDetailsDrawer from './ParkDetailsDrawer';
 import CalendarDetails from './CalendarDetails';
+import CardSection from './CardSection';
 
 export default function DetailsCard({
     game,
@@ -51,68 +52,44 @@ export default function DetailsCard({
 
                 <Text size="sm" mt="xs">Date & Location Details</Text>
 
-                <Card.Section my="xs" inheritPadding>
-                    <Group justify="space-between" c="green" onClick={calendarDrawerHandlers.open}>
-                        <Group gap="xs" c="green">
-                            <IconClock size={18} />
-                            {formattedGameTime}
-                        </Group>
-                        <IconChevronRight size={18} />
-                    </Group>
-                </Card.Section>
+                <CardSection
+                    onClick={calendarDrawerHandlers.open}
+                    heading={formattedGameTime}
+                    leftSection={<IconClock size={20} />}
+                />
 
                 <Divider />
 
-                <Card.Section my="xs" inheritPadding>
-                    <DeferredLoader
-                        resolve={deferredData}
-                        fallback={(
-                            <>
-                                <Group gap="xs">
-                                    <IconMapPin size={18} />
-                                    <Text>{season?.location || 'Loading location...'}</Text>
-                                </Group>
-                                <Skeleton height={16} width="70%" mt="5px" ml="28px" radius="xl" />
-                            </>
-                        )}
-                        errorElement={<Text c="red" size="sm" ml="28px">Error loading location.</Text>}
-                    >
-                        {({ park }) => (
-                            <>
-                                {park?.googleMapsURI ? (
-                                    <Group justify='space-between' onClick={locationDrawerHandlers.open} c="green">
-                                        <Group gap="xs">
-                                            <IconMapPin size={18} />
-                                            {season?.location}
-                                        </Group>
-                                        <IconChevronRight size={18} />
-                                    </Group>
-                                ) : (
-                                    <Group gap="xs">
-                                        <IconMapPin size={18} />
-                                        {season?.location || 'Location not specified'}
-                                    </Group>
-                                )}
-                                <Text size="xs" mt="5px" ml="28px" c="dimmed">
-                                    {park?.formattedAddress || 'Address not listed'}
-                                </Text>
-                            </>
-                        )}
-                    </DeferredLoader>
-                </Card.Section>
+                <CardSection
+                    onClick={locationDrawerHandlers.open}
+                    heading={season?.location || 'Loading location...'}
+                    leftSection={<IconMapPin size={20} />}
+                    subHeading={(
+                        <DeferredLoader
+                            resolve={deferredData}
+                            fallback={<Skeleton height={16} width="70%" mt="5px" ml="28px" radius="xl" />}
+                        >
+                            {({ park }) => (
+                                <>
+                                    {park?.googleMapsURI ? (
+                                        <Text size="xs" mt="5px" ml="28px" c="dimmed">{park?.formattedAddress || 'Address not listed'}</Text>
+                                    ) : (
+                                        <Text size="xs" mt="5px" ml="28px" c="dimmed">{season?.location || 'Location not specified'}</Text>
+                                    )}
+                                </>
+                            )}
+                        </DeferredLoader>
+                    )}
+                />
+            </Card>
 
-                {!gameIsPast && (
-                    <>
-                        <Divider />
-
-                        <Card.Section my="xs" inheritPadding>
-                            <Group justify='space-between' onClick={weatherDrawerHandlers.open} c="green">
-                                <Group gap="xs">
-                                    <IconSunset2 size={18} />
-                                    Gameday Forecast
-                                </Group>
-                                <IconChevronRight size={18} />
-                            </Group>
+            {!gameIsPast && (
+                <Card withBorder radius="xl" mt="md" mx="md" py="5px">
+                    <CardSection
+                        onClick={weatherDrawerHandlers.open}
+                        heading="Gameday Forecast"
+                        leftSection={<IconSunset2 size={20} />}
+                        subHeading={(
                             <DeferredLoader
                                 resolve={weatherPromise}
                                 fallback={<Skeleton height={16} width="70%" mt="5px" ml="28px" radius="xl" />}
@@ -126,10 +103,10 @@ export default function DetailsCard({
                                     );
                                 }}
                             </DeferredLoader>
-                        </Card.Section>
-                    </>
-                )}
-            </Card>
+                        )}
+                    />
+                </Card>
+            )}
 
             <DeferredLoader resolve={deferredData} fallback={null}>
                 {({ park }) => (
