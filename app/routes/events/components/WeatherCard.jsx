@@ -58,7 +58,7 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
                                 console.log({ gameDayWeather });
                                 return (
                                     <Text size="xs" mt="5px" ml="28px" c="dimmed">
-                                        {!gameDayWeather ? 'Data unavailable at this time' : 'Click to view weather details'}
+                                        {!gameDayWeather ? 'Data unavailable at this time' : gameDayWeather.summary}
                                     </Text>
                                 );
                             }}
