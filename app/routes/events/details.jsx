@@ -57,7 +57,7 @@ export async function loader({ params, request }) {
 }
 
 export default function EventDetails({ loaderData, actionData }) {
-    console.log('/events/:eventId > ', { ...loaderData });
+    // console.log('/events/:eventId > ', { ...loaderData });
 
     const [deleteDrawerOpened, deleteDrawerHandlers] = useDisclosure(false);
 
@@ -141,7 +141,12 @@ export default function EventDetails({ loaderData, actionData }) {
                 team={team}
             />
 
-            {!gameIsPast && <WeatherCard weatherPromise={weatherPromise} />}
+            {!gameIsPast && (
+                <WeatherCard
+                    gameDate={gameDate}
+                    weatherPromise={weatherPromise}
+                />
+            )}
 
             <RosterDetails
                 deferredData={deferredData}
