@@ -20,7 +20,23 @@ const weatherFallback = (
     </Stack>
 );
 
-export default function WeatherCard({ weatherPromise }) {
+function findWeatherForGameDate(gameDate, weather) {
+    if (!weather) return null;
+
+    const data = weather.daily || weather.hourly || null;
+    if (!data) return null;
+
+    const gameDateObj = new Date(gameDate);
+    const gameDayString = gameDateObj.toISOString().split('T')[0];
+
+    return data.find(dailyWeather => {
+        const weatherDate = new Date(dailyWeather.dt * 1000);
+        const weatherDayString = weatherDate.toISOString().split('T')[0];
+        return gameDayString === weatherDayString;
+    });
+}
+
+export default function WeatherCard({ weatherPromise, gameDate }) {
 
     const [weatherDrawerOpened, weatherDrawerHandlers] = useDisclosure(false);
 
@@ -38,10 +54,11 @@ export default function WeatherCard({ weatherPromise }) {
                             errorElement={<Text size="xs" mt="5px" ml="28px" c="red">Error loading weather details</Text>}
                         >
                             {(weather) => {
-                                console.log({ weather });
+                                const gameDayWeather = findWeatherForGameDate(gameDate, weather);
+                                console.log({ gameDayWeather });
                                 return (
                                     <Text size="xs" mt="5px" ml="28px" c="dimmed">
-                                        {!weather ? 'Data unavailable at this time' : 'Click to view weather details'}
+                                        {!gameDayWeather ? 'Data unavailable at this time' : 'Click to view weather details'}
                                     </Text>
                                 );
                             }}
@@ -52,6 +69,7 @@ export default function WeatherCard({ weatherPromise }) {
 
             <DeferredLoader resolve={weatherPromise}>
                 {(weather) => {
+                    const gameDayWeather = findWeatherForGameDate(gameDate, weather);
                     return (
                         <DrawerContainer
                             opened={weatherDrawerOpened}
@@ -59,7 +77,7 @@ export default function WeatherCard({ weatherPromise }) {
                             title="Weather Details"
                             size="md"
                         >
-                            {!weather ? weatherFallback : JSON.stringify(weather)}
+                            {!gameDayWeather ? weatherFallback : JSON.stringify(gameDayWeather)}
                         </DrawerContainer>
                     );
                 }}
