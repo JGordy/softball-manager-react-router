@@ -5,6 +5,7 @@ import {
     Skeleton,
     Stack,
     Text,
+    Title,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 
@@ -13,6 +14,9 @@ import { IconSunset2, IconCloudRain } from '@tabler/icons-react';
 import CardSection from './CardSection';
 import DeferredLoader from '@/components/DeferredLoader';
 import DrawerContainer from '@/components/DrawerContainer';
+
+import getDailyWeather from '../utils/getDailyWeather';
+import getHourlyWeather from '../utils/getHourlyWeather';
 
 const weatherFallback = (
     <Stack align="center">
@@ -23,9 +27,18 @@ const weatherFallback = (
 );
 
 const renderWeatherDetails = (weather) => {
+    const { timeOfDay } = weather;
     return (
         <>
-            <Code color="transparent" block>{JSON.stringify(weather, null, 2)}</Code>
+            {/* <Code color="transparent" block>{JSON.stringify(weather, null, 2)}</Code> */}
+            <Group align="start">
+                <Title order={1}>{Math.round(weather.temp[timeOfDay])}°F</Title>
+                <Text c="dimmed" fs="italic" mt="6px">Feels like {Math.round(weather.feels_like[timeOfDay])}°F</Text>
+            </Group>
+            <Group mt="xs">
+                <Text>{weather.pop * 100}% chance of {weather.weather[0]?.description}</Text>
+                <Text>{Math.round((weather.rain / 25.4) * 100) / 100} inches</Text>
+            </Group>
             <Group mt="md" gap="5px">
                 <Text size="sm" c="dimmed" span>Weather details powered by </Text>
                 <Text size="sm" fw={700} span>
@@ -40,17 +53,15 @@ const renderWeatherDetails = (weather) => {
 function findWeatherForGameDate(gameDate, weather) {
     if (!weather) return null;
 
-    const data = weather.daily || weather.hourly || null;
-    if (!data) return null;
+    console.log({ gameDate, weather });
 
-    const gameDateObj = new Date(gameDate);
-    const gameDayString = gameDateObj.toISOString().split('T')[0];
+    if (weather.daily) {
+        return getDailyWeather(weather.daily, gameDate);
+    } else if (weather.hourly) {
+        return getHourlyWeather(weather.hourly, gameDate)
+    }
 
-    return data.find(dailyWeather => {
-        const weatherDate = new Date(dailyWeather.dt * 1000);
-        const weatherDayString = weatherDate.toISOString().split('T')[0];
-        return gameDayString === weatherDayString;
-    });
+    return null;
 }
 
 export default function WeatherCard({ weatherPromise, gameDate }) {
