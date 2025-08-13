@@ -63,7 +63,7 @@ const renderWeatherDetails = ({
         <>
             <Stack align="stretch" justify="space-between" mih="300">
                 <Card radius="xl" py="lg">
-                    <Group align="center">
+                    <Group align="center" justify="center">
                         {icons[main.toLowerCase()]}
                         <div>
                             <Text size="lg">{weather[0]?.description}</Text>
