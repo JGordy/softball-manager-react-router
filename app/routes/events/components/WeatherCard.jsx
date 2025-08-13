@@ -32,8 +32,8 @@ const renderWeatherDetails = (weather) => {
         <>
             {/* <Code color="transparent" block>{JSON.stringify(weather, null, 2)}</Code> */}
             <Group align="start">
-                <Title order={1}>{Math.round(weather.temp[timeOfDay])}°F</Title>
-                <Text c="dimmed" fs="italic" mt="6px">Feels like {Math.round(weather.feels_like[timeOfDay])}°F</Text>
+                <Title order={1}>{Math.round(weather.temp?.[timeOfDay] || weather.temp)}°F</Title>
+                <Text c="dimmed" fs="italic" mt="6px">Feels like {Math.round(weather.feels_like[timeOfDay] || weather.feels_like)}°F</Text>
             </Group>
             <Group mt="xs">
                 <Text>{weather.pop * 100}% chance of {weather.weather[0]?.description}</Text>
