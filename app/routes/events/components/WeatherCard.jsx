@@ -110,7 +110,7 @@ const renderWeatherDetails = ({
                 </Card>
 
                 <Group justify="center" mt="md" gap="5px">
-                    <Text size="sm" c="dimmed" span>Weather details powered by </Text>
+                    <Text size="sm" c="dimmed" span>Weather details provided by </Text>
                     <Text size="sm" fw={700} span>
                         <a href="https://openweathermap.org/" target="_blank" rel="noreferrer">OpenWeatherMap</a>
                         &nbsp;
@@ -176,7 +176,7 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
                             opened={weatherDrawerOpened}
                             onClose={weatherDrawerHandlers.close}
                             title="Weather Details"
-                            size="lg"
+                            size={gameDayWeather ? 'lg' : 'md'}
                         >
                             {!gameDayWeather ? weatherFallback : renderWeatherDetails(gameDayWeather)}
                         </DrawerContainer>
