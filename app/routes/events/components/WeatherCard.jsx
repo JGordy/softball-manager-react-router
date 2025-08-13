@@ -106,7 +106,7 @@ const renderWeatherDetails = ({
 
                 <Card radius="xl" my="md">
                     <Text align="center">{summary}</Text>
-                    <Text fw={700} align="center">{`${Math.round((rest[main.toLowerCase()] / 25.4) * 100) / 100} inches`}</Text>
+                    <Text fw={700} align="center">{`${Math.round((rest[main.toLowerCase()] / 25.4) * 100) / 100} total inches`}</Text>
                 </Card>
 
                 <Group justify="center" mt="md" gap="5px">
