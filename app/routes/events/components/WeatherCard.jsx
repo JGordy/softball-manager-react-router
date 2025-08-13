@@ -1,6 +1,6 @@
 import {
     Card,
-    Code,
+    Divider,
     Group,
     Skeleton,
     Stack,
@@ -9,7 +9,17 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 
-import { IconSunset2, IconCloudRain } from '@tabler/icons-react';
+import {
+    IconSunset2,
+    IconCloudFilled,
+    IconCloudRain,
+    IconCloudStorm,
+    IconDropletHalf2Filled,
+    IconSunFilled,
+    IconNavigationFilled,
+    IconSnowflake,
+    IconUvIndex,
+} from '@tabler/icons-react';
 
 import CardSection from './CardSection';
 import DeferredLoader from '@/components/DeferredLoader';
@@ -17,6 +27,14 @@ import DrawerContainer from '@/components/DrawerContainer';
 
 import getDailyWeather from '../utils/getDailyWeather';
 import getHourlyWeather from '../utils/getHourlyWeather';
+
+const icons = {
+    rain: <IconCloudRain size={48} />,
+    snow: <IconSnowflake size={48} />,
+    clouds: <IconCloudFilled size={48} />,
+    clear: <IconSunFilled size={48} />,
+    thunderstorm: <IconCloudStorm size={48} />,
+}
 
 const weatherFallback = (
     <Stack align="center">
@@ -26,26 +44,71 @@ const weatherFallback = (
     </Stack>
 );
 
-const renderWeatherDetails = (weather) => {
-    const { timeOfDay } = weather;
+const renderWeatherDetails = ({
+    temp,
+    feels_like,
+    pop, // Percent chance of precipitation
+    timeOfDay, // "day", "night", "eve", "morn", "max", "min"
+    weather,
+    wind_deg,
+    wind_speed,
+    uvi, // UI index
+    ...rest
+}) => {
+
+    const _temp = Math.round(temp[timeOfDay] || temp);
+    const _feels_like = Math.round(feels_like[timeOfDay] || feels_like);
+    const main = weather[0]?.main;
+
     return (
         <>
-            {/* <Code color="transparent" block>{JSON.stringify(weather, null, 2)}</Code> */}
-            <Group align="start">
-                <Title order={1}>{Math.round(weather.temp?.[timeOfDay] || weather.temp)}°F</Title>
-                <Text c="dimmed" fs="italic" mt="6px">Feels like {Math.round(weather.feels_like[timeOfDay] || weather.feels_like)}°F</Text>
-            </Group>
-            <Group mt="xs">
-                <Text>{weather.pop * 100}% chance of {weather.weather[0]?.description}</Text>
-                <Text>{Math.round((weather.rain / 25.4) * 100) / 100} inches</Text>
-            </Group>
-            <Group mt="md" gap="5px">
-                <Text size="sm" c="dimmed" span>Weather details powered by </Text>
-                <Text size="sm" fw={700} span>
-                    <a href="https://openweathermap.org/" target="_blank" rel="noreferrer">OpenWeatherMap</a>
-                    &nbsp;
-                </Text>
-            </Group>
+            <Stack align="stretch" justify="space-between" mih="300">
+                <Card radius="xl" py="lg">
+                    <Group align="center">
+                        {icons[main.toLowerCase()]}
+                        <div>
+                            <Text size="lg">{weather[0]?.description}</Text>
+                            <Text span>{_temp}°F -</Text>
+                            <Text c="dimmed" fs="italic" size="sm" span> Feels like {_feels_like}°F</Text>
+                        </div>
+                    </Group>
+                    <Card mt="lg" radius="xl" style={{ backgroundColor: 'var(--mantine-color-body)' }}>
+                        <Group justify="space-around" gap="0">
+                            <Stack align="center" gap="3px" w="30%">
+                                <IconDropletHalf2Filled size={20} />
+                                <Text size="xl" fw={700}>{pop * 100}%</Text>
+                                <Text size="xs">precipitation</Text>
+                            </Stack>
+
+                            <Divider orientation="vertical" />
+
+                            <Stack align="center" gap="3px" w="30%">
+                                <IconNavigationFilled size={20} style={{ transform: `rotate(${wind_deg + 180}deg)` }} />
+                                <Text size="xl" fw={700}>{Math.round(wind_speed)} mph</Text>
+                                <Text size="xs">wind</Text>
+                            </Stack>
+
+                            <Divider orientation="vertical" />
+
+                            <Stack align="center" gap="3px" w="30%">
+                                <IconUvIndex size={20} />
+                                <Text size="xl" fw={700}>{Math.round(uvi)}</Text>
+                                <Text size="xs">UV index</Text>
+                            </Stack>
+                        </Group>
+                    </Card>
+                </Card>
+                <Card radius="xl" my="md">
+                    <Text align="center" span>Expect <Text fw={700} span>{Math.round((rest[main.toLowerCase()] / 25.4) * 100) / 100}</Text> inches of {main.toLowerCase()}</Text>
+                </Card>
+                <Group justify="center" mt="md" gap="5px">
+                    <Text size="sm" c="dimmed" span>Weather details powered by </Text>
+                    <Text size="sm" fw={700} span>
+                        <a href="https://openweathermap.org/" target="_blank" rel="noreferrer">OpenWeatherMap</a>
+                        &nbsp;
+                    </Text>
+                </Group>
+            </Stack>
         </>
     );
 }
@@ -58,6 +121,7 @@ function findWeatherForGameDate(gameDate, weather) {
     if (weather.daily) {
         return getDailyWeather(weather.daily, gameDate);
     } else if (weather.hourly) {
+        console.log({ hourly: weather.hourly });
         return getHourlyWeather(weather.hourly, gameDate)
     }
 
@@ -98,12 +162,13 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
             <DeferredLoader resolve={weatherPromise}>
                 {(weather) => {
                     const gameDayWeather = findWeatherForGameDate(gameDate, weather);
+                    console.log({ gameDayWeather });
                     return (
                         <DrawerContainer
                             opened={weatherDrawerOpened}
                             onClose={weatherDrawerHandlers.close}
                             title="Weather Details"
-                            size="md"
+                            size="lg"
                         >
                             {!gameDayWeather ? weatherFallback : renderWeatherDetails(gameDayWeather)}
                         </DrawerContainer>
