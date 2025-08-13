@@ -26,6 +26,9 @@ import DrawerContainer from '@/components/DrawerContainer';
 
 import getDailyWeather from '../utils/getDailyWeather';
 import getHourlyWeather from '../utils/getHourlyWeather';
+import getPrecipitationChanceRating from '../utils/getPrecipitationRating';
+import getUvIndexColor from '../utils/getUvIndexColor';
+import getWindSpeedRating from '../utils/getWindSpeedRating';
 
 const icons = {
     rain: <IconCloudRain size={48} />,
@@ -78,7 +81,7 @@ const renderWeatherDetails = ({
                         <Group justify="space-around" gap="0">
                             <Stack align="center" gap="3px" w="30%">
                                 <IconDropletHalf2Filled size={20} />
-                                <Text size="xl" fw={700}>{pop * 100}%</Text>
+                                <Text size="xl" fw={700} c={getPrecipitationChanceRating(pop).color}>{pop * 100}%</Text>
                                 <Text size="xs">precipitation</Text>
                             </Stack>
 
@@ -86,7 +89,7 @@ const renderWeatherDetails = ({
 
                             <Stack align="center" gap="3px" w="30%">
                                 <IconNavigationFilled size={20} style={{ transform: `rotate(${wind_deg + 180}deg)` }} />
-                                <Text size="xl" fw={700}>{Math.round(wind_speed)} mph</Text>
+                                <Text size="xl" fw={700} c={getWindSpeedRating(wind_speed).color}>{Math.round(wind_speed)} mph</Text>
                                 <Text size="xs">wind</Text>
                             </Stack>
 
@@ -94,7 +97,7 @@ const renderWeatherDetails = ({
 
                             <Stack align="center" gap="3px" w="30%">
                                 <IconSunFilled size={20} />
-                                <Text size="xl" fw={700}>{Math.round(uvi)}</Text>
+                                <Text size="xl" fw={700} c={getUvIndexColor(uvi)}>{Math.round(uvi)}</Text>
                                 <Text size="xs">UV index</Text>
                             </Stack>
                         </Group>
