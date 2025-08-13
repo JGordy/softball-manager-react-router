@@ -31,11 +31,11 @@ import getUvIndexColor from '../utils/getUvIndexColor';
 import getWindSpeedRating from '../utils/getWindSpeedRating';
 
 const icons = {
-    rain: <IconCloudRain size={48} />,
-    snow: <IconSnowflake size={48} />,
-    clouds: <IconCloudFilled size={48} />,
-    clear: <IconSunFilled size={48} />,
-    thunderstorm: <IconCloudStorm size={48} />,
+    rain: <IconCloudRain size={60} />,
+    snow: <IconSnowflake size={60} />,
+    clouds: <IconCloudFilled size={60} />,
+    clear: <IconSunFilled size={60} />,
+    thunderstorm: <IconCloudStorm size={60} />,
 }
 
 const weatherFallback = (
