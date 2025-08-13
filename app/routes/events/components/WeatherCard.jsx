@@ -18,7 +18,6 @@ import {
     IconSunFilled,
     IconNavigationFilled,
     IconSnowflake,
-    IconUvIndex,
 } from '@tabler/icons-react';
 
 import CardSection from './CardSection';
@@ -91,7 +90,7 @@ const renderWeatherDetails = ({
                             <Divider orientation="vertical" />
 
                             <Stack align="center" gap="3px" w="30%">
-                                <IconUvIndex size={20} />
+                                <IconSunFilled size={20} />
                                 <Text size="xl" fw={700}>{Math.round(uvi)}</Text>
                                 <Text size="xs">UV index</Text>
                             </Stack>
