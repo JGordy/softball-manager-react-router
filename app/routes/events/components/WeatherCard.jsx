@@ -47,6 +47,7 @@ const renderWeatherDetails = ({
     temp,
     feels_like,
     pop, // Percent chance of precipitation
+    summary,
     timeOfDay, // "day", "night", "eve", "morn", "max", "min"
     weather,
     wind_deg,
@@ -98,7 +99,8 @@ const renderWeatherDetails = ({
                     </Card>
                 </Card>
                 <Card radius="xl" my="md">
-                    <Text align="center" span>Expect <Text fw={700} span>{Math.round((rest[main.toLowerCase()] / 25.4) * 100) / 100}</Text> inches of {main.toLowerCase()}</Text>
+                    <Text align="center">{summary}</Text>
+                    <Text fw={700} align="center">{`${Math.round((rest[main.toLowerCase()] / 25.4) * 100) / 100} inches`}</Text>
                 </Card>
                 <Group justify="center" mt="md" gap="5px">
                     <Text size="sm" c="dimmed" span>Weather details powered by </Text>
