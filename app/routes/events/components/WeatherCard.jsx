@@ -63,7 +63,8 @@ const renderWeatherDetails = ({
     return (
         <>
             <Stack align="stretch" justify="space-between" mih="300">
-                <Card radius="xl" py="lg">
+
+                <Card radius="xl" pt="xl">
                     <Group align="center" justify="center">
                         {icons[main.toLowerCase()]}
                         <div>
@@ -72,6 +73,7 @@ const renderWeatherDetails = ({
                             <Text c="dimmed" fs="italic" size="sm" span> Feels like {_feels_like}°F</Text>
                         </div>
                     </Group>
+
                     <Card mt="lg" radius="xl" style={{ backgroundColor: 'var(--mantine-color-body)' }}>
                         <Group justify="space-around" gap="0">
                             <Stack align="center" gap="3px" w="30%">
@@ -98,10 +100,12 @@ const renderWeatherDetails = ({
                         </Group>
                     </Card>
                 </Card>
+
                 <Card radius="xl" my="md">
                     <Text align="center">{summary}</Text>
                     <Text fw={700} align="center">{`${Math.round((rest[main.toLowerCase()] / 25.4) * 100) / 100} inches`}</Text>
                 </Card>
+
                 <Group justify="center" mt="md" gap="5px">
                     <Text size="sm" c="dimmed" span>Weather details powered by </Text>
                     <Text size="sm" fw={700} span>
