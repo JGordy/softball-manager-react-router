@@ -45,10 +45,15 @@ const weatherFallback = (
     </Stack>
 );
 
-const RainoutChance = ({ likelihood, color, reason }) => {
+const RainoutChance = ({
+    color,
+    likelihood,
+    reason,
+}) => {
+
     const disclaimer = "This score is weighted based on the hourly forecast leading up to the game";
 
-    return (likelihood > 5) && (
+    return (
         <Card radius="xl" mb="xl">
             <Stack align="center" gap="xs">
                 <Text ta="center">Rainout likelihood</Text>
@@ -90,7 +95,7 @@ const renderWeatherDetails = ({
                 <Card radius="xl">
                     {type === 'hourly' && (
                         <Text size="xs" c="dimmed" ta="center" mb="sm">
-                            Forecast is for the scheduled game time
+                            Forecast for the scheduled game time
                         </Text>
                     )}
                     <Group align="center" justify="center">
