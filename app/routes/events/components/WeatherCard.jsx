@@ -5,7 +5,6 @@ import {
     Skeleton,
     Stack,
     Text,
-    Title,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 
@@ -27,7 +26,6 @@ import DrawerContainer from '@/components/DrawerContainer';
 import getDailyWeather from '../utils/getDailyWeather';
 import getHourlyWeather from '../utils/getHourlyWeather';
 import getPrecipitationChanceRating from '../utils/getPrecipitationRating';
-import getRainoutLikelihood from '../utils/getRainoutLikelihood';
 import getUvIndexColor from '../utils/getUvIndexColor';
 import getWindSpeedRating from '../utils/getWindSpeedRating';
 
@@ -47,16 +45,20 @@ const weatherFallback = (
     </Stack>
 );
 
-const renderRainoutChance = ({ likelihood, color }) => {
+const RainoutChance = ({ likelihood, color, reason }) => {
+    const disclaimer = "This score is weighted based on the hourly forecast leading up to the game";
 
     return (likelihood > 5) && (
-        <Card radius="xl" mb="md">
-            <Stack align="center" gap={0}>
-                <Text>Rainout likelihood</Text>
-                <Text fw={700} c={color} size="1.75rem" my="xs"> {likelihood}%</Text>
-                <Text size="xs" c="dimmed" ta="center">
-                    This score is weighted based on the hourly forecast leading up to the game.
-                </Text>
+        <Card radius="xl" mb="xl">
+            <Stack align="center" gap="xs">
+                <Text ta="center">Rainout likelihood</Text>
+                <Text fw={700} c={color} size="1.75rem" my={4}> {likelihood}%</Text>
+                <Text size="xs" c="dimmed" ta="center" px="sm">{disclaimer}</Text>
+                {reason && (
+                    <Card className="inner-card" radius="xl" style={{ backgroundColor: 'var(--mantine-color-body)' }}>
+                        <Text size="xs" ta="center">{reason}</Text>
+                    </Card>
+                )}
             </Stack>
         </Card>
     );
@@ -75,7 +77,6 @@ const renderWeatherDetails = ({
     uvi, // UI index
     ...rest
 }) => {
-    console.log({ type });
 
     const _temp = Math.round(temp[timeOfDay] || temp);
     const _feels_like = Math.round(feels_like[timeOfDay] || feels_like);
@@ -89,7 +90,7 @@ const renderWeatherDetails = ({
                 <Card radius="xl">
                     {type === 'hourly' && (
                         <Text size="xs" c="dimmed" ta="center" mb="sm">
-                            Forecast is for the scheduled game time.
+                            Forecast is for the scheduled game time
                         </Text>
                     )}
                     <Group align="center" justify="center">
@@ -101,7 +102,7 @@ const renderWeatherDetails = ({
                         </div>
                     </Group>
 
-                    <Card mt="lg" radius="xl" style={{ backgroundColor: 'var(--mantine-color-body)' }}>
+                    <Card className="inner-card" mt="lg" radius="xl" style={{ backgroundColor: 'var(--mantine-color-body)' }}>
                         <Group justify="space-around" gap="0">
                             <Stack align="center" gap="3px" w="30%">
                                 <IconDropletHalf2Filled size={20} />
@@ -204,14 +205,18 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
                 {(weather) => {
                     const { gameDayWeather, rainout, type } = findWeatherForGameDate(gameDate, weather);
 
+                    let drawerSize = 'md';
+                    if (gameDayWeather) drawerSize = 'lg';
+                    if (rainout) drawerSize = 'xl';
+
                     return (
                         <DrawerContainer
                             opened={weatherDrawerOpened}
                             onClose={weatherDrawerHandlers.close}
                             title="Weather Details"
-                            size={gameDayWeather ? 'lg' : 'md'}
+                            size={drawerSize}
                         >
-                            {rainout && renderRainoutChance(rainout)}
+                            {rainout && <RainoutChance {...rainout} />}
                             {!gameDayWeather ? weatherFallback : renderWeatherDetails({ ...gameDayWeather, type })}
                         </DrawerContainer>
                     );
