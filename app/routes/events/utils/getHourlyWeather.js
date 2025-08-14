@@ -18,5 +18,5 @@ export default function getHourlyWeather(weather, gameDate, hoursBefore = 6) {
 
     const rainout = getRainoutLikelihood(hourlyWeather);
 
-    return { hourly: gameTimeWeather, all: hourlyWeather, rainout };
+    return { hourly: gameTimeWeather, rainout };
 }
