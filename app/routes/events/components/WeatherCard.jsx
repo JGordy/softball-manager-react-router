@@ -159,10 +159,11 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
                         >
                             {(weather) => {
                                 const gameDayWeather = findWeatherForGameDate(gameDate, weather);
-                                console.log({ gameDayWeather });
+                                const summary = gameDayWeather.summary ?? `${Math.round(gameDayWeather.temp)}°F / ${gameDayWeather.pop}% chance of precipitation`;
+                                console.log({ gameDayWeather, summary });
                                 return (
                                     <Text size="xs" mt="5px" ml="28px" c="dimmed">
-                                        {!gameDayWeather ? 'Data unavailable at this time' : gameDayWeather.summary}
+                                        {!gameDayWeather ? 'Data unavailable at this time' : summary}
                                     </Text>
                                 );
                             }}
