@@ -61,7 +61,7 @@ const RainoutChance = ({
                 <Text size="xs" c="dimmed" ta="center" px="sm">{disclaimer}</Text>
                 {reason && (
                     <Card className="inner-card" radius="xl" style={{ backgroundColor: 'var(--mantine-color-body)' }}>
-                        <Text size="xs" ta="center">{reason}</Text>
+                        <Text size="sm" ta="center">{reason}</Text>
                     </Card>
                 )}
             </Stack>
