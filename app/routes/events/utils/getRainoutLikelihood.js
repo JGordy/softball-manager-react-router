@@ -1,3 +1,53 @@
+function getLikelihoodColor(likelihood) {
+    if (likelihood <= 5) {
+        return "blue";
+    } else if (likelihood <= 15) {
+        return "green";
+    } else if (likelihood <= 30) {
+        return "yellow";
+    } else if (likelihood <= 50) {
+        return "orange";
+    } else if (likelihood <= 75) {
+        return "red";
+    } else {
+        return "purple";
+    }
+}
+
+function getWeatherSeverity(hourlyForecast) {
+    const weatherType = hourlyForecast.weather?.[0]?.main;
+    const rainAmount = hourlyForecast.rain?.["1h"] || 0;
+    if (weatherType === "Thunderstorm") return 4;
+    if (rainAmount > 2.5) return 3; // Moderate to heavy rain
+    if (rainAmount > 0) return 2; // Any measurable rain
+    if (weatherType === "Rain" || weatherType === "Drizzle") return 1; // Rain mentioned but no amount
+    return 0;
+}
+
+function getLikelihoodReason(likelihood, primaryThreat) {
+    if (likelihood <= 5) {
+        return "Clear conditions expected.";
+    }
+
+    const { weather, rainAmount } = primaryThreat;
+    const description = weather?.description || "precipitation";
+
+    if (weather?.main === "Thunderstorm") {
+        return "Potential for thunderstorms.";
+    }
+    if (rainAmount > 0) {
+        // Convert mm to inches, rounding to two decimal places.
+        const inches = (rainAmount / 25.4).toFixed(2);
+        return `Chance of ${description}, with up to ${inches} inches expected.`;
+    }
+    if (weather?.main === "Rain" || weather?.main === "Drizzle") {
+        return `Chance of ${description}.`;
+    }
+
+    // Fallback for when `pop` is high but no specific rain event is named.
+    return "Increased chance of precipitation.";
+}
+
 /**
  * Calculates the likelihood of a game being rained out based on hourly weather forecasts.
  * It uses a weighted average of the probability of precipitation (pop), giving more
@@ -6,74 +56,81 @@
  * @param {Array<Object>} weather - An array of hourly weather forecast objects.
  *                                  Each object should contain a 'pop' property (probability of precipitation)
  *                                  and a 'weather' array with forecast details.
- * @returns {{likelihood: number, color: string}} An object containing the calculated percentage and a corresponding color.
+ * @returns {{likelihood: number, color: string, reason: string}} An object containing the calculated percentage, a corresponding color, and a reason for the score.
  */
 export default function getRainoutLikelihood(weather) {
     // If the weather array is missing or empty, there's no data to process.
     if (!weather || !weather.length) {
-        return { likelihood: 0, color: "blue" };
+        return {
+            likelihood: 0,
+            color: "blue",
+            reason: "No weather data available.",
+        };
     }
 
     // --- Weighting System ---
-    // Create an array of weights. For a list of 6 hours, this creates: [1, 2, 3, 4, 5, 6].
-    // This makes the forecast for the first hour have the least impact (weight: 1) and the
-    // forecast for the hour of the game have the most impact (weight: 6).
     const weights = weather.map((_, index) => index + 1);
-
-    // Sum up all the weights to get a total. For [1, 2, 3, 4, 5, 6], this would be 21.
-    // This total is used later to calculate the weighted average.
     const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
 
-    // --- Weighted Probability Calculation ---
-    // The .reduce() method iterates over each hourly forecast to calculate a single value: the total weighted probability.
-    const weightedPop = weather.reduce((sum, hourlyForecast, index) => {
-        // Get the probability of precipitation for the hour, defaulting to 0 if it's not available.
-        let pop = hourlyForecast.pop || 0;
+    // Keep track of the hour with the most significant precipitation threat.
+    let primaryThreat = { weather: null, rainAmount: 0, severity: 0 };
 
-        // Safely access the main weather condition (e.g., "Rain", "Clouds") from the nested object.
+    // --- Weighted Probability Calculation ---
+    const weightedPop = weather.reduce((sum, hourlyForecast, index) => {
+        let pop = hourlyForecast.pop || 0;
         const weatherType = hourlyForecast.weather?.[0]?.main;
+        const rainAmount = hourlyForecast.rain?.["1h"] || 0;
 
         // --- Boost probability based on weather conditions ---
-        // If the forecast explicitly mentions rain, drizzle, or a thunderstorm,
-        // we treat the probability for that hour as being at least 50%.
         if (["Rain", "Drizzle", "Thunderstorm"].includes(weatherType)) {
             pop = Math.max(pop, 0.5);
         }
-
-        // If it's a thunderstorm, the chance of cancellation is very high, so we
-        // boost the probability for that hour to be at least 90%.
         if (weatherType === "Thunderstorm") {
             pop = Math.max(pop, 0.9);
         }
 
-        // Multiply the (potentially boosted) probability by its weight and add it to the running total (sum).
+        // --- Adjust for volume ---
+        // If the pop is high but rain amount is negligible, reduce the impact.
+        if (pop > 0.5 && rainAmount > 0 && rainAmount < 0.254) {
+            pop = pop * 0.5; // Halve the impact of this hour
+        }
+
+        // Identify the hour with the most severe weather to use for the 'reason' text.
+        const severity = getWeatherSeverity(hourlyForecast);
+        const currentThreat = {
+            weather: hourlyForecast.weather,
+            rainAmount: rainAmount,
+            severity: severity,
+        };
+
+        if (currentThreat.severity > primaryThreat.severity) {
+            primaryThreat = currentThreat;
+        } else if (
+            currentThreat.severity === primaryThreat.severity &&
+            currentThreat.severity > 0
+        ) {
+            // If severity is the same, the one with more rain is the primary threat.
+            if (currentThreat.rainAmount > primaryThreat.rainAmount) {
+                primaryThreat = currentThreat;
+            }
+        }
+
         return sum + pop * weights[index];
-    }, 0); // Start the sum at 0.
+    }, 0);
 
     // --- Final Calculation ---
-    // Safety check to prevent dividing by zero.
     if (totalWeight === 0) {
-        return { likelihood: 0, color: "blue" };
+        return {
+            likelihood: 0,
+            color: "blue",
+            reason: "Clear conditions expected.",
+        };
     }
 
-    // Calculate the final percentage by dividing the total weighted probability by the total weight.
     const rainoutPercentage = (weightedPop / totalWeight) * 100;
     const likelihood = Math.round(rainoutPercentage);
-    let color;
+    const color = getLikelihoodColor(likelihood);
+    const reason = getLikelihoodReason(likelihood, primaryThreat);
 
-    if (likelihood <= 5) {
-        color = "blue";
-    } else if (likelihood <= 15) {
-        color = "green";
-    } else if (likelihood <= 30) {
-        color = "yellow";
-    } else if (likelihood <= 50) {
-        color = "orange";
-    } else if (likelihood <= 75) {
-        color = "red";
-    } else {
-        color = "purple";
-    }
-
-    return { likelihood, color };
+    return { likelihood, color, reason };
 }
