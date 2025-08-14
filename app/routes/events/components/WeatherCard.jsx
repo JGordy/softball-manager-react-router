@@ -53,8 +53,8 @@ const renderRainoutChance = ({ likelihood, color }) => {
         <Card radius="xl" mb="md">
             <Stack align="center" gap={0}>
                 <Text>Rainout likelihood</Text>
-                <Text fw={700} c={color} size="1.75rem" lh={1}> {likelihood}%</Text>
-                <Text size="xs" c="dimmed" mt="xs" ta="center">
+                <Text fw={700} c={color} size="1.75rem" my="xs"> {likelihood}%</Text>
+                <Text size="xs" c="dimmed" ta="center">
                     This score is weighted based on the hourly forecast leading up to the game.
                 </Text>
             </Stack>
