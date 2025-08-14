@@ -96,6 +96,10 @@
         background-size: cover;
         background-position: center center;
     }
+
+    .inner-card {
+        background-color: #cee2d6 !important;
+    }
 }
 
 main {
