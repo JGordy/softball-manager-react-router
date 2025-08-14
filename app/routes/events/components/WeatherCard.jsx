@@ -27,6 +27,7 @@ import DrawerContainer from '@/components/DrawerContainer';
 import getDailyWeather from '../utils/getDailyWeather';
 import getHourlyWeather from '../utils/getHourlyWeather';
 import getPrecipitationChanceRating from '../utils/getPrecipitationRating';
+import getRainoutLikelihood from '../utils/getRainoutLikelihood';
 import getUvIndexColor from '../utils/getUvIndexColor';
 import getWindSpeedRating from '../utils/getWindSpeedRating';
 
@@ -45,6 +46,21 @@ const weatherFallback = (
         <Text c="dimmed">Weather data is generally available starting seven days before the scheduled game date. Please check back at a later time.</Text>
     </Stack>
 );
+
+const renderRainoutChance = ({ likelihood, color }) => {
+
+    return (likelihood > 5) && (
+        <Card radius="xl" mb="md">
+            <Stack align="center" gap={0}>
+                <Text>Rainout likelihood</Text>
+                <Text fw={700} c={color} size="1.75rem" lh={1}> {likelihood}%</Text>
+                <Text size="xs" c="dimmed" mt="xs" ta="center">
+                    This score is weighted based on the hourly forecast leading up to the game.
+                </Text>
+            </Stack>
+        </Card>
+    );
+}
 
 const renderWeatherDetails = ({
     temp,
@@ -128,13 +144,15 @@ const renderWeatherDetails = ({
 function findWeatherForGameDate(gameDate, weather) {
     if (!weather) return null;
 
-    console.log({ gameDate, weather });
-
     if (weather.daily) {
-        return getDailyWeather(weather.daily, gameDate);
+        return { gameDayWeather: getDailyWeather(weather.daily, gameDate) };
     } else if (weather.hourly) {
-        console.log({ hourly: weather.hourly });
-        return getHourlyWeather(weather.hourly, gameDate).hourly;
+        const { hourly, rainout } = getHourlyWeather(weather.hourly, gameDate);
+
+        return {
+            gameDayWeather: hourly,
+            rainout,
+        };
     }
 
     return null;
@@ -158,9 +176,9 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
                             errorElement={<Text size="xs" mt="5px" ml="28px" c="red">Error loading weather details</Text>}
                         >
                             {(weather) => {
-                                const gameDayWeather = findWeatherForGameDate(gameDate, weather);
-                                const summary = gameDayWeather.summary ?? `${Math.round(gameDayWeather.temp)}°F / ${gameDayWeather.pop}% chance of precipitation`;
-                                console.log({ gameDayWeather, summary });
+                                const { gameDayWeather } = findWeatherForGameDate(gameDate, weather);
+                                const summary = gameDayWeather.summary ?? `${Math.round(gameDayWeather.temp)}°F / ${gameDayWeather.pop}% chance of precipitation at game time`;
+
                                 return (
                                     <Text size="xs" mt="5px" ml="28px" c="dimmed">
                                         {!gameDayWeather ? 'Data unavailable at this time' : summary}
@@ -174,8 +192,8 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
 
             <DeferredLoader resolve={weatherPromise}>
                 {(weather) => {
-                    const gameDayWeather = findWeatherForGameDate(gameDate, weather);
-                    console.log({ gameDayWeather });
+                    const { gameDayWeather, rainout } = findWeatherForGameDate(gameDate, weather);
+
                     return (
                         <DrawerContainer
                             opened={weatherDrawerOpened}
@@ -183,6 +201,7 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
                             title="Weather Details"
                             size={gameDayWeather ? 'lg' : 'md'}
                         >
+                            {rainout && renderRainoutChance(rainout)}
                             {!gameDayWeather ? weatherFallback : renderWeatherDetails(gameDayWeather)}
                         </DrawerContainer>
                     );
