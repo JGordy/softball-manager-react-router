@@ -62,6 +62,8 @@ const renderWeatherDetails = ({
     const _temp = Math.round(temp[timeOfDay] || temp);
     const _feels_like = Math.round(feels_like[timeOfDay] || feels_like);
     const main = weather[0]?.main;
+    const mainWeatherKey = main.toLowerCase();
+    const showPrecipTotals = ['rain', 'snow'].includes(mainWeatherKey);
 
     return (
         <>
@@ -69,7 +71,7 @@ const renderWeatherDetails = ({
 
                 <Card radius="xl" pt="xl">
                     <Group align="center" justify="center">
-                        {icons[main.toLowerCase()]}
+                        {icons[mainWeatherKey]}
                         <div>
                             <Text size="lg">{weather[0]?.description}</Text>
                             <Text span>{_temp}°F -</Text>
@@ -104,10 +106,12 @@ const renderWeatherDetails = ({
                     </Card>
                 </Card>
 
-                <Card radius="xl" my="md">
-                    <Text align="center">{summary}</Text>
-                    <Text fw={700} align="center">{`${Math.round((rest[main.toLowerCase()] / 25.4) * 100) / 100} total inches`}</Text>
-                </Card>
+                {(summary || showPrecipTotals) && (
+                    <Card radius="xl" my="md">
+                        {summary && <Text align="center">{summary}</Text>}
+                        {showPrecipTotals && <Text fw={700} align="center">{`${Math.round((rest[mainWeatherKey] / 25.4) * 100) / 100} daily inches`}</Text>}
+                    </Card>
+                )}
 
                 <Group justify="center" mt="md" gap="5px">
                     <Text size="sm" c="dimmed" span>Weather details provided by </Text>
@@ -130,7 +134,7 @@ function findWeatherForGameDate(gameDate, weather) {
         return getDailyWeather(weather.daily, gameDate);
     } else if (weather.hourly) {
         console.log({ hourly: weather.hourly });
-        return getHourlyWeather(weather.hourly, gameDate)
+        return getHourlyWeather(weather.hourly, gameDate).hourly;
     }
 
     return null;
