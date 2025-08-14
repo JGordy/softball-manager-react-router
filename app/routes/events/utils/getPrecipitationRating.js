@@ -1,6 +1,5 @@
 export default function getPrecipitationChanceRating(precipitation) {
     const precip = precipitation * 100;
-    console.log({ precip });
 
     if (precip < 1) return { label: 'None', color: 'blue' };
     if (precip < 20) return { label: 'Light', color: 'green' };
