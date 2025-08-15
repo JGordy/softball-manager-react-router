@@ -88,7 +88,7 @@ const renderWeatherDetails = ({
     const _feels_like = Math.round(feels_like[timeOfDay] || feels_like);
     const main = weather[0]?.main;
     const mainWeatherKey = main.toLowerCase();
-    const hasPrecipitation = (type === 'hourly' && (totalPrecipitation?.rain > 0 || totalPrecipitation?.snow > 0)) || (type === 'daily' && (rest.rain > 0 || rest.snow > 0));
+    const hasDailyPrecipitation = type === 'daily' && (rest.rain > 0 || rest.snow > 0);
 
     return (
         <>
@@ -137,19 +137,13 @@ const renderWeatherDetails = ({
                     </Card>
                 </Card>
 
-                {(summary || hasPrecipitation) && (
+                {(summary || hasDailyPrecipitation) && (
                     <Card radius="xl" my="md">
                         {summary && <Text ta="center">{summary}</Text>}
-                        {type === 'hourly' && totalPrecipitation?.rain > 0 && (
-                            <Text fw={700} ta="center">{`${Math.round((totalPrecipitation.rain / 25.4) * 100) / 100} total inches of rain`}</Text>
-                        )}
-                        {type === 'hourly' && totalPrecipitation?.snow > 0 && (
-                            <Text fw={700} ta="center">{`${Math.round((totalPrecipitation.snow / 25.4) * 100) / 100} total inches of snow`}</Text>
-                        )}
-                        {type === 'daily' && rest.rain > 0 && (
+                        {rest.rain > 0 && (
                             <Text fw={700} ta="center">{`${Math.round((rest.rain / 25.4) * 100) / 100} daily inches of rain`}</Text>
                         )}
-                        {type === 'daily' && rest.snow > 0 && (
+                        {rest.snow > 0 && (
                             <Text fw={700} ta="center">{`${Math.round((rest.snow / 25.4) * 100) / 100} daily inches of snow`}</Text>
                         )}
                     </Card>
