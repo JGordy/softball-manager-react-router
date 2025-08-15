@@ -41,7 +41,7 @@ const weatherFallback = (
     <Stack align="center">
         <IconCloudRain size={72} />
         <Text c="red">Weather data not yet available</Text>
-        <Text c="dimmed">Weather data is generally available starting seven days before the scheduled game date. Please check back at a later time.</Text>
+        <Text c="dimmed" ta="center">Weather data is generally available starting seven days before the scheduled game date. Please check back at a later time.</Text>
     </Stack>
 );
 
@@ -192,12 +192,19 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
                             errorElement={<Text size="xs" mt="5px" ml="28px" c="red">Error loading weather details</Text>}
                         >
                             {(weather) => {
-                                const { gameDayWeather } = findWeatherForGameDate(gameDate, weather);
-                                const summary = gameDayWeather.summary ?? `${Math.round(gameDayWeather.temp)}°F / ${gameDayWeather.pop}% chance of precipitation at game time`;
+                                const { gameDayWeather } = findWeatherForGameDate(gameDate, weather) ?? {};
+
+                                let summary;
+                                if (gameDayWeather?.summary) {
+                                    summary = gameDayWeather.summary;
+                                }
+                                if (gameDayWeather) {
+                                    summary = `${Math.round(gameDayWeather?.temp)}°F / ${gameDayWeather.pop}% chance of precipitation at game time`
+                                }
 
                                 return (
                                     <Text size="xs" mt="5px" ml="28px" c="dimmed">
-                                        {!gameDayWeather ? 'Data unavailable at this time' : summary}
+                                        {!weather ? 'Data unavailable at this time' : summary}
                                     </Text>
                                 );
                             }}
@@ -208,7 +215,8 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
 
             <DeferredLoader resolve={weatherPromise}>
                 {(weather) => {
-                    const { gameDayWeather, rainout, type } = findWeatherForGameDate(gameDate, weather);
+                    // console.log({ weather });
+                    const { gameDayWeather, rainout, type } = findWeatherForGameDate(gameDate, weather) ?? {};
 
                     let drawerSize = 'md';
                     if (gameDayWeather) drawerSize = 'lg';
@@ -222,7 +230,7 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
                             size={drawerSize}
                         >
                             {rainout && <RainoutChance {...rainout} />}
-                            {!gameDayWeather ? weatherFallback : renderWeatherDetails({ ...gameDayWeather, type })}
+                            {!weather ? weatherFallback : renderWeatherDetails({ ...gameDayWeather, type })}
                         </DrawerContainer>
                     );
                 }}
