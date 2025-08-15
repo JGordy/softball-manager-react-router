@@ -80,6 +80,7 @@ const renderWeatherDetails = ({
     wind_deg,
     wind_speed,
     uvi, // UI index
+    totalPrecipitation,
     ...rest
 }) => {
 
@@ -87,7 +88,7 @@ const renderWeatherDetails = ({
     const _feels_like = Math.round(feels_like[timeOfDay] || feels_like);
     const main = weather[0]?.main;
     const mainWeatherKey = main.toLowerCase();
-    const showPrecipTotals = ['rain', 'snow'].includes(mainWeatherKey);
+    const hasPrecipitation = (type === 'hourly' && (totalPrecipitation?.rain > 0 || totalPrecipitation?.snow > 0)) || (type === 'daily' && (rest.rain > 0 || rest.snow > 0));
 
     return (
         <>
@@ -134,10 +135,21 @@ const renderWeatherDetails = ({
                     </Card>
                 </Card>
 
-                {(summary || showPrecipTotals) && (
+                {(summary || hasPrecipitation) && (
                     <Card radius="xl" my="md">
-                        {summary && <Text align="center">{summary}</Text>}
-                        {showPrecipTotals && <Text fw={700} align="center">{`${Math.round((rest[mainWeatherKey] / 25.4) * 100) / 100} daily inches`}</Text>}
+                        {summary && <Text ta="center">{summary}</Text>}
+                        {type === 'hourly' && totalPrecipitation?.rain > 0 && (
+                            <Text fw={700} ta="center">{`${Math.round((totalPrecipitation.rain / 25.4) * 100) / 100} total inches of rain`}</Text>
+                        )}
+                        {type === 'hourly' && totalPrecipitation?.snow > 0 && (
+                            <Text fw={700} ta="center">{`${Math.round((totalPrecipitation.snow / 25.4) * 100) / 100} total inches of snow`}</Text>
+                        )}
+                        {type === 'daily' && rest.rain > 0 && (
+                            <Text fw={700} ta="center">{`${Math.round((rest.rain / 25.4) * 100) / 100} daily inches of rain`}</Text>
+                        )}
+                        {type === 'daily' && rest.snow > 0 && (
+                            <Text fw={700} ta="center">{`${Math.round((rest.snow / 25.4) * 100) / 100} daily inches of snow`}</Text>
+                        )}
                     </Card>
                 )}
 
@@ -154,7 +166,7 @@ const renderWeatherDetails = ({
 }
 
 function findWeatherForGameDate(gameDate, weather) {
-    if (!weather) return null;
+    if (!weather) return {};
 
     if (weather.daily) {
         return {
@@ -162,16 +174,17 @@ function findWeatherForGameDate(gameDate, weather) {
             type: 'daily',
         };
     } else if (weather.hourly) {
-        const { hourly, rainout } = getHourlyWeather(weather.hourly, gameDate);
+        const { hourly, rainout, totalPrecipitation } = getHourlyWeather(weather.hourly, gameDate);
 
         return {
             gameDayWeather: hourly,
             rainout,
             type: 'hourly',
+            totalPrecipitation,
         };
     }
 
-    return null;
+    return {};
 }
 
 export default function WeatherCard({ weatherPromise, gameDate }) {
@@ -192,7 +205,7 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
                             errorElement={<Text size="xs" mt="5px" ml="28px" c="red">Error loading weather details</Text>}
                         >
                             {(weather) => {
-                                const { gameDayWeather } = findWeatherForGameDate(gameDate, weather) ?? {};
+                                const { gameDayWeather } = findWeatherForGameDate(gameDate, weather);
 
                                 let summary;
                                 if (gameDayWeather?.summary) {
@@ -215,8 +228,7 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
 
             <DeferredLoader resolve={weatherPromise}>
                 {(weather) => {
-                    // console.log({ weather });
-                    const { gameDayWeather, rainout, type } = findWeatherForGameDate(gameDate, weather) ?? {};
+                    const { gameDayWeather, rainout, type, totalPrecipitation } = findWeatherForGameDate(gameDate, weather);
 
                     let drawerSize = 'md';
                     if (gameDayWeather) drawerSize = 'lg';
@@ -230,7 +242,7 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
                             size={drawerSize}
                         >
                             {rainout && <RainoutChance {...rainout} />}
-                            {!weather ? weatherFallback : renderWeatherDetails({ ...gameDayWeather, type })}
+                            {!weather ? weatherFallback : renderWeatherDetails({ ...gameDayWeather, type, totalPrecipitation })}
                         </DrawerContainer>
                     );
                 }}
