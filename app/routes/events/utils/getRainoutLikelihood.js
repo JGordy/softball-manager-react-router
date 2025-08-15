@@ -1,3 +1,5 @@
+import calculatePrecipitation from "./calculatePrecipitation";
+
 function getLikelihoodColor(likelihood) {
     if (likelihood <= 5) {
         return "blue";
@@ -24,22 +26,24 @@ function getWeatherSeverity(hourlyForecast) {
     return 0;
 }
 
-function getLikelihoodReason(likelihood, primaryThreat) {
+function getLikelihoodReason(likelihood, primaryThreat, totalPrecipitation) {
     if (likelihood <= 5) {
         return "Clear conditions expected.";
     }
 
-    const { weather, rainAmount } = primaryThreat;
+    const { weather } = primaryThreat;
     const description = weather?.description || "precipitation";
 
     if (weather?.main === "Thunderstorm") {
         return "Potential for thunderstorms.";
     }
-    if (rainAmount > 0) {
-        // Convert mm to inches, rounding to two decimal places.
-        const inches = (rainAmount / 25.4).toFixed(2);
-        return `Chance of ${description}, with up to ${inches} inches expected.`;
+
+    const totalRainInches = (totalPrecipitation.rain / 25.4).toFixed(2);
+
+    if (totalRainInches > 0) {
+        return `Chance of ${description}, with up to ${totalRainInches} inches expected.`;
     }
+
     if (weather?.main === "Rain" || weather?.main === "Drizzle") {
         return `Chance of ${description}.`;
     }
@@ -118,6 +122,8 @@ export default function getRainoutLikelihood(weather) {
         return sum + pop * weights[index];
     }, 0);
 
+    const totalPrecipitation = calculatePrecipitation(weather);
+
     // --- Final Calculation ---
     if (totalWeight === 0) {
         return {
@@ -130,7 +136,7 @@ export default function getRainoutLikelihood(weather) {
     const rainoutPercentage = (weightedPop / totalWeight) * 100;
     const likelihood = Math.round(rainoutPercentage);
     const color = getLikelihoodColor(likelihood);
-    const reason = getLikelihoodReason(likelihood, primaryThreat);
+    const reason = getLikelihoodReason(likelihood, primaryThreat, totalPrecipitation);
 
     return { likelihood, color, reason };
 }

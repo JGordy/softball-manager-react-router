@@ -1,4 +1,5 @@
 import getRainoutLikelihood from "./getRainoutLikelihood";
+import calculatePrecipitation from "./calculatePrecipitation";
 
 export default function getHourlyWeather(weather, gameDate, hoursBefore = 6) {
     if (!weather) return null;
@@ -14,9 +15,11 @@ export default function getHourlyWeather(weather, gameDate, hoursBefore = 6) {
 
     if (!hourlyWeather || hourlyWeather.length === 0) return null;
 
+    const totalPrecipitation = calculatePrecipitation(hourlyWeather);
+
     const gameTimeWeather = hourlyWeather.pop();
 
     const rainout = getRainoutLikelihood(hourlyWeather);
 
-    return { hourly: gameTimeWeather, rainout };
+    return { hourly: gameTimeWeather, rainout, totalPrecipitation };
 }
