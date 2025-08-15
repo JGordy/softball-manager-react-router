@@ -23,8 +23,7 @@ import CardSection from './CardSection';
 import DeferredLoader from '@/components/DeferredLoader';
 import DrawerContainer from '@/components/DrawerContainer';
 
-import getDailyWeather from '../utils/getDailyWeather';
-import getHourlyWeather from '../utils/getHourlyWeather';
+import getGameDateWeather from '../utils/getGameDateWeather';
 import getPrecipitationChanceRating from '../utils/getPrecipitationRating';
 import getUvIndexColor from '../utils/getUvIndexColor';
 import getWindSpeedRating from '../utils/getWindSpeedRating';
@@ -54,7 +53,7 @@ const RainoutChance = ({
     const disclaimer = "This score is weighted based on the hourly forecast leading up to the game";
 
     return (
-        <Card radius="xl" mb="xl">
+        <Card radius="xl" mb="lg">
             <Stack align="center" gap="xs">
                 <Text ta="center">Rainout likelihood</Text>
                 <Text fw={700} c={color} size="1.75rem" my={4}> {likelihood}%</Text>
@@ -165,28 +164,6 @@ const renderWeatherDetails = ({
     );
 }
 
-function findWeatherForGameDate(gameDate, weather) {
-    if (!weather) return {};
-
-    if (weather.daily) {
-        return {
-            gameDayWeather: getDailyWeather(weather.daily, gameDate),
-            type: 'daily',
-        };
-    } else if (weather.hourly) {
-        const { hourly, rainout, totalPrecipitation } = getHourlyWeather(weather.hourly, gameDate);
-
-        return {
-            gameDayWeather: hourly,
-            rainout,
-            type: 'hourly',
-            totalPrecipitation,
-        };
-    }
-
-    return {};
-}
-
 export default function WeatherCard({ weatherPromise, gameDate }) {
 
     const [weatherDrawerOpened, weatherDrawerHandlers] = useDisclosure(false);
@@ -205,14 +182,14 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
                             errorElement={<Text size="xs" mt="5px" ml="28px" c="red">Error loading weather details</Text>}
                         >
                             {(weather) => {
-                                const { gameDayWeather } = findWeatherForGameDate(gameDate, weather);
+                                const { gameDayWeather } = getGameDateWeather(gameDate, weather);
 
                                 let summary;
                                 if (gameDayWeather?.summary) {
                                     summary = gameDayWeather.summary;
                                 }
                                 if (gameDayWeather) {
-                                    summary = `${Math.round(gameDayWeather?.temp)}°F / ${gameDayWeather.pop}% chance of precipitation at game time`
+                                    summary = `${Math.round(gameDayWeather?.temp)}°F / ${gameDayWeather.pop * 100}% chance of precipitation at game time`
                                 }
 
                                 return (
@@ -228,7 +205,7 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
 
             <DeferredLoader resolve={weatherPromise}>
                 {(weather) => {
-                    const { gameDayWeather, rainout, type, totalPrecipitation } = findWeatherForGameDate(gameDate, weather);
+                    const { gameDayWeather, rainout, type, totalPrecipitation } = getGameDateWeather(gameDate, weather);
 
                     let drawerSize = 'md';
                     if (gameDayWeather) drawerSize = 'lg';
