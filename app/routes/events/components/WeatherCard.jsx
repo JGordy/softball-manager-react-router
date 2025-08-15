@@ -92,7 +92,7 @@ const renderWeatherDetails = ({
 
     return (
         <>
-            <Stack align="stretch" justify="space-between" gap="xs" mih={300}>
+            <Stack align="stretch" justify="space-between" mih={300}>
                 {rainout && <RainoutChance {...rainout} />}
 
                 <Card radius="xl">
