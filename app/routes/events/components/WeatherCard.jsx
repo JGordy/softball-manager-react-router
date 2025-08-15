@@ -71,6 +71,7 @@ const RainoutChance = ({
 const renderWeatherDetails = ({
     feels_like,
     pop, // Percent chance of precipitation
+    rainout,
     summary,
     temp,
     timeOfDay, // "day", "night", "eve", "morn", "max", "min"
@@ -91,7 +92,9 @@ const renderWeatherDetails = ({
 
     return (
         <>
-            <Stack align="stretch" justify="space-between" mih="300">
+            <Stack align="stretch" justify="space-between" gap="xs" mih={300}>
+                {rainout && <RainoutChance {...rainout} />}
+
                 <Card radius="xl">
                     {type === 'hourly' && (
                         <Text size="xs" c="dimmed" ta="center" mb="sm">
@@ -218,8 +221,7 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
                             title="Weather Details"
                             size={drawerSize}
                         >
-                            {rainout && <RainoutChance {...rainout} />}
-                            {!weather ? weatherFallback : renderWeatherDetails({ ...gameDayWeather, type, totalPrecipitation })}
+                            {!weather ? weatherFallback : renderWeatherDetails({ ...gameDayWeather, type, totalPrecipitation, rainout })}
                         </DrawerContainer>
                     );
                 }}
