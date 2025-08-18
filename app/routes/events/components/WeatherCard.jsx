@@ -48,7 +48,7 @@ const RainoutChance = ({
                 <Text fw={700} c={color} size="1.75rem" my={4}> {likelihood}%</Text>
                 <Text size="xs" c="dimmed" ta="center" px="sm">{disclaimer}</Text>
                 {reason && (
-                    <Card className="inner-card" radius="xl" style={{ backgroundColor: 'var(--mantine-color-body)' }}>
+                    <Card className="inner-card" radius="xl" style={{ backgroundColor: 'var(--mantine-color-body)', width: '100%' }}>
                         <Text size="sm" ta="center">{reason}</Text>
                     </Card>
                 )}
@@ -61,7 +61,6 @@ const renderWeatherDetails = ({
     feelsLikeTemperature,
     precipitation,
     rainout,
-    summary,
     temperature,
     weatherCondition,
     wind,
@@ -118,12 +117,6 @@ const renderWeatherDetails = ({
                         </Group>
                     </Card>
                 </Card>
-
-                {summary && (
-                    <Card radius="xl" my="md">
-                        <Text ta="center">{summary}</Text>
-                    </Card>
-                )}
 
                 <Group justify="center" mt="md" gap="5px">
                     <Text size="sm" c="dimmed" span>Weather details provided by </Text>
