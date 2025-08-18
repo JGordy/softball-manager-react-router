@@ -84,7 +84,7 @@ const renderWeatherDetails = ({
                         Forecast for the scheduled game time
                     </Text>
                     <Group align="center" justify="center">
-                        <img src={`${weatherCondition.iconBaseUri}.svg`} />
+                        <img src={`${weatherCondition.iconBaseUri}.svg`} width="50px" />
                         <div>
                             <Text size="lg">{weatherCondition.description.text}</Text>
                             <Text span>{_temp}°F -</Text>
