@@ -17,39 +17,39 @@ function getLikelihoodColor(likelihood) {
 }
 
 function getWeatherSeverity(hourlyForecast) {
-    const weatherType = hourlyForecast.weather?.[0]?.main;
-    const rainAmount = hourlyForecast.rain?.["1h"] || 0;
-    if (weatherType === "Thunderstorm") return 4;
+    const weatherType = hourlyForecast.weatherCondition?.type;
+    const rainAmount = hourlyForecast.precipitation?.qpf?.value || 0;
+    if (weatherType === "THUNDERSTORM") return 4;
     if (rainAmount > 2.5) return 3; // Moderate to heavy rain
     if (rainAmount > 0) return 2; // Any measurable rain
-    if (weatherType === "Rain" || weatherType === "Drizzle") return 1; // Rain mentioned but no amount
+    if (weatherType === "RAIN" || weatherType === "DRIZZLE") return 1; // Rain mentioned but no amount
     return 0;
 }
 
 function getLikelihoodReason(likelihood, primaryThreat, totalPrecipitation) {
     if (likelihood <= 5) {
-        return "Clear conditions expected.";
+        return "Clear conditions expected";
     }
 
-    const { weather } = primaryThreat;
-    const description = weather?.description || "precipitation";
+    const { weatherCondition } = primaryThreat;
+    const description = weatherCondition?.description?.text || "precipitation";
 
-    if (weather?.main === "Thunderstorm") {
-        return "Potential for thunderstorms.";
+    if (weatherCondition?.type === "THUNDERSTORM") {
+        return "Potential for thunderstorms";
     }
 
     const totalRainInches = (totalPrecipitation.rain / 25.4).toFixed(2);
 
     if (totalRainInches > 0) {
-        return `Chance of ${description}, with up to ${totalRainInches} inches expected.`;
+        return `Chance of ${description}, with up to ${totalRainInches} inches expected`;
     }
 
-    if (weather?.main === "Rain" || weather?.main === "Drizzle") {
+    if (weatherCondition?.type === "RAIN" || weatherCondition?.type === "DRIZZLE") {
         return `Chance of ${description}.`;
     }
 
     // Fallback for when `pop` is high but no specific rain event is named.
-    return "Increased chance of precipitation.";
+    return "Increased chance of precipitation";
 }
 
 /**
@@ -68,7 +68,7 @@ export default function getRainoutLikelihood(weather) {
         return {
             likelihood: 0,
             color: "blue",
-            reason: "No weather data available.",
+            reason: "No weather data available",
         };
     }
 
@@ -77,32 +77,32 @@ export default function getRainoutLikelihood(weather) {
     const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
 
     // Keep track of the hour with the most significant precipitation threat.
-    let primaryThreat = { weather: null, rainAmount: 0, severity: 0 };
+    let primaryThreat = { weatherCondition: null, rainAmount: 0, severity: 0 };
 
     // --- Weighted Probability Calculation ---
     const weightedPop = weather.reduce((sum, hourlyForecast, index) => {
-        let pop = hourlyForecast.pop || 0;
-        const weatherType = hourlyForecast.weather?.[0]?.main;
-        const rainAmount = hourlyForecast.rain?.["1h"] || 0;
+        let pop = hourlyForecast.precipitation?.probability?.value || 0;
+        const weatherType = hourlyForecast.weatherCondition?.type;
+        const rainAmount = hourlyForecast.precipitation?.qpf?.value || 0;
 
         // --- Boost probability based on weather conditions ---
-        if (["Rain", "Drizzle", "Thunderstorm"].includes(weatherType)) {
-            pop = Math.max(pop, 0.5);
+        if (["RAIN", "DRIZZLE", "THUNDERSTORM"].includes(weatherType)) {
+            pop = Math.max(pop, 50);
         }
-        if (weatherType === "Thunderstorm") {
-            pop = Math.max(pop, 0.9);
+        if (weatherType === "THUNDERSTORM") {
+            pop = Math.max(pop, 90);
         }
 
         // --- Adjust for volume ---
         // If the pop is high but rain amount is negligible, reduce the impact.
-        if (pop > 0.5 && rainAmount > 0 && rainAmount < 0.254) {
+        if (pop > 50 && rainAmount > 0 && rainAmount < 0.254) {
             pop = pop * 0.5; // Halve the impact of this hour
         }
 
         // Identify the hour with the most severe weather to use for the 'reason' text.
         const severity = getWeatherSeverity(hourlyForecast);
         const currentThreat = {
-            weather: hourlyForecast.weather,
+            weatherCondition: hourlyForecast.weatherCondition,
             rainAmount: rainAmount,
             severity: severity,
         };
@@ -119,7 +119,7 @@ export default function getRainoutLikelihood(weather) {
             }
         }
 
-        return sum + pop * weights[index];
+        return sum + (pop / 100) * weights[index];
     }, 0);
 
     const totalPrecipitation = calculatePrecipitation(weather);
@@ -129,7 +129,7 @@ export default function getRainoutLikelihood(weather) {
         return {
             likelihood: 0,
             color: "blue",
-            reason: "Clear conditions expected.",
+            reason: "Clear conditions expected",
         };
     }
 
