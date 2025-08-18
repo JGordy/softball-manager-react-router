@@ -70,8 +70,8 @@ const renderWeatherDetails = ({
     ...rest
 }) => {
 
-    const _temp = Math.round(temperature.degrees);
-    const _feels_like = Math.round(feelsLikeTemperature.degrees);
+    const temp = Math.round(temperature.degrees);
+    const feelsLike = Math.round(feelsLikeTemperature.degrees);
     const pop = (precipitation.probability.percent || 0) / 100;
 
     return (
@@ -87,8 +87,8 @@ const renderWeatherDetails = ({
                         <img src={`${weatherCondition.iconBaseUri}.svg`} width="50px" />
                         <div>
                             <Text size="lg">{weatherCondition.description.text}</Text>
-                            <Text span>{_temp}°F -</Text>
-                            <Text c="dimmed" fs="italic" size="sm" span> Feels like {_feels_like}°F</Text>
+                            <Text span>{temp}°F -</Text>
+                            <Text c="dimmed" fs="italic" size="sm" span> Feels like {feelsLike}°F</Text>
                         </div>
                     </Group>
 
