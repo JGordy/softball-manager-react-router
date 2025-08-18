@@ -33,7 +33,6 @@ const getWeatherData = (parkId, game) => {
             const response = await fetch(url);
             if (response.ok) {
                 const data = await response.json();
-                console.log({ data });
                 return data.forecastHours || [];
             }
             return [];
@@ -49,7 +48,6 @@ const getWeatherData = (parkId, game) => {
             const response = await fetch(url);
             if (response.ok) {
                 const data = await response.json();
-                console.log({ data });
                 return data.historyHours || [];
             }
             return [];
