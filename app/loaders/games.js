@@ -20,10 +20,10 @@ const getWeatherData = (parkId, game) => {
     const gameTime = new Date(gameDate);
     const sixHoursBefore = new Date(gameTime.getTime() - 6 * 60 * 60 * 1000);
 
-    // Don't fetch weather for games more than 10 days in the future or more than 1 day in the past
+    // Don't fetch weather for games more than 5 days in the future or more than 1 day in the past
     const diffTime = gameTime - now;
     const diffDays = diffTime / (1000 * 60 * 60 * 24);
-    if (diffDays > 10 || diffDays < -1) {
+    if (diffDays > 5 || diffDays < -1) {
         return Promise.resolve(null);
     }
 
