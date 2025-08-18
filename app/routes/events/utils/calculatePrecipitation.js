@@ -4,11 +4,11 @@ export default function calculatePrecipitation(hourlyWeather) {
     }
 
     return hourlyWeather.reduce((acc, hour) => {
-        if (hour.rain) {
-            acc.rain += hour.rain['1h'] || 0;
+        if (hour.precipitation?.qpf?.value) {
+            acc.rain += hour.precipitation.qpf.value;
         }
-        if (hour.snow) {
-            acc.snow += hour.snow['1h'] || 0;
+        if (hour.precipitation?.snowQpf?.value) {
+            acc.snow += hour.precipitation.snowQpf.value;
         }
         return acc;
     }, { rain: 0, snow: 0 });
