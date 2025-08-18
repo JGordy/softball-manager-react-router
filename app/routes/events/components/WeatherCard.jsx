@@ -10,13 +10,10 @@ import { useDisclosure } from '@mantine/hooks';
 
 import {
     IconSunset2,
-    IconCloudFilled,
     IconCloudRain,
-    IconCloudStorm,
     IconDropletHalf2Filled,
     IconSunFilled,
     IconNavigationFilled,
-    IconSnowflake,
 } from '@tabler/icons-react';
 
 import CardSection from './CardSection';
@@ -27,14 +24,6 @@ import getGameDateWeather from '../utils/getGameDateWeather';
 import getPrecipitationChanceRating from '../utils/getPrecipitationRating';
 import getUvIndexColor from '../utils/getUvIndexColor';
 import getWindSpeedRating from '../utils/getWindSpeedRating';
-
-const icons = {
-    rain: <IconCloudRain size={60} />,
-    snow: <IconSnowflake size={60} />,
-    clouds: <IconCloudFilled size={60} />,
-    clear: <IconSunFilled size={60} />,
-    thunderstorm: <IconCloudStorm size={60} />,
-}
 
 const weatherFallback = (
     <Stack align="center">
@@ -69,26 +58,21 @@ const RainoutChance = ({
 }
 
 const renderWeatherDetails = ({
-    feels_like,
-    pop, // Percent chance of precipitation
+    feelsLikeTemperature,
+    precipitation,
     rainout,
     summary,
-    temp,
-    timeOfDay, // "day", "night", "eve", "morn", "max", "min"
-    type, // "daily" or "hourly"
-    weather,
-    wind_deg,
-    wind_speed,
-    uvi, // UI index
+    temperature,
+    weatherCondition,
+    wind,
+    uvIndex,
     totalPrecipitation,
     ...rest
 }) => {
 
-    const _temp = Math.round(temp[timeOfDay] || temp);
-    const _feels_like = Math.round(feels_like[timeOfDay] || feels_like);
-    const main = weather[0]?.main;
-    const mainWeatherKey = main.toLowerCase();
-    const hasDailyPrecipitation = type === 'daily' && (rest.rain > 0 || rest.snow > 0);
+    const _temp = Math.round(temperature.degrees);
+    const _feels_like = Math.round(feelsLikeTemperature.degrees);
+    const pop = (precipitation.probability.percent || 0) / 100;
 
     return (
         <>
@@ -96,15 +80,13 @@ const renderWeatherDetails = ({
                 {rainout && <RainoutChance {...rainout} />}
 
                 <Card radius="xl">
-                    {type === 'hourly' && (
-                        <Text size="xs" c="dimmed" ta="center" mb="sm">
-                            Forecast for the scheduled game time
-                        </Text>
-                    )}
+                    <Text size="xs" c="dimmed" ta="center" mb="sm">
+                        Forecast for the scheduled game time
+                    </Text>
                     <Group align="center" justify="center">
-                        {icons[mainWeatherKey]}
+                        <img src={`${weatherCondition.iconBaseUri}.svg`} />
                         <div>
-                            <Text size="lg">{weather[0]?.description}</Text>
+                            <Text size="lg">{weatherCondition.description.text}</Text>
                             <Text span>{_temp}°F -</Text>
                             <Text c="dimmed" fs="italic" size="sm" span> Feels like {_feels_like}°F</Text>
                         </div>
@@ -121,8 +103,8 @@ const renderWeatherDetails = ({
                             <Divider orientation="vertical" />
 
                             <Stack align="center" gap="3px" w="30%">
-                                <IconNavigationFilled size={20} style={{ transform: `rotate(${wind_deg + 180}deg)` }} />
-                                <Text size="xl" fw={700} c={getWindSpeedRating(wind_speed).color}>{Math.round(wind_speed)} mph</Text>
+                                <IconNavigationFilled size={20} style={{ transform: `rotate(${wind.direction.degrees + 180}deg)` }} />
+                                <Text size="xl" fw={700} c={getWindSpeedRating(wind.speed.value).color}>{Math.round(wind.speed.value)} mph</Text>
                                 <Text size="xs">wind</Text>
                             </Stack>
 
@@ -130,29 +112,23 @@ const renderWeatherDetails = ({
 
                             <Stack align="center" gap="3px" w="30%">
                                 <IconSunFilled size={20} />
-                                <Text size="xl" fw={700} c={getUvIndexColor(uvi)}>{Math.round(uvi)}</Text>
+                                <Text size="xl" fw={700} c={getUvIndexColor(uvIndex)}>{Math.round(uvIndex)}</Text>
                                 <Text size="xs">UV index</Text>
                             </Stack>
                         </Group>
                     </Card>
                 </Card>
 
-                {(summary || hasDailyPrecipitation) && (
+                {summary && (
                     <Card radius="xl" my="md">
-                        {summary && <Text ta="center">{summary}</Text>}
-                        {rest.rain > 0 && (
-                            <Text fw={700} ta="center">{`${Math.round((rest.rain / 25.4) * 100) / 100} daily inches of rain`}</Text>
-                        )}
-                        {rest.snow > 0 && (
-                            <Text fw={700} ta="center">{`${Math.round((rest.snow / 25.4) * 100) / 100} daily inches of snow`}</Text>
-                        )}
+                        <Text ta="center">{summary}</Text>
                     </Card>
                 )}
 
                 <Group justify="center" mt="md" gap="5px">
                     <Text size="sm" c="dimmed" span>Weather details provided by </Text>
                     <Text size="sm" fw={700} span>
-                        <a href="https://openweathermap.org/" target="_blank" rel="noreferrer">OpenWeatherMap</a>
+                        <a href="https://developers.google.com/maps/documentation/weather" target="_blank" rel="noreferrer">Google Weather</a>
                         &nbsp;
                     </Text>
                 </Group>
@@ -179,19 +155,16 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
                             errorElement={<Text size="xs" mt="5px" ml="28px" c="red">Error loading weather details</Text>}
                         >
                             {(weather) => {
-                                const { gameDayWeather } = getGameDateWeather(gameDate, weather);
+                                const { hourly: gameDayWeather } = getGameDateWeather(gameDate, weather) || {};
 
                                 let summary;
-                                if (gameDayWeather?.summary) {
-                                    summary = gameDayWeather.summary;
-                                }
                                 if (gameDayWeather) {
-                                    summary = `${Math.round(gameDayWeather?.temp)}°F / ${gameDayWeather.pop * 100}% chance of precipitation at game time`
+                                    summary = `${Math.round(gameDayWeather.temperature.degrees)}°F / ${gameDayWeather.precipitation.probability.percent}% chance of precipitation at game time`
                                 }
 
                                 return (
                                     <Text size="xs" mt="5px" ml="28px" c="dimmed">
-                                        {!weather ? 'Data unavailable at this time' : summary}
+                                        {!gameDayWeather ? 'Data unavailable at this time' : summary}
                                     </Text>
                                 );
                             }}
@@ -202,7 +175,7 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
 
             <DeferredLoader resolve={weatherPromise}>
                 {(weather) => {
-                    const { gameDayWeather, rainout, type, totalPrecipitation } = getGameDateWeather(gameDate, weather);
+                    const { hourly: gameDayWeather, rainout, totalPrecipitation } = getGameDateWeather(gameDate, weather) || {};
 
                     let drawerSize = 'md';
                     if (gameDayWeather) drawerSize = 'lg';
@@ -215,7 +188,7 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
                             title="Weather Details"
                             size={drawerSize}
                         >
-                            {!weather ? weatherFallback : renderWeatherDetails({ ...gameDayWeather, type, totalPrecipitation, rainout })}
+                            {!gameDayWeather ? weatherFallback : renderWeatherDetails({ ...gameDayWeather, totalPrecipitation, rainout })}
                         </DrawerContainer>
                     );
                 }}
