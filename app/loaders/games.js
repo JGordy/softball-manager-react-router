@@ -13,43 +13,80 @@ const getAttendance = async ({ eventId, accepted = false }) => {
 
 const getWeatherData = (parkId, game) => {
     const { gameDate } = game;
-    const today = new Date();
-    const gameDay = new Date(gameDate);
+    const apiKey = import.meta.env.VITE_GOOGLE_SERVICES_API_KEY;
+    const baseUrl = 'https://weather.googleapis.com/v1';
 
-    if (gameDay < today || !parkId) {
+    const now = new Date();
+    const gameTime = new Date(gameDate);
+    const sixHoursBefore = new Date(gameTime.getTime() - 6 * 60 * 60 * 1000);
+
+    // Don't fetch weather for games more than 10 days in the future or more than 1 day in the past
+    const diffTime = gameTime - now;
+    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+    if (diffDays > 10 || diffDays < -1) {
         return Promise.resolve(null);
     }
 
-    const diffTime = gameDay - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    const diffHours = Math.ceil(diffTime / (1000 * 60 * 60));
-
-    if (diffDays > 8) {
-        return Promise.resolve(null);
-    }
-
-    return (async () => {
-        const park = await readDocument('parks', parkId);
-        const exclude = ['minutely'];
-
-        if (diffHours <= 48) {
-            exclude.push('daily');
-        } else {
-            exclude.push('hourly');
-        }
-
-        const url = `${baseWeatherUrl}?lat=${park.latitude}&lon=${park.longitude}&units=imperial&exclude=${exclude.join(',')}&appid=${import.meta.env.VITE_OPEN_WEATHER_MAP_KEY}`;
-
+    const getForecast = async (park) => {
+        const url = `${baseUrl}/forecast/hours:lookup?key=${apiKey}&location.latitude=${park.latitude}&location.longitude=${park.longitude}&hours=24&unitsSystem=IMPERIAL`;
         try {
             const response = await fetch(url);
             if (response.ok) {
-                return response.json();
+                const data = await response.json();
+                console.log({ data });
+                return data.forecastHours || [];
             }
-            return null;
+            return [];
         } catch (error) {
-            console.error('Error fetching weather data:', error);
-            return null;
+            console.error('Error fetching forecast data:', error);
+            return [];
         }
+    };
+
+    const getHistory = async (park) => {
+        const url = `${baseUrl}/history/hours:lookup?key=${apiKey}&location.latitude=${park.latitude}&location.longitude=${park.longitude}&hours=6&unitsSystem=IMPERIAL`;
+        try {
+            const response = await fetch(url);
+            if (response.ok) {
+                const data = await response.json();
+                console.log({ data });
+                return data.historyHours || [];
+            }
+            return [];
+        } catch (error) {
+            console.error('Error fetching history data:', error);
+            return [];
+        }
+    };
+
+    return (async () => {
+        const park = await readDocument('parks', parkId);
+        if (!park) return null;
+
+        let hourlyData = [];
+
+        if (sixHoursBefore > now) {
+            // All in the future
+            hourlyData = await getForecast(park);
+        } else if (gameTime < now) {
+            // All in the past
+            hourlyData = await getHistory(park);
+        } else {
+            // Hybrid
+            const forecastData = await getForecast(park);
+            const historyData = await getHistory(park);
+            hourlyData = [...historyData, ...forecastData];
+        }
+
+        // Filter to the 6 hours before the game
+        const sixHoursBeforeTimestamp = sixHoursBefore.getTime();
+        const gameTimeTimestamp = gameTime.getTime();
+        const filteredData = hourlyData.filter(hour => {
+            const hourTimestamp = new Date(hour.interval.startTime).getTime();
+            return hourTimestamp >= sixHoursBeforeTimestamp && hourTimestamp <= gameTimeTimestamp;
+        });
+
+        return { hourly: filteredData };
     })();
 };
 
