@@ -58,6 +58,9 @@
             "@styles": [
                 "./app/styles/*"
             ],
+            "@test-utils": [
+                "./app/test-utils/*"
+            ],
         },
         "esModuleInterop": true,
         "verbatimModuleSyntax": true,
