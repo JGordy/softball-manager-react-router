@@ -6,6 +6,10 @@
             {
                 "runtime": "automatic"
             }
-        ]
+        ],
+        "@babel/preset-typescript"
+    ],
+    "plugins": [
+        "babel-plugin-transform-require-extensions"
     ]
 }
