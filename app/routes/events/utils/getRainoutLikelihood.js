@@ -16,54 +16,51 @@ function getLikelihoodColor(likelihood) {
     }
 }
 
-function getWeatherSeverity(hourlyForecast) {
-    const weatherType = hourlyForecast.weatherCondition?.type;
-    const rainAmount = hourlyForecast.precipitation?.qpf?.value || 0;
-    if (weatherType === "THUNDERSTORM") return 4;
-    if (rainAmount > 2.5) return 3; // Moderate to heavy rain
-    if (rainAmount > 0) return 2; // Any measurable rain
-    if (weatherType === "RAIN" || weatherType === "DRIZZLE") return 1; // Rain mentioned but no amount
-    return 0;
-}
-
-function getLikelihoodReason(likelihood, primaryThreat, totalPrecipitation) {
+function getLikelihoodReason(likelihood, primaryThreat, totalPrecipitation, weightedThunderstormThreat) {
     if (likelihood <= 5) {
         return "Clear conditions expected";
     }
 
-    const { weatherCondition } = primaryThreat;
+    const { weatherCondition, thunderstormProbability } = primaryThreat;
     const description = weatherCondition?.description?.text || "precipitation";
+    const totalRainInches = parseFloat(totalPrecipitation.rain.toFixed(2));
 
-    if (weatherCondition?.type === "THUNDERSTORM") {
-        return "Potential for thunderstorms";
+    // Priority 1: Imminent thunderstorm threat
+    if (weightedThunderstormThreat > 20) {
+        return `High chance of thunderstorms (${Math.round(weightedThunderstormThreat)}%)`;
     }
 
-    const totalRainInches = (totalPrecipitation.rain / 25.4).toFixed(2);
-
-    if (totalRainInches > 0) {
-        return `Chance of ${description}, with up to ${totalRainInches} inches expected`;
+    // Priority 2: Significant rainfall accumulation making field conditions poor
+    if (totalRainInches > 0.25) {
+        return `Potential for Poor field conditions due to ${totalRainInches} inches of precipitation.`;
     }
 
+    // Priority 3: Thunderstorms that occurred earlier in the day
+    if (thunderstormProbability > 30) {
+        // If there was also rain, mention it.
+        if (totalRainInches > 0.1) {
+            return `Potential for thunderstorms earlier in the day, with ${totalRainInches} inches of accumulation.`;
+        }
+        return `Potential for thunderstorms earlier in the day.`;
+    }
+
+    // Priority 4: General rain forecast
     if (weatherCondition?.type === "RAIN" || weatherCondition?.type === "DRIZZLE") {
         return `Chance of ${description}.`;
     }
 
-    // Fallback for when `pop` is high but no specific rain event is named.
+    // Fallback
     return "Increased chance of precipitation";
 }
 
 /**
  * Calculates the likelihood of a game being rained out based on hourly weather forecasts.
- * It uses a weighted average of the probability of precipitation (pop), giving more
- * weight to forecasts closer to the game time.
+ * It considers weighted probability of precipitation, total accumulation, and thunderstorm risk.
  *
  * @param {Array<Object>} weather - An array of hourly weather forecast objects.
- *                                  Each object should contain a 'pop' property (probability of precipitation)
- *                                  and a 'weather' array with forecast details.
  * @returns {{likelihood: number, color: string, reason: string}} An object containing the calculated percentage, a corresponding color, and a reason for the score.
  */
 export default function getRainoutLikelihood(weather) {
-    // If the weather array is missing or empty, there's no data to process.
     if (!weather || !weather.length) {
         return {
             likelihood: 0,
@@ -72,59 +69,36 @@ export default function getRainoutLikelihood(weather) {
         };
     }
 
-    // --- Weighting System ---
-    const weights = weather.map((_, index) => index + 1);
+    const weights = weather.map((_, index) => Math.pow(index + 1, 2));
     const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
 
-    // Keep track of the hour with the most significant precipitation threat.
-    let primaryThreat = { weatherCondition: null, rainAmount: 0, severity: 0 };
+    let primaryThreat = {
+        weatherCondition: null,
+        rainAmount: 0,
+        thunderstormProbability: 0,
+    };
 
-    // --- Weighted Probability Calculation ---
-    const weightedPop = weather.reduce((sum, hourlyForecast, index) => {
-        let pop = hourlyForecast.precipitation?.probability?.value || 0;
-        const weatherType = hourlyForecast.weatherCondition?.type;
-        const rainAmount = hourlyForecast.precipitation?.qpf?.value || 0;
+    let weightedPop = 0;
+    let weightedThunderstorm = 0;
 
-        // --- Boost probability based on weather conditions ---
-        if (["RAIN", "DRIZZLE", "THUNDERSTORM"].includes(weatherType)) {
-            pop = Math.max(pop, 50);
+    weather.forEach((hourlyForecast, index) => {
+        const pop = hourlyForecast.precipitation?.probability?.percent || 0;
+        const thunderstorm = hourlyForecast.thunderstormProbability || 0;
+
+        weightedPop += (pop / 100) * weights[index];
+        weightedThunderstorm += thunderstorm * weights[index];
+
+        if (hourlyForecast.thunderstormProbability > primaryThreat.thunderstormProbability) {
+            primaryThreat = {
+                weatherCondition: hourlyForecast.weatherCondition,
+                rainAmount: hourlyForecast.precipitation?.qpf?.quantity || 0,
+                thunderstormProbability: hourlyForecast.thunderstormProbability || 0,
+            };
         }
-        if (weatherType === "THUNDERSTORM") {
-            pop = Math.max(pop, 90);
-        }
-
-        // --- Adjust for volume ---
-        // If the pop is high but rain amount is negligible, reduce the impact.
-        if (pop > 50 && rainAmount > 0 && rainAmount < 0.254) {
-            pop = pop * 0.5; // Halve the impact of this hour
-        }
-
-        // Identify the hour with the most severe weather to use for the 'reason' text.
-        const severity = getWeatherSeverity(hourlyForecast);
-        const currentThreat = {
-            weatherCondition: hourlyForecast.weatherCondition,
-            rainAmount: rainAmount,
-            severity: severity,
-        };
-
-        if (currentThreat.severity > primaryThreat.severity) {
-            primaryThreat = currentThreat;
-        } else if (
-            currentThreat.severity === primaryThreat.severity &&
-            currentThreat.severity > 0
-        ) {
-            // If severity is the same, the one with more rain is the primary threat.
-            if (currentThreat.rainAmount > primaryThreat.rainAmount) {
-                primaryThreat = currentThreat;
-            }
-        }
-
-        return sum + (pop / 100) * weights[index];
-    }, 0);
+    });
 
     const totalPrecipitation = calculatePrecipitation(weather);
 
-    // --- Final Calculation ---
     if (totalWeight === 0) {
         return {
             likelihood: 0,
@@ -133,10 +107,31 @@ export default function getRainoutLikelihood(weather) {
         };
     }
 
-    const rainoutPercentage = (weightedPop / totalWeight) * 100;
-    const likelihood = Math.round(rainoutPercentage);
+    let rainoutPercentage = (weightedPop / totalWeight) * 100;
+
+    // --- Field Condition Factor ---
+    const totalRainInches = totalPrecipitation.rain;
+    let fieldConditionFactor = 1.0;
+    if (totalRainInches > 0.75) {
+        fieldConditionFactor = 2.0;
+    } else if (totalRainInches > 0.5) {
+        fieldConditionFactor = 1.75;
+    } else if (totalRainInches > 0.25) {
+        fieldConditionFactor = 1.5;
+    } else if (totalRainInches > 0.1) {
+        fieldConditionFactor = 1.2;
+    }
+    rainoutPercentage *= fieldConditionFactor;
+
+    // --- Weighted Thunderstorm Threat ---
+    const weightedThunderstormThreat = (weightedThunderstorm / totalWeight);
+    if (weightedThunderstormThreat > 5) {
+        rainoutPercentage += weightedThunderstormThreat;
+    }
+
+    const likelihood = Math.min(100, Math.round(rainoutPercentage));
     const color = getLikelihoodColor(likelihood);
-    const reason = getLikelihoodReason(likelihood, primaryThreat, totalPrecipitation);
+    const reason = getLikelihoodReason(likelihood, primaryThreat, totalPrecipitation, weightedThunderstormThreat);
 
     return { likelihood, color, reason };
 }
