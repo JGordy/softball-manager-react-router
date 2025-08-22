@@ -71,7 +71,7 @@ const renderWeatherDetails = ({
 
     const temp = Math.round(temperature.degrees);
     const feelsLike = Math.round(feelsLikeTemperature.degrees);
-    const pop = (precipitation.probability.percent || 0) / 100;
+    const pop = Math.round((precipitation.probability.percent || 0)) / 100;
 
     return (
         <>
