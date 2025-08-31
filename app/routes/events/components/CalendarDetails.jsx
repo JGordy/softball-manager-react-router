@@ -1,6 +1,5 @@
 import {
-    Anchor,
-    Card,
+    Button,
     Flex,
     Group,
     Text,
@@ -104,38 +103,41 @@ export default function CalendarDetails({ game, park, team }) {
                 </div>
             </Flex>
 
-            <Anchor
+            <Button
+                variant="filled"
+                component="a"
                 href={firstItem.href(event)}
                 target="_blank"
                 rel="noopener noreferrer"
-                miw="100%"
+                size="lg"
+                fullWidth
             >
-                <Card c="green">
-                    <Group gap="md" justify='center' mr="10px">
-                        {firstItem.icon}
-                        <Text>{firstItem.label}</Text>
-                    </Group>
-                </Card>
-            </Anchor>
+                <Group gap="md" justify='center' mr="10px">
+                    {firstItem.icon}
+                    <Text>{firstItem.label}</Text>
+                </Group>
+            </Button>
 
             <Group mt="md" justify='space-between' grow>
                 {items.map((key) => {
                     const { href, icon, label } = calendarMap[key];
 
                     return (
-                        <Anchor
+                        <Button
                             key={key}
+                            size="lg"
+                            px="0px"
+                            component="a"
                             href={href(event)}
                             target="_blank"
                             rel="noopener noreferrer"
+                            variant="outline"
                         >
-                            <Card c="green">
-                                <Group gap="5px" justify="center" wrap="nowrap">
-                                    {icon}
-                                    <Text>{label}</Text>
-                                </Group>
-                            </Card>
-                        </Anchor>
+                            <Group gap="5px" justify="center" wrap="nowrap">
+                                {icon}
+                                <Text>{label}</Text>
+                            </Group>
+                        </Button>
                     );
                 })}
             </Group>
