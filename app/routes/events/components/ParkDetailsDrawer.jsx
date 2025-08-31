@@ -1,6 +1,5 @@
 import {
-    Anchor,
-    Card,
+    Button,
     Flex,
     Group,
     Text,
@@ -33,29 +32,33 @@ export default function ParkDetailsDrawer({ park }) {
                 </div>
             </Flex>
 
-            <Anchor
+            <Button
+                variant="filled"
+                component="a"
                 href={park?.googleMapsURI}
                 target="_blank"
                 rel="noopener noreferrer"
+                size="lg"
+                fullWidth
             >
-                <Card c="green">
-                    <Group justify="center" gap="xs">
-                        <IconLocationFilled size={18} />
-                        <Text>View on Google Maps</Text>
-                    </Group>
-                </Card>
-            </Anchor>
+                <Group justify="center" gap="xs">
+                    <IconLocationFilled size={18} />
+                    <Text>View on Google Maps</Text>
+                </Group>
+            </Button>
 
-            <Card
-                c="green"
+            <Button
+                fullWidth
+                size="lg"
                 mt="md"
                 onClick={() => clipboard.copy(park?.formattedAddress)}
+                variant="outline"
             >
                 <Group justify="center" gap="xs">
                     <IconCopy size={18} />
                     <Text>{clipboard.copied ? 'Copied!' : 'Copy Address'}</Text>
                 </Group>
-            </Card>
+            </Button>
         </>
     );
 }
