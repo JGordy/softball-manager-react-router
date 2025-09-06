@@ -44,7 +44,7 @@ const RainoutChance = ({
     return (
         <Card radius="xl" mb="lg">
             <Stack align="center" gap="xs">
-                <Text ta="center">Rainout likelihood</Text>
+                <Text size="lg" fw={700} ta="center">Rainout likelihood</Text>
                 <Text fw={700} c={color} size="1.75rem" my={4}> {likelihood}%</Text>
                 <Text size="xs" c="dimmed" ta="center" px="sm">{disclaimer}</Text>
                 {reason && (
@@ -79,8 +79,8 @@ const renderWeatherDetails = ({
                 {rainout && <RainoutChance {...rainout} />}
 
                 <Card radius="xl">
-                    <Text size="xs" c="dimmed" ta="center" mb="sm">
-                        Forecast for the scheduled game time
+                    <Text size="lg" fw={700} ta="center" mb="md">
+                        Game Time Forecast
                     </Text>
                     <Group align="center" justify="center">
                         <img src={`${weatherCondition.iconBaseUri}.svg`} width="50px" />
