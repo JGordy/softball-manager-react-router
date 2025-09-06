@@ -28,7 +28,16 @@ const assignPosition = (player, availablePositions) => {
 };
 
 export default function createFieldingChart(players, innings = 7) {
-    const MAX_OUTS = (players.length > 13) ? 3 : 2;
+    const numPlayers = players.length;
+    const numPositions = positions.length;
+    let MAX_OUTS;
+
+    if (numPlayers <= numPositions) {
+        MAX_OUTS = 0;
+    } else {
+        const totalOutSlots = (numPlayers - numPositions) * innings;
+        MAX_OUTS = Math.ceil(totalOutSlots / numPlayers);
+    }
 
     // NOTE: We don't want all of the player data to be duplicated, so we create a copy of the players array with the relevant values
     // This allows us to modify the positions without affecting the original player data.
