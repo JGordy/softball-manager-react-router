@@ -28,14 +28,31 @@ const getWeatherData = (parkId, game) => {
     }
 
     const getForecast = async (park) => {
-        const url = `${baseUrl}/forecast/hours:lookup?key=${apiKey}&location.latitude=${park.latitude}&location.longitude=${park.longitude}&hours=24&unitsSystem=IMPERIAL`;
+        const totalHours = 96; // Fetch 96 hours of forecast
+        let allForecastHours = [];
+        let nextPageToken = null;
+
         try {
-            const response = await fetch(url);
-            if (response.ok) {
-                const data = await response.json();
-                return data.forecastHours || [];
-            }
-            return [];
+            do {
+                let url = `${baseUrl}/forecast/hours:lookup?key=${apiKey}&location.latitude=${park.latitude}&location.longitude=${park.longitude}&hours=${totalHours}&unitsSystem=IMPERIAL`;
+                if (nextPageToken) {
+                    url += `&pageToken=${nextPageToken}`;
+                }
+
+                const response = await fetch(url);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.forecastHours) {
+                        allForecastHours = allForecastHours.concat(data.forecastHours);
+                    }
+                    nextPageToken = data.nextPageToken;
+                } else {
+                    // Stop pagination on error
+                    nextPageToken = null;
+                }
+            } while (nextPageToken);
+
+            return allForecastHours;
         } catch (error) {
             console.error('Error fetching forecast data:', error);
             return [];
