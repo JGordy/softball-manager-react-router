@@ -45,7 +45,7 @@ function getLikelihoodReason(likelihood, primaryThreat, totalPrecipitation, weig
     }
 
     // Priority 4: General rain forecast
-    if (weatherCondition?.type === "RAIN" || weatherCondition?.type === "DRIZZLE") {
+    if (weatherCondition?.type === "RAIN" || weatherCondition?.type === "DRIZZLE" || weatherCondition?.type === "SNOW") {
         return `Chance of ${description}.`;
     }
 
