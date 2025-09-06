@@ -29,7 +29,7 @@ const weatherFallback = (
     <Stack align="center">
         <IconCloudRain size={72} />
         <Text c="red">Weather data not yet available</Text>
-        <Text c="dimmed" ta="center">Weather data is generally available starting seven days before the scheduled game date. Please check back at a later time.</Text>
+        <Text c="dimmed" ta="center">Weather data is generally available starting 4 days before the scheduled game date. Please check back at a later time.</Text>
     </Stack>
 );
 
