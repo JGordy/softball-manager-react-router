@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { useFetcher } from 'react-router';
 
-import { Alert, Button, Card, Group, Text } from '@mantine/core';
-import { useListState } from '@mantine/hooks';
+import { Alert, Button, Card, Checkbox, Group, Text } from '@mantine/core';
+import { useDisclosure, useListState } from '@mantine/hooks';
 
 import {
     IconArrowBackUp,
+    IconDeviceFloppy,
     IconInfoCircle,
     IconPlus,
     // IconTrashX,
 } from '@tabler/icons-react';
 
+import DrawerContainer from '@/components/DrawerContainer';
 import EditablePlayerChart from '@/components/EditablePlayerChart';
 
 import createBattingOrder from '../utils/createBattingOrder';
@@ -25,11 +27,15 @@ export default function LineupContainer({
 
     const fetcher = useFetcher();
 
+    const [addPlayersDrawerOpened, addPlayersHandlers] = useDisclosure(false);
+    const [selectedPlayers, setSelectedPlayers] = useState([]);
+
     const [hasBeenEdited, setHasBeenEdited] = useState(false);
 
     const [listState, handlers] = useListState(playerChart);
 
-    const availablePlayers = players?.filter(p => p.available === 'accepted');
+    const availablePlayers = players?.filter(p => p.availability === 'accepted');
+    const probablePlayers = players?.filter(p => ['tentative', 'noresponse'].includes(p.availability));
     // console.log('/event/:eventId > LineupContainer: ', { availablePlayers, playerChart, parsedChart, listState, players });
 
     // NOTE: Most leagues require at least 8 players in the field to allow the teams to take the field
@@ -161,6 +167,28 @@ export default function LineupContainer({
         return handlers.reorder({ from: source.index, to: destination?.index || 0 });
     }
 
+    const handleAddPlayer = () => {
+        const playersToAdd = players.reduce((acc, player) => {
+            if (selectedPlayers.includes(player.$id)) {
+                acc.push({
+                    $id: player.$id,
+                    firstName: player.firstName,
+                    lastName: player.lastName,
+                    gender: player.gender,
+                    preferredPositions: player.preferredPositions || [],
+                    dislikedPositions: player.dislikedPositions || [],
+                    positions: [],
+                });
+            }
+            return acc;
+        }, []);
+        console.log({ playersToAdd });
+        handlers.append(...playersToAdd);
+        setSelectedPlayers([]);
+        addPlayersHandlers.close();
+        setHasBeenEdited(true);
+    };
+
     const handleRemovePlayer = (playerIdToRemove) => {
         const indexToRemove = listState.findIndex(player => player.$id === playerIdToRemove);
         if (indexToRemove !== -1) {
@@ -190,35 +218,83 @@ export default function LineupContainer({
                     </Card>
 
                     {managerView && (
-                        <Group justify="space-between" my="lg" grow>
+                        <>
+                            <Group justify="space-between" my="lg" grow>
+                                <Button
+                                    {...buttonProps}
+                                    color="blue"
+                                    leftSection={<IconArrowBackUp size={18} />}
+                                    onClick={handleResetChart}
+                                    variant="light"
+                                >
+                                    Reset
+                                </Button>
+                                {/* <Button
+                                    {...buttonProps}
+                                    color="red"
+                                    leftSection={<IconTrashX size={18} />}
+                                    onClick={handleDeleteChart}
+                                    variant="light"
+                                >
+                                    Delete
+                                </Button> */}
+                                <Button
+                                    {...buttonProps}
+                                    color="green"
+                                    disabled={fetcher.state === 'loading'}
+                                    leftSection={<IconPlus size={18} />}
+                                    onClick={addPlayersHandlers.open}
+                                    variant="light"
+                                >
+                                    Add Players
+                                </Button>
+                            </Group>
                             <Button
                                 {...buttonProps}
-                                color="blue"
-                                leftSection={<IconArrowBackUp size={18} />}
-                                onClick={handleResetChart}
-                                variant="light"
-                            >
-                                Reset
-                            </Button>
-                            {/* <Button
-                                {...buttonProps}
-                                color="red"
-                                leftSection={<IconTrashX size={18} />}
-                                onClick={handleDeleteChart}
-                                variant="light"
-                            >
-                                Delete
-                            </Button> */}
-                            <Button
-                                {...buttonProps}
-                                leftSection={<IconPlus size={18} />}
+                                leftSection={<IconDeviceFloppy size={18} />}
                                 onClick={() => handleOnSave()}
+                                fullWidth
                             >
                                 Save Changes
                             </Button>
-                        </Group>
+                        </>
                     )}
                 </>
+            )}
+            {managerView && (
+                <DrawerContainer
+                    title="Add Players to Lineup"
+                    opened={addPlayersDrawerOpened}
+                    onClose={addPlayersHandlers.close}
+                >
+                    <Checkbox.Group
+                        value={selectedPlayers}
+                        onChange={setSelectedPlayers}
+                    >
+                        <div mt="xs">
+                            {probablePlayers.map((player) => (
+                                <Card
+                                    key={player.$id}
+                                    p="0"
+                                >
+                                    <Checkbox.Card
+                                        radius="md"
+                                        p="md"
+                                        value={player.$id}
+                                    >
+                                        <Group wrap="nowrap" align="center">
+                                            <Checkbox.Indicator />
+                                            <div>
+                                                <Text>{player.firstName} {player.lastName}</Text>
+                                            </div>
+                                        </Group>
+                                    </Checkbox.Card>
+                                </Card>
+                            ))}
+                        </div>
+                    </Checkbox.Group>
+                    <Button onClick={handleAddPlayer} mt="md" fullWidth>Add Selected Players</Button>
+                </DrawerContainer>
             )}
         </>
     );
