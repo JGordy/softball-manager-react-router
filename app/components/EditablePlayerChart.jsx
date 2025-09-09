@@ -81,6 +81,7 @@ const PositionSelect = React.memo(({
 
 const EditablePlayerChart = ({
     handleLineupReorder,
+    handleRemovePlayer,
     playerChart,
     setPlayerChart,
     managerView = false,
