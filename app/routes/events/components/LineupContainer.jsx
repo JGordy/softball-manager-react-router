@@ -280,7 +280,7 @@ export default function LineupContainer({
                                 >
                                     <Checkbox.Card
                                         radius="md"
-                                        p="md"
+                                        p="sm"
                                         value={player.$id}
                                     >
                                         <Group wrap="nowrap" align="center">
