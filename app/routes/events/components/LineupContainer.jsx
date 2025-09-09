@@ -276,6 +276,7 @@ export default function LineupContainer({
                                 <Card
                                     key={player.$id}
                                     p="0"
+                                    mb="sm"
                                 >
                                     <Checkbox.Card
                                         radius="md"
