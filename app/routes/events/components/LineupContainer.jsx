@@ -161,6 +161,14 @@ export default function LineupContainer({
         return handlers.reorder({ from: source.index, to: destination?.index || 0 });
     }
 
+    const handleRemovePlayer = (playerIdToRemove) => {
+        const indexToRemove = listState.findIndex(player => player.$id === playerIdToRemove);
+        if (indexToRemove !== -1) {
+            handlers.remove(indexToRemove);
+            setHasBeenEdited(true);
+        }
+    };
+
     const buttonProps = {
         disabled: fetcher.state === 'loading' || !hasBeenEdited,
         loading: fetcher.state === 'loading',
@@ -174,6 +182,7 @@ export default function LineupContainer({
                     <Card p="sm" radius="lg">
                         <EditablePlayerChart
                             setPlayerChart={handleEditChart}
+                            handleRemovePlayer={handleRemovePlayer}
                             playerChart={listState}
                             managerView={managerView}
                             handleLineupReorder={handleLineupReorder}
