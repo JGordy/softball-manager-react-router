@@ -1,13 +1,18 @@
 import { Query } from '@/appwrite';
 import { listDocuments, readDocument } from '@/utils/databases';
 
-const baseWeatherUrl = 'https://api.openweathermap.org/data/3.0/onecall';
+// const baseWeatherUrl = 'https://api.openweathermap.org/data/3.0/onecall';
 
 const getAttendance = async ({ eventId, accepted = false }) => {
-    const { documents: attendance } = await listDocuments('attendance', [
+    const queries = [
         Query.equal('gameId', eventId),
-        ...[accepted && Query.equal('status', 'accepted')],
-    ]);
+    ];
+
+    if (accepted) {
+        queries.push(Query.equal('status', 'accepted'));
+    }
+
+    const { documents: attendance } = await listDocuments('attendance', queries);
     return attendance;
 };
 
@@ -171,7 +176,7 @@ export async function getEventWithPlayerCharts({ request, eventId }) {
     });
     const players = await Promise.all(playerPromises).then(users => users.flat());
 
-    const attendance = await getAttendance({ eventId, accepted: true });
+    const attendance = await getAttendance({ eventId, accepted: false });
 
     return {
         attendance,
