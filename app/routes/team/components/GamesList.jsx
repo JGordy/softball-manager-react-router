@@ -19,7 +19,31 @@ export default function GamesListContainer({
 }) {
     const { openModal } = useModal();
 
-    const sortedGames = sortByDate(games, "gameDate");
+    const today = new Date();
+    let seasonToDisplay = seasons.find(
+        (season) =>
+            new Date(season.startDate) <= today &&
+            new Date(season.endDate) >= today,
+    );
+
+    if (!seasonToDisplay) {
+        const upcomingSeasons = seasons.filter(
+            (season) => new Date(season.startDate) > today,
+        );
+        if (upcomingSeasons.length > 0) {
+            seasonToDisplay = upcomingSeasons[0];
+        } else {
+            const pastSeasons = seasons
+                .filter((season) => new Date(season.endDate) < today)
+                .sort((a, b) => new Date(b.endDate) - new Date(a.endDate));
+            if (pastSeasons.length > 0) {
+                seasonToDisplay = pastSeasons[0];
+            }
+        }
+    }
+
+    const gamesToDisplay = seasonToDisplay ? seasonToDisplay.games : [];
+    const sortedGames = sortByDate(gamesToDisplay, "gameDate");
 
     const openAddGameModal = () =>
         openModal({
@@ -29,7 +53,7 @@ export default function GamesListContainer({
                     action="add-single-game"
                     actionRoute={`/team/${teamId}`}
                     teamId={teamId}
-                    seasonId={null}
+                    seasonId={seasonToDisplay ? seasonToDisplay.$id : null}
                     seasons={seasons}
                     confirmText="Create Game"
                 />

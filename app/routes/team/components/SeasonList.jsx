@@ -82,6 +82,41 @@ export default function SeasonList({
         </Button>
     );
 
+    const today = new Date();
+    const upcomingSeasons = seasons.filter(
+        (season) => new Date(season.endDate) >= today,
+    );
+    const pastSeasons = seasons
+        .filter((season) => new Date(season.endDate) < today)
+        .sort((a, b) => new Date(b.endDate) - new Date(a.endDate));
+
+    const renderSeason = (season) => (
+        <Link to={`/season/${season.$id}`} key={season.$id}>
+            <Card
+                key={season.$id}
+                mt="sm"
+                radius="md"
+                p="sm"
+                py="md"
+                withBorder
+            >
+                <Group justify="space-between">
+                    <Text size="lg">{season.seasonName}</Text>
+                    <Group>
+                        <Text c="dimmed">
+                            {new Date(season.startDate).toLocaleDateString()} -{" "}
+                            {new Date(season.endDate).toLocaleDateString()}
+                        </Text>
+                        <IconChevronRight size={20} />
+                    </Group>
+                    {getSeasonStatus(season)}
+                </Group>
+
+                {/* TODO: Add current or past record based on game results */}
+            </Card>
+        </Link>
+    );
+
     if (!seasons.length) {
         return (
             <>
@@ -97,37 +132,23 @@ export default function SeasonList({
         <>
             {managerView && addSeasonCta}
             <ScrollArea h="55vh">
-                {seasons.map((season) => (
-                    <Link to={`/season/${season.$id}`} key={season.$id}>
-                        <Card
-                            key={season.$id}
-                            mt="sm"
-                            radius="md"
-                            p="sm"
-                            py="md"
-                            withBorder
-                        >
-                            <Group justify="space-between">
-                                <Text size="lg">{season.seasonName}</Text>
-                                <Group>
-                                    <Text c="dimmed">
-                                        {new Date(
-                                            season.startDate,
-                                        ).toLocaleDateString()}{" "}
-                                        -{" "}
-                                        {new Date(
-                                            season.endDate,
-                                        ).toLocaleDateString()}
-                                    </Text>
-                                    <IconChevronRight size={20} />
-                                </Group>
-                                {getSeasonStatus(season)}
-                            </Group>
+                {upcomingSeasons.length > 0 && (
+                    <>
+                        <Text size="lg" fw={700} mt="md" c="dimmed">
+                            Upcoming
+                        </Text>
+                        {upcomingSeasons.map(renderSeason)}
+                    </>
+                )}
 
-                            {/* TODO: Add current or past record based on game results */}
-                        </Card>
-                    </Link>
-                ))}
+                {pastSeasons.length > 0 && (
+                    <>
+                        <Text size="lg" fw={700} mt="md" c="dimmed">
+                            Past
+                        </Text>
+                        {pastSeasons.map(renderSeason)}
+                    </>
+                )}
             </ScrollArea>
         </>
     );
