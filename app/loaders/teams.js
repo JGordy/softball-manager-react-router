@@ -10,7 +10,9 @@ export async function getTeamById({ teamId }) {
         ]);
 
         // 2. Get the manager's id
-        const { userId: managerId } = memberships.documents.find(document => document.role === 'manager');
+        const managerIds = memberships.documents
+            .filter(document => document.role === 'manager')
+            .map(document => document.userId);
 
         // 3. Extract userIds
         const userIds = memberships.documents.map(m => m.userId);
@@ -39,7 +41,7 @@ export async function getTeamById({ teamId }) {
 
         teamData?.seasons?.map(season => formatGames(season));
 
-        return { teamData, players, managerId };
+        return { teamData, players, managerIds };
     } else {
         return { teamData: {} };
     }

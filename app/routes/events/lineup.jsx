@@ -38,7 +38,7 @@ function Lineup({ loaderData }) {
     const {
         // game,
         // deferredData,
-        managerId,
+        managerIds,
         players,
         attendance,
         // season,
@@ -46,7 +46,7 @@ function Lineup({ loaderData }) {
         ...rest
     } = loaderData;
 
-    const managerView = managerId === currentUserId;
+    const managerView = managerIds.includes(currentUserId);
 
     const playersWithAvailability = addPlayerAvailability(attendance, players);
 

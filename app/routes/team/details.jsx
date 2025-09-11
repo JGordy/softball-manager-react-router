@@ -69,14 +69,14 @@ export async function action({ request, params }) {
 };
 
 export default function TeamDetails({ actionData, loaderData }) {
-    const { teamData: team, players, managerId } = loaderData;
-    // console.log('/team/details >', { players, team, managerId });
+    const { teamData: team, players, managerIds } = loaderData;
+    // console.log('/team/details >', { players, team, managerIds });
 
     const { openModal, closeAllModals } = useModal();
 
     const { user } = useAuth();
 
-    const managerView = managerId === user?.$id;
+    const managerView = managerIds.includes(user?.$id);
 
     useEffect(() => {
         const handleAfterSubmit = async () => {
@@ -140,7 +140,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                 <Tabs.Panel value="roster">
                     <PlayerList
                         players={players}
-                        managerId={managerId}
+                        managerIds={managerIds}
                         managerView={managerView}
                         primaryColor={primaryColor}
                         teamId={team.$id}

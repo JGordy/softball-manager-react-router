@@ -34,7 +34,7 @@ import positions from '@/constants/positions';
 
 export default function PlayerList({
     players,
-    managerId,
+    managerIds,
     managerView,
     primaryColor,
     teamId,
@@ -100,7 +100,7 @@ export default function PlayerList({
                                     <Text size="lg">
                                         {player.firstName} {player.lastName}
                                     </Text>
-                                    {player.$id === managerId && (
+                                    {managerIds.includes(player.$id) && (
                                         <Text>
                                             <IconClipboardCheck size={20} />
                                         </Text>

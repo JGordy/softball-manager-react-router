@@ -73,14 +73,14 @@ export default function EventDetails({ loaderData, actionData }) {
     const {
         game,
         deferredData,
-        managerId,
+        managerIds,
         season,
         teams,
         weatherPromise,
     } = loaderData;
 
     const team = teams?.[0];
-    const managerView = managerId === currentUserId;
+    const managerView = managerIds.includes(currentUserId);
 
     const {
         gameDate,
