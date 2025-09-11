@@ -83,8 +83,13 @@ export default function SeasonList({
     );
 
     const today = new Date();
+    const inProgressSeasons = seasons.filter(
+        (season) =>
+            new Date(season.startDate) <= today &&
+            new Date(season.endDate) >= today,
+    );
     const upcomingSeasons = seasons.filter(
-        (season) => new Date(season.endDate) >= today,
+        (season) => new Date(season.startDate) > today,
     );
     const pastSeasons = seasons
         .filter((season) => new Date(season.endDate) < today)
@@ -132,6 +137,14 @@ export default function SeasonList({
         <>
             {managerView && addSeasonCta}
             <ScrollArea h="55vh">
+                {inProgressSeasons.length > 0 && (
+                    <>
+                        <Text size="lg" fw={700} mt="md" c="dimmed">
+                            In Progress
+                        </Text>
+                        {inProgressSeasons.map(renderSeason)}
+                    </>
+                )}
                 {upcomingSeasons.length > 0 && (
                     <>
                         <Text size="lg" fw={700} mt="md" c="dimmed">
