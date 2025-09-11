@@ -41,9 +41,9 @@ const availabilityData = {
         label: "Maybe",
         value: "tentative",
     },
-    noresponse: {
+    unknown: {
         icon: <IconMessageCircleOff size={24} color="gray" />,
-        label: "No Response",
+        label: "Unknown",
         value: "",
     },
 };
@@ -112,7 +112,7 @@ const AvailabilityOptionsContainer = ({
                     </Text>
                 </Group>
                 <Group>
-                    {availabilityData[attendance?.status || "noresponse"].icon}
+                    {availabilityData[attendance?.status || "unknown"].icon}
                     {renderToggle && (
                         <>
                             <Divider orientation="vertical" />
@@ -136,13 +136,13 @@ const AvailabilityOptionsContainer = ({
                     mt="sm"
                     label="Will you be attending the game?"
                     // description={`Last updated ${attendance?.$updatedAt}`}
-                    defaultValue={attendance?.status || "noresponse"}
+                    defaultValue={attendance?.status || "unknown"}
                 >
                     <Group justify="space-between" mt="sm">
                         {Object.keys(availabilityData).map((key) => {
                             const item = availabilityData[key];
                             return (
-                                key !== "noresponse" && (
+                                key !== "unknown" && (
                                     <Radio.Card
                                         radius="xl"
                                         value={key}
