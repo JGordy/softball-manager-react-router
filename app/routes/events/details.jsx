@@ -64,10 +64,10 @@ export default function EventDetails({ loaderData, actionData }) {
 
     const isDeleting = navigation.state === "submitting" && navigation.formData?.get("_action") === "delete-game";
 
-    const { game, deferredData, managerId, season, teams, weatherPromise } = loaderData;
+    const { game, deferredData, managerIds, season, teams, weatherPromise } = loaderData;
 
     const team = teams?.[0];
-    const managerView = managerId === currentUserId;
+    const managerView = managerIds.includes(currentUserId);
 
     const { gameDate, playerChart, result } = game;
 

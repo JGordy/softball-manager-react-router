@@ -114,7 +114,10 @@ export async function getEventById({ request, eventId }) {
 
     const { documents: userIds } = await listDocuments("memberships", [Query.equal("teamId", [teams[0].$id])]);
 
-    const { userId: managerId } = userIds.find((userId) => userId.role === "manager");
+    const managerIds = userIds
+        .filter(({ role }) => role === 'manager')
+        .map(({ userId }) => userId);
+    console.log({ userIds });
 
     // --- Start of deferred data ---
     const playerPromises = userIds.map(async ({ userId }) => {
@@ -141,7 +144,7 @@ export async function getEventById({ request, eventId }) {
             // NOTE: We need to parse the string from the database twice before passing to the front end
             playerChart: JSON.parse(JSON.parse(playerChart)),
         },
-        managerId,
+        managerIds,
         season,
         teams,
         // Deferred data for weather, but is conditional so we didn't add it to the deferredData
@@ -155,7 +158,13 @@ export async function getEventWithPlayerCharts({ request, eventId }) {
 
     const { documents: userIds } = await listDocuments("memberships", [Query.equal("teamId", [teams[0].$id])]);
 
+<<<<<<< HEAD
     const { userId: managerId } = userIds.find((userId) => userId.role === "manager");
+=======
+    const managerIds = userIds
+        .filter(({ role }) => role === 'manager')
+        .map(({ userId }) => userId);
+>>>>>>> master
 
     // --- Start of deferred data ---
     const playerPromises = userIds.map(async ({ userId }) => {
@@ -169,7 +178,7 @@ export async function getEventWithPlayerCharts({ request, eventId }) {
     return {
         attendance,
         game,
-        managerId,
+        managerIds,
         teams,
         // NOTE: We need to parse the string from the database twice before passing to the front end
         playerChart: playerChart ? JSON.parse(JSON.parse(playerChart)) : null,

@@ -22,7 +22,7 @@ import useModal from "@/hooks/useModal";
 
 import positions from "@/constants/positions";
 
-export default function PlayerList({ players, managerId, managerView, primaryColor, teamId }) {
+export default function PlayerList({ players, managerIds, managerView, primaryColor, teamId }) {
     const [selectedPlayerId, setSelectedPlayerId] = useState(null);
     const selectedPlayer = players.find((player) => player.$id === selectedPlayerId);
 
@@ -79,7 +79,7 @@ export default function PlayerList({ players, managerId, managerView, primaryCol
                                         <Text size="lg">
                                             {player.firstName} {player.lastName}
                                         </Text>
-                                        {player.$id === managerId && (
+                                        {managerIds.includes(player.$id) && (
                                             <Text>
                                                 <IconClipboardCheck size={20} />
                                             </Text>
