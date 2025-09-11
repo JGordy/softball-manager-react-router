@@ -37,7 +37,7 @@ export default function LineupContainer({
         (p) => p.availability === "accepted",
     );
     const probablePlayers = players?.filter((p) =>
-        ["tentative", "noresponse"].includes(p.availability),
+        ["tentative", "unknown"].includes(p.availability),
     );
     // console.log('/event/:eventId > LineupContainer: ', { availablePlayers, playerChart, parsedChart, listState, players });
 
