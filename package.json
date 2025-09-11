@@ -6,7 +6,10 @@
         "build": "react-router build",
         "dev": "react-router dev",
         "start": "react-router-serve ./build/server/index.js",
-        "typecheck": "react-router typegen && tsc"
+        "typecheck": "react-router typegen && tsc",
+        "prepare": "husky",
+        "lint": "prettier --check .",
+        "format": "prettier --write ."
     },
     "dependencies": {
         "@google-cloud/local-auth": "^3.0.1",
@@ -42,13 +45,19 @@
         "@types/node": "^20",
         "@types/react": "^19.0.1",
         "@types/react-dom": "^19.0.1",
+        "husky": "9.1.7",
+        "lint-staged": "16.1.6",
         "postcss": "^8.5.1",
         "postcss-preset-mantine": "^1.17.0",
         "postcss-simple-vars": "^7.0.1",
+        "prettier": "3.6.2",
         "react-router-devtools": "^1.1.6",
         "tailwindcss": "^4.0.0",
         "typescript": "^5.7.2",
         "vite": "^6.2.1",
         "vite-tsconfig-paths": "^5.1.4"
+    },
+    "lint-staged": {
+        "**/*": "prettier --write --ignore-unknown"
     }
 }
