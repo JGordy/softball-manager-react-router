@@ -131,7 +131,6 @@ export async function getEventById({ request, eventId }) {
     const managerIds = userIds
         .filter(({ role }) => role === "manager")
         .map(({ userId }) => userId);
-    console.log({ userIds });
 
     // --- Start of deferred data ---
     const playerPromises = userIds.map(async ({ userId }) => {

@@ -1,18 +1,17 @@
-# Welcome to React Router!
+# Softball Manager
 
-A modern, production-ready template for building full-stack React applications using React Router.
+A web application for managing your softball team, schedule, and player availability.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+## Built With
 
-## Features
+This project is a full-stack React application built with [React Router](https://reactrouter.com/) and leverages the following technologies:
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+- **Framework:** [React Router](https://reactrouter.com/) for server-side rendering, data loading/mutations, and routing.
+- **Build Tool:** [Vite](https://vitejs.dev/) for fast Hot Module Replacement (HMR) and optimized builds.
+- **Backend:** [Appwrite](https://appwrite.io/) as a self-hosted backend-as-a-service for user authentication, database, and storage.
+- **UI Components:** [Mantine UI](https://mantine.dev/) for a rich set of accessible and themeable React components.
+- **Icons:** [Tabler Icons](https://tabler-icons.io/) for a consistent and modern icon set.
+- **Styling:** [PostCSS](https://postcss.org/) and [CSS Modules](https://github.com/css-modules/css-modules).
 
 ## Getting Started
 
@@ -42,58 +41,11 @@ Create a production build:
 npm run build
 ```
 
-## Deployment
-
-### Docker Deployment
-
-This template includes three Dockerfiles optimized for different package managers:
-
-- `Dockerfile` - for npm
-- `Dockerfile.pnpm` - for pnpm
-- `Dockerfile.bun` - for bun
-
-To build and run using Docker:
+This will create an optimized build in the `build/` directory, with separate client and server bundles. You can then use the `start` script to run the production server.
 
 ```bash
-# For npm
-docker build -t my-app .
-
-# For pnpm
-docker build -f Dockerfile.pnpm -t my-app .
-
-# For bun
-docker build -f Dockerfile.bun -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
+npm run start
 ```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
 
 ---
 
