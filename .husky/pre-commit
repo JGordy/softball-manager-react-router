@@ -1,9 +1,6 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-
 if ! npm run lint; then
-  printf "\033[0;31mCommit aborted: some files are not formatted with Prettier. Run 'npm run format' and stage the changes.\033[0m]\n"
-  exit 1
+    printf "\033[0;31mCommit aborted: some files are not formatted with Prettier. Run 'npm run format' and stage the changes.\033[0m]\n"
+    exit 1
 fi
 
 npx lint-staged
