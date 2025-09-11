@@ -81,7 +81,7 @@ export default function RosterDetails({
                                     addPlayerAvailability(documents, players);
                                 const availablePlayers =
                                     playersWithAvailability.filter(
-                                        (p) => p.available === "accepted",
+                                        (p) => p.availability === "accepted",
                                     );
                                 return (
                                     <Text
