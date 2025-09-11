@@ -1,18 +1,12 @@
-import { Link } from 'react-router';
+import { Link } from "react-router";
 
-import {
-    Button,
-    Card,
-    Group,
-    ScrollArea,
-    Text,
-} from '@mantine/core';
+import { Button, Card, Group, ScrollArea, Text } from "@mantine/core";
 
-import { IconChevronRight, IconPlus } from '@tabler/icons-react';
+import { IconChevronRight, IconPlus } from "@tabler/icons-react";
 
-import AddSeason from '@/forms/AddSeason';
+import AddSeason from "@/forms/AddSeason";
 
-import useModal from '@/hooks/useModal';
+import useModal from "@/hooks/useModal";
 
 export default function SeasonList({
     seasons,
@@ -35,36 +29,44 @@ export default function SeasonList({
             if (games && games.length > 0) {
                 // Find the upcoming game object, not just the date
                 const upcomingGame = games
-                    .filter(game => new Date(game.gameDate) > today)
-                    .sort((a, b) => new Date(a.gameDate) - new Date(b.gameDate))[0];
+                    .filter((game) => new Date(game.gameDate) > today)
+                    .sort(
+                        (a, b) => new Date(a.gameDate) - new Date(b.gameDate),
+                    )[0];
 
                 if (upcomingGame) {
-                    const timeDiff = new Date(upcomingGame.gameDate).getTime() - today.getTime();
-                    const daysUntilGame = Math.ceil(timeDiff / (1000 * 3600 * 24)); // Calculate days
+                    const timeDiff =
+                        new Date(upcomingGame.gameDate).getTime() -
+                        today.getTime();
+                    const daysUntilGame = Math.ceil(
+                        timeDiff / (1000 * 3600 * 24),
+                    ); // Calculate days
 
-                    const daysUntilText = `${daysUntilGame} day${daysUntilGame !== 1 ? 's' : ''}`;
+                    const daysUntilText = `${daysUntilGame} day${daysUntilGame !== 1 ? "s" : ""}`;
 
                     return (
                         <Text span fw={700} c="green">
-                            Next game {upcomingGame.isHomeGame ? 'vs' : '@'} {upcomingGame.opponent} in {daysUntilText}!
+                            Next game {upcomingGame.isHomeGame ? "vs" : "@"}{" "}
+                            {upcomingGame.opponent} in {daysUntilText}!
                         </Text>
                     );
                 }
             }
-            return 'Season in progress';
+            return "Season in progress";
         }
     };
 
-    const openAddSeasonModal = () => openModal({
-        title: 'Add a New Season',
-        children: (
-            <AddSeason
-                actionRoute={`/team/${teamId}`}
-                buttonColor={primaryColor}
-                teamId={teamId}
-            />
-        ),
-    });
+    const openAddSeasonModal = () =>
+        openModal({
+            title: "Add a New Season",
+            children: (
+                <AddSeason
+                    actionRoute={`/team/${teamId}`}
+                    buttonColor={primaryColor}
+                    teamId={teamId}
+                />
+            ),
+        });
 
     const addSeasonCta = (
         <Button
@@ -97,12 +99,25 @@ export default function SeasonList({
             <ScrollArea h="55vh">
                 {seasons.map((season) => (
                     <Link to={`/season/${season.$id}`} key={season.$id}>
-                        <Card key={season.$id} mt="sm" radius="md" p="sm" py="md" withBorder>
+                        <Card
+                            key={season.$id}
+                            mt="sm"
+                            radius="md"
+                            p="sm"
+                            py="md"
+                            withBorder
+                        >
                             <Group justify="space-between">
                                 <Text size="lg">{season.seasonName}</Text>
                                 <Group>
                                     <Text c="dimmed">
-                                        {new Date(season.startDate).toLocaleDateString()} - {new Date(season.endDate).toLocaleDateString()}
+                                        {new Date(
+                                            season.startDate,
+                                        ).toLocaleDateString()}{" "}
+                                        -{" "}
+                                        {new Date(
+                                            season.endDate,
+                                        ).toLocaleDateString()}
                                     </Text>
                                     <IconChevronRight size={20} />
                                 </Group>

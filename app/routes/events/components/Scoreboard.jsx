@@ -1,33 +1,15 @@
-import {
-    Box,
-    Card,
-    Center,
-    Group,
-    Text,
-    Title,
-} from '@mantine/core';
+import { Box, Card, Center, Group, Text, Title } from "@mantine/core";
 
-export default function Scoreboard({
-    game = {},
-    gameIsPast,
-    team,
-}) {
+export default function Scoreboard({ game = {}, gameIsPast, team }) {
+    const { score, opponent, opponentScore, isHomeGame, result } = game;
 
-    const {
-        score,
-        opponent,
-        opponentScore,
-        isHomeGame,
-        result,
-    } = game;
-
-    const isWin = result === 'won';
-    const isLoss = result === 'lost';
+    const isWin = result === "won";
+    const isLoss = result === "lost";
 
     return (
         <Box mt="xl">
             <Title order={4} align="center" mb="sm">
-                {team?.name} {isHomeGame ? 'vs' : '@'} {opponent || "TBD"}
+                {team?.name} {isHomeGame ? "vs" : "@"} {opponent || "TBD"}
             </Title>
             <Card
                 className="score-container"
@@ -38,15 +20,21 @@ export default function Scoreboard({
                 mx="auto"
             >
                 <Group justify="center" align="center">
-                    <Text size="xl" fw={700} c={isWin ? 'green' : ''}>{score || '0'}</Text>
+                    <Text size="xl" fw={700} c={isWin ? "green" : ""}>
+                        {score || "0"}
+                    </Text>
                     <div>-</div>
-                    <Text size="xl" fw={700} c={isLoss ? 'red' : ''}>{opponentScore || '0'}</Text>
+                    <Text size="xl" fw={700} c={isLoss ? "red" : ""}>
+                        {opponentScore || "0"}
+                    </Text>
                 </Group>
             </Card>
 
             {gameIsPast && !result && (
                 <Center mt="md">
-                    <Text size="sm" c="yellow">Game result pending*</Text>
+                    <Text size="sm" c="yellow">
+                        Game result pending*
+                    </Text>
                 </Center>
             )}
         </Box>

@@ -1,25 +1,26 @@
-import { Query } from '@/appwrite';
-import { listDocuments, readDocument } from '@/utils/databases';
+import { Query } from "@/appwrite";
+import { listDocuments, readDocument } from "@/utils/databases";
 
 // const baseWeatherUrl = 'https://api.openweathermap.org/data/3.0/onecall';
 
 const getAttendance = async ({ eventId, accepted = false }) => {
-    const queries = [
-        Query.equal('gameId', eventId),
-    ];
+    const queries = [Query.equal("gameId", eventId)];
 
     if (accepted) {
-        queries.push(Query.equal('status', 'accepted'));
+        queries.push(Query.equal("status", "accepted"));
     }
 
-    const { documents: attendance } = await listDocuments('attendance', queries);
+    const { documents: attendance } = await listDocuments(
+        "attendance",
+        queries,
+    );
     return attendance;
 };
 
 const getWeatherData = (parkId, game) => {
     const { gameDate } = game;
     const apiKey = import.meta.env.VITE_GOOGLE_SERVICES_API_KEY;
-    const baseUrl = 'https://weather.googleapis.com/v1';
+    const baseUrl = "https://weather.googleapis.com/v1";
 
     const now = new Date();
     const gameTime = new Date(gameDate);
@@ -48,7 +49,9 @@ const getWeatherData = (parkId, game) => {
                 if (response.ok) {
                     const data = await response.json();
                     if (data.forecastHours) {
-                        allForecastHours = allForecastHours.concat(data.forecastHours);
+                        allForecastHours = allForecastHours.concat(
+                            data.forecastHours,
+                        );
                     }
                     nextPageToken = data.nextPageToken;
                 } else {
@@ -59,7 +62,7 @@ const getWeatherData = (parkId, game) => {
 
             return allForecastHours;
         } catch (error) {
-            console.error('Error fetching forecast data:', error);
+            console.error("Error fetching forecast data:", error);
             return [];
         }
     };
@@ -74,13 +77,13 @@ const getWeatherData = (parkId, game) => {
             }
             return [];
         } catch (error) {
-            console.error('Error fetching history data:', error);
+            console.error("Error fetching history data:", error);
             return [];
         }
     };
 
     return (async () => {
-        const park = await readDocument('parks', parkId);
+        const park = await readDocument("parks", parkId);
         if (!park) return null;
 
         let hourlyData = [];
@@ -101,9 +104,12 @@ const getWeatherData = (parkId, game) => {
         // Filter to the 6 hours before the game
         const sixHoursBeforeTimestamp = sixHoursBefore.getTime();
         const gameTimeTimestamp = gameTime.getTime();
-        const filteredData = hourlyData.filter(hour => {
+        const filteredData = hourlyData.filter((hour) => {
             const hourTimestamp = new Date(hour.interval.startTime).getTime();
-            return hourTimestamp >= sixHoursBeforeTimestamp && hourTimestamp <= gameTimeTimestamp;
+            return (
+                hourTimestamp >= sixHoursBeforeTimestamp &&
+                hourTimestamp <= gameTimeTimestamp
+            );
         });
 
         return { hourly: filteredData };
@@ -111,29 +117,39 @@ const getWeatherData = (parkId, game) => {
 };
 
 export async function getEventById({ request, eventId }) {
-    const { seasons: season, playerChart, ...game } = await readDocument('games', eventId);
+    const {
+        seasons: season,
+        playerChart,
+        ...game
+    } = await readDocument("games", eventId);
     const { teams = [], parkId } = season;
 
-    const { documents: userIds } = await listDocuments('memberships', [
-        Query.equal('teamId', [teams[0].$id]),
+    const { documents: userIds } = await listDocuments("memberships", [
+        Query.equal("teamId", [teams[0].$id]),
     ]);
 
     const managerIds = userIds
-        .filter(({ role }) => role === 'manager')
+        .filter(({ role }) => role === "manager")
         .map(({ userId }) => userId);
     console.log({ userIds });
 
     // --- Start of deferred data ---
     const playerPromises = userIds.map(async ({ userId }) => {
-        const result = await listDocuments('users', [
-            Query.equal('$id', userId),
+        const result = await listDocuments("users", [
+            Query.equal("$id", userId),
         ]);
         return result.documents;
     });
-    const playersPromise = Promise.all(playerPromises).then(users => users.flat());
+    const playersPromise = Promise.all(playerPromises).then((users) =>
+        users.flat(),
+    );
 
-    const parkPromise = parkId ? readDocument('parks', parkId) : Promise.resolve(null);
-    const attendancePromise = listDocuments('attendance', [Query.equal('gameId', eventId)]);
+    const parkPromise = parkId
+        ? readDocument("parks", parkId)
+        : Promise.resolve(null);
+    const attendancePromise = listDocuments("attendance", [
+        Query.equal("gameId", eventId),
+    ]);
 
     const deferredData = Promise.all([
         playersPromise,
@@ -161,25 +177,31 @@ export async function getEventById({ request, eventId }) {
 }
 
 export async function getEventWithPlayerCharts({ request, eventId }) {
-    const { seasons: season, playerChart, ...game } = await readDocument('games', eventId);
+    const {
+        seasons: season,
+        playerChart,
+        ...game
+    } = await readDocument("games", eventId);
     const { teams = [] } = season;
 
-    const { documents: userIds } = await listDocuments('memberships', [
-        Query.equal('teamId', [teams[0].$id]),
+    const { documents: userIds } = await listDocuments("memberships", [
+        Query.equal("teamId", [teams[0].$id]),
     ]);
 
     const managerIds = userIds
-        .filter(({ role }) => role === 'manager')
+        .filter(({ role }) => role === "manager")
         .map(({ userId }) => userId);
 
     // --- Start of deferred data ---
     const playerPromises = userIds.map(async ({ userId }) => {
-        const result = await listDocuments('users', [
-            Query.equal('$id', userId),
+        const result = await listDocuments("users", [
+            Query.equal("$id", userId),
         ]);
         return result.documents;
     });
-    const players = await Promise.all(playerPromises).then(users => users.flat());
+    const players = await Promise.all(playerPromises).then((users) =>
+        users.flat(),
+    );
 
     const attendance = await getAttendance({ eventId, accepted: false });
 

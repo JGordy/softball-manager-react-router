@@ -1,13 +1,13 @@
-import { memo } from 'react';
+import { memo } from "react";
 
 import { Outlet, useNavigation } from "react-router";
 
-import { Container, LoadingOverlay } from '@mantine/core';
+import { Container, LoadingOverlay } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 
 import NavLinks from "@/components/NavLinks";
 
-import { account } from '@/appwrite';
+import { account } from "@/appwrite";
 
 export async function clientLoader() {
     try {
@@ -15,26 +15,26 @@ export async function clientLoader() {
         const { emailVerification } = await account.get();
 
         if (!session) {
-            throw new Error('No active session found');
+            throw new Error("No active session found");
         }
 
         const { userId } = session;
         // Replace this with your actual user fetching logic
-        const response = await fetch('/api/user', {
-            method: 'POST',
+        const response = await fetch("/api/user", {
+            method: "POST",
             body: JSON.stringify({ userId }),
         });
 
         if (!response.ok) {
-            throw new Error('Failed to fetch user');
+            throw new Error("Failed to fetch user");
         }
 
         const user = await response.json();
 
         return { user, isVerified: emailVerification, session };
     } catch (error) {
-        console.error('Error fetching user:', error);
-        if (error.message === 'No active session found') {
+        console.error("Error fetching user:", error);
+        if (error.message === "No active session found") {
             throw redirect("/login");
         }
         return { user: {}, isVerified: false, session: null };
@@ -54,7 +54,7 @@ export function HydrateFallback() {
                 <NavLinks />
             </main>
         </div>
-    );;
+    );
 }
 
 function Layout({ loaderData }) {
@@ -68,8 +68,8 @@ function Layout({ loaderData }) {
                 <LoadingOverlay
                     visible={isNavigating}
                     zIndex={500}
-                    loaderProps={{ color: 'green', size: 'xl', type: 'dots' }}
-                    overlayProps={{ radius: "sm", blur: 3, }}
+                    loaderProps={{ color: "green", size: "xl", type: "dots" }}
+                    overlayProps={{ radius: "sm", blur: 3 }}
                 />
                 <Container p="0" mih="90vh">
                     <Outlet context={{ ...loaderData }} />

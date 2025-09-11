@@ -1,9 +1,9 @@
-import { account } from '@/appwrite';
+import { account } from "@/appwrite";
 
 export const isAuth = () => {
     return new Promise(async (resolve) => {
         try {
-            const session = await account.getSession('current');
+            const session = await account.getSession("current");
 
             if (session) {
                 resolve(session);

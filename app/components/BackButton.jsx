@@ -1,11 +1,10 @@
 import { useNavigate } from "react-router";
-import { Anchor, Group, useComputedColorScheme } from '@mantine/core';
+import { Anchor, Group, useComputedColorScheme } from "@mantine/core";
 
-import { IconChevronLeft } from '@tabler/icons-react';
+import { IconChevronLeft } from "@tabler/icons-react";
 
-export default function BackButton({ text = 'Go Back', to }) {
-
-    const computedColorScheme = useComputedColorScheme('light');
+export default function BackButton({ text = "Go Back", to }) {
+    const computedColorScheme = useComputedColorScheme("light");
 
     const navigate = useNavigate();
 
@@ -14,7 +13,7 @@ export default function BackButton({ text = 'Go Back', to }) {
     return (
         <Anchor
             p="0"
-            c={computedColorScheme === 'light' ? 'black' : 'white'}
+            c={computedColorScheme === "light" ? "black" : "white"}
             onClick={goBack}
             component="button"
         >
@@ -24,4 +23,4 @@ export default function BackButton({ text = 'Go Back', to }) {
             </Group>
         </Anchor>
     );
-};
+}

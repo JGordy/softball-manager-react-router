@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router';
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router";
 
-import { Center, SegmentedControl } from '@mantine/core';
+import { Center, SegmentedControl } from "@mantine/core";
 
 import {
     IconBallBaseball,
@@ -9,11 +9,11 @@ import {
     IconHome,
     IconSettings,
     IconUserSquareRounded,
-} from '@tabler/icons-react';
+} from "@tabler/icons-react";
 
-import { useAuth } from '@/contexts/auth/useAuth';
+import { useAuth } from "@/contexts/auth/useAuth";
 
-import classes from '@/styles/navlinks.module.css';
+import classes from "@/styles/navlinks.module.css";
 
 function Label({ Icon, text }) {
     return (
@@ -31,49 +31,73 @@ function NavLinks() {
 
     const getInitialValue = () => {
         const keywords = ["team", "game", "season"];
-        if (keywords.some(keyword => location.pathname.toLowerCase().includes(keyword))) {
-            return 'teams';
-        };
-
-        if (location.pathname.toLowerCase().includes('user')) {
-            return 'user';
+        if (
+            keywords.some((keyword) =>
+                location.pathname.toLowerCase().includes(keyword),
+            )
+        ) {
+            return "teams";
         }
 
-        if (location.pathname.toLowerCase().includes('events')) {
-            return 'events';
+        if (location.pathname.toLowerCase().includes("user")) {
+            return "user";
         }
 
-        if (location.pathname.toLowerCase().includes('settings')) {
-            return 'settings';
+        if (location.pathname.toLowerCase().includes("events")) {
+            return "events";
         }
 
-        return 'home';
+        if (location.pathname.toLowerCase().includes("settings")) {
+            return "settings";
+        }
+
+        return "home";
     };
 
     const [value, setValue] = useState(getInitialValue());
 
     const links = [
         {
-            label: <Label Icon={IconHome} text={(value === 'home') && "Home"} />,
-            value: 'home',
+            label: <Label Icon={IconHome} text={value === "home" && "Home"} />,
+            value: "home",
         },
         {
-            label: <Label Icon={IconBallBaseball} text={(value === 'teams') && "Teams"} />,
-            value: 'teams',
+            label: (
+                <Label
+                    Icon={IconBallBaseball}
+                    text={value === "teams" && "Teams"}
+                />
+            ),
+            value: "teams",
         },
         {
-            label: <Label Icon={IconCalendar} text={(value === 'events') && "Events"} />,
-            value: 'events',
+            label: (
+                <Label
+                    Icon={IconCalendar}
+                    text={value === "events" && "Events"}
+                />
+            ),
+            value: "events",
         },
         {
-            label: <Label Icon={IconUserSquareRounded} text={(value === 'user') && "Profile"} />,
-            value: 'user',
+            label: (
+                <Label
+                    Icon={IconUserSquareRounded}
+                    text={value === "user" && "Profile"}
+                />
+            ),
+            value: "user",
         },
         {
-            label: <Label Icon={IconSettings} text={(value === 'settings') && "Settings"} />,
-            value: 'settings',
+            label: (
+                <Label
+                    Icon={IconSettings}
+                    text={value === "settings" && "Settings"}
+                />
+            ),
+            value: "settings",
         },
-    ]
+    ];
 
     useEffect(() => {
         setValue(getInitialValue()); // Update value when location changes
@@ -82,10 +106,10 @@ function NavLinks() {
     const handleNavLinkClick = (newValue) => {
         setValue(newValue);
 
-        if (newValue === 'user') {
+        if (newValue === "user") {
             navigate(`/user/${user.$id}`);
-        } else if (newValue === 'home') {
-            navigate('/');
+        } else if (newValue === "home") {
+            navigate("/");
         } else {
             navigate(`/${newValue}`);
         }

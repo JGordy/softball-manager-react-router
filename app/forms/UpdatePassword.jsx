@@ -1,18 +1,17 @@
-import { Button, PasswordInput, Text } from '@mantine/core';
+import { Button, PasswordInput, Text } from "@mantine/core";
 
-import FormWrapper from './FormWrapper';
+import FormWrapper from "./FormWrapper";
 
-import classes from '@/styles/inputs.module.css';
+import classes from "@/styles/inputs.module.css";
 
 export default function UpdatePassword({
-    action = 'update-password',
+    action = "update-password",
     actionRoute,
-    buttonColor = 'red',
-    confirmText = 'Update Password',
+    buttonColor = "red",
+    confirmText = "Update Password",
     user = {},
 }) {
-
-    const isPasswordReset = action === 'password-reset';
+    const isPasswordReset = action === "password-reset";
 
     return (
         <FormWrapper
@@ -23,11 +22,10 @@ export default function UpdatePassword({
         >
             {isPasswordReset ? (
                 <>
-                    <Text c="red">
-                        Do you want to continue?
-                    </Text>
+                    <Text c="red">Do you want to continue?</Text>
                     <Text mb="xl">
-                        We&apos;ll send a link to reset your password to your associated email address.
+                        We&apos;ll send a link to reset your password to your
+                        associated email address.
                     </Text>
                     <input type="hidden" name="email" value={user.email} />
 
@@ -66,4 +64,4 @@ export default function UpdatePassword({
             )}
         </FormWrapper>
     );
-};
+}

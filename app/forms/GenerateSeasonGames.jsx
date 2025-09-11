@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef } from "react";
 
 import {
     ActionIcon,
@@ -9,27 +9,26 @@ import {
     LoadingOverlay,
     Select,
     Text,
-} from '@mantine/core';
+} from "@mantine/core";
 
-import { TimeInput } from '@mantine/dates';
-import { IconClock } from '@tabler/icons-react';
+import { TimeInput } from "@mantine/dates";
+import { IconClock } from "@tabler/icons-react";
 
-import GamesTable from '@/components/GamesTable';
+import GamesTable from "@/components/GamesTable";
 
-import timeZones from '@/constants/timeZones';
+import timeZones from "@/constants/timeZones";
 
-import { getUserTimeZone } from '@/utils/dateTime';
+import { getUserTimeZone } from "@/utils/dateTime";
 
-import FormWrapper from './FormWrapper';
+import FormWrapper from "./FormWrapper";
 
-import classes from '@/styles/inputs.module.css';
+import classes from "@/styles/inputs.module.css";
 
 export default function GenerateSeasonGames({
-    action = 'add-games',
+    action = "add-games",
     actionRoute,
     season,
 }) {
-
     const ref = useRef(null);
 
     const currentTimeZone = getUserTimeZone();
@@ -53,11 +52,19 @@ export default function GenerateSeasonGames({
         setIsLoading(true);
 
         const getDayName = (dayOfWeek) => {
-            const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            const days = [
+                "Sunday",
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+            ];
             return days[dayOfWeek];
         };
 
-        // generate games 
+        // generate games
         const { gameDays, startDate, endDate, teamId } = season;
 
         const start = new Date(startDate);
@@ -69,9 +76,18 @@ export default function GenerateSeasonGames({
             let currentDate = new Date(start);
 
             // Parse the time string (gameTimes)
-            const timeString = gameTimes.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-            const [hours, minutes] = timeString.split(':');
-            currentDate.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+            const timeString = gameTimes.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+            });
+            const [hours, minutes] = timeString.split(":");
+            currentDate.setHours(
+                parseInt(hours, 10),
+                parseInt(minutes, 10),
+                0,
+                0,
+            );
 
             while (currentDate <= end) {
                 if (getDayName(currentDate.getDay()) === gameDay) {
@@ -97,10 +113,15 @@ export default function GenerateSeasonGames({
     const handleSetGameTimesChange = (event) => {
         const { value: timeString } = event.target;
         if (timeString) {
-            const [hours, minutes] = timeString.split(':');
+            const [hours, minutes] = timeString.split(":");
             const now = new Date();
             const selectedTime = new Date(now);
-            selectedTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+            selectedTime.setHours(
+                parseInt(hours, 10),
+                parseInt(minutes, 10),
+                0,
+                0,
+            );
             setGameTimes(selectedTime); // Store the Date object
 
             // Update generated games with the new time
@@ -108,21 +129,30 @@ export default function GenerateSeasonGames({
                 setGeneratedGames((prevGames) => {
                     return prevGames.map((game) => {
                         const gameDate = new Date(game.gameDate);
-                        gameDate.setHours(selectedTime.getHours(), selectedTime.getMinutes(), 0, 0);
+                        gameDate.setHours(
+                            selectedTime.getHours(),
+                            selectedTime.getMinutes(),
+                            0,
+                            0,
+                        );
                         return {
                             ...game,
                             gameDate: gameDate.toISOString(), // Update gameDate with new time
                         };
                     });
                 });
-            };
+            }
         } else {
             setGameTimes(null); // Handle clearing the time
         }
     };
 
     const pickerControl = (
-        <ActionIcon variant="subtle" color="gray" onClick={() => ref.current?.showPicker()}>
+        <ActionIcon
+            variant="subtle"
+            color="gray"
+            onClick={() => ref.current?.showPicker()}
+        >
             <IconClock size={16} stroke={1.5} />
         </ActionIcon>
     );
@@ -133,29 +163,37 @@ export default function GenerateSeasonGames({
             actionRoute={actionRoute}
             pos="relative"
             hideButtons={!generatedGames.length}
-            confirmText='Save Games'
-            cancelText='Clear Games'
+            confirmText="Save Games"
+            cancelText="Clear Games"
             onCancelClick={handleResetGames}
         >
-            <LoadingOverlay visible={isLoading} zIndex={1000} overlayProps={{ radius: "sm", blur: 3, }} />
+            <LoadingOverlay
+                visible={isLoading}
+                zIndex={1000}
+                overlayProps={{ radius: "sm", blur: 3 }}
+            />
             <Highlight
-                highlight={[`${season.gameDays}`, `${seasonStartDate}`, `${seasonEndDate}`, `${gameTimes?.toLocaleTimeString()}`]}
+                highlight={[
+                    `${season.gameDays}`,
+                    `${seasonStartDate}`,
+                    `${seasonEndDate}`,
+                    `${gameTimes?.toLocaleTimeString()}`,
+                ]}
                 highlightStyles={{
                     // backgroundColor: 'green',
-                    backgroundImage: 'linear-gradient(45deg, var(--mantine-color-cyan-5), var(--mantine-color-green-6))',
+                    backgroundImage:
+                        "linear-gradient(45deg, var(--mantine-color-cyan-5), var(--mantine-color-green-6))",
                     fontWeight: 700,
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
                 }}
             >
                 {`Create placeholder games for every ${season.gameDays} between ${seasonStartDate} and ${seasonEndDate} @ ${gameTimes?.toLocaleTimeString()}?`}
             </Highlight>
-
             <Divider size="sm" my="sm" />
-
             <TimeInput
                 label="Game Times"
-                placeholder='Select a default start time for your games '
+                placeholder="Select a default start time for your games "
                 ref={ref}
                 rightSection={pickerControl}
                 onChange={handleSetGameTimesChange}
@@ -163,7 +201,6 @@ export default function GenerateSeasonGames({
                 mb="sm"
                 defaultValue="19:00"
             />
-
             <Select
                 className={classes.inputs}
                 label="Time Zone"
@@ -174,9 +211,12 @@ export default function GenerateSeasonGames({
                 mb="sm"
                 searchable
             />
-
-            <input type="hidden" name="games" value={JSON.stringify(generatedGames)} /> {/* Hidden input to capture generated games */}
-
+            <input
+                type="hidden"
+                name="games"
+                value={JSON.stringify(generatedGames)}
+            />{" "}
+            {/* Hidden input to capture generated games */}
             {generatedGames.length === 0 && (
                 <Group position="right" mt="lg">
                     <Button onClick={handleGenerateGamesClick} autoContrast>
@@ -194,14 +234,16 @@ export default function GenerateSeasonGames({
                     </Button>
                 </Group>
             )}
-
             {generatedGames.length > 0 && (
                 <>
                     <GamesTable games={generatedGames} />
                     <Divider size="sm" my="sm" />
-                    <Text size="xs" px="xs">*These game details are placeholders and can be adjusted any time after creation.</Text>
+                    <Text size="xs" px="xs">
+                        *These game details are placeholders and can be adjusted
+                        any time after creation.
+                    </Text>
                 </>
             )}
         </FormWrapper>
     );
-};
+}

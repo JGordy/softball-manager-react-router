@@ -1,31 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
-import {
-    Button,
-    Center,
-    Group,
-    Text,
-} from '@mantine/core';
+import { Button, Center, Group, Text } from "@mantine/core";
 
-import PlayerChart from '@components/PlayerChart';
+import PlayerChart from "@components/PlayerChart";
 
-import { IconWand, IconPrinter, IconSparkles } from '@tabler/icons-react';
+import { IconWand, IconPrinter, IconSparkles } from "@tabler/icons-react";
 
-import createBattingOrder from './utils/createBattingOrder';
-import createFieldingChart from './utils/createFieldingChart';
+import createBattingOrder from "./utils/createBattingOrder";
+import createFieldingChart from "./utils/createFieldingChart";
 
 export async function clientLoader() {
     try {
-        const response = await fetch('/players.json', {
+        const response = await fetch("/players.json", {
             headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            }
+                "Content-Type": "application/json",
+                Accept: "application/json",
+            },
         });
         const data = await response.json();
         return data;
     } catch (error) {
-        console.error('Error:', error);
+        console.error("Error:", error);
         return { error };
     }
 }
@@ -52,7 +47,6 @@ function Lineup({ loaderData, actionData }) {
         }
     }, [actionData, loaderData]);
 
-
     // Create batting order and fielding chart
     const handleCreateLineup = () => {
         setPlayerChart();
@@ -75,15 +69,17 @@ function Lineup({ loaderData, actionData }) {
         setPlayerChart();
         setIsLoading(true);
         try {
-
-            const response = await fetch('/api/lineup', {
-                method: 'POST',
+            const response = await fetch("/api/lineup", {
+                method: "POST",
                 body: JSON.stringify(players),
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData?.error || `HTTP error! status: ${response.status}`);
+                throw new Error(
+                    errorData?.error ||
+                        `HTTP error! status: ${response.status}`,
+                );
             }
 
             const actionData = await response.json();
@@ -124,7 +120,11 @@ function Lineup({ loaderData, actionData }) {
                 </Group>
             </Center>
             <Center>
-                {isLoading && <Text c="gray.2">Generating batting and fielding charts...</Text>}
+                {isLoading && (
+                    <Text c="gray.2">
+                        Generating batting and fielding charts...
+                    </Text>
+                )}
                 {error && <Text c="red.5">{error?.message || error}</Text>}
             </Center>
             {playerChart && (

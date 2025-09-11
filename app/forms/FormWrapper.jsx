@@ -1,21 +1,20 @@
-import { Form, useSubmit } from 'react-router';
+import { Form, useSubmit } from "react-router";
 
-import { Button, Group } from '@mantine/core';
+import { Button, Group } from "@mantine/core";
 
-import useModal from '@/hooks/useModal';
+import useModal from "@/hooks/useModal";
 
 export default function FormWrapper({
     action,
     actionRoute,
     buttonColor,
     children,
-    confirmText = 'Confirm',
-    cancelText = 'Cancel',
+    confirmText = "Confirm",
+    cancelText = "Cancel",
     onCancelClick,
     hideButtons,
     ...rest
 }) {
-
     const { closeAllModals } = useModal();
 
     const submit = useSubmit();
@@ -25,21 +24,17 @@ export default function FormWrapper({
         const formData = new FormData(event.currentTarget);
         formData.append("_action", action);
 
-        submit(formData, { action: actionRoute, method: 'post' });
+        submit(formData, { action: actionRoute, method: "post" });
     };
 
     return (
-        <Form
-            method="post"
-            onSubmit={handleSubmit}
-            {...rest}
-        >
+        <Form method="post" onSubmit={handleSubmit} {...rest}>
             {children}
             {!hideButtons && (
                 <Group position="right" mt="lg">
                     <Button
                         type="submit"
-                        color={buttonColor || 'green'}
+                        color={buttonColor || "green"}
                         autoContrast
                     >
                         {confirmText}
@@ -55,4 +50,4 @@ export default function FormWrapper({
             )}
         </Form>
     );
-};
+}

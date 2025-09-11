@@ -1,13 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
-import {
-    Button,
-    Container,
-    Divider,
-    Group,
-    Text,
-    Title,
-} from '@mantine/core';
+import { Button, Container, Divider, Group, Text, Title } from "@mantine/core";
 
 import {
     IconCalendar,
@@ -16,23 +9,23 @@ import {
     IconFriends,
     IconMapPin,
     IconPlus,
-} from '@tabler/icons-react';
+} from "@tabler/icons-react";
 
-import BackButton from '@/components/BackButton';
-import EditButton from '@/components/EditButton';
-import GamesList from '@/components/GamesList';
+import BackButton from "@/components/BackButton";
+import EditButton from "@/components/EditButton";
+import GamesList from "@/components/GamesList";
 
-import AddSingleGame from '@/forms/AddSingleGame';
-import AddSeason from '@/forms/AddSeason';
-import GenerateSeasonGames from '@/forms/GenerateSeasonGames';
+import AddSingleGame from "@/forms/AddSingleGame";
+import AddSeason from "@/forms/AddSeason";
+import GenerateSeasonGames from "@/forms/GenerateSeasonGames";
 
-import { createGames, createSingleGame } from '@/actions/games';
-import { updateSeason } from '@/actions/seasons';
+import { createGames, createSingleGame } from "@/actions/games";
+import { updateSeason } from "@/actions/seasons";
 
-import { getSeasonById } from '@/loaders/seasons';
-import { getParkById } from '@/loaders/parks';
+import { getSeasonById } from "@/loaders/seasons";
+import { getParkById } from "@/loaders/parks";
 
-import useModal from '@/hooks/useModal';
+import useModal from "@/hooks/useModal";
 
 export async function loader({ params }) {
     const { seasonId } = params;
@@ -53,26 +46,25 @@ export async function action({ request, params }) {
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
 
-    if (_action === 'edit-season') {
-        return updateSeason({ values, seasonId })
+    if (_action === "edit-season") {
+        return updateSeason({ values, seasonId });
     }
 
-    if (_action === 'add-games') {
-        return createGames({ values, seasonId })
+    if (_action === "add-games") {
+        return createGames({ values, seasonId });
     }
 
-    if (_action === 'add-single-game') {
+    if (_action === "add-single-game") {
         return createSingleGame({ values });
     }
-};
+}
 
 export default function SeasonDetails({ loaderData, actionData }) {
-
     const { openModal, closeAllModals } = useModal();
 
     const { season } = loaderData;
 
-    console.log('/season/details.jsx: ', { loaderData });
+    console.log("/season/details.jsx: ", { loaderData });
 
     useEffect(() => {
         const handleAfterSubmit = async () => {
@@ -90,53 +82,61 @@ export default function SeasonDetails({ loaderData, actionData }) {
         handleAfterSubmit();
     }, [actionData]);
 
-    const openGenerateGamesModal = () => openModal({
-        title: 'Generate Game Placeholders',
-        children: (
-            <GenerateSeasonGames
-                actionRoute={`/season/${season.$id}`}
-                season={season}
-            />
-        ),
-    });
+    const openGenerateGamesModal = () =>
+        openModal({
+            title: "Generate Game Placeholders",
+            children: (
+                <GenerateSeasonGames
+                    actionRoute={`/season/${season.$id}`}
+                    season={season}
+                />
+            ),
+        });
 
-    const openAddGameModal = () => openModal({
-        title: 'Add a Single Game',
-        children: (
-            <AddSingleGame
-                action="add-single-game"
-                actionRoute={`/season/${season.$id}`}
-                seasonId={season.$id}
-            />
-        ),
-    });
+    const openAddGameModal = () =>
+        openModal({
+            title: "Add a Single Game",
+            children: (
+                <AddSingleGame
+                    action="add-single-game"
+                    actionRoute={`/season/${season.$id}`}
+                    seasonId={season.$id}
+                />
+            ),
+        });
 
-    const openEditSeasonModal = () => openModal({
-        title: 'Update Season Details',
-        children: (
-            <AddSeason
-                action="edit-season"
-                actionRoute={`/season/${season.$id}`}
-                confirmText="Update Season"
-                teamId={season.teamId}
-            />
-        ),
-    });
+    const openEditSeasonModal = () =>
+        openModal({
+            title: "Update Season Details",
+            children: (
+                <AddSeason
+                    action="edit-season"
+                    actionRoute={`/season/${season.$id}`}
+                    confirmText="Update Season"
+                    teamId={season.teamId}
+                />
+            ),
+        });
 
     const hasGames = season?.games?.length > 0;
 
-    const record = hasGames && season.games.reduce((acc, game) => {
-        if (game.result) {
-            const { score, opponentScore } = game;
-            const scoreFor = Number(score) || 0;
-            const scoreAgainst = Number(opponentScore) || 0;
+    const record =
+        hasGames &&
+        season.games.reduce(
+            (acc, game) => {
+                if (game.result) {
+                    const { score, opponentScore } = game;
+                    const scoreFor = Number(score) || 0;
+                    const scoreAgainst = Number(opponentScore) || 0;
 
-            acc.wins += scoreFor > scoreAgainst ? 1 : 0;
-            acc.losses += scoreFor < scoreAgainst ? 1 : 0;
-            acc.ties += scoreFor === scoreAgainst ? 1 : 0;
-        }
-        return acc;
-    }, { wins: 0, losses: 0, ties: 0 });
+                    acc.wins += scoreFor > scoreAgainst ? 1 : 0;
+                    acc.losses += scoreFor < scoreAgainst ? 1 : 0;
+                    acc.ties += scoreFor === scoreAgainst ? 1 : 0;
+                }
+                return acc;
+            },
+            { wins: 0, losses: 0, ties: 0 },
+        );
 
     const textProps = {
         size: "md",
@@ -155,7 +155,8 @@ export default function SeasonDetails({ loaderData, actionData }) {
             <Divider my="md" size="sm" />
 
             <Text>
-                {new Date(season.startDate).toLocaleDateString()} - {new Date(season.endDate).toLocaleDateString()}
+                {new Date(season.startDate).toLocaleDateString()} -{" "}
+                {new Date(season.endDate).toLocaleDateString()}
             </Text>
 
             <Group mt="sm" justify="space-between">
@@ -168,22 +169,18 @@ export default function SeasonDetails({ loaderData, actionData }) {
 
                 <Group gap="5px">
                     <IconCalendarRepeat size={18} />
-                    <Text {...textProps}>
-                        {`${season.gameDays}s`}
-                    </Text>
+                    <Text {...textProps}>{`${season.gameDays}s`}</Text>
                 </Group>
 
                 <Group gap="5px">
                     <IconFriends size={18} />
-                    <Text {...textProps}>
-                        {season.leagueType}
-                    </Text>
+                    <Text {...textProps}>{season.leagueType}</Text>
                 </Group>
 
                 <Group gap="5px">
                     <IconCurrencyDollar size={18} />
                     <Text {...textProps}>
-                        {`${season.signUpFee || 'TBD'}/player`}
+                        {`${season.signUpFee || "TBD"}/player`}
                     </Text>
                 </Group>
             </Group>
@@ -193,13 +190,17 @@ export default function SeasonDetails({ loaderData, actionData }) {
             <Title order={4} mb="sm">
                 <Group justify="space-between">
                     Games ({season.games.length})
-                    <div>Record {record?.wins}-{record?.losses}-{record?.ties}</div>
+                    <div>
+                        Record {record?.wins}-{record?.losses}-{record?.ties}
+                    </div>
                 </Group>
             </Title>
 
             {!hasGames && (
                 <>
-                    <Text>There are no games listed for the upcoming season.</Text>
+                    <Text>
+                        There are no games listed for the upcoming season.
+                    </Text>
                     <Button
                         my="md"
                         onClick={openGenerateGamesModal}
@@ -216,12 +217,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
 
             <GamesList games={season.games} />
 
-            <Button
-                mt="md"
-                onClick={openAddGameModal}
-                fullWidth
-                autoContrast
-            >
+            <Button mt="md" onClick={openAddGameModal} fullWidth autoContrast>
                 <IconPlus size={18} />
                 Create Single Game
             </Button>

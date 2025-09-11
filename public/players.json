@@ -69,11 +69,7 @@
         {
             "firstName": "Grace",
             "lastName": "Minnick",
-            "preferredPositions": [
-                "Catcher",
-                "Second Base",
-                "Right Field"
-            ],
+            "preferredPositions": ["Catcher", "Second Base", "Right Field"],
             "positions": [],
             "battingRating": 1,
             "fieldRating": 1,
@@ -82,11 +78,7 @@
         {
             "firstName": "MJ",
             "lastName": "DeGuenther",
-            "preferredPositions": [
-                "Right Field",
-                "Second Base",
-                "Third Base"
-            ],
+            "preferredPositions": ["Right Field", "Second Base", "Third Base"],
             "positions": [],
             "battingRating": 6,
             "fieldRating": 6,
@@ -95,11 +87,7 @@
         {
             "firstName": "Kasey",
             "lastName": "Rutkowski",
-            "preferredPositions": [
-                "Second Base",
-                "Shortstop",
-                "Right Field"
-            ],
+            "preferredPositions": ["Second Base", "Shortstop", "Right Field"],
             "positions": [],
             "battingRating": 7,
             "fieldRating": 8,
@@ -121,11 +109,7 @@
         {
             "firstName": "Nick",
             "lastName": "Bergeron",
-            "preferredPositions": [
-                "Third Base",
-                "Shortstop",
-                "First Base"
-            ],
+            "preferredPositions": ["Third Base", "Shortstop", "First Base"],
             "positions": [],
             "battingRating": 8,
             "fieldRating": 9,
@@ -173,11 +157,7 @@
         {
             "firstName": "Hannah",
             "lastName": "Solid",
-            "preferredPositions": [
-                "Catcher",
-                "Second Base",
-                "Right Field"
-            ],
+            "preferredPositions": ["Catcher", "Second Base", "Right Field"],
             "positions": [],
             "battingRating": 2,
             "fieldRating": 2,

@@ -1,27 +1,27 @@
-import { Query } from '@/appwrite';
-import { listDocuments, readDocument } from '@/utils/databases';
+import { Query } from "@/appwrite";
+import { listDocuments, readDocument } from "@/utils/databases";
 
 export async function getUserById({ userId }) {
-    return await readDocument('users', userId);
-};
+    return await readDocument("users", userId);
+}
 
 export async function getTeamsByUserId({ userId }) {
     // 1. Check relationships table to list memberships for the userId, manager
-    const memberships = await listDocuments('memberships', [
-        Query.equal('userId', userId),
-        Query.equal('role', ['manager', 'player']),
+    const memberships = await listDocuments("memberships", [
+        Query.equal("userId", userId),
+        Query.equal("role", ["manager", "player"]),
     ]);
 
     // 2. Extract teamIds
-    const teamIds = memberships.documents.map(m => m.teamId);
+    const teamIds = memberships.documents.map((m) => m.teamId);
 
     // 3. Call the Appwrite function
     let teams = [];
     if (teamIds.length > 0) {
         // Make multiple queries
         const promises = teamIds.map(async (teamId) => {
-            const result = await listDocuments('teams', [
-                Query.equal('$id', teamId),
+            const result = await listDocuments("teams", [
+                Query.equal("$id", teamId),
             ]);
             return result.documents; // Extract the documents
         });
@@ -34,9 +34,9 @@ export async function getTeamsByUserId({ userId }) {
 }
 
 export async function getAttendanceByUserId({ userId }) {
-    const attendance = await listDocuments('attendance', [
-        Query.equal('playerId', userId),
-        Query.equal('status', 'accepted'),
+    const attendance = await listDocuments("attendance", [
+        Query.equal("playerId", userId),
+        Query.equal("status", "accepted"),
     ]);
 
     return attendance.documents.length > 0 ? attendance.documents : [];

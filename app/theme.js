@@ -1,11 +1,22 @@
-import { createTheme } from '@mantine/core';
+import { createTheme } from "@mantine/core";
 
 const theme = createTheme({
-    fontFamily: 'Open Sans, sans-serif',
+    fontFamily: "Open Sans, sans-serif",
     colors: {
-        'green': ["#eafcef", "#d9f6df", "#b1ebbe", "#86e09a", "#63d77c", "#4dd269", "#40cf5e", "#31b74e", "#27a343", "#168d36"],
+        green: [
+            "#eafcef",
+            "#d9f6df",
+            "#b1ebbe",
+            "#86e09a",
+            "#63d77c",
+            "#4dd269",
+            "#40cf5e",
+            "#31b74e",
+            "#27a343",
+            "#168d36",
+        ],
     },
-    primaryColor: 'green',
+    primaryColor: "green",
     primaryShade: { light: 8 },
     autoContrast: true,
 });
