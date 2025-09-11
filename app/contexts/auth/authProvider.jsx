@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 
 import { account } from "@/appwrite";
 
-import { readDocument } from "@/utils/databases";
-
 import AuthContext from "./authContext";
 
 export default function AuthProvider({ children }) {

@@ -46,6 +46,10 @@ export const links = () => [
 ];
 
 export async function loader({ request }) {
+    const session = await getAuthSession(request);
+    const userId = session.get("userId");
+    if (!userId) return redirect("/login");
+
     const cookieHeader = request.headers.get("Cookie");
     let darkMode = false; // Default to false if cookie is not found or invalid
 

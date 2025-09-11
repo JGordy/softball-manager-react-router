@@ -1,6 +1,7 @@
-import React, { useEffect } from "react";
-
-import { Form, Link, useNavigate } from "react-router";
+// app/routes/login.jsx
+import React from "react";
+import { Form, Link, useActionData } from "@remix-run/react";
+import { json, redirect } from "@remix-run/node";
 
 import {
     Button,
@@ -13,49 +14,48 @@ import {
     Title,
 } from "@mantine/core";
 
-import { account } from "@/appwrite";
-
-import { useAuth } from "@/contexts/auth/useAuth";
-
 import AutocompleteEmail from "@/components/AutocompleteEmail";
 
-import login from "./utils/login";
+import { makeServerAppwrite } from "~/services/appwrite.server";
+import { authSession, commitAuthSession } from "~/services/session.server";
 
-export async function clientAction({ request }) {
-    const formData = await request.formData();
-    const email = formData.get("email");
-    const password = formData.get("password");
+// SERVER: runs on POST /login
+export async function action({ request }) {
+    const form = await request.formData();
+    const email = String(form.get("email") || "");
+    const password = String(form.get("password") || "");
 
-    const response = await login({ email, password });
-
-    if (response?.error) {
-        return { error: response.error?.message || response.error };
+    if (!email || !password) {
+        return json(
+            { error: "Email and password are required" },
+            { status: 400 },
+        );
     }
 
-    return { email, password, session: response.session };
+    try {
+        const { account } = makeServerAppwrite();
+
+        // 1) Authenticate user against Appwrite (server-side)
+        await account.createEmailPasswordSession(email, password);
+
+        // 2) Fetch identity to store minimal claim(s)
+        const user = await account.get(); // has $id
+
+        // 3) Mint your HTTP-only Remix session cookie
+        const session = await authSession.getSession();
+        session.set("userId", user.$id);
+        const setCookie = await commitAuthSession(session);
+
+        // 4) Redirect to home (or wherever) with cookie set
+        return redirect("/", { headers: { "Set-Cookie": setCookie } });
+    } catch (err) {
+        const message = err?.message || "Login failed";
+        return json({ error: message }, { status: 401 });
+    }
 }
 
-export default function Login({ actionData }) {
-    const { setUser } = useAuth();
-    const navigate = useNavigate();
-
-    useEffect(() => {
-        const checkCurrentSession = async () => {
-            try {
-                const session = await account.getSession("current");
-                console.log({ session });
-                if (session) {
-                    setUser();
-                    navigate("/");
-                }
-                return null;
-            } catch (error) {
-                console.log("No active session found");
-                return null;
-            }
-        };
-        checkCurrentSession();
-    }, [actionData]);
+export default function Login() {
+    const actionData = useActionData();
 
     return (
         <Container size="xs">
@@ -64,7 +64,8 @@ export default function Login({ actionData }) {
                     <Title order={3} ta="center" mt="md" mb={50}>
                         Welcome to Rocket Roster!
                     </Title>
-                    <Form method="post">
+
+                    <Form method="post" replace>
                         <AutocompleteEmail />
                         <PasswordInput
                             type="password"
@@ -73,11 +74,13 @@ export default function Login({ actionData }) {
                             placeholder="Your password"
                             mt="md"
                             size="md"
+                            required
                         />
                         <Button fullWidth mt="xl" size="md" type="submit">
                             Login
                         </Button>
                     </Form>
+
                     <Group justify="center" mt="md">
                         <Text size="sm">Don't have an account?</Text>
                         <Text
@@ -90,9 +93,10 @@ export default function Login({ actionData }) {
                             Register
                         </Text>
                     </Group>
+
                     <Center>
                         {actionData?.error && (
-                            <Text c="red.5">{actionData?.error}</Text>
+                            <Text c="red.5">{actionData.error}</Text>
                         )}
                     </Center>
                 </Paper>
