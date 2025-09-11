@@ -1,73 +1,62 @@
-import {
-    Group,
-    MultiSelect,
-    Radio,
-    TextInput,
-} from '@mantine/core';
+import { Group, MultiSelect, Radio, TextInput } from "@mantine/core";
 
-import AutocompleteEmail from '@/components/AutocompleteEmail';
+import AutocompleteEmail from "@/components/AutocompleteEmail";
 
-import positions from '@/constants/positions';
+import positions from "@/constants/positions";
 
-import classes from '@/styles/inputs.module.css';
+import classes from "@/styles/inputs.module.css";
 
-import FormWrapper from './FormWrapper';
-import PhoneInput from './components/PhoneInput';
+import FormWrapper from "./FormWrapper";
+import PhoneInput from "./components/PhoneInput";
 
 export default function AddPlayer({
-    action = 'add-player',
+    action = "add-player",
     actionRoute,
     buttonColor,
-    confirmText = 'Create Player',
+    confirmText = "Create Player",
     inputsToDisplay = [],
     defaults = {},
 }) {
-
     const shouldDisplay = (field) => inputsToDisplay.includes(field);
 
     return (
-        <FormWrapper
-            action={action}
-            actionRoute={actionRoute}
-            buttonColor={buttonColor}
-            confirmText={confirmText}
-        >
-            {shouldDisplay('name') && (
+        <FormWrapper action={action} actionRoute={actionRoute} buttonColor={buttonColor} confirmText={confirmText}>
+            {shouldDisplay("name") && (
                 <>
                     <TextInput
                         className={classes.inputs}
                         label="First Name"
                         name="firstName"
-                        defaultValue={defaults.firstName || ''}
-                        required={action === 'add-player'}
+                        defaultValue={defaults.firstName || ""}
+                        required={action === "add-player"}
                     />
                     <TextInput
                         className={classes.inputs}
                         label="Last Name"
                         name="lastName"
-                        defaultValue={defaults.lastName || ''}
-                        required={action === 'add-player'}
+                        defaultValue={defaults.lastName || ""}
+                        required={action === "add-player"}
                     />
                 </>
             )}
-            {shouldDisplay('contact') && (
+            {shouldDisplay("contact") && (
                 <>
                     <AutocompleteEmail
                         classes={classes.inputs}
                         defaultValue={defaults.email}
-                        required={action === 'add-player'}
+                        required={action === "add-player"}
                     />
                     <PhoneInput defaultValue={defaults.phoneNumber} />
                 </>
             )}
-            {shouldDisplay('gender') && (
+            {shouldDisplay("gender") && (
                 <Radio.Group
                     mb="md"
                     className={classes.inputs}
-                    defaultValue={defaults.gender || 'Male'}
+                    defaultValue={defaults.gender || "Male"}
                     name="gender"
                     label="Gender"
-                    required={action === 'add-player'}
+                    required={action === "add-player"}
                 >
                     <Group mt="xs">
                         <Radio value="Male" label="Male" />
@@ -75,7 +64,7 @@ export default function AddPlayer({
                     </Group>
                 </Radio.Group>
             )}
-            {shouldDisplay('throws-bats') && (
+            {shouldDisplay("throws-bats") && (
                 <>
                     <Radio.Group
                         mb="md"
@@ -83,7 +72,7 @@ export default function AddPlayer({
                         name="throws"
                         label="Throws"
                         description="Select which hand you throw with"
-                        defaultValue={defaults.throws || 'Right'}
+                        defaultValue={defaults.throws || "Right"}
                     >
                         <Group mt="xs">
                             <Radio value="Left" label="Left" />
@@ -96,7 +85,7 @@ export default function AddPlayer({
                         name="bats"
                         label="Bats"
                         description="Select whether you bat left, right, or switch"
-                        defaultValue={defaults.bats || 'Right'}
+                        defaultValue={defaults.bats || "Right"}
                     >
                         <Group mt="xs">
                             <Radio value="Left" label="Left" />
@@ -107,7 +96,7 @@ export default function AddPlayer({
                 </>
             )}
 
-            {shouldDisplay('positions') && (
+            {shouldDisplay("positions") && (
                 <>
                     <MultiSelect
                         className={classes.inputs}
@@ -120,7 +109,7 @@ export default function AddPlayer({
                         clearable
                         searchable
                         hidePickedOptions
-                        required={action === 'add-player'}
+                        required={action === "add-player"}
                     />
                     <MultiSelect
                         className={classes.inputs}
@@ -136,7 +125,7 @@ export default function AddPlayer({
                     />
                 </>
             )}
-            {shouldDisplay('song') && (
+            {shouldDisplay("song") && (
                 <TextInput
                     className={classes.inputs}
                     defaultValue={defaults.walkUpSong}
@@ -148,4 +137,4 @@ export default function AddPlayer({
             )}
         </FormWrapper>
     );
-};
+}

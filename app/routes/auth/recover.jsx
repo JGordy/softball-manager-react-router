@@ -1,22 +1,15 @@
-import { useEffect, useState } from 'react';
-import { useSearchParams, redirect } from 'react-router';
+import { useEffect, useState } from "react";
+import { useSearchParams, redirect } from "react-router";
 
-import {
-    Alert,
-    Button,
-    Paper,
-    PasswordInput,
-    Text,
-    Title,
-} from '@mantine/core';
+import { Alert, Button, Paper, PasswordInput, Text, Title } from "@mantine/core";
 
-import { IconRosetteDiscountCheckFilled, IconExclamationCircleFilled } from '@tabler/icons-react';
+import { IconRosetteDiscountCheckFilled, IconExclamationCircleFilled } from "@tabler/icons-react";
 
-import FormWrapper from '@/forms/FormWrapper';
+import FormWrapper from "@/forms/FormWrapper";
 
-import { account } from '@/appwrite';
+import { account } from "@/appwrite";
 
-import classes from '@/styles/inputs.module.css';
+import classes from "@/styles/inputs.module.css";
 
 export async function clientAction({ request }) {
     const formData = await request.formData();
@@ -39,11 +32,10 @@ export async function clientAction({ request }) {
             success: true,
             message: "Password updated successfully",
         };
-
     } catch (error) {
         return {
             message: error?.message || "Error: Could not update password.",
-            success: false
+            success: false,
         };
     }
 }
@@ -52,17 +44,16 @@ export default function Verify({ actionData }) {
     const [searchParams] = useSearchParams();
 
     const [params] = useState({
-        secret: searchParams.get('secret'),
-        userId: searchParams.get('userId'),
+        secret: searchParams.get("secret"),
+        userId: searchParams.get("userId"),
     });
     const { secret, userId } = params;
 
     useEffect(() => {
         if (actionData?.success) {
-
             setTimeout(() => {
                 // Redirect to the home page?
-                redirect('/');
+                redirect("/");
             }, 2500);
         }
 
@@ -73,19 +64,29 @@ export default function Verify({ actionData }) {
 
     return (
         <Paper p="xl">
-            <Title order={2} mb="lg">Create a new password</Title>
-            {(secret && userId) ? (
+            <Title order={2} mb="lg">
+                Create a new password
+            </Title>
+            {secret && userId ? (
                 <>
                     {actionData?.message && (
                         <Alert
                             variant="light"
-                            color={actionData.success ? 'green' : 'red'}
-                            icon={actionData.success ? <IconRosetteDiscountCheckFilled size={16} /> : <IconExclamationCircleFilled size={16} />}
+                            color={actionData.success ? "green" : "red"}
+                            icon={
+                                actionData.success ? (
+                                    <IconRosetteDiscountCheckFilled size={16} />
+                                ) : (
+                                    <IconExclamationCircleFilled size={16} />
+                                )
+                            }
                         >
                             {actionData.message}
                         </Alert>
                     )}
-                    <Text my="lg" c="dimmed">Your new password must be different from your previous used passwords.</Text>
+                    <Text my="lg" c="dimmed">
+                        Your new password must be different from your previous used passwords.
+                    </Text>
                     <FormWrapper
                         action="reset-password"
                         actionRoute="/recovery"
@@ -112,13 +113,7 @@ export default function Verify({ actionData }) {
                             mt="md"
                             withAsterisk
                         />
-                        <Button
-                            mt="xl"
-                            type="submit"
-                            color="green"
-                            autoContrast
-                            fullWidth
-                        >
+                        <Button mt="xl" type="submit" color="green" autoContrast fullWidth>
                             Reset Password
                         </Button>
                     </FormWrapper>
@@ -128,4 +123,4 @@ export default function Verify({ actionData }) {
             )}
         </Paper>
     );
-};
+}

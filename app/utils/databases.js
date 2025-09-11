@@ -1,4 +1,4 @@
-import { ID, databases } from '../appwrite.js';
+import { ID, databases } from "../appwrite.js";
 
 const databaseId = import.meta.env.VITE_APPWRITE_DATABASE_ID;
 
@@ -30,12 +30,12 @@ export const createDocument = async (collectionType, id, data) => {
 export const listDocuments = async (collectionType, queries) => {
     try {
         const response = await databases.listDocuments(databaseId, collections[collectionType], queries);
-        return response
+        return response;
     } catch (error) {
         console.error(`Error listing ${collectionType} documents:`, error);
         throw error;
     }
-}
+};
 
 // Helper function to read a document
 export const readDocument = async (collectionType, documentId) => {

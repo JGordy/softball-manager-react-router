@@ -1,9 +1,9 @@
-import { account } from '@/appwrite';
+import { account } from "@/appwrite";
 
 export default async function login({ email, password }) {
     if (!email || !password) {
-        return { error: 'Email and password are required' };
-    };
+        return { error: "Email and password are required" };
+    }
 
     try {
         const session = await account.createEmailPasswordSession(email, password);
@@ -12,4 +12,4 @@ export default async function login({ email, password }) {
         console.error(error);
         return { error };
     }
-};
+}

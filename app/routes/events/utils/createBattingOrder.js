@@ -12,7 +12,7 @@ function createBattingOrder(players, maxConsecutiveMales = 3) {
         // If we've reached the max consecutive males, we MUST pick a female.
         if (consecutiveMaleCount >= maxConsecutiveMales) {
             // Find the highest-rated available female player.
-            playerIndexToPick = availablePlayers.findIndex((p) => p.gender === 'Female');
+            playerIndexToPick = availablePlayers.findIndex((p) => p.gender === "Female");
 
             // If no female is available, we have to pick a male, breaking the rule.
             // This is a fallback to prevent an infinite loop.
@@ -21,7 +21,7 @@ function createBattingOrder(players, maxConsecutiveMales = 3) {
             }
         } else {
             // We can pick either gender. We'll just pick the highest-rated player available.
-            playerIndexToPick = availablePlayers.findIndex((p) => p.gender === 'Male');
+            playerIndexToPick = availablePlayers.findIndex((p) => p.gender === "Male");
         }
 
         // Get the player and remove them from the available list.
@@ -29,7 +29,7 @@ function createBattingOrder(players, maxConsecutiveMales = 3) {
         battingOrder.push(playerToPick);
 
         // Update the consecutive male count.
-        if (playerToPick.gender === 'Male') {
+        if (playerToPick.gender === "Male") {
             consecutiveMaleCount++;
         } else {
             consecutiveMaleCount = 0;

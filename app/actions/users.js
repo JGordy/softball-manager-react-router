@@ -1,27 +1,23 @@
-import { ID } from '@/appwrite';
-import { createDocument, updateDocument } from '@/utils/databases.js';
+import { ID } from "@/appwrite";
+import { createDocument, updateDocument } from "@/utils/databases.js";
 
-import { account } from '@/utils/appwrite/sessionClient';
+import { account } from "@/utils/appwrite/sessionClient";
 
-import { removeEmptyValues } from './utils/formUtils';
+import { removeEmptyValues } from "./utils/formUtils";
 
 export async function createPlayer({ values, teamId, userId }) {
     try {
         const _userId = userId || ID.unique(); // Create this now so it's easier to use later
 
-        const player = await createDocument(
-            'users',
-            _userId,
-            {
-                ...values,
-                preferredPositions: values.preferredPositions.split(","), // Split into an array of positions
-                dislikedPositions: values.dislikedPositions.split(","), // Split into an array of positions
-                userId: _userId,
-            },
-        );
+        const player = await createDocument("users", _userId, {
+            ...values,
+            preferredPositions: values.preferredPositions.split(","), // Split into an array of positions
+            dislikedPositions: values.dislikedPositions.split(","), // Split into an array of positions
+            userId: _userId,
+        });
 
         // Create document in relationship table for the user and team id's.
-        await createDocument('memberships', null, { userId: _userId, teamId, role: 'player' });
+        await createDocument("memberships", null, { userId: _userId, teamId, role: "player" });
 
         return { response: { player }, status: 201, success: true };
     } catch (error) {
@@ -32,14 +28,13 @@ export async function createPlayer({ values, teamId, userId }) {
 
 export async function registerUser({ values }) {
     // TODO: Register function
-};
+}
 
 export async function loginUser({ values }) {
     // TODO: Login function
-};
+}
 
 export async function updateUser({ values, userId }) {
-
     // Removes undefined or empty string values from data to update
     let dataToUpdate = removeEmptyValues({ values });
 
@@ -52,9 +47,9 @@ export async function updateUser({ values, userId }) {
     }
 
     try {
-        const updatedUser = await updateDocument('users', userId, dataToUpdate);
+        const updatedUser = await updateDocument("users", userId, dataToUpdate);
 
-        return { response: updatedUser, status: 204 }
+        return { response: updatedUser, status: 204 };
     } catch (error) {
         console.error("Error updating user:", error);
         throw error;
@@ -86,18 +81,28 @@ export async function updateAccountInfo({ values }) {
         if (emailUpdated || phoneUpdated) {
             // Call the server action to update the email or phone number in the user profile
             const serverFormData = new FormData();
-            serverFormData.append('_action', 'update-profile-info');
-            serverFormData.append('userId', userId);
-            serverFormData.append('phoneNumber', phoneNumber);
-            serverFormData.append('email', email);
+            serverFormData.append("_action", "update-profile-info");
+            serverFormData.append("userId", userId);
+            serverFormData.append("phoneNumber", phoneNumber);
+            serverFormData.append("email", email);
             // Use fetch to call the server-side `action` for this same route
-            await fetch('/settings', { method: 'POST', body: serverFormData });
+            await fetch("/settings", { method: "POST", body: serverFormData });
         }
 
-        return { success: true, status: 204, message: "Account information updated successfully.", action: 'update-account-info' };
+        return {
+            success: true,
+            status: 204,
+            message: "Account information updated successfully.",
+            action: "update-account-info",
+        };
     } catch (error) {
         console.error("Error updating account info:", error);
-        return { success: false, status: 500, message: error.message || "Failed to update account information.", action: 'update-account-info' };
+        return {
+            success: false,
+            status: 500,
+            message: error.message || "Failed to update account information.",
+            action: "update-account-info",
+        };
     }
 }
 
@@ -106,10 +111,15 @@ export async function updatePassword({ values }) {
 
     try {
         await account.updatePassword(newPassword, currentPassword);
-        return { success: true, status: 204, message: "Password updated successfully.", action: 'update-password' };
+        return { success: true, status: 204, message: "Password updated successfully.", action: "update-password" };
     } catch (error) {
         console.error("Error updating password:", error);
-        return { success: false, status: 500, message: error.message || "Failed to update password.", action: 'update-password' };
+        return {
+            success: false,
+            status: 500,
+            message: error.message || "Failed to update password.",
+            action: "update-password",
+        };
     }
 }
 
@@ -121,9 +131,19 @@ export async function resetPassword({ values, request }) {
 
     try {
         await account.createRecovery(email, resetUrl);
-        return { success: true, status: 200, message: "Password reset email sent successfully. Please check your inbox.", action: 'password-reset' };
+        return {
+            success: true,
+            status: 200,
+            message: "Password reset email sent successfully. Please check your inbox.",
+            action: "password-reset",
+        };
     } catch (error) {
         console.error("Error sending password reset email:", error);
-        return { success: false, status: 500, message: error.message || "Failed to send password reset email.", action: 'password-reset' };
+        return {
+            success: false,
+            status: 500,
+            message: error.message || "Failed to send password reset email.",
+            action: "password-reset",
+        };
     }
 }

@@ -1,10 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
-import {
-    redirect,
-    Form,
-    Link,
-} from 'react-router';
+import { redirect, Form, Link } from "react-router";
 
 import {
     Button,
@@ -18,19 +14,19 @@ import {
     Text,
     TextInput,
     Title,
-} from '@mantine/core';
+} from "@mantine/core";
 
-import AutocompleteEmail from '@/components/AutocompleteEmail';
+import AutocompleteEmail from "@/components/AutocompleteEmail";
 
-import register from './utils/register';
+import register from "./utils/register";
 
-import { account } from '@/appwrite';
+import { account } from "@/appwrite";
 
 export async function action({ request }) {
     const formData = await request.formData();
-    const email = formData.get('email');
-    const password = formData.get('password');
-    const name = formData.get('name');
+    const email = formData.get("email");
+    const password = formData.get("password");
+    const name = formData.get("name");
 
     const response = await register({ email, password, name });
 
@@ -42,14 +38,13 @@ export async function action({ request }) {
 }
 
 export default function Register({ actionData }) {
-
     useEffect(() => {
         const createUserSession = async () => {
             await account.createEmailPasswordSession(actionData.email, actionData.password);
 
             const currentUrl = new URL(window.location.href);
             await account.createVerification(`${currentUrl.origin}/verify`);
-            redirect('/');
+            redirect("/");
         };
 
         if (actionData?.session) {
@@ -59,8 +54,8 @@ export default function Register({ actionData }) {
 
     return (
         <Container size="xs">
-            <Center style={{ minHeight: '100vh' }}>
-                <Paper radius="md" p="xl" withBorder style={{ width: '100%' }}>
+            <Center style={{ minHeight: "100vh" }}>
+                <Paper radius="md" p="xl" withBorder style={{ width: "100%" }}>
                     <Title order={3} ta="center" mt="md" mb={50}>
                         Welcome to Rocket Roster!
                     </Title>
@@ -69,11 +64,7 @@ export default function Register({ actionData }) {
                     </Title>
                     <Form method="post">
                         <Stack>
-                            <TextInput
-                                label="Name"
-                                name="name"
-                                placeholder="Your name"
-                            />
+                            <TextInput label="Name" name="name" placeholder="Your name" />
                             <AutocompleteEmail />
                             <PasswordInput
                                 name="password"
@@ -92,9 +83,7 @@ export default function Register({ actionData }) {
                             Login here
                         </Text>
                     </Group>
-                    <Center>
-                        {actionData?.error && <Text c="red.5">{actionData?.error}</Text>}
-                    </Center>
+                    <Center>{actionData?.error && <Text c="red.5">{actionData?.error}</Text>}</Center>
                 </Paper>
             </Center>
         </Container>

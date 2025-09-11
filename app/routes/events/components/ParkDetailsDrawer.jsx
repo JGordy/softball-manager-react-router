@@ -1,19 +1,9 @@
-import {
-    Button,
-    Flex,
-    Group,
-    Text,
-} from '@mantine/core';
-import { useClipboard } from '@mantine/hooks';
+import { Button, Flex, Group, Text } from "@mantine/core";
+import { useClipboard } from "@mantine/hooks";
 
-import {
-    IconMapPin,
-    IconLocationFilled,
-    IconCopy,
-} from '@tabler/icons-react';
+import { IconMapPin, IconLocationFilled, IconCopy } from "@tabler/icons-react";
 
 export default function ParkDetailsDrawer({ park }) {
-
     const clipboard = useClipboard({ timeout: 500 });
 
     return (
@@ -26,9 +16,7 @@ export default function ParkDetailsDrawer({ park }) {
                     <Text size="lg" weight={700}>
                         {park?.displayName}
                     </Text>
-                    <Text size="sm">
-                        {park?.formattedAddress}
-                    </Text>
+                    <Text size="sm">{park?.formattedAddress}</Text>
                 </div>
             </Flex>
 
@@ -56,7 +44,7 @@ export default function ParkDetailsDrawer({ park }) {
             >
                 <Group justify="center" gap="xs">
                     <IconCopy size={18} />
-                    <Text>{clipboard.copied ? 'Copied!' : 'Copy Address'}</Text>
+                    <Text>{clipboard.copied ? "Copied!" : "Copy Address"}</Text>
                 </Group>
             </Button>
         </>

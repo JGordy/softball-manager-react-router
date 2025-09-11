@@ -1,13 +1,13 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-import schema from './utils/lineupSchema';
-import prompt from './utils/lineupPrompt';
+import schema from "./utils/lineupSchema";
+import prompt from "./utils/lineupPrompt";
 
 export async function action({ request }) {
     try {
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-        // Initalise a generative model
+        // Initialize a generative model
         const model = genAI.getGenerativeModel({
             model: "gemini-2.0-flash",
             generationConfig: {
@@ -16,7 +16,7 @@ export async function action({ request }) {
             },
         });
 
-        // Retrieve the data we recieve as part of the request body
+        // Retrieve the data we receive as part of the request body
         const players = await request.json();
 
         const updatedPrompt = `
@@ -28,16 +28,16 @@ export async function action({ request }) {
 
         // Pass the prompt to the model and retrieve the output
         const result = await model.generateContent(updatedPrompt);
-        const response = await result.response;
-        const output = await response.text();
+        const response = result.response;
+        const output = response.text();
 
         if (output) {
-            // Send the llm output as a server reponse object
+            // Send the llm output as a server response object
             return new Response(JSON.stringify({ generatedChart: JSON.parse(output) }), {
                 headers: { "Content-Type": "application/json" },
             });
         }
     } catch (error) {
-        console.error('Error generating lineup: ', error)
+        console.error("Error generating lineup: ", error);
     }
 }

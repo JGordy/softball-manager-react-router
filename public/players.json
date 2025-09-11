@@ -3,12 +3,7 @@
         {
             "firstName": "Stephen",
             "lastName": "DeGuenther",
-            "preferredPositions": [
-                "Shortstop",
-                "Pitcher",
-                "First Base",
-                "Third Base"
-            ],
+            "preferredPositions": ["Shortstop", "Pitcher", "First Base", "Third Base"],
             "positions": [],
             "battingRating": 10,
             "fieldRating": 8,
@@ -17,11 +12,7 @@
         {
             "firstName": "Joe",
             "lastName": "Gordy",
-            "preferredPositions": [
-                "Left Field",
-                "Left Center Field",
-                "First Base"
-            ],
+            "preferredPositions": ["Left Field", "Left Center Field", "First Base"],
             "positions": [],
             "battingRating": 8,
             "fieldRating": 10,
@@ -30,11 +21,7 @@
         {
             "firstName": "Whit",
             "lastName": "Copley",
-            "preferredPositions": [
-                "Left Center Field",
-                "Left Field",
-                "Right Center Field"
-            ],
+            "preferredPositions": ["Left Center Field", "Left Field", "Right Center Field"],
             "positions": [],
             "battingRating": 8,
             "fieldRating": 10,
@@ -43,11 +30,7 @@
         {
             "firstName": "Matt",
             "lastName": "Nelson",
-            "preferredPositions": [
-                "Pitcher",
-                "Left Center Field",
-                "Right Center Field"
-            ],
+            "preferredPositions": ["Pitcher", "Left Center Field", "Right Center Field"],
             "positions": [],
             "battingRating": 7,
             "fieldRating": 8,
@@ -56,11 +39,7 @@
         {
             "firstName": "Finn",
             "lastName": "McDaniel",
-            "preferredPositions": [
-                "Right Center Field",
-                "Right Field",
-                "Left Center Field"
-            ],
+            "preferredPositions": ["Right Center Field", "Right Field", "Left Center Field"],
             "positions": [],
             "battingRating": 6,
             "fieldRating": 6,
@@ -69,11 +48,7 @@
         {
             "firstName": "Grace",
             "lastName": "Minnick",
-            "preferredPositions": [
-                "Catcher",
-                "Second Base",
-                "Right Field"
-            ],
+            "preferredPositions": ["Catcher", "Second Base", "Right Field"],
             "positions": [],
             "battingRating": 1,
             "fieldRating": 1,
@@ -82,11 +57,7 @@
         {
             "firstName": "MJ",
             "lastName": "DeGuenther",
-            "preferredPositions": [
-                "Right Field",
-                "Second Base",
-                "Third Base"
-            ],
+            "preferredPositions": ["Right Field", "Second Base", "Third Base"],
             "positions": [],
             "battingRating": 6,
             "fieldRating": 6,
@@ -95,11 +66,7 @@
         {
             "firstName": "Kasey",
             "lastName": "Rutkowski",
-            "preferredPositions": [
-                "Second Base",
-                "Shortstop",
-                "Right Field"
-            ],
+            "preferredPositions": ["Second Base", "Shortstop", "Right Field"],
             "positions": [],
             "battingRating": 7,
             "fieldRating": 8,
@@ -108,11 +75,7 @@
         {
             "firstName": "Kris",
             "lastName": "McDaniel",
-            "preferredPositions": [
-                "First Base",
-                "Right Field",
-                "Right Center Field"
-            ],
+            "preferredPositions": ["First Base", "Right Field", "Right Center Field"],
             "positions": [],
             "battingRating": 7,
             "fieldRating": 9,
@@ -121,11 +84,7 @@
         {
             "firstName": "Nick",
             "lastName": "Bergeron",
-            "preferredPositions": [
-                "Third Base",
-                "Shortstop",
-                "First Base"
-            ],
+            "preferredPositions": ["Third Base", "Shortstop", "First Base"],
             "positions": [],
             "battingRating": 8,
             "fieldRating": 9,
@@ -134,11 +93,7 @@
         {
             "firstName": "Caroline",
             "lastName": "Sisk",
-            "preferredPositions": [
-                "Second Base",
-                "Right Field",
-                "Right Center Field"
-            ],
+            "preferredPositions": ["Second Base", "Right Field", "Right Center Field"],
             "positions": [],
             "battingRating": 5,
             "fieldRating": 5,
@@ -147,11 +102,7 @@
         {
             "firstName": "Ethan",
             "lastName": "Sisk",
-            "preferredPositions": [
-                "Left Center Field",
-                "Right Center Field",
-                "Right Field"
-            ],
+            "preferredPositions": ["Left Center Field", "Right Center Field", "Right Field"],
             "positions": [],
             "battingRating": 5,
             "fieldRating": 7,
@@ -160,11 +111,7 @@
         {
             "firstName": "Hayden",
             "lastName": "H",
-            "preferredPositions": [
-                "Left Center Field",
-                "Right Center Field",
-                "Right Field"
-            ],
+            "preferredPositions": ["Left Center Field", "Right Center Field", "Right Field"],
             "positions": [],
             "battingRating": 6,
             "fieldRating": 8,
@@ -173,11 +120,7 @@
         {
             "firstName": "Hannah",
             "lastName": "Solid",
-            "preferredPositions": [
-                "Catcher",
-                "Second Base",
-                "Right Field"
-            ],
+            "preferredPositions": ["Catcher", "Second Base", "Right Field"],
             "positions": [],
             "battingRating": 2,
             "fieldRating": 2,

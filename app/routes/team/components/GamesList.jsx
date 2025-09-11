@@ -1,50 +1,39 @@
-import { Button, Text } from '@mantine/core';
+import { Button, Text } from "@mantine/core";
 
-import { IconPlus } from '@tabler/icons-react';
+import { IconPlus } from "@tabler/icons-react";
 
-import AddSingleGame from '@/forms/AddSingleGame';
+import AddSingleGame from "@/forms/AddSingleGame";
 
-import GamesList from '@/components/GamesList';
+import GamesList from "@/components/GamesList";
 
-import sortByDate from '@/utils/sortByDate';
+import sortByDate from "@/utils/sortByDate";
 
-import useModal from '@/hooks/useModal';
+import useModal from "@/hooks/useModal";
 
-export default function GamesListContainer({
-    games,
-    seasons,
-    teamId,
-    primaryColor,
-    managerView,
-}) {
+export default function GamesListContainer({ games, seasons, teamId, primaryColor, managerView }) {
     const { openModal } = useModal();
 
-    const sortedGames = sortByDate(games, 'gameDate');
+    const sortedGames = sortByDate(games, "gameDate");
 
-    const openAddGameModal = () => openModal({
-        title: 'Add a New Game',
-        children: (
-            <AddSingleGame
-                action="add-single-game"
-                actionRoute={`/team/${teamId}`}
-                teamId={teamId}
-                seasonId={null}
-                seasons={seasons}
-                confirmText="Create Game"
-            />
-        ),
-    });
+    const openAddGameModal = () =>
+        openModal({
+            title: "Add a New Game",
+            children: (
+                <AddSingleGame
+                    action="add-single-game"
+                    actionRoute={`/team/${teamId}`}
+                    teamId={teamId}
+                    seasonId={null}
+                    seasons={seasons}
+                    confirmText="Create Game"
+                />
+            ),
+        });
 
     return (
         <>
             {managerView && (
-                <Button
-                    my="md"
-                    color={primaryColor}
-                    onClick={openAddGameModal}
-                    autoContrast
-                    fullWidth
-                >
+                <Button my="md" color={primaryColor} onClick={openAddGameModal} autoContrast fullWidth>
                     <IconPlus size={20} />
                     Add New Game
                 </Button>
@@ -59,4 +48,4 @@ export default function GamesListContainer({
             <GamesList games={sortedGames} />
         </>
     );
-};
+}

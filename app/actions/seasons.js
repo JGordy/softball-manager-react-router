@@ -1,9 +1,9 @@
-import { ID } from '@/appwrite';
-import { createDocument, updateDocument } from '@/utils/databases.js';
+import { ID } from "@/appwrite";
+import { createDocument, updateDocument } from "@/utils/databases.js";
 
-import { findOrCreatePark } from '@/actions/parks';
+import { findOrCreatePark } from "@/actions/parks";
 
-import { removeEmptyValues } from './utils/formUtils';
+import { removeEmptyValues } from "./utils/formUtils";
 
 export async function createSeason({ values, teamId }) {
     const { locationDetails, ...rest } = values;
@@ -22,28 +22,24 @@ export async function createSeason({ values, teamId }) {
         if (parsedLocationDetails?.placeId) {
             const parkResponse = await findOrCreatePark({
                 values: parsedLocationDetails,
-                placeId: parsedLocationDetails.placeId
+                placeId: parsedLocationDetails.placeId,
             });
 
-            console.log('actions/seasons.js ', { parkResponse });
+            console.log("actions/seasons.js ", { parkResponse });
 
             if (parkResponse) {
                 parkId = parkResponse.$id;
             }
         }
 
-        const season = await createDocument(
-            'seasons',
-            seasonId,
-            {
-                ...rest,
-                gameDays: rest.gameDays.split(","), // Split into an array of gameDays
-                parkId: parkId || null,
-                signUpFee: Number(rest.signUpFee),
-                teamId,
-                teams: [teamId],
-            },
-        );
+        const season = await createDocument("seasons", seasonId, {
+            ...rest,
+            gameDays: rest.gameDays.split(","), // Split into an array of gameDays
+            parkId: parkId || null,
+            signUpFee: Number(rest.signUpFee),
+            teamId,
+            teams: [teamId],
+        });
 
         return { response: { season }, status: 201, success: true };
     } catch (error) {
@@ -72,7 +68,7 @@ export async function updateSeason({ values, seasonId }) {
             if (parsedLocationDetails?.placeId) {
                 const parkResponse = await findOrCreatePark({
                     values: parsedLocationDetails,
-                    placeId: parsedLocationDetails.placeId
+                    placeId: parsedLocationDetails.placeId,
                 });
 
                 if (parkResponse?.$id) {
@@ -91,10 +87,9 @@ export async function updateSeason({ values, seasonId }) {
         // Conditionally add parkId to the update payload if it was found/created
         if (parkId) dataToUpdate.parkId = parkId;
 
-        const seasonDetails = await updateDocument('seasons', seasonId, dataToUpdate);
+        const seasonDetails = await updateDocument("seasons", seasonId, dataToUpdate);
 
         return { response: { seasonDetails }, status: 204, success: true };
-
     } catch (error) {
         console.error("Error updating season:", error);
         // Re-throw the error to be handled by the caller (e.g., React Router action)

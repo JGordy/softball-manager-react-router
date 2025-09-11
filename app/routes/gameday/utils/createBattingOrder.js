@@ -8,7 +8,7 @@ function createBattingOrder(players) {
     while (sortedPlayers.length > 0) {
         const currentPlayer = sortedPlayers.shift();
 
-        if (currentPlayer.gender === 'male') {
+        if (currentPlayer.gender === "male") {
             consecutiveMaleCount++;
         } else {
             consecutiveMaleCount = 0;
@@ -16,7 +16,7 @@ function createBattingOrder(players) {
 
         if (consecutiveMaleCount >= 2) {
             // If two male batters have occurred consecutively, find a female player to insert
-            const femalePlayerIndex = sortedPlayers.findIndex(p => p.gender === 'female');
+            const femalePlayerIndex = sortedPlayers.findIndex((p) => p.gender === "female");
             if (femalePlayerIndex !== -1) {
                 battingOrder.push(sortedPlayers.splice(femalePlayerIndex, 1)[0]);
                 consecutiveMaleCount = 0; // Reset consecutive male count

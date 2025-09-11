@@ -1,4 +1,4 @@
-import { formatDate } from '@/utils/dateTime';
+import { formatDate } from "@/utils/dateTime";
 
 export default function getFormBody({ gameDate, opponent }) {
     return {
@@ -14,16 +14,18 @@ export default function getFormBody({ gameDate, opponent }) {
             {
                 createItem: {
                     item: {
-                        title: `Will you be attending the game on ${formatDate(new Date(gameDate))} against ${opponent || "TBD"}?`,
+                        title: `Will you be attending the game on ${formatDate(new Date(gameDate))} against ${
+                            opponent || "TBD"
+                        }?`,
                         questionItem: {
                             question: {
                                 required: true,
                                 choiceQuestion: {
-                                    type: 'RADIO',
+                                    type: "RADIO",
                                     options: [
-                                        { value: 'Yes, I will be there' },
-                                        { value: 'No, I cannot attend' },
-                                        { value: 'Maybe, I will let you know' },
+                                        { value: "Yes, I will be there" },
+                                        { value: "No, I cannot attend" },
+                                        { value: "Maybe, I will let you know" },
                                     ],
                                 },
                             },

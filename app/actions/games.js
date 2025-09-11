@@ -1,9 +1,9 @@
-import { ID } from '@/appwrite';
-import { createDocument, deleteDocument, updateDocument } from '@/utils/databases.js';
-import { redirect } from 'react-router';
-import { combineDateTime } from '@/utils/dateTime';
+import { ID } from "@/appwrite";
+import { createDocument, deleteDocument, updateDocument } from "@/utils/databases.js";
+import { redirect } from "react-router";
+import { combineDateTime } from "@/utils/dateTime";
 
-import { removeEmptyValues } from './utils/formUtils';
+import { removeEmptyValues } from "./utils/formUtils";
 
 export async function createSingleGame({ values }) {
     const { gameDate, gameTime, isHomeGame, ...gameData } = values;
@@ -13,12 +13,12 @@ export async function createSingleGame({ values }) {
 
         const updatedGameData = {
             ...gameData,
-            isHomeGame: isHomeGame === 'true',
+            isHomeGame: isHomeGame === "true",
             gameDate: updatedGameDate,
             seasons: values.seasonId,
         };
 
-        const createdGame = await createDocument('games', ID.unique(), updatedGameData);
+        const createdGame = await createDocument("games", ID.unique(), updatedGameData);
 
         return { response: { game: createdGame }, status: 201, success: true };
     } catch (error) {
@@ -35,7 +35,7 @@ export async function createGames({ values }) {
         const createdGames = [];
 
         for (const game of games) {
-            const createdGame = await createDocument('games', ID.unique(), { ...game, timeZone });
+            const createdGame = await createDocument("games", ID.unique(), { ...game, timeZone });
             createdGames.push(createdGame);
         }
 
@@ -55,16 +55,17 @@ export async function updateGame({ values, eventId }) {
     }
 
     if (values.isHomeGame) {
-        dataToUpdate.isHomeGame = values.isHomeGame === 'true';
+        dataToUpdate.isHomeGame = values.isHomeGame === "true";
     }
 
     // Ensure score and opponentScore are strings that represent valid integers
-    ['score', 'opponentScore'].forEach(key => {
+    ["score", "opponentScore"].forEach((key) => {
         if (dataToUpdate.hasOwnProperty(key)) {
             const value = dataToUpdate[key];
 
             const trimmedValue = value.trim();
-            if (/^-?\d+$/.test(trimmedValue)) { // Checks if string is an integer
+            if (/^-?\d+$/.test(trimmedValue)) {
+                // Checks if string is an integer
                 dataToUpdate[key] = trimmedValue;
             } else {
                 delete dataToUpdate[key]; // Delete invalid integer string
@@ -75,7 +76,7 @@ export async function updateGame({ values, eventId }) {
     delete dataToUpdate.gameTime;
 
     try {
-        const gameDetails = await updateDocument('games', eventId, dataToUpdate);
+        const gameDetails = await updateDocument("games", eventId, dataToUpdate);
 
         return { response: { gameDetails }, status: 204, success: true };
     } catch (error) {
@@ -85,7 +86,7 @@ export async function updateGame({ values, eventId }) {
 }
 
 export async function deleteGame({ values, eventId }) {
-    console.log('deleteGame: ', { eventId, values });
+    console.log("deleteGame: ", { eventId, values });
     // TODO: Add permission check here with values.userId
     // try {
     //     await deleteDocument('games', eventId);
@@ -98,12 +99,12 @@ export async function deleteGame({ values, eventId }) {
 }
 
 export async function savePlayerChart({ values, eventId }) {
-    console.log('savePlayerChart: ', { values, eventId });
+    console.log("savePlayerChart: ", { values, eventId });
     // TODO: Save created lineup to appwrite database
 }
 
 export async function generatePlayerChart({ values, eventId }) {
-    console.log('generatePlayerChart: ', { values, eventId });
+    console.log("generatePlayerChart: ", { values, eventId });
     // TODO: Generate a batting lineup and fielding chart using gen AI
 }
 
@@ -112,12 +113,11 @@ export async function createAttendanceForm({ values, request }) {
     const { team, gameDate, opponent, gameId } = values;
 
     try {
-
         const url = new URL(request.url);
         const baseUrl = url.origin;
 
         const response = await fetch(`${baseUrl}/api/create-attendance`, {
-            method: 'POST',
+            method: "POST",
             body: JSON.stringify({ team: JSON.parse(team), gameDate, opponent, gameId }),
         });
 
@@ -130,7 +130,6 @@ export async function createAttendanceForm({ values, request }) {
 
         // Return a success message or the form response
         return { success: true, formResponse };
-
     } catch (error) {
         console.error("Error creating attendance:", error);
         return { success: false, error: error.message };

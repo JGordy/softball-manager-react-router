@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 @theme {
-    --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
-        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+        "Noto Color Emoji";
 }
 
-:root[data-mantine-color-scheme='dark'] {
+:root[data-mantine-color-scheme="dark"] {
     --mantine-color-body: #101720;
 
     background-color: #101720;
@@ -22,20 +22,16 @@
 
     .event-details-hero,
     .game-card.mantine-Card-root {
-        background-image:
-            linear-gradient(rgb(26, 36, 47, 0.9),
-                rgb(26, 36, 47, 0.9)),
-            url('https://fra.cloud.appwrite.io/v1/storage/buckets/67af948b00375c741493/files/68793d820012b4a23cb3/view?project=679b95f10030c4821c90&mode=admin');
+        background-image: linear-gradient(rgb(26, 36, 47, 0.9), rgb(26, 36, 47, 0.9)),
+            url("https://fra.cloud.appwrite.io/v1/storage/buckets/67af948b00375c741493/files/68793d820012b4a23cb3/view?project=679b95f10030c4821c90&mode=admin");
 
         background-size: cover;
         background-position: center center;
     }
 
     .team-card.mantine-Card-root {
-        background-image:
-            linear-gradient(rgb(26, 36, 47, 0.9),
-                rgb(26, 36, 47, 0.9)),
-            url('https://fra.cloud.appwrite.io/v1/storage/buckets/67af948b00375c741493/files/687a8cb40025ea271333/view?project=679b95f10030c4821c90&mode=admin');
+        background-image: linear-gradient(rgb(26, 36, 47, 0.9), rgb(26, 36, 47, 0.9)),
+            url("https://fra.cloud.appwrite.io/v1/storage/buckets/67af948b00375c741493/files/687a8cb40025ea271333/view?project=679b95f10030c4821c90&mode=admin");
 
         background-size: cover;
         background-position: center center;
@@ -65,8 +61,7 @@
     }
 }
 
-:root[data-mantine-color-scheme='light'] {
-
+:root[data-mantine-color-scheme="light"] {
     --mantine-color-body: #e0ebe8;
 
     /* body {
@@ -79,10 +74,8 @@
     }
 
     .event-details-hero {
-        background-image:
-            linear-gradient(rgba(182, 203, 188, 0.85),
-                rgb(182, 203, 188, 0.85)),
-            url('https://fra.cloud.appwrite.io/v1/storage/buckets/67af948b00375c741493/files/68793d820012b4a23cb3/view?project=679b95f10030c4821c90&mode=admin');
+        background-image: linear-gradient(rgba(182, 203, 188, 0.85), rgb(182, 203, 188, 0.85)),
+            url("https://fra.cloud.appwrite.io/v1/storage/buckets/67af948b00375c741493/files/68793d820012b4a23cb3/view?project=679b95f10030c4821c90&mode=admin");
 
         background-size: cover;
         background-position: center center;

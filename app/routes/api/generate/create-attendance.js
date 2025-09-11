@@ -1,8 +1,8 @@
-import { ID } from '@/appwrite';
-import { createDocument } from '@/utils/databases';
+import { ID } from "@/appwrite";
+import { createDocument } from "@/utils/databases";
 
-import authorize from './utils/authorizeForms';
-import getFormBody from './utils/formBody';
+import authorize from "./utils/authorizeForms";
+import getFormBody from "./utils/formBody";
 
 async function createGameAttendanceForm(gameDate, team, opponent) {
     try {
@@ -27,9 +27,8 @@ async function createGameAttendanceForm(gameDate, team, opponent) {
         const formUrl = `https://docs.google.com/forms/d/${formId}/viewform`;
 
         return { formUrl, formId, questionId };
-
     } catch (error) {
-        console.error('Error creating form:', error);
+        console.error("Error creating form:", error);
         throw error;
     }
 }
@@ -47,7 +46,7 @@ export async function action({ request }) {
         const { formUrl, formId, questionId } = await createGameAttendanceForm(gameDate, team, opponent);
         // console.log({ formUrl, formId, questionId });
 
-        await createDocument('forms', ID.unique(), {
+        await createDocument("forms", ID.unique(), {
             formId,
             formUrl,
             questionId: questionId[0],
@@ -57,7 +56,7 @@ export async function action({ request }) {
 
         return { formUrl, formId, questionId };
     } catch (error) {
-        console.error('Error creating form:', error);
+        console.error("Error creating form:", error);
         return { error: error.message, status: 500 };
     }
 }

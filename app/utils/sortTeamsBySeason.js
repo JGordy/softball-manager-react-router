@@ -9,10 +9,11 @@ const isSeasonCurrent = (season, now) => {
 const getUpcomingSeasonStartDate = (seasons, now) => {
     if (!seasons || seasons.length === 0) return null;
     let earliestFutureDate = null;
-    seasons.forEach(season => {
+    seasons.forEach((season) => {
         if (season.startDate) {
             const start = new Date(season.startDate);
-            if (start > now) { // Season starts in the future
+            if (start > now) {
+                // Season starts in the future
                 if (!earliestFutureDate || start < earliestFutureDate) {
                     earliestFutureDate = start;
                 }
@@ -25,10 +26,11 @@ const getUpcomingSeasonStartDate = (seasons, now) => {
 const getMostRecentPastSeasonEndDate = (seasons, now) => {
     if (!seasons || seasons.length === 0) return null;
     let latestPastDate = null;
-    seasons.forEach(season => {
+    seasons.forEach((season) => {
         if (season.endDate) {
             const end = new Date(season.endDate);
-            if (end < now) { // Season ended in the past
+            if (end < now) {
+                // Season ended in the past
                 if (!latestPastDate || end > latestPastDate) {
                     latestPastDate = end;
                 }

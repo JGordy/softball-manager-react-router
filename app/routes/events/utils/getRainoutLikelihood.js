@@ -45,7 +45,11 @@ function getLikelihoodReason(likelihood, primaryThreat, totalPrecipitation, weig
     }
 
     // Priority 4: General rain forecast
-    if (weatherCondition?.type === "RAIN" || weatherCondition?.type === "DRIZZLE" || weatherCondition?.type === "SNOW") {
+    if (
+        weatherCondition?.type === "RAIN" ||
+        weatherCondition?.type === "DRIZZLE" ||
+        weatherCondition?.type === "SNOW"
+    ) {
         return `Chance of ${description}.`;
     }
 
@@ -124,7 +128,7 @@ export default function getRainoutLikelihood(weather) {
     rainoutPercentage *= fieldConditionFactor;
 
     // --- Weighted Thunderstorm Threat ---
-    const weightedThunderstormThreat = (weightedThunderstorm / totalWeight);
+    const weightedThunderstormThreat = weightedThunderstorm / totalWeight;
     if (weightedThunderstormThreat > 5) {
         rainoutPercentage += weightedThunderstormThreat;
     }

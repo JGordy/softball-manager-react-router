@@ -1,42 +1,31 @@
-import {
-    MultiSelect,
-    NumberInput,
-    Select,
-    TextInput,
-} from '@mantine/core';
+import { MultiSelect, NumberInput, Select, TextInput } from "@mantine/core";
 
-import { IconCurrencyDollar } from '@tabler/icons-react';
+import { IconCurrencyDollar } from "@tabler/icons-react";
 
-import DatePicker from '@/components/DatePicker';
+import DatePicker from "@/components/DatePicker";
 
-import FormWrapper from './FormWrapper';
-import LocationInput from './components/LocationInput';
+import FormWrapper from "./FormWrapper";
+import LocationInput from "./components/LocationInput";
 
-import classes from '@/styles/inputs.module.css';
+import classes from "@/styles/inputs.module.css";
 
 export default function AddSeason({
-    action = 'add-season',
+    action = "add-season",
     actionRoute,
     buttonColor,
-    confirmText = 'Create Season',
+    confirmText = "Create Season",
     // setError,
     teamId,
 }) {
-
     return (
-        <FormWrapper
-            action={action}
-            actionRoute={actionRoute}
-            buttonColor={buttonColor}
-            confirmText={confirmText}
-        >
+        <FormWrapper action={action} actionRoute={actionRoute} buttonColor={buttonColor} confirmText={confirmText}>
             <input type="hidden" name="teamId" value={teamId} />
             <TextInput
                 className={classes.inputs}
                 label="Season Name"
                 name="seasonName"
-                placeholder='Fall Season 2025'
-                required={action === 'add-season'}
+                placeholder="Fall Season 2025"
+                required={action === "add-season"}
             />
             <LocationInput classes={classes.inputs} />
             <MultiSelect
@@ -44,7 +33,7 @@ export default function AddSeason({
                 label="Game Days"
                 name="gameDays"
                 placeholder="What day(s) are games played?"
-                data={['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']}
+                data={["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]}
                 mb="sm"
                 clearable
                 searchable
@@ -54,10 +43,10 @@ export default function AddSeason({
                 label="League Type"
                 name="leagueType"
                 placeholder="Select Gender"
-                data={['Men', 'Women', 'Coed']}
+                data={["Men", "Women", "Coed"]}
                 mb="sm"
                 searchable
-                required={action === 'add-season'}
+                required={action === "add-season"}
             />
             <NumberInput
                 className={classes.inputs}
@@ -70,14 +59,8 @@ export default function AddSeason({
                 defaultValue={50}
                 step={5}
             />
-            <DatePicker
-                label="Season Start Date"
-                name="startDate"
-            />
-            <DatePicker
-                label="Season End Date"
-                name="endDate"
-            />
+            <DatePicker label="Season Start Date" name="startDate" />
+            <DatePicker label="Season End Date" name="endDate" />
         </FormWrapper>
     );
-};
+}

@@ -1,17 +1,8 @@
-import {
-    Center,
-    ScrollArea,
-    Text,
-} from '@mantine/core';
+import { Center, ScrollArea, Text } from "@mantine/core";
 
-import GameCard from '@/components/GameCard';
+import GameCard from "@/components/GameCard";
 
-export default function GamesList({
-    games,
-    height = "48vh",
-    sortOrder = "asc",
-}) {
-
+export default function GamesList({ games, height = "48vh", sortOrder = "asc" }) {
     if (!games.length) {
         return (
             <Center mt="md">
@@ -39,18 +30,15 @@ export default function GamesList({
         }
 
         // Both are future, sort by sortOrder
-        if (sortOrder === 'dsc') return dateB - dateA;
+        if (sortOrder === "dsc") return dateB - dateA;
         return dateA - dateB;
     });
 
     return (
         <ScrollArea h={height}>
-            {sortedGames.map(game => (
-                <GameCard
-                    {...game}
-                    key={game.$id}
-                />
+            {sortedGames.map((game) => (
+                <GameCard {...game} key={game.$id} />
             ))}
         </ScrollArea>
-    )
+    );
 }

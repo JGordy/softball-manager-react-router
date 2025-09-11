@@ -1,4 +1,4 @@
-import { updateDocument } from '@/utils/databases.js';
+import { updateDocument } from "@/utils/databases.js";
 
 // Creates a google form for each upcoming game to gather attendance for later lineup generation
 export async function createAttendanceForm({ values, request }) {
@@ -9,7 +9,7 @@ export async function createAttendanceForm({ values, request }) {
         const baseUrl = url.origin;
 
         const response = await fetch(`${baseUrl}/api/create-attendance`, {
-            method: 'POST',
+            method: "POST",
             body: JSON.stringify({ team: JSON.parse(team), gameDate, opponent, gameId }),
         });
 
@@ -23,7 +23,6 @@ export async function createAttendanceForm({ values, request }) {
         // Return a success message or the form response
         return { formResponse, status: 201, success: true };
     } catch (error) {
-
         console.error("Error creating attendance:", error);
         return { success: false, error: error.message };
     }
@@ -34,7 +33,7 @@ export async function savePlayerChart({ values, eventId }) {
     const { playerChart } = values;
     // NOTE: We must stringify the playerChart json before sending to appwrite
     try {
-        const gameDetails = await updateDocument('games', eventId, {
+        const gameDetails = await updateDocument("games", eventId, {
             playerChart: JSON.stringify(playerChart),
         });
 
@@ -47,6 +46,6 @@ export async function savePlayerChart({ values, eventId }) {
 
 // Calls the gemini generative ai to generate a lineup and field chart
 export async function generatePlayerChart({ values }) {
-    console.log('generatePlayerChart: ', { values });
+    console.log("generatePlayerChart: ", { values });
     // TODO: Generate a batting lineup and fielding chart using gen AI
 }

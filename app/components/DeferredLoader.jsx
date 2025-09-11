@@ -1,5 +1,5 @@
-import { Suspense } from 'react';
-import { Await } from 'react-router';
+import { Suspense } from "react";
+import { Await } from "react-router";
 
 /**
  * A reusable component to handle deferred data from React Router loaders.
@@ -11,16 +11,12 @@ import { Await } from 'react-router';
  * @param {React.ReactNode} [props.errorElement] A fallback UI to show if the promise rejects.
  * @param {(data: any) => React.ReactNode} props.children A render prop that receives the resolved data.
  */
-export default function DeferredLoader({
-    resolve,
-    fallback,
-    errorElement,
-    children,
-}) {
+export default function DeferredLoader({ resolve, fallback, errorElement, children }) {
     return (
         <Suspense fallback={fallback}>
-            <Await resolve={resolve} errorElement={errorElement}>{children}</Await>
+            <Await resolve={resolve} errorElement={errorElement}>
+                {children}
+            </Await>
         </Suspense>
     );
 }
-

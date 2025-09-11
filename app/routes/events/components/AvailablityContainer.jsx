@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { useOutletContext, useFetcher } from 'react-router';
+import { useEffect } from "react";
+import { useOutletContext, useFetcher } from "react-router";
 
 import {
     ActionIcon,
@@ -12,8 +12,8 @@ import {
     ScrollArea,
     Stack,
     Text,
-} from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+} from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 
 import {
     IconChevronDown,
@@ -21,45 +21,43 @@ import {
     IconHelpTriangleFilled,
     IconMessageCircleOff,
     IconSquareXFilled,
-} from '@tabler/icons-react';
+} from "@tabler/icons-react";
 
-import positions from '@/constants/positions';
+import positions from "@/constants/positions";
 
 const availabilityData = {
     accepted: {
         icon: <IconCircleCheckFilled size={24} color="green" />,
-        label: 'Yes',
-        value: 'accepted',
+        label: "Yes",
+        value: "accepted",
     },
     declined: {
         icon: <IconSquareXFilled size={24} color="red" />,
-        label: 'No',
-        value: 'declined',
+        label: "No",
+        value: "declined",
     },
     tentative: {
         icon: <IconHelpTriangleFilled size={24} color="orange" />,
-        label: 'Maybe',
-        value: 'tentative',
+        label: "Maybe",
+        value: "tentative",
     },
     noresponse: {
         icon: <IconMessageCircleOff size={24} color="gray" />,
-        label: 'No Response',
-        value: '',
+        label: "No Response",
+        value: "",
     },
-}
+};
 
 const AvailabilityOptionsContainer = ({ attendance, game, player, managerView, currentUserId, isGamePast }) => {
-
     const fetcher = useFetcher();
     const [opened, { close, toggle }] = useDisclosure(false);
 
     const renderToggle = (managerView || currentUserId === player.$id) && !isGamePast;
 
-
     // This effect will close the collapse after a successful submission.
     useEffect(() => {
         // Check for a successful action response from the fetcher
-        if (fetcher.state === 'idle' && fetcher.data?.success) {
+        if (fetcher.state === "idle" && fetcher.data?.success) {
             close();
         }
     }, [fetcher.state, fetcher.data, close]);
@@ -67,44 +65,41 @@ const AvailabilityOptionsContainer = ({ attendance, game, player, managerView, c
     const handleAttendanceChange = (text, playerId) => {
         try {
             const formData = new FormData();
-            formData.append('_action', 'update-attendance');
-            formData.append('playerId', playerId);
-            formData.append('status', availabilityData[text].value);
-            formData.append('updatedBy', currentUserId);
+            formData.append("_action", "update-attendance");
+            formData.append("playerId", playerId);
+            formData.append("status", availabilityData[text].value);
+            formData.append("updatedBy", currentUserId);
 
-            fetcher.submit(formData, { method: 'post', action: `/events/${game.$id}` });
+            fetcher.submit(formData, { method: "post", action: `/events/${game.$id}` });
         } catch (error) {
-            console.error('Error submitting attendance form:', error);
+            console.error("Error submitting attendance form:", error);
         }
     };
 
     return (
-        <Card
-            key={player.$id}
-            shadow="sm"
-            radius="md"
-            p="sm"
-            mt="xs"
-            pos="relative"
-        >
+        <Card key={player.$id} shadow="sm" radius="md" p="sm" mt="xs" pos="relative">
             <LoadingOverlay
-                visible={fetcher.state === 'loading'}
-                overlayProps={{ blur: 2, radius: 'md' }}
-                loaderProps={{ color: 'green', type: 'dots', size: 'lg' }}
+                visible={fetcher.state === "loading"}
+                overlayProps={{ blur: 2, radius: "md" }}
+                loaderProps={{ color: "green", type: "dots", size: "lg" }}
             />
             <Group justify="space-between">
                 <Group gap="xs" justify="space-between">
-                    <Text c="dimmed" size="sm" miw="1.1rem">{positions[player.preferredPositions?.[0]].initials}</Text>
+                    <Text c="dimmed" size="sm" miw="1.1rem">
+                        {positions[player.preferredPositions?.[0]].initials}
+                    </Text>
                     <Divider orientation="vertical" />
-                    <Text fw={700}>{player.firstName} {player.lastName}</Text>
+                    <Text fw={700}>
+                        {player.firstName} {player.lastName}
+                    </Text>
                 </Group>
                 <Group>
-                    {availabilityData[attendance?.status || 'noresponse'].icon}
-                    {(renderToggle) && (
+                    {availabilityData[attendance?.status || "noresponse"].icon}
+                    {renderToggle && (
                         <>
                             <Divider orientation="vertical" />
                             <ActionIcon variant="transparent" onClick={toggle}>
-                                <IconChevronDown style={{ width: '70%', height: '70%' }} stroke={1.5} />
+                                <IconChevronDown style={{ width: "70%", height: "70%" }} stroke={1.5} />
                             </ActionIcon>
                         </>
                     )}
@@ -118,25 +113,21 @@ const AvailabilityOptionsContainer = ({ attendance, game, player, managerView, c
                     mt="sm"
                     label="Will you be attending the game?"
                     // description={`Last updated ${attendance?.$updatedAt}`}
-                    defaultValue={attendance?.status || 'noresponse'}
+                    defaultValue={attendance?.status || "noresponse"}
                 >
                     <Group justify="space-between" mt="sm">
-                        {Object.keys(availabilityData).map(key => {
+                        {Object.keys(availabilityData).map((key) => {
                             const item = availabilityData[key];
-                            return key !== 'noresponse' && (
-                                <Radio.Card
-                                    radius="xl"
-                                    value={key}
-                                    key={`${key}-${player.$id}`}
-                                    maw="30%"
-                                    py="5px"
-                                >
-                                    <Group wrap="nowrap" align="center" justify="center" gap="5px">
-                                        {item.icon}
-                                        <Text>{item.label}</Text>
-                                    </Group>
-                                </Radio.Card>
-                            )
+                            return (
+                                key !== "noresponse" && (
+                                    <Radio.Card radius="xl" value={key} key={`${key}-${player.$id}`} maw="30%" py="5px">
+                                        <Group wrap="nowrap" align="center" justify="center" gap="5px">
+                                            {item.icon}
+                                            <Text>{item.label}</Text>
+                                        </Group>
+                                    </Radio.Card>
+                                )
+                            );
                         })}
                     </Group>
                 </Radio.Group>
@@ -145,13 +136,7 @@ const AvailabilityOptionsContainer = ({ attendance, game, player, managerView, c
     );
 };
 
-export default function AvailabliityContainer({
-    attendance,
-    game,
-    managerView,
-    players,
-}) {
-
+export default function AvailabliityContainer({ attendance, game, managerView, players }) {
     const { user } = useOutletContext();
     const currentUserId = user.$id;
 
@@ -162,26 +147,23 @@ export default function AvailabliityContainer({
     const isGameToday = gameDay.toDateString() === today.toDateString();
     const isGamePast = gameDay < today && !isGameToday;
 
-    const renderPlayerAvailability = () => players.map(player => (
-        <AvailabilityOptionsContainer
-            key={player.$id}
-            attendance={attendance?.documents?.find(a => a.playerId === player.$id)}
-            currentUserId={currentUserId}
-            game={game}
-            isGamePast={isGamePast}
-            managerView={managerView}
-            player={player}
-        />
-    ));
+    const renderPlayerAvailability = () =>
+        players.map((player) => (
+            <AvailabilityOptionsContainer
+                key={player.$id}
+                attendance={attendance?.documents?.find((a) => a.playerId === player.$id)}
+                currentUserId={currentUserId}
+                game={game}
+                isGamePast={isGamePast}
+                managerView={managerView}
+                player={player}
+            />
+        ));
 
     return (
         <>
-            <Group
-                justify="space-between"
-                mb="lg"
-                wrap="nowrap"
-            >
-                {Object.keys(availabilityData).map(key => (
+            <Group justify="space-between" mb="lg" wrap="nowrap">
+                {Object.keys(availabilityData).map((key) => (
                     <Stack align="center" gap="2px" key={key}>
                         {availabilityData[key].icon}
                         <Text size="sm">{availabilityData[key].label}</Text>
@@ -191,9 +173,7 @@ export default function AvailabliityContainer({
 
             <Divider size="xs" mb="md" />
 
-            <ScrollArea h="50vh">
-                {players?.length > 0 && renderPlayerAvailability()}
-            </ScrollArea>
+            <ScrollArea h="50vh">{players?.length > 0 && renderPlayerAvailability()}</ScrollArea>
         </>
     );
-};
+}

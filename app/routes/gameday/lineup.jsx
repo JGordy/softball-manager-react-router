@@ -1,31 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
-import {
-    Button,
-    Center,
-    Group,
-    Text,
-} from '@mantine/core';
+import { Button, Center, Group, Text } from "@mantine/core";
 
-import PlayerChart from '@components/PlayerChart';
+import PlayerChart from "@components/PlayerChart";
 
-import { IconWand, IconPrinter, IconSparkles } from '@tabler/icons-react';
+import { IconWand, IconPrinter, IconSparkles } from "@tabler/icons-react";
 
-import createBattingOrder from './utils/createBattingOrder';
-import createFieldingChart from './utils/createFieldingChart';
+import createBattingOrder from "./utils/createBattingOrder";
+import createFieldingChart from "./utils/createFieldingChart";
 
 export async function clientLoader() {
     try {
-        const response = await fetch('/players.json', {
+        const response = await fetch("/players.json", {
             headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            }
+                "Content-Type": "application/json",
+                Accept: "application/json",
+            },
         });
         const data = await response.json();
         return data;
     } catch (error) {
-        console.error('Error:', error);
+        console.error("Error:", error);
         return { error };
     }
 }
@@ -52,7 +47,6 @@ function Lineup({ loaderData, actionData }) {
         }
     }, [actionData, loaderData]);
 
-
     // Create batting order and fielding chart
     const handleCreateLineup = () => {
         setPlayerChart();
@@ -75,9 +69,8 @@ function Lineup({ loaderData, actionData }) {
         setPlayerChart();
         setIsLoading(true);
         try {
-
-            const response = await fetch('/api/lineup', {
-                method: 'POST',
+            const response = await fetch("/api/lineup", {
+                method: "POST",
                 body: JSON.stringify(players),
             });
 
@@ -104,11 +97,7 @@ function Lineup({ loaderData, actionData }) {
         <>
             <Center>
                 <Group position="center" spacing="md" mt="xl" mb="xl">
-                    <Button
-                        variant="filled"
-                        color="blue"
-                        onClick={handleCreateLineup}
-                    >
+                    <Button variant="filled" color="blue" onClick={handleCreateLineup}>
                         Create Lineup
                     </Button>
                     <Button
@@ -129,10 +118,7 @@ function Lineup({ loaderData, actionData }) {
             </Center>
             {playerChart && (
                 <>
-                    <PlayerChart
-                        playerChart={playerChart}
-                        setPlayerChart={setPlayerChart}
-                    />
+                    <PlayerChart playerChart={playerChart} setPlayerChart={setPlayerChart} />
                     <Button onClick={handlePrint}>
                         <IconPrinter size={18} />
                         Print/Download
