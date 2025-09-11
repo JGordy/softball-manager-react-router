@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-import schema from './utils/lineupSchema';
-import prompt from './utils/lineupPrompt';
+import schema from "./utils/lineupSchema";
+import prompt from "./utils/lineupPrompt";
 
 export async function action({ request }) {
     try {
@@ -33,11 +33,14 @@ export async function action({ request }) {
 
         if (output) {
             // Send the llm output as a server reponse object
-            return new Response(JSON.stringify({ generatedChart: JSON.parse(output) }), {
-                headers: { "Content-Type": "application/json" },
-            });
+            return new Response(
+                JSON.stringify({ generatedChart: JSON.parse(output) }),
+                {
+                    headers: { "Content-Type": "application/json" },
+                },
+            );
         }
     } catch (error) {
-        console.error('Error generating lineup: ', error)
+        console.error("Error generating lineup: ", error);
     }
 }

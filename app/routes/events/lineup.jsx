@@ -1,20 +1,20 @@
-import { Container, Group } from '@mantine/core';
+import { Container, Group } from "@mantine/core";
 
-import { useOutletContext } from 'react-router';
+import { useOutletContext } from "react-router";
 
-import { getEventWithPlayerCharts } from '@/loaders/games';
+import { getEventWithPlayerCharts } from "@/loaders/games";
 
-import { savePlayerChart } from '@/actions/lineups';
+import { savePlayerChart } from "@/actions/lineups";
 
-import BackButton from '@/components/BackButton';
+import BackButton from "@/components/BackButton";
 
-import LineupContainer from './components/LineupContainer';
+import LineupContainer from "./components/LineupContainer";
 
-import addPlayerAvailability from './utils/addPlayerAvailability';
+import addPlayerAvailability from "./utils/addPlayerAvailability";
 
 export async function loader({ params, request }) {
     const { eventId } = params;
-    console.log('/events/:eventId > ', { eventId });
+    console.log("/events/:eventId > ", { eventId });
 
     return await getEventWithPlayerCharts({ eventId, request });
 }
@@ -24,13 +24,13 @@ export async function action({ request, params }) {
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
 
-    if (_action === 'save-chart') {
+    if (_action === "save-chart") {
         return savePlayerChart({ eventId, values });
     }
 }
 
 function Lineup({ loaderData }) {
-    console.log('/events/:eventId/lineup > ', { ...loaderData });
+    console.log("/events/:eventId/lineup > ", { ...loaderData });
 
     const { user } = useOutletContext();
     const currentUserId = user.$id;

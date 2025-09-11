@@ -18,4 +18,4 @@ export default function AlertIncomplete({ incompleteData, handleAlertClose }) {
             </ol>
         </Alert>
     );
-};
+}

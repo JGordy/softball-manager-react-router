@@ -1,5 +1,5 @@
-import { Query } from '@/appwrite';
-import { listDocuments } from '@/utils/databases';
+import { Query } from "@/appwrite";
+import { listDocuments } from "@/utils/databases";
 
 export async function action({ request, params }) {
     const { userId } = await request.json();
@@ -10,19 +10,19 @@ export async function action({ request, params }) {
 
     try {
         // 1. Check relationships table to list memberships for the userId, both manager and player
-        const memberships = await listDocuments('memberships', [
-            Query.equal('userId', userId),
-            Query.equal('role', ['manager', 'player']),
+        const memberships = await listDocuments("memberships", [
+            Query.equal("userId", userId),
+            Query.equal("role", ["manager", "player"]),
         ]);
 
         // 2. Separate teamIds by role
         const managerTeamIds = memberships.documents
-            .filter(m => m.role === 'manager')
-            .map(m => m.teamId);
+            .filter((m) => m.role === "manager")
+            .map((m) => m.teamId);
 
         const playerTeamIds = memberships.documents
-            .filter(m => m.role === 'player')
-            .map(m => m.teamId);
+            .filter((m) => m.role === "player")
+            .map((m) => m.teamId);
 
         // 3. Fetch teams for managers and players
         const fetchTeams = async (teamIds) => {
@@ -31,8 +31,8 @@ export async function action({ request, params }) {
             }
 
             const promises = teamIds.map(async (teamId) => {
-                const result = await listDocuments('teams', [
-                    Query.equal('$id', teamId),
+                const result = await listDocuments("teams", [
+                    Query.equal("$id", teamId),
                 ]);
                 return result.documents;
             });
@@ -45,9 +45,8 @@ export async function action({ request, params }) {
         const playerTeams = await fetchTeams(playerTeamIds);
 
         return { managing: managerTeams, playing: playerTeams };
-
     } catch (error) {
-        console.error('Error getting teams: ', error);
+        console.error("Error getting teams: ", error);
         throw error;
     }
 }

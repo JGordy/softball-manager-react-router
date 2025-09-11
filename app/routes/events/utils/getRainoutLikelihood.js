@@ -16,7 +16,12 @@ function getLikelihoodColor(likelihood) {
     }
 }
 
-function getLikelihoodReason(likelihood, primaryThreat, totalPrecipitation, weightedThunderstormThreat) {
+function getLikelihoodReason(
+    likelihood,
+    primaryThreat,
+    totalPrecipitation,
+    weightedThunderstormThreat,
+) {
     if (likelihood <= 5) {
         return "Clear conditions expected";
     }
@@ -45,7 +50,11 @@ function getLikelihoodReason(likelihood, primaryThreat, totalPrecipitation, weig
     }
 
     // Priority 4: General rain forecast
-    if (weatherCondition?.type === "RAIN" || weatherCondition?.type === "DRIZZLE" || weatherCondition?.type === "SNOW") {
+    if (
+        weatherCondition?.type === "RAIN" ||
+        weatherCondition?.type === "DRIZZLE" ||
+        weatherCondition?.type === "SNOW"
+    ) {
         return `Chance of ${description}.`;
     }
 
@@ -88,11 +97,15 @@ export default function getRainoutLikelihood(weather) {
         weightedPop += (pop / 100) * weights[index];
         weightedThunderstorm += thunderstorm * weights[index];
 
-        if (hourlyForecast.thunderstormProbability > primaryThreat.thunderstormProbability) {
+        if (
+            hourlyForecast.thunderstormProbability >
+            primaryThreat.thunderstormProbability
+        ) {
             primaryThreat = {
                 weatherCondition: hourlyForecast.weatherCondition,
                 rainAmount: hourlyForecast.precipitation?.qpf?.quantity || 0,
-                thunderstormProbability: hourlyForecast.thunderstormProbability || 0,
+                thunderstormProbability:
+                    hourlyForecast.thunderstormProbability || 0,
             };
         }
     });
@@ -124,14 +137,19 @@ export default function getRainoutLikelihood(weather) {
     rainoutPercentage *= fieldConditionFactor;
 
     // --- Weighted Thunderstorm Threat ---
-    const weightedThunderstormThreat = (weightedThunderstorm / totalWeight);
+    const weightedThunderstormThreat = weightedThunderstorm / totalWeight;
     if (weightedThunderstormThreat > 5) {
         rainoutPercentage += weightedThunderstormThreat;
     }
 
     const likelihood = Math.min(100, Math.round(rainoutPercentage));
     const color = getLikelihoodColor(likelihood);
-    const reason = getLikelihoodReason(likelihood, primaryThreat, totalPrecipitation, weightedThunderstormThreat);
+    const reason = getLikelihoodReason(
+        likelihood,
+        primaryThreat,
+        totalPrecipitation,
+        weightedThunderstormThreat,
+    );
 
     return { likelihood, color, reason };
 }

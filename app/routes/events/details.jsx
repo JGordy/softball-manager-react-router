@@ -1,51 +1,51 @@
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
-import { Form, useNavigation, useOutletContext } from 'react-router';
+import { Form, useNavigation, useOutletContext } from "react-router";
+
+import { Box, Button, Group, Text } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+
+import BackButton from "@/components/BackButton";
+import DrawerContainer from "@/components/DrawerContainer";
 
 import {
-    Box,
-    Button,
-    Group,
-    Text,
-} from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+    createAttendanceForm,
+    deleteGame,
+    savePlayerChart,
+    updateGame,
+} from "@/actions/games";
+import { updatePlayerAttendance } from "@/actions/attendance";
 
-import BackButton from '@/components/BackButton';
-import DrawerContainer from '@/components/DrawerContainer';
+import { getEventById } from "@/loaders/games";
 
-import { createAttendanceForm, deleteGame, savePlayerChart, updateGame } from '@/actions/games';
-import { updatePlayerAttendance } from '@/actions/attendance';
+import { getGameDayStatus } from "@/utils/dateTime";
 
-import { getEventById } from '@/loaders/games';
+import useModal from "@/hooks/useModal";
 
-import { getGameDayStatus } from '@/utils/dateTime';
-
-import useModal from '@/hooks/useModal';
-
-import MenuContainer from './components/MenuContainer';
-import Scoreboard from './components/Scoreboard';
-import DetailsCard from './components/DetailsCard';
-import RosterDetails from './components/RosterDetails';
-import WeatherCard from './components/WeatherCard';
+import MenuContainer from "./components/MenuContainer";
+import Scoreboard from "./components/Scoreboard";
+import DetailsCard from "./components/DetailsCard";
+import RosterDetails from "./components/RosterDetails";
+import WeatherCard from "./components/WeatherCard";
 
 export async function action({ request, params }) {
     const { eventId } = params;
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
 
-    if (_action === 'update-game') {
+    if (_action === "update-game") {
         return updateGame({ eventId, values });
     }
-    if (_action === 'create-attendance') {
+    if (_action === "create-attendance") {
         return createAttendanceForm({ eventId, values, request });
     }
-    if (_action === 'save-chart') {
+    if (_action === "save-chart") {
         return savePlayerChart({ eventId, values });
     }
-    if (_action === 'delete-game') {
+    if (_action === "delete-game") {
         return deleteGame({ eventId, values });
     }
-    if (_action === 'update-attendance') {
+    if (_action === "update-attendance") {
         return updatePlayerAttendance({ eventId, values });
     }
 }
@@ -67,29 +67,20 @@ export default function EventDetails({ loaderData, actionData }) {
     const { user } = useOutletContext();
     const currentUserId = user.$id;
 
-    const isDeleting = navigation.state === 'submitting' &&
-        navigation.formData?.get('_action') === 'delete-game';
+    const isDeleting =
+        navigation.state === "submitting" &&
+        navigation.formData?.get("_action") === "delete-game";
 
-    const {
-        game,
-        deferredData,
-        managerIds,
-        season,
-        teams,
-        weatherPromise,
-    } = loaderData;
+    const { game, deferredData, managerIds, season, teams, weatherPromise } =
+        loaderData;
 
     const team = teams?.[0];
     const managerView = managerIds.includes(currentUserId);
 
-    const {
-        gameDate,
-        playerChart,
-        result,
-    } = game;
+    const { gameDate, playerChart, result } = game;
 
     const gameDayStatus = getGameDayStatus(gameDate);
-    const gameIsPast = gameDayStatus === 'past';
+    const gameIsPast = gameDayStatus === "past";
 
     useEffect(() => {
         const handleAfterSubmit = async () => {
@@ -109,11 +100,7 @@ export default function EventDetails({ loaderData, actionData }) {
 
     return (
         <>
-            <Box
-                className="event-details-hero"
-                pt="xl"
-                pb="100px"
-            >
+            <Box className="event-details-hero" pt="xl" pb="100px">
                 <Group justify="space-between" mx="md">
                     <BackButton text="Back to Events" />
                     {managerView && (
@@ -127,11 +114,7 @@ export default function EventDetails({ loaderData, actionData }) {
                     )}
                 </Group>
 
-                <Scoreboard
-                    game={game}
-                    gameIsPast={gameIsPast}
-                    team={team}
-                />
+                <Scoreboard game={game} gameIsPast={gameIsPast} team={team} />
             </Box>
 
             <DetailsCard
@@ -162,10 +145,21 @@ export default function EventDetails({ loaderData, actionData }) {
                     onClose={deleteDrawerHandlers.close}
                     title="Delete Game"
                 >
-                    <Text>Are you sure you want to delete this game? There is no undoing this action.</Text>
+                    <Text>
+                        Are you sure you want to delete this game? There is no
+                        undoing this action.
+                    </Text>
                     <Form method="post">
-                        <input type="hidden" name="_action" value="delete-game" />
-                        <input type="hidden" name="userId" value={currentUserId} />
+                        <input
+                            type="hidden"
+                            name="_action"
+                            value="delete-game"
+                        />
+                        <input
+                            type="hidden"
+                            name="userId"
+                            value={currentUserId}
+                        />
                         <Button
                             type="submit"
                             color="red"

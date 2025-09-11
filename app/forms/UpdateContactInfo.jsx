@@ -1,17 +1,17 @@
-import { PasswordInput } from '@mantine/core';
+import { PasswordInput } from "@mantine/core";
 
-import AutocompleteEmail from '@/components/AutocompleteEmail';
+import AutocompleteEmail from "@/components/AutocompleteEmail";
 
-import FormWrapper from './FormWrapper';
-import PhoneInput from './components/PhoneInput';
+import FormWrapper from "./FormWrapper";
+import PhoneInput from "./components/PhoneInput";
 
-import classes from '@/styles/inputs.module.css';
+import classes from "@/styles/inputs.module.css";
 
 export default function UpdateContactInfo({
-    action = 'update-contact',
+    action = "update-contact",
     actionRoute,
     buttonColor,
-    confirmText = 'Update Details',
+    confirmText = "Update Details",
     defaults = {},
     user,
 }) {
@@ -27,7 +27,10 @@ export default function UpdateContactInfo({
         >
             <input type="hidden" name="user" value={JSON.stringify(userCopy)} />
 
-            <AutocompleteEmail classes={classes.inputs} defaultValue={defaults.email} />
+            <AutocompleteEmail
+                classes={classes.inputs}
+                defaultValue={defaults.email}
+            />
 
             <PhoneInput defaultValue={defaults.phoneNumber} />
 
@@ -43,4 +46,4 @@ export default function UpdateContactInfo({
             />
         </FormWrapper>
     );
-};
+}

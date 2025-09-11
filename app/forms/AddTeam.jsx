@@ -1,20 +1,15 @@
-import {
-    TextInput,
-    Select,
-    ColorInput,
-} from '@mantine/core';
+import { TextInput, Select, ColorInput } from "@mantine/core";
 
-import classes from '@/styles/inputs.module.css';
+import classes from "@/styles/inputs.module.css";
 
-import FormWrapper from './FormWrapper';
+import FormWrapper from "./FormWrapper";
 
 export default function AddTeam({
-    action = 'add-team',
+    action = "add-team",
     actionRoute,
     buttonColor,
     userId,
 }) {
-
     return (
         <FormWrapper
             action={action}
@@ -22,21 +17,20 @@ export default function AddTeam({
             buttonColor={buttonColor}
             confirmText="Create Team"
         >
-
             {userId && <input type="hidden" name="userId" value={userId} />}
 
             <TextInput
                 className={classes.inputs}
                 label="Team Name"
                 name="name"
-                placeholder='What do you call yourselves?'
+                placeholder="What do you call yourselves?"
             />
 
             <TextInput
                 className={classes.inputs}
                 label="League Name"
                 name="leagueName"
-                placeholder='Super rad weekend league'
+                placeholder="Super rad weekend league"
             />
 
             <Select
@@ -44,7 +38,7 @@ export default function AddTeam({
                 label="Gender mix"
                 name="genderMix"
                 placeholder="Choose the league's gender composition"
-                data={['Men', 'Women', 'Coed']}
+                data={["Men", "Women", "Coed"]}
                 searchable
             />
 
@@ -56,4 +50,4 @@ export default function AddTeam({
             />
         </FormWrapper>
     );
-};
+}

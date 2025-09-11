@@ -1,16 +1,15 @@
-import { useState, useEffect } from 'react';
-import { Autocomplete, Loader, Text } from '@mantine/core';
-import { useLoadScript } from '@react-google-maps/api';
+import { useState, useEffect } from "react";
+import { Autocomplete, Loader, Text } from "@mantine/core";
+import { useLoadScript } from "@react-google-maps/api";
 
-const libraries = ['places'];
+const libraries = ["places"];
 
 export default function LocationInput({
-    label = 'Location',
-    placeholder = 'Where will the games be played?',
-    name = 'location',
-    defaultValue = '',
+    label = "Location",
+    placeholder = "Where will the games be played?",
+    name = "location",
+    defaultValue = "",
 }) {
-
     const [selectedLocation, setSelectedLocation] = useState();
     const [options, setOptions] = useState([]);
     const [autocompleteData, setAutocompleteData] = useState([]);
@@ -29,7 +28,14 @@ export default function LocationInput({
                 try {
                     const { Place } = window.google.maps.places;
                     const request = {
-                        fields: ['displayName', 'formattedAddress', 'location', 'id', 'types', 'googleMapsURI'],
+                        fields: [
+                            "displayName",
+                            "formattedAddress",
+                            "location",
+                            "id",
+                            "types",
+                            "googleMapsURI",
+                        ],
                         textQuery: inputValue,
                         // includedType: 'park',
                     };
@@ -37,7 +43,7 @@ export default function LocationInput({
 
                     if (places?.length > 0) {
                         const uniqueResultsMap = new Map();
-                        const formattedPlaces = places.map(place => ({
+                        const formattedPlaces = places.map((place) => ({
                             displayName: place.displayName,
                             formattedAddress: place.formattedAddress,
                             googleMapsURI: place.googleMapsURI,
@@ -48,20 +54,27 @@ export default function LocationInput({
 
                         for (const result of formattedPlaces) {
                             if (!uniqueResultsMap.has(result.displayName)) {
-                                uniqueResultsMap.set(result.displayName, result);
+                                uniqueResultsMap.set(
+                                    result.displayName,
+                                    result,
+                                );
                             }
                         }
-                        const uniqueResults = Array.from(uniqueResultsMap.values());
+                        const uniqueResults = Array.from(
+                            uniqueResultsMap.values(),
+                        );
                         console.log({ uniqueResults });
                         setOptions(uniqueResults);
-                        setAutocompleteData(uniqueResults.map(option => option.displayName));
+                        setAutocompleteData(
+                            uniqueResults.map((option) => option.displayName),
+                        );
                     } else {
                         setOptions([]);
                         setAutocompleteData([]);
-                        console.log('No places found for:', inputValue);
+                        console.log("No places found for:", inputValue);
                     }
                 } catch (error) {
-                    console.error('Error searching for places:', error);
+                    console.error("Error searching for places:", error);
                     setOptions([]);
                     setAutocompleteData([]);
                 } finally {
@@ -82,7 +95,9 @@ export default function LocationInput({
     };
 
     const renderOption = ({ option }) => {
-        const foundOption = options.find(opt => opt.displayName === option.value);
+        const foundOption = options.find(
+            (opt) => opt.displayName === option.value,
+        );
         if (!foundOption) return null;
 
         return (
@@ -110,7 +125,11 @@ export default function LocationInput({
                 renderOption={renderOption}
                 onChange={handleInputChange}
             />
-            <input type="hidden" name={`${name}Details`} value={JSON.stringify(selectedLocation)} />
+            <input
+                type="hidden"
+                name={`${name}Details`}
+                value={JSON.stringify(selectedLocation)}
+            />
         </div>
     );
 }

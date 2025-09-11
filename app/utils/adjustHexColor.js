@@ -17,17 +17,17 @@ function adjustHexColor(hex, percent) {
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
 
-    const factor = 1 + (percent / 100);
+    const factor = 1 + percent / 100;
 
     const red = Math.round(Math.min(255, Math.max(0, r * factor)));
     const green = Math.round(Math.min(255, Math.max(0, g * factor)));
     const blue = Math.round(Math.min(255, Math.max(0, b * factor)));
 
-    const adjustedHex = "#" + ((1 << 24) + (red << 16) + (green << 8) + blue).toString(16).slice(1);
+    const adjustedHex =
+        "#" +
+        ((1 << 24) + (red << 16) + (green << 8) + blue).toString(16).slice(1);
     return adjustedHex;
 }
-
-
 
 export function adjustColorBasedOnDarkness(hexColor, percent) {
     if (isColorDark(hexColor)) {

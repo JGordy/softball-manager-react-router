@@ -1,23 +1,22 @@
-import { Group, NumberInput, Radio } from '@mantine/core';
+import { Group, NumberInput, Radio } from "@mantine/core";
 
-import FormWrapper from './FormWrapper';
+import FormWrapper from "./FormWrapper";
 
-import classes from '@/styles/inputs.module.css';
+import classes from "@/styles/inputs.module.css";
 
 export default function AddGameResults({
-    action = 'update-game',
+    action = "update-game",
     actionRoute,
     buttonColor,
-    confirmText = 'Update Game Results',
+    confirmText = "Update Game Results",
     defaults = {},
     teamId,
 }) {
-
     const numberInputProps = {
         className: classes.inputs,
-        clampBehavior: 'strict',
-        labelProps: { mb: 'xs' },
-        size: 'lg',
+        clampBehavior: "strict",
+        labelProps: { mb: "xs" },
+        size: "lg",
         min: 0,
         max: 100,
         step: 1,
@@ -48,7 +47,7 @@ export default function AddGameResults({
             <Radio.Group
                 mb="xl"
                 className={classes.inputs}
-                defaultValue={defaults?.result || 'won'}
+                defaultValue={defaults?.result || "won"}
                 name="result"
                 label="Select the result for your team"
             >
@@ -60,4 +59,4 @@ export default function AddGameResults({
             </Radio.Group>
         </FormWrapper>
     );
-};
+}

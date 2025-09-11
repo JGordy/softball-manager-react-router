@@ -1,4 +1,4 @@
-import { Container, Flex, Loader, Text } from '@mantine/core';
+import { Container, Flex, Loader, Text } from "@mantine/core";
 
 export default function LoaderDots({ message }) {
     return (
