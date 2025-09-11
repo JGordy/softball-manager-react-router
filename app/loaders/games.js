@@ -114,9 +114,7 @@ export async function getEventById({ request, eventId }) {
 
     const { documents: userIds } = await listDocuments("memberships", [Query.equal("teamId", [teams[0].$id])]);
 
-    const managerIds = userIds
-        .filter(({ role }) => role === 'manager')
-        .map(({ userId }) => userId);
+    const managerIds = userIds.filter(({ role }) => role === "manager").map(({ userId }) => userId);
     console.log({ userIds });
 
     // --- Start of deferred data ---
@@ -158,13 +156,7 @@ export async function getEventWithPlayerCharts({ request, eventId }) {
 
     const { documents: userIds } = await listDocuments("memberships", [Query.equal("teamId", [teams[0].$id])]);
 
-<<<<<<< HEAD
-    const { userId: managerId } = userIds.find((userId) => userId.role === "manager");
-=======
-    const managerIds = userIds
-        .filter(({ role }) => role === 'manager')
-        .map(({ userId }) => userId);
->>>>>>> master
+    const managerIds = userIds.filter(({ role }) => role === "manager").map(({ userId }) => userId);
 
     // --- Start of deferred data ---
     const playerPromises = userIds.map(async ({ userId }) => {
