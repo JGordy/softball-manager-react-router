@@ -73,8 +73,8 @@ export default function AddSingleGame({
                 description="Select whether this game is at home or away"
             >
                 <Group mt="xs">
-                    <Radio color="red" value="away" label="Away" />
-                    <Radio color="green" value="home" label="Home" />
+                    <Radio color="red" value="false" label="Away" />
+                    <Radio color="green" value="true" label="Home" />
                 </Group>
             </Radio.Group>
             {seasons?.length > 0 && (
