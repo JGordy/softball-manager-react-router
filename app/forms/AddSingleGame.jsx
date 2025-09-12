@@ -67,7 +67,7 @@ export default function AddSingleGame({
             <Radio.Group
                 mb="md"
                 className={classes.inputs}
-                defaultValue={defaults.isHomegame || "home"}
+                defaultValue={defaults.isHomegame}
                 name="isHomeGame"
                 label="Select the game location"
                 description="Select whether this game is at home or away"
