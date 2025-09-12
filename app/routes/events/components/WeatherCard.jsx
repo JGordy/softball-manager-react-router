@@ -31,37 +31,39 @@ const weatherFallback = (
 
 const RainoutChance = ({ color, likelihood, reason }) => {
     const disclaimer =
-        "This score is weighted based on the hourly forecast leading up to the game";
+        "*Rainout score is weighted based on the hourly forecast leading up to the game and may not reflect actual conditions at the time of the game.";
 
     return (
-        <Card radius="xl" mb="lg">
-            <Stack align="center" gap="xs">
-                <Text size="lg" fw={700} ta="center">
-                    Rainout likelihood
-                </Text>
-                <Text fw={700} c={color} size="1.75rem" my={4}>
-                    {" "}
-                    {likelihood}%
-                </Text>
-                <Text size="xs" c="dimmed" ta="center" px="sm">
-                    {disclaimer}
-                </Text>
-                {reason && (
-                    <Card
-                        className="inner-card"
-                        radius="xl"
-                        style={{
-                            backgroundColor: "var(--mantine-color-body)",
-                            width: "100%",
-                        }}
-                    >
-                        <Text size="sm" ta="center">
-                            {reason}
-                        </Text>
-                    </Card>
-                )}
-            </Stack>
-        </Card>
+        <>
+            <Card radius="xl" mb="xs" mt="sm">
+                <Stack align="center" gap="xs">
+                    <Text size="lg" fw={700} ta="center">
+                        Rainout likelihood*
+                    </Text>
+                    <Text fw={700} c={color} size="1.75rem" my={4}>
+                        {" "}
+                        {likelihood}%
+                    </Text>
+                    {reason && (
+                        <Card
+                            className="inner-card"
+                            radius="xl"
+                            style={{
+                                backgroundColor: "var(--mantine-color-body)",
+                                width: "100%",
+                            }}
+                        >
+                            <Text size="sm" ta="center">
+                                {reason}
+                            </Text>
+                        </Card>
+                    )}
+                </Stack>
+            </Card>
+            <Text size="xs" c="dimmed" ta="center" px="sm">
+                {disclaimer}
+            </Text>
+        </>
     );
 };
 
@@ -83,8 +85,6 @@ const renderWeatherDetails = ({
     return (
         <>
             <Stack align="stretch" justify="space-between" mih={300}>
-                {rainout && <RainoutChance {...rainout} />}
-
                 <Card radius="xl">
                     <Text size="lg" fw={700} ta="center" mb="md">
                         Game Time Forecast
@@ -163,6 +163,8 @@ const renderWeatherDetails = ({
                         </Group>
                     </Card>
                 </Card>
+
+                {rainout && <RainoutChance {...rainout} />}
 
                 <Group justify="center" mt="md" gap="5px">
                     <Text size="sm" c="dimmed" span>
