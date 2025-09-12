@@ -1,8 +1,4 @@
-export default function getGames({
-    teams,
-    teamId,
-}) {
-
+export default function getGames({ teams, teamId }) {
     const currentDate = new Date();
 
     const futureGames = [];
@@ -10,24 +6,24 @@ export default function getGames({
 
     teams
         // 1. Filter by teamId if provided, otherwise include all teams
-        .filter(team => teamId === undefined || team.$id === teamId)
+        .filter((team) => teamId === undefined || team.$id === teamId)
         // 2. FlatMap: Extract all seasons from the matched team(s), handle missing seasons
-        .flatMap(team => team.seasons || [])
+        .flatMap((team) => team.seasons || [])
         // 3. FlatMap: Extract all games from all seasons, handle missing games
-        .flatMap(season => {
+        .flatMap((season) => {
             // Add season reference to each game to extract location later.
-            return season.games.map(game => ({
+            return season.games.map((game) => ({
                 ...game,
                 location: season.location,
             }));
         })
         // 4. Populate futureGames and pastGames
-        .forEach(game => {
+        .forEach((game) => {
             try {
                 const gameDate = new Date(game.gameDate);
 
                 // Find the team name to add to the game object.
-                const team = teams.find(t => t.$id === game.teamId);
+                const team = teams.find((t) => t.$id === game.teamId);
                 if (team) {
                     game.teamName = team.name; // Add the team name
                 }

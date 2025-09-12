@@ -1,5 +1,5 @@
-import { Suspense } from 'react';
-import { Await } from 'react-router';
+import { Suspense } from "react";
+import { Await } from "react-router";
 
 /**
  * A reusable component to handle deferred data from React Router loaders.
@@ -19,8 +19,9 @@ export default function DeferredLoader({
 }) {
     return (
         <Suspense fallback={fallback}>
-            <Await resolve={resolve} errorElement={errorElement}>{children}</Await>
+            <Await resolve={resolve} errorElement={errorElement}>
+                {children}
+            </Await>
         </Suspense>
     );
 }
-

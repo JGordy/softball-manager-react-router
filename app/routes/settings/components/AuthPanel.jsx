@@ -1,45 +1,33 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
-import { useNavigate, useOutletContext } from 'react-router';
+import { useNavigate, useOutletContext } from "react-router";
 
-import {
-    ActionIcon,
-    Alert,
-    Button,
-    Divider,
-    Group,
-    Text,
-} from '@mantine/core';
+import { ActionIcon, Alert, Button, Divider, Group, Text } from "@mantine/core";
 
-import { useDisclosure } from '@mantine/hooks';
+import { useDisclosure } from "@mantine/hooks";
 
-import {
-    IconLogout2,
-    IconKey,
-    IconRestore,
-} from '@tabler/icons-react';
+import { IconLogout2, IconKey, IconRestore } from "@tabler/icons-react";
 
-import useModal from '@/hooks/useModal';
+import useModal from "@/hooks/useModal";
 
-import UpdatePassword from '@/forms/UpdatePassword';
-import DrawerContainer from '@/components/DrawerContainer';
+import UpdatePassword from "@/forms/UpdatePassword";
+import DrawerContainer from "@/components/DrawerContainer";
 
 export default function AuthPanel({ actionData }) {
-
     const { user } = useOutletContext();
 
     const { openModal, closeAllModals } = useModal();
 
     const navigate = useNavigate();
 
-    const [passwordResetOpened, {
-        open: openResetPassword,
-        close: closeResetPassword,
-    }] = useDisclosure();
-    const [logoutDrawerOpened, {
-        open: openLogoutDrawer,
-        close: closeLogoutDrawer,
-    }] = useDisclosure();
+    const [
+        passwordResetOpened,
+        { open: openResetPassword, close: closeResetPassword },
+    ] = useDisclosure();
+    const [
+        logoutDrawerOpened,
+        { open: openLogoutDrawer, close: closeLogoutDrawer },
+    ] = useDisclosure();
 
     const [formError, setFormError] = useState(null);
     const [actionSuccess, setActionSuccess] = useState(false);
@@ -63,25 +51,21 @@ export default function AuthPanel({ actionData }) {
         }
     }, [actionData, closeAllModals]);
 
-    const openUpdatePasswordModal = () => openModal({
-        title: 'Update Your Password',
-        children: <UpdatePassword actionRoute='/settings' />,
-    });
+    const openUpdatePasswordModal = () =>
+        openModal({
+            title: "Update Your Password",
+            children: <UpdatePassword actionRoute="/settings" />,
+        });
 
     const logOutUser = async () => {
         await account.deleteSession(session.$id);
         navigate("/login");
-    }
+    };
 
     return (
         <>
             {actionSuccess && (
-                <Alert
-                    mb="md"
-                    variant="light"
-                    color="green"
-                    title="Success!"
-                >
+                <Alert mb="md" variant="light" color="green" title="Success!">
                     {actionSuccess}
                 </Alert>
             )}
@@ -103,7 +87,7 @@ export default function AuthPanel({ actionData }) {
                     variant="subtle"
                     color="gray"
                     aria-label="Update Password"
-                    style={{ cursor: 'pointer' }}
+                    style={{ cursor: "pointer" }}
                     onClick={openUpdatePasswordModal}
                     size="lg"
                 >
@@ -117,7 +101,7 @@ export default function AuthPanel({ actionData }) {
                     variant="subtle"
                     color="gray"
                     aria-label="Reset Password"
-                    style={{ cursor: 'pointer' }}
+                    style={{ cursor: "pointer" }}
                     onClick={openResetPassword}
                     size="lg"
                 >
@@ -135,7 +119,7 @@ export default function AuthPanel({ actionData }) {
                 size="md"
             >
                 <Group gap="xs">
-                    <IconLogout2 size={16} mr='xs' />
+                    <IconLogout2 size={16} mr="xs" />
                     Log out
                 </Group>
             </Button>
@@ -147,7 +131,7 @@ export default function AuthPanel({ actionData }) {
             >
                 <UpdatePassword
                     action="password-reset"
-                    actionRoute='/settings'
+                    actionRoute="/settings"
                     confirmText="Yes, Reset my Password"
                     user={user}
                 />
@@ -159,7 +143,8 @@ export default function AuthPanel({ actionData }) {
                 title="Confirm Log Out"
             >
                 <Text size="md" mb="xl">
-                    Are you sure you want to log out? You will need to log in again to access your content.
+                    Are you sure you want to log out? You will need to log in
+                    again to access your content.
                 </Text>
                 <Button
                     color="red"
@@ -169,7 +154,7 @@ export default function AuthPanel({ actionData }) {
                     fullWidth
                 >
                     <Group gap="xs">
-                        <IconLogout2 size={16} mr='xs' />
+                        <IconLogout2 size={16} mr="xs" />
                         Yes, Log out
                     </Group>
                 </Button>

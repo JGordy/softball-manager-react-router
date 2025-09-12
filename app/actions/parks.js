@@ -1,9 +1,9 @@
-import { ID } from '@/appwrite';
-import { createDocument, updateDocument } from '@/utils/databases.js';
+import { ID } from "@/appwrite";
+import { createDocument, updateDocument } from "@/utils/databases.js";
 
-import { getParkByPlaceId } from '@/loaders/parks';
+import { getParkByPlaceId } from "@/loaders/parks";
 
-import { removeEmptyValues } from './utils/formUtils';
+import { removeEmptyValues } from "./utils/formUtils";
 
 export async function findOrCreatePark({ values, placeId }) {
     let existingPark;
@@ -18,14 +18,14 @@ export async function findOrCreatePark({ values, placeId }) {
 
     const { location, ...rest } = values;
 
-    const newPark = await createDocument('parks', ID.unique(), {
+    const newPark = await createDocument("parks", ID.unique(), {
         ...rest,
         latitude: location?.lat,
         longitude: location?.lng,
     });
 
     return newPark;
-};
+}
 
 export async function updatePark({ values, parkId }) {
     if (parkId && values) {
@@ -34,7 +34,11 @@ export async function updatePark({ values, parkId }) {
         let dataToUpdate = removeEmptyValues({ values: parsedLocationDetails });
 
         try {
-            const parkDetails = await updateDocument('parks', parkId, dataToUpdate);
+            const parkDetails = await updateDocument(
+                "parks",
+                parkId,
+                dataToUpdate,
+            );
 
             return { response: { parkDetails }, status: 204, success: true };
         } catch (error) {
@@ -43,4 +47,3 @@ export async function updatePark({ values, parkId }) {
         }
     }
 }
-

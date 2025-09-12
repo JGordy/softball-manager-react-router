@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { redirect, useOutletContext } from 'react-router';
+import { useState, useRef } from "react";
+import { redirect, useOutletContext } from "react-router";
 
 import {
     ActionIcon,
@@ -11,15 +11,15 @@ import {
     useComputedColorScheme,
 } from "@mantine/core";
 
-import { IconAdjustments, IconCalendarMonth } from '@tabler/icons-react';
+import { IconAdjustments, IconCalendarMonth } from "@tabler/icons-react";
 
-import { account } from '@/appwrite';
+import { account } from "@/appwrite";
 
-import LoaderDots from '@/components/LoaderDots';
-import UserHeader from '@/components/UserHeader';
-import GamesList from '@/components/GamesList';
+import LoaderDots from "@/components/LoaderDots";
+import UserHeader from "@/components/UserHeader";
+import GamesList from "@/components/GamesList";
 
-import getGames from '@/utils/getGames';
+import getGames from "@/utils/getGames";
 
 export async function clientLoader({ request }) {
     try {
@@ -30,20 +30,19 @@ export async function clientLoader({ request }) {
         }
 
         const { userId } = session;
-        const response = await fetch('/api/teams', {
-            method: 'POST',
-            body: JSON.stringify({ userId, teamRoles: ['manager', 'player'] }),
+        const response = await fetch("/api/teams", {
+            method: "POST",
+            body: JSON.stringify({ userId, teamRoles: ["manager", "player"] }),
         });
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message || 'Error fetching teams');
+            throw new Error(errorData.message || "Error fetching teams");
         }
 
         const { managing = [], playing = [] } = await response.json();
 
         return { userId, teams: { managing, playing } };
-
     } catch (error) {
         console.error("Error in clientLoader:", error);
         return redirect("/login");
@@ -60,9 +59,9 @@ export default function EventsDetails({ loaderData }) {
     const teams = loaderData?.teams;
     const { user } = useOutletContext();
 
-    const computedColorScheme = useComputedColorScheme('light');
+    const computedColorScheme = useComputedColorScheme("light");
 
-    const [filterId, setFilterId] = useState('all');
+    const [filterId, setFilterId] = useState("all");
     const [showFilters, setShowFilters] = useState(false);
 
     const teamsData = [...teams?.managing, ...teams?.playing];
@@ -84,12 +83,12 @@ export default function EventsDetails({ loaderData }) {
     };
 
     const filterGames = (games) => {
-        if (filterId === 'all') {
+        if (filterId === "all") {
             return games;
         }
 
-        return games?.filter(game => game.teamId === filterId);
-    }
+        return games?.filter((game) => game.teamId === filterId);
+    };
 
     const teamFilter = teamsData?.length > 1 && (
         <Menu
@@ -101,19 +100,25 @@ export default function EventsDetails({ loaderData }) {
             radius="lg"
         >
             <Menu.Target>
-                <ActionIcon variant="default" radius="xl" aria-label="Filter Games" size="lg" onClick={toggleMenu}>
+                <ActionIcon
+                    variant="default"
+                    radius="xl"
+                    aria-label="Filter Games"
+                    size="lg"
+                    onClick={toggleMenu}
+                >
                     <IconAdjustments stroke={1.5} size={24} />
                 </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown
-                bg={(computedColorScheme === 'light') ? "gray.1" : undefined}
+                bg={computedColorScheme === "light" ? "gray.1" : undefined}
                 miw="60vw"
                 pt="md"
             >
                 <Menu.Label>Filter Games by Team</Menu.Label>
 
                 <SegmentedControl
-                    styles={{ label: { marginBottom: '5px' } }}
+                    styles={{ label: { marginBottom: "5px" } }}
                     fullWidth
                     color="green"
                     transitionDuration={0}
@@ -121,13 +126,16 @@ export default function EventsDetails({ loaderData }) {
                     orientation="vertical"
                     onChange={handleMenuItemChange}
                     value={filterId}
-                    data={[{
-                        value: 'all',
-                        label: 'All Teams',
-                    }, ...teamsData?.map(team => ({
-                        value: team.$id,
-                        label: team.name,
-                    }))]}
+                    data={[
+                        {
+                            value: "all",
+                            label: "All Teams",
+                        },
+                        ...teamsData?.map((team) => ({
+                            value: team.$id,
+                            label: team.name,
+                        })),
+                    ]}
                 />
             </Menu.Dropdown>
         </Menu>
@@ -139,31 +147,33 @@ export default function EventsDetails({ loaderData }) {
                 {teamFilter}
             </UserHeader>
 
-            <Title order={5} mt="lg" align="center">See detailed information for your upcoming and past games</Title>
+            <Title order={5} mt="lg" align="center">
+                See detailed information for your upcoming and past games
+            </Title>
             <Tabs radius="md" defaultValue="upcoming" mt="xl">
                 <Tabs.List grow justify="center">
-                    <Tabs.Tab value="upcoming" leftSection={<IconCalendarMonth size={16} />}>
+                    <Tabs.Tab
+                        value="upcoming"
+                        leftSection={<IconCalendarMonth size={16} />}
+                    >
                         Upcoming
                     </Tabs.Tab>
-                    <Tabs.Tab value="past" leftSection={<IconCalendarMonth size={16} />}>
+                    <Tabs.Tab
+                        value="past"
+                        leftSection={<IconCalendarMonth size={16} />}
+                    >
                         Past
                     </Tabs.Tab>
                 </Tabs.List>
 
                 <Tabs.Panel value="upcoming" pt="md">
-                    <GamesList
-                        games={filterGames(futureGames)}
-                        height="60vh"
-                    />
+                    <GamesList games={filterGames(futureGames)} height="60vh" />
                 </Tabs.Panel>
 
                 <Tabs.Panel value="past" pt="md">
-                    <GamesList
-                        games={filterGames(pastGames)}
-                        height="60vh"
-                    />
+                    <GamesList games={filterGames(pastGames)} height="60vh" />
                 </Tabs.Panel>
             </Tabs>
         </Container>
     );
-};
+}

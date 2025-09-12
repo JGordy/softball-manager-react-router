@@ -1,4 +1,4 @@
-import { formatDate } from '@/utils/dateTime';
+import { formatDate } from "@/utils/dateTime";
 
 export default function getFormBody({ gameDate, opponent }) {
     return {
@@ -19,11 +19,11 @@ export default function getFormBody({ gameDate, opponent }) {
                             question: {
                                 required: true,
                                 choiceQuestion: {
-                                    type: 'RADIO',
+                                    type: "RADIO",
                                     options: [
-                                        { value: 'Yes, I will be there' },
-                                        { value: 'No, I cannot attend' },
-                                        { value: 'Maybe, I will let you know' },
+                                        { value: "Yes, I will be there" },
+                                        { value: "No, I cannot attend" },
+                                        { value: "Maybe, I will let you know" },
                                     ],
                                 },
                             },

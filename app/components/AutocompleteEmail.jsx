@@ -1,18 +1,17 @@
-import { useRef, useState } from 'react';
+import { useRef, useState } from "react";
 import { Autocomplete, Loader } from "@mantine/core";
 
 const popularEmailProviders = [
-    'gmail.com',
-    'outlook.com',
-    'hotmail.com',
-    'icloud.com',
-    'yahoo.com',
-    'aol.com',
-    'protonmail.com',
+    "gmail.com",
+    "outlook.com",
+    "hotmail.com",
+    "icloud.com",
+    "yahoo.com",
+    "aol.com",
+    "protonmail.com",
 ];
 
 export default function AutocompleteEmail({ classes, defaultValue, required }) {
-
     const timeoutRef = useRef(-1);
     const [emailSuggestions, setEmailSuggestions] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -31,7 +30,7 @@ export default function AutocompleteEmail({ classes, defaultValue, required }) {
                 window.clearTimeout(timeoutRef.current);
                 setEmailSuggestions([]);
 
-                if (value.trim().length === 0 || value.includes('@')) {
+                if (value.trim().length === 0 || value.includes("@")) {
                     setLoading(false);
                 } else {
                     setLoading(true);
@@ -39,12 +38,12 @@ export default function AutocompleteEmail({ classes, defaultValue, required }) {
                         setLoading(false);
                         setEmailSuggestions(
                             popularEmailProviders.map(
-                                (provider) => `${value}@${provider}`
-                            )
+                                (provider) => `${value}@${provider}`,
+                            ),
                         );
                     }, 300);
                 }
             }}
         />
     );
-};
+}

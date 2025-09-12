@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 
-import { account } from '@/appwrite';
+import { account } from "@/appwrite";
 
-import { readDocument } from '@/utils/databases';
+import { readDocument } from "@/utils/databases";
 
-import AuthContext from './authContext';
+import AuthContext from "./authContext";
 
 export default function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
@@ -27,13 +27,13 @@ export default function AuthProvider({ children }) {
             const currentUser = await account.get();
             setUser(currentUser);
         } catch (error) {
-            console.log('Couldn\'t get user data');
+            console.log("Couldn't get user data");
         }
-    }
+    };
 
     return (
         <AuthContext.Provider value={{ user, setUser: getAndSetUser }}>
             {children}
         </AuthContext.Provider>
     );
-};
+}

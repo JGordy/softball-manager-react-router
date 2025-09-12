@@ -1,42 +1,39 @@
-import { useMemo } from 'react';
+import { useMemo } from "react";
 
-import {
-    ScrollArea,
-    Table,
-    Text,
-} from '@mantine/core';
+import { ScrollArea, Table, Text } from "@mantine/core";
 
-import fieldingPositions from '@/constants/positions';
+import fieldingPositions from "@/constants/positions";
 
-import styles from '../styles/playerChart.module.css';
+import styles from "../styles/playerChart.module.css";
 
 const PlayerChart = ({ playerChart }) => {
-
-    const columns = useMemo(() => [
-        {
-            accessor: 'battingOrder',
-            title: '',
-        },
-        {
-            accessor: 'player',
-            title: 'Player',
-        },
-        ...Array.from({ length: 7 }, (_, i) => ({
-            accessor: `inning${i + 1}`,
-            title: `Inning ${i + 1}`,
-        })),
-    ], []);
+    const columns = useMemo(
+        () => [
+            {
+                accessor: "battingOrder",
+                title: "",
+            },
+            {
+                accessor: "player",
+                title: "Player",
+            },
+            ...Array.from({ length: 7 }, (_, i) => ({
+                accessor: `inning${i + 1}`,
+                title: `Inning ${i + 1}`,
+            })),
+        ],
+        [],
+    );
 
     const rows = useMemo(() => {
         return playerChart.map((player, index) => {
-
             const row = {
                 battingOrder: index + 1,
                 playerId: player.$id,
                 player: `${player.firstName} ${player.lastName.charAt(0)}.`,
             };
             player.positions.forEach((position, i) => {
-                row[`inning${i + 1}`] = position || 'Out';
+                row[`inning${i + 1}`] = position || "Out";
             });
             return row;
         });
@@ -53,7 +50,9 @@ const PlayerChart = ({ playerChart }) => {
                     <Table.Thead className={styles.header}>
                         <Table.Tr>
                             {columns.map((column) => (
-                                <Table.Th key={column.accessor}>{column.title}</Table.Th>
+                                <Table.Th key={column.accessor}>
+                                    {column.title}
+                                </Table.Th>
                             ))}
                         </Table.Tr>
                     </Table.Thead>
@@ -61,10 +60,13 @@ const PlayerChart = ({ playerChart }) => {
                         {rows.map((row) => (
                             <Table.Tr key={row.playerId}>
                                 {columns.map((column) => {
-                                    if (column.accessor.startsWith('inning')) {
+                                    if (column.accessor.startsWith("inning")) {
                                         const position = row[column.accessor];
-                                        let label = 'Out';
-                                        if (position !== 'Out') label = fieldingPositions[position].initials;
+                                        let label = "Out";
+                                        if (position !== "Out")
+                                            label =
+                                                fieldingPositions[position]
+                                                    .initials;
 
                                         return (
                                             <Table.Td key={column.accessor}>
@@ -72,7 +74,11 @@ const PlayerChart = ({ playerChart }) => {
                                             </Table.Td>
                                         );
                                     } else {
-                                        return <Table.Td key={column.accessor}>{row[column.accessor]}</Table.Td>;
+                                        return (
+                                            <Table.Td key={column.accessor}>
+                                                {row[column.accessor]}
+                                            </Table.Td>
+                                        );
                                     }
                                 })}
                             </Table.Tr>

@@ -1,0 +1,30 @@
+name: Add PR ENV Link to Description
+
+on:
+    pull_request:
+        types: [opened, synchronize]
+
+jobs:
+    add-badge:
+        runs-on: ubuntu-latest
+        permissions:
+            pull-requests: write
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
+            - name: Add PR link to description
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  PR_NUMBER: ${{ github.event.number }}
+              run: |
+                  PR_BODY=$(gh pr view $PR_NUMBER --json body -q .body)
+                  if [[ "$PR_BODY" == *"softball-manager-react-router-pr-"* ]]; then
+                    echo "Badge already exists. Skipping."
+                  else
+                    BADGE="[![Render.com PR #${PR_NUMBER} ENV](https://img.shields.io/badge/Render.com%20PR%20%23${PR_NUMBER}%20ENV-blue)](https://softball-manager-react-router-pr-${PR_NUMBER}.onrender.com/)"
+                    {
+                      echo "$BADGE"
+                      echo ""
+                      echo "$PR_BODY"
+                    } | gh pr edit $PR_NUMBER --body-file -
+                  fi

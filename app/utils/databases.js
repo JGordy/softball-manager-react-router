@@ -1,4 +1,4 @@
-import { ID, databases } from '../appwrite.js';
+import { ID, databases } from "../appwrite.js";
 
 const databaseId = import.meta.env.VITE_APPWRITE_DATABASE_ID;
 
@@ -18,7 +18,12 @@ export const collections = {
 export const createDocument = async (collectionType, id, data) => {
     const _id = id || ID.unique();
     try {
-        const response = await databases.createDocument(databaseId, collections[collectionType], _id, data);
+        const response = await databases.createDocument(
+            databaseId,
+            collections[collectionType],
+            _id,
+            data,
+        );
         return response;
     } catch (error) {
         console.error(`Error creating ${collectionType} document:`, error);
@@ -29,18 +34,26 @@ export const createDocument = async (collectionType, id, data) => {
 // Helper function to list a series of documents
 export const listDocuments = async (collectionType, queries) => {
     try {
-        const response = await databases.listDocuments(databaseId, collections[collectionType], queries);
-        return response
+        const response = await databases.listDocuments(
+            databaseId,
+            collections[collectionType],
+            queries,
+        );
+        return response;
     } catch (error) {
         console.error(`Error listing ${collectionType} documents:`, error);
         throw error;
     }
-}
+};
 
 // Helper function to read a document
 export const readDocument = async (collectionType, documentId) => {
     try {
-        const response = await databases.getDocument(databaseId, collections[collectionType], documentId);
+        const response = await databases.getDocument(
+            databaseId,
+            collections[collectionType],
+            documentId,
+        );
         return response;
     } catch (error) {
         console.error(`Error reading ${collectionType} document:`, error);
@@ -51,7 +64,12 @@ export const readDocument = async (collectionType, documentId) => {
 // Helper function to update a document
 export const updateDocument = async (collectionType, documentId, data) => {
     try {
-        const response = await databases.updateDocument(databaseId, collections[collectionType], documentId, data);
+        const response = await databases.updateDocument(
+            databaseId,
+            collections[collectionType],
+            documentId,
+            data,
+        );
         return response;
     } catch (error) {
         console.error(`Error updating ${collectionType} document:`, error);
@@ -62,7 +80,11 @@ export const updateDocument = async (collectionType, documentId, data) => {
 // Helper function to delete a document
 export const deleteDocument = async (collectionType, documentId) => {
     try {
-        const response = await databases.deleteDocument(databaseId, collections[collectionType], documentId);
+        const response = await databases.deleteDocument(
+            databaseId,
+            collections[collectionType],
+            documentId,
+        );
         return response;
     } catch (error) {
         console.error(`Error deleting ${collectionType} document:`, error);

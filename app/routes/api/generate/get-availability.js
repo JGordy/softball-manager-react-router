@@ -9,13 +9,13 @@ async function readFormResponses(formId) {
 
         return res.data.responses || []; // Return an empty array if no responses
     } catch (error) {
-        console.error('Error reading form responses:', error);
+        console.error("Error reading form responses:", error);
         throw error;
     }
 }
 
 async function parseResponses(formResponses, questionId) {
-    return formResponses.map(response => {
+    return formResponses.map((response) => {
         const answer = response.answers[questionId];
         return {
             respondentEmail: response.respondentEmail,

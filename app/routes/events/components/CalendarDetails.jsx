@@ -1,11 +1,5 @@
-import {
-    Anchor,
-    Card,
-    Flex,
-    Group,
-    Text,
-} from '@mantine/core';
-import { useOs } from '@mantine/hooks';
+import { Button, Flex, Group, Text } from "@mantine/core";
+import { useOs } from "@mantine/hooks";
 
 import {
     IconBrandApple,
@@ -13,7 +7,7 @@ import {
     IconBrandOffice,
     IconBrandWindowsFilled,
     IconCalendarPlus,
-} from '@tabler/icons-react';
+} from "@tabler/icons-react";
 
 import { google, ics, outlook, office365 } from "calendar-link";
 
@@ -21,46 +15,39 @@ const calendarMap = {
     google: {
         href: google,
         icon: <IconBrandGoogleFilled size={18} />,
-        label: 'Google',
+        label: "Google",
     },
     apple: {
         href: ics,
         icon: <IconBrandApple size={18} />,
-        label: 'Apple',
+        label: "Apple",
     },
     outlook: {
         href: outlook,
         icon: <IconBrandWindowsFilled size={18} />,
-        label: 'Outlook',
+        label: "Outlook",
     },
     office365: {
         href: office365,
         icon: <IconBrandOffice size={18} />,
-        label: 'Office',
+        label: "Office",
     },
 };
 
 export default function CalendarDetails({ game, park, team }) {
-
     const os = useOs();
-    const isGoogle = ['android', 'chromeos'].includes(os);
-    const isApple = ['ios', 'macos'].includes(os);
-    const isMicrosoft = ['windows'].includes(os);
+    const isGoogle = ["android", "chromeos"].includes(os);
+    const isApple = ["ios", "macos"].includes(os);
+    const isMicrosoft = ["windows"].includes(os);
 
     const calendarOrder = () => {
-        if (isGoogle) return ['google', 'apple', 'outlook', 'office365'];
-        if (isApple) return ['apple', 'google', 'outlook', 'office365'];
-        if (isMicrosoft) return ['outlook', 'office365', 'google', 'apple'];
-        return ['google', 'apple', 'outlook', 'office365'];
+        if (isGoogle) return ["google", "apple", "outlook", "office365"];
+        if (isApple) return ["apple", "google", "outlook", "office365"];
+        if (isMicrosoft) return ["outlook", "office365", "google", "apple"];
+        return ["google", "apple", "outlook", "office365"];
     };
 
-    const {
-        isHomeGame,
-        opponent,
-        gameDate,
-        location,
-        timeZone,
-    } = game;
+    const { isHomeGame, opponent, gameDate, location, timeZone } = game;
 
     const parsedDate = new Date(gameDate);
 
@@ -71,17 +58,17 @@ export default function CalendarDetails({ game, park, team }) {
         day: "numeric",
     };
 
-    const gameStartTime = parsedDate.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
+    const gameStartTime = parsedDate.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
         timeZone,
     });
 
     const event = {
-        title: `${team?.name} ${isHomeGame ? 'vs' : '@'} ${opponent || "TBD"}`,
-        location: park?.formattedAddress || location || '',
+        title: `${team?.name} ${isHomeGame ? "vs" : "@"} ${opponent || "TBD"}`,
+        location: park?.formattedAddress || location || "",
         start: gameDate,
-        duration: [1, 'hour'],
+        duration: [1, "hour"],
         timeZone: timeZone,
     };
 
@@ -99,46 +86,49 @@ export default function CalendarDetails({ game, park, team }) {
                         {gameStartTime}
                     </Text>
                     <Text size="sm">
-                        {parsedDate.toLocaleDateString('en-US', options)}
+                        {parsedDate.toLocaleDateString("en-US", options)}
                     </Text>
                 </div>
             </Flex>
 
-            <Anchor
+            <Button
+                variant="filled"
+                component="a"
                 href={firstItem.href(event)}
                 target="_blank"
                 rel="noopener noreferrer"
-                miw="100%"
+                size="lg"
+                fullWidth
             >
-                <Card c="green">
-                    <Group gap="md" justify='center' mr="10px">
-                        {firstItem.icon}
-                        <Text>{firstItem.label}</Text>
-                    </Group>
-                </Card>
-            </Anchor>
+                <Group gap="md" justify="center" mr="10px">
+                    {firstItem.icon}
+                    <Text>{firstItem.label}</Text>
+                </Group>
+            </Button>
 
-            <Group mt="md" justify='space-between' grow>
+            <Group mt="md" justify="space-between" grow>
                 {items.map((key) => {
                     const { href, icon, label } = calendarMap[key];
 
                     return (
-                        <Anchor
+                        <Button
                             key={key}
+                            size="lg"
+                            px="0px"
+                            component="a"
                             href={href(event)}
                             target="_blank"
                             rel="noopener noreferrer"
+                            variant="outline"
                         >
-                            <Card c="green">
-                                <Group gap="5px" justify="center" wrap="nowrap">
-                                    {icon}
-                                    <Text>{label}</Text>
-                                </Group>
-                            </Card>
-                        </Anchor>
+                            <Group gap="5px" justify="center" wrap="nowrap">
+                                {icon}
+                                <Text>{label}</Text>
+                            </Group>
+                        </Button>
                     );
                 })}
             </Group>
         </>
     );
-};
+}

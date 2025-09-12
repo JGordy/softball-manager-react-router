@@ -27,14 +27,14 @@ const schema = {
                 type: SchemaType.ARRAY,
                 items: {
                     type: SchemaType.STRING,
-                }
+                },
             },
             positions: {
                 type: SchemaType.ARRAY,
                 items: {
                     type: SchemaType.STRING,
-                }
-            }
+                },
+            },
         },
         required: [
             "id",
@@ -44,9 +44,9 @@ const schema = {
             "battingRating",
             "fieldRating",
             "preferredPositions",
-            "positions"
-        ]
-    }
+            "positions",
+        ],
+    },
 };
 
 export default schema;

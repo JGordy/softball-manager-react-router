@@ -7,26 +7,26 @@ import {
     ScrollRestoration,
 } from "react-router";
 
-import { parse } from 'cookie';
+import { parse } from "cookie";
 
 import {
     ColorSchemeScript,
     MantineProvider,
     mantineHtmlProps,
-} from '@mantine/core';
-import { ModalsProvider } from '@mantine/modals';
+} from "@mantine/core";
+import { ModalsProvider } from "@mantine/modals";
 
-import '@mantine/core/styles.css';
-import '@mantine/core/styles/global.css';
-import '@mantine/dates/styles.css';
+import "@mantine/core/styles.css";
+import "@mantine/core/styles/global.css";
+import "@mantine/dates/styles.css";
 
 import "@/styles/app.css";
 
-import AuthProvider from '@/contexts/auth/authProvider';
+import AuthProvider from "@/contexts/auth/authProvider";
 
-import { account } from '@/utils/appwrite/sessionClient';
+import { account } from "@/utils/appwrite/sessionClient";
 
-import theme from './theme';
+import theme from "./theme";
 
 export const links = () => [
     { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -52,7 +52,7 @@ export async function loader({ request }) {
     if (cookieHeader) {
         try {
             const parsedCookies = parse(cookieHeader);
-            darkMode = parsedCookies.darkMode === 'true';
+            darkMode = parsedCookies.darkMode === "true";
         } catch (error) {
             console.error("Error parsing cookie:", error);
         }
@@ -65,7 +65,7 @@ export async function clientLoader({ request }) {
     try {
         const preferences = await account.getPrefs();
 
-        if (preferences.darkMode === 'true') {
+        if (preferences.darkMode === "true") {
             // Set the cookie using document.cookie
             document.cookie = "darkMode=true; path=/";
         } else {
@@ -73,7 +73,6 @@ export async function clientLoader({ request }) {
         }
 
         return { preferences };
-
     } catch (error) {
         console.error("Error fetching preferences:", error);
         return { error: "Failed to fetch preferences" };
@@ -87,7 +86,10 @@ function Layout({ children, context }) {
         <html lang="en" {...mantineHtmlProps}>
             <head>
                 <meta charSet="utf-8" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <meta
+                    name="viewport"
+                    content="width=device-width, initial-scale=1"
+                />
                 <ColorSchemeScript
                     // TODO: Figure out the mismatch of themes before turning this back on
                     // defaultColorScheme={darkMode ? 'dark' : 'light'}
@@ -104,9 +106,7 @@ function Layout({ children, context }) {
                         defaultColorScheme="auto"
                         theme={theme}
                     >
-                        <ModalsProvider>
-                            {children}
-                        </ModalsProvider>
+                        <ModalsProvider>{children}</ModalsProvider>
                     </MantineProvider>
                 </AuthProvider>
                 <ScrollRestoration />

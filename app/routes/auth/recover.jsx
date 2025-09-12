@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useSearchParams, redirect } from 'react-router';
+import { useEffect, useState } from "react";
+import { useSearchParams, redirect } from "react-router";
 
 import {
     Alert,
@@ -8,15 +8,18 @@ import {
     PasswordInput,
     Text,
     Title,
-} from '@mantine/core';
+} from "@mantine/core";
 
-import { IconRosetteDiscountCheckFilled, IconExclamationCircleFilled } from '@tabler/icons-react';
+import {
+    IconRosetteDiscountCheckFilled,
+    IconExclamationCircleFilled,
+} from "@tabler/icons-react";
 
-import FormWrapper from '@/forms/FormWrapper';
+import FormWrapper from "@/forms/FormWrapper";
 
-import { account } from '@/appwrite';
+import { account } from "@/appwrite";
 
-import classes from '@/styles/inputs.module.css';
+import classes from "@/styles/inputs.module.css";
 
 export async function clientAction({ request }) {
     const formData = await request.formData();
@@ -32,18 +35,21 @@ export async function clientAction({ request }) {
     }
 
     try {
-        const response = await account.updateRecovery(userId, secret, newPassword);
+        const response = await account.updateRecovery(
+            userId,
+            secret,
+            newPassword,
+        );
         console.log({ response });
 
         return {
             success: true,
             message: "Password updated successfully",
         };
-
     } catch (error) {
         return {
             message: error?.message || "Error: Could not update password.",
-            success: false
+            success: false,
         };
     }
 }
@@ -52,17 +58,16 @@ export default function Verify({ actionData }) {
     const [searchParams] = useSearchParams();
 
     const [params] = useState({
-        secret: searchParams.get('secret'),
-        userId: searchParams.get('userId'),
+        secret: searchParams.get("secret"),
+        userId: searchParams.get("userId"),
     });
     const { secret, userId } = params;
 
     useEffect(() => {
         if (actionData?.success) {
-
             setTimeout(() => {
                 // Redirect to the home page?
-                redirect('/');
+                redirect("/");
             }, 2500);
         }
 
@@ -73,27 +78,42 @@ export default function Verify({ actionData }) {
 
     return (
         <Paper p="xl">
-            <Title order={2} mb="lg">Create a new password</Title>
-            {(secret && userId) ? (
+            <Title order={2} mb="lg">
+                Create a new password
+            </Title>
+            {secret && userId ? (
                 <>
                     {actionData?.message && (
                         <Alert
                             variant="light"
-                            color={actionData.success ? 'green' : 'red'}
-                            icon={actionData.success ? <IconRosetteDiscountCheckFilled size={16} /> : <IconExclamationCircleFilled size={16} />}
+                            color={actionData.success ? "green" : "red"}
+                            icon={
+                                actionData.success ? (
+                                    <IconRosetteDiscountCheckFilled size={16} />
+                                ) : (
+                                    <IconExclamationCircleFilled size={16} />
+                                )
+                            }
                         >
                             {actionData.message}
                         </Alert>
                     )}
-                    <Text my="lg" c="dimmed">Your new password must be different from your previous used passwords.</Text>
+                    <Text my="lg" c="dimmed">
+                        Your new password must be different from your previous
+                        used passwords.
+                    </Text>
                     <FormWrapper
                         action="reset-password"
                         actionRoute="/recovery"
                         confirmText="Submit new password"
                         hideButtons
                     >
-                        {secret && <input type="hidden" name="secret" value={secret} />}
-                        {userId && <input type="hidden" name="userId" value={userId} />}
+                        {secret && (
+                            <input type="hidden" name="secret" value={secret} />
+                        )}
+                        {userId && (
+                            <input type="hidden" name="userId" value={userId} />
+                        )}
                         <PasswordInput
                             className={classes.inputs}
                             type="password"
@@ -124,8 +144,10 @@ export default function Verify({ actionData }) {
                     </FormWrapper>
                 </>
             ) : (
-                <Text mt="xl">You have reached an invalid password reset link.</Text>
+                <Text mt="xl">
+                    You have reached an invalid password reset link.
+                </Text>
             )}
         </Paper>
     );
-};
+}

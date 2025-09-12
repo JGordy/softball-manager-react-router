@@ -1,4 +1,4 @@
-import { Form } from 'react-router';
+import { Form } from "react-router";
 
 import {
     Button,
@@ -7,13 +7,13 @@ import {
     NumberInput,
     Select,
     TextInput,
-} from '@mantine/core';
+} from "@mantine/core";
 
-import { IconCurrencyDollar } from '@tabler/icons-react';
+import { IconCurrencyDollar } from "@tabler/icons-react";
 
-import classes from '@/styles/inputs.module.css';
+import classes from "@/styles/inputs.module.css";
 
-import DatePicker from '@/components/DatePicker';
+import DatePicker from "@/components/DatePicker";
 
 export default function SeasonForm({
     handleCloseModal,
@@ -21,33 +21,35 @@ export default function SeasonForm({
     // primaryColor,
     // teamId,
 }) {
-
     return (
-        <Form
-            method="post"
-            type="submit"
-            name="_action"
-            value="edit-season"
-        >
+        <Form method="post" type="submit" name="_action" value="edit-season">
             {/* <input type="hidden" name="teamId" value={teamId} /> */}
             <TextInput
                 className={classes.inputs}
                 label="Season Name"
                 name="seasonName"
-                placeholder='Fall Season 2025'
+                placeholder="Fall Season 2025"
             />
             <TextInput
                 className={classes.inputs}
                 label="Location"
                 name="location"
-                placeholder='Where will the games be played?'
+                placeholder="Where will the games be played?"
             />
             <MultiSelect
                 className={classes.inputs}
                 label="Game Days"
                 name="gameDays"
                 placeholder="What day(s) are games played?"
-                data={['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']}
+                data={[
+                    "Sunday",
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday",
+                ]}
                 mb="sm"
                 clearable
                 searchable
@@ -57,7 +59,7 @@ export default function SeasonForm({
                 label="League Type"
                 name="leagueType"
                 placeholder="Select Gender"
-                data={['Men', 'Women', 'Coed']}
+                data={["Men", "Women", "Coed"]}
                 mb="sm"
                 searchable
             />
@@ -72,15 +74,9 @@ export default function SeasonForm({
                 step={5}
             />
 
-            <DatePicker
-                label="Season Start Date"
-                name="startDate"
-            />
+            <DatePicker label="Season Start Date" name="startDate" />
 
-            <DatePicker
-                label="Season End Date"
-                name="endDate"
-            />
+            <DatePicker label="Season End Date" name="endDate" />
 
             <Group position="right" mt="lg">
                 <Button
@@ -105,4 +101,4 @@ export default function SeasonForm({
             </Group>
         </Form>
     );
-};
+}

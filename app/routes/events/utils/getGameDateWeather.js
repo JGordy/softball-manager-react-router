@@ -1,4 +1,4 @@
-import getHourlyWeather from './getHourlyWeather';
+import getHourlyWeather from "./getHourlyWeather";
 
 export default function getGameDateWeather(gameDate, weather) {
     if (!weather?.hourly) return {};

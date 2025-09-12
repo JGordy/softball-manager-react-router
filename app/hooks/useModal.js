@@ -1,11 +1,10 @@
-import { modals } from '@mantine/modals';
+import { modals } from "@mantine/modals";
 
 const useModal = () => {
-
     const openModal = ({ title, children, ...rest }) => {
         return modals.open({
             title,
-            radius: 'lg',
+            radius: "lg",
             children,
             overlayProps: {
                 backgroundOpacity: 0.55,
@@ -26,7 +25,7 @@ const useModal = () => {
             },
             ...rest,
         });
-    }
+    };
 
     return { openModal, closeAllModals: modals.closeAll, updateModal };
 };

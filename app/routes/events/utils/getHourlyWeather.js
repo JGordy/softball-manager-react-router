@@ -11,13 +11,13 @@ export default function getHourlyWeather(weather, gameDate) {
     const totalPrecipitation = calculatePrecipitation(weather);
     const rainout = getRainoutLikelihood(weather);
 
-    const { 
-        temperature, 
-        feelsLikeTemperature, 
-        precipitation, 
-        weatherCondition, 
-        wind, 
-        uvIndex 
+    const {
+        temperature,
+        feelsLikeTemperature,
+        precipitation,
+        weatherCondition,
+        wind,
+        uvIndex,
     } = gameTimeWeather;
 
     const hourly = {

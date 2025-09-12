@@ -1,14 +1,14 @@
-import { Button, Text } from '@mantine/core';
+import { Button, Text } from "@mantine/core";
 
-import { IconPlus } from '@tabler/icons-react';
+import { IconPlus } from "@tabler/icons-react";
 
-import AddSingleGame from '@/forms/AddSingleGame';
+import AddSingleGame from "@/forms/AddSingleGame";
 
-import GamesList from '@/components/GamesList';
+import GamesList from "@/components/GamesList";
 
-import sortByDate from '@/utils/sortByDate';
+import sortByDate from "@/utils/sortByDate";
 
-import useModal from '@/hooks/useModal';
+import useModal from "@/hooks/useModal";
 
 export default function GamesListContainer({
     games,
@@ -19,21 +19,46 @@ export default function GamesListContainer({
 }) {
     const { openModal } = useModal();
 
-    const sortedGames = sortByDate(games, 'gameDate');
+    const today = new Date();
+    let seasonToDisplay = seasons.find(
+        (season) =>
+            new Date(season.startDate) <= today &&
+            new Date(season.endDate) >= today,
+    );
 
-    const openAddGameModal = () => openModal({
-        title: 'Add a New Game',
-        children: (
-            <AddSingleGame
-                action="add-single-game"
-                actionRoute={`/team/${teamId}`}
-                teamId={teamId}
-                seasonId={null}
-                seasons={seasons}
-                confirmText="Create Game"
-            />
-        ),
-    });
+    if (!seasonToDisplay) {
+        const upcomingSeasons = seasons.filter(
+            (season) => new Date(season.startDate) > today,
+        );
+        if (upcomingSeasons.length > 0) {
+            seasonToDisplay = upcomingSeasons[0];
+        } else {
+            const pastSeasons = seasons
+                .filter((season) => new Date(season.endDate) < today)
+                .sort((a, b) => new Date(b.endDate) - new Date(a.endDate));
+            if (pastSeasons.length > 0) {
+                seasonToDisplay = pastSeasons[0];
+            }
+        }
+    }
+
+    const gamesToDisplay = seasonToDisplay ? seasonToDisplay.games : [];
+    const sortedGames = sortByDate(gamesToDisplay, "gameDate");
+
+    const openAddGameModal = () =>
+        openModal({
+            title: "Add a New Game",
+            children: (
+                <AddSingleGame
+                    action="add-single-game"
+                    actionRoute={`/team/${teamId}`}
+                    teamId={teamId}
+                    seasonId={seasonToDisplay ? seasonToDisplay.$id : null}
+                    seasons={seasons}
+                    confirmText="Create Game"
+                />
+            ),
+        });
 
     return (
         <>
@@ -59,4 +84,4 @@ export default function GamesListContainer({
             <GamesList games={sortedGames} />
         </>
     );
-};
+}

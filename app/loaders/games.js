@@ -1,20 +1,26 @@
-import { Query } from '@/appwrite';
-import { listDocuments, readDocument } from '@/utils/databases';
+import { Query } from "@/appwrite";
+import { listDocuments, readDocument } from "@/utils/databases";
 
-const baseWeatherUrl = 'https://api.openweathermap.org/data/3.0/onecall';
+// const baseWeatherUrl = 'https://api.openweathermap.org/data/3.0/onecall';
 
 const getAttendance = async ({ eventId, accepted = false }) => {
-    const { documents: attendance } = await listDocuments('attendance', [
-        Query.equal('gameId', eventId),
-        ...[accepted && Query.equal('status', 'accepted')],
-    ]);
+    const queries = [Query.equal("gameId", eventId)];
+
+    if (accepted) {
+        queries.push(Query.equal("status", "accepted"));
+    }
+
+    const { documents: attendance } = await listDocuments(
+        "attendance",
+        queries,
+    );
     return attendance;
 };
 
 const getWeatherData = (parkId, game) => {
     const { gameDate } = game;
     const apiKey = import.meta.env.VITE_GOOGLE_SERVICES_API_KEY;
-    const baseUrl = 'https://weather.googleapis.com/v1';
+    const baseUrl = "https://weather.googleapis.com/v1";
 
     const now = new Date();
     const gameTime = new Date(gameDate);
@@ -28,16 +34,35 @@ const getWeatherData = (parkId, game) => {
     }
 
     const getForecast = async (park) => {
-        const url = `${baseUrl}/forecast/hours:lookup?key=${apiKey}&location.latitude=${park.latitude}&location.longitude=${park.longitude}&hours=24&unitsSystem=IMPERIAL`;
+        const totalHours = 96; // Fetch 96 hours of forecast
+        let allForecastHours = [];
+        let nextPageToken = null;
+
         try {
-            const response = await fetch(url);
-            if (response.ok) {
-                const data = await response.json();
-                return data.forecastHours || [];
-            }
-            return [];
+            do {
+                let url = `${baseUrl}/forecast/hours:lookup?key=${apiKey}&location.latitude=${park.latitude}&location.longitude=${park.longitude}&hours=${totalHours}&unitsSystem=IMPERIAL`;
+                if (nextPageToken) {
+                    url += `&pageToken=${nextPageToken}`;
+                }
+
+                const response = await fetch(url);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.forecastHours) {
+                        allForecastHours = allForecastHours.concat(
+                            data.forecastHours,
+                        );
+                    }
+                    nextPageToken = data.nextPageToken;
+                } else {
+                    // Stop pagination on error
+                    nextPageToken = null;
+                }
+            } while (nextPageToken);
+
+            return allForecastHours;
         } catch (error) {
-            console.error('Error fetching forecast data:', error);
+            console.error("Error fetching forecast data:", error);
             return [];
         }
     };
@@ -52,13 +77,13 @@ const getWeatherData = (parkId, game) => {
             }
             return [];
         } catch (error) {
-            console.error('Error fetching history data:', error);
+            console.error("Error fetching history data:", error);
             return [];
         }
     };
 
     return (async () => {
-        const park = await readDocument('parks', parkId);
+        const park = await readDocument("parks", parkId);
         if (!park) return null;
 
         let hourlyData = [];
@@ -79,9 +104,12 @@ const getWeatherData = (parkId, game) => {
         // Filter to the 6 hours before the game
         const sixHoursBeforeTimestamp = sixHoursBefore.getTime();
         const gameTimeTimestamp = gameTime.getTime();
-        const filteredData = hourlyData.filter(hour => {
+        const filteredData = hourlyData.filter((hour) => {
             const hourTimestamp = new Date(hour.interval.startTime).getTime();
-            return hourTimestamp >= sixHoursBeforeTimestamp && hourTimestamp <= gameTimeTimestamp;
+            return (
+                hourTimestamp >= sixHoursBeforeTimestamp &&
+                hourTimestamp <= gameTimeTimestamp
+            );
         });
 
         return { hourly: filteredData };
@@ -89,26 +117,38 @@ const getWeatherData = (parkId, game) => {
 };
 
 export async function getEventById({ request, eventId }) {
-    const { seasons: season, playerChart, ...game } = await readDocument('games', eventId);
+    const {
+        seasons: season,
+        playerChart,
+        ...game
+    } = await readDocument("games", eventId);
     const { teams = [], parkId } = season;
 
-    const { documents: userIds } = await listDocuments('memberships', [
-        Query.equal('teamId', [teams[0].$id]),
+    const { documents: userIds } = await listDocuments("memberships", [
+        Query.equal("teamId", [teams[0].$id]),
     ]);
 
-    const { userId: managerId } = userIds.find(userId => userId.role === 'manager');
+    const managerIds = userIds
+        .filter(({ role }) => role === "manager")
+        .map(({ userId }) => userId);
 
     // --- Start of deferred data ---
     const playerPromises = userIds.map(async ({ userId }) => {
-        const result = await listDocuments('users', [
-            Query.equal('$id', userId),
+        const result = await listDocuments("users", [
+            Query.equal("$id", userId),
         ]);
         return result.documents;
     });
-    const playersPromise = Promise.all(playerPromises).then(users => users.flat());
+    const playersPromise = Promise.all(playerPromises).then((users) =>
+        users.flat(),
+    );
 
-    const parkPromise = parkId ? readDocument('parks', parkId) : Promise.resolve(null);
-    const attendancePromise = listDocuments('attendance', [Query.equal('gameId', eventId)]);
+    const parkPromise = parkId
+        ? readDocument("parks", parkId)
+        : Promise.resolve(null);
+    const attendancePromise = listDocuments("attendance", [
+        Query.equal("gameId", eventId),
+    ]);
 
     const deferredData = Promise.all([
         playersPromise,
@@ -127,7 +167,7 @@ export async function getEventById({ request, eventId }) {
             // NOTE: We need to parse the string from the database twice before passing to the front end
             playerChart: JSON.parse(JSON.parse(playerChart)),
         },
-        managerId,
+        managerIds,
         season,
         teams,
         // Deferred data for weather, but is conditional so we didn't add it to the deferredData
@@ -136,30 +176,38 @@ export async function getEventById({ request, eventId }) {
 }
 
 export async function getEventWithPlayerCharts({ request, eventId }) {
-    const { seasons: season, playerChart, ...game } = await readDocument('games', eventId);
+    const {
+        seasons: season,
+        playerChart,
+        ...game
+    } = await readDocument("games", eventId);
     const { teams = [] } = season;
 
-    const { documents: userIds } = await listDocuments('memberships', [
-        Query.equal('teamId', [teams[0].$id]),
+    const { documents: userIds } = await listDocuments("memberships", [
+        Query.equal("teamId", [teams[0].$id]),
     ]);
 
-    const { userId: managerId } = userIds.find(userId => userId.role === 'manager');
+    const managerIds = userIds
+        .filter(({ role }) => role === "manager")
+        .map(({ userId }) => userId);
 
     // --- Start of deferred data ---
     const playerPromises = userIds.map(async ({ userId }) => {
-        const result = await listDocuments('users', [
-            Query.equal('$id', userId),
+        const result = await listDocuments("users", [
+            Query.equal("$id", userId),
         ]);
         return result.documents;
     });
-    const players = await Promise.all(playerPromises).then(users => users.flat());
+    const players = await Promise.all(playerPromises).then((users) =>
+        users.flat(),
+    );
 
-    const attendance = await getAttendance({ eventId, accepted: true });
+    const attendance = await getAttendance({ eventId, accepted: false });
 
     return {
         attendance,
         game,
-        managerId,
+        managerIds,
         teams,
         // NOTE: We need to parse the string from the database twice before passing to the front end
         playerChart: playerChart ? JSON.parse(JSON.parse(playerChart)) : null,

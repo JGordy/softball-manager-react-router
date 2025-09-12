@@ -1,21 +1,20 @@
 import { DatePickerInput } from "@mantine/dates";
 
-import { IconCalendar } from '@tabler/icons-react';
+import { IconCalendar } from "@tabler/icons-react";
 
-import classes from '@/styles/inputs.module.css';
+import classes from "@/styles/inputs.module.css";
 
 export default function DatePicker({
     defaultValue,
     label,
     name,
-    placeholder = 'Pick a date',
+    placeholder = "Pick a date",
     required = false,
 }) {
-
     const iconProps = {
-        color: 'currentColor',
+        color: "currentColor",
         size: 18,
-        stroke: 1.5
+        stroke: 1.5,
     };
 
     return (
@@ -28,7 +27,7 @@ export default function DatePicker({
             label={label}
             name={name}
             placeholder={placeholder}
-            popoverProps={{ position: 'top' }}
+            popoverProps={{ position: "top" }}
             required={required}
         />
     );

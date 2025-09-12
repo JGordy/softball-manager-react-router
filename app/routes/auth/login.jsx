@@ -1,10 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 
-import {
-    Form,
-    Link,
-    useNavigate,
-} from 'react-router';
+import { Form, Link, useNavigate } from "react-router";
 
 import {
     Button,
@@ -15,15 +11,15 @@ import {
     PasswordInput,
     Text,
     Title,
-} from '@mantine/core';
+} from "@mantine/core";
 
-import { account } from '@/appwrite';
+import { account } from "@/appwrite";
 
-import { useAuth } from '@/contexts/auth/useAuth';
+import { useAuth } from "@/contexts/auth/useAuth";
 
-import AutocompleteEmail from '@/components/AutocompleteEmail';
+import AutocompleteEmail from "@/components/AutocompleteEmail";
 
-import login from './utils/login';
+import login from "./utils/login";
 
 export async function clientAction({ request }) {
     const formData = await request.formData();
@@ -40,18 +36,17 @@ export async function clientAction({ request }) {
 }
 
 export default function Login({ actionData }) {
-
     const { setUser } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
         const checkCurrentSession = async () => {
             try {
-                const session = await account.getSession('current');
+                const session = await account.getSession("current");
                 console.log({ session });
                 if (session) {
                     setUser();
-                    navigate('/');
+                    navigate("/");
                 }
                 return null;
             } catch (error) {
@@ -64,8 +59,8 @@ export default function Login({ actionData }) {
 
     return (
         <Container size="xs">
-            <Center style={{ minHeight: '100vh' }}>
-                <Paper radius="md" p="xl" withBorder style={{ width: '100%' }}>
+            <Center style={{ minHeight: "100vh" }}>
+                <Paper radius="md" p="xl" withBorder style={{ width: "100%" }}>
                     <Title order={3} ta="center" mt="md" mb={50}>
                         Welcome to Rocket Roster!
                     </Title>
@@ -85,12 +80,20 @@ export default function Login({ actionData }) {
                     </Form>
                     <Group justify="center" mt="md">
                         <Text size="sm">Don't have an account?</Text>
-                        <Text component={Link} to="/register" size="sm" c="blue" fw={700}>
+                        <Text
+                            component={Link}
+                            to="/register"
+                            size="sm"
+                            c="blue"
+                            fw={700}
+                        >
                             Register
                         </Text>
                     </Group>
                     <Center>
-                        {actionData?.error && <Text c="red.5">{actionData?.error}</Text>}
+                        {actionData?.error && (
+                            <Text c="red.5">{actionData?.error}</Text>
+                        )}
                     </Center>
                 </Paper>
             </Center>

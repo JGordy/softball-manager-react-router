@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
 import {
     Button,
@@ -8,24 +8,24 @@ import {
     ScrollArea,
     Text,
     Title,
-} from '@mantine/core';
+} from "@mantine/core";
 
-import { Link, redirect } from 'react-router';
+import { Link, redirect } from "react-router";
 
-import { IconPlus } from '@tabler/icons-react';
+import { IconPlus } from "@tabler/icons-react";
 
-import { account } from '@/appwrite';
+import { account } from "@/appwrite";
 
-import LoaderDots from '@/components/LoaderDots';
-import UserHeader from '@/components/UserHeader';
-import GameCard from '@/components/GameCard';
+import LoaderDots from "@/components/LoaderDots";
+import UserHeader from "@/components/UserHeader";
+import GameCard from "@/components/GameCard";
 
-import AddTeam from '@/forms/AddTeam';
-import { createTeam } from '@/actions/teams';
+import AddTeam from "@/forms/AddTeam";
+import { createTeam } from "@/actions/teams";
 
-import getGames from '@/utils/getGames';
+import getGames from "@/utils/getGames";
 
-import useModal from '@/hooks/useModal';
+import useModal from "@/hooks/useModal";
 
 export function meta() {
     return [
@@ -45,13 +45,13 @@ export async function clientLoader({ request }) {
         }
 
         const { userId } = session;
-        const teamsResponse = await fetch('/api/teams', {
-            method: 'POST',
-            body: JSON.stringify({ userId, teamRoles: ['manager', 'player'] }),
+        const teamsResponse = await fetch("/api/teams", {
+            method: "POST",
+            body: JSON.stringify({ userId, teamRoles: ["manager", "player"] }),
         });
         if (!teamsResponse.ok) {
             const errorData = await teamsResponse.json();
-            throw new Error(errorData.message || 'Error fetching teams');
+            throw new Error(errorData.message || "Error fetching teams");
         }
 
         const { managing = [], playing = [] } = await teamsResponse.json();
@@ -60,7 +60,6 @@ export async function clientLoader({ request }) {
             teams: { managing, playing },
             userId,
         };
-
     } catch (error) {
         console.error("Error in clientLoader:", error);
         return redirect("/login");
@@ -77,16 +76,15 @@ export async function action({ request }) {
     const formData = await request.formData();
     const { _action, userId, ...values } = Object.fromEntries(formData);
 
-    if (_action === 'add-team') {
+    if (_action === "add-team") {
         return createTeam({ values, userId });
     }
 }
 
 export default function HomePage({ loaderData, actionData }) {
-
     const { openModal, closeAllModals } = useModal();
 
-    console.log('/home ', { loaderData });
+    console.log("/home ", { loaderData });
     const teams = loaderData?.teams;
     const userId = loaderData?.userId;
 
@@ -102,7 +100,7 @@ export default function HomePage({ loaderData, actionData }) {
 
         const timeDiff = gameDate.getTime() - today.getTime();
         const daysUntilGame = Math.ceil(timeDiff / (1000 * 3600 * 24)); // Calculate days
-        const daysUntilText = `${daysUntilGame} day${daysUntilGame !== 1 ? 's' : ''}`;
+        const daysUntilText = `${daysUntilGame} day${daysUntilGame !== 1 ? "s" : ""}`;
 
         return ` in ${daysUntilText}!`;
     };
@@ -113,7 +111,10 @@ export default function HomePage({ loaderData, actionData }) {
                 if (actionData?.status === 201) {
                     closeAllModals();
                 } else if (actionData instanceof Error) {
-                    console.error('An error occurred during team creation.', actionData.message);
+                    console.error(
+                        "An error occurred during team creation.",
+                        actionData.message,
+                    );
                 }
             } catch (jsonError) {
                 console.error("Error parsing JSON:", jsonError);
@@ -123,28 +124,24 @@ export default function HomePage({ loaderData, actionData }) {
         handleAfterSubmit();
     }, [actionData]);
 
-    console.log('/home ', { nextGame, futureGames, pastGames, userId });
+    console.log("/home ", { nextGame, futureGames, pastGames, userId });
 
-    const openAddTeamModal = () => openModal({
-        title: 'Add a New Team',
-        children: (
-            <AddTeam
-                actionRoute={'/'}
-                userId={userId}
-            />
-        ),
-    });
+    const openAddTeamModal = () =>
+        openModal({
+            title: "Add a New Team",
+            children: <AddTeam actionRoute={"/"} userId={userId} />,
+        });
 
     return (
         <Container>
             <UserHeader subText="Here is a summary of all of your team and event info" />
 
-            {(nextGame && Object.keys(nextGame).length > 0) && (
+            {nextGame && Object.keys(nextGame).length > 0 && (
                 <>
-                    <Title order={4} mt="xl">Upcoming Events</Title>
-                    <Text span>
-                        You have a game
-                    </Text>
+                    <Title order={4} mt="xl">
+                        Upcoming Events
+                    </Title>
+                    <Text span>You have a game</Text>
                     <Text span fw={700} c="green">
                         {daysUntilNextGame(nextGame.gameDate)}
                     </Text>
@@ -152,15 +149,17 @@ export default function HomePage({ loaderData, actionData }) {
                 </>
             )}
 
-            {(mostRecentGame && Object.keys(mostRecentGame).length > 0) && (
+            {mostRecentGame && Object.keys(mostRecentGame).length > 0 && (
                 <>
-                    <Title order={4} mt="xl">Most Recent Game</Title>
+                    <Title order={4} mt="xl">
+                        Most Recent Game
+                    </Title>
                     <GameCard {...mostRecentGame} />
                 </>
             )}
 
             <Title order={4} mt="xl">
-                My Teams ({teamList?.length || '0'})
+                My Teams ({teamList?.length || "0"})
             </Title>
             {!teamList?.length && (
                 <Button
@@ -177,8 +176,14 @@ export default function HomePage({ loaderData, actionData }) {
                     <ScrollArea.Autosize py="5px">
                         <Group miw={400} wrap="nowrap">
                             <Card align="center" px="0">
-                                <Button variant="transparent" onClick={openAddTeamModal}>
-                                    <Text align="center" style={{ whiteSpace: 'nowrap' }}>
+                                <Button
+                                    variant="transparent"
+                                    onClick={openAddTeamModal}
+                                >
+                                    <Text
+                                        align="center"
+                                        style={{ whiteSpace: "nowrap" }}
+                                    >
                                         <IconPlus size={18} />
                                         Add Team
                                     </Text>
@@ -187,7 +192,10 @@ export default function HomePage({ loaderData, actionData }) {
                             {teamList.map((team, index) => (
                                 <Link to={`/team/${team.$id}`} key={index}>
                                     <Card bg={team.primaryColor}>
-                                        <Text style={{ whiteSpace: 'nowrap' }} c="white">
+                                        <Text
+                                            style={{ whiteSpace: "nowrap" }}
+                                            c="white"
+                                        >
                                             {team.name}
                                         </Text>
                                     </Card>
@@ -199,4 +207,4 @@ export default function HomePage({ loaderData, actionData }) {
             )}
         </Container>
     );
-};
+}
