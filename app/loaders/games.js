@@ -146,9 +146,24 @@ export async function getEventById({ request, eventId }) {
     const parkPromise = parkId
         ? readDocument("parks", parkId)
         : Promise.resolve(null);
+
     const attendancePromise = listDocuments("attendance", [
         Query.equal("gameId", eventId),
     ]);
+
+    const awardsPromise = listDocuments("awards", [
+        Query.equal("game_id", eventId),
+    ]);
+    const votesPromise = listDocuments("votes", [
+        Query.equal("game_id", eventId),
+    ]);
+
+    const recognitionPromise = Promise.all([awardsPromise, votesPromise]).then(
+        ([awards, votes]) => ({
+            awards,
+            votes,
+        }),
+    );
 
     const deferredData = Promise.all([
         playersPromise,
@@ -168,6 +183,7 @@ export async function getEventById({ request, eventId }) {
             playerChart: JSON.parse(JSON.parse(playerChart)),
         },
         managerIds,
+        recognitionPromise,
         season,
         teams,
         // Deferred data for weather, but is conditional so we didn't add it to the deferredData
