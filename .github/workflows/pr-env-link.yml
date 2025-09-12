@@ -1,0 +1,22 @@
+name: Add PR ENV Link to Description
+
+on:
+    pull_request:
+        types: [opened]
+
+jobs:
+    add-badge:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Add PR link to description
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  PR_NUMBER: ${{ github.event.number }}
+              run: |
+                  PR_BODY=$(gh pr view $PR_NUMBER --json body -q .body)
+                  BADGE="[![Render.com PR #${PR_NUMBER} ENV](https://img.shields.io/badge/Render.com%20PR%20%23${PR_NUMBER}%20ENV-blue)](https://softball-manager-react-router-pr-${PR_NUMBER}.onrender.com/)"
+                  gh pr edit $PR_NUMBER --body-file - <<-EOF
+                  $BADGE
+
+                  $PR_BODY
+                  EOF
