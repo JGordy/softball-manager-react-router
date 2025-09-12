@@ -8,6 +8,8 @@ jobs:
     add-badge:
         runs-on: ubuntu-latest
         steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
             - name: Add PR link to description
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
