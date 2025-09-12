@@ -22,10 +22,11 @@ import { getGameDayStatus } from "@/utils/dateTime";
 
 import useModal from "@/hooks/useModal";
 
-import MenuContainer from "./components/MenuContainer";
-import Scoreboard from "./components/Scoreboard";
+import AwardsContainer from "./components/AwardsContainer";
 import DetailsCard from "./components/DetailsCard";
+import MenuContainer from "./components/MenuContainer";
 import RosterDetails from "./components/RosterDetails";
+import Scoreboard from "./components/Scoreboard";
 import WeatherCard from "./components/WeatherCard";
 
 export async function action({ request, params }) {
@@ -126,7 +127,7 @@ export default function EventDetails({ loaderData, actionData }) {
             />
 
             {gameIsPast ? (
-                <div>Game is in the past</div>
+                <AwardsContainer />
             ) : (
                 <WeatherCard
                     gameDate={gameDate}
