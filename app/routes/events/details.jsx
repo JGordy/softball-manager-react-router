@@ -79,7 +79,8 @@ export default function EventDetails({ loaderData, actionData }) {
 
     const { gameDate, playerChart, result } = game;
 
-    const gameDayStatus = getGameDayStatus(gameDate);
+    const gameDayStatus = getGameDayStatus(gameDate, true);
+    // const gameInProgress = gameDayStatus === "in progress";
     const gameIsPast = gameDayStatus === "past";
 
     useEffect(() => {
@@ -124,7 +125,9 @@ export default function EventDetails({ loaderData, actionData }) {
                 team={team}
             />
 
-            {!gameIsPast && (
+            {gameIsPast ? (
+                <div>Game is in the past</div>
+            ) : (
                 <WeatherCard
                     gameDate={gameDate}
                     weatherPromise={weatherPromise}

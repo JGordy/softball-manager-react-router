@@ -96,7 +96,7 @@ export const combineDateTime = (gameDate, gameTime, userTimeZone) => {
     return localDate.toISOString();
 };
 
-export function getGameDayStatus(gameDateString) {
+export function getGameDayStatus(gameDateString, useHourlyPrecision = false) {
     if (!gameDateString) {
         console.error("Invalid date string provided to getGameDayStatus");
         return "invalid"; // Or throw an error, or return a specific status
@@ -104,18 +104,38 @@ export function getGameDayStatus(gameDateString) {
 
     try {
         const gameDate = new Date(gameDateString);
-        // Normalize gameDate to midnight in the local timezone
-        gameDate.setHours(0, 0, 0, 0);
+        const now = new Date();
+
+        // Normalize gameDate to midnight to check the day
+        const gameDay = new Date(gameDate);
+        gameDay.setHours(0, 0, 0, 0);
 
         const today = new Date();
-        // Normalize today's date to midnight in the local timezone
+        // Normalize today's date to midnight
         today.setHours(0, 0, 0, 0);
 
-        if (gameDate.getTime() < today.getTime()) {
+        if (gameDay.getTime() < today.getTime()) {
             return "past";
-        } else if (gameDate.getTime() > today.getTime()) {
+        } else if (gameDay.getTime() > today.getTime()) {
             return "future";
         } else {
+            // Game is today, now check for hourly precision
+            if (useHourlyPrecision) {
+                const gameStartTime = gameDate.getTime();
+                const nowTime = now.getTime();
+                const oneHour = 60 * 60 * 1000;
+                const gameEndTime = gameStartTime + oneHour;
+
+                if (nowTime >= gameStartTime && nowTime < gameEndTime) {
+                    return "in progress";
+                } else if (nowTime >= gameEndTime) {
+                    return "past"; // Game has ended
+                } else {
+                    // nowTime < gameStartTime
+                    return "future"; // Game is later today
+                }
+            }
+            // No hourly precision, so it's just "today"
             return "today";
         }
     } catch (error) {
