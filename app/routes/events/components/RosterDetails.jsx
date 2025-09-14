@@ -66,6 +66,7 @@ export default function RosterDetails({
                                     height={16}
                                     width="70%"
                                     mt="5px"
+                                    ml="28px"
                                     radius="xl"
                                 />
                             }
