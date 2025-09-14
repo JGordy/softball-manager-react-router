@@ -158,24 +158,14 @@ export async function getEventById({ request, eventId }) {
         Query.equal("game_id", eventId),
     ]);
 
-    const recognitionPromise = Promise.all([awardsPromise, votesPromise]).then(
-        ([awards, votes]) => ({
-            awards,
-            votes,
-        }),
-    );
-
-    const deferredData = Promise.all([
-        playersPromise,
-        parkPromise,
-        attendancePromise,
-    ]).then(([players, park, attendance]) => ({
-        players,
-        park,
-        attendance,
-    }));
+    const deferredData = {
+        players: playersPromise,
+        park: parkPromise,
+        attendance: attendancePromise,
+    };
 
     return {
+        awardsPromise,
         deferredData,
         game: {
             ...game,
@@ -183,11 +173,11 @@ export async function getEventById({ request, eventId }) {
             playerChart: JSON.parse(JSON.parse(playerChart)),
         },
         managerIds,
-        recognitionPromise,
         season,
         teams,
         // Deferred data for weather, but is conditional so we didn't add it to the deferredData
         weatherPromise: getWeatherData(parkId, game),
+        votesPromise,
     };
 }
 
