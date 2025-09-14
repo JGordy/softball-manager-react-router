@@ -72,8 +72,16 @@ export default function EventDetails({ loaderData, actionData }) {
         navigation.state === "submitting" &&
         navigation.formData?.get("_action") === "delete-game";
 
-    const { game, deferredData, managerIds, season, teams, weatherPromise } =
-        loaderData;
+    const {
+        awardsPromise,
+        game,
+        deferredData,
+        managerIds,
+        season,
+        teams,
+        votesPromise,
+        weatherPromise,
+    } = loaderData;
 
     const team = teams?.[0];
     const managerView = managerIds.includes(currentUserId);
@@ -127,7 +135,11 @@ export default function EventDetails({ loaderData, actionData }) {
             />
 
             {gameIsPast ? (
-                <AwardsContainer />
+                <AwardsContainer
+                    awardsPromise={awardsPromise}
+                    // deferredData={deferredData}
+                    votesPromise={votesPromise}
+                />
             ) : (
                 <WeatherCard
                     gameDate={gameDate}
