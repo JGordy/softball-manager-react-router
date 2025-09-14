@@ -19,7 +19,6 @@ export default function AwardsContainer({
     const promises = useMemo(
         () => ({
             awards: awardsPromise,
-            players: playersPromise,
             votes: votesPromise,
         }),
         [awardsPromise, playersPromise, votesPromise],
@@ -75,7 +74,7 @@ export default function AwardsContainer({
                 title="Awards & Recognition"
             >
                 <DeferredLoader
-                    resolve={promises}
+                    resolve={{ ...promises, players: playersPromise }}
                     fallback={
                         <div>
                             <Skeleton height={24} mt="5px" radius="xl" />
