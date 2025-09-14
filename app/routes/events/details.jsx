@@ -77,6 +77,7 @@ export default function EventDetails({ loaderData, actionData }) {
         game,
         deferredData,
         managerIds,
+        playersPromise,
         season,
         teams,
         votesPromise,
@@ -137,6 +138,7 @@ export default function EventDetails({ loaderData, actionData }) {
             {gameIsPast ? (
                 <AwardsContainer
                     awardsPromise={awardsPromise}
+                    playersPromise={playersPromise}
                     // deferredData={deferredData}
                     votesPromise={votesPromise}
                 />
