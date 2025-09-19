@@ -165,6 +165,7 @@ export async function getEventById({ request, eventId }) {
     };
 
     return {
+        attendancePromise,
         awardsPromise,
         deferredData,
         game: {
