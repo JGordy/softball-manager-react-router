@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { Card, Skeleton, Text } from "@mantine/core";
+
+import { Card, Image, Skeleton, Stack, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
 import { IconAward } from "@tabler/icons-react";
@@ -7,22 +8,14 @@ import { IconAward } from "@tabler/icons-react";
 import DeferredLoader from "@/components/DeferredLoader";
 import DrawerContainer from "@/components/DrawerContainer";
 
+import images from "@/constants/images";
+
 import CardSection from "./CardSection";
 
-export default function AwardsContainer({
-    awardsPromise,
-    playersPromise,
-    votesPromise,
-}) {
-    const [awardsDrawerOpened, awardsDrawerHandlers] = useDisclosure(false);
+import addPlayerAvailability from "../utils/addPlayerAvailability";
 
-    const promises = useMemo(
-        () => ({
-            awards: awardsPromise,
-            votes: votesPromise,
-        }),
-        [awardsPromise, playersPromise, votesPromise],
-    );
+export default function AwardsContainer({ promises, playersPromise }) {
+    const [awardsDrawerOpened, awardsDrawerHandlers] = useDisclosure(false);
 
     return (
         <>
@@ -72,13 +65,15 @@ export default function AwardsContainer({
                 opened={awardsDrawerOpened}
                 onClose={awardsDrawerHandlers.close}
                 title="Awards & Recognition"
+                size="xl"
             >
                 <DeferredLoader
                     resolve={{ ...promises, players: playersPromise }}
                     fallback={
-                        <div>
-                            <Skeleton height={24} mt="5px" radius="xl" />
-                        </div>
+                        <Stack align="stretch" justify="center" gap="md">
+                            <Skeleton height={100} circle />
+                            <Skeleton height={24} radius="xl" />
+                        </Stack>
                     }
                     errorElement={
                         <div>
@@ -86,10 +81,28 @@ export default function AwardsContainer({
                         </div>
                     }
                 >
-                    {({ awards, players, votes }) => {
-                        console.log("Drawer: ", { awards, players, votes });
+                    {({ attendance, awards, players, votes }) => {
+                        const playersWithAvailability = addPlayerAvailability(
+                            attendance.documents,
+                            players,
+                        );
+                        console.log("Drawer: ", {
+                            playersWithAvailability,
+                            awards,
+                            votes,
+                        });
                         // Render your actual drawer content here using the resolved data
-                        return <div>Awards Content Goes Here</div>;
+                        return (
+                            <Stack justify="center" align="center">
+                                <Image
+                                    src={images.gameMvp}
+                                    alt="MVP Icon"
+                                    mah={200}
+                                    maw={200}
+                                />
+                                Awards Content Goes Here
+                            </Stack>
+                        );
                     }}
                 </DeferredLoader>
             </DrawerContainer>

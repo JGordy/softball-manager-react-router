@@ -73,6 +73,7 @@ export default function EventDetails({ loaderData, actionData }) {
         navigation.formData?.get("_action") === "delete-game";
 
     const {
+        attendancePromise,
         awardsPromise,
         game,
         deferredData,
@@ -137,10 +138,12 @@ export default function EventDetails({ loaderData, actionData }) {
 
             {gameIsPast ? (
                 <AwardsContainer
-                    awardsPromise={awardsPromise}
+                    promises={{
+                        awards: awardsPromise,
+                        attendance: attendancePromise,
+                        votes: votesPromise,
+                    }}
                     playersPromise={playersPromise}
-                    // deferredData={deferredData}
-                    votesPromise={votesPromise}
                 />
             ) : (
                 <WeatherCard
