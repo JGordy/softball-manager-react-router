@@ -1,6 +1,7 @@
-import { useMemo } from "react";
+import { useState } from "react";
 
-import { Card, Image, Skeleton, Stack, Text } from "@mantine/core";
+import { Card, Center, Image, Skeleton, Stack, Text } from "@mantine/core";
+import { Carousel } from "@mantine/carousel";
 import { useDisclosure } from "@mantine/hooks";
 
 import { IconAward } from "@tabler/icons-react";
@@ -13,6 +14,63 @@ import images from "@/constants/images";
 import CardSection from "./CardSection";
 
 import addPlayerAvailability from "../utils/addPlayerAvailability";
+
+const awardsArray = [
+    "mvp",
+    "hitting",
+    "fielding",
+    "running",
+    "throwing",
+    "manager",
+];
+
+function AwardsDrawerContents({ attendance, awards, players, votes }) {
+    const [activeAward, setActiveAward] = useState("mvp");
+    console.log({ activeAward });
+
+    const playersWithAvailability = addPlayerAvailability(
+        attendance.documents,
+        players,
+    );
+
+    console.log("Drawer: ", {
+        playersWithAvailability,
+        awards,
+        votes,
+    });
+
+    return (
+        <Stack justify="center" align="stretch">
+            <Carousel
+                controlsOffset="xs"
+                slideSize="75%"
+                slideGap="md"
+                emblaOptions={{
+                    loop: true,
+                    dragFree: false,
+                    align: "center",
+                }}
+                onSlideChange={(index) => setActiveAward(awardsArray[index])}
+            >
+                {awardsArray.map((key) => (
+                    <Carousel.Slide key={key}>
+                        <Card radius="xl" my="sm">
+                            <Center>
+                                <Image
+                                    src={images[key]}
+                                    alt={`${images[key]} icon`}
+                                    mah={175}
+                                    maw={175}
+                                />
+                            </Center>
+                        </Card>
+                    </Carousel.Slide>
+                ))}
+            </Carousel>
+            <Text>Content for {activeAward} award here...</Text>
+        </Stack>
+    );
+}
 
 export default function AwardsContainer({ promises, playersPromise }) {
     const [awardsDrawerOpened, awardsDrawerHandlers] = useDisclosure(false);
@@ -71,7 +129,7 @@ export default function AwardsContainer({ promises, playersPromise }) {
                     resolve={{ ...promises, players: playersPromise }}
                     fallback={
                         <Stack align="stretch" justify="center" gap="md">
-                            <Skeleton height={100} circle />
+                            <Skeleton height={200} radius="xl" my="lg" />
                             <Skeleton height={24} radius="xl" />
                         </Stack>
                     }
@@ -81,29 +139,9 @@ export default function AwardsContainer({ promises, playersPromise }) {
                         </div>
                     }
                 >
-                    {({ attendance, awards, players, votes }) => {
-                        const playersWithAvailability = addPlayerAvailability(
-                            attendance.documents,
-                            players,
-                        );
-                        console.log("Drawer: ", {
-                            playersWithAvailability,
-                            awards,
-                            votes,
-                        });
-                        // Render your actual drawer content here using the resolved data
-                        return (
-                            <Stack justify="center" align="center">
-                                <Image
-                                    src={images.gameMvp}
-                                    alt="MVP Icon"
-                                    mah={200}
-                                    maw={200}
-                                />
-                                Awards Content Goes Here
-                            </Stack>
-                        );
-                    }}
+                    {(deferredData) => (
+                        <AwardsDrawerContents {...deferredData} />
+                    )}
                 </DeferredLoader>
             </DrawerContainer>
         </>
