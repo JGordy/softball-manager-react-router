@@ -19,7 +19,7 @@ const PlayerChart = ({ playerChart }) => {
             },
             ...Array.from({ length: 7 }, (_, i) => ({
                 accessor: `inning${i + 1}`,
-                title: `Inning ${i + 1}`,
+                title: `${i + 1}`,
             })),
         ],
         [],
@@ -45,7 +45,12 @@ const PlayerChart = ({ playerChart }) => {
 
     return (
         <div className={styles.tableContainer}>
-            <ScrollArea.Autosize mah={450} scrollbars={false}>
+            <ScrollArea.Autosize
+                miw={650}
+                mah={450}
+                scrollbars={false}
+                offsetScrollbars
+            >
                 <Table stickyHeader withTableBorder withColumnBorders striped>
                     <Table.Thead className={styles.header}>
                         <Table.Tr>
