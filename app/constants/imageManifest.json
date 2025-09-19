@@ -3,10 +3,10 @@
     "fieldBgSrc": "68793d820012b4a23cb3",
     "gloveActionSrc": "68794f7e003ca3fe9a8e",
     "batBallSrc": "687a8cb40025ea271333",
-    "killerGlove": "68cd9c5400008b18a876",
-    "bigBat": "68cd9c32002334035da5",
-    "gameMaster": "68cd9c460002e2041143",
-    "speedster": "68cd9c650005c2c46f19",
-    "aceArm": "68cd9c3c0004f7e97229",
-    "gameMvp": "68cd9f3d002eca3876a1"
+    "fielding": "68cd9c5400008b18a876",
+    "hitting": "68cd9c32002334035da5",
+    "manager": "68cd9c460002e2041143",
+    "running": "68cd9c650005c2c46f19",
+    "throwing": "68cd9c3c0004f7e97229",
+    "mvp": "68cd9f3d002eca3876a1"
 }
