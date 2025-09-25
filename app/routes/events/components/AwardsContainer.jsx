@@ -15,14 +15,32 @@ import CardSection from "./CardSection";
 
 import addPlayerAvailability from "../utils/addPlayerAvailability";
 
-const awardsArray = [
-    "mvp",
-    "hitting",
-    "fielding",
-    "running",
-    "throwing",
-    "manager",
-];
+const awardsMap = {
+    mvp: {
+        description:
+            "The one who brings it all together with outstanding performance and team leadership.",
+    },
+    hitting: {
+        description:
+            "For the player who consistently crushes the ball and racks up the RBIs.",
+    },
+    fielding: {
+        description:
+            "Awarded to the defensive wizard who makes the impossible plays look easy.",
+    },
+    running: {
+        description:
+            "To the speedster who turns singles into doubles and scores from anywhere.",
+    },
+    throwing: {
+        description:
+            "For the player with the most accurate and powerful arm on the field.",
+    },
+    manager: {
+        description:
+            "The strategic genius who leads the team to victory with brilliant decisions.",
+    },
+};
 
 function AwardsDrawerContents({ attendance, awards, players, votes }) {
     const [activeAward, setActiveAward] = useState("mvp");
@@ -39,6 +57,9 @@ function AwardsDrawerContents({ attendance, awards, players, votes }) {
         votes,
     });
 
+    const awardsList = Object.keys(awardsMap);
+    console.log({ awardsList });
+
     return (
         <Stack justify="center" align="stretch">
             <Carousel
@@ -50,9 +71,9 @@ function AwardsDrawerContents({ attendance, awards, players, votes }) {
                     dragFree: false,
                     align: "center",
                 }}
-                onSlideChange={(index) => setActiveAward(awardsArray[index])}
+                onSlideChange={(index) => setActiveAward(awardsList[index])}
             >
-                {awardsArray.map((key) => (
+                {awardsList.map((key) => (
                     <Carousel.Slide key={key}>
                         <Card radius="xl" my="sm">
                             <Center>
@@ -67,7 +88,7 @@ function AwardsDrawerContents({ attendance, awards, players, votes }) {
                     </Carousel.Slide>
                 ))}
             </Carousel>
-            <Text>Content for {activeAward} award here...</Text>
+            <Text ta="center">{awardsMap[activeAward].description}</Text>
         </Stack>
     );
 }
@@ -130,7 +151,9 @@ export default function AwardsContainer({ promises, playersPromise }) {
                     fallback={
                         <Stack align="stretch" justify="center" gap="md">
                             <Skeleton height={200} radius="xl" my="lg" />
-                            <Skeleton height={24} radius="xl" />
+                            <Skeleton height={24} radius="xl" mb="md" />
+                            <Skeleton height={24} radius="xl" mb="md" />
+                            <Skeleton height={24} radius="xl" mb="md" />
                         </Stack>
                     }
                     errorElement={
