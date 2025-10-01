@@ -88,7 +88,9 @@ function AwardsDrawerContents({ attendance, awards, players, votes }) {
                     </Carousel.Slide>
                 ))}
             </Carousel>
-            <Text ta="center">{awardsMap[activeAward].description}</Text>
+            <Card radius="lg">
+                <Text ta="center">{awardsMap[activeAward].description}</Text>
+            </Card>
         </Stack>
     );
 }
