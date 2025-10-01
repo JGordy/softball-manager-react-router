@@ -1,6 +1,15 @@
 import { useState } from "react";
 
-import { Card, Center, Image, Skeleton, Stack, Text } from "@mantine/core";
+import {
+    Card,
+    Center,
+    Group,
+    Image,
+    Radio,
+    Skeleton,
+    Stack,
+    Text,
+} from "@mantine/core";
 import { Carousel } from "@mantine/carousel";
 import { useDisclosure } from "@mantine/hooks";
 
@@ -44,7 +53,14 @@ const awardsMap = {
 
 function AwardsDrawerContents({ attendance, awards, players, votes }) {
     const [activeAward, setActiveAward] = useState("mvp");
-    console.log({ activeAward });
+    const [playerVotes, setPlayerVotes] = useState({});
+
+    const handleVote = (award, playerId) => {
+        setPlayerVotes((prevVotes) => ({
+            ...prevVotes,
+            [award]: playerId,
+        }));
+    };
 
     const playersWithAvailability = addPlayerAvailability(
         attendance.documents,
@@ -55,6 +71,7 @@ function AwardsDrawerContents({ attendance, awards, players, votes }) {
         playersWithAvailability,
         awards,
         votes,
+        playerVotes,
     });
 
     const awardsList = Object.keys(awardsMap);
@@ -64,7 +81,7 @@ function AwardsDrawerContents({ attendance, awards, players, votes }) {
         <Stack justify="center" align="stretch">
             <Carousel
                 controlsOffset="xs"
-                slideSize="75%"
+                slideSize="80%"
                 slideGap="md"
                 emblaOptions={{
                     loop: true,
@@ -80,8 +97,8 @@ function AwardsDrawerContents({ attendance, awards, players, votes }) {
                                 <Image
                                     src={images[key]}
                                     alt={`${images[key]} icon`}
-                                    mah={175}
-                                    maw={175}
+                                    mah={150}
+                                    maw={150}
                                 />
                             </Center>
                         </Card>
@@ -89,8 +106,39 @@ function AwardsDrawerContents({ attendance, awards, players, votes }) {
                 ))}
             </Carousel>
             <Card radius="lg">
-                <Text ta="center">{awardsMap[activeAward].description}</Text>
+                <Text ta="center" size="sm">
+                    {awardsMap[activeAward].description}
+                </Text>
             </Card>
+
+            <Stack mt="md">
+                <Text fw="bold" mb="sm">
+                    Vote for a Player:
+                </Text>
+                <Radio.Group
+                    value={playerVotes[activeAward]}
+                    onChange={(value) => handleVote(activeAward, value)}
+                >
+                    <Stack>
+                        {playersWithAvailability.map((player) => (
+                            <Radio.Card
+                                key={player.$id}
+                                value={player.$id}
+                                radius="lg"
+                            >
+                                <Card radius="lg" py="sm" px="md">
+                                    <Group>
+                                        <Radio.Indicator />
+                                        <Text>
+                                            {player.firstName} {player.lastName}
+                                        </Text>
+                                    </Group>
+                                </Card>
+                            </Radio.Card>
+                        ))}
+                    </Stack>
+                </Radio.Group>
+            </Stack>
         </Stack>
     );
 }
@@ -146,7 +194,7 @@ export default function AwardsContainer({ promises, playersPromise }) {
                 opened={awardsDrawerOpened}
                 onClose={awardsDrawerHandlers.close}
                 title="Awards & Recognition"
-                size="xl"
+                size="95%"
             >
                 <DeferredLoader
                     resolve={{ ...promises, players: playersPromise }}
