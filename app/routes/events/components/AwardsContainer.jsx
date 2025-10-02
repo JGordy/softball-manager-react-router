@@ -20,6 +20,8 @@ import DrawerContainer from "@/components/DrawerContainer";
 
 import images from "@/constants/images";
 
+import classes from "@/styles/inputs.module.css";
+
 import CardSection from "./CardSection";
 
 import addPlayerAvailability from "../utils/addPlayerAvailability";
@@ -122,8 +124,12 @@ function AwardsDrawerContents({ attendance, awards, players, votes }) {
                     <Stack>
                         {playersWithAvailability.map((player) => (
                             <Radio.Card
+                                className={classes.radioCard}
                                 key={player.$id}
                                 value={player.$id}
+                                checked={
+                                    playerVotes[activeAward] === player.$id
+                                }
                                 radius="lg"
                             >
                                 <Card radius="lg" py="sm" px="md">
