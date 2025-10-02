@@ -15,6 +15,7 @@ import {
     updateGame,
 } from "@/actions/games";
 import { updatePlayerAttendance } from "@/actions/attendance";
+import { sendAwardVotes } from "@/actions/awards";
 
 import { getEventById } from "@/loaders/games";
 
@@ -33,6 +34,7 @@ export async function action({ request, params }) {
     const { eventId } = params;
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
+    console.log({ _action, values });
 
     if (_action === "update-game") {
         return updateGame({ eventId, values });
@@ -48,6 +50,9 @@ export async function action({ request, params }) {
     }
     if (_action === "update-attendance") {
         return updatePlayerAttendance({ eventId, values });
+    }
+    if (_action === "send-votes") {
+        return sendAwardVotes({ eventId, values });
     }
 }
 
@@ -138,6 +143,9 @@ export default function EventDetails({ loaderData, actionData }) {
 
             {gameIsPast ? (
                 <AwardsContainer
+                    game={game}
+                    team={team}
+                    user={user}
                     promises={{
                         awards: awardsPromise,
                         attendance: attendancePromise,

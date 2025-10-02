@@ -1,11 +1,14 @@
 import { useState } from "react";
+import { Form, useSubmit } from "react-router";
 
 import {
+    Button,
     Card,
     Center,
     Group,
     Image,
     Radio,
+    ScrollArea,
     Skeleton,
     Stack,
     Text,
@@ -31,7 +34,7 @@ const awardsMap = {
         description:
             "The one who brings it all together with outstanding performance and team leadership.",
     },
-    hitting: {
+    batting: {
         description:
             "For the player who consistently crushes the ball and racks up the RBIs.",
     },
@@ -39,7 +42,7 @@ const awardsMap = {
         description:
             "Awarded to the defensive wizard who makes the impossible plays look easy.",
     },
-    running: {
+    baserunning: {
         description:
             "To the speedster who turns singles into doubles and scores from anywhere.",
     },
@@ -53,9 +56,19 @@ const awardsMap = {
     },
 };
 
-function AwardsDrawerContents({ attendance, awards, players, votes }) {
+function AwardsDrawerContents({
+    attendance,
+    awards,
+    game,
+    team,
+    players,
+    user,
+    votes,
+}) {
     const [activeAward, setActiveAward] = useState("mvp");
     const [playerVotes, setPlayerVotes] = useState({});
+
+    const submit = useSubmit();
 
     const handleVote = (award, playerId) => {
         setPlayerVotes((prevVotes) => ({
@@ -78,6 +91,20 @@ function AwardsDrawerContents({ attendance, awards, players, votes }) {
 
     const awardsList = Object.keys(awardsMap);
     console.log({ awardsList });
+
+    const handleSubmit = (event) => {
+        console.log({ playerVotes });
+
+        event.preventDefault();
+
+        const formData = new FormData();
+        formData.append("playerVotes", JSON.stringify(playerVotes));
+        formData.append("_action", "send-votes");
+        formData.append("team_id", team.$id);
+        formData.append("voter_user_id", user.$id);
+
+        submit(formData, { action: `/events/${game.$id}`, method: "post" });
+    };
 
     return (
         <Stack justify="center" align="stretch">
@@ -107,49 +134,69 @@ function AwardsDrawerContents({ attendance, awards, players, votes }) {
                     </Carousel.Slide>
                 ))}
             </Carousel>
-            <Card radius="lg">
-                <Text ta="center" size="sm">
-                    {awardsMap[activeAward].description}
-                </Text>
-            </Card>
+            <Form method="post" onSubmit={handleSubmit}>
+                <ScrollArea.Autosize h="50vh">
+                    <Card radius="lg">
+                        <Text ta="center" size="sm">
+                            {awardsMap[activeAward].description}
+                        </Text>
+                    </Card>
 
-            <Stack mt="md">
-                <Text fw="bold" mb="sm">
-                    Vote for a Player:
-                </Text>
-                <Radio.Group
-                    value={playerVotes[activeAward]}
-                    onChange={(value) => handleVote(activeAward, value)}
-                >
-                    <Stack>
-                        {playersWithAvailability.map((player) => (
-                            <Radio.Card
-                                className={classes.radioCard}
-                                key={player.$id}
-                                value={player.$id}
-                                checked={
-                                    playerVotes[activeAward] === player.$id
-                                }
-                                radius="lg"
-                            >
-                                <Card radius="lg" py="sm" px="md">
-                                    <Group>
-                                        <Radio.Indicator />
-                                        <Text>
-                                            {player.firstName} {player.lastName}
-                                        </Text>
-                                    </Group>
-                                </Card>
-                            </Radio.Card>
-                        ))}
+                    <Stack mt="md" justify="space-between">
+                        <Text fw="bold">Vote for a Player:</Text>
+                        <Radio.Group
+                            value={playerVotes[activeAward]}
+                            onChange={(value) => handleVote(activeAward, value)}
+                        >
+                            <Stack>
+                                {playersWithAvailability.map((player) => (
+                                    <Radio.Card
+                                        className={classes.radioCard}
+                                        key={player.$id}
+                                        value={player.$id}
+                                        checked={
+                                            playerVotes[activeAward] ===
+                                            player.$id
+                                        }
+                                        radius="lg"
+                                    >
+                                        <Card radius="lg" py="sm" px="md">
+                                            <Group>
+                                                <Radio.Indicator />
+                                                <Text>
+                                                    {player.firstName}{" "}
+                                                    {player.lastName}
+                                                </Text>
+                                            </Group>
+                                        </Card>
+                                    </Radio.Card>
+                                ))}
+                            </Stack>
+                        </Radio.Group>
                     </Stack>
-                </Radio.Group>
-            </Stack>
+                </ScrollArea.Autosize>
+                <Button
+                    variant="filled"
+                    radius="xl"
+                    mt="md"
+                    type="submit"
+                    autoContrast
+                    fullWidth
+                >
+                    Submit Votes
+                </Button>
+            </Form>
         </Stack>
     );
 }
 
-export default function AwardsContainer({ promises, playersPromise }) {
+export default function AwardsContainer({
+    game,
+    team,
+    promises,
+    playersPromise,
+    user,
+}) {
     const [awardsDrawerOpened, awardsDrawerHandlers] = useDisclosure(false);
 
     return (
@@ -219,7 +266,12 @@ export default function AwardsContainer({ promises, playersPromise }) {
                     }
                 >
                     {(deferredData) => (
-                        <AwardsDrawerContents {...deferredData} />
+                        <AwardsDrawerContents
+                            game={game}
+                            team={team}
+                            user={user}
+                            {...deferredData}
+                        />
                     )}
                 </DeferredLoader>
             </DrawerContainer>
