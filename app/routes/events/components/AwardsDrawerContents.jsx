@@ -62,13 +62,6 @@ export default function AwardsDrawerContents({
         players,
     );
 
-    console.log("Drawer: ", {
-        playersWithAvailability,
-        awards,
-        votes,
-        playerVotes,
-    });
-
     const awardsList = Object.keys(awardsMap);
 
     const handleSubmit = (event) => {
