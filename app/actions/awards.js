@@ -9,13 +9,39 @@ export async function sendAwardVotes({ values, eventId }) {
     const categories = votes && Object.keys(votes);
 
     const promises = categories.map((category) => {
-        return createDocument("votes", ID.unique(), {
-            ...rest,
-            game_id: eventId,
-            nominated_user_id: votes[category],
-            reason: category,
-        });
+        const vote = votes[category];
+        if (vote.vote_id) {
+            return updateDocument("votes", vote.vote_id, {
+                nominated_user_id: vote.nominated_user_id,
+            });
+        } else {
+            return createDocument("votes", ID.unique(), {
+                ...rest,
+                game_id: eventId,
+                nominated_user_id: vote.nominated_user_id,
+                reason: category,
+            });
+        }
     });
 
     return await Promise.all(promises);
+}
+
+export async function updateAwardVote({ voteId, values }) {
+    if (voteId && values) {
+        const parsedVoteDetails = JSON.parse(values);
+
+        try {
+            const voteDetails = await updateDocument(
+                "votes",
+                voteId,
+                parsedVoteDetails,
+            );
+
+            return { response: { voteDetails }, status: 204, success: true };
+        } catch (error) {
+            console.error("Error updating vote:", error);
+            throw error;
+        }
+    }
 }
