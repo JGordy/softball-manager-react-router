@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Form, useSubmit } from "react-router";
+import { useFetcher } from "react-router";
 
 import {
     Button,
@@ -51,7 +51,16 @@ export default function AwardsDrawerContents({
         }
     }, [votes, user.$id]);
 
-    const submit = useSubmit();
+    const fetcher = useFetcher();
+    console.log({ fetcher });
+
+    // This effect will close the collapse after a successful submission.
+    useEffect(() => {
+        // Check for a successful action response from the fetcher
+        if (fetcher.state === "idle" && fetcher.data?.success) {
+            console.log("success");
+        }
+    }, [fetcher.state, fetcher.data]);
 
     const handleVote = (award, playerId) => {
         setPlayerVotes((prevVotes) => ({
@@ -63,26 +72,30 @@ export default function AwardsDrawerContents({
         }));
     };
 
+    const handleSubmit = (event) => {
+        console.log({ playerVotes });
+        try {
+            const formData = new FormData();
+            formData.append("playerVotes", JSON.stringify(playerVotes));
+            formData.append("_action", "send-votes");
+            formData.append("team_id", team.$id);
+            formData.append("voter_user_id", user.$id);
+
+            fetcher.submit(formData, {
+                action: `/events/${game.$id}`,
+                method: "post",
+            });
+        } catch (error) {
+            console.error("Error submitting votes:", error);
+        }
+    };
+
     const playersWithAvailability = addPlayerAvailability(
         attendance.documents,
         players,
     );
 
     const awardsList = Object.keys(awardsMap);
-
-    const handleSubmit = (event) => {
-        console.log({ playerVotes });
-
-        event.preventDefault();
-
-        const formData = new FormData();
-        formData.append("playerVotes", JSON.stringify(playerVotes));
-        formData.append("_action", "send-votes");
-        formData.append("team_id", team.$id);
-        formData.append("voter_user_id", user.$id);
-
-        submit(formData, { action: `/events/${game.$id}`, method: "post" });
-    };
 
     return (
         <Stack justify="center" align="stretch">
@@ -113,59 +126,58 @@ export default function AwardsDrawerContents({
                 ))}
             </Carousel>
 
-            <Form method="post" onSubmit={handleSubmit}>
-                <ScrollArea.Autosize h="50vh">
-                    <Card radius="lg">
-                        <Text ta="center" size="sm">
-                            {awardsMap[activeAward].description}
-                        </Text>
-                    </Card>
+            <ScrollArea.Autosize h="50vh">
+                <Card radius="lg">
+                    <Text ta="center" size="sm">
+                        {awardsMap[activeAward].description}
+                    </Text>
+                </Card>
 
-                    <Stack mt="md" justify="space-between">
-                        <Text fw="bold">Vote for a Player:</Text>
-                        <Radio.Group
-                            value={playerVotes[activeAward]?.nominated_user_id}
-                            onChange={(value) => handleVote(activeAward, value)}
-                        >
-                            <Stack>
-                                {playersWithAvailability.map((player) => (
-                                    <Radio.Card
-                                        className={classes.radioCard}
-                                        key={player.$id}
-                                        value={player.$id}
-                                        checked={
-                                            playerVotes[activeAward]
-                                                ?.nominated_user_id ===
-                                            player.$id
-                                        }
-                                        radius="lg"
-                                    >
-                                        <Card radius="lg" py="sm" px="md">
-                                            <Group>
-                                                <Radio.Indicator />
-                                                <Text>
-                                                    {player.firstName}{" "}
-                                                    {player.lastName}
-                                                </Text>
-                                            </Group>
-                                        </Card>
-                                    </Radio.Card>
-                                ))}
-                            </Stack>
-                        </Radio.Group>
-                    </Stack>
-                </ScrollArea.Autosize>
-                <Button
-                    variant="filled"
-                    radius="xl"
-                    mt="md"
-                    type="submit"
-                    autoContrast
-                    fullWidth
-                >
-                    Submit Votes
-                </Button>
-            </Form>
+                <Stack mt="md" justify="space-between">
+                    <Text fw="bold">Vote for a Player:</Text>
+                    <Radio.Group
+                        value={playerVotes[activeAward]?.nominated_user_id}
+                        onChange={(value) => handleVote(activeAward, value)}
+                    >
+                        <Stack>
+                            {playersWithAvailability.map((player) => (
+                                <Radio.Card
+                                    className={classes.radioCard}
+                                    key={player.$id}
+                                    value={player.$id}
+                                    checked={
+                                        playerVotes[activeAward]
+                                            ?.nominated_user_id === player.$id
+                                    }
+                                    radius="lg"
+                                >
+                                    <Card radius="lg" py="sm" px="md">
+                                        <Group>
+                                            <Radio.Indicator />
+                                            <Text>
+                                                {player.firstName}{" "}
+                                                {player.lastName}
+                                            </Text>
+                                        </Group>
+                                    </Card>
+                                </Radio.Card>
+                            ))}
+                        </Stack>
+                    </Radio.Group>
+                </Stack>
+            </ScrollArea.Autosize>
+            <Button
+                variant="filled"
+                radius="xl"
+                mt="md"
+                type="submit"
+                loading={fetcher.state === "submitting"}
+                onClick={handleSubmit}
+                autoContrast
+                fullWidth
+            >
+                Submit Votes
+            </Button>
         </Stack>
     );
 }
