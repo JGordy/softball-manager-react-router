@@ -40,7 +40,10 @@ export default function AwardsDrawerContents({
             );
 
             const initialVotes = userVotes.reduce((acc, vote) => {
-                acc[vote.reason] = vote.nominated_user_id;
+                acc[vote.reason] = {
+                    nominated_user_id: vote.nominated_user_id,
+                    vote_id: vote.$id,
+                };
                 return acc;
             }, {});
 
@@ -53,7 +56,10 @@ export default function AwardsDrawerContents({
     const handleVote = (award, playerId) => {
         setPlayerVotes((prevVotes) => ({
             ...prevVotes,
-            [award]: playerId,
+            [award]: {
+                nominated_user_id: playerId,
+                vote_id: prevVotes[award]?.vote_id,
+            },
         }));
     };
 
@@ -118,7 +124,7 @@ export default function AwardsDrawerContents({
                     <Stack mt="md" justify="space-between">
                         <Text fw="bold">Vote for a Player:</Text>
                         <Radio.Group
-                            value={playerVotes[activeAward]}
+                            value={playerVotes[activeAward]?.nominated_user_id}
                             onChange={(value) => handleVote(activeAward, value)}
                         >
                             <Stack>
@@ -128,7 +134,8 @@ export default function AwardsDrawerContents({
                                         key={player.$id}
                                         value={player.$id}
                                         checked={
-                                            playerVotes[activeAward] ===
+                                            playerVotes[activeAward]
+                                                ?.nominated_user_id ===
                                             player.$id
                                         }
                                         radius="lg"
