@@ -15,6 +15,7 @@ import {
     updateGame,
 } from "@/actions/games";
 import { updatePlayerAttendance } from "@/actions/attendance";
+import { sendAwardVotes } from "@/actions/awards";
 
 import { getEventById } from "@/loaders/games";
 
@@ -22,10 +23,11 @@ import { getGameDayStatus } from "@/utils/dateTime";
 
 import useModal from "@/hooks/useModal";
 
-import MenuContainer from "./components/MenuContainer";
-import Scoreboard from "./components/Scoreboard";
+import AwardsContainer from "./components/AwardsContainer";
 import DetailsCard from "./components/DetailsCard";
+import MenuContainer from "./components/MenuContainer";
 import RosterDetails from "./components/RosterDetails";
+import Scoreboard from "./components/Scoreboard";
 import WeatherCard from "./components/WeatherCard";
 
 export async function action({ request, params }) {
@@ -47,6 +49,9 @@ export async function action({ request, params }) {
     }
     if (_action === "update-attendance") {
         return updatePlayerAttendance({ eventId, values });
+    }
+    if (_action === "send-votes") {
+        return sendAwardVotes({ eventId, values });
     }
 }
 
@@ -71,15 +76,26 @@ export default function EventDetails({ loaderData, actionData }) {
         navigation.state === "submitting" &&
         navigation.formData?.get("_action") === "delete-game";
 
-    const { game, deferredData, managerIds, season, teams, weatherPromise } =
-        loaderData;
+    const {
+        attendancePromise,
+        awardsPromise,
+        game,
+        deferredData,
+        managerIds,
+        playersPromise,
+        season,
+        teams,
+        votesPromise,
+        weatherPromise,
+    } = loaderData;
 
     const team = teams?.[0];
     const managerView = managerIds.includes(currentUserId);
 
     const { gameDate, playerChart, result } = game;
 
-    const gameDayStatus = getGameDayStatus(gameDate);
+    const gameDayStatus = getGameDayStatus(gameDate, true);
+    // const gameInProgress = gameDayStatus === "in progress";
     const gameIsPast = gameDayStatus === "past";
 
     useEffect(() => {
@@ -124,7 +140,19 @@ export default function EventDetails({ loaderData, actionData }) {
                 team={team}
             />
 
-            {!gameIsPast && (
+            {gameIsPast ? (
+                <AwardsContainer
+                    game={game}
+                    team={team}
+                    user={user}
+                    promises={{
+                        awards: awardsPromise,
+                        attendance: attendancePromise,
+                        votes: votesPromise,
+                    }}
+                    playersPromise={playersPromise}
+                />
+            ) : (
                 <WeatherCard
                     gameDate={gameDate}
                     weatherPromise={weatherPromise}

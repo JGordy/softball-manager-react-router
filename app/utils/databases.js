@@ -12,6 +12,8 @@ export const collections = {
     parks: import.meta.env.VITE_APPWRITE_PARKS_COLLECTION_ID,
     forms: import.meta.env.VITE_APPWRITE_FORMS_COLLECTION_ID,
     attendance: import.meta.env.VITE_APPWRITE_ATTENDANCE_COLLECTION_ID,
+    awards: import.meta.env.VITE_APPWRITE_GAME_AWARDS_COLLECTION_ID,
+    votes: import.meta.env.VITE_APPWRITE_GAME_VOTES_COLLECTION_ID,
 };
 
 // Helper function to create a document

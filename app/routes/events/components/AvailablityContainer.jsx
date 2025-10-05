@@ -179,7 +179,7 @@ export default function AvailabliityContainer({
     const { user } = useOutletContext();
     const currentUserId = user.$id;
 
-    const { gameDate, $id: gameId } = game;
+    const { gameDate } = game;
 
     const today = new Date();
     const gameDay = new Date(gameDate);
