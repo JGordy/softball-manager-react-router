@@ -9,6 +9,17 @@ import { combineDateTime } from "@/utils/dateTime";
 
 import { removeEmptyValues } from "./utils/formUtils";
 
+function computeResult(score, opponentScore) {
+    const a = parseInt(String(score).trim(), 10);
+    const b = parseInt(String(opponentScore).trim(), 10);
+
+    if (Number.isNaN(a) || Number.isNaN(b)) return undefined;
+
+    if (a > b) return "won";
+    if (a < b) return "lost";
+    return "tie";
+}
+
 export async function createSingleGame({ values }) {
     const { gameDate, gameTime, isHomeGame, ...gameData } = values;
 
@@ -81,15 +92,36 @@ export async function updateGame({ values, eventId }) {
         if (dataToUpdate.hasOwnProperty(key)) {
             const value = dataToUpdate[key];
 
-            const trimmedValue = value.trim();
+            const trimmedValue = String(value).trim();
             if (/^-?\d+$/.test(trimmedValue)) {
-                // Checks if string is an integer
+                // Keep as string (Appwrite stores strings in some places) but ensure trimmed
                 dataToUpdate[key] = trimmedValue;
             } else {
                 delete dataToUpdate[key]; // Delete invalid integer string
             }
         }
     });
+
+    // If both scores are present, compute and set the result
+    if (
+        dataToUpdate.hasOwnProperty("score") &&
+        dataToUpdate.hasOwnProperty("opponentScore")
+    ) {
+        const result = computeResult(
+            dataToUpdate.score,
+            dataToUpdate.opponentScore,
+        );
+
+        if (result) dataToUpdate.result = result;
+    }
+
+    // Normalize countTowardsRecord when provided from the form (checkbox/switch)
+    if (Object.prototype.hasOwnProperty.call(values, "countTowardsRecord")) {
+        dataToUpdate.countTowardsRecord =
+            values.countTowardsRecord === "true" ||
+            values.countTowardsRecord === "on" ||
+            values.countTowardsRecord === true;
+    }
 
     delete dataToUpdate.gameTime;
 
