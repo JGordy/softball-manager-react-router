@@ -1,4 +1,4 @@
-import { Group, NumberInput, Radio } from "@mantine/core";
+import { Group, NumberInput, Switch } from "@mantine/core";
 
 import FormWrapper from "./FormWrapper";
 
@@ -30,7 +30,7 @@ export default function AddGameResults({
             confirmText={confirmText}
         >
             <input type="hidden" name="teamId" value={teamId} />
-            <Group mb="md" justify="space-between" grow wrap="nowrap">
+            <Group mb="lg" justify="space-between" grow wrap="nowrap">
                 <NumberInput
                     {...numberInputProps}
                     label="Our Score"
@@ -44,19 +44,16 @@ export default function AddGameResults({
                     defaultValue={defaults?.opponentScore}
                 />
             </Group>
-            <Radio.Group
+            <Switch
                 mb="xl"
-                className={classes.inputs}
-                defaultValue={defaults?.result || "won"}
-                name="result"
-                label="Select the result for your team"
-            >
-                <Group mt="xs">
-                    <Radio color="green" value="won" label="Win" />
-                    <Radio color="red" value="lost" label="Loss" />
-                    <Radio color="yellow" value="tie" label="Tie" />
-                </Group>
-            </Radio.Group>
+                name="countTowardsRecord"
+                label="Counts towards record"
+                defaultChecked={
+                    typeof defaults?.countTowardstRecord === "boolean"
+                        ? defaults.countsTowardsRecord
+                        : true
+                }
+            />
         </FormWrapper>
     );
 }
