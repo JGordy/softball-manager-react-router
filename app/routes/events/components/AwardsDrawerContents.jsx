@@ -52,15 +52,6 @@ export default function AwardsDrawerContents({
     }, [votes, user.$id]);
 
     const fetcher = useFetcher();
-    console.log({ fetcher });
-
-    // This effect will close the collapse after a successful submission.
-    useEffect(() => {
-        // Check for a successful action response from the fetcher
-        if (fetcher.state === "idle" && fetcher.data?.success) {
-            console.log("success");
-        }
-    }, [fetcher.state, fetcher.data]);
 
     const handleVote = (award, playerId) => {
         setPlayerVotes((prevVotes) => ({
@@ -72,8 +63,7 @@ export default function AwardsDrawerContents({
         }));
     };
 
-    const handleSubmit = (event) => {
-        console.log({ playerVotes });
+    const handleSubmit = () => {
         try {
             const formData = new FormData();
             formData.append("playerVotes", JSON.stringify(playerVotes));
