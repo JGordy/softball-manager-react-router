@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useFetcher } from "react-router";
 
 import {
@@ -85,6 +85,40 @@ export default function AwardsDrawerContents({
         players,
     );
 
+    // Build a map of vote counts per award per player:
+    // { [award]: { [playerId]: count } }
+    const countsByAward = useMemo(() => {
+        const map = {};
+        if (!votes?.documents) return map;
+
+        votes.documents.forEach((vote) => {
+            const reason = vote.reason;
+            const playerId = vote.nominated_user_id;
+            if (!reason || !playerId) return;
+
+            if (!map[reason]) map[reason] = {};
+            map[reason][playerId] = (map[reason][playerId] || 0) + 1;
+        });
+
+        return map;
+    }, [votes]);
+
+    // For the currently active award, sort players by vote count (desc).
+    const sortedPlayersForActiveAward = useMemo(() => {
+        const counts = countsByAward[activeAward] || {};
+        return [...playersWithAvailability].sort((a, b) => {
+            const ca = counts[a.$id] || 0;
+            const cb = counts[b.$id] || 0;
+
+            if (cb !== ca) return cb - ca; // higher votes first
+
+            // tie-breaker: lastName then firstName
+            const last = (a.lastName || "").localeCompare(b.lastName || "");
+            if (last !== 0) return last;
+            return (a.firstName || "").localeCompare(b.firstName || "");
+        });
+    }, [playersWithAvailability, countsByAward, activeAward]);
+
     const awardsList = Object.keys(awardsMap);
 
     return (
@@ -130,28 +164,46 @@ export default function AwardsDrawerContents({
                         onChange={(value) => handleVote(activeAward, value)}
                     >
                         <Stack>
-                            {playersWithAvailability.map((player) => (
-                                <Radio.Card
-                                    className={classes.radioCard}
-                                    key={player.$id}
-                                    value={player.$id}
-                                    checked={
-                                        playerVotes[activeAward]
-                                            ?.nominated_user_id === player.$id
-                                    }
-                                    radius="lg"
-                                >
-                                    <Card radius="lg" py="sm" px="md">
-                                        <Group>
-                                            <Radio.Indicator />
-                                            <Text>
-                                                {player.firstName}{" "}
-                                                {player.lastName}
-                                            </Text>
-                                        </Group>
-                                    </Card>
-                                </Radio.Card>
-                            ))}
+                            {sortedPlayersForActiveAward.map((player) => {
+                                const count = countsByAward[activeAward]?.[
+                                    player.$id
+                                ]
+                                    ? countsByAward[activeAward][player.$id]
+                                    : 0;
+
+                                return (
+                                    <Radio.Card
+                                        className={classes.radioCard}
+                                        key={player.$id}
+                                        value={player.$id}
+                                        checked={
+                                            playerVotes[activeAward]
+                                                ?.nominated_user_id ===
+                                            player.$id
+                                        }
+                                        radius="lg"
+                                    >
+                                        <Card radius="lg" py="sm" px="md">
+                                            <Group justify="space-between">
+                                                <Group>
+                                                    <Radio.Indicator />
+                                                    <Text>
+                                                        {player.firstName}{" "}
+                                                        {player.lastName}
+                                                    </Text>
+                                                </Group>
+
+                                                {count > 0 && (
+                                                    <Text size="sm" c="dimmed">
+                                                        {count} vote
+                                                        {count === 1 ? "" : "s"}
+                                                    </Text>
+                                                )}
+                                            </Group>
+                                        </Card>
+                                    </Radio.Card>
+                                );
+                            })}
                         </Stack>
                     </Radio.Group>
                 </Stack>
