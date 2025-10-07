@@ -116,7 +116,7 @@ export default function AwardsDrawerContents({
                 ))}
             </Carousel>
 
-            <ScrollArea.Autosize h="50vh">
+            <ScrollArea.Autosize h="40vh">
                 <Card radius="lg">
                     <Text ta="center" size="sm">
                         {awardsMap[activeAward].description}
