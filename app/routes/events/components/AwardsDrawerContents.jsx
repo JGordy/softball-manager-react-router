@@ -210,9 +210,10 @@ export default function AwardsDrawerContents({
             </ScrollArea.Autosize>
             <Button
                 variant="filled"
-                radius="xl"
+                radius="md"
                 mt="md"
                 type="submit"
+                size="lg"
                 loading={fetcher.state === "submitting"}
                 onClick={handleSubmit}
                 autoContrast

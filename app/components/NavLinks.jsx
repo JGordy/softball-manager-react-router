@@ -123,7 +123,7 @@ function NavLinks() {
                 data={links}
                 fullWidth
                 onChange={handleNavLinkClick}
-                size="md"
+                size="lg"
                 radius="xl"
                 value={value}
                 transitionDuration={500}
