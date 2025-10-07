@@ -51,16 +51,28 @@ export default function AwardsContainer({
                             }
                         >
                             {({ awards, votes }) => {
-                                console.log("CardSection: ", { awards, votes });
+                                const awardsTotal = awards?.total ?? 0;
+                                const votesTotal = votes?.total ?? 0;
+
+                                let message = "Awards unavailable at this time";
+                                let color = "dimmed";
+
+                                if (awardsTotal > 0) {
+                                    message = "Awards ready for view";
+                                    color = "blue";
+                                } else if (votesTotal > 0) {
+                                    message = "Voting in progress";
+                                    color = "yellow";
+                                }
 
                                 return (
                                     <Text
                                         size="xs"
                                         mt="5px"
                                         ml="28px"
-                                        c="dimmed"
+                                        c={color}
                                     >
-                                        Awards unavailable at this time
+                                        {message}
                                     </Text>
                                 );
                             }}
