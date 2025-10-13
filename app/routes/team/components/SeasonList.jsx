@@ -93,9 +93,14 @@ export default function SeasonList({
         (season) => DateTime.fromISO(season.startDate) > today,
     );
     const pastSeasons = seasons
-        .filter((season) => DateTime.fromISO(season.endDate) < today)
+        .filter(
+            (season) =>
+                DateTime.fromISO(season.endDate).toMillis() < today.toMillis(),
+        )
         .sort(
-            (a, b) => DateTime.fromISO(b.endDate) - DateTime.fromISO(a.endDate),
+            (a, b) =>
+                DateTime.fromISO(b.endDate).toMillis() -
+                DateTime.fromISO(a.endDate).toMillis(),
         );
 
     const renderSeason = (season) => (

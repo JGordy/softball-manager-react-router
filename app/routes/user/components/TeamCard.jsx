@@ -32,7 +32,8 @@ export default function TeamCard({ team }) {
         // Create a shallow copy and sort seasons by start date, ascending
         const sortedSeasons = [...seasons].sort(
             (a, b) =>
-                DateTime.fromISO(a.startDate) - DateTime.fromISO(b.startDate),
+                DateTime.fromISO(a.startDate).toMillis() -
+                DateTime.fromISO(b.startDate).toMillis(),
         );
 
         const today = DateTime.local().startOf("day");

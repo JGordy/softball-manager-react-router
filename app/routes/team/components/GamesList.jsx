@@ -35,11 +35,15 @@ export default function GamesListContainer({
             seasonToDisplay = upcomingSeasons[0];
         } else {
             const pastSeasons = seasons
-                .filter((season) => DateTime.fromISO(season.endDate) < today)
+                .filter(
+                    (season) =>
+                        DateTime.fromISO(season.endDate).toMillis() <
+                        today.toMillis(),
+                )
                 .sort(
                     (a, b) =>
-                        DateTime.fromISO(b.endDate) -
-                        DateTime.fromISO(a.endDate),
+                        DateTime.fromISO(b.endDate).toMillis() -
+                        DateTime.fromISO(a.endDate).toMillis(),
                 );
             if (pastSeasons.length > 0) {
                 seasonToDisplay = pastSeasons[0];

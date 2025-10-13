@@ -44,11 +44,15 @@ export default function getGames({ teams, teamId }) {
 
     // Sort future games by earlier to later (using DateTime)
     futureGames.sort(
-        (a, b) => DateTime.fromISO(a.gameDate) - DateTime.fromISO(b.gameDate),
+        (a, b) =>
+            DateTime.fromISO(a.gameDate).toMillis() -
+            DateTime.fromISO(b.gameDate).toMillis(),
     );
     // Sort past games in reverse order
     pastGames.sort(
-        (a, b) => DateTime.fromISO(b.gameDate) - DateTime.fromISO(a.gameDate),
+        (a, b) =>
+            DateTime.fromISO(b.gameDate).toMillis() -
+            DateTime.fromISO(a.gameDate).toMillis(),
     );
 
     return { futureGames, pastGames };
