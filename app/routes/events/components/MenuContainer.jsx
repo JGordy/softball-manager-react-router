@@ -48,7 +48,7 @@ export default function MenuContainer({
                     action="update-game"
                     actionRoute={`/events/${game.$id}`}
                     defaults={{
-                        isHomeGame: "false",
+                        isHomeGame: game.isHomeGame,
                         gameTime: formatTime(game.gameDate, game.timeZone),
                         gameDate: game.gameDate,
                     }}
