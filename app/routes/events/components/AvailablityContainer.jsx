@@ -97,6 +97,7 @@ const AvailabilityOptionsContainer = ({
             pos="relative"
         >
             <LoadingOverlay
+                data-overlay={`availability-${player.$id}`}
                 visible={fetcher.state === "loading"}
                 overlayProps={{ blur: 2, radius: "md" }}
                 loaderProps={{ color: "green", type: "dots", size: "lg" }}

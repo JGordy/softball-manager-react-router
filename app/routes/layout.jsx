@@ -1,4 +1,4 @@
-import { memo, useState, useEffect } from "react";
+import { memo } from "react";
 
 import { Outlet, useNavigation } from "react-router";
 
@@ -62,37 +62,28 @@ function Layout({ loaderData }) {
 
     const isNavigating = navigation.state !== "idle";
 
-    const [overlayVisible, setOverlayVisible] = useState(isNavigating);
-
-    useEffect(() => {
-        let t;
-        if (isNavigating) {
-            // show immediately
-            setOverlayVisible(true);
-        } else {
-            // hide after a small delay to avoid flicker
-            t = setTimeout(() => setOverlayVisible(false), 100);
-        }
-
-        return () => {
-            if (t) clearTimeout(t);
-        };
-    }, [isNavigating]);
-    // no-op: overlayVisible is debounced from navigation.state to avoid flicker
-
     return (
         <div>
             <main>
                 <Notifications />
+
                 <LoadingOverlay
-                    visible={overlayVisible}
+                    data-overlay="layout"
+                    visible={isNavigating}
                     zIndex={500}
-                    loaderProps={{ color: "green", size: "xl", type: "dots" }}
+                    loaderProps={{
+                        color: "green",
+                        size: "xl",
+                        type: "dots",
+                        style: { display: isNavigating ? undefined : "none" },
+                    }}
                     overlayProps={{ radius: "sm", blur: 3 }}
                 />
+
                 <Container p="0" mih="90vh">
                     <Outlet context={{ ...loaderData }} />
                 </Container>
+
                 <NavLinks />
             </main>
         </div>
