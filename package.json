@@ -35,6 +35,7 @@
         "google-auth-library": "^9.15.1",
         "googleapis": "^146.0.0",
         "isbot": "^5.1.17",
+        "luxon": "^3.7.2",
         "node-appwrite": "^15.0.0",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
