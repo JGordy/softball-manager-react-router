@@ -10,6 +10,7 @@ import {
 } from "@tabler/icons-react";
 
 import { google, ics, outlook, office365 } from "calendar-link";
+import { formatForViewerTime, formatForViewerDate } from "@/utils/dateTime";
 
 const calendarMap = {
     google: {
@@ -49,19 +50,8 @@ export default function CalendarDetails({ game, park, team }) {
 
     const { isHomeGame, opponent, gameDate, location, timeZone } = game;
 
-    const parsedDate = new Date(gameDate);
-
-    const options = {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-    };
-
-    const gameStartTime = parsedDate.toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        timeZone,
+    const gameStartTime = formatForViewerTime(gameDate, timeZone, {
+        format: "h:mm a",
     });
 
     const event = {
@@ -86,7 +76,7 @@ export default function CalendarDetails({ game, park, team }) {
                         {gameStartTime}
                     </Text>
                     <Text size="sm">
-                        {parsedDate.toLocaleDateString("en-US", options)}
+                        {formatForViewerDate(gameDate, timeZone)}
                     </Text>
                 </div>
             </Flex>

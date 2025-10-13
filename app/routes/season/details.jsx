@@ -26,6 +26,7 @@ import { getSeasonById } from "@/loaders/seasons";
 import { getParkById } from "@/loaders/parks";
 
 import useModal from "@/hooks/useModal";
+import { formatForViewerDate } from "@/utils/dateTime";
 
 export async function loader({ params }) {
     const { seasonId } = params;
@@ -155,8 +156,8 @@ export default function SeasonDetails({ loaderData, actionData }) {
             <Divider my="md" size="sm" />
 
             <Text>
-                {new Date(season.startDate).toLocaleDateString()} -{" "}
-                {new Date(season.endDate).toLocaleDateString()}
+                {formatForViewerDate(season.startDate)} -{" "}
+                {formatForViewerDate(season.endDate)}
             </Text>
 
             <Group mt="sm" justify="space-between">

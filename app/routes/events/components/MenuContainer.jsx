@@ -12,7 +12,7 @@ import AddSingleGame from "@/forms/AddSingleGame";
 
 import useModal from "@/hooks/useModal";
 
-import { formatTime } from "@/utils/dateTime";
+import { formatForViewerTime } from "@/utils/dateTime";
 
 export default function MenuContainer({
     game = {},
@@ -49,7 +49,11 @@ export default function MenuContainer({
                     actionRoute={`/events/${game.$id}`}
                     defaults={{
                         isHomeGame: game.isHomeGame,
-                        gameTime: formatTime(game.gameDate, game.timeZone),
+                        gameTime: formatForViewerTime(
+                            game.gameDate,
+                            game.timeZone,
+                            { format: "HH:mm" },
+                        ),
                         gameDate: game.gameDate,
                     }}
                     teamId={team.$id}
