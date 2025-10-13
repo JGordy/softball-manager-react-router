@@ -24,7 +24,11 @@ export async function createSingleGame({ values }) {
     const { gameDate, gameTime, isHomeGame, ...gameData } = values;
 
     try {
-        const updatedGameDate = combineDateTime(gameDate, gameTime);
+        const updatedGameDate = combineDateTime(
+            gameDate,
+            gameTime,
+            values.timeZone,
+        );
 
         const updatedGameData = {
             ...gameData,
@@ -80,6 +84,7 @@ export async function updateGame({ values, eventId }) {
         dataToUpdate.gameDate = combineDateTime(
             values.gameDate,
             values.gameTime,
+            values.timeZone,
         );
     }
 

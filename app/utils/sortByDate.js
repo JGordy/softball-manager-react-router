@@ -1,21 +1,21 @@
+import { DateTime } from "luxon";
+
 export default function sortByDate(array, dateKey) {
     if (!array || !Array.isArray(array)) {
         return []; // Return empty array if input is invalid
     }
 
     return array.slice().sort((a, b) => {
-        const dateA = new Date(a[dateKey]);
-        const dateB = new Date(b[dateKey]);
+        const dateA = DateTime.fromISO(a[dateKey], { zone: "utc" });
+        const dateB = DateTime.fromISO(b[dateKey], { zone: "utc" });
 
-        // Handle invalid date values gracefully
-        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) {
-            return 0; // Both invalid, consider them equal
-        } else if (isNaN(dateA.getTime())) {
-            return 1; // dateA is invalid, dateB is valid, dateB comes first
-        } else if (isNaN(dateB.getTime())) {
-            return -1; // dateB is invalid, dateA is valid, dateA comes first
-        }
+        const aValid = dateA.isValid;
+        const bValid = dateB.isValid;
 
-        return dateA - dateB;
+        if (!aValid && !bValid) return 0;
+        if (!aValid) return 1;
+        if (!bValid) return -1;
+
+        return dateA.toMillis() - dateB.toMillis();
     });
 }
