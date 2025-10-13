@@ -12,6 +12,7 @@ import {
 import { IconCalendar, IconFriends } from "@tabler/icons-react";
 
 import { adjustColorBasedOnDarkness } from "@/utils/adjustHexColor";
+import { DateTime } from "luxon";
 
 export default function TeamCard({ team }) {
     const computedColorScheme = useComputedColorScheme("light");
@@ -30,16 +31,16 @@ export default function TeamCard({ team }) {
 
         // Create a shallow copy and sort seasons by start date, ascending
         const sortedSeasons = [...seasons].sort(
-            (a, b) => new Date(a.startDate) - new Date(b.startDate),
+            (a, b) =>
+                DateTime.fromISO(a.startDate) - DateTime.fromISO(b.startDate),
         );
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Compare date part only
+        const today = DateTime.local().startOf("day");
 
         // First, check for a season in progress
         const currentSeason = sortedSeasons.find((season) => {
-            const startDate = new Date(season.startDate);
-            const endDate = new Date(season.endDate);
+            const startDate = DateTime.fromISO(season.startDate).startOf("day");
+            const endDate = DateTime.fromISO(season.endDate).endOf("day");
             return today >= startDate && today <= endDate;
         });
 
@@ -49,17 +50,22 @@ export default function TeamCard({ team }) {
 
         // If no current season, find the next upcoming season
         const upcomingSeason = sortedSeasons.find(
-            (season) => new Date(season.startDate) > today,
+            (season) =>
+                DateTime.fromISO(season.startDate).startOf("day") > today,
         );
 
         if (upcomingSeason) {
-            const startDate = new Date(upcomingSeason.startDate);
-            const oneMonthFromNow = new Date();
-            oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
+            const startDate = DateTime.fromISO(
+                upcomingSeason.startDate,
+            ).startOf("day");
+            const oneMonthFromNow = DateTime.local()
+                .plus({ months: 1 })
+                .startOf("day");
 
             if (startDate < oneMonthFromNow) {
-                const timeDiff = startDate.getTime() - today.getTime();
-                const daysUntilStart = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                const daysUntilStart = Math.ceil(
+                    startDate.diff(today, "days").days,
+                );
                 const daysUntilText = `${daysUntilStart} day${daysUntilStart !== 1 ? "s" : ""}`;
                 const daysUntil = (
                     <Text span fw={700} c="green">
@@ -68,8 +74,8 @@ export default function TeamCard({ team }) {
                 );
                 return <>Season starts in {daysUntil}</>;
             } else {
-                const month = startDate.getMonth() + 1;
-                const date = startDate.getDate();
+                const month = startDate.month;
+                const date = startDate.day;
                 return `Season starts ${month}/${date}`;
             }
         }
