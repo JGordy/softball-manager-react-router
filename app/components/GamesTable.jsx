@@ -1,6 +1,7 @@
 import { Card, ScrollArea, Table } from "@mantine/core";
 
 import sortByDate from "@/utils/sortByDate";
+import { formatForViewerDate, formatForViewerTime } from "@/utils/dateTime";
 
 export default function GamesTable({
     games,
@@ -37,12 +38,16 @@ export default function GamesTable({
                 let cellValue;
 
                 if (column === "date") {
-                    cellValue = new Date(game.gameDate).toLocaleDateString();
+                    cellValue = formatForViewerDate(
+                        game.gameDate,
+                        game.timeZone,
+                    );
                 } else if (column === "time") {
-                    cellValue = new Date(game.gameDate).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                    }); // Format time
+                    cellValue = formatForViewerTime(
+                        game.gameDate,
+                        game.timeZone,
+                        { format: "HH:mm" },
+                    );
                 } else {
                     cellValue = game[column]; // Other columns
                 }
