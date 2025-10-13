@@ -19,6 +19,7 @@ import GamesTable from "@/components/GamesTable";
 import timeZones from "@/constants/timeZones";
 
 import { getUserTimeZone } from "@/utils/dateTime";
+import { DateTime } from "luxon";
 
 import FormWrapper from "./FormWrapper";
 
@@ -34,10 +35,11 @@ export default function GenerateSeasonGames({
     const currentTimeZone = getUserTimeZone();
 
     const [gameTimes, setGameTimes] = useState(() => {
-        const now = new Date();
-        const sevenPM = new Date(now);
-        sevenPM.setHours(19, 0, 0, 0); // Set to 7 PM as default
-        return sevenPM;
+        // Use Luxon DateTime to represent the default time (7:00 PM) in the
+        // user's current timezone. We'll store a DateTime instance.
+        return DateTime.now()
+            .setZone(currentTimeZone)
+            .set({ hour: 19, minute: 0, second: 0, millisecond: 0 });
     });
 
     const [isLoading, setIsLoading] = useState(false);
@@ -45,8 +47,12 @@ export default function GenerateSeasonGames({
     // Used for games generated but not yet saved/confirmed
     const [generatedGames, setGeneratedGames] = useState([]);
 
-    const seasonStartDate = new Date(season.startDate).toLocaleDateString();
-    const seasonEndDate = new Date(season.endDate).toLocaleDateString();
+    const seasonStartDate = DateTime.fromISO(season.startDate, { zone: "utc" })
+        .setZone(currentTimeZone)
+        .toLocaleString();
+    const seasonEndDate = DateTime.fromISO(season.endDate, { zone: "utc" })
+        .setZone(currentTimeZone)
+        .toLocaleString();
 
     const handleGenerateGamesClick = () => {
         setIsLoading(true);
@@ -67,38 +73,42 @@ export default function GenerateSeasonGames({
         // generate games
         const { gameDays, startDate, endDate, teamId } = season;
 
-        const start = new Date(startDate);
-        const end = new Date(endDate);
+        const start = DateTime.fromISO(startDate, { zone: "utc" })
+            .setZone(currentTimeZone)
+            .startOf("day");
+        const end = DateTime.fromISO(endDate, { zone: "utc" })
+            .setZone(currentTimeZone)
+            .endOf("day");
 
         const games = [];
 
         for (const gameDay of gameDays) {
-            let currentDate = new Date(start);
+            let currentDate = start;
 
-            // Parse the time string (gameTimes)
-            const timeString = gameTimes.toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: false,
-            });
-            const [hours, minutes] = timeString.split(":");
-            currentDate.setHours(
-                parseInt(hours, 10),
-                parseInt(minutes, 10),
-                0,
-                0,
-            );
+            // Extract hour and minute from the DateTime stored in gameTimes
+            const hours = gameTimes.hour;
+            const minutes = gameTimes.minute;
 
             while (currentDate <= end) {
-                if (getDayName(currentDate.getDay()) === gameDay) {
+                if (getDayName(currentDate.weekday % 7) === gameDay) {
+                    // Build a DateTime in the user's timezone for this date at the selected time,
+                    // then convert to UTC ISO for storage.
+                    const dt = currentDate
+                        .set({
+                            hour: hours,
+                            minute: minutes,
+                            second: 0,
+                            millisecond: 0,
+                        })
+                        .setZone(currentTimeZone);
                     games.push({
-                        gameDate: currentDate.toISOString(),
+                        gameDate: dt.toUTC().toISO(),
                         teamId,
                         seasonId: season.$id,
                         seasons: season.$id,
                     });
                 }
-                currentDate.setDate(currentDate.getDate() + 1); // Increment by one day
+                currentDate = currentDate.plus({ days: 1 }); // Increment by one day
             }
         }
 
@@ -110,40 +120,58 @@ export default function GenerateSeasonGames({
         setGeneratedGames([]);
     };
 
-    const handleSetGameTimesChange = (event) => {
-        const { value: timeString } = event.target;
-        if (timeString) {
-            const [hours, minutes] = timeString.split(":");
-            const now = new Date();
-            const selectedTime = new Date(now);
-            selectedTime.setHours(
-                parseInt(hours, 10),
-                parseInt(minutes, 10),
-                0,
-                0,
-            );
-            setGameTimes(selectedTime); // Store the Date object
+    const handleSetGameTimesChange = (value) => {
+        // Mantine TimeInput may provide a Date or a string depending on config.
+        // Normalize to a Luxon DateTime in the user's timezone.
+        if (!value) {
+            setGameTimes(null);
+            return;
+        }
 
-            // Update generated games with the new time
-            if (generatedGames.length > 0) {
-                setGeneratedGames((prevGames) => {
-                    return prevGames.map((game) => {
-                        const gameDate = new Date(game.gameDate);
-                        gameDate.setHours(
-                            selectedTime.getHours(),
-                            selectedTime.getMinutes(),
-                            0,
-                            0,
-                        );
-                        return {
-                            ...game,
-                            gameDate: gameDate.toISOString(), // Update gameDate with new time
-                        };
-                    });
+        let selectedDt;
+        if (typeof value === "string") {
+            // Expect format like "HH:mm"
+            const [hours, minutes] = value.split(":");
+            selectedDt = DateTime.now()
+                .setZone(currentTimeZone)
+                .set({
+                    hour: parseInt(hours, 10),
+                    minute: parseInt(minutes, 10),
+                    second: 0,
+                    millisecond: 0,
                 });
-            }
+        } else if (value instanceof Date) {
+            selectedDt = DateTime.fromJSDate(value).setZone(currentTimeZone);
+        } else if (DateTime.isDateTime(value)) {
+            selectedDt = value.setZone(currentTimeZone);
         } else {
-            setGameTimes(null); // Handle clearing the time
+            // Fallback: try to coerce
+            selectedDt = DateTime.fromISO(String(value)).setZone(
+                currentTimeZone,
+            );
+        }
+
+        setGameTimes(selectedDt);
+
+        // Update generated games with the new time
+        if (generatedGames.length > 0) {
+            setGeneratedGames((prevGames) => {
+                return prevGames.map((game) => {
+                    const gameDt = DateTime.fromISO(game.gameDate, {
+                        zone: "utc",
+                    }).setZone(currentTimeZone);
+                    const updated = gameDt.set({
+                        hour: selectedDt.hour,
+                        minute: selectedDt.minute,
+                        second: 0,
+                        millisecond: 0,
+                    });
+                    return {
+                        ...game,
+                        gameDate: updated.toUTC().toISO(), // Update gameDate with new time
+                    };
+                });
+            });
         }
     };
 
@@ -177,7 +205,7 @@ export default function GenerateSeasonGames({
                     `${season.gameDays}`,
                     `${seasonStartDate}`,
                     `${seasonEndDate}`,
-                    `${gameTimes?.toLocaleTimeString()}`,
+                    `${gameTimes ? gameTimes.toLocaleString(DateTime.TIME_SIMPLE) : ""}`,
                 ]}
                 highlightStyles={{
                     // backgroundColor: 'green',
@@ -188,7 +216,7 @@ export default function GenerateSeasonGames({
                     WebkitTextFillColor: "transparent",
                 }}
             >
-                {`Create placeholder games for every ${season.gameDays} between ${seasonStartDate} and ${seasonEndDate} @ ${gameTimes?.toLocaleTimeString()}?`}
+                {`Create placeholder games for every ${season.gameDays} between ${seasonStartDate} and ${seasonEndDate} @ ${gameTimes ? gameTimes.toFormat("h:mm a") : ""}?`}
             </Highlight>
             <Divider size="sm" my="sm" />
             <TimeInput

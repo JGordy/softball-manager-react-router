@@ -6,6 +6,7 @@ import { TimeInput } from "@mantine/dates";
 import { IconClock } from "@tabler/icons-react";
 
 import { getUserTimeZone } from "@/utils/dateTime";
+import { DateTime } from "luxon";
 
 import timeZones from "@/constants/timeZones";
 
@@ -91,7 +92,12 @@ export default function AddSingleGame({
                 label="Game Date"
                 name="gameDate"
                 placeholder="When should this game be scheduled?"
-                defaultValue={defaults.gameDate && new Date(defaults.gameDate)}
+                defaultValue={
+                    defaults.gameDate &&
+                    DateTime.fromISO(defaults.gameDate, {
+                        zone: "utc",
+                    }).toJSDate()
+                }
                 required={action === "add-single-game"}
             />
             <TimeInput
