@@ -1,5 +1,7 @@
+import { DateTime } from "luxon";
+
 export default function getGames({ teams, teamId }) {
-    const currentDate = new Date();
+    const currentDate = DateTime.local();
 
     const futureGames = [];
     const pastGames = [];
@@ -20,7 +22,9 @@ export default function getGames({ teams, teamId }) {
         // 4. Populate futureGames and pastGames
         .forEach((game) => {
             try {
-                const gameDate = new Date(game.gameDate);
+                const gameDate = DateTime.fromISO(game.gameDate, {
+                    zone: "utc",
+                });
 
                 // Find the team name to add to the game object.
                 const team = teams.find((t) => t.$id === game.teamId);
@@ -38,10 +42,18 @@ export default function getGames({ teams, teamId }) {
             }
         });
 
-    // Sort future games by earlier to later
-    futureGames.sort((a, b) => new Date(a.gameDate) - new Date(b.gameDate));
+    // Sort future games by earlier to later (using DateTime)
+    futureGames.sort(
+        (a, b) =>
+            DateTime.fromISO(a.gameDate).toMillis() -
+            DateTime.fromISO(b.gameDate).toMillis(),
+    );
     // Sort past games in reverse order
-    pastGames.sort((a, b) => new Date(b.gameDate) - new Date(a.gameDate));
+    pastGames.sort(
+        (a, b) =>
+            DateTime.fromISO(b.gameDate).toMillis() -
+            DateTime.fromISO(a.gameDate).toMillis(),
+    );
 
     return { futureGames, pastGames };
 }

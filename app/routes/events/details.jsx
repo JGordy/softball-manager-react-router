@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { Form, useNavigation, useOutletContext } from "react-router";
 
@@ -62,7 +62,7 @@ export async function loader({ params, request }) {
 }
 
 export default function EventDetails({ loaderData, actionData }) {
-    // console.log('/events/:eventId > ', { ...loaderData });
+    console.log("/events/:eventId > ", loaderData);
 
     const [deleteDrawerOpened, deleteDrawerHandlers] = useDisclosure(false);
 
@@ -98,21 +98,26 @@ export default function EventDetails({ loaderData, actionData }) {
     // const gameInProgress = gameDayStatus === "in progress";
     const gameIsPast = gameDayStatus === "past";
 
-    useEffect(() => {
-        const handleAfterSubmit = async () => {
-            try {
-                if (actionData?.success) {
-                    closeAllModals();
-                } else if (actionData instanceof Error) {
-                    console.error("Error parsing action data:", actionData);
-                }
-            } catch (jsonError) {
-                console.error("Error parsing JSON data:", jsonError);
-            }
-        };
+    // Run this effect only when actionData changes. Guard so we only
+    // call closeAllModals once for a successful action to avoid a
+    // potential loop if closing modals triggers parent state changes.
+    const handledActionRef = useRef(false);
 
-        handleAfterSubmit();
-    }, [actionData]);
+    useEffect(() => {
+        try {
+            if (actionData?.success && !handledActionRef.current) {
+                handledActionRef.current = true;
+                closeAllModals();
+            } else if (!actionData) {
+                // reset when there's no action data so future actions can run
+                handledActionRef.current = false;
+            } else if (actionData instanceof Error) {
+                console.error("Error parsing action data:", actionData);
+            }
+        } catch (jsonError) {
+            console.error("Error handling actionData:", jsonError);
+        }
+    }, [actionData, closeAllModals]);
 
     return (
         <>

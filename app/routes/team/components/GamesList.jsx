@@ -7,6 +7,7 @@ import AddSingleGame from "@/forms/AddSingleGame";
 import GamesList from "@/components/GamesList";
 
 import sortByDate from "@/utils/sortByDate";
+import { DateTime } from "luxon";
 
 import useModal from "@/hooks/useModal";
 
@@ -19,23 +20,31 @@ export default function GamesListContainer({
 }) {
     const { openModal } = useModal();
 
-    const today = new Date();
-    let seasonToDisplay = seasons.find(
-        (season) =>
-            new Date(season.startDate) <= today &&
-            new Date(season.endDate) >= today,
-    );
+    const today = DateTime.local();
+    let seasonToDisplay = seasons.find((season) => {
+        const start = DateTime.fromISO(season.startDate);
+        const end = DateTime.fromISO(season.endDate);
+        return start <= today && end >= today;
+    });
 
     if (!seasonToDisplay) {
         const upcomingSeasons = seasons.filter(
-            (season) => new Date(season.startDate) > today,
+            (season) => DateTime.fromISO(season.startDate) > today,
         );
         if (upcomingSeasons.length > 0) {
             seasonToDisplay = upcomingSeasons[0];
         } else {
             const pastSeasons = seasons
-                .filter((season) => new Date(season.endDate) < today)
-                .sort((a, b) => new Date(b.endDate) - new Date(a.endDate));
+                .filter(
+                    (season) =>
+                        DateTime.fromISO(season.endDate).toMillis() <
+                        today.toMillis(),
+                )
+                .sort(
+                    (a, b) =>
+                        DateTime.fromISO(b.endDate).toMillis() -
+                        DateTime.fromISO(a.endDate).toMillis(),
+                );
             if (pastSeasons.length > 0) {
                 seasonToDisplay = pastSeasons[0];
             }

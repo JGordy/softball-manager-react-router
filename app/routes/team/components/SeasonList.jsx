@@ -5,6 +5,8 @@ import { Button, Card, Group, ScrollArea, Text } from "@mantine/core";
 import { IconChevronRight, IconPlus } from "@tabler/icons-react";
 
 import AddSeason from "@/forms/AddSeason";
+import { DateTime } from "luxon";
+import { formatForViewerDate } from "@/utils/dateTime";
 
 import useModal from "@/hooks/useModal";
 
@@ -17,30 +19,29 @@ export default function SeasonList({
     const { openModal } = useModal();
 
     const getSeasonStatus = (season) => {
-        const today = new Date();
-        const oneMonthFromNow = new Date(today);
-        oneMonthFromNow.setMonth(today.getMonth() + 1);
+        const today = DateTime.local();
+        const oneMonthFromNow = today.plus({ months: 1 });
 
-        const startDate = new Date(season.startDate);
-        const endDate = new Date(season.endDate);
+        const startDate = DateTime.fromISO(season.startDate);
+        const endDate = DateTime.fromISO(season.endDate);
 
         if (startDate <= today && today <= endDate) {
             const { games } = season;
             if (games && games.length > 0) {
                 // Find the upcoming game object, not just the date
                 const upcomingGame = games
-                    .filter((game) => new Date(game.gameDate) > today)
+                    .filter((game) => DateTime.fromISO(game.gameDate) > today)
                     .sort(
-                        (a, b) => new Date(a.gameDate) - new Date(b.gameDate),
+                        (a, b) =>
+                            DateTime.fromISO(a.gameDate).toMillis() -
+                            DateTime.fromISO(b.gameDate).toMillis(),
                     )[0];
 
                 if (upcomingGame) {
-                    const timeDiff =
-                        new Date(upcomingGame.gameDate).getTime() -
-                        today.getTime();
-                    const daysUntilGame = Math.ceil(
-                        timeDiff / (1000 * 3600 * 24),
-                    ); // Calculate days
+                    const timeDiff = DateTime.fromISO(
+                        upcomingGame.gameDate,
+                    ).diff(today, "days").days;
+                    const daysUntilGame = Math.ceil(timeDiff);
 
                     const daysUntilText = `${daysUntilGame} day${daysUntilGame !== 1 ? "s" : ""}`;
 
@@ -82,18 +83,25 @@ export default function SeasonList({
         </Button>
     );
 
-    const today = new Date();
+    const today = DateTime.local();
     const inProgressSeasons = seasons.filter(
         (season) =>
-            new Date(season.startDate) <= today &&
-            new Date(season.endDate) >= today,
+            DateTime.fromISO(season.startDate) <= today &&
+            DateTime.fromISO(season.endDate) >= today,
     );
     const upcomingSeasons = seasons.filter(
-        (season) => new Date(season.startDate) > today,
+        (season) => DateTime.fromISO(season.startDate) > today,
     );
     const pastSeasons = seasons
-        .filter((season) => new Date(season.endDate) < today)
-        .sort((a, b) => new Date(b.endDate) - new Date(a.endDate));
+        .filter(
+            (season) =>
+                DateTime.fromISO(season.endDate).toMillis() < today.toMillis(),
+        )
+        .sort(
+            (a, b) =>
+                DateTime.fromISO(b.endDate).toMillis() -
+                DateTime.fromISO(a.endDate).toMillis(),
+        );
 
     const renderSeason = (season) => (
         <Link to={`/season/${season.$id}`} key={season.$id}>
@@ -109,8 +117,8 @@ export default function SeasonList({
                     <Text size="lg">{season.seasonName}</Text>
                     <Group>
                         <Text c="dimmed">
-                            {new Date(season.startDate).toLocaleDateString()} -{" "}
-                            {new Date(season.endDate).toLocaleDateString()}
+                            {formatForViewerDate(season.startDate)} -{" "}
+                            {formatForViewerDate(season.endDate)}
                         </Text>
                         <IconChevronRight size={20} />
                     </Group>

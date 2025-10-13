@@ -24,6 +24,7 @@ import {
 } from "@tabler/icons-react";
 
 import positions from "@/constants/positions";
+import { DateTime } from "luxon";
 
 const availabilityData = {
     accepted: {
@@ -97,6 +98,7 @@ const AvailabilityOptionsContainer = ({
             pos="relative"
         >
             <LoadingOverlay
+                data-overlay={`availability-${player.$id}`}
                 visible={fetcher.state === "loading"}
                 overlayProps={{ blur: 2, radius: "md" }}
                 loaderProps={{ color: "green", type: "dots", size: "lg" }}
@@ -179,12 +181,17 @@ export default function AvailabliityContainer({
     const { user } = useOutletContext();
     const currentUserId = user.$id;
 
-    const { gameDate } = game;
+    const { gameDate, timeZone } = game;
 
-    const today = new Date();
-    const gameDay = new Date(gameDate);
-    const isGameToday = gameDay.toDateString() === today.toDateString();
-    const isGamePast = gameDay < today && !isGameToday;
+    // Convert stored ISO (UTC) into the event timezone for day comparisons
+    const gameDt = DateTime.fromISO(gameDate, { zone: "utc" }).setZone(
+        timeZone || DateTime.local().zoneName,
+    );
+    const today = DateTime.local().setZone(
+        timeZone || DateTime.local().zoneName,
+    );
+    const isGameToday = gameDt.toISODate() === today.toISODate();
+    const isGamePast = gameDt < today && !isGameToday;
 
     const renderPlayerAvailability = () =>
         players.map((player) => (

@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { DateTime } from "luxon";
 
 import {
     Button,
@@ -95,10 +96,11 @@ export default function HomePage({ loaderData, actionData }) {
     const mostRecentGame = pastGames?.slice(0, 1)?.[0];
 
     const daysUntilNextGame = (date) => {
-        const today = new Date();
-        const gameDate = new Date(date);
+        // date is expected to be an ISO string stored in UTC. Use Luxon for safe arithmetic.
+        const today = DateTime.utc();
+        const gameDate = DateTime.fromISO(date, { zone: "utc" });
 
-        const timeDiff = gameDate.getTime() - today.getTime();
+        const timeDiff = gameDate.toMillis() - today.toMillis();
         const daysUntilGame = Math.ceil(timeDiff / (1000 * 3600 * 24)); // Calculate days
         const daysUntilText = `${daysUntilGame} day${daysUntilGame !== 1 ? "s" : ""}`;
 

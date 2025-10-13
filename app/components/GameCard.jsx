@@ -1,7 +1,9 @@
 import { Link } from "react-router";
 import { Card, Group, Text } from "@mantine/core";
 
-import { formatGameTime } from "@/utils/dateTime";
+import { DateTime } from "luxon";
+
+import { formatGameTime, getGameDayStatus } from "@/utils/dateTime";
 
 const getGameResultColor = (result) => {
     if (result === "won") return "green";
@@ -9,25 +11,11 @@ const getGameResultColor = (result) => {
     return "yellow";
 };
 
-const getGameStatus = (date, result, score, opponentScore) => {
-    const today = new Date();
-    const gameDate = new Date(date);
+const getGameStatus = (dateIso, result, score, opponentScore, zone) => {
+    // Use getGameDayStatus for day classification in UTC -> then we can refine with hourly precision
+    const dayStatus = getGameDayStatus(dateIso, true);
 
-    const todayStart = new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        today.getDate(),
-    );
-    const todayEnd = new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        today.getDate() + 1,
-    );
-
-    const oneWeekFromNow = new Date(today);
-    oneWeekFromNow.setDate(today.getDate() + 7);
-
-    if (gameDate < todayStart) {
+    if (dayStatus === "past") {
         const resultsText = result
             ? `${result.charAt(0).toUpperCase()} ${score} - ${opponentScore}`
             : "Results Pending";
@@ -42,42 +30,62 @@ const getGameStatus = (date, result, score, opponentScore) => {
         };
     }
 
-    if (gameDate >= todayStart && gameDate < todayEnd) {
-        const timeDiff = gameDate.getTime() - today.getTime();
-        const hoursUntilGame = Math.ceil(timeDiff / (1000 * 3600));
-        const hoursUntilText =
-            hoursUntilGame === 1 ? "1 hour" : `${hoursUntilGame} hours`;
-
+    if (dayStatus === "in progress") {
         return {
             status: "today",
-            text:
-                hoursUntilGame > 0 ? (
-                    <Text align={"right"} span fw={700} c="green">
-                        {hoursUntilText} away!
-                    </Text>
-                ) : null,
-        };
-    }
-
-    if (gameDate < oneWeekFromNow) {
-        const timeDiff = gameDate.getTime() - today.getTime();
-        const daysUntilGame = Math.ceil(timeDiff / (1000 * 3600 * 24));
-        const daysUntilText = `${daysUntilGame} day${daysUntilGame !== 1 ? "s" : ""}`;
-
-        return {
-            status: "future",
             text: (
                 <Text align={"right"} span fw={700} c="green">
-                    {daysUntilText} away!
+                    In progress
                 </Text>
             ),
         };
     }
 
-    return {
-        status: "future",
-        text: null,
-    };
+    if (dayStatus === "today") {
+        // compute hours until using Luxon via formatForViewerTime usage for display
+        const dt = DateTime.fromISO(dateIso, { zone: "utc" }).setZone(
+            zone || undefined,
+        );
+        const now = DateTime.local().setZone(zone || undefined);
+        const hoursUntil = Math.ceil(
+            (dt.toMillis() - now.toMillis()) / (1000 * 3600),
+        );
+        if (hoursUntil > 0) {
+            return {
+                status: "today",
+                text: (
+                    <Text align={"right"} span fw={700} c="green">
+                        {hoursUntil === 1
+                            ? "1 hour away!"
+                            : `${hoursUntil} hours away!`}
+                    </Text>
+                ),
+            };
+        }
+        return { status: "today", text: null };
+    }
+
+    // future: determine days until
+    if (dayStatus === "future") {
+        const dt = DateTime.fromISO(dateIso, { zone: "utc" }).setZone(
+            zone || undefined,
+        );
+        const now = DateTime.local().setZone(zone || undefined);
+        const daysUntil = Math.ceil(
+            (dt.startOf("day").toMillis() - now.startOf("day").toMillis()) /
+                (1000 * 3600 * 24),
+        );
+        return {
+            status: "future",
+            text: (
+                <Text align={"right"} span fw={700} c="green">
+                    {`${daysUntil} day${daysUntil !== 1 ? "s" : ""} away!`}
+                </Text>
+            ),
+        };
+    }
+
+    return { status: "future", text: null };
 };
 
 export default function GameCard({

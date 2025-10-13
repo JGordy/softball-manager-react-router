@@ -1,6 +1,7 @@
 import { Center, ScrollArea, Text } from "@mantine/core";
 
 import GameCard from "@/components/GameCard";
+import { DateTime } from "luxon";
 
 export default function GamesList({
     games,
@@ -15,19 +16,21 @@ export default function GamesList({
         );
     }
 
-    const today = new Date();
-    const todayStart = new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        today.getDate(),
-    );
+    const today = DateTime.local();
 
     const sortedGames = [...games].sort((a, b) => {
-        const dateA = new Date(a.gameDate);
-        const dateB = new Date(b.gameDate);
+        const zoneA = a.timeZone || today.zoneName;
+        const zoneB = b.timeZone || today.zoneName;
 
-        const isPastA = dateA < todayStart;
-        const isPastB = dateB < todayStart;
+        const dateA = DateTime.fromISO(a.gameDate, { zone: "utc" }).setZone(
+            zoneA,
+        );
+        const dateB = DateTime.fromISO(b.gameDate, { zone: "utc" }).setZone(
+            zoneB,
+        );
+
+        const isPastA = dateA.startOf("day") < today.startOf("day");
+        const isPastB = dateB.startOf("day") < today.startOf("day");
 
         if (isPastA && !isPastB) return 1;
         if (!isPastA && isPastB) return -1;
