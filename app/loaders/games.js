@@ -1,5 +1,6 @@
 import { Query } from "@/appwrite";
 import { listDocuments, readDocument } from "@/utils/databases";
+import { DateTime } from "luxon";
 
 // const baseWeatherUrl = 'https://api.openweathermap.org/data/3.0/onecall';
 
@@ -22,12 +23,14 @@ const getWeatherData = (parkId, game) => {
     const apiKey = import.meta.env.VITE_GOOGLE_SERVICES_API_KEY;
     const baseUrl = "https://weather.googleapis.com/v1";
 
-    const now = new Date();
-    const gameTime = new Date(gameDate);
-    const sixHoursBefore = new Date(gameTime.getTime() - 6 * 60 * 60 * 1000);
+    // Use Luxon for timezone/DST-safe arithmetic. gameDate is stored as an
+    // ISO UTC instant in the database; convert to UTC DateTime for math.
+    const now = DateTime.utc();
+    const gameTime = DateTime.fromISO(gameDate, { zone: "utc" });
+    const sixHoursBefore = gameTime.minus({ hours: 6 });
 
     // Don't fetch weather for games more than 5 days in the future or more than 1 day in the past
-    const diffTime = gameTime - now;
+    const diffTime = gameTime.toMillis() - now.toMillis();
     const diffDays = diffTime / (1000 * 60 * 60 * 24);
     if (diffDays > 5 || diffDays < -1) {
         return Promise.resolve(null);
@@ -88,10 +91,10 @@ const getWeatherData = (parkId, game) => {
 
         let hourlyData = [];
 
-        if (sixHoursBefore > now) {
+        if (sixHoursBefore.toMillis() > now.toMillis()) {
             // All in the future
             hourlyData = await getForecast(park);
-        } else if (gameTime < now) {
+        } else if (gameTime.toMillis() < now.toMillis()) {
             // All in the past
             hourlyData = await getHistory(park);
         } else {
@@ -101,11 +104,14 @@ const getWeatherData = (parkId, game) => {
             hourlyData = [...historyData, ...forecastData];
         }
 
-        // Filter to the 6 hours before the game
-        const sixHoursBeforeTimestamp = sixHoursBefore.getTime();
-        const gameTimeTimestamp = gameTime.getTime();
+        // Filter to the 6 hours before the game. Use Luxon to parse incoming
+        // interval timestamps and compare as milliseconds since epoch.
+        const sixHoursBeforeTimestamp = sixHoursBefore.toMillis();
+        const gameTimeTimestamp = gameTime.toMillis();
         const filteredData = hourlyData.filter((hour) => {
-            const hourTimestamp = new Date(hour.interval.startTime).getTime();
+            const hourTimestamp = DateTime.fromISO(hour.interval.startTime, {
+                zone: "utc",
+            }).toMillis();
             return (
                 hourTimestamp >= sixHoursBeforeTimestamp &&
                 hourTimestamp <= gameTimeTimestamp

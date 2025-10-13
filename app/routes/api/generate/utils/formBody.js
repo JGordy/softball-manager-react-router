@@ -14,7 +14,7 @@ export default function getFormBody({ gameDate, opponent }) {
             {
                 createItem: {
                     item: {
-                        title: `Will you be attending the game on ${formatDate(new Date(gameDate))} against ${opponent || "TBD"}?`,
+                        title: `Will you be attending the game on ${formatDate(gameDate)} against ${opponent || "TBD"}?`,
                         questionItem: {
                             question: {
                                 required: true,
