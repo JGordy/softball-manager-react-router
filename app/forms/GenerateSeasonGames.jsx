@@ -57,33 +57,17 @@ export default function GenerateSeasonGames({
     const handleGenerateGamesClick = () => {
         setIsLoading(true);
 
-        const getDayName = (dayOrDateTime) => {
-            // Accept either a numeric day index (0 = Sunday, 6 = Saturday)
-            // or a Luxon DateTime instance. Luxon DateTime.weekday uses 1-7
-            // (Monday = 1, Sunday = 7), so map it to 0-6 via % 7.
-            const days = [
-                "Sunday",
-                "Monday",
-                "Tuesday",
-                "Wednesday",
-                "Thursday",
-                "Friday",
-                "Saturday",
-            ];
-
-            if (
-                dayOrDateTime &&
-                typeof dayOrDateTime === "object" &&
-                dayOrDateTime.weekday
-            ) {
-                return days[dayOrDateTime.weekday % 7];
-            }
-
-            return days[Number(dayOrDateTime)];
-        };
+        // Use Luxon's `toFormat('cccc')` to get the full weekday name (e.g.
+        // "Monday") for robust day comparisons.
 
         // generate games
-        const { gameDays, startDate, endDate, teamId } = season;
+        const { gameDays = [], startDate, endDate, teamId } = season;
+
+        const gameDaysList = (
+            Array.isArray(gameDays) ? gameDays : String(gameDays).split(",")
+        )
+            .map((g) => String(g).trim())
+            .filter(Boolean);
 
         const start = DateTime.fromISO(startDate, { zone: "utc" })
             .setZone(currentTimeZone)
@@ -94,7 +78,7 @@ export default function GenerateSeasonGames({
 
         const games = [];
 
-        for (const gameDay of gameDays) {
+        for (const gameDay of gameDaysList) {
             let currentDate = start;
 
             // Extract hour and minute from the DateTime stored in gameTimes
@@ -102,7 +86,11 @@ export default function GenerateSeasonGames({
             const minutes = gameTimes.minute;
 
             while (currentDate <= end) {
-                if (getDayName(currentDate.weekday - 1) === gameDay) {
+                const dayName = currentDate
+                    .setZone(currentTimeZone)
+                    .toFormat("cccc");
+                const normalizedGameDay = String(gameDay).trim();
+                if (dayName.toLowerCase() === normalizedGameDay.toLowerCase()) {
                     // Build a DateTime in the user's timezone for this date at the selected time,
                     // then convert to UTC ISO for storage.
                     const dt = currentDate
