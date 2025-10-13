@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useState, useEffect } from "react";
 
 import { Outlet, useNavigation } from "react-router";
 
@@ -59,14 +59,33 @@ export function HydrateFallback() {
 
 function Layout({ loaderData }) {
     const navigation = useNavigation();
-    const isNavigating = Boolean(navigation.location);
+
+    const isNavigating = navigation.state !== "idle";
+
+    const [overlayVisible, setOverlayVisible] = useState(isNavigating);
+
+    useEffect(() => {
+        let t;
+        if (isNavigating) {
+            // show immediately
+            setOverlayVisible(true);
+        } else {
+            // hide after a small delay to avoid flicker
+            t = setTimeout(() => setOverlayVisible(false), 100);
+        }
+
+        return () => {
+            if (t) clearTimeout(t);
+        };
+    }, [isNavigating]);
+    // no-op: overlayVisible is debounced from navigation.state to avoid flicker
 
     return (
         <div>
             <main>
                 <Notifications />
                 <LoadingOverlay
-                    visible={isNavigating}
+                    visible={overlayVisible}
                     zIndex={500}
                     loaderProps={{ color: "green", size: "xl", type: "dots" }}
                     overlayProps={{ radius: "sm", blur: 3 }}
