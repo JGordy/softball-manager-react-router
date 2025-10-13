@@ -57,7 +57,10 @@ export default function GenerateSeasonGames({
     const handleGenerateGamesClick = () => {
         setIsLoading(true);
 
-        const getDayName = (dayOfWeek) => {
+        const getDayName = (dayOrDateTime) => {
+            // Accept either a numeric day index (0 = Sunday, 6 = Saturday)
+            // or a Luxon DateTime instance. Luxon DateTime.weekday uses 1-7
+            // (Monday = 1, Sunday = 7), so map it to 0-6 via % 7.
             const days = [
                 "Sunday",
                 "Monday",
@@ -67,7 +70,16 @@ export default function GenerateSeasonGames({
                 "Friday",
                 "Saturday",
             ];
-            return days[dayOfWeek];
+
+            if (
+                dayOrDateTime &&
+                typeof dayOrDateTime === "object" &&
+                dayOrDateTime.weekday
+            ) {
+                return days[dayOrDateTime.weekday % 7];
+            }
+
+            return days[Number(dayOrDateTime)];
         };
 
         // generate games
@@ -90,7 +102,7 @@ export default function GenerateSeasonGames({
             const minutes = gameTimes.minute;
 
             while (currentDate <= end) {
-                if (getDayName(currentDate.weekday % 7) === gameDay) {
+                if (getDayName(currentDate.weekday - 1) === gameDay) {
                     // Build a DateTime in the user's timezone for this date at the selected time,
                     // then convert to UTC ISO for storage.
                     const dt = currentDate
