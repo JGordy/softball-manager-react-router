@@ -33,8 +33,8 @@ export default function SeasonList({
                     .filter((game) => DateTime.fromISO(game.gameDate) > today)
                     .sort(
                         (a, b) =>
-                            DateTime.fromISO(a.gameDate) -
-                            DateTime.fromISO(b.gameDate),
+                            DateTime.fromISO(a.gameDate).toMillis() -
+                            DateTime.fromISO(b.gameDate).toMillis(),
                     )[0];
 
                 if (upcomingGame) {
