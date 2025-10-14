@@ -95,7 +95,7 @@ export default function EventDetails({ loaderData, actionData }) {
     const { gameDate, playerChart, result } = game;
 
     const gameDayStatus = getGameDayStatus(gameDate, true);
-    // const gameInProgress = gameDayStatus === "in progress";
+    const gameInProgress = gameDayStatus === "in progress";
     const gameIsPast = gameDayStatus === "past";
 
     // Run this effect only when actionData changes. Guard so we only
@@ -135,7 +135,12 @@ export default function EventDetails({ loaderData, actionData }) {
                     )}
                 </Group>
 
-                <Scoreboard game={game} gameIsPast={gameIsPast} team={team} />
+                <Scoreboard
+                    game={game}
+                    gameIsPast={gameIsPast}
+                    gameInProgress={gameInProgress}
+                    team={team}
+                />
             </Box>
 
             <DetailsCard

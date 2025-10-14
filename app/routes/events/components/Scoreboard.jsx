@@ -1,6 +1,11 @@
 import { Box, Card, Center, Group, Text, Title } from "@mantine/core";
 
-export default function Scoreboard({ game = {}, gameIsPast, team }) {
+export default function Scoreboard({
+    game = {},
+    gameIsPast,
+    gameInProgress,
+    team,
+}) {
     const { score, opponent, opponentScore, isHomeGame, result } = game;
 
     const isWin = result === "won";
@@ -29,6 +34,14 @@ export default function Scoreboard({ game = {}, gameIsPast, team }) {
                     </Text>
                 </Group>
             </Card>
+
+            {gameInProgress && (
+                <Center mt="md">
+                    <Text size="sm" c="green">
+                        Game is live!
+                    </Text>
+                </Center>
+            )}
 
             {gameIsPast && !result && (
                 <Center mt="md">
