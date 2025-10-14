@@ -88,7 +88,11 @@ export const combineDateTime = (gameDate, gameTime, userTimeZone) => {
     return dt.toUTC().toISO();
 };
 
-export function getGameDayStatus(gameDateString, useHourlyPrecision = false) {
+export function getGameDayStatus(
+    gameDateString,
+    useHourlyPrecision = false,
+    durationMinutes = 60,
+) {
     if (!gameDateString) {
         console.error("Invalid date string provided to getGameDayStatus");
         return "invalid"; // Or throw an error, or return a specific status
@@ -96,9 +100,13 @@ export function getGameDayStatus(gameDateString, useHourlyPrecision = false) {
 
     try {
         const gameDate = DateTime.fromISO(gameDateString, { setZone: true });
+        // Normalize the game date into the viewer's zone so "day" comparisons
+        // are done on the same calendar (avoids UTC vs local day mismatches).
+        const viewerZone = getUserTimeZone() || DateTime.local().zoneName;
+        const gameDateInViewerZone = gameDate.setZone(viewerZone);
         const now = DateTime.local();
 
-        const gameDay = gameDate.startOf("day");
+        const gameDay = gameDateInViewerZone.startOf("day");
         const today = now.startOf("day");
 
         if (gameDay < today) return "past";
@@ -106,10 +114,13 @@ export function getGameDayStatus(gameDateString, useHourlyPrecision = false) {
 
         // Same day
         if (useHourlyPrecision) {
-            const gameStart = gameDate.toMillis();
+            // Use the viewer-zone-normalized DateTime to compute start/end so
+            // comparisons align with what the viewer expects.
+            const gameStart = gameDateInViewerZone.toMillis();
             const nowMs = now.toMillis();
-            const oneHour = 60 * 60 * 1000;
-            const gameEnd = gameStart + oneHour;
+            const gameEnd = gameDateInViewerZone
+                .plus({ minutes: durationMinutes })
+                .toMillis();
 
             if (nowMs >= gameStart && nowMs < gameEnd) return "in progress";
             if (nowMs >= gameEnd) return "past";
