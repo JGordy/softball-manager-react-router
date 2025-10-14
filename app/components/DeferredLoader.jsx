@@ -17,39 +17,19 @@ export default function DeferredLoader({
     errorElement,
     children,
 }) {
-    // Cache the produced promise in a ref. This prevents re-creating a new
-    // Promise when the `resolve` value changes identity across renders but
-    // represents the same underlying data. Without this cache, a new
-    // promise would retrigger the Suspense/Await cycle and can cause
-    // repeated suspensions or UI flicker.
+    // Cache the produced promise in a ref. We keep the most recent `resolve`
+    // reference (resolveRef) as well as the created promise. If the parent
+    // passes a new `resolve` (different reference), we rebuild the promise so
+    // the Await receives the fresh one. This ensures single promise inputs
+    // (like `weatherPromise`) update correctly when the loader returns a
+    // new promise instance.
     //
-    // cacheRef shape: { key: string|null, promise: Promise|null }
-    const cacheRef = useRef({ key: null, promise: null });
+    // cacheRef shape: { resolveRef: any|null, promise: Promise|null }
+    const cacheRef = useRef({ resolveRef: null, promise: null });
 
-    const makeKey = (r) => {
-        // Create a light-weight key that describes the shape of `resolve`.
-        // We purposely do not try to deep-serialize the values here because
-        // some router-provided promises are not serializable and we only
-        // need a stable indicator to avoid unnecessary promise recreation.
-        if (Array.isArray(r)) return `array:${r.length}`;
-        if (typeof r === "object" && r !== null)
-            return `object:${Object.keys(r).join(",")}`;
-        return `single`;
-    };
+    const shouldRecreate = cacheRef.current.resolveRef !== resolve;
 
-    const key = makeKey(resolve);
-
-    // If the cache key changed (or there's no cached promise yet), build a
-    // new promise that represents the resolved shape. We support three
-    // common forms for `resolve`:
-    // - Array of promises -> Promise.all(array)
-    // - Object whose values are promises -> Promise.all on values and map
-    //   results back to an object with the same keys
-    // - Single promise -> use it directly
-    //
-    // The resulting promise is stored in the ref so subsequent renders with
-    // the same shape won't recreate it.
-    if (cacheRef.current.key !== key || cacheRef.current.promise == null) {
+    if (shouldRecreate || cacheRef.current.promise == null) {
         let p;
 
         // Array of promises: resolve to an array of results
@@ -57,6 +37,12 @@ export default function DeferredLoader({
             p = Promise.all(resolve);
 
             // Object of promises: resolve values and reconstruct an object
+            // Guard: if `resolve` itself is a Promise/thenable, treat it as a
+            // single promise. Many promise implementations are objects, so we
+            // must check for a `then` function before assuming a plain object.
+        } else if (resolve && typeof resolve.then === "function") {
+            // thenable/promise: use as-is
+            p = resolve;
         } else if (typeof resolve === "object" && resolve !== null) {
             const keys = Object.keys(resolve);
             const promiseArray = Object.values(resolve);
@@ -73,7 +59,7 @@ export default function DeferredLoader({
             p = resolve;
         }
 
-        cacheRef.current.key = key;
+        cacheRef.current.resolveRef = resolve;
         cacheRef.current.promise = p;
     }
 
