@@ -1,6 +1,6 @@
 import { Card, Skeleton, Stack, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 
 import { IconAward } from "@tabler/icons-react";
 
@@ -13,17 +13,15 @@ import AwardsDrawerContents from "./AwardsDrawerContents";
 export default function AwardsContainer({
     game,
     team,
-    promises,
+    deferredData,
     playersPromise,
     user,
 }) {
     const [awardsDrawerOpened, awardsDrawerHandlers] = useDisclosure(false);
-    const [currentPromises, setCurrentPromises] = useState(promises);
 
     const handleOpen = useCallback(() => {
-        setCurrentPromises({ ...promises, players: playersPromise });
         awardsDrawerHandlers.open();
-    }, [promises, playersPromise, awardsDrawerHandlers]);
+    }, [awardsDrawerHandlers]);
 
     return (
         <>
@@ -34,7 +32,7 @@ export default function AwardsContainer({
                     leftSection={<IconAward size={20} />}
                     subHeading={
                         <DeferredLoader
-                            resolve={currentPromises}
+                            resolve={deferredData}
                             fallback={
                                 <Skeleton
                                     height={16}
@@ -88,7 +86,7 @@ export default function AwardsContainer({
                 size="95%"
             >
                 <DeferredLoader
-                    resolve={currentPromises}
+                    resolve={deferredData}
                     fallback={
                         <Stack align="stretch" justify="center" gap="md">
                             <Skeleton height={180} radius="xl" mb="lg" />
@@ -105,12 +103,12 @@ export default function AwardsContainer({
                         </div>
                     }
                 >
-                    {(deferredData) => (
+                    {(deferred) => (
                         <AwardsDrawerContents
                             game={game}
                             team={team}
                             user={user}
-                            {...deferredData}
+                            {...deferred}
                         />
                     )}
                 </DeferredLoader>
