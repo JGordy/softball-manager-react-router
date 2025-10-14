@@ -168,11 +168,11 @@ export async function getEventById({ request, eventId }) {
         players: playersPromise,
         park: parkPromise,
         attendance: attendancePromise,
+        awards: awardsPromise,
+        votes: votesPromise,
     };
 
     return {
-        attendancePromise,
-        awardsPromise,
         deferredData,
         game: {
             ...game,
@@ -180,12 +180,10 @@ export async function getEventById({ request, eventId }) {
             playerChart: JSON.parse(JSON.parse(playerChart)),
         },
         managerIds,
-        playersPromise,
         season,
         teams,
         // Deferred data for weather, but is conditional so we didn't add it to the deferredData
         weatherPromise: getWeatherData(parkId, game),
-        votesPromise,
     };
 }
 
