@@ -13,8 +13,9 @@ import AddSingleGame from "@/forms/AddSingleGame";
 import useModal from "@/hooks/useModal";
 
 import { formatForViewerTime } from "@/utils/dateTime";
+import MenuContainer from "@/components/MenuContainer";
 
-export default function MenuContainer({
+export default function GameMenu({
     game = {},
     gameIsPast,
     openDeleteDrawer = () => {},
@@ -63,43 +64,43 @@ export default function MenuContainer({
             ),
         });
 
-    return (
-        <Menu shadow="md" radius="lg" withArrow offset={0}>
-            <Menu.Target>
-                <ActionIcon variant="light" radius="xl" size="lg">
-                    <IconDots />
-                </ActionIcon>
-            </Menu.Target>
-            <Menu.Dropdown p="md">
-                <Menu.Label>
-                    <Text size="sm">Game Details</Text>
-                </Menu.Label>
-                {gameIsPast && (
-                    <Menu.Item
-                        onClick={openGameResultsModal}
-                        leftSection={<IconScoreboard size={14} />}
-                    >
-                        <Text>{`${result ? "Update" : "Add"} game results`}</Text>
-                    </Menu.Item>
-                )}
-                <Menu.Item
-                    onClick={openEditGameModal}
-                    leftSection={<IconEdit size={14} />}
-                >
-                    <Text>Edit Game Details</Text>
-                </Menu.Item>
-                <Menu.Divider />
-                <Menu.Label>
-                    <Text size="sm">Danger zone</Text>
-                </Menu.Label>
-                <Menu.Item
-                    leftSection={<IconTrashX size={14} />}
-                    color="red"
-                    onClick={openDeleteDrawer}
-                >
-                    <Text>Delete Game</Text>
-                </Menu.Item>
-            </Menu.Dropdown>
-        </Menu>
-    );
+    const sections = [
+        {
+            label: "Game Details",
+            items: [
+                ...(gameIsPast
+                    ? [
+                          {
+                              key: "results",
+                              onClick: openGameResultsModal,
+                              leftSection: <IconScoreboard size={14} />,
+                              content: (
+                                  <Text>{`${result ? "Update" : "Add"} game results`}</Text>
+                              ),
+                          },
+                      ]
+                    : []),
+                {
+                    key: "edit",
+                    onClick: openEditGameModal,
+                    leftSection: <IconEdit size={14} />,
+                    content: <Text>Edit Game Details</Text>,
+                },
+            ],
+        },
+        {
+            label: "Danger zone",
+            items: [
+                {
+                    key: "delete",
+                    leftSection: <IconTrashX size={14} />,
+                    color: "red",
+                    onClick: openDeleteDrawer,
+                    content: <Text>Delete Game</Text>,
+                },
+            ],
+        },
+    ];
+
+    return <MenuContainer sections={sections} />;
 }

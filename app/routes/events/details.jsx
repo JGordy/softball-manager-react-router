@@ -25,7 +25,7 @@ import useModal from "@/hooks/useModal";
 
 import AwardsContainer from "./components/AwardsContainer";
 import DetailsCard from "./components/DetailsCard";
-import MenuContainer from "./components/MenuContainer";
+import GameMenu from "./components/GameMenu";
 import RosterDetails from "./components/RosterDetails";
 import Scoreboard from "./components/Scoreboard";
 import WeatherCard from "./components/WeatherCard";
@@ -125,7 +125,7 @@ export default function EventDetails({ loaderData, actionData }) {
                 <Group justify="space-between" mx="md">
                     <BackButton text="Back to Events" />
                     {managerView && (
-                        <MenuContainer
+                        <GameMenu
                             game={game}
                             gameIsPast={gameIsPast}
                             openDeleteDrawer={deleteDrawerHandlers.open}
