@@ -122,7 +122,8 @@ const getWeatherData = (parkId, game) => {
     })();
 };
 
-export async function getEventById({ request, eventId }) {
+async function loadGameBase(eventId) {
+    // Read basic game document and extract season/team ids
     const {
         seasons: season,
         playerChart,
@@ -130,6 +131,7 @@ export async function getEventById({ request, eventId }) {
     } = await readDocument("games", eventId);
     const { teams = [], parkId } = season;
 
+    // Load memberships for the primary team (first team in season)
     const { documents: userIds } = await listDocuments("memberships", [
         Query.equal("teamId", [teams[0].$id]),
     ]);
@@ -138,7 +140,10 @@ export async function getEventById({ request, eventId }) {
         .filter(({ role }) => role === "manager")
         .map(({ userId }) => userId);
 
-    // --- Start of deferred data ---
+    return { game, season, teams, parkId, userIds, managerIds, playerChart };
+}
+
+function makeDeferredData({ eventId, userIds, parkId }) {
     const playerPromises = userIds.map(async ({ userId }) => {
         const result = await listDocuments("users", [
             Query.equal("$id", userId),
@@ -164,13 +169,32 @@ export async function getEventById({ request, eventId }) {
         Query.equal("game_id", eventId),
     ]);
 
-    const deferredData = {
+    return {
         players: playersPromise,
         park: parkPromise,
         attendance: attendancePromise,
         awards: awardsPromise,
         votes: votesPromise,
     };
+}
+
+async function resolvePlayers(userIds) {
+    const playerPromises = userIds.map(async ({ userId }) => {
+        const result = await listDocuments("users", [
+            Query.equal("$id", userId),
+        ]);
+        return result.documents;
+    });
+    return Promise.all(playerPromises).then((users) => users.flat());
+}
+
+export async function getEventById({ eventId }) {
+    // Use shared loader helper to get base data for the event
+    const { game, season, teams, parkId, userIds, managerIds, playerChart } =
+        await loadGameBase(eventId);
+
+    // Build deferred data object (promises for lazy loading in the UI)
+    const deferredData = makeDeferredData({ eventId, userIds, parkId });
 
     return {
         deferredData,
@@ -188,31 +212,12 @@ export async function getEventById({ request, eventId }) {
 }
 
 export async function getEventWithPlayerCharts({ request, eventId }) {
-    const {
-        seasons: season,
-        playerChart,
-        ...game
-    } = await readDocument("games", eventId);
-    const { teams = [] } = season;
+    // Use shared loader helper to get base data for the event
+    const { game, teams, userIds, managerIds, playerChart } =
+        await loadGameBase(eventId);
 
-    const { documents: userIds } = await listDocuments("memberships", [
-        Query.equal("teamId", [teams[0].$id]),
-    ]);
-
-    const managerIds = userIds
-        .filter(({ role }) => role === "manager")
-        .map(({ userId }) => userId);
-
-    // --- Start of deferred data ---
-    const playerPromises = userIds.map(async ({ userId }) => {
-        const result = await listDocuments("users", [
-            Query.equal("$id", userId),
-        ]);
-        return result.documents;
-    });
-    const players = await Promise.all(playerPromises).then((users) =>
-        users.flat(),
-    );
+    // Fully resolve the players for the non-deferred path
+    const players = await resolvePlayers(userIds);
 
     const attendance = await getAttendance({ eventId, accepted: false });
 
