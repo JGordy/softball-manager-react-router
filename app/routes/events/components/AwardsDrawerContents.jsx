@@ -1,26 +1,15 @@
 import { useEffect, useState, useMemo } from "react";
 import { useFetcher } from "react-router";
 
-import {
-    Button,
-    Card,
-    Center,
-    Group,
-    Image,
-    Radio,
-    ScrollArea,
-    Stack,
-    Text,
-} from "@mantine/core";
+import { Card, Center, Image, Stack, Text } from "@mantine/core";
 import { Carousel } from "@mantine/carousel";
 
 import images from "@/constants/images";
 import awardsMap from "@/constants/awards";
 
-import classes from "@/styles/inputs.module.css";
-
 import addPlayerAvailability from "../utils/addPlayerAvailability";
 import VotesContainer from "./VotesContainer";
+import WinnerDisplay from "./WinnerDisplay";
 
 export default function AwardsDrawerContents({
     attendance,
@@ -159,8 +148,15 @@ export default function AwardsDrawerContents({
                 </Text>
             </Card>
 
-            {/* If awards.total is greater than 0 voting has concluded; hide votes */}
-            {awards?.total === 0 && (
+            {/* If awards.total is greater than 0 voting has concluded; show winners */}
+            {awards?.total > 0 ? (
+                <WinnerDisplay
+                    players={players}
+                    user={user}
+                    votes={votes}
+                    activeAward={activeAward}
+                />
+            ) : (
                 <VotesContainer
                     attendance={attendance}
                     players={players}
