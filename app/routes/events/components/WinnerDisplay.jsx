@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect } from "react";
 
 import {
     Avatar,
@@ -97,19 +97,6 @@ export default function WinnerDisplay({
     votes,
     activeAward,
 }) {
-    const [isLight, setIsLight] = useState(false);
-
-    useEffect(() => {
-        try {
-            if (typeof window === "undefined") return;
-            const scheme = document.documentElement.getAttribute(
-                "data-mantine-color-scheme",
-            );
-            setIsLight(scheme === "light");
-        } catch (e) {
-            // ignore
-        }
-    }, []);
     const counts = useMemo(() => {
         const map = {};
         if (!votes?.documents) return map;
