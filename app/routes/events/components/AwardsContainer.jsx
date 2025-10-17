@@ -10,13 +10,7 @@ import DrawerContainer from "@/components/DrawerContainer";
 import CardSection from "./CardSection";
 import AwardsDrawerContents from "./AwardsDrawerContents";
 
-export default function AwardsContainer({
-    game,
-    team,
-    deferredData,
-    playersPromise,
-    user,
-}) {
+export default function AwardsContainer({ game, team, deferredData, user }) {
     const [awardsDrawerOpened, awardsDrawerHandlers] = useDisclosure(false);
 
     const handleOpen = useCallback(() => {
