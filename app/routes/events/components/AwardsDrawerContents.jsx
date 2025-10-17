@@ -20,6 +20,7 @@ import awardsMap from "@/constants/awards";
 import classes from "@/styles/inputs.module.css";
 
 import addPlayerAvailability from "../utils/addPlayerAvailability";
+import VotesContainer from "./VotesContainer";
 
 export default function AwardsDrawerContents({
     attendance,
@@ -32,6 +33,8 @@ export default function AwardsDrawerContents({
 }) {
     const [activeAward, setActiveAward] = useState("mvp");
     const [playerVotes, setPlayerVotes] = useState({});
+
+    console.log({ awards });
 
     useEffect(() => {
         if (votes) {
@@ -150,77 +153,24 @@ export default function AwardsDrawerContents({
                 ))}
             </Carousel>
 
-            <ScrollArea.Autosize h="40vh">
-                <Card radius="lg">
-                    <Text ta="center" size="sm">
-                        {awardsMap[activeAward].description}
-                    </Text>
-                </Card>
+            <Card radius="lg">
+                <Text ta="center" size="sm">
+                    {awardsMap[activeAward].description}
+                </Text>
+            </Card>
 
-                <Stack mt="md" justify="space-between">
-                    <Text fw="bold">Vote for a Player:</Text>
-                    <Radio.Group
-                        value={playerVotes[activeAward]?.nominated_user_id}
-                        onChange={(value) => handleVote(activeAward, value)}
-                    >
-                        <Stack>
-                            {sortedPlayersForActiveAward.map((player) => {
-                                const count = countsByAward[activeAward]?.[
-                                    player.$id
-                                ]
-                                    ? countsByAward[activeAward][player.$id]
-                                    : 0;
-
-                                return (
-                                    <Radio.Card
-                                        className={classes.radioCard}
-                                        key={player.$id}
-                                        value={player.$id}
-                                        checked={
-                                            playerVotes[activeAward]
-                                                ?.nominated_user_id ===
-                                            player.$id
-                                        }
-                                        radius="lg"
-                                    >
-                                        <Card radius="lg" py="sm" px="md">
-                                            <Group justify="space-between">
-                                                <Group>
-                                                    <Radio.Indicator />
-                                                    <Text>
-                                                        {player.firstName}{" "}
-                                                        {player.lastName}
-                                                    </Text>
-                                                </Group>
-
-                                                {count > 0 && (
-                                                    <Text size="sm" c="dimmed">
-                                                        {count} vote
-                                                        {count === 1 ? "" : "s"}
-                                                    </Text>
-                                                )}
-                                            </Group>
-                                        </Card>
-                                    </Radio.Card>
-                                );
-                            })}
-                        </Stack>
-                    </Radio.Group>
-                </Stack>
-            </ScrollArea.Autosize>
-            <Button
-                variant="filled"
-                radius="md"
-                mt="md"
-                type="submit"
-                size="lg"
-                loading={fetcher.state === "submitting"}
-                onClick={handleSubmit}
-                autoContrast
-                fullWidth
-            >
-                Submit Votes
-            </Button>
+            {/* If awards.total is greater than 0 voting has concluded; hide votes */}
+            {awards?.total === 0 && (
+                <VotesContainer
+                    attendance={attendance}
+                    players={players}
+                    user={user}
+                    votes={votes}
+                    team={team}
+                    game={game}
+                    activeAward={activeAward}
+                />
+            )}
         </Stack>
     );
 }
