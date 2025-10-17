@@ -62,6 +62,21 @@
     .mantine-Table-tbody {
         --table-striped-color: #1a242f !important;
     }
+
+    /* Winner display styling: dark keeps the gold gradient, light uses a subtler pastel card */
+    .winner-card.mantine-Card-root {
+        background: linear-gradient(
+            135deg,
+            rgba(255, 223, 93, 0.06),
+            rgba(255, 255, 255, 0)
+        );
+        border: 1px solid rgba(255, 223, 93, 0.25);
+    }
+
+    .other-receiving-card.mantine-Card-root {
+        background: #1a242f;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+    }
 }
 
 :root[data-mantine-color-scheme="light"] {
@@ -99,6 +114,22 @@
 
     .inner-card {
         background-color: #cee2d6 !important;
+    }
+
+    .winner-card.mantine-Card-root {
+        background: linear-gradient(
+            135deg,
+            #fff7e9 0%,
+            #ffe9b8 50%,
+            #fff7e2 100%
+        );
+        border: 1px solid rgba(255, 170, 50, 0.14);
+        box-shadow: 0 10px 30px rgba(255, 170, 50, 0.06);
+    }
+
+    .other-receiving-card.mantine-Card-root {
+        background: #ffffff;
+        border: 1px solid rgba(16, 23, 32, 0.04);
     }
 }
 
