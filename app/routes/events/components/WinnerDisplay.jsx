@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 
 import {
     Avatar,
@@ -11,12 +11,105 @@ import {
     Stack,
 } from "@mantine/core";
 
+// NOTE: fires confetti when user is winner for the active award
+function useWinnerConfetti({ entries, activeAward, team, user }) {
+    useEffect(() => {
+        try {
+            if (typeof window === "undefined") return;
+            if (!entries || entries.length === 0) return;
+
+            const max = Math.max(...entries.map(([, c]) => c));
+            const winnerIds = entries
+                .filter(([, c]) => c === max)
+                .map(([id]) => id);
+
+            const userId = user && user.$id;
+            const userIsWinner = userId && winnerIds.includes(userId);
+
+            if (userIsWinner) {
+                import("canvas-confetti")
+                    .then((mod) => {
+                        const confetti = mod.default || mod;
+
+                        const canvas = document.createElement("canvas");
+                        canvas.style.position = "fixed";
+                        canvas.style.top = "0";
+                        canvas.style.left = "0";
+                        canvas.style.width = "100%";
+                        canvas.style.height = "100%";
+                        canvas.style.pointerEvents = "none";
+                        canvas.style.zIndex = "2147483646";
+                        document.body.appendChild(canvas);
+
+                        const myConfetti = confetti.create(canvas, {
+                            resize: true,
+                            useWorker: true,
+                        });
+
+                        // Build colors array: team primary first (if present), then a few muted supporting colors
+                        const primary =
+                            team && team.primaryColor
+                                ? team.primaryColor
+                                : null;
+                        const supporting = ["#FFD166", "#A0AEC0", "#E2E8F0"]; // warm yellow and muted grays
+                        const colors = primary
+                            ? [primary, ...supporting]
+                            : supporting;
+
+                        myConfetti({
+                            particleCount: 100,
+                            spread: 60,
+                            origin: { y: 0.6 },
+                            colors,
+                        });
+                        myConfetti({
+                            particleCount: 50,
+                            spread: 110,
+                            origin: { y: 0.8 },
+                            colors,
+                        });
+
+                        setTimeout(() => {
+                            try {
+                                if (canvas && canvas.parentNode)
+                                    canvas.parentNode.removeChild(canvas);
+                            } catch (e) {
+                                /* ignore */
+                            }
+                        }, 5000);
+                    })
+                    .catch((err) => {
+                        // eslint-disable-next-line no-console
+                        console.error("Failed to load confetti", err);
+                    });
+            }
+        } catch (e) {
+            // eslint-disable-next-line no-console
+            console.error("Confetti effect error", e);
+        }
+    }, [entries, activeAward, user]);
+}
+
 export default function WinnerDisplay({
     players = [],
+    team,
     user,
     votes,
     activeAward,
 }) {
+    const [isLight, setIsLight] = useState(false);
+
+    useEffect(() => {
+        try {
+            if (typeof window === "undefined") return;
+            const scheme = document.documentElement.getAttribute(
+                "data-mantine-color-scheme",
+            );
+            setIsLight(scheme === "light");
+        } catch (e) {
+            // ignore
+        }
+    }, []);
     const counts = useMemo(() => {
         const map = {};
         if (!votes?.documents) return map;
@@ -32,6 +125,8 @@ export default function WinnerDisplay({
     }, [votes, activeAward]);
 
     const entries = Object.entries(counts);
+
+    useWinnerConfetti({ entries, activeAward, team, user });
 
     if (entries.length === 0) {
         return (
@@ -61,17 +156,7 @@ export default function WinnerDisplay({
 
     return (
         <>
-            <Card
-                mt="lg"
-                radius="lg"
-                px="md"
-                py="xl"
-                style={{
-                    background:
-                        "linear-gradient(135deg, rgba(255,223,93,0.06), rgba(255,255,255,0))",
-                    border: "1px solid rgba(255,223,93,0.25)",
-                }}
-            >
+            <Card mt="lg" radius="lg" px="md" py="xl" className="winner-card">
                 <Stack spacing="xs">
                     <Title order={3} size="h1" ta="center" py="0">
                         {isTie ? "Tie!" : "Winner!"}
@@ -134,7 +219,12 @@ export default function WinnerDisplay({
                 if (otherEntries.length === 0) return null;
 
                 return (
-                    <Card mt="md" radius="lg" p="md">
+                    <Card
+                        mt="md"
+                        radius="lg"
+                        p="md"
+                        className="other-receiving-card"
+                    >
                         <Title order={5} size="h5" mb="sm">
                             Other Receiving Votes
                         </Title>
