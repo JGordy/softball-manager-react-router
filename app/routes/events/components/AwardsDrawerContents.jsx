@@ -151,20 +151,21 @@ export default function AwardsDrawerContents({
             {/* If awards.total is greater than 0 voting has concluded; show winners */}
             {awards?.total > 0 ? (
                 <WinnerDisplay
+                    activeAward={activeAward}
                     players={players}
+                    team={team}
                     user={user}
                     votes={votes}
-                    activeAward={activeAward}
                 />
             ) : (
                 <VotesContainer
+                    activeAward={activeAward}
                     attendance={attendance}
+                    game={game}
                     players={players}
+                    team={team}
                     user={user}
                     votes={votes}
-                    team={team}
-                    game={game}
-                    activeAward={activeAward}
                 />
             )}
         </Stack>
