@@ -28,6 +28,7 @@
         "@vercel/react-router": "^1.1.0",
         "appwrite": "^17.0.0",
         "calendar-link": "^2.11.0",
+        "canvas-confetti": "^1.9.3",
         "clsx": "^2.1.1",
         "cookie": "^1.0.2",
         "embla-carousel": "^8.6.0",
