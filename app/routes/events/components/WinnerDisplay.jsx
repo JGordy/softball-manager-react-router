@@ -105,15 +105,19 @@ function useWinnerConfetti(team) {
             const colors = primary ? [primary, ...supporting] : supporting;
 
             myConfetti({
-                particleCount: 100,
-                spread: 60,
-                origin: { y: 0.6 },
+                angle: 105,
+                particleCount: 80,
+                spread: 25,
+                origin: { y: 1, x: 1 },
+                startVelocity: 70,
                 colors,
             });
             myConfetti({
-                particleCount: 50,
-                spread: 110,
-                origin: { y: 0.8 },
+                angle: 75,
+                particleCount: 80,
+                spread: 25,
+                origin: { y: 1, x: 0 },
+                startVelocity: 70,
                 colors,
             });
 
