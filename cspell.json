@@ -1,0 +1,9 @@
+{
+    "version": "0.2",
+    "ignorePaths": [".env*", "node_modules", "dist", "build", "coverage"],
+    "dictionaryDefinitions": [],
+    "dictionaries": [],
+    "words": [],
+    "ignoreWords": [],
+    "import": []
+}
