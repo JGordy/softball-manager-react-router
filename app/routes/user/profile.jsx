@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import { useActionData, useOutletContext } from "react-router";
 
-import { Container, Tabs, Text } from "@mantine/core";
+import { Container, Tabs } from "@mantine/core";
 
 import {
+    IconAward,
     IconBallBaseball,
     IconFriends,
     IconHeadphonesFilled,
-    IconHistory,
     IconMail,
     IconPhone,
     IconUserSquareRounded,
@@ -23,8 +23,10 @@ import { updateUser } from "@/actions/users";
 
 import useModal from "@/hooks/useModal";
 
+import { getAttendanceByUserId, getAwardsByUserId } from "@/loaders/users";
+
 import AlertIncomplete from "./components/AlertIncomplete";
-import { getAttendanceByUserId } from "@/loaders/users";
+import PlayerAwards from "./components/PlayerAwards";
 
 const fieldsToDisplay = {
     email: {
@@ -72,11 +74,15 @@ export async function action({ request, params }) {
 export async function loader({ params, request }) {
     const { userId } = params;
 
-    return { attendance: getAttendanceByUserId({ userId, request }) };
+    return {
+        attendancePromise: getAttendanceByUserId({ userId, request }),
+        awardsPromise: getAwardsByUserId({ userId }),
+    };
 }
 
 export default function UserProfile({ loaderData }) {
-    console.log("UserProfile: ", { ...loaderData });
+    // console.log("UserProfile: ", { ...loaderData });
+    const { awardsPromise } = loaderData;
 
     const { closeAllModals } = useModal();
 
@@ -142,10 +148,9 @@ export default function UserProfile({ loaderData }) {
                         </Tabs.Tab>
                         <Tabs.Tab
                             value="experience"
-                            leftSection={<IconHistory size={16} />}
-                            disabled
+                            leftSection={<IconAward size={16} />}
                         >
-                            Experience
+                            Awards
                         </Tabs.Tab>
                     </Tabs.List>
 
@@ -167,7 +172,7 @@ export default function UserProfile({ loaderData }) {
                     </Tabs.Panel>
 
                     <Tabs.Panel value="experience">
-                        <Text>Experience</Text>
+                        <PlayerAwards awardsPromise={awardsPromise} />
                     </Tabs.Panel>
                 </Tabs>
             </Container>
