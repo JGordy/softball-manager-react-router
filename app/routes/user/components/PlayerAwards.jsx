@@ -53,7 +53,6 @@ export default function PlayerAwards({ awardsPromise }) {
 
             <DeferredLoader resolve={awardsPromise} fallback={null}>
                 {(resolvedAwards = []) => {
-                    console.log({ resolvedAwards, activeAward });
                     const awardsForType = resolvedAwards
                         .filter((a) => a.award_type === activeAward)
                         .sort((a, b) => {
