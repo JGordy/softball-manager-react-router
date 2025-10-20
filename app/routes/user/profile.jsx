@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useActionData, useOutletContext } from "react-router";
 
-import { Container, Tabs } from "@mantine/core";
+import { Card, Container, Tabs } from "@mantine/core";
 
 import {
     IconAward,
@@ -163,12 +163,14 @@ export default function UserProfile({ loaderData }) {
                     </Tabs.Panel>
 
                     <Tabs.Panel value="personal">
-                        <PersonalDetails
-                            user={user}
-                            player={player}
-                            isCurrentUser={isCurrentUser}
-                            fieldsToDisplay={fieldsToDisplay}
-                        />
+                        <Card radius="lg" mt="md">
+                            <PersonalDetails
+                                user={user}
+                                player={player}
+                                isCurrentUser={isCurrentUser}
+                                fieldsToDisplay={fieldsToDisplay}
+                            />
+                        </Card>
                     </Tabs.Panel>
 
                     <Tabs.Panel value="experience">
