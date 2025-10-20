@@ -1,4 +1,4 @@
-import { Card, Skeleton, Stack, Text } from "@mantine/core";
+import { Card, Skeleton, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useCallback } from "react";
 
