@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useFetcher } from "react-router";
 
 import { Card, Center, Image, Stack, Text } from "@mantine/core";
@@ -21,6 +21,7 @@ export default function AwardsDrawerContents({
     votes,
 }) {
     const [activeAward, setActiveAward] = useState("mvp");
+    const [embla, setEmbla] = useState(null);
     const [playerVotes, setPlayerVotes] = useState({});
 
     console.log({ awards });
@@ -111,7 +112,44 @@ export default function AwardsDrawerContents({
         });
     }, [playersWithAvailability, countsByAward, activeAward]);
 
-    const awardsList = Object.keys(awardsMap);
+    const awardsList = useMemo(() => Object.keys(awardsMap), []);
+    const scrolledRef = useRef(false);
+
+    // If the awards documents indicate the current user was awarded something,
+    // automatically scroll the carousel to the first matching award.
+    useEffect(() => {
+        if (scrolledRef.current) return;
+        if (!awards?.documents || !embla || !user?.$id) return;
+
+        // Find the first awards document where the winner_user_id matches current user
+        const assigned = awards.documents.find(
+            (doc) => doc.winner_user_id === user.$id,
+        );
+
+        if (!assigned) return;
+
+        const awardKey = assigned.award_type;
+        const idx = awardsList.indexOf(awardKey);
+        if (idx === -1) return;
+
+        // Delay the scroll slightly so the carousel & drawer have time to layout.
+        const timer = setTimeout(() => {
+            try {
+                embla.scrollTo(idx);
+                setActiveAward(awardKey);
+                scrolledRef.current = true;
+            } catch (e) {
+                // embla might throw if not ready; ignore silently
+            }
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, [awards, embla, user?.$id, awardsList]);
+
+    // Reset the initial-scroll guard when awards data changes (so reopening/new data can re-run)
+    useEffect(() => {
+        scrolledRef.current = false;
+    }, [awards?.documents?.length, awards?.total]);
 
     return (
         <Stack justify="center" align="stretch">
@@ -124,6 +162,7 @@ export default function AwardsDrawerContents({
                     dragFree: false,
                     align: "center",
                 }}
+                getEmblaApi={(api) => setEmbla(api)}
                 onSlideChange={(index) => setActiveAward(awardsList[index])}
             >
                 {awardsList.map((key) => (
