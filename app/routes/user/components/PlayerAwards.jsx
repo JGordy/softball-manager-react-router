@@ -92,6 +92,7 @@ export default function PlayerAwards({ awardsPromise }) {
                                         my="xs"
                                         withBorder
                                         component="div"
+                                        className="winner-card"
                                     >
                                         <Group justify="space-between">
                                             <Text size="md" ta="center">
