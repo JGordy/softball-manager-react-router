@@ -85,16 +85,13 @@ export default function AwardsDrawerContents({
                                     maw={150}
                                 />
                             </Center>
+                            <Text ta="center" size="sm">
+                                {awardsMap[activeAward].description}
+                            </Text>
                         </Card>
                     </Carousel.Slide>
                 ))}
             </Carousel>
-
-            <Card radius="lg">
-                <Text ta="center" size="sm">
-                    {awardsMap[activeAward].description}
-                </Text>
-            </Card>
 
             {/* If awards.total is greater than 0 voting has concluded; show winners */}
             {awards?.total > 0 ? (
