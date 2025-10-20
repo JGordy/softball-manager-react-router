@@ -100,6 +100,7 @@ export default function AwardsDrawerContents({
             {awards?.total > 0 ? (
                 <WinnerDisplay
                     activeAward={activeAward}
+                    game={game}
                     players={players}
                     team={team}
                     user={user}
