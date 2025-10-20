@@ -144,11 +144,12 @@ function useWinnerConfetti(team) {
 }
 
 export default function WinnerDisplay({
+    activeAward,
+    game,
     players = [],
     team,
     user,
     votes,
-    activeAward,
 }) {
     const counts = useMemo(() => {
         const map = {};
@@ -231,6 +232,41 @@ export default function WinnerDisplay({
 
     const isTie = winnerPlayers.length > 1;
 
+    // Helper: determine the most-played position for a player from game.playerChart
+    const getMostPlayedPosition = (player) => {
+        try {
+            const chart = game && game.playerChart;
+            if (!chart || !Array.isArray(chart)) return null;
+
+            const entry = chart.find(
+                (p) => String(p.$id) === String(player.$id),
+            );
+            if (!entry || !Array.isArray(entry.positions)) return null;
+
+            const counts = {};
+            // Count only non-'Out' positions. Treat falsy as 'Out' but skip them.
+            for (const raw of entry.positions) {
+                const pos = raw || "Out";
+                if (pos === "Out") continue;
+                counts[pos] = (counts[pos] || 0) + 1;
+            }
+
+            const items = Object.entries(counts);
+            // If all entries were 'Out' (or there were no positions), return null
+            if (items.length === 0) return null;
+
+            // sort by count desc, then alphabetically
+            items.sort((a, b) => {
+                if (b[1] !== a[1]) return b[1] - a[1];
+                return a[0].localeCompare(b[0]);
+            });
+
+            return items[0][0];
+        } catch (e) {
+            return null;
+        }
+    };
+
     return (
         <>
             <Card mt="lg" radius="lg" px="md" py="xl" className="winner-card">
@@ -263,10 +299,19 @@ export default function WinnerDisplay({
                                             {player.firstName} {player.lastName}
                                         </Text>
                                         <Text size="sm" c="dimmed">
-                                            {player.preferredPositions.length >
-                                            0
-                                                ? player.preferredPositions[0]
-                                                : "Player"}
+                                            {(() => {
+                                                const pos =
+                                                    getMostPlayedPosition(
+                                                        player,
+                                                    );
+                                                if (pos) return pos;
+                                                return player.preferredPositions &&
+                                                    player.preferredPositions
+                                                        .length > 0
+                                                    ? player
+                                                          .preferredPositions[0]
+                                                    : "Player";
+                                            })()}
                                         </Text>
                                     </div>
                                 </Group>
@@ -332,12 +377,20 @@ export default function WinnerDisplay({
                                                     {player.lastName}
                                                 </Text>
                                                 <Text size="xs" c="dimmed">
-                                                    {player.preferredPositions &&
-                                                    player.preferredPositions
-                                                        .length > 0
-                                                        ? player
-                                                              .preferredPositions[0]
-                                                        : "Player"}
+                                                    {(() => {
+                                                        const pos =
+                                                            getMostPlayedPosition(
+                                                                player,
+                                                            );
+                                                        if (pos) return pos;
+                                                        return player.preferredPositions &&
+                                                            player
+                                                                .preferredPositions
+                                                                .length > 0
+                                                            ? player
+                                                                  .preferredPositions[0]
+                                                            : "Player";
+                                                    })()}
                                                 </Text>
                                             </div>
                                         </Group>
