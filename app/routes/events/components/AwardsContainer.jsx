@@ -49,12 +49,24 @@ export default function AwardsContainer({ game, team, deferredData, user }) {
                                 let message = "Awards unavailable at this time";
                                 let color = "dimmed";
 
-                                if (awardsTotal > 0) {
+                                // If the current user appears as a winner in any awards document,
+                                // show a personalized message.
+                                const userId = user?.$id;
+                                const userAward =
+                                    userId &&
+                                    awards?.documents?.some(
+                                        (doc) => doc.winner_user_id === userId,
+                                    );
+
+                                if (userAward) {
+                                    message = "You've received an award!";
+                                    color = "orange";
+                                } else if (awardsTotal > 0) {
                                     message = "Awards ready for view";
-                                    color = "blue";
+                                    color = "yellow";
                                 } else if (votesTotal > 0) {
                                     message = "Voting in progress";
-                                    color = "yellow";
+                                    color = "blue";
                                 }
 
                                 return (
@@ -81,16 +93,7 @@ export default function AwardsContainer({ game, team, deferredData, user }) {
             >
                 <DeferredLoader
                     resolve={deferredData}
-                    fallback={
-                        <Stack align="stretch" justify="center" gap="md">
-                            <Skeleton height={180} radius="xl" mb="lg" />
-                            <Skeleton height={73} radius="xl" mb="md" />
-                            <Skeleton height={48} radius="xl" mb="md" />
-                            <Skeleton height={48} radius="xl" mb="md" />
-                            <Skeleton height={48} radius="xl" mb="md" />
-                            <Skeleton height={48} radius="xl" mb="md" />
-                        </Stack>
-                    }
+                    fallback={null}
                     errorElement={
                         <div>
                             <Text c="red">Error loading content.</Text>
