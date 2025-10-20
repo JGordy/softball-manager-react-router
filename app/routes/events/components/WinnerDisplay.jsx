@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useRef } from "react";
 
 import {
     Avatar,
@@ -11,83 +11,132 @@ import {
     Stack,
 } from "@mantine/core";
 
-// NOTE: fires confetti when user is winner for the active award
-function useWinnerConfetti({ entries, activeAward, team, user }) {
-    useEffect(() => {
-        try {
-            if (typeof window === "undefined") return;
-            if (!entries || entries.length === 0) return;
+// Hook returns a startConfetti function. Caller should call it when the active award
+// changes and the caller determines it's the right time to run confetti.
+function useWinnerConfetti(team) {
+    const stateRef = useRef({
+        cancelled: false,
+        canvas: null,
+        myConfetti: null,
+        removeTimer: null,
+    });
 
+    // cleanup on unmount
+    useEffect(() => {
+        return () => {
+            const state = stateRef.current;
+            state.cancelled = true;
+            try {
+                if (state.removeTimer) clearTimeout(state.removeTimer);
+            } catch (e) {
+                /* ignore */
+            }
+
+            try {
+                if (
+                    state.myConfetti &&
+                    typeof state.myConfetti.reset === "function"
+                ) {
+                    try {
+                        state.myConfetti.reset();
+                    } catch (e) {
+                        /* ignore */
+                    }
+                }
+            } catch (e) {
+                /* ignore */
+            }
+
+            try {
+                if (state.canvas && state.canvas.parentNode) {
+                    state.canvas.parentNode.removeChild(state.canvas);
+                }
+                state.canvas = null;
+                state.myConfetti = null;
+            } catch (e) {
+                /* ignore */
+            }
+        };
+        // run only on mount/unmount — don't run on `team` changes, that can
+        // erroneously mark the instance as cancelled and block later calls.
+    }, []);
+
+    const startConfetti = async ({ entries, user }) => {
+        if (typeof window === "undefined") return;
+        if (!entries || entries.length === 0) return;
+
+        const state = stateRef.current;
+
+        try {
             const max = Math.max(...entries.map(([, c]) => c));
             const winnerIds = entries
                 .filter(([, c]) => c === max)
                 .map(([id]) => id);
-
             const userId = user && user.$id;
             const userIsWinner = userId && winnerIds.includes(userId);
+            if (!userIsWinner) return;
 
-            if (userIsWinner) {
-                import("canvas-confetti")
-                    .then((mod) => {
-                        const confetti = mod.default || mod;
+            const mod = await import("canvas-confetti");
 
-                        const canvas = document.createElement("canvas");
-                        canvas.style.position = "fixed";
-                        canvas.style.top = "0";
-                        canvas.style.left = "0";
-                        canvas.style.width = "100%";
-                        canvas.style.height = "100%";
-                        canvas.style.pointerEvents = "none";
-                        canvas.style.zIndex = "2147483646";
-                        document.body.appendChild(canvas);
+            const confetti = mod.default || mod;
 
-                        const myConfetti = confetti.create(canvas, {
-                            resize: true,
-                            useWorker: true,
-                        });
+            const canvas = document.createElement("canvas");
+            canvas.style.position = "fixed";
+            canvas.style.top = "0";
+            canvas.style.left = "0";
+            canvas.style.width = "100%";
+            canvas.style.height = "100%";
+            canvas.style.pointerEvents = "none";
+            canvas.style.zIndex = "2147483646";
+            document.body.appendChild(canvas);
 
-                        // Build colors array: team primary first (if present), then a few muted supporting colors
-                        const primary =
-                            team && team.primaryColor
-                                ? team.primaryColor
-                                : null;
-                        const supporting = ["#FFD166", "#A0AEC0", "#E2E8F0"]; // warm yellow and muted grays
-                        const colors = primary
-                            ? [primary, ...supporting]
-                            : supporting;
+            // prefer main-thread confetti so reset() works synchronously
+            const myConfetti = confetti.create(canvas, {
+                resize: true,
+                useWorker: false,
+            });
 
-                        myConfetti({
-                            particleCount: 100,
-                            spread: 60,
-                            origin: { y: 0.6 },
-                            colors,
-                        });
-                        myConfetti({
-                            particleCount: 50,
-                            spread: 110,
-                            origin: { y: 0.8 },
-                            colors,
-                        });
+            state.canvas = canvas;
+            state.myConfetti = myConfetti;
 
-                        setTimeout(() => {
-                            try {
-                                if (canvas && canvas.parentNode)
-                                    canvas.parentNode.removeChild(canvas);
-                            } catch (e) {
-                                /* ignore */
-                            }
-                        }, 5000);
-                    })
-                    .catch((err) => {
-                        // eslint-disable-next-line no-console
-                        console.error("Failed to load confetti", err);
-                    });
-            }
-        } catch (e) {
+            const primary =
+                team && team.primaryColor ? team.primaryColor : null;
+            const supporting = ["#FFD166", "#A0AEC0", "#E2E8F0"];
+            const colors = primary ? [primary, ...supporting] : supporting;
+
+            myConfetti({
+                particleCount: 100,
+                spread: 60,
+                origin: { y: 0.6 },
+                colors,
+            });
+            myConfetti({
+                particleCount: 50,
+                spread: 110,
+                origin: { y: 0.8 },
+                colors,
+            });
+
+            // schedule removal of the canvas after the burst completes
+            state.removeTimer = setTimeout(() => {
+                try {
+                    if (state.canvas && state.canvas.parentNode) {
+                        state.canvas.parentNode.removeChild(state.canvas);
+                    }
+                    state.canvas = null;
+                    state.myConfetti = null;
+                } catch (e) {
+                    /* ignore */
+                }
+            }, 5000);
+            // confetti fired
+        } catch (err) {
             // eslint-disable-next-line no-console
-            console.error("Confetti effect error", e);
+            console.error("Failed to run confetti", err);
         }
-    }, [entries, activeAward, user]);
+    };
+
+    return startConfetti;
 }
 
 export default function WinnerDisplay({
@@ -113,7 +162,44 @@ export default function WinnerDisplay({
 
     const entries = Object.entries(counts);
 
-    useWinnerConfetti({ entries, activeAward, team, user });
+    // compute winners synchronously from entries for the current render
+    const maxVotes =
+        entries.length > 0 ? Math.max(...entries.map(([, c]) => c)) : 0;
+    const currentWinnerIds = entries
+        .filter(([, c]) => c === maxVotes)
+        .map(([id]) => id);
+
+    const startConfetti = useWinnerConfetti(team);
+    const confettiDebounceRef = useRef(null);
+
+    // Caller controls when confetti fires. Trigger when activeAward changes.
+    useEffect(() => {
+        // clear existing debounce if any
+        if (confettiDebounceRef.current) {
+            clearTimeout(confettiDebounceRef.current);
+            confettiDebounceRef.current = null;
+        }
+
+        confettiDebounceRef.current = setTimeout(() => {
+            const userIdRaw = user?.$id;
+            const userId = userIdRaw != null ? String(userIdRaw) : null;
+            const winnerIdStrings = currentWinnerIds.map((id) => String(id));
+
+            if (userId && winnerIdStrings.includes(userId)) {
+                startConfetti({ entries, user });
+            }
+        }, 500);
+
+        return () => {
+            if (confettiDebounceRef.current) {
+                clearTimeout(confettiDebounceRef.current);
+                confettiDebounceRef.current = null;
+            }
+        };
+
+        // deliberately only watch activeAward so we fire per-award changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeAward]);
 
     if (entries.length === 0) {
         return (
