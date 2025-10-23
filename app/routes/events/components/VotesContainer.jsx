@@ -115,12 +115,6 @@ export default function VotesContainer({
     return (
         <>
             <ScrollArea.Autosize h="40vh">
-                <Card radius="lg">
-                    <Text ta="center" size="sm">
-                        {/* description is rendered in parent */}
-                    </Text>
-                </Card>
-
                 <Stack mt="md" justify="space-between">
                     <Text fw="bold">Vote for a Player:</Text>
                     <Radio.Group
