@@ -3,8 +3,6 @@ import { useFetcher } from "react-router";
 
 import { Button, Select, Text } from "@mantine/core";
 
-import classes from "@/styles/inputs.module.css";
-
 import addPlayerAvailability from "../utils/addPlayerAvailability";
 
 export default function VotesContainer({
