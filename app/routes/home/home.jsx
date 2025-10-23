@@ -12,6 +12,11 @@ import {
 } from "@mantine/core";
 import { Carousel } from "@mantine/carousel";
 
+import getGames from "@/utils/getGames";
+
+import useModal from "@/hooks/useModal";
+
+import { getCurrentSession } from "@/services/auth";
 import { Link, redirect } from "react-router";
 
 import { IconPlus } from "@tabler/icons-react";
@@ -24,12 +29,6 @@ import GameCard from "@/components/GameCard";
 
 import AddTeam from "@/forms/AddTeam";
 import { createTeam } from "@/actions/teams";
-
-import getGames from "@/utils/getGames";
-
-import useModal from "@/hooks/useModal";
-
-import { getCurrentSession } from "@/services/auth";
 
 export function meta() {
     return [
@@ -148,13 +147,18 @@ export default function HomePage({ loaderData, actionData }) {
             children: <AddTeam actionRoute={"/"} userId={userId} />,
         });
 
-    // reset active index if team list changes or becomes shorter
+    // reset/initialize active index if team list changes
     useEffect(() => {
         if (!teamList || teamList.length === 0) {
             setActiveTeamIndex(-1);
-        } else if (activeTeamIndex < 0 || activeTeamIndex >= teamList.length) {
+            return;
+        }
+
+        // If index is out of range or not yet set, initialize to first slide.
+        if (activeTeamIndex < 0 || activeTeamIndex >= teamList.length) {
             setActiveTeamIndex(0);
         }
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [teamList]);
 
@@ -206,19 +210,48 @@ export default function HomePage({ loaderData, actionData }) {
                         }}
                         onSlideChange={(index) => setActiveTeamIndex(index)}
                     >
-                        {teamList.map((team) => (
-                            <Carousel.Slide key={team.$id} my="lg">
-                                <Card radius="lg" p="lg">
+                        {teamList.map((team, index) => {
+                            const isActive = index === activeTeamIndex;
+
+                            // derive rgb from team.primaryColor (hex) for a subtle gradient
+                            const hex = (
+                                team.primaryColor || "#000000"
+                            ).replace("#", "");
+                            const r = parseInt(hex.substring(0, 2), 16) || 0;
+                            const g = parseInt(hex.substring(2, 4), 16) || 0;
+                            const b = parseInt(hex.substring(4, 6), 16) || 0;
+                            const gradient = `linear-gradient(90deg, rgba(${r}, ${g}, ${b}, 0.22), rgba(${r}, ${g}, ${b}, 0))`;
+
+                            return (
+                                <Carousel.Slide key={team.$id} my="lg">
                                     <Link to={`/team/${team.$id}`}>
-                                        <Card bg={team.primaryColor} p="md">
+                                        <Card
+                                            radius="lg"
+                                            p="lg"
+                                            style={{
+                                                position: "relative",
+                                                transform: isActive
+                                                    ? "scale(1.04)"
+                                                    : "scale(1)",
+                                                transition:
+                                                    "transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease",
+                                                boxShadow: isActive
+                                                    ? "0 12px 30px rgba(0,0,0,0.18)"
+                                                    : "0 2px 6px rgba(0,0,0,0.06)",
+                                                border: isActive
+                                                    ? `2px solid ${team.primaryColor}`
+                                                    : "1px solid rgba(0,0,0,0.06)",
+                                                backgroundImage: gradient,
+                                            }}
+                                        >
                                             <Text c="white" ta="center">
                                                 {team.name}
                                             </Text>
                                         </Card>
                                     </Link>
-                                </Card>
-                            </Carousel.Slide>
-                        ))}
+                                </Carousel.Slide>
+                            );
+                        })}
                     </Carousel>
                     {addTeamButton()}
                 </>
