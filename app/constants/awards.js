@@ -3,6 +3,10 @@ const awardsMap = {
         description:
             "The one who brings it all together with outstanding performance and team leadership.",
     },
+    clutch: {
+        description:
+            "For the player who shines brightest when the pressure is highest.",
+    },
     batting: {
         description:
             "For the player who consistently crushes the ball and racks up the RBIs.",
