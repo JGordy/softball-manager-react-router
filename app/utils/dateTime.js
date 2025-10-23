@@ -153,7 +153,7 @@ export function toViewerDateTime(isoUtcString, eventZone) {
 export function formatForViewerDate(isoUtcString, eventZone, locale = "en-US") {
     const dt = toViewerDateTime(isoUtcString, eventZone);
     if (!dt) return "Invalid Date";
-    return dt.setLocale(locale).toLocaleString();
+    return dt.setLocale(locale).toLocaleString(DateTime.DATE_MED);
 }
 
 export function formatForViewerTime(
