@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { DateTime } from "luxon";
 
 import {
@@ -10,6 +10,7 @@ import {
     Text,
     Title,
 } from "@mantine/core";
+import { Carousel } from "@mantine/carousel";
 
 import { Link, redirect } from "react-router";
 
@@ -91,7 +92,20 @@ export default function HomePage({ loaderData, actionData }) {
 
     const teamList = [...teams?.managing, ...teams?.playing];
 
-    const { futureGames, pastGames } = getGames({ teams: teamList });
+    // Track the active team shown in the carousel. Default to the first team if present.
+    const [activeTeamIndex, setActiveTeamIndex] = useState(
+        teamList && teamList.length ? 0 : -1,
+    );
+
+    const activeTeamId = teamList?.[activeTeamIndex]?.$id;
+
+    // Compute games only for the active team so the Next/Most Recent cards reflect
+    // the team shown in the carousel.
+    const { futureGames, pastGames } = getGames({
+        teams: teamList,
+        teamId: activeTeamId,
+    });
+
     const nextGame = futureGames?.slice(0, 1)?.[0];
     const mostRecentGame = pastGames?.slice(0, 1)?.[0];
 
@@ -134,78 +148,100 @@ export default function HomePage({ loaderData, actionData }) {
             children: <AddTeam actionRoute={"/"} userId={userId} />,
         });
 
+    // reset active index if team list changes or becomes shorter
+    useEffect(() => {
+        if (!teamList || teamList.length === 0) {
+            setActiveTeamIndex(-1);
+        } else if (activeTeamIndex < 0 || activeTeamIndex >= teamList.length) {
+            setActiveTeamIndex(0);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [teamList]);
+
+    const addTeamButton = (label = "Add team") => (
+        <Button variant="light" onClick={openAddTeamModal} fullWidth>
+            <Group>
+                <IconPlus size={18} />
+                <Text>{label}</Text>
+            </Group>
+        </Button>
+    );
+
     return (
         <Container>
             <UserHeader subText="Here is a summary of all of your team and event info" />
 
+            <Title order={4} mt="xl">
+                My Teams ({teamList?.length || "0"})
+            </Title>
+
+            {/* No teams */}
+            {!teamList?.length && addTeamButton("Create your first team")}
+
+            {/* Single team: show a simple card and add button */}
+            {teamList?.length === 1 && (
+                <>
+                    <Card radius="md" py="lg" mt="md" withBorder>
+                        <Link to={`/team/${teamList[0].$id}`}>
+                            <Card bg={teamList[0].primaryColor} p="md">
+                                <Text c="white">{teamList[0].name}</Text>
+                            </Card>
+                        </Link>
+                    </Card>
+                    {addTeamButton()}
+                </>
+            )}
+
+            {/* Multiple teams: carousel */}
+            {teamList?.length >= 2 && (
+                <>
+                    <Carousel
+                        controlsOffset="xs"
+                        slideSize="85%"
+                        slideGap="md"
+                        emblaOptions={{
+                            loop: true,
+                            dragFree: false,
+                            align: "center",
+                        }}
+                        onSlideChange={(index) => setActiveTeamIndex(index)}
+                    >
+                        {teamList.map((team) => (
+                            <Carousel.Slide key={team.$id} my="lg">
+                                <Card radius="lg" p="lg">
+                                    <Link to={`/team/${team.$id}`}>
+                                        <Card bg={team.primaryColor} p="md">
+                                            <Text c="white" ta="center">
+                                                {team.name}
+                                            </Text>
+                                        </Card>
+                                    </Link>
+                                </Card>
+                            </Carousel.Slide>
+                        ))}
+                    </Carousel>
+                    {addTeamButton()}
+                </>
+            )}
+
+            {/* Next Game (for active team) */}
             {nextGame && Object.keys(nextGame).length > 0 && (
                 <>
-                    <Title order={4} mt="xl">
+                    <Title order={4} mt="xl" mb="xs">
                         Upcoming Events
                     </Title>
-                    <Text span>You have a game</Text>
-                    <Text span fw={700} c="green">
-                        {daysUntilNextGame(nextGame.gameDate)}
-                    </Text>
                     <GameCard {...nextGame} />
                 </>
             )}
 
+            {/* Most Recent Game (for active team) */}
             {mostRecentGame && Object.keys(mostRecentGame).length > 0 && (
                 <>
-                    <Title order={4} mt="xl">
+                    <Title order={4} mt="xl" mb="xs">
                         Most Recent Game
                     </Title>
                     <GameCard {...mostRecentGame} />
                 </>
-            )}
-
-            <Title order={4} mt="xl">
-                My Teams ({teamList?.length || "0"})
-            </Title>
-            {!teamList?.length && (
-                <Button
-                    fullWidth
-                    variant="filled"
-                    mt="md"
-                    onClick={openAddTeamModal}
-                >
-                    Create Your First Team
-                </Button>
-            )}
-            {!!teamList?.length && (
-                <Card radius="md" py="lg" mt="md" withBorder>
-                    <ScrollArea.Autosize py="5px">
-                        <Group miw={400} wrap="nowrap">
-                            <Card align="center" px="0">
-                                <Button
-                                    variant="transparent"
-                                    onClick={openAddTeamModal}
-                                >
-                                    <Text
-                                        align="center"
-                                        style={{ whiteSpace: "nowrap" }}
-                                    >
-                                        <IconPlus size={18} />
-                                        Add Team
-                                    </Text>
-                                </Button>
-                            </Card>
-                            {teamList.map((team, index) => (
-                                <Link to={`/team/${team.$id}`} key={index}>
-                                    <Card bg={team.primaryColor}>
-                                        <Text
-                                            style={{ whiteSpace: "nowrap" }}
-                                            c="white"
-                                        >
-                                            {team.name}
-                                        </Text>
-                                    </Card>
-                                </Link>
-                            ))}
-                        </Group>
-                    </ScrollArea.Autosize>
-                </Card>
             )}
         </Container>
     );
