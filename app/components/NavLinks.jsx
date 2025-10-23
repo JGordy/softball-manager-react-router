@@ -6,7 +6,7 @@ import { Center, SegmentedControl } from "@mantine/core";
 import {
     IconBallBaseball,
     IconCalendar,
-    IconHome,
+    // IconHome,
     IconSettings,
     IconUserSquareRounded,
 } from "@tabler/icons-react";
@@ -30,14 +30,14 @@ function NavLinks() {
     const location = useLocation();
 
     const getInitialValue = () => {
-        const keywords = ["team", "game", "season"];
-        if (
-            keywords.some((keyword) =>
-                location.pathname.toLowerCase().includes(keyword),
-            )
-        ) {
-            return "teams";
-        }
+        // const keywords = ["team", "game", "season"];
+        // if (
+        //     keywords.some((keyword) =>
+        //         location.pathname.toLowerCase().includes(keyword),
+        //     )
+        // ) {
+        //     return "teams";
+        // }
 
         if (location.pathname.toLowerCase().includes("user")) {
             return "user";
@@ -58,18 +58,23 @@ function NavLinks() {
 
     const links = [
         {
-            label: <Label Icon={IconHome} text={value === "home" && "Home"} />,
-            value: "home",
-        },
-        {
             label: (
                 <Label
                     Icon={IconBallBaseball}
-                    text={value === "teams" && "Teams"}
+                    text={value === "home" && "Home"}
                 />
             ),
-            value: "teams",
+            value: "home",
         },
+        // {
+        //     label: (
+        //         <Label
+        //             Icon={IconBallBaseball}
+        //             text={value === "teams" && "Teams"}
+        //         />
+        //     ),
+        //     value: "teams",
+        // },
         {
             label: (
                 <Label
