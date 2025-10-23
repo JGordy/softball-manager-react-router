@@ -69,7 +69,7 @@ export default function PlayerAwards({ awardsPromise }) {
                     if (!awardsForType.length) {
                         return (
                             <Card radius="md" mt="xs" withBorder>
-                                <Text ta="center" c="dimmed" size="sm">
+                                <Text ta="center" c="dimmed" size="md">
                                     No{" "}
                                     {awardsMap[activeAward]?.label ||
                                         activeAward}{" "}
