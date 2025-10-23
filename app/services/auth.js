@@ -1,6 +1,6 @@
 import { account } from "@/appwrite";
 
-export const isAuth = () => {
+export const getCurrentSession = () => {
     return new Promise(async (resolve) => {
         try {
             const session = await account.getSession("current");

@@ -43,16 +43,16 @@ export async function getAttendanceByUserId({ userId }) {
 }
 
 export async function getAwardsByUserId({ userId }) {
-    const { total, documents } = await listDocuments("users", [
-        Query.equal("userId", userId),
-    ]);
+    // const { total, documents } = await listDocuments("users", [
+    //     Query.equal("userId", userId),
+    // ]);
 
-    if (total === 0) {
-        return [];
-    }
+    // if (total === 0) {
+    //     return [];
+    // }
 
     const awards = await listDocuments("awards", [
-        Query.equal("winner_user_id", documents?.[0]?.$id),
+        Query.equal("winner_user_id", userId),
     ]);
 
     return awards.documents.length > 0 ? awards.documents : [];

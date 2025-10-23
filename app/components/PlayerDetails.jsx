@@ -62,7 +62,7 @@ function PlayerDetails({ user, player, isCurrentUser }) {
             children: (
                 <AddPlayer
                     action="edit-player"
-                    actionRoute={`/user/${user.$id}`}
+                    actionRoute={`/user/${user.userId}`}
                     confirmText="Update Details"
                     inputsToDisplay={["positions", "throws-bats"]}
                     defaults={player}

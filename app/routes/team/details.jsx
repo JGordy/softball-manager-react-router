@@ -67,9 +67,9 @@ export default function TeamDetails({ actionData, loaderData }) {
 
     const { openModal, closeAllModals } = useModal();
 
-    const { user } = useAuth();
+    const { session } = useAuth();
 
-    const managerView = managerIds.includes(user?.$id);
+    const managerView = managerIds.includes(session?.userId);
 
     useEffect(() => {
         const handleAfterSubmit = async () => {

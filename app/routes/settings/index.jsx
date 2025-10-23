@@ -12,6 +12,8 @@ import {
     resetPassword,
 } from "@/actions/users";
 
+import { useAuth } from "@/contexts/auth/useAuth";
+
 import UserHeader from "@/components/UserHeader";
 import AccountPanel from "./components/AccountPanel";
 import AuthPanel from "./components/AuthPanel";
@@ -47,7 +49,8 @@ export async function clientAction({ request, params }) {
 }
 
 export default function Settings({ actionData }) {
-    const { user, session } = useOutletContext();
+    const { session } = useAuth();
+    const { user } = useOutletContext();
 
     const [userAccount, setUserAccount] = useState();
 

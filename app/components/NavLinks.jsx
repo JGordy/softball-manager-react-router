@@ -25,7 +25,7 @@ function Label({ Icon, text }) {
 }
 
 function NavLinks() {
-    const { user } = useAuth();
+    const { session } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -107,7 +107,7 @@ function NavLinks() {
         setValue(newValue);
 
         if (newValue === "user") {
-            navigate(`/user/${user.userId}`);
+            navigate(`/user/${session.userId}`);
         } else if (newValue === "home") {
             navigate("/");
         } else {

@@ -9,9 +9,11 @@ import NavLinks from "@/components/NavLinks";
 
 import { account } from "@/appwrite";
 
+import { getCurrentSession } from "@/services/auth";
+
 export async function clientLoader() {
     try {
-        const session = await account.getSession("current");
+        const session = await getCurrentSession();
         const { emailVerification } = await account.get();
 
         if (!session) {
@@ -31,7 +33,7 @@ export async function clientLoader() {
 
         const user = await response.json();
 
-        return { user, isVerified: emailVerification, session };
+        return { user, isVerified: emailVerification };
     } catch (error) {
         console.error("Error fetching user:", error);
         if (error.message === "No active session found") {

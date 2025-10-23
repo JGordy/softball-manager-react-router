@@ -2,22 +2,26 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 
 import { account } from "@/appwrite";
 
-import { readDocument } from "@/utils/databases";
+import { getCurrentSession } from "@/services/auth";
 
 import AuthContext from "./authContext";
 
 export default function AuthProvider({ children }) {
-    const [user, setUserState] = useState(null);
+    const [userAccount, setAccountState] = useState(null);
+    const [session, setSession] = useState(null);
 
     useEffect(() => {
         const getLoggedInUser = async () => {
             try {
                 const currentUser = await account.get();
-                setUserState((prev) =>
+                setAccountState((prev) =>
                     prev?.$id === currentUser?.$id ? prev : currentUser,
                 );
+
+                const session = await getCurrentSession();
+                setSession(session);
             } catch (error) {
-                setUserState((prev) => (prev === null ? prev : null)); // No logged-in user
+                setAccountState((prev) => (prev === null ? prev : null)); // No logged-in user
             }
         };
 
@@ -27,7 +31,7 @@ export default function AuthProvider({ children }) {
     // Stable function exposed to consumers. Accepts optional user arg to set directly
     const getAndSetUser = useCallback(async (maybeUser) => {
         if (maybeUser) {
-            setUserState((prev) =>
+            setAccountState((prev) =>
                 prev?.$id === maybeUser?.$id ? prev : maybeUser,
             );
             return;
@@ -35,7 +39,7 @@ export default function AuthProvider({ children }) {
 
         try {
             const currentUser = await account.get();
-            setUserState((prev) =>
+            setAccountState((prev) =>
                 prev?.$id === currentUser?.$id ? prev : currentUser,
             );
         } catch (error) {
@@ -46,8 +50,8 @@ export default function AuthProvider({ children }) {
     // Memoize the context value so consumers don't re-render just because the
     // provider re-rendered — value only changes when `user` or `getAndSetUser` changes.
     const ctxValue = useMemo(
-        () => ({ user, setUser: getAndSetUser }),
-        [user, getAndSetUser],
+        () => ({ userAccount, session, setUser: getAndSetUser }),
+        [userAccount, session, getAndSetUser],
     );
 
     return (

@@ -23,7 +23,7 @@ import { updateUser } from "@/actions/users";
 
 import useModal from "@/hooks/useModal";
 
-import { getAttendanceByUserId, getAwardsByUserId } from "@/loaders/users";
+import { getAwardsByUserId } from "@/loaders/users";
 
 import AlertIncomplete from "./components/AlertIncomplete";
 import PlayerAwards from "./components/PlayerAwards";
@@ -75,7 +75,6 @@ export async function loader({ params, request }) {
     const { userId } = params;
 
     return {
-        attendancePromise: getAttendanceByUserId({ userId, request }),
         awardsPromise: getAwardsByUserId({ userId }),
     };
 }
@@ -86,12 +85,12 @@ export default function UserProfile({ loaderData }) {
 
     const { closeAllModals } = useModal();
 
-    const { user } = useAuth();
+    const { session } = useAuth();
     const { user: player } = useOutletContext();
 
     const actionData = useActionData();
 
-    const isCurrentUser = user?.userId === player?.$id;
+    const isCurrentUser = session?.userId === player?.$id;
 
     const incompleteData = Object.entries(fieldsToValidate)
         .filter(([key]) => {
@@ -156,16 +155,16 @@ export default function UserProfile({ loaderData }) {
 
                     <Tabs.Panel value="player">
                         <PlayerDetails
-                            user={user}
+                            user={session}
                             player={player}
                             isCurrentUser={isCurrentUser}
                         />
                     </Tabs.Panel>
 
                     <Tabs.Panel value="personal">
-                        <Card radius="lg" mt="md">
+                        <Card radius="lg" mt="md" withBorder>
                             <PersonalDetails
-                                user={user}
+                                user={session}
                                 player={player}
                                 isCurrentUser={isCurrentUser}
                                 fieldsToDisplay={fieldsToDisplay}

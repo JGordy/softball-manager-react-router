@@ -49,7 +49,7 @@ export default function PersonalDetails({
             children: (
                 <AddPlayer
                     action="edit-player"
-                    actionRoute={`/user/${user?.$id}`}
+                    actionRoute={`/user/${user?.userId}`}
                     confirmText="Update Details"
                     inputsToDisplay={["name", "gender", "song"]}
                     defaults={player}
