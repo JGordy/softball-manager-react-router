@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useActionData, useOutletContext } from "react-router";
 
-import { Card, Container, Tabs } from "@mantine/core";
+import { Card, Container, Group, Tabs } from "@mantine/core";
 
 import {
     IconAward,
@@ -134,23 +134,23 @@ export default function UserProfile({ loaderData }) {
 
                 <Tabs radius="md" defaultValue="player" mt="md">
                     <Tabs.List grow justify="center">
-                        <Tabs.Tab
-                            value="player"
-                            leftSection={<IconBallBaseball size={16} />}
-                        >
-                            Player
+                        <Tabs.Tab value="player">
+                            <Group gap="xs" align="center" justify="center">
+                                <IconBallBaseball size={16} />
+                                Player
+                            </Group>
                         </Tabs.Tab>
-                        <Tabs.Tab
-                            value="personal"
-                            leftSection={<IconUserSquareRounded size={16} />}
-                        >
-                            Personal
+                        <Tabs.Tab value="personal">
+                            <Group gap="xs" align="center" justify="center">
+                                <IconUserSquareRounded size={16} />
+                                Personal
+                            </Group>
                         </Tabs.Tab>
-                        <Tabs.Tab
-                            value="experience"
-                            leftSection={<IconAward size={16} />}
-                        >
-                            Awards
+                        <Tabs.Tab value="experience">
+                            <Group gap="xs" align="center" justify="center">
+                                <IconAward size={16} />
+                                Awards
+                            </Group>
                         </Tabs.Tab>
                     </Tabs.List>
 
