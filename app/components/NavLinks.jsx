@@ -107,7 +107,7 @@ function NavLinks() {
         setValue(newValue);
 
         if (newValue === "user") {
-            navigate(`/user/${user.$id}`);
+            navigate(`/user/${user.userId}`);
         } else if (newValue === "home") {
             navigate("/");
         } else {

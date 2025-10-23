@@ -91,7 +91,7 @@ export default function UserProfile({ loaderData }) {
 
     const actionData = useActionData();
 
-    const isCurrentUser = user?.$id === player?.$id;
+    const isCurrentUser = user?.userId === player?.$id;
 
     const incompleteData = Object.entries(fieldsToValidate)
         .filter(([key]) => {
