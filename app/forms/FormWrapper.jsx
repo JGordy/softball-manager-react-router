@@ -31,7 +31,7 @@ export default function FormWrapper({
         <Form method="post" onSubmit={handleSubmit} {...rest}>
             {children}
             {!hideButtons && (
-                <Group position="right" mt="lg">
+                <Group position="right" mt="xl" mb="sm">
                     <Button
                         type="submit"
                         color={buttonColor || "green"}
