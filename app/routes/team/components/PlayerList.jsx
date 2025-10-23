@@ -153,19 +153,17 @@ export default function PlayerList({
                 >
                     <Tabs radius="md" defaultValue="player" mt="md">
                         <Tabs.List justify="center" grow>
-                            <Tabs.Tab
-                                value="player"
-                                leftSection={<IconBallBaseball size={16} />}
-                            >
-                                Player
+                            <Tabs.Tab value="player">
+                                <Group gap="xs" align="center" justify="center">
+                                    <IconBallBaseball size={16} />
+                                    Player
+                                </Group>
                             </Tabs.Tab>
-                            <Tabs.Tab
-                                value="personal"
-                                leftSection={
+                            <Tabs.Tab value="personal">
+                                <Group gap="xs" align="center" justify="center">
                                     <IconUserSquareRounded size={16} />
-                                }
-                            >
-                                Personal
+                                    Personal
+                                </Group>
                             </Tabs.Tab>
                         </Tabs.List>
 

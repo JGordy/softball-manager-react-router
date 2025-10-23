@@ -1,9 +1,10 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { redirect, useOutletContext } from "react-router";
 
 import {
     ActionIcon,
     Container,
+    Group,
     Menu,
     SegmentedControl,
     Tabs,
@@ -152,17 +153,17 @@ export default function EventsDetails({ loaderData }) {
             </Title>
             <Tabs radius="md" defaultValue="upcoming" mt="xl">
                 <Tabs.List grow justify="center">
-                    <Tabs.Tab
-                        value="upcoming"
-                        leftSection={<IconCalendarMonth size={16} />}
-                    >
-                        Upcoming
+                    <Tabs.Tab value="upcoming">
+                        <Group gap="xs" align="center" justify="center">
+                            <IconCalendarMonth size={16} />
+                            Upcoming
+                        </Group>
                     </Tabs.Tab>
-                    <Tabs.Tab
-                        value="past"
-                        leftSection={<IconCalendarMonth size={16} />}
-                    >
-                        Past
+                    <Tabs.Tab value="past">
+                        <Group gap="xs" align="center" justify="center">
+                            <IconCalendarMonth size={16} />
+                            Past
+                        </Group>
                     </Tabs.Tab>
                 </Tabs.List>
 

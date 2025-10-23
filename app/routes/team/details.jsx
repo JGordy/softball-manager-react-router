@@ -125,24 +125,23 @@ export default function TeamDetails({ actionData, loaderData }) {
                 mt="xl"
             >
                 <Tabs.List grow justify="center">
-                    <Tabs.Tab
-                        value="roster"
-                        leftSection={<IconUsersGroup size={16} />}
-                    >
-                        Roster
+                    <Tabs.Tab value="roster">
+                        <Group gap="xs" align="center" justify="center">
+                            <IconUsersGroup size={16} />
+                            Roster
+                        </Group>
                     </Tabs.Tab>
-                    <Tabs.Tab
-                        value="seasons"
-                        leftSection={<IconCalendarMonth size={16} />}
-                    >
-                        Seasons
+                    <Tabs.Tab value="seasons">
+                        <Group gap="xs" align="center" justify="center">
+                            <IconCalendarMonth size={16} />
+                            Seasons
+                        </Group>
                     </Tabs.Tab>
-                    <Tabs.Tab
-                        value="games"
-                        leftSection={<IconBallBaseball size={16} />}
-                        disabled={seasons.length === 0}
-                    >
-                        Games
+                    <Tabs.Tab value="games" disabled={seasons.length === 0}>
+                        <Group gap="xs" align="center" justify="center">
+                            <IconBallBaseball size={16} />
+                            Games
+                        </Group>
                     </Tabs.Tab>
                 </Tabs.List>
 
