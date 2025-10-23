@@ -22,9 +22,11 @@ import GamesList from "@/components/GamesList";
 
 import getGames from "@/utils/getGames";
 
+import { getCurrentSession } from "@/services/auth";
+
 export async function clientLoader({ request }) {
     try {
-        const session = await account.getSession("current");
+        const session = await getCurrentSession();
 
         if (!session) {
             throw redirect("/login");

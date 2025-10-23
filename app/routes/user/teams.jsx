@@ -13,11 +13,13 @@ import UserHeader from "@/components/UserHeader";
 import AddTeam from "@/forms/AddTeam";
 import { createTeam } from "@/actions/teams";
 
-import TeamCard from "./components/TeamCard";
-
 import sortTeams from "@/utils/sortTeamsBySeason";
 
 import useModal from "@/hooks/useModal";
+
+import { getCurrentSession } from "@/services/auth";
+
+import TeamCard from "./components/TeamCard";
 
 export function meta() {
     return [
@@ -28,7 +30,7 @@ export function meta() {
 
 export async function clientLoader({ request }) {
     try {
-        const session = await account.getSession("current");
+        const session = await getCurrentSession();
 
         if (!session) {
             throw redirect("/login");

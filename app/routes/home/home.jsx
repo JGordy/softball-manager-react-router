@@ -28,6 +28,8 @@ import getGames from "@/utils/getGames";
 
 import useModal from "@/hooks/useModal";
 
+import { getCurrentSession } from "@/services/auth";
+
 export function meta() {
     return [
         { title: "Rocket Roster" },
@@ -35,11 +37,9 @@ export function meta() {
     ];
 }
 
-// export async function loader({ request }) { };
-
 export async function clientLoader({ request }) {
     try {
-        const session = await account.getSession("current");
+        const session = await getCurrentSession();
 
         if (!session) {
             throw redirect("/login");

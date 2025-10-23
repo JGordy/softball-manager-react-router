@@ -2,11 +2,10 @@ import { useEffect } from "react";
 import { Outlet, redirect } from "react-router";
 
 import { account } from "@/utils/appwrite/adminClient";
-import { account as clientAccount } from "@/utils/appwrite/sessionClient";
 
 import { useAuth } from "@/contexts/auth/useAuth";
 
-// import Logout from './logout/logout';
+import { getCurrentSession } from "@/services/auth";
 
 export async function loader({ request }) {
     try {
@@ -21,7 +20,7 @@ export async function loader({ request }) {
 export async function clientLoader({ request }) {
     const url = new URL(request.url);
     try {
-        const session = await clientAccount.getSession("current");
+        const session = await getCurrentSession();
 
         return {
             isLoggedIn: !!session,
@@ -65,9 +64,6 @@ export default function AuthWrapper({ children, loaderData }) {
         <>
             <div>
                 <Outlet />
-                {/* <div className="mt-4">
-                    <Logout />
-                </div> */}
             </div>
             {children}
         </>
