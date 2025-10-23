@@ -1,15 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useFetcher } from "react-router";
 
-import {
-    Button,
-    Card,
-    Group,
-    Radio,
-    ScrollArea,
-    Stack,
-    Text,
-} from "@mantine/core";
+import { Button, Select, Text } from "@mantine/core";
 
 import classes from "@/styles/inputs.module.css";
 
@@ -114,58 +106,25 @@ export default function VotesContainer({
 
     return (
         <>
-            <ScrollArea.Autosize h="40vh">
-                <Stack mt="md" justify="space-between">
-                    <Text fw="bold">Vote for a Player:</Text>
-                    <Radio.Group
-                        value={playerVotes[activeAward]?.nominated_user_id}
-                        onChange={(value) => handleVote(activeAward, value)}
-                    >
-                        <Stack>
-                            {sortedPlayersForActiveAward.map((player) => {
-                                const count = countsByAward[activeAward]?.[
-                                    player.$id
-                                ]
-                                    ? countsByAward[activeAward][player.$id]
-                                    : 0;
-
-                                return (
-                                    <Radio.Card
-                                        className={classes.radioCard}
-                                        key={player.$id}
-                                        value={player.$id}
-                                        checked={
-                                            playerVotes[activeAward]
-                                                ?.nominated_user_id ===
-                                            player.$id
-                                        }
-                                        radius="lg"
-                                    >
-                                        <Card radius="lg" py="sm" px="md">
-                                            <Group justify="space-between">
-                                                <Group>
-                                                    <Radio.Indicator />
-                                                    <Text>
-                                                        {player.firstName}{" "}
-                                                        {player.lastName}
-                                                    </Text>
-                                                </Group>
-
-                                                {count > 0 && (
-                                                    <Text size="sm" c="dimmed">
-                                                        {count} vote
-                                                        {count === 1 ? "" : "s"}
-                                                    </Text>
-                                                )}
-                                            </Group>
-                                        </Card>
-                                    </Radio.Card>
-                                );
-                            })}
-                        </Stack>
-                    </Radio.Group>
-                </Stack>
-            </ScrollArea.Autosize>
+            <Text fw="bold">Vote for a Player:</Text>
+            <Select
+                placeholder="Select a player"
+                nothingFoundMessage="No players"
+                data={sortedPlayersForActiveAward.map((player) => {
+                    const count = countsByAward[activeAward]?.[player.$id] || 0;
+                    const name =
+                        `${player.firstName || ""} ${player.lastName || ""}`.trim();
+                    const votesText =
+                        count > 0
+                            ? ` (${count} vote${count === 1 ? "" : "s"})`
+                            : "";
+                    return { value: player.$id, label: `${name}${votesText}` };
+                })}
+                value={playerVotes[activeAward]?.nominated_user_id || null}
+                onChange={(value) => handleVote(activeAward, value)}
+                comboboxProps={{ withinPortal: false, position: "bottom" }}
+                size="lg"
+            />
             <Button
                 variant="filled"
                 radius="md"
@@ -177,7 +136,7 @@ export default function VotesContainer({
                 autoContrast
                 fullWidth
             >
-                Submit Votes
+                Submit All Votes
             </Button>
         </>
     );
