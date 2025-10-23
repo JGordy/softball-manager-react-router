@@ -36,6 +36,7 @@ export default function FormWrapper({
                         type="submit"
                         color={buttonColor || "green"}
                         autoContrast
+                        size="md"
                     >
                         {confirmText}
                     </Button>
@@ -43,6 +44,7 @@ export default function FormWrapper({
                         variant="outline"
                         color="gray"
                         onClick={onCancelClick || closeAllModals}
+                        size="md"
                     >
                         {cancelText}
                     </Button>
