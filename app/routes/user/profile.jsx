@@ -1,5 +1,10 @@
-import { useEffect } from "react";
-import { useActionData, useOutletContext } from "react-router";
+import { useEffect, useState } from "react";
+import {
+    useActionData,
+    useOutletContext,
+    useLocation,
+    useNavigate,
+} from "react-router";
 
 import { Card, Container, Group, Tabs } from "@mantine/core";
 
@@ -87,6 +92,8 @@ export default function UserProfile({ loaderData }) {
 
     const { session } = useAuth();
     const { user: player } = useOutletContext();
+    const location = useLocation();
+    const navigate = useNavigate();
 
     const actionData = useActionData();
 
@@ -122,6 +129,31 @@ export default function UserProfile({ loaderData }) {
         handleAfterSubmit();
     }, [actionData]);
 
+    const validTabs = ["player", "personal", "awards"];
+    const hash = location?.hash?.replace(/^#/, "") || null;
+    const defaultTab = validTabs.includes(hash) ? hash : "player";
+
+    const [tab, setTab] = useState(defaultTab);
+
+    // Keep tab state in sync when location.hash changes (back/forward navigation)
+    useEffect(() => {
+        const current = location?.hash?.replace(/^#/, "") || null;
+        if (current && validTabs.includes(current) && current !== tab) {
+            setTab(current);
+        }
+    }, [location.hash]);
+
+    const handleTabChange = (value) => {
+        if (!value) return;
+        if (value === tab) return;
+        setTab(value);
+
+        const newHash = `#${value}`;
+        // preserve pathname and search when updating hash so history works
+        const url = `${location.pathname}${location.search}${newHash}`;
+        navigate(url, { replace: false });
+    };
+
     return (
         !!Object.keys(player).length && (
             <Container>
@@ -131,7 +163,12 @@ export default function UserProfile({ loaderData }) {
                     <AlertIncomplete incompleteData={incompleteData} />
                 )}
 
-                <Tabs radius="md" defaultValue="player" mt="md">
+                <Tabs
+                    radius="md"
+                    value={tab}
+                    onChange={handleTabChange}
+                    mt="md"
+                >
                     <Tabs.List grow justify="center">
                         <Tabs.Tab value="player">
                             <Group gap="xs" align="center" justify="center">
@@ -145,7 +182,7 @@ export default function UserProfile({ loaderData }) {
                                 Personal
                             </Group>
                         </Tabs.Tab>
-                        <Tabs.Tab value="experience">
+                        <Tabs.Tab value="awards">
                             <Group gap="xs" align="center" justify="center">
                                 <IconAward size={16} />
                                 Awards
@@ -172,7 +209,7 @@ export default function UserProfile({ loaderData }) {
                         </Card>
                     </Tabs.Panel>
 
-                    <Tabs.Panel value="experience">
+                    <Tabs.Panel value="awards">
                         <PlayerAwards awardsPromise={awardsPromise} />
                     </Tabs.Panel>
                 </Tabs>
