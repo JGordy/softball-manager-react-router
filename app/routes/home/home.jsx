@@ -166,9 +166,12 @@ export default function HomePage({ loaderData, actionData }) {
                 <HomeMenu userId={userId} />
             </UserHeader>
 
-            <Title order={4} mt="xl">
-                My Teams ({teamList?.length || "0"})
-            </Title>
+            <Group justify="space-between" align="center" mt="xl">
+                <Title order={4}>My Teams ({teamList?.length || "0"})</Title>
+                <Text component="div" size="sm" c="dimmed">
+                    Click team card for details
+                </Text>
+            </Group>
 
             {/* No teams */}
             {!teamList?.length && (
