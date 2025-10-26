@@ -1,15 +1,6 @@
 import { useEffect, useState } from "react";
-import { DateTime } from "luxon";
 
-import {
-    Button,
-    Card,
-    Container,
-    Group,
-    ScrollArea,
-    Text,
-    Title,
-} from "@mantine/core";
+import { Button, Card, Container, Group, Text, Title } from "@mantine/core";
 import { Carousel } from "@mantine/carousel";
 
 import getGames from "@/utils/getGames";
@@ -21,14 +12,14 @@ import { Link, redirect } from "react-router";
 
 import { IconPlus } from "@tabler/icons-react";
 
-import { account } from "@/appwrite";
-
+import GameCard from "@/components/GameCard";
 import LoaderDots from "@/components/LoaderDots";
 import UserHeader from "@/components/UserHeader";
-import GameCard from "@/components/GameCard";
 
 import AddTeam from "@/forms/AddTeam";
 import { createTeam } from "@/actions/teams";
+
+import HomeMenu from "./components/HomeMenu";
 
 export function meta() {
     return [
@@ -91,6 +82,25 @@ export default function HomePage({ loaderData, actionData }) {
 
     const teamList = [...teams?.managing, ...teams?.playing];
 
+    // helper to pick white or black text based on background hex color luminance
+    const getContrastTextColor = (hexColor) => {
+        if (!hexColor) return "#000";
+        let hex = String(hexColor).replace("#", "");
+        if (hex.length === 3) {
+            hex = hex
+                .split("")
+                .map((c) => c + c)
+                .join("");
+        }
+        const r = parseInt(hex.substring(0, 2), 16);
+        const g = parseInt(hex.substring(2, 4), 16);
+        const b = parseInt(hex.substring(4, 6), 16);
+
+        // Perceived luminance
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        return luminance < 0.5 ? "#fff" : "#000";
+    };
+
     // Track the active team shown in the carousel. Default to the first team if present.
     const [activeTeamIndex, setActiveTeamIndex] = useState(
         teamList && teamList.length ? 0 : -1,
@@ -107,18 +117,6 @@ export default function HomePage({ loaderData, actionData }) {
 
     const nextGame = futureGames?.slice(0, 1)?.[0];
     const mostRecentGame = pastGames?.slice(0, 1)?.[0];
-
-    const daysUntilNextGame = (date) => {
-        // date is expected to be an ISO string stored in UTC. Use Luxon for safe arithmetic.
-        const today = DateTime.utc();
-        const gameDate = DateTime.fromISO(date, { zone: "utc" });
-
-        const timeDiff = gameDate.toMillis() - today.toMillis();
-        const daysUntilGame = Math.ceil(timeDiff / (1000 * 3600 * 24)); // Calculate days
-        const daysUntilText = `${daysUntilGame} day${daysUntilGame !== 1 ? "s" : ""}`;
-
-        return ` in ${daysUntilText}!`;
-    };
 
     useEffect(() => {
         const handleAfterSubmit = async () => {
@@ -162,99 +160,106 @@ export default function HomePage({ loaderData, actionData }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [teamList]);
 
-    const addTeamButton = (label = "Add team") => (
-        <Button variant="light" onClick={openAddTeamModal} fullWidth>
-            <Group>
-                <IconPlus size={18} />
-                <Text>{label}</Text>
-            </Group>
-        </Button>
-    );
-
     return (
         <Container>
-            <UserHeader subText="Here is a summary of all of your team and event info" />
+            <UserHeader subText="Team and events summary">
+                <HomeMenu userId={userId} />
+            </UserHeader>
 
             <Title order={4} mt="xl">
                 My Teams ({teamList?.length || "0"})
             </Title>
 
             {/* No teams */}
-            {!teamList?.length && addTeamButton("Create your first team")}
+            {!teamList?.length && (
+                <Button variant="light" onClick={openAddTeamModal} fullWidth>
+                    <Group>
+                        <IconPlus size={18} />
+                        <Text>{label}</Text>
+                    </Group>
+                </Button>
+            )}
 
             {/* Single team: show a simple card and add button */}
             {teamList?.length === 1 && (
-                <>
-                    <Card radius="md" py="lg" mt="md" withBorder>
-                        <Link to={`/team/${teamList[0].$id}`}>
-                            <Card bg={teamList[0].primaryColor} p="md">
-                                <Text c="white">{teamList[0].name}</Text>
-                            </Card>
-                        </Link>
-                    </Card>
-                    {addTeamButton()}
-                </>
+                <Card radius="md" py="lg" mt="md" withBorder>
+                    <Link to={`/team/${teamList[0].$id}`}>
+                        <Card bg={teamList[0].primaryColor} p="md">
+                            <Text c="white">{teamList[0].name}</Text>
+                        </Card>
+                    </Link>
+                </Card>
             )}
 
             {/* Multiple teams: carousel */}
             {teamList?.length >= 2 && (
-                <>
-                    <Carousel
-                        controlsOffset="xs"
-                        slideSize="85%"
-                        slideGap="md"
-                        emblaOptions={{
-                            loop: true,
-                            dragFree: false,
-                            align: "center",
-                        }}
-                        onSlideChange={(index) => setActiveTeamIndex(index)}
-                    >
-                        {teamList.map((team, index) => {
-                            const isActive = index === activeTeamIndex;
+                <Carousel
+                    controlsOffset="xs"
+                    slideSize="85%"
+                    slideGap="lg"
+                    emblaOptions={{
+                        loop: true,
+                        align: "center",
+                    }}
+                    onSlideChange={(index) => setActiveTeamIndex(index)}
+                    pb="md"
+                    withIndicators
+                    withControls={false}
+                >
+                    {teamList.map((team, index) => {
+                        const isActive = index === activeTeamIndex;
 
-                            // derive rgb from team.primaryColor (hex) for a subtle gradient
-                            const hex = (
-                                team.primaryColor || "#000000"
-                            ).replace("#", "");
-                            const r = parseInt(hex.substring(0, 2), 16) || 0;
-                            const g = parseInt(hex.substring(2, 4), 16) || 0;
-                            const b = parseInt(hex.substring(4, 6), 16) || 0;
-                            const gradient = `linear-gradient(90deg, rgba(${r}, ${g}, ${b}, 0.22), rgba(${r}, ${g}, ${b}, 0))`;
+                        // determine contrast text color and use team primary color as background
+                        const bgColor = team.primaryColor || "#ffffff";
+                        const textColor = getContrastTextColor(bgColor);
 
-                            return (
-                                <Carousel.Slide key={team.$id} my="lg">
-                                    <Link to={`/team/${team.$id}`}>
-                                        <Card
-                                            radius="lg"
-                                            p="lg"
+                        // When there are exactly two slides we only adjust margins
+                        // so the first slide gets left margin and the last gets right margin
+                        // to prevent edge clipping while keeping slideSize at 85%.
+                        const isTwo = teamList?.length === 2;
+                        const isFirst = index === 0;
+                        const isLast = index === teamList.length - 1;
+                        const slideMarginLeft = isTwo && isFirst ? 12 : 0;
+                        const slideMarginRight = isTwo && isLast ? 12 : 0;
+
+                        return (
+                            <Carousel.Slide key={team.$id} my="lg">
+                                <Link to={`/team/${team.$id}`}>
+                                    <Card
+                                        radius="lg"
+                                        p="lg"
+                                        style={{
+                                            position: "relative",
+                                            transform: isActive
+                                                ? "scale(1.04)"
+                                                : "scale(1)",
+                                            transition:
+                                                "transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease",
+                                            border: isActive
+                                                ? `2px solid ${team.primaryColor}`
+                                                : "1px solid rgba(0,0,0,0.06)",
+                                            backgroundColor: bgColor,
+                                            marginLeft: slideMarginLeft,
+                                            marginRight: slideMarginRight,
+                                        }}
+                                    >
+                                        <Text
+                                            ta="center"
+                                            c={textColor}
                                             style={{
-                                                position: "relative",
-                                                transform: isActive
-                                                    ? "scale(1.04)"
-                                                    : "scale(1)",
-                                                transition:
-                                                    "transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease",
-                                                boxShadow: isActive
-                                                    ? "0 12px 30px rgba(0,0,0,0.18)"
-                                                    : "0 2px 6px rgba(0,0,0,0.06)",
-                                                border: isActive
-                                                    ? `2px solid ${team.primaryColor}`
-                                                    : "1px solid rgba(0,0,0,0.06)",
-                                                backgroundImage: gradient,
+                                                whiteSpace: "nowrap",
+                                                overflow: "hidden",
+                                                textOverflow: "ellipsis",
                                             }}
                                         >
-                                            <Text c="white" ta="center">
-                                                {team.name}
-                                            </Text>
-                                        </Card>
-                                    </Link>
-                                </Carousel.Slide>
-                            );
-                        })}
-                    </Carousel>
-                    {addTeamButton()}
-                </>
+                                            {team.name}
+                                        </Text>
+                                    </Card>
+                                </Link>
+                            </Carousel.Slide>
+                        );
+                    })}
+                </Carousel>
             )}
 
             {/* Next Game (for active team) */}
