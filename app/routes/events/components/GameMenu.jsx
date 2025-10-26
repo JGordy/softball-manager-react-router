@@ -1,11 +1,6 @@
-import { ActionIcon, Menu, Text } from "@mantine/core";
+import { Text } from "@mantine/core";
 
-import {
-    IconDots,
-    IconEdit,
-    IconScoreboard,
-    IconTrashX,
-} from "@tabler/icons-react";
+import { IconEdit, IconScoreboard, IconTrashX } from "@tabler/icons-react";
 
 import AddGameResults from "@/forms/AddGameResults";
 import AddSingleGame from "@/forms/AddSingleGame";
