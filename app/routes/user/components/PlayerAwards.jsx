@@ -79,33 +79,24 @@ export default function PlayerAwards({ awardsPromise }) {
                         );
                     }
 
-                    return (
-                        <Stack spacing="sm">
-                            {awardsForType.map((award) => (
-                                <Link
-                                    to={`/events/${award.game_id}`}
-                                    key={award.$id}
-                                >
-                                    <Card
-                                        radius="md"
-                                        my="xs"
-                                        withBorder
-                                        component="div"
-                                        className="winner-card"
-                                    >
-                                        <Group justify="space-between">
-                                            <Text size="md" ta="center">
-                                                {formatForViewerDate(
-                                                    award.decided_at,
-                                                )}
-                                            </Text>
-                                            <IconChevronRight size={20} />
-                                        </Group>
-                                    </Card>
-                                </Link>
-                            ))}
-                        </Stack>
-                    );
+                    return awardsForType.map((award) => (
+                        <Link to={`/events/${award.game_id}`} key={award.$id}>
+                            <Card
+                                radius="md"
+                                my="xs"
+                                withBorder
+                                component="div"
+                                className="winner-card"
+                            >
+                                <Group justify="space-between">
+                                    <Text size="md" ta="center">
+                                        {formatForViewerDate(award.decided_at)}
+                                    </Text>
+                                    <IconChevronRight size={20} />
+                                </Group>
+                            </Card>
+                        </Link>
+                    ));
                 }}
             </DeferredLoader>
         </>
