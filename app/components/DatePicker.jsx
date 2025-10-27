@@ -19,6 +19,7 @@ export default function DatePicker({
 
     return (
         <DatePickerInput
+            size="md"
             className={classes.inputs}
             defaultValue={defaultValue}
             firstDayOfWeek={0}
@@ -29,6 +30,7 @@ export default function DatePicker({
             placeholder={placeholder}
             popoverProps={{ position: "top" }}
             required={required}
+            radius="md"
         />
     );
 }

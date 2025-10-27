@@ -124,6 +124,8 @@ export default function LocationInput({
                 data={autocompleteData}
                 renderOption={renderOption}
                 onChange={handleInputChange}
+                radius="md"
+                size="md"
             />
             <input
                 type="hidden"
