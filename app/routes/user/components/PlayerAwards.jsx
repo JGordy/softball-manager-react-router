@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router";
 
 import { Card, Center, Group, Image, Text, Stack } from "@mantine/core";
@@ -14,8 +14,41 @@ import { formatForViewerDate } from "@/utils/dateTime";
 
 export default function PlayerAwards({ awardsPromise }) {
     const [activeAward, setActiveAward] = useState("mvp");
+    const [initialSlide, setInitialSlide] = useState(0);
+    const [initialSet, setInitialSet] = useState(false);
 
     const awardsList = useMemo(() => Object.keys(awardsMap), []);
+
+    useEffect(() => {
+        let mounted = true;
+
+        const setInitialFromAwards = async () => {
+            try {
+                const resolved = await awardsPromise;
+                if (!mounted) return;
+
+                // find the first award type that the user has
+                const index = awardsList.findIndex((key) =>
+                    resolved.some((a) => a.award_type === key),
+                );
+
+                if (index !== -1 && !initialSet) {
+                    setInitialSlide(index);
+                    setActiveAward(awardsList[index]);
+                    setInitialSet(true);
+                }
+            } catch (err) {
+                // ignore errors — leave defaults
+                // console.error(err);
+            }
+        };
+
+        setInitialFromAwards();
+
+        return () => {
+            mounted = false;
+        };
+    }, [awardsPromise]);
 
     return (
         <>
@@ -30,6 +63,7 @@ export default function PlayerAwards({ awardsPromise }) {
                     align: "center",
                 }}
                 // getEmblaApi={(api) => setEmbla(api)}
+                initialSlide={initialSlide}
                 onSlideChange={(index) => setActiveAward(awardsList[index])}
             >
                 {awardsList.map((key) => (
