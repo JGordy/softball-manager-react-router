@@ -228,6 +228,7 @@ export default function GenerateSeasonGames({
                 format="24"
                 mb="sm"
                 defaultValue="19:00"
+                radius="md"
             />
             <Select
                 className={classes.inputs}
@@ -238,6 +239,7 @@ export default function GenerateSeasonGames({
                 defaultValue={currentTimeZone}
                 mb="sm"
                 searchable
+                radius="md"
             />
             <input
                 type="hidden"

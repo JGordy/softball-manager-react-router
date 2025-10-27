@@ -64,9 +64,12 @@ export default function AddSingleGame({
                 name="opponent"
                 placeholder="Who are we playing?"
                 defaultValue={defaults.opponent}
+                radius="md"
+                size="md"
             />
             <Radio.Group
                 mb="md"
+                size="md"
                 className={classes.inputs}
                 defaultValue={`${defaults?.isHomeGame}`}
                 name="isHomeGame"
@@ -86,6 +89,8 @@ export default function AddSingleGame({
                     data={seasonOptions}
                     mb="sm"
                     searchable
+                    radius="md"
+                    size="md"
                 />
             )}
             <DatePicker
@@ -99,6 +104,8 @@ export default function AddSingleGame({
                     }).toJSDate()
                 }
                 required={action === "add-single-game"}
+                radius="md"
+                size="md"
             />
             <TimeInput
                 label="Game Start Time"
@@ -110,6 +117,8 @@ export default function AddSingleGame({
                 mb="sm"
                 defaultValue={defaults.gameTime || "19:00"}
                 required={action === "add-single-game"}
+                radius="md"
+                size="md"
             />
             <Select
                 className={classes.inputs}
@@ -120,6 +129,8 @@ export default function AddSingleGame({
                 defaultValue={currentTimeZone}
                 mb="sm"
                 searchable
+                radius="md"
+                size="md"
             />
         </FormWrapper>
     );
