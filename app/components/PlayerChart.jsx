@@ -44,7 +44,7 @@ const PlayerChart = ({ playerChart }) => {
     }
 
     return (
-        <div className={styles.tableContainer}>
+        <div className={`${styles.tableContainer} printable`}>
             <ScrollArea.Autosize
                 miw={650}
                 mah={450}

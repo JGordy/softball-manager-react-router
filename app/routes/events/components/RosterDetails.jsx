@@ -1,9 +1,11 @@
 import { Link } from "react-router";
-import { Card, Divider, Group, Skeleton, Stack, Text } from "@mantine/core";
+import { Button, Card, Divider, Group, Skeleton, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
 import {
     IconClipboardList,
+    IconEdit,
+    IconPrinter,
     IconUsersGroup,
     IconZoomQuestion,
 } from "@tabler/icons-react";
@@ -27,6 +29,10 @@ export default function RosterDetails({
     const [lineupDrawerOpened, lineupDrawerHandlers] = useDisclosure(false);
     const [availabilityDrawerOpened, availabilityDrawerHandlers] =
         useDisclosure(false);
+
+    const handlePrintLineup = () => {
+        window?.print();
+    };
 
     return (
         <>
@@ -131,19 +137,36 @@ export default function RosterDetails({
                         </Text>
                     </>
                 )}
-                {managerView && (
-                    <Card c="green" mt="xl">
-                        <Link
+
+                <Group justify="space-between" mt="md" grow wrap="nowrap">
+                    {managerView && (
+                        <Button
+                            component={Link}
                             to={`/events/${game.$id}/lineup`}
                             onClick={lineupDrawerHandlers.close}
+                            size="md"
                         >
-                            <Text align="center">
-                                {playerChart ? "Edit" : "Create"} Lineup & Field
-                                Charts
-                            </Text>
-                        </Link>
-                    </Card>
-                )}
+                            <Group justify="center" gap="xs" wrap="nowrap">
+                                <IconEdit size={18} />
+                                <Text align="center">
+                                    {playerChart ? "Edit" : "Create"} Charts
+                                </Text>
+                            </Group>
+                        </Button>
+                    )}
+                    {playerChart && (
+                        <Button
+                            color="blue"
+                            onClick={handlePrintLineup}
+                            size="md"
+                        >
+                            <Group justify="center" gap="xs" wrap="nowrap">
+                                <IconPrinter size={18} />
+                                Print
+                            </Group>
+                        </Button>
+                    )}
+                </Group>
             </DrawerContainer>
 
             <DeferredLoader resolve={deferredData}>
