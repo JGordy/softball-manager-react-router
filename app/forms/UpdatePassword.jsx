@@ -49,6 +49,8 @@ export default function UpdatePassword({
                         description="Used to verify your identity"
                         mt="md"
                         withAsterisk
+                        radius="md"
+                        size="md"
                     />
                     <PasswordInput
                         className={classes.inputs}
@@ -59,6 +61,8 @@ export default function UpdatePassword({
                         description="Must be at least 8 characters long"
                         mt="md"
                         withAsterisk
+                        radius="md"
+                        size="md"
                     />
                 </>
             )}

@@ -43,6 +43,8 @@ export default function UpdateContactInfo({
                 description="Required to update your contact information"
                 mt="md"
                 withAsterisk
+                radius="md"
+                size="md"
             />
         </FormWrapper>
     );
