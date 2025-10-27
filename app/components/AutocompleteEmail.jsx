@@ -25,6 +25,8 @@ export default function AutocompleteEmail({ classes, defaultValue, required }) {
             placeholder="youremail@email.com"
             required={required}
             data={emailSuggestions}
+            radius="md"
+            size="md"
             rightSection={loading ? <Loader size={16} /> : null}
             onChange={(value) => {
                 window.clearTimeout(timeoutRef.current);

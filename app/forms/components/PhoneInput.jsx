@@ -15,6 +15,8 @@ export default function PhoneInput({ defaultValue }) {
                 mask="(000) 000-0000"
                 name="phoneNumber"
                 placeholder="(xxx) xxx-xxxx"
+                radius="md"
+                size="md"
             />
         </Input.Wrapper>
     );
