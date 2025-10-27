@@ -31,6 +31,8 @@ export default function AddSeason({
                 name="seasonName"
                 placeholder="Fall Season 2025"
                 required={action === "add-season"}
+                radius="md"
+                size="md"
             />
             <LocationInput classes={classes.inputs} />
             <MultiSelect
@@ -50,6 +52,8 @@ export default function AddSeason({
                 mb="sm"
                 clearable
                 searchable
+                radius="md"
+                size="md"
             />
             <Select
                 className={classes.inputs}
@@ -60,6 +64,8 @@ export default function AddSeason({
                 mb="sm"
                 searchable
                 required={action === "add-season"}
+                radius="md"
+                size="md"
             />
             <NumberInput
                 className={classes.inputs}
@@ -71,6 +77,8 @@ export default function AddSeason({
                 max={200}
                 defaultValue={50}
                 step={5}
+                radius="md"
+                size="md"
             />
             <DatePicker label="Season Start Date" name="startDate" />
             <DatePicker label="Season End Date" name="endDate" />

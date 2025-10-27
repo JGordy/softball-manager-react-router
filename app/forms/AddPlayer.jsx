@@ -34,6 +34,8 @@ export default function AddPlayer({
                         name="firstName"
                         defaultValue={defaults.firstName || ""}
                         required={action === "add-player"}
+                        radius="md"
+                        size="md"
                     />
                     <TextInput
                         className={classes.inputs}
@@ -41,6 +43,8 @@ export default function AddPlayer({
                         name="lastName"
                         defaultValue={defaults.lastName || ""}
                         required={action === "add-player"}
+                        radius="md"
+                        size="md"
                     />
                 </>
             )}
@@ -62,6 +66,7 @@ export default function AddPlayer({
                     name="gender"
                     label="Gender"
                     required={action === "add-player"}
+                    size="md"
                 >
                     <Group mt="xs">
                         <Radio value="Male" label="Male" />
@@ -78,6 +83,7 @@ export default function AddPlayer({
                         label="Throws"
                         description="Select which hand you throw with"
                         defaultValue={defaults.throws || "Right"}
+                        size="md"
                     >
                         <Group mt="xs">
                             <Radio value="Left" label="Left" />
@@ -91,6 +97,7 @@ export default function AddPlayer({
                         label="Bats"
                         description="Select whether you bat left, right, or switch"
                         defaultValue={defaults.bats || "Right"}
+                        size="md"
                     >
                         <Group mt="xs">
                             <Radio value="Left" label="Left" />
@@ -115,6 +122,8 @@ export default function AddPlayer({
                         searchable
                         hidePickedOptions
                         required={action === "add-player"}
+                        radius="md"
+                        size="md"
                     />
                     <MultiSelect
                         className={classes.inputs}
@@ -127,6 +136,8 @@ export default function AddPlayer({
                         clearable
                         searchable
                         hidePickedOptions
+                        radius="md"
+                        size="md"
                     />
                 </>
             )}
@@ -138,6 +149,8 @@ export default function AddPlayer({
                     name="walkUpSong"
                     placeholder="Walk Up Song"
                     mb="sm"
+                    radius="md"
+                    size="md"
                 />
             )}
         </FormWrapper>
