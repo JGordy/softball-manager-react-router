@@ -141,3 +141,21 @@ main {
 .mantine-Menu-label {
     font-size: 16px;
 }
+
+/* Print rules for player chart (targets the additional global 'printable' class added to the component) */
+@media print {
+    /* hide everything except the printable chart */
+    body * {
+        visibility: hidden;
+    }
+
+    .printable,
+    .printable * {
+        visibility: visible !important;
+    }
+
+    @page {
+        size: landscape;
+        margin: 10mm;
+    }
+}
