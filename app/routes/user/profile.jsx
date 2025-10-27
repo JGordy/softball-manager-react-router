@@ -32,6 +32,7 @@ import { getAwardsByUserId } from "@/loaders/users";
 
 import AlertIncomplete from "./components/AlertIncomplete";
 import PlayerAwards from "./components/PlayerAwards";
+import ProfileMenu from "./components/ProfileMenu";
 
 const fieldsToDisplay = {
     email: {
@@ -157,7 +158,9 @@ export default function UserProfile({ loaderData }) {
     return (
         !!Object.keys(player).length && (
             <Container>
-                <UserHeader subText="Here are your personal and player details" />
+                <UserHeader subText="Here are your personal and player details">
+                    {isCurrentUser && <ProfileMenu player={player} />}
+                </UserHeader>
 
                 {isCurrentUser && incompleteData.length > 0 && (
                     <AlertIncomplete incompleteData={incompleteData} />
@@ -191,22 +194,15 @@ export default function UserProfile({ loaderData }) {
                     </Tabs.List>
 
                     <Tabs.Panel value="player">
-                        <PlayerDetails
-                            user={session}
-                            player={player}
-                            isCurrentUser={isCurrentUser}
-                        />
+                        <PlayerDetails user={session} player={player} />
                     </Tabs.Panel>
 
                     <Tabs.Panel value="personal">
-                        <Card radius="lg" mt="md" withBorder>
-                            <PersonalDetails
-                                user={session}
-                                player={player}
-                                isCurrentUser={isCurrentUser}
-                                fieldsToDisplay={fieldsToDisplay}
-                            />
-                        </Card>
+                        <PersonalDetails
+                            user={session}
+                            player={player}
+                            fieldsToDisplay={fieldsToDisplay}
+                        />
                     </Tabs.Panel>
 
                     <Tabs.Panel value="awards">
