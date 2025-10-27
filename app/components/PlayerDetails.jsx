@@ -1,4 +1,3 @@
-import React from "react";
 import {
     Avatar,
     Card,
@@ -7,17 +6,10 @@ import {
     Group,
     Image,
     Text,
-    Title,
 } from "@mantine/core";
-
-import EditButton from "@/components/EditButton";
-
-import AddPlayer from "@/forms/AddPlayer";
 
 import fieldPositions from "@/constants/positions";
 import images from "@/constants/images";
-
-import useModal from "@/hooks/useModal";
 
 import styles from "@/styles/positionChart.module.css";
 
@@ -51,45 +43,24 @@ function FieldPosition({ position, initials, isPreferred, isDisliked }) {
     );
 }
 
-function PlayerDetails({ user, player, isCurrentUser }) {
+function PlayerDetails({ player }) {
     const { throws, bats, preferredPositions, dislikedPositions } = player;
-
-    const { openModal } = useModal();
-
-    const openPlayerDetailsModal = () =>
-        openModal({
-            title: "Update Player Details",
-            children: (
-                <AddPlayer
-                    action="edit-player"
-                    actionRoute={`/user/${user.userId}`}
-                    confirmText="Update Details"
-                    inputsToDisplay={["positions", "throws-bats"]}
-                    defaults={player}
-                />
-            ),
-        });
 
     return (
         <Card shadow="sm" padding="lg" radius="lg" mt="md" withBorder>
-            <Group justify="space-between">
-                <Group>
-                    <Group gap="4px">
-                        <Text>Throws</Text>
-                        <Text fw={700} c={throws ? "green" : "red"}>
-                            {throws || "Not Listed"}
-                        </Text>
-                    </Group>
-                    <Group gap="4px">
-                        <Text>Bats</Text>
-                        <Text fw={700} c={bats ? "green" : "red"}>
-                            {bats || "Not Listed"}
-                        </Text>
-                    </Group>
+            <Group>
+                <Group gap="4px">
+                    <Text>Throws</Text>
+                    <Text fw={700} c={throws ? "green" : "red"}>
+                        {throws || "Not Listed"}
+                    </Text>
                 </Group>
-                {isCurrentUser && (
-                    <EditButton setIsModalOpen={openPlayerDetailsModal} />
-                )}
+                <Group gap="4px">
+                    <Text>Bats</Text>
+                    <Text fw={700} c={bats ? "green" : "red"}>
+                        {bats || "Not Listed"}
+                    </Text>
+                </Group>
             </Group>
 
             <Divider my="sm" size="sm" />

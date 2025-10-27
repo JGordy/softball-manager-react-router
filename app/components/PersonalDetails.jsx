@@ -1,4 +1,4 @@
-import { Group, List, Text, Title } from "@mantine/core";
+import { Card, Group, List, Text } from "@mantine/core";
 
 import {
     IconFriends,
@@ -6,12 +6,6 @@ import {
     IconMail,
     IconPhone,
 } from "@tabler/icons-react";
-
-import AddPlayer from "@/forms/AddPlayer";
-
-import EditButton from "@/components/EditButton";
-
-import useModal from "@/hooks/useModal";
 
 const fields = {
     email: {
@@ -35,31 +29,13 @@ const fields = {
 };
 
 export default function PersonalDetails({
-    user,
     player,
     fieldsToDisplay,
     managerView,
-    isCurrentUser,
 }) {
-    const { openModal } = useModal();
-
-    const openPersonalDetailsModal = () =>
-        openModal({
-            title: "Update Personal Details",
-            children: (
-                <AddPlayer
-                    action="edit-player"
-                    actionRoute={`/user/${user?.userId}`}
-                    confirmText="Update Details"
-                    inputsToDisplay={["name", "gender", "song"]}
-                    defaults={player}
-                />
-            ),
-        });
-
     return (
-        <>
-            <Group justify="space-between" align="start" my="md">
+        <Card my="md" radius="lg" withBorder>
+            <Group justify="space-between" align="start">
                 <List spacing="xs" size="sm" mt="8px" center>
                     {Object.entries({ ...fields, ...fieldsToDisplay }).map(
                         ([key, { icon, label, restricted }]) => {
@@ -77,10 +53,7 @@ export default function PersonalDetails({
                         },
                     )}
                 </List>
-                {isCurrentUser && (
-                    <EditButton setIsModalOpen={openPersonalDetailsModal} />
-                )}
             </Group>
-        </>
+        </Card>
     );
 }
