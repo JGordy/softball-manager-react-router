@@ -6,7 +6,7 @@ import {
     useNavigate,
 } from "react-router";
 
-import { Card, Container, Group, Tabs } from "@mantine/core";
+import { Container, Group, Tabs } from "@mantine/core";
 
 import {
     IconAward,

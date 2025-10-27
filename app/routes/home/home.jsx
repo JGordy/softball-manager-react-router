@@ -76,7 +76,7 @@ export async function action({ request }) {
 export default function HomePage({ loaderData, actionData }) {
     const { openModal, closeAllModals } = useModal();
 
-    console.log("/home ", { loaderData });
+    // console.log("/home ", { loaderData });
     const teams = loaderData?.teams;
     const userId = loaderData?.userId;
 
