@@ -115,7 +115,7 @@ export default function PlayerAwards({ awardsPromise }) {
 
                     return awardsForType.map((award) => (
                         <Link
-                            to={`/events/${award.game_id}#awards`}
+                            to={`/events/${award.game_id}?open=awards`}
                             key={award.$id}
                         >
                             <Card
