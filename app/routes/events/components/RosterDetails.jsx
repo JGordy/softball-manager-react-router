@@ -176,7 +176,7 @@ export default function RosterDetails({
                             opened={availabilityDrawerOpened}
                             onClose={availabilityDrawerHandlers.close}
                             title="Availability Details"
-                            size="xl"
+                            size="95%"
                         >
                             <AvailablityContainer
                                 attendance={attendance}
