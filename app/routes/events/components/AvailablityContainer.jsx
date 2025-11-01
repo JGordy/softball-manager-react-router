@@ -29,23 +29,26 @@ import { DateTime } from "luxon";
 const availabilityData = {
     accepted: {
         icon: <IconCircleCheckFilled size={24} color="green" />,
+        color: "green",
         label: "Yes",
         value: "accepted",
     },
     declined: {
         icon: <IconSquareXFilled size={24} color="red" />,
+        color: "red",
         label: "No",
         value: "declined",
     },
     tentative: {
         icon: <IconHelpTriangleFilled size={24} color="orange" />,
+        color: "orange",
         label: "Maybe",
         value: "tentative",
     },
     unknown: {
         icon: <IconMessageCircleOff size={24} color="gray" />,
         label: "Unknown",
-        value: "",
+        value: "unknown",
     },
 };
 
@@ -89,14 +92,7 @@ const AvailabilityOptionsContainer = ({
     };
 
     return (
-        <Card
-            key={player.$id}
-            shadow="sm"
-            radius="md"
-            p="sm"
-            mt="xs"
-            pos="relative"
-        >
+        <Card key={player.$id} shadow="sm" radius="md" p="sm" pos="relative">
             <LoadingOverlay
                 data-overlay={`availability-${player.$id}`}
                 visible={fetcher.state === "loading"}
@@ -151,6 +147,7 @@ const AvailabilityOptionsContainer = ({
                                         key={`${key}-${player.$id}`}
                                         maw="30%"
                                         py="5px"
+                                        style={{ borderColor: item.color }}
                                     >
                                         <Group
                                             wrap="nowrap"
@@ -158,7 +155,6 @@ const AvailabilityOptionsContainer = ({
                                             justify="center"
                                             gap="5px"
                                         >
-                                            {item.icon}
                                             <Text>{item.label}</Text>
                                         </Group>
                                     </Radio.Card>
@@ -193,36 +189,95 @@ export default function AvailabliityContainer({
     const isGameToday = gameDt.toISODate() === today.toISODate();
     const isGamePast = gameDt < today && !isGameToday;
 
-    const renderPlayerAvailability = () =>
-        players.map((player) => (
-            <AvailabilityOptionsContainer
-                key={player.$id}
-                attendance={attendance?.documents?.find(
-                    (a) => a.playerId === player.$id,
-                )}
-                currentUserId={currentUserId}
-                game={game}
-                isGamePast={isGamePast}
-                managerView={managerView}
-                player={player}
-            />
-        ));
+    // Group players by attendance status (accepted, declined, tentative, unknown)
+    const renderGroupedAvailability = () => {
+        const byPlayer = new Map(
+            (attendance?.documents || []).map((a) => [a.playerId, a]),
+        );
+
+        // Initialize buckets in the desired order
+        const buckets = {
+            accepted: [],
+            declined: [],
+            tentative: [],
+            unknown: [],
+        };
+
+        players.forEach((player) => {
+            const a = byPlayer.get(player.$id);
+            const status = a?.status || "unknown";
+            buckets[status] = buckets[status] || [];
+            buckets[status].push({ player, attendance: a });
+        });
+
+        // Optional: sort each bucket alphabetically by lastName then firstName
+        Object.keys(buckets).forEach((k) => {
+            buckets[k].sort((p1, p2) => {
+                const a = p1.player.lastName?.localeCompare(
+                    p2.player.lastName || "",
+                );
+                if (a !== 0) return a;
+                return (p1.player.firstName || "").localeCompare(
+                    p2.player.firstName || "",
+                );
+            });
+        });
+
+        return Object.keys(availabilityData).map((key) => {
+            const bucket = buckets[key] || [];
+
+            // Hide the entire section if there are no players in this bucket
+            if (bucket.length === 0) return null;
+
+            return (
+                <div key={key} style={{ marginBottom: 20 }}>
+                    <Group align="center" gap="xs" mb="xs">
+                        {availabilityData[key].icon}
+                        <Text fw={700} c="dimmed">
+                            {(() => {
+                                const v = availabilityData[key].value || "";
+                                return v
+                                    ? v.charAt(0).toUpperCase() + v.slice(1)
+                                    : v;
+                            })()}
+                        </Text>
+                    </Group>
+
+                    <Stack gap="xs">
+                        {bucket.map(({ player, attendance: att }) => (
+                            <AvailabilityOptionsContainer
+                                key={player.$id}
+                                attendance={att}
+                                currentUserId={currentUserId}
+                                game={game}
+                                isGamePast={isGamePast}
+                                managerView={managerView}
+                                player={player}
+                            />
+                        ))}
+                    </Stack>
+                </div>
+            );
+        });
+    };
 
     return (
         <>
-            <Group justify="space-between" mb="lg" wrap="nowrap">
-                {Object.keys(availabilityData).map((key) => (
-                    <Stack align="center" gap="2px" key={key}>
-                        {availabilityData[key].icon}
-                        <Text size="sm">{availabilityData[key].label}</Text>
-                    </Stack>
-                ))}
-            </Group>
+            <Card radius="lg" mb="lg">
+                <Group justify="space-between" wrap="nowrap">
+                    {Object.keys(availabilityData).map((key) => (
+                        <Stack align="center" gap="2px" key={key}>
+                            {availabilityData[key].icon}
+                            <Text size="sm">{availabilityData[key].label}</Text>
+                        </Stack>
+                    ))}
+                </Group>
+            </Card>
 
-            <Divider size="xs" mb="md" />
+            {/* <Divider size="xs" mb="md" /> */}
 
-            <ScrollArea h="50vh">
-                {players?.length > 0 && renderPlayerAvailability()}
+            <ScrollArea h="60vh">
+                {players?.length > 0 && renderGroupedAvailability()}
             </ScrollArea>
         </>
     );
