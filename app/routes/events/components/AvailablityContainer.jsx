@@ -275,11 +275,9 @@ export default function AvailabliityContainer({
                 </Group>
             </Card>
 
-            {/* <Divider size="xs" mb="md" /> */}
-
-            <ScrollArea h="60vh">
+            <ScrollArea.Autosize scrollbars={false} offsetScrollbars>
                 {players?.length > 0 && renderGroupedAvailability()}
-            </ScrollArea>
+            </ScrollArea.Autosize>
         </>
     );
 }

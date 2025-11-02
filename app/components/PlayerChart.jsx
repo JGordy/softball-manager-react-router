@@ -45,12 +45,7 @@ const PlayerChart = ({ playerChart }) => {
 
     return (
         <div className={`${styles.tableContainer} printable`}>
-            <ScrollArea.Autosize
-                miw={650}
-                mah={450}
-                scrollbars={false}
-                offsetScrollbars
-            >
+            <ScrollArea.Autosize miw={650} scrollbars={false} offsetScrollbars>
                 <Table stickyHeader withTableBorder withColumnBorders striped>
                     <Table.Thead className={styles.header}>
                         <Table.Tr>
