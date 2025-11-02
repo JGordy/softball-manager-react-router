@@ -68,7 +68,7 @@ const PlayerChart = ({ playerChart }) => {
                                     if (column.accessor.startsWith("inning")) {
                                         const position = row[column.accessor];
                                         let label = "Out";
-                                        if (position !== "Out")
+                                        if (position && position !== "Out")
                                             label =
                                                 fieldingPositions[position]
                                                     .initials;
