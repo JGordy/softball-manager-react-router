@@ -234,6 +234,7 @@ export default function AvailabliityContainer({
                     <Group align="center" gap="xs" mb="xs">
                         {availabilityData[key].icon}
                         <Text fw={700} c="dimmed">
+                            {`${bucket.length} `}
                             {(() => {
                                 const v = availabilityData[key].value || "";
                                 return v
