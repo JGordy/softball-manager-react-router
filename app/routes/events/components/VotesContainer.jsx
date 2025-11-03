@@ -86,38 +86,16 @@ export default function VotesContainer({
         return map;
     }, [votes]);
 
-    // For the currently active award, sort players by vote count (desc).
-    const sortedPlayersForActiveAward = useMemo(() => {
-        const counts = countsByAward[activeAward] || {};
-        return [...playersWithAvailability].sort((a, b) => {
-            const ca = counts[a.$id] || 0;
-            const cb = counts[b.$id] || 0;
-
-            if (cb !== ca) return cb - ca; // higher votes first
-
-            // tie-breaker: lastName then firstName
-            const last = (a.lastName || "").localeCompare(b.lastName || "");
-            if (last !== 0) return last;
-            return (a.firstName || "").localeCompare(b.firstName || "");
-        });
-    }, [playersWithAvailability, countsByAward, activeAward]);
-
     return (
         <>
             <Text fw="bold">Vote for a Player:</Text>
             <Select
                 placeholder="Select a player"
                 nothingFoundMessage="No players"
-                data={sortedPlayersForActiveAward.map((player) => {
-                    const count = countsByAward[activeAward]?.[player.$id] || 0;
-                    const name =
-                        `${player.firstName || ""} ${player.lastName || ""}`.trim();
-                    const votesText =
-                        count > 0
-                            ? ` (${count} vote${count === 1 ? "" : "s"})`
-                            : "";
-                    return { value: player.$id, label: `${name}${votesText}` };
-                })}
+                data={playersWithAvailability.map((player) => ({
+                    value: player.$id,
+                    label: `${player.firstName || ""} ${player.lastName || ""}`.trim(),
+                }))}
                 value={playerVotes[activeAward]?.nominated_user_id || null}
                 onChange={(value) => handleVote(activeAward, value)}
                 comboboxProps={{ withinPortal: false, position: "bottom" }}
