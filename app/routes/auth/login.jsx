@@ -17,6 +17,8 @@ import { account } from "@/appwrite";
 
 import { useAuth } from "@/contexts/auth/useAuth";
 
+import branding from "@/constants/branding";
+
 import AutocompleteEmail from "@/components/AutocompleteEmail";
 
 import login from "./utils/login";
@@ -61,9 +63,12 @@ export default function Login({ actionData }) {
         <Container size="xs">
             <Center style={{ minHeight: "100vh" }}>
                 <Paper radius="md" p="xl" withBorder style={{ width: "100%" }}>
-                    <Title order={3} ta="center" mt="md" mb={50}>
-                        Welcome to Rocket Roster!
+                    <Title order={3} ta="center" mt="md" mb="xs">
+                        {branding.name}
                     </Title>
+                    <Text ta="center" mb={50}>
+                        {branding.tagline}
+                    </Text>
                     <Form method="post">
                         <AutocompleteEmail />
                         <PasswordInput

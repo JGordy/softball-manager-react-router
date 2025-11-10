@@ -12,6 +12,8 @@ import { Link, redirect } from "react-router";
 
 import { IconPlus } from "@tabler/icons-react";
 
+import branding from "@/constants/branding";
+
 import GameCard from "@/components/GameCard";
 import LoaderDots from "@/components/LoaderDots";
 import UserHeader from "@/components/UserHeader";
@@ -23,8 +25,8 @@ import HomeMenu from "./components/HomeMenu";
 
 export function meta() {
     return [
-        { title: "Rocket Roster" },
-        { name: "description", content: "Welcome to Rocker Roster!" },
+        { title: branding.name },
+        { name: "description", content: branding.tagline },
     ];
 }
 

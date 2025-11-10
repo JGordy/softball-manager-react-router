@@ -5,7 +5,7 @@ import { Button, Container, Flex, Text, Title } from "@mantine/core";
 
 import { IconPlus } from "@tabler/icons-react";
 
-import { account } from "@/appwrite";
+import branding from "@/constants/branding";
 
 import LoaderDots from "@/components/LoaderDots";
 import UserHeader from "@/components/UserHeader";
@@ -23,8 +23,8 @@ import TeamCard from "./components/TeamCard";
 
 export function meta() {
     return [
-        { title: "Rocket Roster" },
-        { name: "description", content: "Welcome to Rocker Roster!" },
+        { title: branding.name },
+        { name: "description", content: branding.tagline },
     ];
 }
 

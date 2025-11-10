@@ -7,7 +7,6 @@ import {
     Center,
     Container,
     Group,
-    // Loader,
     Paper,
     PasswordInput,
     Stack,
@@ -15,6 +14,8 @@ import {
     TextInput,
     Title,
 } from "@mantine/core";
+
+import branding from "@/constants/branding";
 
 import AutocompleteEmail from "@/components/AutocompleteEmail";
 
@@ -59,9 +60,12 @@ export default function Register({ actionData }) {
         <Container size="xs">
             <Center style={{ minHeight: "100vh" }}>
                 <Paper radius="md" p="xl" withBorder style={{ width: "100%" }}>
-                    <Title order={3} ta="center" mt="md" mb={50}>
-                        Welcome to Rocket Roster!
+                    <Title order={3} ta="center" mt="md" mb="xs">
+                        {branding.name}
                     </Title>
+                    <Text ta="center" mb={50}>
+                        {branding.tagline}
+                    </Text>
                     <Title order={4} mb="md" ta="center">
                         Create an Account
                     </Title>
