@@ -341,68 +341,74 @@ export default function WinnerDisplay({
                 if (otherEntries.length === 0) return null;
 
                 return (
-                    <Card
-                        mt="md"
-                        radius="lg"
-                        p="md"
-                        className="other-receiving-card"
-                    >
-                        <Title order={5} size="h5" mb="sm">
+                    <>
+                        <Title order={5} size="h5" mt="md">
                             Other Receiving Votes
                         </Title>
+                        <Card
+                            radius="lg"
+                            p="md"
+                            className="other-receiving-card"
+                        >
+                            <Stack spacing="xs">
+                                {otherEntries.map(({ id, count }) => {
+                                    const player = players.find(
+                                        (p) => p.$id === id,
+                                    );
+                                    if (!player) return null;
 
-                        <Stack spacing="xs">
-                            {otherEntries.map(({ id, count }) => {
-                                const player = players.find(
-                                    (p) => p.$id === id,
-                                );
-                                if (!player) return null;
+                                    return (
+                                        <Group key={id} justify="space-between">
+                                            <Group gap="sm">
+                                                <Avatar
+                                                    color="gray"
+                                                    radius="xl"
+                                                >
+                                                    {(
+                                                        (
+                                                            player.firstName ||
+                                                            ""
+                                                        ).charAt(0) +
+                                                        (
+                                                            player.lastName ||
+                                                            ""
+                                                        ).charAt(0)
+                                                    ).toUpperCase()}
+                                                </Avatar>
+                                                <div>
+                                                    <Text fw={600}>
+                                                        {player.firstName}{" "}
+                                                        {player.lastName}
+                                                    </Text>
+                                                    <Text size="xs" c="dimmed">
+                                                        {(() => {
+                                                            const pos =
+                                                                getMostPlayedPosition(
+                                                                    player,
+                                                                );
+                                                            if (pos) return pos;
+                                                            return player.preferredPositions &&
+                                                                player
+                                                                    .preferredPositions
+                                                                    .length > 0
+                                                                ? player
+                                                                      .preferredPositions[0]
+                                                                : "Player";
+                                                        })()}
+                                                    </Text>
+                                                </div>
+                                            </Group>
 
-                                return (
-                                    <Group key={id} position="apart">
-                                        <Group spacing="sm">
-                                            <Avatar color="gray" radius="xl">
-                                                {(
-                                                    (
-                                                        player.firstName || ""
-                                                    ).charAt(0) +
-                                                    (
-                                                        player.lastName || ""
-                                                    ).charAt(0)
-                                                ).toUpperCase()}
-                                            </Avatar>
-                                            <div>
-                                                <Text fw={600}>
-                                                    {player.firstName}{" "}
-                                                    {player.lastName}
-                                                </Text>
-                                                <Text size="xs" c="dimmed">
-                                                    {(() => {
-                                                        const pos =
-                                                            getMostPlayedPosition(
-                                                                player,
-                                                            );
-                                                        if (pos) return pos;
-                                                        return player.preferredPositions &&
-                                                            player
-                                                                .preferredPositions
-                                                                .length > 0
-                                                            ? player
-                                                                  .preferredPositions[0]
-                                                            : "Player";
-                                                    })()}
-                                                </Text>
-                                            </div>
+                                            <Badge radius="sm" color="gray">
+                                                {count} vote
+                                                {count === 1 ? "" : "s"}
+                                            </Badge>
                                         </Group>
-
-                                        <Badge radius="sm" color="gray">
-                                            {count} vote{count === 1 ? "" : "s"}
-                                        </Badge>
-                                    </Group>
-                                );
-                            })}
-                        </Stack>
-                    </Card>
+                                    );
+                                })}
+                            </Stack>
+                        </Card>
+                    </>
                 );
             })()}
         </>
