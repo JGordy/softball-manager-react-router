@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useFetcher } from "react-router";
 
 import { Button, Select, Text } from "@mantine/core";
@@ -67,24 +67,6 @@ export default function VotesContainer({
         attendance.documents,
         players,
     );
-
-    // Build a map of vote counts per award per player:
-    // { [award]: { [playerId]: count } }
-    const countsByAward = useMemo(() => {
-        const map = {};
-        if (!votes?.documents) return map;
-
-        votes.documents.forEach((vote) => {
-            const reason = vote.reason;
-            const playerId = vote.nominated_user_id;
-            if (!reason || !playerId) return;
-
-            if (!map[reason]) map[reason] = {};
-            map[reason][playerId] = (map[reason][playerId] || 0) + 1;
-        });
-
-        return map;
-    }, [votes]);
 
     return (
         <>
