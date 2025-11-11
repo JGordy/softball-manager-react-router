@@ -84,12 +84,6 @@ export default function GamesListContainer({
                 </Button>
             )}
 
-            {!sortedGames.length && (
-                <Text mt="lg" align="center">
-                    No games currently listed for this team.
-                </Text>
-            )}
-
             <GamesList games={sortedGames} />
         </>
     );
