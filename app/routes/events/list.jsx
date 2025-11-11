@@ -14,8 +14,6 @@ import {
 
 import { IconAdjustments, IconCalendarMonth } from "@tabler/icons-react";
 
-import { account } from "@/appwrite";
-
 import LoaderDots from "@/components/LoaderDots";
 import UserHeader from "@/components/UserHeader";
 import GamesList from "@/components/GamesList";
@@ -96,7 +94,7 @@ export default function EventsDetails({ loaderData }) {
     const teamFilter = teamsData?.length > 1 && (
         <Menu
             position="bottom-end"
-            offset={0}
+            offset={10}
             opened={showFilters}
             onClose={handleMenuClose}
             trigger="click"
@@ -104,7 +102,8 @@ export default function EventsDetails({ loaderData }) {
         >
             <Menu.Target>
                 <ActionIcon
-                    variant="default"
+                    variant="light"
+                    color="green"
                     radius="xl"
                     aria-label="Filter Games"
                     size="lg"
@@ -115,13 +114,13 @@ export default function EventsDetails({ loaderData }) {
             </Menu.Target>
             <Menu.Dropdown
                 bg={computedColorScheme === "light" ? "gray.1" : undefined}
-                miw="60vw"
-                pt="md"
+                py="md"
+                px="xs"
             >
                 <Menu.Label>Filter Games by Team</Menu.Label>
 
                 <SegmentedControl
-                    styles={{ label: { marginBottom: "5px" } }}
+                    styles={{ label: { marginBottom: "10px" } }}
                     fullWidth
                     color="green"
                     transitionDuration={0}
@@ -129,6 +128,9 @@ export default function EventsDetails({ loaderData }) {
                     orientation="vertical"
                     onChange={handleMenuItemChange}
                     value={filterId}
+                    radius="md"
+                    size="md"
+                    p="xs"
                     data={[
                         {
                             value: "all",
