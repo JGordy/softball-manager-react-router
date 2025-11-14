@@ -25,9 +25,7 @@ import "@mantine/carousel/styles.css";
 
 import "@/styles/app.css";
 
-import AuthProvider from "@/contexts/auth/authProvider";
-
-import { account } from "@/utils/appwrite/sessionClient";
+import { createSessionClient } from "@/utils/appwrite/server";
 
 import theme from "./theme";
 
@@ -50,7 +48,8 @@ export const links = () => [
 
 export async function loader({ request }) {
     const cookieHeader = request.headers.get("Cookie");
-    let darkMode = false; // Default to false if cookie is not found or invalid
+    let darkMode = false;
+    let preferences = {};
 
     if (cookieHeader) {
         try {
@@ -61,25 +60,21 @@ export async function loader({ request }) {
         }
     }
 
-    return { darkMode, preferences: {} };
-}
-
-export async function clientLoader({ request }) {
+    // Try to get user preferences from Appwrite if authenticated
     try {
-        const preferences = await account.getPrefs();
+        const { account } = await createSessionClient(request);
+        preferences = await account.getPrefs();
 
-        if (preferences.darkMode === "true") {
-            // Set the cookie using document.cookie
-            document.cookie = "darkMode=true; path=/";
-        } else {
-            document.cookie = "darkMode=false; path=/";
+        // Update darkMode from preferences if available
+        if (preferences.darkMode !== undefined) {
+            darkMode = preferences.darkMode === "true";
         }
-
-        return { preferences };
     } catch (error) {
-        console.error("Error fetching preferences:", error);
-        return { error: "Failed to fetch preferences" };
+        // User not authenticated or error fetching preferences, use cookie value
+        console.log("No user session in root loader");
     }
+
+    return { darkMode, preferences };
 }
 
 function Layout({ children, context }) {
@@ -102,16 +97,14 @@ function Layout({ children, context }) {
                 <Links />
             </head>
             <body>
-                <AuthProvider>
-                    <MantineProvider
-                        // TODO: Figure out the mismatch of themes before turning this back on
-                        // defaultColorScheme={darkMode ? 'dark' : 'light'}
-                        defaultColorScheme="auto"
-                        theme={theme}
-                    >
-                        <ModalsProvider>{children}</ModalsProvider>
-                    </MantineProvider>
-                </AuthProvider>
+                <MantineProvider
+                    // TODO: Figure out the mismatch of themes before turning this back on
+                    // defaultColorScheme={darkMode ? 'dark' : 'light'}
+                    defaultColorScheme="auto"
+                    theme={theme}
+                >
+                    <ModalsProvider>{children}</ModalsProvider>
+                </MantineProvider>
                 <ScrollRestoration />
                 <Scripts />
             </body>

@@ -1,65 +1,31 @@
 import { memo } from "react";
 
-import { Outlet, useNavigation } from "react-router";
+import { Outlet, redirect, useNavigation } from "react-router";
 
 import { Container, LoadingOverlay } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 
 import NavLinks from "@/components/NavLinks";
 
-import { account } from "@/appwrite";
+import { createSessionClient } from "@/utils/appwrite/server";
 
-import { getCurrentSession } from "@/services/auth";
-
-export async function clientLoader() {
+export async function loader({ request }) {
     try {
-        const session = await getCurrentSession();
-        const { emailVerification } = await account.get();
-
-        if (!session) {
-            throw new Error("No active session found");
-        }
-
-        const { userId } = session;
-        // Replace this with your actual user fetching logic
-        const response = await fetch("/api/user", {
-            method: "POST",
-            body: JSON.stringify({ userId }),
-        });
-
-        if (!response.ok) {
-            throw new Error("Failed to fetch user");
-        }
-
-        const user = await response.json();
-
-        return { user, isVerified: emailVerification };
+        const { account } = await createSessionClient(request);
+        const user = await account.get();
+        return {
+            user,
+            isAuthenticated: true,
+            isVerified: user.emailVerification,
+        };
     } catch (error) {
-        console.error("Error fetching user:", error);
-        if (error.message === "No active session found") {
-            throw redirect("/login");
-        }
-        return { user: {}, isVerified: false, session: null };
+        // No valid session - redirect to login
+        throw redirect("/login");
     }
 }
 
-clientLoader.hydrate = true;
-
-export function HydrateFallback() {
-    return (
-        <div>
-            <main>
-                <Notifications />
-                <Container p="md" mih="90vh">
-                    <Outlet />
-                </Container>
-                <NavLinks />
-            </main>
-        </div>
-    );
-}
-
 function Layout({ loaderData }) {
+    console.log({ loaderData });
     const navigation = useNavigation();
 
     const isNavigating = navigation.state !== "idle";
@@ -86,7 +52,7 @@ function Layout({ loaderData }) {
                     <Outlet context={{ ...loaderData }} />
                 </Container>
 
-                <NavLinks />
+                <NavLinks user={loaderData.user} />
             </main>
         </div>
     );
