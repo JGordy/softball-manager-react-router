@@ -95,7 +95,21 @@ export async function updateAccountInfo({ values, request }) {
 
         if (emailUpdated || phoneUpdated) {
             // Update the email or phone number in the user profile
-            await updateUser({ userId, values: { phoneNumber, email } });
+            try {
+                await updateUser({ userId, values: { phoneNumber, email } });
+            } catch (dbError) {
+                console.error(
+                    "Data inconsistency: Appwrite account updated, but failed to update user document in database.",
+                    dbError,
+                );
+                return {
+                    success: false,
+                    status: 500,
+                    message:
+                        "Appwrite account updated, but failed to update user document in database. Please contact support.",
+                    action: "update-account-info",
+                };
+            }
         }
 
         return {
