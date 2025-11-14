@@ -8,6 +8,8 @@ import {
     IconBallBaseball,
 } from "@tabler/icons-react";
 
+import { useOutletContext } from "react-router";
+
 import images from "@/constants/images";
 
 import BackButton from "@/components/BackButton";
@@ -20,8 +22,6 @@ import { createSeason } from "@/actions/seasons";
 import { updateTeam } from "@/actions/teams";
 
 import { getTeamById } from "@/loaders/teams";
-
-import { useAuth } from "@/contexts/auth/useAuth";
 
 import useModal from "@/hooks/useModal";
 
@@ -67,9 +67,9 @@ export default function TeamDetails({ actionData, loaderData }) {
 
     const { openModal, closeAllModals } = useModal();
 
-    const { session } = useAuth();
+    const { user } = useOutletContext();
 
-    const managerView = managerIds.includes(session?.userId);
+    const managerView = managerIds.includes(user?.$id);
 
     useEffect(() => {
         const handleAfterSubmit = async () => {

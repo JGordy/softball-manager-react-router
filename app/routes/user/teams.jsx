@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useActionData, redirect } from "react-router";
+import { useActionData } from "react-router";
 
 import { Button, Container, Flex, Text, Title } from "@mantine/core";
 
@@ -17,7 +17,7 @@ import sortTeams from "@/utils/sortTeamsBySeason";
 
 import useModal from "@/hooks/useModal";
 
-import { getCurrentSession } from "@/services/auth";
+import { getUserTeams } from "@/loaders/teams";
 
 import TeamCard from "./components/TeamCard";
 
@@ -28,35 +28,9 @@ export function meta() {
     ];
 }
 
-export async function clientLoader({ request }) {
-    try {
-        const session = await getCurrentSession();
-
-        if (!session) {
-            throw redirect("/login");
-        }
-
-        const { userId } = session;
-        const response = await fetch("/api/teams", {
-            method: "POST",
-            body: JSON.stringify({ userId }),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || "Error fetching teams");
-        }
-
-        const { managing, playing } = await response.json();
-
-        return { managing, playing, userId };
-    } catch (error) {
-        console.error("Error in clientLoader:", error);
-        return redirect("/login");
-    }
+export async function loader({ request }) {
+    return getUserTeams({ request });
 }
-
-clientLoader.hydrate = true;
 
 export function HydrateFallback() {
     return <LoaderDots message="Fetching your teams..." />;

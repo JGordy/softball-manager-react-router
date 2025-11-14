@@ -18,8 +18,6 @@ import {
     IconUserSquareRounded,
 } from "@tabler/icons-react";
 
-import { useAuth } from "@/contexts/auth/useAuth";
-
 import UserHeader from "@/components/UserHeader";
 import PersonalDetails from "@/components/PersonalDetails";
 import PlayerDetails from "@/components/PlayerDetails";
@@ -28,7 +26,7 @@ import { updateUser } from "@/actions/users";
 
 import useModal from "@/hooks/useModal";
 
-import { getAwardsByUserId } from "@/loaders/users";
+import { getAwardsByUserId, getUserById } from "@/loaders/users";
 
 import AlertIncomplete from "./components/AlertIncomplete";
 import PlayerAwards from "./components/PlayerAwards";
@@ -81,24 +79,24 @@ export async function loader({ params, request }) {
     const { userId } = params;
 
     return {
+        player: await getUserById({ userId }),
         awardsPromise: getAwardsByUserId({ userId }),
     };
 }
 
 export default function UserProfile({ loaderData }) {
     // console.log("UserProfile: ", { ...loaderData });
-    const { awardsPromise } = loaderData;
+    const { awardsPromise, player } = loaderData;
 
     const { closeAllModals } = useModal();
 
-    const { session } = useAuth();
-    const { user: player } = useOutletContext();
+    const { user: loggedInUser } = useOutletContext(); // The currently logged-in user from layout
     const location = useLocation();
     const navigate = useNavigate();
 
     const actionData = useActionData();
 
-    const isCurrentUser = session?.userId === player?.$id;
+    const isCurrentUser = loggedInUser?.$id === player?.$id;
 
     const incompleteData = Object.entries(fieldsToValidate)
         .filter(([key]) => {
@@ -194,12 +192,12 @@ export default function UserProfile({ loaderData }) {
                     </Tabs.List>
 
                     <Tabs.Panel value="player">
-                        <PlayerDetails user={session} player={player} />
+                        <PlayerDetails user={loggedInUser} player={player} />
                     </Tabs.Panel>
 
                     <Tabs.Panel value="personal">
                         <PersonalDetails
-                            user={session}
+                            user={loggedInUser}
                             player={player}
                             fieldsToDisplay={fieldsToDisplay}
                         />

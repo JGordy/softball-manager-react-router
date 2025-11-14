@@ -25,6 +25,7 @@ export async function clientLoader() {
     }
 }
 
+// TODO: Remove this component as soon as LLM generated lineups are available on the "/events/:eventId/lineup"
 function Lineup({ loaderData, actionData }) {
     const { players, error: loaderError } = loaderData;
 

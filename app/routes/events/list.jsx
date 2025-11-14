@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { redirect, useOutletContext } from "react-router";
+import { useOutletContext } from "react-router";
 
 import {
     ActionIcon,
@@ -20,37 +20,12 @@ import GamesList from "@/components/GamesList";
 
 import getGames from "@/utils/getGames";
 
-import { getCurrentSession } from "@/services/auth";
+import { getUserTeams } from "@/loaders/teams";
 
-export async function clientLoader({ request }) {
-    try {
-        const session = await getCurrentSession();
-
-        if (!session) {
-            throw redirect("/login");
-        }
-
-        const { userId } = session;
-        const response = await fetch("/api/teams", {
-            method: "POST",
-            body: JSON.stringify({ userId, teamRoles: ["manager", "player"] }),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || "Error fetching teams");
-        }
-
-        const { managing = [], playing = [] } = await response.json();
-
-        return { userId, teams: { managing, playing } };
-    } catch (error) {
-        console.error("Error in clientLoader:", error);
-        return redirect("/login");
-    }
+export async function loader({ request }) {
+    const { managing, playing, userId } = await getUserTeams({ request });
+    return { userId, teams: { managing, playing } };
 }
-
-clientLoader.hydrate = true;
 
 export function HydrateFallback() {
     return <LoaderDots message="Fetching your scheduled events..." />;
