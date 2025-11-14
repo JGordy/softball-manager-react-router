@@ -17,7 +17,7 @@ export async function loader({ request }) {
     }
 
     try {
-        const { account } = await createAdminClient();
+        const { account } = createAdminClient();
         await account.updateVerification(userId, secret);
 
         return {

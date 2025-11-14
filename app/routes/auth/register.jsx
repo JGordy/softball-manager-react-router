@@ -52,7 +52,7 @@ export async function action({ request }) {
 
     try {
         // Create the Appwrite account
-        const { account } = await createAdminClient();
+        const { account } = createAdminClient();
         const user = await account.create(ID.unique(), email, password, name);
 
         // Create the user document in the database

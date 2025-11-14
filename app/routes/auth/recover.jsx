@@ -33,7 +33,7 @@ export async function action({ request }) {
     }
 
     try {
-        const { account } = await createAdminClient();
+        const { account } = createAdminClient();
         await account.updateRecovery(userId, secret, newPassword);
 
         return {
