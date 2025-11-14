@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams, redirect } from "react-router";
+import { useSearchParams, useActionData } from "react-router";
 
 import {
     Alert,
@@ -17,36 +17,31 @@ import {
 
 import FormWrapper from "@/forms/FormWrapper";
 
-import { account } from "@/appwrite";
+import { createAdminClient } from "@/utils/appwrite/server";
 
 import classes from "@/styles/inputs.module.css";
 
-export async function clientAction({ request }) {
+export async function action({ request }) {
     const formData = await request.formData();
     const userId = formData.get("userId");
     const secret = formData.get("secret");
     const newPassword = formData.get("newPassword");
     const confirmPassword = formData.get("confirmPassword");
 
-    console.log({ userId, secret, newPassword, confirmPassword });
-
     if (newPassword !== confirmPassword) {
         return { success: false, message: "Passwords do not match" };
     }
 
     try {
-        const response = await account.updateRecovery(
-            userId,
-            secret,
-            newPassword,
-        );
-        console.log({ response });
+        const { account } = await createAdminClient();
+        await account.updateRecovery(userId, secret, newPassword);
 
         return {
             success: true,
             message: "Password updated successfully",
         };
     } catch (error) {
+        console.error("Password recovery error:", error);
         return {
             message: error?.message || "Error: Could not update password.",
             success: false,
@@ -54,8 +49,9 @@ export async function clientAction({ request }) {
     }
 }
 
-export default function Verify({ actionData }) {
+export default function Recover() {
     const [searchParams] = useSearchParams();
+    const actionData = useActionData();
 
     const [params] = useState({
         secret: searchParams.get("secret"),
@@ -66,13 +62,8 @@ export default function Verify({ actionData }) {
     useEffect(() => {
         if (actionData?.success) {
             setTimeout(() => {
-                // Redirect to the home page?
-                redirect("/");
+                window.location.href = "/login";
             }, 2500);
-        }
-
-        if (!actionData?.success) {
-            // Do something
         }
     }, [actionData]);
 
