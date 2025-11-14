@@ -1,4 +1,5 @@
-import { ID, databases } from "../appwrite.js";
+import { ID } from "node-appwrite";
+import { createAdminClient } from "@/utils/appwrite/server";
 
 const databaseId = import.meta.env.VITE_APPWRITE_DATABASE_ID;
 
@@ -18,6 +19,7 @@ export const collections = {
 
 // Helper function to create a document
 export const createDocument = async (collectionType, id, data) => {
+    const { databases } = createAdminClient();
     const _id = id || ID.unique();
     try {
         const response = await databases.createDocument(
@@ -35,6 +37,7 @@ export const createDocument = async (collectionType, id, data) => {
 
 // Helper function to list a series of documents
 export const listDocuments = async (collectionType, queries) => {
+    const { databases } = createAdminClient();
     try {
         const response = await databases.listDocuments(
             databaseId,
@@ -50,6 +53,7 @@ export const listDocuments = async (collectionType, queries) => {
 
 // Helper function to read a document
 export const readDocument = async (collectionType, documentId) => {
+    const { databases } = createAdminClient();
     try {
         const response = await databases.getDocument(
             databaseId,
@@ -65,6 +69,7 @@ export const readDocument = async (collectionType, documentId) => {
 
 // Helper function to update a document
 export const updateDocument = async (collectionType, documentId, data) => {
+    const { databases } = createAdminClient();
     try {
         const response = await databases.updateDocument(
             databaseId,
@@ -81,6 +86,7 @@ export const updateDocument = async (collectionType, documentId, data) => {
 
 // Helper function to delete a document
 export const deleteDocument = async (collectionType, documentId) => {
+    const { databases } = createAdminClient();
     try {
         const response = await databases.deleteDocument(
             databaseId,
