@@ -1,6 +1,5 @@
-import { useEffect } from "react";
-
 import { redirect, Form, Link } from "react-router";
+import { ID } from "node-appwrite";
 
 import {
     Button,
@@ -19,9 +18,19 @@ import branding from "@/constants/branding";
 
 import AutocompleteEmail from "@/components/AutocompleteEmail";
 
-import register from "./utils/register";
+import {
+    createAdminClient,
+    serializeSessionCookie,
+} from "@/utils/appwrite/server";
 
-import { account } from "@/appwrite";
+import { createDocument } from "@/utils/databases";
+
+import { redirectIfAuthenticated } from "./utils/redirectIfAuthenticated";
+
+// Check if user is already logged in, redirect to home if so
+export async function loader({ request }) {
+    return redirectIfAuthenticated(request);
+}
 
 export async function action({ request }) {
     const formData = await request.formData();
@@ -29,33 +38,53 @@ export async function action({ request }) {
     const password = formData.get("password");
     const name = formData.get("name");
 
-    const response = await register({ email, password, name });
-
-    if (response?.error) {
-        return { error: response.error };
+    // Input validation
+    if (!email || !password || !name) {
+        return { error: "Email, password and name are required." };
     }
 
-    return { email, password, session: response.session };
+    try {
+        // Create the Appwrite account
+        const { account } = createAdminClient();
+        const user = await account.create(ID.unique(), email, password, name);
+
+        // Create the user document in the database
+        await createDocument(
+            "users",
+            user.$id, // Use the Appwrite user ID as the document ID
+            {
+                userId: user.$id, // Store the userId (important!)
+                firstName: name.split(" ")[0],
+                lastName: name.split(" ").slice(1).join(" "),
+                email,
+            },
+        );
+
+        // Create a session for the newly registered user
+        const session = await account.createEmailPasswordSession(
+            email,
+            password,
+        );
+
+        // Send verification email
+        const origin = new URL(request.url).origin;
+        await account.createVerification(`${origin}/verify`);
+
+        // Set the session cookie and redirect to home
+        const cookieHeader = serializeSessionCookie(session.secret);
+
+        return redirect("/", {
+            headers: {
+                "Set-Cookie": cookieHeader,
+            },
+        });
+    } catch (error) {
+        console.error("Registration error:", error);
+        return { error: error.message || "Failed to create account" };
+    }
 }
 
 export default function Register({ actionData }) {
-    useEffect(() => {
-        const createUserSession = async () => {
-            await account.createEmailPasswordSession(
-                actionData.email,
-                actionData.password,
-            );
-
-            const currentUrl = new URL(window.location.href);
-            await account.createVerification(`${currentUrl.origin}/verify`);
-            redirect("/");
-        };
-
-        if (actionData?.session) {
-            createUserSession();
-        }
-    }, [actionData]);
-
     return (
         <Container size="xs">
             <Center style={{ minHeight: "100vh" }}>

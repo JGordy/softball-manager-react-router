@@ -1,4 +1,4 @@
-import { ID } from "@/appwrite";
+import { ID } from "node-appwrite";
 import { createDocument, updateDocument } from "@/utils/databases.js";
 
 import { getParkByPlaceId } from "@/loaders/parks";

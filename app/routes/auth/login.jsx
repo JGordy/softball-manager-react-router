@@ -1,6 +1,4 @@
-import React, { useEffect } from "react";
-
-import { Form, Link, useNavigate } from "react-router";
+import { Form, Link, redirect, useActionData } from "react-router";
 
 import {
     Button,
@@ -13,51 +11,60 @@ import {
     Title,
 } from "@mantine/core";
 
-import { account } from "@/appwrite";
-
-import { useAuth } from "@/contexts/auth/useAuth";
+import {
+    createAdminClient,
+    serializeSessionCookie,
+} from "@/utils/appwrite/server";
 
 import branding from "@/constants/branding";
 
 import AutocompleteEmail from "@/components/AutocompleteEmail";
 
-import login from "./utils/login";
+import { redirectIfAuthenticated } from "./utils/redirectIfAuthenticated";
 
-export async function clientAction({ request }) {
+// Check if user is already logged in, redirect to home if so
+export async function loader({ request }) {
+    return redirectIfAuthenticated(request);
+}
+
+// Server-side action - creates session and sets cookie
+export async function action({ request }) {
     const formData = await request.formData();
     const email = formData.get("email");
     const password = formData.get("password");
 
-    const response = await login({ email, password });
-
-    if (response?.error) {
-        return { error: response.error?.message || response.error };
+    if (!email || !password) {
+        return { error: "Email and password are required" };
     }
 
-    return { email, password, session: response.session };
+    try {
+        const { account } = createAdminClient();
+
+        // Create email session on Appwrite
+        const session = await account.createEmailPasswordSession(
+            email,
+            password,
+        );
+
+        // Serialize the session secret into a cookie
+        const cookieHeader = serializeSessionCookie(session.secret);
+
+        // Redirect to home with session cookie
+        return redirect("/", {
+            headers: {
+                "Set-Cookie": cookieHeader,
+            },
+        });
+    } catch (error) {
+        console.error("Login error:", error);
+        return {
+            error: error.message || "Invalid credentials. Please try again.",
+        };
+    }
 }
 
-export default function Login({ actionData }) {
-    const { setUser } = useAuth();
-    const navigate = useNavigate();
-
-    useEffect(() => {
-        const checkCurrentSession = async () => {
-            try {
-                const session = await account.getSession("current");
-                console.log({ session });
-                if (session) {
-                    setUser();
-                    navigate("/");
-                }
-                return null;
-            } catch (error) {
-                console.log("No active session found");
-                return null;
-            }
-        };
-        checkCurrentSession();
-    }, [actionData]);
+export default function Login() {
+    const actionData = useActionData();
 
     return (
         <Container size="xs">

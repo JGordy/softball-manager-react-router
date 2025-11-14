@@ -1,7 +1,7 @@
-import { ID } from "@/appwrite";
+import { ID } from "node-appwrite";
 import { createDocument, updateDocument } from "@/utils/databases.js";
 
-import { account } from "@/utils/appwrite/sessionClient";
+import { createSessionClient } from "@/utils/appwrite/server";
 
 import { removeEmptyValues } from "./utils/formUtils";
 
@@ -62,9 +62,8 @@ export async function updateUser({ values, userId }) {
     }
 }
 
-// Client Action only - so that we can use the Appwrite "account" SDK
-// It handles updates to the Appwrite Authentication service which require a user session.
-export async function updateAccountInfo({ values }) {
+// Server action - uses server-side session for authentication
+export async function updateAccountInfo({ values, request }) {
     const { user: _user, ...newContactInfo } = values;
     const user = JSON.parse(_user);
     const { email, password, phoneNumber } = newContactInfo;
@@ -74,25 +73,43 @@ export async function updateAccountInfo({ values }) {
     let phoneUpdated = false;
 
     try {
+        // Get authenticated account from server session
+        const { account } = await createSessionClient(request);
+
         if (email && email !== user.email) {
             await account.updateEmail(email, password);
             emailUpdated = true;
         }
 
         if (phoneNumber && phoneNumber !== user.phoneNumber) {
-            await account.updatePhone(phoneNumber, password);
+            // Format phone number to E.164 format (required by Appwrite)
+            // If it doesn't start with +, assume US number and add +1
+            let formattedPhone = phoneNumber.replace(/\D/g, ""); // Remove non-digits
+            if (!phoneNumber.startsWith("+")) {
+                formattedPhone = "+1" + formattedPhone;
+            }
+
+            await account.updatePhone(formattedPhone, password);
             phoneUpdated = true;
         }
 
         if (emailUpdated || phoneUpdated) {
-            // Call the server action to update the email or phone number in the user profile
-            const serverFormData = new FormData();
-            serverFormData.append("_action", "update-profile-info");
-            serverFormData.append("userId", userId);
-            serverFormData.append("phoneNumber", phoneNumber);
-            serverFormData.append("email", email);
-            // Use fetch to call the server-side `action` for this same route
-            await fetch("/settings", { method: "POST", body: serverFormData });
+            // Update the email or phone number in the user profile
+            try {
+                await updateUser({ userId, values: { phoneNumber, email } });
+            } catch (dbError) {
+                console.error(
+                    "Data inconsistency: Appwrite account updated, but failed to update user document in database.",
+                    dbError,
+                );
+                return {
+                    success: false,
+                    status: 500,
+                    message:
+                        "Appwrite account updated, but failed to update user document in database. Please contact support.",
+                    action: "update-account-info",
+                };
+            }
         }
 
         return {
@@ -112,10 +129,13 @@ export async function updateAccountInfo({ values }) {
     }
 }
 
-export async function updatePassword({ values }) {
+export async function updatePassword({ values, request }) {
     const { currentPassword, newPassword } = values;
 
     try {
+        // Get authenticated account from server session
+        const { account } = await createSessionClient(request);
+
         await account.updatePassword(newPassword, currentPassword);
         return {
             success: true,
@@ -141,6 +161,9 @@ export async function resetPassword({ values, request }) {
     const resetUrl = `${url.origin}/recovery`;
 
     try {
+        // Get authenticated account from server session
+        const { account } = await createSessionClient(request);
+
         await account.createRecovery(email, resetUrl);
         return {
             success: true,

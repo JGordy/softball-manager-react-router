@@ -1,40 +1,65 @@
-import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router";
+import { useEffect } from "react";
+import { useNavigate } from "react-router";
 
-import { Container } from "@mantine/core";
+import { Container, Text, Title } from "@mantine/core";
 
-import { account } from "@/appwrite";
+import { createAdminClient } from "@/utils/appwrite/server";
 
-export default function Verify() {
-    const [searchParams] = useSearchParams();
-    const [status, setStatus] = useState("Verifying...");
+export async function loader({ request }) {
+    const url = new URL(request.url);
+    const secret = url.searchParams.get("secret");
+    const userId = url.searchParams.get("userId");
+
+    if (!secret || !userId) {
+        return {
+            success: false,
+            message: "Missing verification parameters",
+        };
+    }
+
+    try {
+        const { account } = createAdminClient();
+        await account.updateVerification(userId, secret);
+
+        return {
+            success: true,
+            message: "Account verified successfully! You can now log in.",
+        };
+    } catch (error) {
+        console.error("Verification error:", error);
+        return {
+            success: false,
+            message:
+                "Verification failed: " + (error?.message || "Unknown error"),
+        };
+    }
+}
+
+export default function Verify({ loaderData }) {
+    const { success, message } = loaderData;
+    const navigate = useNavigate();
 
     useEffect(() => {
-        async function verifyAccount() {
-            try {
-                const secret = searchParams.get("secret");
-                const userId = searchParams.get("userId");
-
-                if (!secret || !userId) {
-                    setStatus("Missing verification parameters");
-                    return;
-                }
-
-                await account.updateVerification(userId, secret);
-
-                setStatus("Account verified successfully");
-            } catch (error) {
-                setStatus("Verification failed: " + error?.message);
-            }
+        if (success) {
+            setTimeout(() => {
+                navigate("/login");
+            }, 3000);
         }
-
-        verifyAccount();
-    }, [searchParams]);
+    }, [success, navigate]);
 
     return (
-        <Container className="verification-container">
-            <h1>Account Verification</h1>
-            <div className="status-message">{status}</div>
+        <Container size="xs" style={{ marginTop: "4rem" }}>
+            <Title order={2} mb="md">
+                Email Verification
+            </Title>
+            <Text size="lg" c={success ? "green" : "red"} fw={500}>
+                {message}
+            </Text>
+            {success && (
+                <Text size="sm" c="dimmed" mt="md">
+                    Redirecting to login page...
+                </Text>
+            )}
         </Container>
     );
 }

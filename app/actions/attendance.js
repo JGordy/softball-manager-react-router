@@ -1,4 +1,4 @@
-import { ID, Query } from "@/appwrite";
+import { ID, Query } from "node-appwrite";
 import {
     createDocument,
     listDocuments,

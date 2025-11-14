@@ -7,19 +7,19 @@ import getGames from "@/utils/getGames";
 
 import useModal from "@/hooks/useModal";
 
-import { getCurrentSession } from "@/services/auth";
-import { Link, redirect } from "react-router";
+import { Link, useOutletContext } from "react-router";
 
 import { IconPlus } from "@tabler/icons-react";
 
 import branding from "@/constants/branding";
 
 import GameCard from "@/components/GameCard";
-import LoaderDots from "@/components/LoaderDots";
 import UserHeader from "@/components/UserHeader";
 
 import AddTeam from "@/forms/AddTeam";
 import { createTeam } from "@/actions/teams";
+
+import { getUserTeams } from "@/loaders/teams";
 
 import HomeMenu from "./components/HomeMenu";
 
@@ -30,40 +30,12 @@ export function meta() {
     ];
 }
 
-export async function clientLoader({ request }) {
-    try {
-        const session = await getCurrentSession();
-
-        if (!session) {
-            throw redirect("/login");
-        }
-
-        const { userId } = session;
-        const teamsResponse = await fetch("/api/teams", {
-            method: "POST",
-            body: JSON.stringify({ userId, teamRoles: ["manager", "player"] }),
-        });
-        if (!teamsResponse.ok) {
-            const errorData = await teamsResponse.json();
-            throw new Error(errorData.message || "Error fetching teams");
-        }
-
-        const { managing = [], playing = [] } = await teamsResponse.json();
-
-        return {
-            teams: { managing, playing },
-            userId,
-        };
-    } catch (error) {
-        console.error("Error in clientLoader:", error);
-        return redirect("/login");
-    }
-}
-
-clientLoader.hydrate = true;
-
-export function HydrateFallback() {
-    return <LoaderDots message="Fetching your teams and events..." />;
+export async function loader({ request }) {
+    const { managing, playing, userId } = await getUserTeams({ request });
+    return {
+        teams: { managing, playing },
+        userId,
+    };
 }
 
 export async function action({ request }) {
@@ -78,9 +50,12 @@ export async function action({ request }) {
 export default function HomePage({ loaderData, actionData }) {
     const { openModal, closeAllModals } = useModal();
 
+    // Get user from parent layout via outlet context
+    const { user } = useOutletContext();
+    const userId = user?.$id;
+
     // console.log("/home ", { loaderData });
     const teams = loaderData?.teams;
-    const userId = loaderData?.userId;
 
     const teamList = [...teams?.managing, ...teams?.playing];
 
@@ -139,8 +114,6 @@ export default function HomePage({ loaderData, actionData }) {
         handleAfterSubmit();
     }, [actionData]);
 
-    console.log("/home ", { nextGame, futureGames, pastGames, userId });
-
     const openAddTeamModal = () =>
         openModal({
             title: "Add a New Team",
@@ -170,17 +143,24 @@ export default function HomePage({ loaderData, actionData }) {
 
             <Group justify="space-between" align="center" mt="xl">
                 <Title order={4}>My Teams ({teamList?.length || "0"})</Title>
-                <Text component="div" size="sm" c="dimmed">
-                    Click team card for details
-                </Text>
+                {teamList?.length && (
+                    <Text component="div" size="sm" c="dimmed">
+                        Click team card for details
+                    </Text>
+                )}
             </Group>
 
             {/* No teams */}
             {!teamList?.length && (
-                <Button variant="light" onClick={openAddTeamModal} fullWidth>
-                    <Group>
+                <Button
+                    variant="light"
+                    onClick={openAddTeamModal}
+                    fullWidth
+                    mt="md"
+                >
+                    <Group gap="xs" justify="center">
                         <IconPlus size={18} />
-                        <Text>{label}</Text>
+                        <Text>Create your first team</Text>
                     </Group>
                 </Button>
             )}

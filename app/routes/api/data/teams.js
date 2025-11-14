@@ -1,4 +1,4 @@
-import { Query } from "@/appwrite";
+import { Query } from "node-appwrite";
 import { listDocuments } from "@/utils/databases";
 
 export async function action({ request, params }) {
