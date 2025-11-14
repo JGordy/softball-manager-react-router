@@ -77,16 +77,22 @@ export async function action({ request, params }) {
 
 export async function loader({ params, request }) {
     const { userId } = params;
+    const url = new URL(request.url);
+    const hash = url.hash.replace(/^#/, "") || null;
+
+    const validTabs = ["player", "personal", "awards"];
+    const defaultTab = validTabs.includes(hash) ? hash : "player";
 
     return {
         player: await getUserById({ userId }),
         awardsPromise: getAwardsByUserId({ userId }),
+        defaultTab,
     };
 }
 
 export default function UserProfile({ loaderData }) {
     // console.log("UserProfile: ", { ...loaderData });
-    const { awardsPromise, player } = loaderData;
+    const { awardsPromise, player, defaultTab } = loaderData;
 
     const { closeAllModals } = useModal();
 
@@ -129,9 +135,6 @@ export default function UserProfile({ loaderData }) {
     }, [actionData]);
 
     const validTabs = ["player", "personal", "awards"];
-    const hash = location?.hash?.replace(/^#/, "") || null;
-    const defaultTab = validTabs.includes(hash) ? hash : "player";
-
     const [tab, setTab] = useState(defaultTab);
 
     // Keep tab state in sync when location.hash changes (back/forward navigation)
