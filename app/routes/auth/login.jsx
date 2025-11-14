@@ -13,7 +13,6 @@ import {
 
 import {
     createAdminClient,
-    createSessionClient,
     serializeSessionCookie,
 } from "@/utils/appwrite/server";
 
@@ -21,17 +20,11 @@ import branding from "@/constants/branding";
 
 import AutocompleteEmail from "@/components/AutocompleteEmail";
 
+import { redirectIfAuthenticated } from "./utils/redirectIfAuthenticated";
+
 // Check if user is already logged in, redirect to home if so
 export async function loader({ request }) {
-    try {
-        const { account } = await createSessionClient(request);
-        await account.get(); // Succeeds if valid session exists, throws if no session
-        // User is already logged in, redirect to home
-        return redirect("/");
-    } catch (error) {
-        // No valid session found, allow access to login page
-        return null;
-    }
+    return redirectIfAuthenticated(request);
 }
 
 // Server-side action - creates session and sets cookie

@@ -20,23 +20,16 @@ import AutocompleteEmail from "@/components/AutocompleteEmail";
 
 import {
     createAdminClient,
-    createSessionClient,
     serializeSessionCookie,
 } from "@/utils/appwrite/server";
 
 import { createDocument } from "@/utils/databases";
 
+import { redirectIfAuthenticated } from "./utils/redirectIfAuthenticated";
+
 // Check if user is already logged in, redirect to home if so
 export async function loader({ request }) {
-    try {
-        const { account } = await createSessionClient(request);
-        await account.get(); // Succeeds if valid session exists, throws if no session
-        // User is already logged in, redirect to home
-        return redirect("/");
-    } catch (error) {
-        // No valid session found, allow access to register page
-        return null;
-    }
+    return redirectIfAuthenticated(request);
 }
 
 export async function action({ request }) {
