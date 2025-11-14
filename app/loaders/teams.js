@@ -38,15 +38,11 @@ export async function getUserTeams({ request }) {
                 return [];
             }
 
-            const promises = teamIds.map(async (teamId) => {
-                const result = await listDocuments("teams", [
-                    Query.equal("$id", teamId),
-                ]);
-                return result.documents;
-            });
-
-            const results = await Promise.all(promises);
-            return results.flat();
+            // Batch query: fetch all teams in a single request
+            const result = await listDocuments("teams", [
+                Query.equal("$id", teamIds),
+            ]);
+            return result.documents;
         };
 
         const managerTeams = await fetchTeams(managerTeamIds);
@@ -77,16 +73,11 @@ export async function getTeamById({ teamId }) {
         // 4. Get all players
         let players = [];
         if (userIds.length > 0) {
-            // Make multiple queries
-            const promises = userIds.map(async (userId) => {
-                const result = await listDocuments("users", [
-                    Query.equal("$id", userId),
-                ]);
-                return result.documents;
-            });
-
-            const results = await Promise.all(promises);
-            players = results.flat();
+            // Batch query: fetch all users in a single request
+            const result = await listDocuments("users", [
+                Query.equal("$id", userIds),
+            ]);
+            players = result.documents;
         }
 
         const teamData = await readDocument("teams", teamId);
