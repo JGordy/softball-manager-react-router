@@ -32,10 +32,6 @@ export async function loader({ request }) {
     return getUserTeams({ request });
 }
 
-export function HydrateFallback() {
-    return <LoaderDots message="Fetching your teams..." />;
-}
-
 export async function action({ request }) {
     const formData = await request.formData();
     const { _action, userId, ...values } = Object.fromEntries(formData);

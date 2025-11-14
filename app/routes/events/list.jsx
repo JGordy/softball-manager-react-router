@@ -27,10 +27,6 @@ export async function loader({ request }) {
     return { userId, teams: { managing, playing } };
 }
 
-export function HydrateFallback() {
-    return <LoaderDots message="Fetching your scheduled events..." />;
-}
-
 export default function EventsDetails({ loaderData }) {
     const teams = loaderData?.teams;
     const { user } = useOutletContext();
