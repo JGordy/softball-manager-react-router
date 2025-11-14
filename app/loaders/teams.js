@@ -7,10 +7,10 @@ export async function getUserTeams({ request }) {
         // Get authenticated user from session
         const { account } = await createSessionClient(request);
         const user = await account.get();
-        const userId = user.$id;
+        const userId = user?.$id;
 
         if (!userId) {
-            return { managing: [], playing: [] };
+            return { managing: [], playing: [], userId: null };
         }
 
         // 1. Check relationships table to list memberships for the userId, both manager and player

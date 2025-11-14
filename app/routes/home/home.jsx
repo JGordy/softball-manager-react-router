@@ -114,8 +114,6 @@ export default function HomePage({ loaderData, actionData }) {
         handleAfterSubmit();
     }, [actionData]);
 
-    console.log("/home ", { nextGame, futureGames, pastGames, userId });
-
     const openAddTeamModal = () =>
         openModal({
             title: "Add a New Team",

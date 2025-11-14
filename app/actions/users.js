@@ -87,8 +87,6 @@ export async function updateAccountInfo({ values, request }) {
             let formattedPhone = phoneNumber.replace(/\D/g, ""); // Remove non-digits
             if (!phoneNumber.startsWith("+")) {
                 formattedPhone = "+1" + formattedPhone;
-            } else {
-                formattedPhone = "+" + formattedPhone;
             }
 
             await account.updatePhone(formattedPhone, password);

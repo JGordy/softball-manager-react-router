@@ -5,9 +5,7 @@ import { createSessionClient } from "@/utils/appwrite/server";
  * Server-side logout action
  */
 export async function logoutAction({ request }) {
-    console.log({ request });
     const { account } = await createSessionClient(request);
-    console.log({ account });
 
     try {
         // Delete session on Appwrite
