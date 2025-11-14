@@ -1,4 +1,4 @@
-import { ID } from "@/appwrite";
+import { ID } from "node-appwrite";
 import {
     createDocument,
     deleteDocument,
