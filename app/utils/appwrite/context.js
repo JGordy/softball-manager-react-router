@@ -3,18 +3,33 @@ import { createSessionClient } from "./server";
 
 /**
  * Server-side context for Appwrite session
- * This allows you to access the Appwrite client from any loader/action
- * without passing the request object around
+ * This allows you to access the Appwrite client from middleware/loaders/actions
  */
-export const [getAppwriteContext, setAppwriteContext] = createContext();
+export const appwriteContext = createContext();
 
 /**
  * Middleware to initialize Appwrite context
- * Call this in your root loader or a parent route loader
+ * Call this in your root middleware or a parent route middleware
  */
-export async function initializeAppwriteContext(request) {
+export async function initializeAppwriteContext({ context, request }) {
     const client = await createSessionClient(request);
-    setAppwriteContext(client);
+    context.set(appwriteContext, client);
+    return client;
+}
+
+/**
+ * Get the Appwrite client from context
+ * Use this in loaders/actions instead of recreating the client
+ */
+export function getAppwriteClient(context) {
+    const client = context.get(appwriteContext);
+
+    if (!client) {
+        throw new Error(
+            "Appwrite context not initialized. Call initializeAppwriteContext in a parent middleware.",
+        );
+    }
+
     return client;
 }
 
