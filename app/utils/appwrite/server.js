@@ -1,4 +1,5 @@
-import { Client, Account } from "node-appwrite";
+import { Client, Account, Databases } from "node-appwrite";
+import { appwriteConfig } from "./config.js";
 
 // Cookie configuration
 const COOKIE_NAME = "appwrite-session";
@@ -44,15 +45,11 @@ export function parseSessionCookie(cookieHeader) {
  * This should be used in loaders/actions to make authenticated requests
  */
 export async function createSessionClient(request) {
-    if (!process.env.APPWRITE_ENDPOINT || !process.env.APPWRITE_PROJECT_ID) {
-        throw new Error(
-            "Missing required Appwrite environment variables (APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID)",
-        );
-    }
+    appwriteConfig.validate();
 
     const client = new Client()
-        .setEndpoint(process.env.APPWRITE_ENDPOINT)
-        .setProject(process.env.APPWRITE_PROJECT_ID);
+        .setEndpoint(appwriteConfig.endpoint)
+        .setProject(appwriteConfig.projectId);
 
     // Get session from cookie
     const cookieHeader = request.headers.get("Cookie");
@@ -66,6 +63,9 @@ export async function createSessionClient(request) {
         get account() {
             return new Account(client);
         },
+        get databases() {
+            return new Databases(client);
+        },
     };
 }
 
@@ -74,24 +74,19 @@ export async function createSessionClient(request) {
  * Use sparingly - only when you need to perform admin operations
  */
 export function createAdminClient() {
-    if (
-        !process.env.APPWRITE_ENDPOINT ||
-        !process.env.APPWRITE_PROJECT_ID ||
-        !process.env.APPWRITE_API_KEY
-    ) {
-        throw new Error(
-            "Missing required Appwrite environment variables (APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID, APPWRITE_API_KEY)",
-        );
-    }
+    appwriteConfig.validate(true); // Require API key for admin operations
 
     const client = new Client()
-        .setEndpoint(process.env.APPWRITE_ENDPOINT)
-        .setProject(process.env.APPWRITE_PROJECT_ID)
-        .setKey(process.env.APPWRITE_API_KEY); // API Key for server-side operations
+        .setEndpoint(appwriteConfig.endpoint)
+        .setProject(appwriteConfig.projectId)
+        .setKey(appwriteConfig.apiKey); // API Key for server-side operations
 
     return {
         get account() {
             return new Account(client);
+        },
+        get databases() {
+            return new Databases(client);
         },
     };
 }
