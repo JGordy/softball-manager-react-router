@@ -20,13 +20,17 @@ export async function getUserTeams({ request }) {
         ]);
 
         // 2. Separate teamIds by role
-        const managerTeamIds = memberships.documents
-            .filter((m) => m.role === "manager")
-            .map((m) => m.teamId);
-
-        const playerTeamIds = memberships.documents
-            .filter((m) => m.role === "player")
-            .map((m) => m.teamId);
+        const { managerTeamIds, playerTeamIds } = memberships.documents.reduce(
+            (acc, m) => {
+                if (m.role === "manager") {
+                    acc.managerTeamIds.push(m.teamId);
+                } else if (m.role === "player") {
+                    acc.playerTeamIds.push(m.teamId);
+                }
+                return acc;
+            },
+            { managerTeamIds: [], playerTeamIds: [] },
+        );
 
         // 3. Fetch teams for managers and players
         const fetchTeams = async (teamIds) => {
