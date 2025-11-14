@@ -1,29 +1,23 @@
 import { useState } from "react";
-import { useOutletContext } from "react-router";
+import { useOutletContext, useFetcher } from "react-router";
 
 import { Alert, Avatar, Button, Group, Text, Title } from "@mantine/core";
 
 import { IconRosetteDiscountCheckFilled } from "@tabler/icons-react";
-
-import { account } from "@/appwrite";
 
 export default function UserHeader({ children, subText }) {
     const context = useOutletContext();
     const { user, isVerified } = context;
 
     const [emailSent, setEmailSent] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+    const fetcher = useFetcher();
 
-    const fullName = `${user.firstName} ${user.lastName}`;
-
-    const handleReverificationEmailClick = async () => {
-        setIsLoading(true);
-        const currentUrl = new URL(window.location.href);
-        await account.createVerification(`${currentUrl.origin}/verify`);
-
+    const handleReverificationEmailClick = () => {
+        fetcher.submit(
+            {},
+            { method: "post", action: "/api/resend-verification" },
+        );
         setEmailSent(true);
-
-        setTimeout(() => setIsLoading(false), 1000);
     };
 
     return (
@@ -32,14 +26,14 @@ export default function UserHeader({ children, subText }) {
                 <Group my="md">
                     <Avatar
                         color="green"
-                        name={fullName}
-                        alt={fullName}
+                        name={user?.name}
+                        alt={user?.name}
                         size="lg"
                     />
                     <div>
                         <Title order={3}>
                             <Group gap="0px">
-                                {`Hello, ${user.firstName}!`}
+                                {`Hello, ${user?.name?.split(" ")?.[0]}!`}
                                 {isVerified && (
                                     <IconRosetteDiscountCheckFilled
                                         size={16}
@@ -69,7 +63,7 @@ export default function UserHeader({ children, subText }) {
                         size="xs"
                         color="red"
                         mt="md"
-                        loading={isLoading}
+                        loading={fetcher.state === "submitting"}
                         fullWidth
                         onClick={handleReverificationEmailClick}
                         disabled={emailSent}

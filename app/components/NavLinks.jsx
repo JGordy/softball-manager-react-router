@@ -11,8 +11,6 @@ import {
     IconUserSquareRounded,
 } from "@tabler/icons-react";
 
-import { useAuth } from "@/contexts/auth/useAuth";
-
 import classes from "@/styles/navlinks.module.css";
 
 function Label({ Icon, text }) {
@@ -24,21 +22,11 @@ function Label({ Icon, text }) {
     );
 }
 
-function NavLinks() {
-    const { session } = useAuth();
+function NavLinks({ user }) {
     const navigate = useNavigate();
     const location = useLocation();
 
     const getInitialValue = () => {
-        // const keywords = ["team", "game", "season"];
-        // if (
-        //     keywords.some((keyword) =>
-        //         location.pathname.toLowerCase().includes(keyword),
-        //     )
-        // ) {
-        //     return "teams";
-        // }
-
         if (location.pathname.toLowerCase().includes("user")) {
             return "user";
         }
@@ -112,7 +100,7 @@ function NavLinks() {
         setValue(newValue);
 
         if (newValue === "user") {
-            navigate(`/user/${session.userId}`);
+            navigate(`/user/${user?.$id}`);
         } else if (newValue === "home") {
             navigate("/");
         } else {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { useNavigate, useOutletContext } from "react-router";
+import { Form, useOutletContext } from "react-router";
 
 import { ActionIcon, Alert, Button, Divider, Group, Text } from "@mantine/core";
 
@@ -17,8 +17,6 @@ export default function AuthPanel({ actionData }) {
     const { user } = useOutletContext();
 
     const { openModal, closeAllModals } = useModal();
-
-    const navigate = useNavigate();
 
     const [
         passwordResetOpened,
@@ -56,11 +54,6 @@ export default function AuthPanel({ actionData }) {
             title: "Update Your Password",
             children: <UpdatePassword actionRoute="/settings" />,
         });
-
-    const logOutUser = async () => {
-        await account.deleteSession(session.$id);
-        navigate("/login");
-    };
 
     return (
         <>
@@ -146,18 +139,21 @@ export default function AuthPanel({ actionData }) {
                     Are you sure you want to log out? You will need to log in
                     again to access your content.
                 </Text>
-                <Button
-                    color="red"
-                    onClick={logOutUser}
-                    variant="filled"
-                    size="md"
-                    fullWidth
-                >
-                    <Group gap="xs">
-                        <IconLogout2 size={16} mr="xs" />
-                        Yes, Log out
-                    </Group>
-                </Button>
+                <Form method="post">
+                    <input type="hidden" name="_action" value="logout" />
+                    <Button
+                        type="submit"
+                        color="red"
+                        variant="filled"
+                        size="md"
+                        fullWidth
+                    >
+                        <Group gap="xs">
+                            <IconLogout2 size={16} mr="xs" />
+                            Yes, Log out
+                        </Group>
+                    </Button>
+                </Form>
             </DrawerContainer>
         </>
     );

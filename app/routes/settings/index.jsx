@@ -1,9 +1,6 @@
 import { useOutletContext } from "react-router";
-import { useEffect, useState } from "react";
 
 import { Accordion, Container } from "@mantine/core";
-
-import { account } from "@/appwrite";
 
 import {
     updateAccountInfo,
@@ -12,7 +9,7 @@ import {
     resetPassword,
 } from "@/actions/users";
 
-import { useAuth } from "@/contexts/auth/useAuth";
+import { logoutAction } from "@/actions/logout";
 
 import UserHeader from "@/components/UserHeader";
 import AccountPanel from "./components/AccountPanel";
@@ -21,24 +18,22 @@ import AuthPanel from "./components/AuthPanel";
 export async function action({ request }) {
     const formData = await request.formData();
     const { _action, userId, ...values } = Object.fromEntries(formData);
+    console.log("server action", { request, _action, userId, values });
+
+    if (_action === "logout") {
+        return logoutAction({ request });
+    }
 
     if (_action === "update-profile-info") {
         return updateUser({ userId, values });
     }
 
-    return null;
-}
-
-export async function clientAction({ request, params }) {
-    const formData = await request.formData();
-    const { _action, ...values } = Object.fromEntries(formData);
-
     if (_action === "update-contact") {
-        return updateAccountInfo({ values });
+        return updateAccountInfo({ values, request });
     }
 
     if (_action === "update-password") {
-        return updatePassword({ values });
+        return updatePassword({ values, request });
     }
 
     if (_action === "password-reset") {
@@ -49,30 +44,11 @@ export async function clientAction({ request, params }) {
 }
 
 export default function Settings({ actionData }) {
-    const { session } = useAuth();
     const { user } = useOutletContext();
-
-    const [userAccount, setUserAccount] = useState();
-
-    console.log("/settings ", { user, session, userAccount });
-
-    useEffect(() => {
-        const getUserAccount = async () => {
-            try {
-                const _userAccount = await account.get();
-                setUserAccount(_userAccount);
-            } catch (error) {
-                console.error("Error fetching user account:", error);
-            }
-        };
-        if ((user && !userAccount) || user?.email !== userAccount?.email) {
-            getUserAccount();
-        }
-    }, [account, user.email]);
 
     return (
         <Container className="settings-container">
-            <UserHeader subText={user.email} />
+            <UserHeader subText={user?.email} />
 
             <Accordion
                 variant="separated"
