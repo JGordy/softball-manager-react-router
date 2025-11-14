@@ -1,5 +1,5 @@
 import { redirect } from "react-router";
-import { createAdminClient, sessionCookie } from "~/utils/appwrite/server";
+import { createAdminClient, sessionCookie } from "@/utils/appwrite/server";
 
 /**
  * Server-side login action

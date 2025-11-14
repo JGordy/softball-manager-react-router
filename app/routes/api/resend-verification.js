@@ -7,7 +7,7 @@ export async function action({ request }) {
 
         await account.createVerification(`${origin}/verify`);
 
-        return json({ success: true });
+        return { success: true };
     } catch (error) {
         console.error("Resend verification error:", error);
         return { success: false, error: error.message, status: 500 };

@@ -1,4 +1,5 @@
 import { redirect, Form, Link } from "react-router";
+import { ID } from "node-appwrite";
 
 import {
     Button,
@@ -19,11 +20,11 @@ import AutocompleteEmail from "@/components/AutocompleteEmail";
 
 import {
     createAdminClient,
+    createSessionClient,
     serializeSessionCookie,
 } from "@/utils/appwrite/server";
-import { createSessionClient } from "@/utils/appwrite/server";
+
 import { createDocument } from "@/utils/databases";
-import { ID } from "node-appwrite";
 
 // Check if user is already logged in, redirect to home if so
 export async function loader({ request }) {

@@ -25,7 +25,6 @@ export async function loader({ request }) {
 }
 
 function Layout({ loaderData }) {
-    console.log({ loaderData });
     const navigation = useNavigation();
 
     const isNavigating = navigation.state !== "idle";

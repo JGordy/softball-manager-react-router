@@ -18,7 +18,6 @@ import AuthPanel from "./components/AuthPanel";
 export async function action({ request }) {
     const formData = await request.formData();
     const { _action, userId, ...values } = Object.fromEntries(formData);
-    console.log("server action", { request, _action, userId, values });
 
     if (_action === "logout") {
         return logoutAction({ request });

@@ -6,8 +6,7 @@ const COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 
 /**
  * Serialize a session secret into a Set-Cookie header
- * We manually create the cookie instead of using React Router's createCookie
- * because Appwrite expects the raw JWT session secret, not a JSON-encoded value
+ * We manually create the cookie to ensure the raw JWT session secret is stored, not a JSON-encoded value.
  */
 export function serializeSessionCookie(secret) {
     const isProduction = process.env.NODE_ENV === "production";
