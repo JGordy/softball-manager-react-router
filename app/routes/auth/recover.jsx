@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams, useActionData } from "react-router";
+import { useSearchParams, useActionData, useNavigate } from "react-router";
 
 import {
     Alert,
@@ -52,6 +52,7 @@ export async function action({ request }) {
 export default function Recover() {
     const [searchParams] = useSearchParams();
     const actionData = useActionData();
+    const navigate = useNavigate();
 
     const [params] = useState({
         secret: searchParams.get("secret"),
@@ -62,10 +63,10 @@ export default function Recover() {
     useEffect(() => {
         if (actionData?.success) {
             setTimeout(() => {
-                window.location.href = "/login";
+                navigate("/login");
             }, 2500);
         }
-    }, [actionData]);
+    }, [actionData, navigate]);
 
     return (
         <Paper p="xl">

@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useNavigate } from "react-router";
 
 import { Container, Text, Title } from "@mantine/core";
 
@@ -36,14 +37,15 @@ export async function loader({ request }) {
 
 export default function Verify({ loaderData }) {
     const { success, message } = loaderData;
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (success) {
             setTimeout(() => {
-                window.location.href = "/login";
+                navigate("/login");
             }, 3000);
         }
-    }, [success]);
+    }, [success, navigate]);
 
     return (
         <Container size="xs" style={{ marginTop: "4rem" }}>
