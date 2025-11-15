@@ -24,6 +24,8 @@ import { getUserTeams } from "@/loaders/teams";
 
 import HomeMenu from "./components/HomeMenu";
 
+const NOTIFICATION_DELAY = 1500;
+
 export function meta() {
     return [
         { title: branding.name },
@@ -100,26 +102,25 @@ export default function HomePage({ loaderData, actionData }) {
         const handleAfterSubmit = async () => {
             closeAllModals();
             try {
-                if (actionData.success) {
+                if (actionData?.success) {
                     setTimeout(() => {
                         showNotification({
                             variant: "success",
                             message: "Team created successfully!",
                         });
-                    }, 1500);
+                    }, NOTIFICATION_DELAY);
                 }
-                if (actionData?.success === false) {
+                if (actionData && actionData.success === false) {
                     console.error(
                         "An error occurred during team creation.",
                         actionData.message,
                     );
-                    closeAllModals();
                     setTimeout(() => {
                         showNotification({
                             variant: "error",
                             message: actionData.message,
                         });
-                    }, 1500);
+                    }, NOTIFICATION_DELAY);
                 }
             } catch (jsonError) {
                 console.error("Error parsing JSON:", jsonError);
@@ -132,13 +133,7 @@ export default function HomePage({ loaderData, actionData }) {
     const openAddTeamModal = () =>
         openModal({
             title: "Add a New Team",
-            children: (
-                <AddTeam
-                    actionRoute={"/"}
-                    userId={userId}
-                    error={!actionData?.success && actionData}
-                />
-            ),
+            children: <AddTeam actionRoute={"/"} userId={userId} />,
         });
 
     // reset/initialize active index if team list changes
