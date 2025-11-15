@@ -15,6 +15,7 @@ import {
     mantineHtmlProps,
 } from "@mantine/core";
 import { ModalsProvider } from "@mantine/modals";
+import { Notifications } from "@mantine/notifications";
 
 import "@mantine/core/styles.css";
 import "@mantine/core/styles/baseline.css";
@@ -104,6 +105,7 @@ function Layout({ children, context }) {
                     defaultColorScheme="auto"
                     theme={theme}
                 >
+                    <Notifications />
                     <ModalsProvider>{children}</ModalsProvider>
                 </MantineProvider>
                 <ScrollRestoration />

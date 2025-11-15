@@ -70,7 +70,7 @@ export default function Login() {
         <Container size="xs">
             <Center style={{ minHeight: "100vh" }}>
                 <Paper radius="md" p="xl" withBorder style={{ width: "100%" }}>
-                    <Title order={3} ta="center" mt="md" mb="xs">
+                    <Title order={1} ta="center" mt="md" mb="xs" c="green">
                         {branding.name}
                     </Title>
                     <Text ta="center" mb={50}>
