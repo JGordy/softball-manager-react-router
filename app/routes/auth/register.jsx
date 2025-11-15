@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { redirect, Form, Link } from "react-router";
 import { ID } from "node-appwrite";
 
@@ -26,6 +27,7 @@ import {
 } from "@/utils/appwrite/server";
 
 import { createDocument } from "@/utils/databases";
+import { showNotification } from "@/utils/showNotification";
 
 import { redirectIfAuthenticated } from "./utils/redirectIfAuthenticated";
 
@@ -96,6 +98,15 @@ export async function action({ request }) {
 }
 
 export default function Register({ actionData }) {
+    useEffect(() => {
+        if (actionData?.error) {
+            showNotification({
+                variant: "error",
+                message: actionData.error,
+            });
+        }
+    }, [actionData]);
+
     return (
         <Container size="xs">
             <Center style={{ minHeight: "100vh" }}>
@@ -137,11 +148,6 @@ export default function Register({ actionData }) {
                             Login here
                         </Text>
                     </Group>
-                    <Center>
-                        {actionData?.error && (
-                            <Text c="red.5">{actionData?.error}</Text>
-                        )}
-                    </Center>
                 </Paper>
             </Center>
         </Container>
