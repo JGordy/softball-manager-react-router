@@ -18,6 +18,8 @@ import branding from "@/constants/branding";
 
 import AutocompleteEmail from "@/components/AutocompleteEmail";
 
+import { hasBadWords } from "@/utils/badWordsApi";
+
 import {
     createAdminClient,
     serializeSessionCookie,
@@ -44,6 +46,15 @@ export async function action({ request }) {
     }
 
     try {
+        // Check user's name for inappropriate language
+        if (await hasBadWords(name)) {
+            return {
+                success: false,
+                status: 400,
+                error: "Name contains inappropriate language. Please choose a different name.",
+            };
+        }
+
         // Create the Appwrite account
         const { account } = createAdminClient();
         const user = await account.create(ID.unique(), email, password, name);
@@ -89,15 +100,12 @@ export default function Register({ actionData }) {
         <Container size="xs">
             <Center style={{ minHeight: "100vh" }}>
                 <Paper radius="md" p="xl" withBorder style={{ width: "100%" }}>
-                    <Title order={3} ta="center" mt="md" mb="xs">
+                    <Title order={1} ta="center" mt="md" mb="xs" c="green">
                         {branding.name}
                     </Title>
                     <Text ta="center" mb={50}>
                         {branding.tagline}
                     </Text>
-                    <Title order={4} mb="md" ta="center">
-                        Create an Account
-                    </Title>
                     <Form method="post">
                         <Stack>
                             <TextInput
