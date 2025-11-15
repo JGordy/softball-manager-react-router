@@ -27,8 +27,10 @@ export async function checkBadWords(text, options = {}) {
         );
     }
 
-    if (!text || typeof text !== "string") {
-        throw new Error("Text parameter is required and must be a string");
+    if (typeof text !== "string" || text.trim().length === 0) {
+        throw new Error(
+            "Text parameter is required and must be a non-empty string",
+        );
     }
 
     const { censorCharacter = "*" } = options;
@@ -72,6 +74,9 @@ export async function hasBadWords(text) {
         return result.bad_words_total > 0;
     } catch (error) {
         console.error("Error in hasBadWords:", error);
+        console.warn(
+            "WARNING: Bad words filter is not working due to an API error. Content may not be properly checked for profanity.",
+        );
         // Return false on error to prevent blocking content submission
         return false;
     }
