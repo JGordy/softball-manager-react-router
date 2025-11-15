@@ -2,9 +2,20 @@ import { ID } from "node-appwrite";
 import { createDocument, updateDocument } from "@/utils/databases.js";
 
 import { removeEmptyValues } from "./utils/formUtils";
+import { hasBadWords } from "@/utils/badWordsApi";
 
 export async function createTeam({ values, userId }) {
     const teamData = removeEmptyValues({ values });
+
+    // Check team name for inappropriate language
+    if (teamData.name && (await hasBadWords(teamData.name))) {
+        return {
+            success: false,
+            status: 400,
+            message:
+                "Team name contains inappropriate language. Please choose a different name.",
+        };
+    }
 
     try {
         const teamId = ID.unique(); // Create this now so it's easier to use later
@@ -18,7 +29,7 @@ export async function createTeam({ values, userId }) {
             role: "manager",
         });
 
-        return { response: team, status: 201 };
+        return { response: team, status: 201, success: true };
     } catch (error) {
         console.error("Error creating team:", error);
         throw error;
