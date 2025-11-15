@@ -1,8 +1,8 @@
-import { createSessionClient } from "@/utils/appwrite/server";
+import { getAppwriteClient } from "@/utils/appwrite/context";
 
-export async function action({ request }) {
+export async function action({ request, context }) {
     try {
-        const { account } = await createSessionClient(request);
+        const { account } = await getAppwriteClient({ request, context });
         const origin = new URL(request.url).origin;
 
         await account.createVerification(`${origin}/verify`);
