@@ -8,8 +8,8 @@ import { createSessionClient } from "./server";
 export const appwriteContext = createContext();
 
 /**
- * Middleware to initialize Appwrite context
- * Call this in your root middleware or a parent route middleware
+ * Initialize Appwrite client and store in context
+ * This should be called in the layout middleware
  */
 export async function initializeAppwriteContext({ context, request }) {
     const client = await createSessionClient(request);
@@ -18,36 +18,31 @@ export async function initializeAppwriteContext({ context, request }) {
 }
 
 /**
- * Get the Appwrite client from context
+ * Get the Appwrite client from context (SSR) or create new one (client-side navigation)
  * Use this in loaders/actions instead of recreating the client
  */
-export function getAppwriteClient(context) {
-    const client = context.get(appwriteContext);
-
-    if (!client) {
-        throw new Error(
-            "Appwrite context not initialized. Call initializeAppwriteContext in a parent middleware.",
-        );
+export async function getAppwriteClient({ context, request }) {
+    // Server-side: try to use context from middleware
+    if (context) {
+        const client = context.get(appwriteContext);
+        if (client) {
+            return client;
+        }
     }
 
-    return client;
+    // Client-side navigation or context not initialized: create new session client
+    return await createSessionClient(request);
 }
 
 /**
- * Get the current user from context
+ * Get the current user from context (SSR) or new client (client-side navigation)
  * Use this in child route loaders instead of recreating the client
  */
-export async function getCurrentUser() {
-    const context = getAppwriteContext();
-
-    if (!context) {
-        throw new Error(
-            "Appwrite context not initialized. Call initializeAppwriteContext in a parent loader.",
-        );
-    }
+export async function getCurrentUser({ context, request }) {
+    const client = await getAppwriteClient({ context, request });
 
     try {
-        return await context.account.get();
+        return await client.account.get();
     } catch (error) {
         return null;
     }
