@@ -7,12 +7,27 @@ import { Notifications } from "@mantine/notifications";
 
 import NavLinks from "@/components/NavLinks";
 
-import { createSessionClient } from "@/utils/appwrite/server";
+import {
+    initializeAppwriteContext,
+    getCurrentUser,
+} from "@/utils/appwrite/context";
 
-export async function loader({ request }) {
+/**
+ * Middleware to initialize Appwrite context for all child routes
+ * This runs before the loader and makes the context available to all descendants
+ */
+export const middleware = [
+    async ({ context, request }, next) => {
+        await initializeAppwriteContext({ context, request });
+        return next();
+    },
+];
+
+export async function loader({ request, context }) {
     try {
-        const { account } = await createSessionClient(request);
-        const user = await account.get();
+        // Get the current user from context (already initialized by middleware)
+        const user = await getCurrentUser({ request, context });
+
         return {
             user,
             isAuthenticated: true,

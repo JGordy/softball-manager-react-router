@@ -1,12 +1,11 @@
 import { Query } from "node-appwrite";
 import { listDocuments, readDocument } from "@/utils/databases";
-import { createSessionClient } from "@/utils/appwrite/server";
+import { getCurrentUser } from "@/utils/appwrite/context";
 
-export async function getUserTeams({ request }) {
+export async function getUserTeams({ request, context }) {
     try {
-        // Get authenticated user from session
-        const { account } = await createSessionClient(request);
-        const user = await account.get();
+        // Get authenticated user from context
+        const user = await getCurrentUser({ request, context });
         const userId = user?.$id;
 
         if (!userId) {
