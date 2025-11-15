@@ -1,11 +1,11 @@
 import { redirect } from "react-router";
-import { createSessionClient } from "@/utils/appwrite/server";
+import { getAppwriteClient } from "@/utils/appwrite/context";
 
 /**
  * Server-side logout action
  */
-export async function logoutAction({ request }) {
-    const { account } = await createSessionClient(request);
+export async function logoutAction({ request, context }) {
+    const { account } = await getAppwriteClient({ request, context });
 
     try {
         // Delete session on Appwrite
