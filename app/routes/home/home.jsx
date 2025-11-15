@@ -4,6 +4,7 @@ import { Button, Card, Container, Group, Text, Title } from "@mantine/core";
 import { Carousel } from "@mantine/carousel";
 
 import getGames from "@/utils/getGames";
+import { showNotification } from "@/utils/showNotification";
 
 import useModal from "@/hooks/useModal";
 
@@ -97,14 +98,20 @@ export default function HomePage({ loaderData, actionData }) {
 
     useEffect(() => {
         const handleAfterSubmit = async () => {
+            closeAllModals();
             try {
-                if (actionData?.status === 201) {
-                    closeAllModals();
-                } else if (actionData instanceof Error) {
+                if (actionData?.success === false) {
                     console.error(
                         "An error occurred during team creation.",
                         actionData.message,
                     );
+                    closeAllModals();
+                    setTimeout(() => {
+                        showNotification({
+                            variant: "error",
+                            message: actionData.message,
+                        });
+                    }, 1500);
                 }
             } catch (jsonError) {
                 console.error("Error parsing JSON:", jsonError);
@@ -117,7 +124,13 @@ export default function HomePage({ loaderData, actionData }) {
     const openAddTeamModal = () =>
         openModal({
             title: "Add a New Team",
-            children: <AddTeam actionRoute={"/"} userId={userId} />,
+            children: (
+                <AddTeam
+                    actionRoute={"/"}
+                    userId={userId}
+                    error={!actionData?.success && actionData}
+                />
+            ),
         });
 
     // reset/initialize active index if team list changes
