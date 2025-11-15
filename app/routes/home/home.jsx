@@ -100,6 +100,14 @@ export default function HomePage({ loaderData, actionData }) {
         const handleAfterSubmit = async () => {
             closeAllModals();
             try {
+                if (actionData.success) {
+                    setTimeout(() => {
+                        showNotification({
+                            variant: "success",
+                            message: "Team created successfully!",
+                        });
+                    }, 1500);
+                }
                 if (actionData?.success === false) {
                     console.error(
                         "An error occurred during team creation.",
