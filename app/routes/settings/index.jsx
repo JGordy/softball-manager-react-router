@@ -15,12 +15,12 @@ import UserHeader from "@/components/UserHeader";
 import AccountPanel from "./components/AccountPanel";
 import AuthPanel from "./components/AuthPanel";
 
-export async function action({ request }) {
+export async function action({ request, context }) {
     const formData = await request.formData();
     const { _action, userId, ...values } = Object.fromEntries(formData);
 
     if (_action === "logout") {
-        return logoutAction({ request });
+        return logoutAction({ request, context });
     }
 
     if (_action === "update-profile-info") {
@@ -28,15 +28,15 @@ export async function action({ request }) {
     }
 
     if (_action === "update-contact") {
-        return updateAccountInfo({ values, request });
+        return updateAccountInfo({ values, request, context });
     }
 
     if (_action === "update-password") {
-        return updatePassword({ values, request });
+        return updatePassword({ values, request, context });
     }
 
     if (_action === "password-reset") {
-        return resetPassword({ values, request });
+        return resetPassword({ values, request, context });
     }
 
     return null;

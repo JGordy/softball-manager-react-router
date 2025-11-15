@@ -28,8 +28,8 @@ export function meta() {
     ];
 }
 
-export async function loader({ request }) {
-    return getUserTeams({ request });
+export async function loader({ request, context }) {
+    return getUserTeams({ request, context });
 }
 
 export async function action({ request }) {

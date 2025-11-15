@@ -30,8 +30,11 @@ export function meta() {
     ];
 }
 
-export async function loader({ request }) {
-    const { managing, playing, userId } = await getUserTeams({ request });
+export async function loader({ request, context }) {
+    const { managing, playing, userId } = await getUserTeams({
+        request,
+        context,
+    });
     return {
         teams: { managing, playing },
         userId,
