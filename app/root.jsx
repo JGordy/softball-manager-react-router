@@ -22,6 +22,7 @@ import "@mantine/core/styles/default-css-variables.css";
 import "@mantine/core/styles/global.css";
 import "@mantine/dates/styles.css";
 import "@mantine/carousel/styles.css";
+import "@mantine/notifications/styles.css";
 
 import "@/styles/app.css";
 

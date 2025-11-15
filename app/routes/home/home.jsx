@@ -4,6 +4,7 @@ import { Button, Card, Container, Group, Text, Title } from "@mantine/core";
 import { Carousel } from "@mantine/carousel";
 
 import getGames from "@/utils/getGames";
+import { showNotification } from "@/utils/showNotification";
 
 import useModal from "@/hooks/useModal";
 
@@ -22,6 +23,8 @@ import { createTeam } from "@/actions/teams";
 import { getUserTeams } from "@/loaders/teams";
 
 import HomeMenu from "./components/HomeMenu";
+
+const NOTIFICATION_DELAY = 1500;
 
 export function meta() {
     return [
@@ -97,14 +100,27 @@ export default function HomePage({ loaderData, actionData }) {
 
     useEffect(() => {
         const handleAfterSubmit = async () => {
+            closeAllModals();
             try {
-                if (actionData?.status === 201) {
-                    closeAllModals();
-                } else if (actionData instanceof Error) {
+                if (actionData?.success) {
+                    setTimeout(() => {
+                        showNotification({
+                            variant: "success",
+                            message: "Team created successfully!",
+                        });
+                    }, NOTIFICATION_DELAY);
+                }
+                if (actionData && actionData.success === false) {
                     console.error(
                         "An error occurred during team creation.",
                         actionData.message,
                     );
+                    setTimeout(() => {
+                        showNotification({
+                            variant: "error",
+                            message: actionData.message,
+                        });
+                    }, NOTIFICATION_DELAY);
                 }
             } catch (jsonError) {
                 console.error("Error parsing JSON:", jsonError);

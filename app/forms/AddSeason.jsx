@@ -14,7 +14,6 @@ export default function AddSeason({
     actionRoute,
     buttonColor,
     confirmText = "Create Season",
-    // setError,
     teamId,
 }) {
     return (

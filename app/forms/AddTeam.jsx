@@ -1,4 +1,4 @@
-import { Group, Radio, TextInput, Select, ColorInput } from "@mantine/core";
+import { Group, Radio, TextInput, ColorInput } from "@mantine/core";
 
 import classes from "@/styles/inputs.module.css";
 
@@ -41,7 +41,7 @@ export default function AddTeam({
                 mb="md"
                 className={classes.inputs}
                 defaultValue="Men"
-                name="gendermix"
+                name="genderMix"
                 label="Gender mix"
                 size="md"
             >
