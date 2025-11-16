@@ -106,23 +106,6 @@ export default function LineupContainer({
         }
     };
 
-    // NOTE: For generative AI to output in a json format
-    // const handleGenerateCharts = () => {
-    // NOTE: Example data
-    // try {
-    //     const formData = new FormData();
-    //     formData.append('_action', 'create-attendance');
-    //     formData.append('team', JSON.stringify(team));
-    //     formData.append('gameDate', gameDate);
-    //     formData.append('opponent', opponent);
-    //     formData.append('gameId', gameId);
-
-    //     fetcher.submit(formData, { method: 'post', action: `/events/${gameId}` }); // Use fetcher.submit
-    // } catch (error) {
-    //     console.error('Error submitting attendance form:', error);
-    // }
-    // };
-
     const handleEditChart = (position, playerId, inning) => {
         const playerIndex = listState.findIndex((p) => p.$id === playerId);
 
