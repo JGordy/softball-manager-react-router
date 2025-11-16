@@ -60,32 +60,34 @@ export function useResponseNotification(actionData) {
     const { closeAllModals } = useModal();
 
     useEffect(() => {
-        const handleAfterSubmit = async () => {
-            closeAllModals();
-            try {
-                if (actionData?.success) {
-                    setTimeout(() => {
-                        showNotification({
-                            variant: "success",
-                            message: actionData.message,
-                        });
-                    }, NOTIFICATION_DELAY);
-                }
-                if (actionData && actionData.success === false) {
-                    console.error("An error occurred.", actionData.message);
-                    setTimeout(() => {
-                        showNotification({
-                            variant: "error",
-                            message: actionData.message,
-                        });
-                    }, NOTIFICATION_DELAY);
-                }
-            } catch (jsonError) {
-                console.error("Error parsing JSON:", jsonError);
-            }
-        };
+        const timeouts = [];
 
-        handleAfterSubmit();
+        closeAllModals();
+
+        if (actionData?.success) {
+            const timeoutId = setTimeout(() => {
+                showNotification({
+                    variant: "success",
+                    message: actionData.message,
+                });
+            }, NOTIFICATION_DELAY);
+            timeouts.push(timeoutId);
+        }
+
+        if (actionData && actionData.success === false) {
+            console.error("An error occurred.", actionData.message);
+            const timeoutId = setTimeout(() => {
+                showNotification({
+                    variant: "error",
+                    message: actionData.message,
+                });
+            }, NOTIFICATION_DELAY);
+            timeouts.push(timeoutId);
+        }
+
+        return () => {
+            timeouts.forEach(clearTimeout);
+        };
     }, [actionData]);
 
     return null;

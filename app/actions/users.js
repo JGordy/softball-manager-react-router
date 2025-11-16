@@ -93,7 +93,12 @@ export async function updateUser({ values, userId }) {
 
         const updatedUser = await updateDocument("users", userId, dataToUpdate);
 
-        return { response: updatedUser, status: 204 };
+        return {
+            response: updatedUser,
+            status: 204,
+            success: true,
+            message: "User updated successfully.",
+        };
     } catch (error) {
         console.error("Error updating user:", error);
         throw error;

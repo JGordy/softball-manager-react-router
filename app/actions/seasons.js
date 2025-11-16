@@ -114,6 +114,8 @@ export async function updateSeason({ values, seasonId }) {
         // Conditionally add parkId to the update payload if it was found/created
         if (parkId) dataToUpdate.parkId = parkId;
 
+        if (seasonName) dataToUpdate.seasonName = seasonName;
+
         const seasonDetails = await updateDocument(
             "seasons",
             seasonId,

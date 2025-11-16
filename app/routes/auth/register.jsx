@@ -51,8 +51,6 @@ export async function action({ request }) {
         // Check user's name for inappropriate language
         if (await hasBadWords(name)) {
             return {
-                success: false,
-                status: 400,
                 error: "Name contains inappropriate language. Please choose a different name.",
             };
         }

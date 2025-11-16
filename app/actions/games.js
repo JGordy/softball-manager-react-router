@@ -44,6 +44,7 @@ export async function createSingleGame({ values }) {
             ...gameData,
             isHomeGame: isHomeGame === "true",
             gameDate: updatedGameDate,
+            opponent,
             seasons: values.seasonId,
         };
 
