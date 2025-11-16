@@ -8,12 +8,7 @@ import { useDisclosure } from "@mantine/hooks";
 import BackButton from "@/components/BackButton";
 import DrawerContainer from "@/components/DrawerContainer";
 
-import {
-    createAttendanceForm,
-    deleteGame,
-    savePlayerChart,
-    updateGame,
-} from "@/actions/games";
+import { deleteGame, updateGame } from "@/actions/games";
 import { updatePlayerAttendance } from "@/actions/attendance";
 import { sendAwardVotes } from "@/actions/awards";
 
@@ -37,12 +32,6 @@ export async function action({ request, params }) {
 
     if (_action === "update-game") {
         return updateGame({ eventId, values });
-    }
-    if (_action === "create-attendance") {
-        return createAttendanceForm({ eventId, values, request });
-    }
-    if (_action === "save-chart") {
-        return savePlayerChart({ eventId, values });
     }
     if (_action === "delete-game") {
         return deleteGame({ eventId, values });
