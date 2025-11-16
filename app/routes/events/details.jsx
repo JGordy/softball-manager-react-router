@@ -38,9 +38,6 @@ export async function action({ request, params }) {
     if (_action === "update-game") {
         return updateGame({ eventId, values });
     }
-    if (_action === "create-attendance") {
-        return createAttendanceForm({ eventId, values, request });
-    }
     if (_action === "save-chart") {
         return savePlayerChart({ eventId, values });
     }
