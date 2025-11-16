@@ -1,4 +1,7 @@
+import { useEffect } from "react";
 import { notifications } from "@mantine/notifications";
+
+import useModal from "@/hooks/useModal";
 
 import classes from "@/styles/notifications.module.css";
 
@@ -50,4 +53,42 @@ export function showNotification({
         classNames: classes,
         ...rest,
     });
+}
+
+const NOTIFICATION_DELAY = 1500;
+export function useResponseNotification(actionData) {
+    const { closeAllModals } = useModal();
+
+    useEffect(() => {
+        const timeouts = [];
+
+        closeAllModals();
+
+        if (actionData?.success) {
+            const timeoutId = setTimeout(() => {
+                showNotification({
+                    variant: "success",
+                    message: actionData.message,
+                });
+            }, NOTIFICATION_DELAY);
+            timeouts.push(timeoutId);
+        }
+
+        if (actionData && actionData.success === false) {
+            console.error("An error occurred.", actionData.message);
+            const timeoutId = setTimeout(() => {
+                showNotification({
+                    variant: "error",
+                    message: actionData.message,
+                });
+            }, NOTIFICATION_DELAY);
+            timeouts.push(timeoutId);
+        }
+
+        return () => {
+            timeouts.forEach(clearTimeout);
+        };
+    }, [actionData]);
+
+    return null;
 }

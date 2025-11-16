@@ -1,23 +1,24 @@
 import { ID } from "node-appwrite";
 import { createDocument, updateDocument } from "@/utils/databases.js";
 
-import { removeEmptyValues } from "./utils/formUtils";
 import { hasBadWords } from "@/utils/badWordsApi";
+
+import { removeEmptyValues } from "./utils/formUtils";
 
 export async function createTeam({ values, userId }) {
     const teamData = removeEmptyValues({ values });
 
-    // Check team name for inappropriate language
-    if (teamData.name && (await hasBadWords(teamData.name))) {
-        return {
-            success: false,
-            status: 400,
-            message:
-                "Team name contains inappropriate language. Please choose a different name.",
-        };
-    }
-
     try {
+        // Check team name for inappropriate language
+        if (teamData.name && (await hasBadWords(teamData.name))) {
+            return {
+                success: false,
+                status: 400,
+                message:
+                    "Team name contains inappropriate language. Please choose a different name.",
+            };
+        }
+
         const teamId = ID.unique(); // Create this now so it's easier to use later
 
         const team = await createDocument("teams", teamId, teamData);

@@ -1,6 +1,8 @@
 import { ID } from "node-appwrite";
 import { createDocument, updateDocument } from "@/utils/databases.js";
 
+import { hasBadWords } from "@/utils/badWordsApi";
+
 import { findOrCreatePark } from "@/actions/parks";
 
 import { removeEmptyValues } from "./utils/formUtils";
@@ -16,6 +18,15 @@ export async function createSeason({ values, teamId }) {
     }
 
     try {
+        // Check season name for inappropriate language
+        if (rest.seasonName && (await hasBadWords(rest.seasonName))) {
+            return {
+                success: false,
+                status: 400,
+                message:
+                    "Season name contains inappropriate language. Please choose a different name.",
+            };
+        }
         const seasonId = ID.unique(); // Create this now so it's easier to use later
         let parkId;
 
@@ -24,8 +35,6 @@ export async function createSeason({ values, teamId }) {
                 values: parsedLocationDetails,
                 placeId: parsedLocationDetails.placeId,
             });
-
-            console.log("actions/seasons.js ", { parkResponse });
 
             if (parkResponse) {
                 parkId = parkResponse.$id;
@@ -41,7 +50,12 @@ export async function createSeason({ values, teamId }) {
             teams: [teamId],
         });
 
-        return { response: { season }, status: 201, success: true };
+        return {
+            response: { season },
+            status: 201,
+            success: true,
+            message: "Season created successfully!",
+        };
     } catch (error) {
         console.error("Error creating season:", error);
         throw error;
@@ -49,12 +63,20 @@ export async function createSeason({ values, teamId }) {
 }
 
 export async function updateSeason({ values, seasonId }) {
-    const { locationDetails, ...rest } = values;
-    console.log({ locationDetails });
+    const { locationDetails, seasonName, ...rest } = values;
 
     let parkId;
 
     try {
+        // Check season name for inappropriate language
+        if (seasonName && (await hasBadWords(seasonName))) {
+            return {
+                success: false,
+                status: 400,
+                message:
+                    "Season name contains inappropriate language. Please choose a different name.",
+            };
+        }
         if (locationDetails) {
             let parsedLocationDetails;
             try {
@@ -89,13 +111,20 @@ export async function updateSeason({ values, seasonId }) {
         // Conditionally add parkId to the update payload if it was found/created
         if (parkId) dataToUpdate.parkId = parkId;
 
+        if (seasonName) dataToUpdate.seasonName = seasonName;
+
         const seasonDetails = await updateDocument(
             "seasons",
             seasonId,
             dataToUpdate,
         );
 
-        return { response: { seasonDetails }, status: 204, success: true };
+        return {
+            response: { seasonDetails },
+            status: 204,
+            success: true,
+            message: "Season updated successfully!",
+        };
     } catch (error) {
         console.error("Error updating season:", error);
         // Re-throw the error to be handled by the caller (e.g., React Router action)

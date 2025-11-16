@@ -3,7 +3,6 @@ import { memo } from "react";
 import { Outlet, redirect, useNavigation } from "react-router";
 
 import { Container, LoadingOverlay } from "@mantine/core";
-import { Notifications } from "@mantine/notifications";
 
 import NavLinks from "@/components/NavLinks";
 
@@ -32,8 +31,6 @@ function Layout({ loaderData }) {
     return (
         <div>
             <main>
-                <Notifications />
-
                 <LoadingOverlay
                     data-overlay="layout"
                     visible={isNavigating}

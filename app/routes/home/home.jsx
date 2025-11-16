@@ -4,9 +4,10 @@ import { Button, Card, Container, Group, Text, Title } from "@mantine/core";
 import { Carousel } from "@mantine/carousel";
 
 import getGames from "@/utils/getGames";
-import { showNotification } from "@/utils/showNotification";
 
 import useModal from "@/hooks/useModal";
+
+import { useResponseNotification } from "@/utils/showNotification";
 
 import { Link, useOutletContext } from "react-router";
 
@@ -51,7 +52,7 @@ export async function action({ request }) {
 }
 
 export default function HomePage({ loaderData, actionData }) {
-    const { openModal, closeAllModals } = useModal();
+    const { openModal } = useModal();
 
     // Get user from parent layout via outlet context
     const { user } = useOutletContext();
@@ -98,37 +99,7 @@ export default function HomePage({ loaderData, actionData }) {
     const nextGame = futureGames?.slice(0, 1)?.[0];
     const mostRecentGame = pastGames?.slice(0, 1)?.[0];
 
-    useEffect(() => {
-        const handleAfterSubmit = async () => {
-            closeAllModals();
-            try {
-                if (actionData?.success) {
-                    setTimeout(() => {
-                        showNotification({
-                            variant: "success",
-                            message: "Team created successfully!",
-                        });
-                    }, NOTIFICATION_DELAY);
-                }
-                if (actionData && actionData.success === false) {
-                    console.error(
-                        "An error occurred during team creation.",
-                        actionData.message,
-                    );
-                    setTimeout(() => {
-                        showNotification({
-                            variant: "error",
-                            message: actionData.message,
-                        });
-                    }, NOTIFICATION_DELAY);
-                }
-            } catch (jsonError) {
-                console.error("Error parsing JSON:", jsonError);
-            }
-        };
-
-        handleAfterSubmit();
-    }, [actionData]);
+    useResponseNotification(actionData);
 
     const openAddTeamModal = () =>
         openModal({

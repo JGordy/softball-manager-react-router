@@ -6,6 +6,7 @@ import {
 } from "@/utils/databases.js";
 import { redirect } from "react-router";
 import { combineDateTime } from "@/utils/dateTime";
+import { hasBadWords } from "@/utils/badWordsApi";
 
 import { removeEmptyValues } from "./utils/formUtils";
 
@@ -21,9 +22,18 @@ function computeResult(score, opponentScore) {
 }
 
 export async function createSingleGame({ values }) {
-    const { gameDate, gameTime, isHomeGame, ...gameData } = values;
+    const { gameDate, gameTime, isHomeGame, opponent, ...gameData } = values;
 
     try {
+        // Check opponent name for inappropriate language
+        if (opponent && (await hasBadWords(opponent))) {
+            return {
+                success: false,
+                status: 400,
+                message:
+                    "Opponent name contains inappropriate language. Please choose a different name.",
+            };
+        }
         const updatedGameDate = combineDateTime(
             gameDate,
             gameTime,
@@ -34,6 +44,7 @@ export async function createSingleGame({ values }) {
             ...gameData,
             isHomeGame: isHomeGame === "true",
             gameDate: updatedGameDate,
+            opponent,
             seasons: values.seasonId,
         };
 
@@ -43,7 +54,12 @@ export async function createSingleGame({ values }) {
             updatedGameData,
         );
 
-        return { response: { game: createdGame }, status: 201, success: true };
+        return {
+            response: { game: createdGame },
+            status: 201,
+            success: true,
+            message: "Game created successfully!",
+        };
     } catch (error) {
         console.error("Error creating game:", error);
         throw error;
@@ -69,6 +85,7 @@ export async function createGames({ values }) {
             response: { games: createdGames },
             status: 201,
             success: true,
+            message: `${createdGames.length} games created successfully!`,
         };
     } catch (error) {
         console.error("Error creating games:", error);
@@ -77,6 +94,7 @@ export async function createGames({ values }) {
 }
 
 export async function updateGame({ values, eventId }) {
+    const { opponent } = values;
     // Removes undefined or empty string values from data to update
     let dataToUpdate = removeEmptyValues({ values });
 
@@ -131,13 +149,28 @@ export async function updateGame({ values, eventId }) {
     delete dataToUpdate.gameTime;
 
     try {
+        // Check opponent name for inappropriate language
+        if (opponent && (await hasBadWords(opponent))) {
+            return {
+                success: false,
+                status: 400,
+                message:
+                    "Opponent name contains inappropriate language. Please choose a different name.",
+            };
+        }
+
         const gameDetails = await updateDocument(
             "games",
             eventId,
             dataToUpdate,
         );
 
-        return { response: { gameDetails }, status: 204, success: true };
+        return {
+            response: { gameDetails },
+            status: 204,
+            success: true,
+            message: "Game updated successfully!",
+        };
     } catch (error) {
         console.error("Error updating game:", error);
         throw error;
@@ -147,14 +180,14 @@ export async function updateGame({ values, eventId }) {
 export async function deleteGame({ values, eventId }) {
     console.log("deleteGame: ", { eventId, values });
     // TODO: Add permission check here with values.userId
-    // try {
-    //     await deleteDocument('games', eventId);
-    //     // On success, redirect to the events list page.
-    //     return redirect('/events');
-    // } catch (error) {
-    //     console.error("Error deleting game:", error);
-    //     throw error;
-    // }
+    try {
+        await deleteDocument("games", eventId);
+        // On success, redirect to the events list page.
+        return redirect("/events");
+    } catch (error) {
+        console.error("Error deleting game:", error);
+        throw error;
+    }
 }
 
 export async function savePlayerChart({ values, eventId }) {

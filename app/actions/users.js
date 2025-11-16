@@ -3,10 +3,31 @@ import { createDocument, updateDocument } from "@/utils/databases.js";
 
 import { createSessionClient } from "@/utils/appwrite/server";
 
+import { hasBadWords } from "@/utils/badWordsApi";
+
 import { removeEmptyValues } from "./utils/formUtils";
 
 export async function createPlayer({ values, teamId, userId }) {
     try {
+        // Check first and last name for inappropriate language
+        if (values.firstName && (await hasBadWords(values.firstName))) {
+            return {
+                success: false,
+                status: 400,
+                message:
+                    "First name contains inappropriate language. Please use a different name.",
+            };
+        }
+
+        if (values.lastName && (await hasBadWords(values.lastName))) {
+            return {
+                success: false,
+                status: 400,
+                message:
+                    "Last name contains inappropriate language. Please use a different name.",
+            };
+        }
+
         const _userId = userId || ID.unique(); // Create this now so it's easier to use later
 
         const player = await createDocument("users", _userId, {
@@ -30,14 +51,6 @@ export async function createPlayer({ values, teamId, userId }) {
     }
 }
 
-export async function registerUser({ values }) {
-    // TODO: Register function
-}
-
-export async function loginUser({ values }) {
-    // TODO: Login function
-}
-
 export async function updateUser({ values, userId }) {
     // Removes undefined or empty string values from data to update
     let dataToUpdate = removeEmptyValues({ values });
@@ -53,9 +66,39 @@ export async function updateUser({ values, userId }) {
     }
 
     try {
+        // Check first and last name for inappropriate language
+        if (
+            dataToUpdate.firstName &&
+            (await hasBadWords(dataToUpdate.firstName))
+        ) {
+            return {
+                success: false,
+                status: 400,
+                message:
+                    "First name contains inappropriate language. Please use a different name.",
+            };
+        }
+
+        if (
+            dataToUpdate.lastName &&
+            (await hasBadWords(dataToUpdate.lastName))
+        ) {
+            return {
+                success: false,
+                status: 400,
+                message:
+                    "Last name contains inappropriate language. Please use a different name.",
+            };
+        }
+
         const updatedUser = await updateDocument("users", userId, dataToUpdate);
 
-        return { response: updatedUser, status: 204 };
+        return {
+            response: updatedUser,
+            status: 204,
+            success: true,
+            message: "User updated successfully.",
+        };
     } catch (error) {
         console.error("Error updating user:", error);
         throw error;

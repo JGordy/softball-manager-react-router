@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { redirect, Form, Link } from "react-router";
 import { ID } from "node-appwrite";
 
@@ -18,12 +19,15 @@ import branding from "@/constants/branding";
 
 import AutocompleteEmail from "@/components/AutocompleteEmail";
 
+import { hasBadWords } from "@/utils/badWordsApi";
+
 import {
     createAdminClient,
     serializeSessionCookie,
 } from "@/utils/appwrite/server";
 
 import { createDocument } from "@/utils/databases";
+import { showNotification } from "@/utils/showNotification";
 
 import { redirectIfAuthenticated } from "./utils/redirectIfAuthenticated";
 
@@ -44,6 +48,13 @@ export async function action({ request }) {
     }
 
     try {
+        // Check user's name for inappropriate language
+        if (await hasBadWords(name)) {
+            return {
+                error: "Name contains inappropriate language. Please choose a different name.",
+            };
+        }
+
         // Create the Appwrite account
         const { account } = createAdminClient();
         const user = await account.create(ID.unique(), email, password, name);
@@ -85,19 +96,25 @@ export async function action({ request }) {
 }
 
 export default function Register({ actionData }) {
+    useEffect(() => {
+        if (actionData?.error) {
+            showNotification({
+                variant: "error",
+                message: actionData.error,
+            });
+        }
+    }, [actionData]);
+
     return (
         <Container size="xs">
             <Center style={{ minHeight: "100vh" }}>
                 <Paper radius="md" p="xl" withBorder style={{ width: "100%" }}>
-                    <Title order={3} ta="center" mt="md" mb="xs">
+                    <Title order={1} ta="center" mt="md" mb="xs" c="green">
                         {branding.name}
                     </Title>
                     <Text ta="center" mb={50}>
                         {branding.tagline}
                     </Text>
-                    <Title order={4} mb="md" ta="center">
-                        Create an Account
-                    </Title>
                     <Form method="post">
                         <Stack>
                             <TextInput
@@ -129,11 +146,6 @@ export default function Register({ actionData }) {
                             Login here
                         </Text>
                     </Group>
-                    <Center>
-                        {actionData?.error && (
-                            <Text c="red.5">{actionData?.error}</Text>
-                        )}
-                    </Center>
                 </Paper>
             </Center>
         </Container>
