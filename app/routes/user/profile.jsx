@@ -24,9 +24,9 @@ import PlayerDetails from "@/components/PlayerDetails";
 
 import { updateUser } from "@/actions/users";
 
-import useModal from "@/hooks/useModal";
-
 import { getAwardsByUserId, getUserById } from "@/loaders/users";
+
+import { useResponseNotification } from "@/utils/showNotification";
 
 import AlertIncomplete from "./components/AlertIncomplete";
 import PlayerAwards from "./components/PlayerAwards";
@@ -94,8 +94,6 @@ export default function UserProfile({ loaderData }) {
     // console.log("UserProfile: ", { ...loaderData });
     const { awardsPromise, player, defaultTab } = loaderData;
 
-    const { closeAllModals } = useModal();
-
     const { user: loggedInUser } = useOutletContext(); // The currently logged-in user from layout
     const location = useLocation();
     const navigate = useNavigate();
@@ -115,24 +113,7 @@ export default function UserProfile({ loaderData }) {
         })
         .map(([key, data]) => data);
 
-    useEffect(() => {
-        const handleAfterSubmit = async () => {
-            try {
-                if (actionData?.status === 204) {
-                    closeAllModals();
-                } else if (actionData instanceof Error) {
-                    console.error(
-                        "An error occurred while updating user data",
-                        actionData.message,
-                    );
-                }
-            } catch (jsonError) {
-                console.error("Error parsing JSON:", jsonError);
-            }
-        };
-
-        handleAfterSubmit();
-    }, [actionData]);
+    useResponseNotification(actionData);
 
     const validTabs = ["player", "personal", "awards"];
     const [tab, setTab] = useState(defaultTab);

@@ -1,5 +1,3 @@
-import { useEffect } from "react";
-
 import { Button, Container, Divider, Group, Text, Title } from "@mantine/core";
 
 import {
@@ -26,6 +24,7 @@ import { getSeasonById } from "@/loaders/seasons";
 import { getParkById } from "@/loaders/parks";
 
 import useModal from "@/hooks/useModal";
+import { useResponseNotification } from "@/utils/showNotification";
 import { formatForViewerDate } from "@/utils/dateTime";
 
 export async function loader({ params }) {
@@ -67,21 +66,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
 
     console.log("/season/details.jsx: ", { loaderData });
 
-    useEffect(() => {
-        const handleAfterSubmit = async () => {
-            try {
-                if (actionData?.success) {
-                    closeAllModals();
-                } else if (actionData instanceof Error) {
-                    console.error("Error in actions:", actionData.message);
-                }
-            } catch (jsonError) {
-                console.error("Error parsing JSON:", jsonError);
-            }
-        };
-
-        handleAfterSubmit();
-    }, [actionData]);
+    useResponseNotification(actionData);
 
     const openGenerateGamesModal = () =>
         openModal({

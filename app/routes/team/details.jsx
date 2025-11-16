@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useOutletContext } from "react-router";
 
 import { Container, Group, Tabs, Text, Title } from "@mantine/core";
 
@@ -7,8 +7,6 @@ import {
     IconUsersGroup,
     IconBallBaseball,
 } from "@tabler/icons-react";
-
-import { useOutletContext } from "react-router";
 
 import images from "@/constants/images";
 
@@ -24,6 +22,8 @@ import { updateTeam } from "@/actions/teams";
 import { getTeamById } from "@/loaders/teams";
 
 import useModal from "@/hooks/useModal";
+
+import { useResponseNotification } from "@/utils/showNotification";
 
 import PlayerList from "./components/PlayerList";
 import SeasonList from "./components/SeasonList";
@@ -65,27 +65,13 @@ export default function TeamDetails({ actionData, loaderData }) {
     const { teamData: team, players, managerIds } = loaderData;
     // console.log('/team/details >', { players, team, managerIds });
 
-    const { openModal, closeAllModals } = useModal();
+    const { openModal } = useModal();
 
     const { user } = useOutletContext();
 
     const managerView = managerIds.includes(user?.$id);
 
-    useEffect(() => {
-        const handleAfterSubmit = async () => {
-            try {
-                if (actionData?.success) {
-                    closeAllModals();
-                } else if (actionData instanceof Error) {
-                    console.error("Error parsing action data:", actionData);
-                }
-            } catch (jsonError) {
-                console.error("Error parsing JSON data:", jsonError);
-            }
-        };
-
-        handleAfterSubmit();
-    }, [actionData]);
+    useResponseNotification(actionData);
 
     const { primaryColor, seasons } = team;
 
