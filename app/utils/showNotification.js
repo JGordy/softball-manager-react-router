@@ -1,4 +1,7 @@
+import { useEffect } from "react";
 import { notifications } from "@mantine/notifications";
+
+import useModal from "@/hooks/useModal";
 
 import classes from "@/styles/notifications.module.css";
 
@@ -50,4 +53,40 @@ export function showNotification({
         classNames: classes,
         ...rest,
     });
+}
+
+const NOTIFICATION_DELAY = 1500;
+export function useResponseNotification(actionData) {
+    const { closeAllModals } = useModal();
+
+    useEffect(() => {
+        const handleAfterSubmit = async () => {
+            closeAllModals();
+            try {
+                if (actionData?.success) {
+                    setTimeout(() => {
+                        showNotification({
+                            variant: "success",
+                            message: actionData.message,
+                        });
+                    }, NOTIFICATION_DELAY);
+                }
+                if (actionData && actionData.success === false) {
+                    console.error("An error occurred.", actionData.message);
+                    setTimeout(() => {
+                        showNotification({
+                            variant: "error",
+                            message: actionData.message,
+                        });
+                    }, NOTIFICATION_DELAY);
+                }
+            } catch (jsonError) {
+                console.error("Error parsing JSON:", jsonError);
+            }
+        };
+
+        handleAfterSubmit();
+    }, [actionData]);
+
+    return null;
 }
