@@ -8,7 +8,7 @@ import { findOrCreatePark } from "@/actions/parks";
 import { removeEmptyValues } from "./utils/formUtils";
 
 export async function createSeason({ values, teamId }) {
-    const { locationDetails, seasonName, ...rest } = values;
+    const { locationDetails, ...rest } = values;
 
     let parsedLocationDetails = null;
     try {
@@ -19,7 +19,7 @@ export async function createSeason({ values, teamId }) {
 
     try {
         // Check season name for inappropriate language
-        if (seasonName && (await hasBadWords(seasonName))) {
+        if (rest.seasonName && (await hasBadWords(rest.seasonName))) {
             return {
                 success: false,
                 status: 400,
@@ -36,8 +36,6 @@ export async function createSeason({ values, teamId }) {
                 placeId: parsedLocationDetails.placeId,
             });
 
-            console.log("actions/seasons.js ", { parkResponse });
-
             if (parkResponse) {
                 parkId = parkResponse.$id;
             }
@@ -47,7 +45,6 @@ export async function createSeason({ values, teamId }) {
             ...rest,
             gameDays: rest.gameDays.split(","), // Split into an array of gameDays
             parkId: parkId || null,
-            seasonName,
             signUpFee: Number(rest.signUpFee),
             teamId,
             teams: [teamId],

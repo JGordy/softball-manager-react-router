@@ -52,7 +52,7 @@ export async function action({ request }) {
 }
 
 export default function HomePage({ loaderData, actionData }) {
-    const { openModal, closeAllModals } = useModal();
+    const { openModal } = useModal();
 
     // Get user from parent layout via outlet context
     const { user } = useOutletContext();

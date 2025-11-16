@@ -169,7 +169,7 @@ export async function updateGame({ values, eventId }) {
             response: { gameDetails },
             status: 204,
             success: true,
-            message: "Game updated successfully",
+            message: "Game updated successfully!",
         };
     } catch (error) {
         console.error("Error updating game:", error);
