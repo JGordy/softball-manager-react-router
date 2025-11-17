@@ -29,7 +29,6 @@ export async function loader({ request }) {
 
 export default function EventsDetails({ loaderData }) {
     const teams = loaderData?.teams;
-    const { user } = useOutletContext();
 
     const computedColorScheme = useComputedColorScheme("light");
 
