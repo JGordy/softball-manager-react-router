@@ -60,9 +60,12 @@ export async function action({ request, params }) {
 }
 
 export default function SeasonDetails({ loaderData, actionData }) {
-    const { openModal, closeAllModals } = useModal();
+    const { openModal } = useModal();
 
     const { season } = loaderData;
+    const { teams } = season;
+    const [team] = teams;
+    const teamColor = team.primaryColor;
 
     console.log("/season/details.jsx: ", { loaderData });
 
@@ -74,6 +77,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
             children: (
                 <GenerateSeasonGames
                     actionRoute={`/season/${season.$id}`}
+                    buttonColor={teamColor}
                     season={season}
                 />
             ),
@@ -86,6 +90,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
                 <AddSingleGame
                     action="add-single-game"
                     actionRoute={`/season/${season.$id}`}
+                    buttonColor={teamColor}
                     seasonId={season.$id}
                 />
             ),
@@ -98,6 +103,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
                 <AddSeason
                     action="edit-season"
                     actionRoute={`/season/${season.$id}`}
+                    buttonColor={teamColor}
                     confirmText="Update Season"
                     teamId={season.teamId}
                 />
@@ -192,6 +198,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
                         onClick={openGenerateGamesModal}
                         fullWidth
                         autoContrast
+                        color={teamColor || "green"}
                     >
                         <IconCalendar size={18} />
                         Generate games
@@ -203,7 +210,13 @@ export default function SeasonDetails({ loaderData, actionData }) {
 
             <GamesList games={season.games} />
 
-            <Button mt="md" onClick={openAddGameModal} fullWidth autoContrast>
+            <Button
+                mt="md"
+                onClick={openAddGameModal}
+                fullWidth
+                autoContrast
+                color={teamColor || "green"}
+            >
                 <IconPlus size={18} />
                 Create Single Game
             </Button>

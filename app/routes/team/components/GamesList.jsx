@@ -61,6 +61,7 @@ export default function GamesListContainer({
                 <AddSingleGame
                     action="add-single-game"
                     actionRoute={`/team/${teamId}`}
+                    buttonColor={primaryColor}
                     teamId={teamId}
                     seasonId={seasonToDisplay ? seasonToDisplay.$id : null}
                     seasons={seasons}
