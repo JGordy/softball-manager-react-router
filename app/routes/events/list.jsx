@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useOutletContext } from "react-router";
 
 import {
     ActionIcon,
@@ -14,9 +13,9 @@ import {
 
 import { IconAdjustments, IconCalendarMonth } from "@tabler/icons-react";
 
-import LoaderDots from "@/components/LoaderDots";
 import UserHeader from "@/components/UserHeader";
 import GamesList from "@/components/GamesList";
+import TabsWrapper from "@/components/TabsWrapper";
 
 import getGames from "@/utils/getGames";
 
@@ -125,21 +124,19 @@ export default function EventsDetails({ loaderData }) {
             <Title order={5} mt="lg" align="center">
                 See detailed information for your upcoming and past games
             </Title>
-            <Tabs radius="md" defaultValue="upcoming" mt="xl">
-                <Tabs.List grow justify="center">
-                    <Tabs.Tab value="upcoming">
-                        <Group gap="xs" align="center" justify="center">
-                            <IconCalendarMonth size={16} />
-                            Upcoming
-                        </Group>
-                    </Tabs.Tab>
-                    <Tabs.Tab value="past">
-                        <Group gap="xs" align="center" justify="center">
-                            <IconCalendarMonth size={16} />
-                            Past
-                        </Group>
-                    </Tabs.Tab>
-                </Tabs.List>
+            <TabsWrapper defaultValue="upcoming">
+                <Tabs.Tab value="upcoming">
+                    <Group gap="xs" align="center" justify="center">
+                        <IconCalendarMonth size={16} />
+                        Upcoming
+                    </Group>
+                </Tabs.Tab>
+                <Tabs.Tab value="past">
+                    <Group gap="xs" align="center" justify="center">
+                        <IconCalendarMonth size={16} />
+                        Past
+                    </Group>
+                </Tabs.Tab>
 
                 <Tabs.Panel value="upcoming" pt="md">
                     <GamesList games={filterGames(futureGames)} height="60vh" />
@@ -148,7 +145,7 @@ export default function EventsDetails({ loaderData }) {
                 <Tabs.Panel value="past" pt="md">
                     <GamesList games={filterGames(pastGames)} height="60vh" />
                 </Tabs.Panel>
-            </Tabs>
+            </TabsWrapper>
         </Container>
     );
 }
