@@ -11,9 +11,8 @@ import {
 import images from "@/constants/images";
 
 import BackButton from "@/components/BackButton";
-import EditButton from "@/components/EditButton";
+import TabsWrapper from "@/components/TabsWrapper";
 
-import AddTeam from "@/forms/AddTeam";
 import { createSingleGame } from "@/actions/games";
 import { createPlayer } from "@/actions/users";
 import { createSeason } from "@/actions/seasons";
@@ -21,13 +20,12 @@ import { updateTeam } from "@/actions/teams";
 
 import { getTeamById } from "@/loaders/teams";
 
-import useModal from "@/hooks/useModal";
-
 import { useResponseNotification } from "@/utils/showNotification";
 
 import PlayerList from "./components/PlayerList";
 import SeasonList from "./components/SeasonList";
 import GamesList from "./components/GamesList";
+import TeamMenu from "./components/TeamMenu";
 
 export function links() {
     const { fieldSrc } = images;
@@ -65,8 +63,6 @@ export default function TeamDetails({ actionData, loaderData }) {
     const { teamData: team, players, managerIds } = loaderData;
     // console.log('/team/details >', { players, team, managerIds });
 
-    const { openModal } = useModal();
-
     const { user } = useOutletContext();
 
     const managerView = managerIds.includes(user?.$id);
@@ -79,23 +75,11 @@ export default function TeamDetails({ actionData, loaderData }) {
         size: "md",
     };
 
-    const openTeamDetailsForm = () =>
-        openModal({
-            title: "Update Team Details",
-            children: (
-                <AddTeam
-                    action="edit-team"
-                    actionRoute={`/team/${team.$id}`}
-                    buttonColor={primaryColor}
-                />
-            ),
-        });
-
     return (
         <Container pt="md">
             <Group justify="space-between" mb="xl">
                 <BackButton to="/" />
-                <EditButton setIsModalOpen={openTeamDetailsForm} />
+                <TeamMenu team={team} userId={user.$id} />
             </Group>
             <Title order={2} align="center" mt="sm" mb="lg">
                 {team.name}
@@ -104,32 +88,25 @@ export default function TeamDetails({ actionData, loaderData }) {
                 {team.leagueName}
             </Text>
 
-            <Tabs
-                color={primaryColor}
-                radius="md"
-                defaultValue="seasons"
-                mt="xl"
-            >
-                <Tabs.List grow justify="center">
-                    <Tabs.Tab value="roster">
-                        <Group gap="xs" align="center" justify="center">
-                            <IconUsersGroup size={16} />
-                            Roster
-                        </Group>
-                    </Tabs.Tab>
-                    <Tabs.Tab value="seasons">
-                        <Group gap="xs" align="center" justify="center">
-                            <IconCalendarMonth size={16} />
-                            Seasons
-                        </Group>
-                    </Tabs.Tab>
-                    <Tabs.Tab value="games" disabled={seasons.length === 0}>
-                        <Group gap="xs" align="center" justify="center">
-                            <IconBallBaseball size={16} />
-                            Games
-                        </Group>
-                    </Tabs.Tab>
-                </Tabs.List>
+            <TabsWrapper color={primaryColor} defaultValue="seasons">
+                <Tabs.Tab value="roster">
+                    <Group gap="xs" align="center" justify="center">
+                        <IconUsersGroup size={16} />
+                        Roster
+                    </Group>
+                </Tabs.Tab>
+                <Tabs.Tab value="seasons">
+                    <Group gap="xs" align="center" justify="center">
+                        <IconCalendarMonth size={16} />
+                        Seasons
+                    </Group>
+                </Tabs.Tab>
+                <Tabs.Tab value="games" disabled={seasons.length === 0}>
+                    <Group gap="xs" align="center" justify="center">
+                        <IconBallBaseball size={16} />
+                        Games
+                    </Group>
+                </Tabs.Tab>
 
                 <Tabs.Panel value="roster">
                     <PlayerList
@@ -159,7 +136,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                         primaryColor={primaryColor}
                     />
                 </Tabs.Panel>
-            </Tabs>
+            </TabsWrapper>
         </Container>
     );
 }

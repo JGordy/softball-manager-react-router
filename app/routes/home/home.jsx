@@ -25,8 +25,6 @@ import { getUserTeams } from "@/loaders/teams";
 
 import HomeMenu from "./components/HomeMenu";
 
-const NOTIFICATION_DELAY = 1500;
-
 export function meta() {
     return [
         { title: branding.name },

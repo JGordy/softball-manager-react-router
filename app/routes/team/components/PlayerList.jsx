@@ -73,20 +73,7 @@ export default function PlayerList({
                 </Text>
             )}
 
-            {managerView && (
-                <Button
-                    mt="md"
-                    color={primaryColor}
-                    onClick={openAddPlayerModal}
-                    autoContrast
-                    fullWidth
-                >
-                    <IconPlus size={20} />
-                    Add Player
-                </Button>
-            )}
-
-            <ScrollArea h="50vh">
+            <ScrollArea h="50vh" mt="md">
                 {players.length > 0 &&
                     players.map((player) => {
                         return (

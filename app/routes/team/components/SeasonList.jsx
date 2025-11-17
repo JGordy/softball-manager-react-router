@@ -147,7 +147,6 @@ export default function SeasonList({
 
     return (
         <>
-            {managerView && addSeasonCta}
             <ScrollArea h="55vh">
                 {inProgressSeasons.length > 0 && (
                     <>
