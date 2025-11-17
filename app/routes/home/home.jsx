@@ -99,6 +99,8 @@ export default function HomePage({ loaderData, actionData }) {
     const nextGame = futureGames?.slice(0, 1)?.[0];
     const mostRecentGame = pastGames?.slice(0, 1)?.[0];
 
+    console.log({ nextGame, mostRecentGame });
+
     useResponseNotification(actionData);
 
     const openAddTeamModal = () =>
@@ -252,6 +254,12 @@ export default function HomePage({ loaderData, actionData }) {
                     </Title>
                     <GameCard {...mostRecentGame} />
                 </>
+            )}
+
+            {!nextGame && !mostRecentGame && (
+                <Card radius="md" mt="xl" withBorder>
+                    <Text ta="center">No scheduled events for this team.</Text>
+                </Card>
             )}
         </Container>
     );
