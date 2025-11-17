@@ -99,8 +99,6 @@ export default function HomePage({ loaderData, actionData }) {
     const nextGame = futureGames?.slice(0, 1)?.[0];
     const mostRecentGame = pastGames?.slice(0, 1)?.[0];
 
-    console.log({ nextGame, mostRecentGame });
-
     useResponseNotification(actionData);
 
     const openAddTeamModal = () =>
