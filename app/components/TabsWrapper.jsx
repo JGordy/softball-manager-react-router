@@ -48,12 +48,13 @@ export default function TabsWrapper({
             !childType.includes("Panel") &&
             child.props?.value
         ) {
+            const isActive = child.props.value === value;
             // Clone the Tab and add necessary props
             tabs.push(
                 cloneElement(child, {
                     key: child.props.value,
                     ref: setControlRef(child.props.value),
-                    className: classes.tab,
+                    className: `${classes.tab} ${isActive ? classes.tabActive : ""}`,
                     style: {
                         ...child.props.style,
                         "--hover-color": color,
@@ -73,7 +74,7 @@ export default function TabsWrapper({
     }
 
     return (
-        <Tabs variant="none" value={value} onChange={setValue} mt="md">
+        <Tabs variant="none" value={value} onChange={setValue} mt="xl">
             <Tabs.List ref={setRootRef} className={classes.list}>
                 {tabs}
                 <FloatingIndicator
