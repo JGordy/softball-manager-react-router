@@ -1,5 +1,6 @@
 import {
     isRouteErrorResponse,
+    Link,
     Links,
     Meta,
     Outlet,
@@ -148,7 +149,7 @@ export function ErrorBoundary({ error }) {
     }
 
     return (
-        <Layout context={{ darkMode: false }}>
+        <Layout>
             <Container size="sm" py="xl">
                 <Stack gap="md">
                     <Title order={1}>{message}</Title>
@@ -158,7 +159,7 @@ export function ErrorBoundary({ error }) {
                             {stack}
                         </Code>
                     )}
-                    <Button component="a" href="/" variant="filled" mt="md">
+                    <Button component={Link} to="/" variant="filled" mt="md">
                         Go to Home
                     </Button>
                 </Stack>
