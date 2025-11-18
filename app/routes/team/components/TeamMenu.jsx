@@ -24,7 +24,7 @@ export default function TeamMenu({ userId, team }) {
 
     const openAddTeamModal = () =>
         openModal({
-            title: "Add a New Team",
+            title: "Edit Team Details",
             children: <AddTeam actionRoute={"/"} userId={userId} />,
         });
 

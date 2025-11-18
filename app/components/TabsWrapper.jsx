@@ -49,8 +49,7 @@ export default function TabsWrapper({
     const setValue = isControlled ? controlledOnChange : setUncontrolledValue;
 
     const setControlRef = (val) => (node) => {
-        controlsRefs[val] = node;
-        setControlsRefs(controlsRefs);
+        setControlsRefs((prev) => ({ ...prev, [val]: node }));
     };
 
     // Separate tabs from panels
@@ -75,6 +74,7 @@ export default function TabsWrapper({
                     key: child.props.value,
                     ref: setControlRef(child.props.value),
                     className: `${classes.tab} ${isActive ? classes.tabActive : ""}`,
+                    disabled: child.props.disabled,
                     style: {
                         ...child.props.style,
                         "--hover-color": color,
@@ -86,12 +86,6 @@ export default function TabsWrapper({
             panels.push(child);
         }
     });
-
-    // Auto-set first tab as default if no defaultValue provided
-    if (!value && tabs.length > 0) {
-        const firstValue = tabs[0].props.value;
-        setValue(firstValue);
-    }
 
     return (
         <Tabs variant="none" value={value} onChange={setValue} mt="xl">
