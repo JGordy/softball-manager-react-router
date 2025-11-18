@@ -1,7 +1,7 @@
 import { ID } from "node-appwrite";
 import { createDocument, updateDocument } from "@/utils/databases.js";
 
-import { createSessionClient } from "@/utils/appwrite/server";
+import { getAppwriteClient } from "@/utils/appwrite/context";
 
 import { hasBadWords } from "@/utils/badWordsApi";
 
@@ -106,7 +106,7 @@ export async function updateUser({ values, userId }) {
 }
 
 // Server action - uses server-side session for authentication
-export async function updateAccountInfo({ values, request }) {
+export async function updateAccountInfo({ values, request, context }) {
     const { user: _user, ...newContactInfo } = values;
     const user = JSON.parse(_user);
     const { email, password, phoneNumber } = newContactInfo;
@@ -116,8 +116,8 @@ export async function updateAccountInfo({ values, request }) {
     let phoneUpdated = false;
 
     try {
-        // Get authenticated account from server session
-        const { account } = await createSessionClient(request);
+        // Get authenticated account from context
+        const { account } = await getAppwriteClient({ request, context });
 
         if (email && email !== user.email) {
             await account.updateEmail(email, password);
@@ -172,12 +172,12 @@ export async function updateAccountInfo({ values, request }) {
     }
 }
 
-export async function updatePassword({ values, request }) {
+export async function updatePassword({ values, request, context }) {
     const { currentPassword, newPassword } = values;
 
     try {
-        // Get authenticated account from server session
-        const { account } = await createSessionClient(request);
+        // Get authenticated account from context
+        const { account } = await getAppwriteClient({ request, context });
 
         await account.updatePassword(newPassword, currentPassword);
         return {
@@ -197,15 +197,15 @@ export async function updatePassword({ values, request }) {
     }
 }
 
-export async function resetPassword({ values, request }) {
+export async function resetPassword({ values, request, context }) {
     const { email } = values;
     const url = new URL(request.url);
     // The URL the user will be redirected to from the email.
     const resetUrl = `${url.origin}/recovery`;
 
     try {
-        // Get authenticated account from server session
-        const { account } = await createSessionClient(request);
+        // Get authenticated account from context
+        const { account } = await getAppwriteClient({ request, context });
 
         await account.createRecovery(email, resetUrl);
         return {
