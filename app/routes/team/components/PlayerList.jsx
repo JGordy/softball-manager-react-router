@@ -2,7 +2,6 @@ import { useState } from "react";
 
 import {
     Avatar,
-    Button,
     Card,
     Flex,
     Group,
@@ -18,47 +17,23 @@ import {
     IconBallBaseball,
     IconChevronRight,
     IconClipboardCheck,
-    IconPlus,
     IconUserSquareRounded,
 } from "@tabler/icons-react";
 
 import DrawerContainer from "@/components/DrawerContainer";
 import PlayerDetails from "@/components/PlayerDetails";
 import PersonalDetails from "@/components/PersonalDetails";
-
-import AddPlayer from "@/forms/AddPlayer";
-
-import useModal from "@/hooks/useModal";
+import TabsWrapper from "@/components/TabsWrapper";
 
 import positions from "@/constants/positions";
 
-export default function PlayerList({
-    players,
-    managerIds,
-    managerView,
-    primaryColor,
-    teamId,
-}) {
+export default function PlayerList({ players, managerIds, managerView }) {
     const [selectedPlayerId, setSelectedPlayerId] = useState(null);
     const selectedPlayer = players.find(
         (player) => player.$id === selectedPlayerId,
     );
 
     const [opened, { open: openPlayerDetails, close }] = useDisclosure(false);
-
-    const { openModal } = useModal();
-
-    const openAddPlayerModal = () =>
-        openModal({
-            title: "Add a New Player",
-            children: (
-                <AddPlayer
-                    actionRoute={`/team/${teamId}`}
-                    buttonColor={primaryColor}
-                    inputsToDisplay={["name", "gender", "contact", "positions"]}
-                />
-            ),
-        });
 
     const openPlayerDetailsDrawer = (playerId) => {
         setSelectedPlayerId(playerId);
@@ -73,20 +48,7 @@ export default function PlayerList({
                 </Text>
             )}
 
-            {managerView && (
-                <Button
-                    mt="md"
-                    color={primaryColor}
-                    onClick={openAddPlayerModal}
-                    autoContrast
-                    fullWidth
-                >
-                    <IconPlus size={20} />
-                    Add Player
-                </Button>
-            )}
-
-            <ScrollArea h="50vh">
+            <ScrollArea h="50vh" mt="md">
                 {players.length > 0 &&
                     players.map((player) => {
                         return (
@@ -151,21 +113,19 @@ export default function PlayerList({
                     size="xl"
                     title={`${selectedPlayer.firstName}'s Details`}
                 >
-                    <Tabs radius="md" defaultValue="player" mt="md">
-                        <Tabs.List justify="center" grow>
-                            <Tabs.Tab value="player">
-                                <Group gap="xs" align="center" justify="center">
-                                    <IconBallBaseball size={16} />
-                                    Player
-                                </Group>
-                            </Tabs.Tab>
-                            <Tabs.Tab value="personal">
-                                <Group gap="xs" align="center" justify="center">
-                                    <IconUserSquareRounded size={16} />
-                                    Personal
-                                </Group>
-                            </Tabs.Tab>
-                        </Tabs.List>
+                    <TabsWrapper defaultValue="player">
+                        <Tabs.Tab value="player">
+                            <Group gap="xs" align="center" justify="center">
+                                <IconBallBaseball size={16} />
+                                Player
+                            </Group>
+                        </Tabs.Tab>
+                        <Tabs.Tab value="personal">
+                            <Group gap="xs" align="center" justify="center">
+                                <IconUserSquareRounded size={16} />
+                                Personal
+                            </Group>
+                        </Tabs.Tab>
 
                         <Tabs.Panel value="player">
                             <PlayerDetails player={selectedPlayer} />
@@ -177,7 +137,7 @@ export default function PlayerList({
                                 managerView={managerView}
                             />
                         </Tabs.Panel>
-                    </Tabs>
+                    </TabsWrapper>
                 </DrawerContainer>
             )}
         </>

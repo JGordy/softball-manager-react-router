@@ -1,5 +1,6 @@
 import {
     isRouteErrorResponse,
+    Link,
     Links,
     Meta,
     Outlet,
@@ -13,6 +14,12 @@ import {
     ColorSchemeScript,
     MantineProvider,
     mantineHtmlProps,
+    Container,
+    Title,
+    Text,
+    Button,
+    Stack,
+    Code,
 } from "@mantine/core";
 import { ModalsProvider } from "@mantine/modals";
 import { Notifications } from "@mantine/notifications";
@@ -142,14 +149,21 @@ export function ErrorBoundary({ error }) {
     }
 
     return (
-        <main className="pt-16 p-4 container mx-auto">
-            <h1>{message}</h1>
-            <p>{details}</p>
-            {stack && (
-                <pre className="w-full p-4 overflow-x-auto">
-                    <code>{stack}</code>
-                </pre>
-            )}
-        </main>
+        <Layout>
+            <Container size="sm" py="xl">
+                <Stack gap="md">
+                    <Title order={1}>{message}</Title>
+                    <Text size="lg">{details}</Text>
+                    {stack && (
+                        <Code block style={{ whiteSpace: "pre-wrap" }}>
+                            {stack}
+                        </Code>
+                    )}
+                    <Button component={Link} to="/" variant="filled" mt="md">
+                        Go to Home
+                    </Button>
+                </Stack>
+            </Container>
+        </Layout>
     );
 }

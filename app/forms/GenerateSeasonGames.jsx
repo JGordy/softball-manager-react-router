@@ -28,6 +28,7 @@ import classes from "@/styles/inputs.module.css";
 export default function GenerateSeasonGames({
     action = "add-games",
     actionRoute,
+    buttonColor,
     season,
 }) {
     const ref = useRef(null);
@@ -189,6 +190,7 @@ export default function GenerateSeasonGames({
         <FormWrapper
             action={action}
             actionRoute={actionRoute}
+            buttonColor={buttonColor}
             pos="relative"
             hideButtons={!generatedGames.length}
             confirmText="Save Games"
@@ -249,7 +251,11 @@ export default function GenerateSeasonGames({
             {/* Hidden input to capture generated games */}
             {generatedGames.length === 0 && (
                 <Group position="right" mt="lg">
-                    <Button onClick={handleGenerateGamesClick} autoContrast>
+                    <Button
+                        color={buttonColor || "green"}
+                        onClick={handleGenerateGamesClick}
+                        autoContrast
+                    >
                         Yes, generate games
                     </Button>
                     <Button

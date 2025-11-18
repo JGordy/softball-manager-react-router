@@ -2,8 +2,6 @@ import { Query } from "node-appwrite";
 import { listDocuments, readDocument } from "@/utils/databases";
 import { DateTime } from "luxon";
 
-// const baseWeatherUrl = 'https://api.openweathermap.org/data/3.0/onecall';
-
 const getAttendance = async ({ eventId, accepted = false }) => {
     const queries = [Query.equal("gameId", eventId)];
 
@@ -123,24 +121,44 @@ const getWeatherData = (parkId, game) => {
 };
 
 async function loadGameBase(eventId) {
-    // Read basic game document and extract season/team ids
-    const {
-        seasons: season,
-        playerChart,
-        ...game
-    } = await readDocument("games", eventId);
-    const { teams = [], parkId } = season;
+    try {
+        // Read basic game document and extract season/team ids
+        const {
+            seasons: season,
+            playerChart,
+            ...game
+        } = await readDocument("games", eventId);
+        const { teams = [], parkId } = season;
 
-    // Load memberships for the primary team (first team in season)
-    const { documents: userIds } = await listDocuments("memberships", [
-        Query.equal("teamId", [teams[0].$id]),
-    ]);
+        // Load memberships for the primary team (first team in season)
+        const { documents: userIds } = await listDocuments("memberships", [
+            Query.equal("teamId", [teams[0].$id]),
+        ]);
 
-    const managerIds = userIds
-        .filter(({ role }) => role === "manager")
-        .map(({ userId }) => userId);
+        const managerIds = userIds
+            .filter(({ role }) => role === "manager")
+            .map(({ userId }) => userId);
 
-    return { game, season, teams, parkId, userIds, managerIds, playerChart };
+        return {
+            game,
+            season,
+            teams,
+            parkId,
+            userIds,
+            managerIds,
+            playerChart,
+        };
+    } catch (error) {
+        // Game not found - return null to indicate deletion
+        if (
+            error.code === 404 ||
+            error.message?.includes("could not be found")
+        ) {
+            return null;
+        }
+        // Re-throw other errors
+        throw error;
+    }
 }
 
 function makeDeferredData({ eventId, userIds, parkId }) {
@@ -190,13 +208,29 @@ async function resolvePlayers(userIds) {
 
 export async function getEventById({ eventId }) {
     // Use shared loader helper to get base data for the event
+    const baseData = await loadGameBase(eventId);
+
+    // Game was deleted
+    if (!baseData) {
+        return {
+            gameDeleted: true,
+            game: null,
+            deferredData: null,
+            managerIds: [],
+            season: null,
+            teams: [],
+            weatherPromise: Promise.resolve(null),
+        };
+    }
+
     const { game, season, teams, parkId, userIds, managerIds, playerChart } =
-        await loadGameBase(eventId);
+        baseData;
 
     // Build deferred data object (promises for lazy loading in the UI)
     const deferredData = makeDeferredData({ eventId, userIds, parkId });
 
     return {
+        gameDeleted: false,
         deferredData,
         game: {
             ...game,

@@ -21,6 +21,7 @@ import {
 import UserHeader from "@/components/UserHeader";
 import PersonalDetails from "@/components/PersonalDetails";
 import PlayerDetails from "@/components/PlayerDetails";
+import TabsWrapper from "@/components/TabsWrapper";
 
 import { updateUser } from "@/actions/users";
 
@@ -148,32 +149,25 @@ export default function UserProfile({ loaderData }) {
                     <AlertIncomplete incompleteData={incompleteData} />
                 )}
 
-                <Tabs
-                    radius="md"
-                    value={tab}
-                    onChange={handleTabChange}
-                    mt="md"
-                >
-                    <Tabs.List grow justify="center">
-                        <Tabs.Tab value="player">
-                            <Group gap="xs" align="center" justify="center">
-                                <IconBallBaseball size={16} />
-                                Player
-                            </Group>
-                        </Tabs.Tab>
-                        <Tabs.Tab value="personal">
-                            <Group gap="xs" align="center" justify="center">
-                                <IconUserSquareRounded size={16} />
-                                Personal
-                            </Group>
-                        </Tabs.Tab>
-                        <Tabs.Tab value="awards">
-                            <Group gap="xs" align="center" justify="center">
-                                <IconAward size={16} />
-                                Awards
-                            </Group>
-                        </Tabs.Tab>
-                    </Tabs.List>
+                <TabsWrapper value={tab} onChange={handleTabChange}>
+                    <Tabs.Tab value="player">
+                        <Group gap="xs" align="center" justify="center">
+                            <IconBallBaseball size={16} />
+                            Player
+                        </Group>
+                    </Tabs.Tab>
+                    <Tabs.Tab value="personal">
+                        <Group gap="xs" align="center" justify="center">
+                            <IconUserSquareRounded size={16} />
+                            Personal
+                        </Group>
+                    </Tabs.Tab>
+                    <Tabs.Tab value="awards">
+                        <Group gap="xs" align="center" justify="center">
+                            <IconAward size={16} />
+                            Awards
+                        </Group>
+                    </Tabs.Tab>
 
                     <Tabs.Panel value="player">
                         <PlayerDetails user={loggedInUser} player={player} />
@@ -190,7 +184,7 @@ export default function UserProfile({ loaderData }) {
                     <Tabs.Panel value="awards">
                         <PlayerAwards awardsPromise={awardsPromise} />
                     </Tabs.Panel>
-                </Tabs>
+                </TabsWrapper>
             </Container>
         )
     );

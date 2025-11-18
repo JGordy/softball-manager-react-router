@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 
 import { Form, useNavigation, useOutletContext } from "react-router";
 
-import { Box, Button, Group, Text } from "@mantine/core";
+import { Box, Button, Container, Group, Text, Title } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
 import BackButton from "@/components/BackButton";
@@ -53,6 +53,23 @@ export async function loader({ params, request }) {
 export default function EventDetails({ loaderData, actionData }) {
     // console.log("/events/:eventId > ", loaderData);
 
+    // Check if game was deleted
+    if (loaderData?.gameDeleted) {
+        return (
+            <Container size="sm" py="xl">
+                <BackButton mb="xl" />
+                <Box ta="center" py="xl">
+                    <Title order={2} mb="md">
+                        Game Not Found
+                    </Title>
+                    <Text size="lg" c="dimmed">
+                        This game has been removed and is no longer available.
+                    </Text>
+                </Box>
+            </Container>
+        );
+    }
+
     const [deleteDrawerOpened, deleteDrawerHandlers] = useDisclosure(false);
 
     const navigation = useNavigation();
@@ -102,7 +119,7 @@ export default function EventDetails({ loaderData, actionData }) {
         <>
             <Box className="event-details-hero" pt="xl" pb="100px">
                 <Group justify="space-between" mx="md">
-                    <BackButton text="Back to Events" />
+                    <BackButton />
                     {managerView && (
                         <GameMenu
                             game={game}

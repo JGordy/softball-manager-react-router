@@ -25,8 +25,6 @@ import { getUserTeams } from "@/loaders/teams";
 
 import HomeMenu from "./components/HomeMenu";
 
-const NOTIFICATION_DELAY = 1500;
-
 export function meta() {
     return [
         { title: branding.name },
@@ -252,6 +250,12 @@ export default function HomePage({ loaderData, actionData }) {
                     </Title>
                     <GameCard {...mostRecentGame} />
                 </>
+            )}
+
+            {!nextGame && !mostRecentGame && (
+                <Card radius="md" mt="xl" withBorder>
+                    <Text ta="center">No scheduled events for this team.</Text>
+                </Card>
             )}
         </Container>
     );
