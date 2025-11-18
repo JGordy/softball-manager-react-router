@@ -1,4 +1,4 @@
-import { useState, Children, cloneElement } from "react";
+import { useState, useCallback, Children, cloneElement } from "react";
 import { FloatingIndicator, Tabs } from "@mantine/core";
 import classes from "@/styles/tabsWrapper.module.css";
 
@@ -48,9 +48,20 @@ export default function TabsWrapper({
     const value = isControlled ? controlledValue : uncontrolledValue;
     const setValue = isControlled ? controlledOnChange : setUncontrolledValue;
 
-    const setControlRef = (val) => (node) => {
-        setControlsRefs((prev) => ({ ...prev, [val]: node }));
-    };
+    const setControlRef = useCallback(
+        (val) => (node) => {
+            if (node) {
+                setControlsRefs((prev) => {
+                    // Only update if the ref actually changed
+                    if (prev[val] !== node) {
+                        return { ...prev, [val]: node };
+                    }
+                    return prev;
+                });
+            }
+        },
+        [],
+    );
 
     // Separate tabs from panels
     const tabs = [];
