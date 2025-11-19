@@ -1,4 +1,4 @@
-import { Center, ScrollArea, Text } from "@mantine/core";
+import { Card, Center, ScrollArea, Text } from "@mantine/core";
 
 import GameCard from "@/components/GameCard";
 import { DateTime } from "luxon";
@@ -10,9 +10,11 @@ export default function GamesList({
 }) {
     if (!games.length) {
         return (
-            <Center mt="md">
-                <Text>No games currently listed.</Text>
-            </Center>
+            <Card withBorder padding="lg" radius="md" mt="md">
+                <Center>
+                    <Text>No games currently listed.</Text>
+                </Center>
+            </Card>
         );
     }
 

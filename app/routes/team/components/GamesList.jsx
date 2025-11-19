@@ -40,7 +40,7 @@ export default function GamesListContainer({ seasons }) {
 
     return (
         <div style={{ marginTop: "var(--mantine-spacing-xl)" }}>
-            <GamesList games={sortedGames} />
+            <GamesList games={sortedGames} height="55vh" />
         </div>
     );
 }
