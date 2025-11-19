@@ -1,14 +1,17 @@
-import { Card, Container, Divider, Group, Text, Title } from "@mantine/core";
+import { Container, Group, Tabs, Text, Title } from "@mantine/core";
 
 import {
+    IconBallBaseball,
     IconCalendarRepeat,
     IconCurrencyDollar,
     IconFriends,
+    IconInfoCircle,
     IconMapPin,
 } from "@tabler/icons-react";
 
 import BackButton from "@/components/BackButton";
 import GamesList from "@/components/GamesList";
+import TabsWrapper from "@/components/TabsWrapper";
 
 import { createGames, createSingleGame } from "@/actions/games";
 import { updateSeason } from "@/actions/seasons";
@@ -16,7 +19,6 @@ import { updateSeason } from "@/actions/seasons";
 import { getSeasonById } from "@/loaders/seasons";
 import { getParkById } from "@/loaders/parks";
 
-import useModal from "@/hooks/useModal";
 import { useResponseNotification } from "@/utils/showNotification";
 import { formatForViewerDate } from "@/utils/dateTime";
 
@@ -56,6 +58,9 @@ export async function action({ request, params }) {
 
 export default function SeasonDetails({ loaderData, actionData }) {
     const { season } = loaderData;
+    const { teams } = season;
+    const [team] = teams;
+    const { primaryColor } = team;
 
     console.log("/season/details.jsx: ", { loaderData });
 
@@ -101,45 +106,64 @@ export default function SeasonDetails({ loaderData, actionData }) {
                 {formatForViewerDate(season.endDate)}
             </Text>
 
-            <Group justify="space-between" mb="lg">
-                <Group gap="5px">
-                    <IconMapPin size={18} />
-                    <Text {...textProps}>
-                        {season.location || "Not specified"}
-                    </Text>
-                </Group>
+            <TabsWrapper defaultValue="details" color={primaryColor}>
+                <Tabs.Tab value="details">
+                    <Group gap="xs" align="center" justify="center">
+                        <IconInfoCircle size={16} />
+                        Details
+                    </Group>
+                </Tabs.Tab>
+                <Tabs.Tab value="games">
+                    <Group gap="xs" align="center" justify="center">
+                        <IconBallBaseball size={16} />
+                        Games
+                    </Group>
+                </Tabs.Tab>
 
-                <Group gap="5px">
-                    <IconCalendarRepeat size={18} />
-                    <Text {...textProps}>{`${season.gameDays}s`}</Text>
-                </Group>
+                <Tabs.Panel value="details" pt="md">
+                    <Group justify="space-between" pt="md">
+                        <Group gap="5px">
+                            <IconMapPin size={18} />
+                            <Text {...textProps}>
+                                {season.location || "Not specified"}
+                            </Text>
+                        </Group>
 
-                <Group gap="5px">
-                    <IconFriends size={18} />
-                    <Text {...textProps}>{season.leagueType}</Text>
-                </Group>
+                        <Group gap="5px">
+                            <IconCalendarRepeat size={18} />
+                            <Text {...textProps}>{`${season.gameDays}s`}</Text>
+                        </Group>
 
-                <Group gap="5px">
-                    <IconCurrencyDollar size={18} />
-                    <Text {...textProps}>
-                        {`${season.signUpFee || "TBD"}/player`}
-                    </Text>
-                </Group>
-            </Group>
+                        <Group gap="5px">
+                            <IconFriends size={18} />
+                            <Text {...textProps}>{season.leagueType}</Text>
+                        </Group>
 
-            <Title order={4} mb="sm">
-                <Group justify="space-between">
-                    Games ({season.games.length || "0"})
-                    {record && (
-                        <div>
-                            Record {record?.wins}-{record?.losses}-
-                            {record?.ties}
-                        </div>
-                    )}
-                </Group>
-            </Title>
+                        <Group gap="5px">
+                            <IconCurrencyDollar size={18} />
+                            <Text {...textProps}>
+                                {`${season.signUpFee || "TBD"}/player`}
+                            </Text>
+                        </Group>
+                    </Group>
+                </Tabs.Panel>
 
-            <GamesList games={season.games} />
+                <Tabs.Panel value="games" pt="md">
+                    <Title order={4} mb="sm">
+                        <Group justify="space-between">
+                            Games ({season.games.length || "0"})
+                            {record && (
+                                <div>
+                                    Record {record?.wins}-{record?.losses}-
+                                    {record?.ties}
+                                </div>
+                            )}
+                        </Group>
+                    </Title>
+
+                    <GamesList games={season.games} />
+                </Tabs.Panel>
+            </TabsWrapper>
         </Container>
     );
 }
