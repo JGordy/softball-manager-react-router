@@ -4,8 +4,9 @@
     width: fit-content;
     margin: 0 auto;
     gap: 0.5rem;
+    background: light-dark(#f2f4f6, #1a242f);
     border: 1px solid
-        light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-6));
+        light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-6));
     border-radius: var(--mantine-radius-xl);
     padding: 8px;
 }
