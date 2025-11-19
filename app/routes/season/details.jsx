@@ -1,21 +1,14 @@
-import { Button, Container, Divider, Group, Text, Title } from "@mantine/core";
+import { Card, Container, Divider, Group, Text, Title } from "@mantine/core";
 
 import {
-    IconCalendar,
     IconCalendarRepeat,
     IconCurrencyDollar,
     IconFriends,
     IconMapPin,
-    IconPlus,
 } from "@tabler/icons-react";
 
 import BackButton from "@/components/BackButton";
-import EditButton from "@/components/EditButton";
 import GamesList from "@/components/GamesList";
-
-import AddSingleGame from "@/forms/AddSingleGame";
-import AddSeason from "@/forms/AddSeason";
-import GenerateSeasonGames from "@/forms/GenerateSeasonGames";
 
 import { createGames, createSingleGame } from "@/actions/games";
 import { updateSeason } from "@/actions/seasons";
@@ -26,6 +19,8 @@ import { getParkById } from "@/loaders/parks";
 import useModal from "@/hooks/useModal";
 import { useResponseNotification } from "@/utils/showNotification";
 import { formatForViewerDate } from "@/utils/dateTime";
+
+import SeasonMenu from "./components/SeasonMenu";
 
 export async function loader({ params }) {
     const { seasonId } = params;
@@ -60,55 +55,11 @@ export async function action({ request, params }) {
 }
 
 export default function SeasonDetails({ loaderData, actionData }) {
-    const { openModal } = useModal();
-
     const { season } = loaderData;
-    const { teams } = season;
-    const [team] = teams;
-    const teamColor = team.primaryColor;
 
     console.log("/season/details.jsx: ", { loaderData });
 
     useResponseNotification(actionData);
-
-    const openGenerateGamesModal = () =>
-        openModal({
-            title: "Generate Game Placeholders",
-            children: (
-                <GenerateSeasonGames
-                    actionRoute={`/season/${season.$id}`}
-                    buttonColor={teamColor}
-                    season={season}
-                />
-            ),
-        });
-
-    const openAddGameModal = () =>
-        openModal({
-            title: "Add a Single Game",
-            children: (
-                <AddSingleGame
-                    action="add-single-game"
-                    actionRoute={`/season/${season.$id}`}
-                    buttonColor={teamColor}
-                    seasonId={season.$id}
-                />
-            ),
-        });
-
-    const openEditSeasonModal = () =>
-        openModal({
-            title: "Update Season Details",
-            children: (
-                <AddSeason
-                    action="edit-season"
-                    actionRoute={`/season/${season.$id}`}
-                    buttonColor={teamColor}
-                    confirmText="Update Season"
-                    teamId={season.teamId}
-                />
-            ),
-        });
 
     const hasGames = season?.games?.length > 0;
 
@@ -137,21 +88,20 @@ export default function SeasonDetails({ loaderData, actionData }) {
     return (
         <Container pt="md">
             <Group justify="space-between">
-                <BackButton text="Teams" to={`/team/${season.teamId}`} />
-                <EditButton setIsModalOpen={openEditSeasonModal} />
+                <BackButton text="Team Details" to={`/team/${season.teamId}`} />
+                <SeasonMenu season={season} />
             </Group>
-            <Title order={2} align="center" mt="sm">
+
+            <Title order={2} align="center" mt="lg">
                 {season.seasonName}
             </Title>
 
-            <Divider my="md" size="sm" />
-
-            <Text>
+            <Text ta="center" c="dimmed" mt="sm" mb="lg">
                 {formatForViewerDate(season.startDate)} -{" "}
                 {formatForViewerDate(season.endDate)}
             </Text>
 
-            <Group mt="sm" justify="space-between">
+            <Group justify="space-between" mb="lg">
                 <Group gap="5px">
                     <IconMapPin size={18} />
                     <Text {...textProps}>
@@ -177,49 +127,19 @@ export default function SeasonDetails({ loaderData, actionData }) {
                 </Group>
             </Group>
 
-            <Divider size="sm" my="md" />
-
             <Title order={4} mb="sm">
                 <Group justify="space-between">
-                    Games ({season.games.length})
-                    <div>
-                        Record {record?.wins}-{record?.losses}-{record?.ties}
-                    </div>
+                    Games ({season.games.length || "0"})
+                    {record && (
+                        <div>
+                            Record {record?.wins}-{record?.losses}-
+                            {record?.ties}
+                        </div>
+                    )}
                 </Group>
             </Title>
 
-            {!hasGames && (
-                <>
-                    <Text>
-                        There are no games listed for the upcoming season.
-                    </Text>
-                    <Button
-                        my="md"
-                        onClick={openGenerateGamesModal}
-                        fullWidth
-                        autoContrast
-                        color={teamColor || "green"}
-                    >
-                        <IconCalendar size={18} />
-                        Generate games
-                    </Button>
-
-                    <Text align="center">- OR -</Text>
-                </>
-            )}
-
             <GamesList games={season.games} />
-
-            <Button
-                mt="md"
-                onClick={openAddGameModal}
-                fullWidth
-                autoContrast
-                color={teamColor || "green"}
-            >
-                <IconPlus size={18} />
-                Create Single Game
-            </Button>
         </Container>
     );
 }
