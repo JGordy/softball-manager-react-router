@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { Card, Group, Text } from "@mantine/core";
+import { Badge, Card, Group, Text } from "@mantine/core";
 
 import { DateTime } from "luxon";
 
@@ -16,15 +16,23 @@ const getGameStatus = (dateIso, result, score, opponentScore, zone) => {
     const dayStatus = getGameDayStatus(dateIso, true);
 
     if (dayStatus === "past") {
-        const resultsText = result
-            ? `${result.charAt(0).toUpperCase()} ${score} - ${opponentScore}`
-            : "Results Pending";
+        if (result) {
+            const resultsText = `${result.toUpperCase()} ${score}-${opponentScore}`;
+            return {
+                status: "past",
+                text: (
+                    <Badge color={getGameResultColor(result)} variant="light">
+                        {resultsText}
+                    </Badge>
+                ),
+            };
+        }
 
         return {
             status: "past",
             text: (
-                <Text align={"right"} c={getGameResultColor(result)}>
-                    {resultsText}
+                <Text align={"right"} c="dimmed" size="sm">
+                    Results Pending
                 </Text>
             ),
         };
