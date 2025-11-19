@@ -3,7 +3,7 @@ import { Anchor, Group, useComputedColorScheme } from "@mantine/core";
 
 import { IconChevronLeft } from "@tabler/icons-react";
 
-export default function BackButton({ text = "Go Back", to }) {
+export default function BackButton({ text = "Back", to }) {
     const computedColorScheme = useComputedColorScheme("light");
 
     const navigate = useNavigate();
