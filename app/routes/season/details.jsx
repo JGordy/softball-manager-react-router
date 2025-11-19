@@ -1,9 +1,19 @@
-import { Container, Group, Tabs, Text, Title } from "@mantine/core";
+import {
+    Card,
+    Container,
+    Group,
+    Stack,
+    Tabs,
+    Text,
+    ThemeIcon,
+    Title,
+} from "@mantine/core";
 
 import {
     IconBallBaseball,
     IconCalendarRepeat,
     IconCurrencyDollar,
+    IconExternalLink,
     IconFriends,
     IconInfoCircle,
     IconMapPin,
@@ -56,8 +66,39 @@ export async function action({ request, params }) {
     }
 }
 
+function DetailCard({ icon: Icon, label, value, color, href, rightSection }) {
+    const isLink = !!href;
+    const Component = isLink ? "a" : "div";
+
+    return (
+        <Card
+            withBorder
+            radius="md"
+            component={Component}
+            href={href}
+            target={isLink ? "_blank" : undefined}
+            rel={isLink ? "noopener noreferrer" : undefined}
+        >
+            <Group>
+                <ThemeIcon size="xl" radius="xl" variant="filled" color={color}>
+                    <Icon />
+                </ThemeIcon>
+                <div>
+                    <Text c="dimmed" size="xs" tt="uppercase" fw={700}>
+                        {label}
+                    </Text>
+                    <Text fw={500} size="lg">
+                        {value}
+                    </Text>
+                </div>
+                {rightSection}
+            </Group>
+        </Card>
+    );
+}
+
 export default function SeasonDetails({ loaderData, actionData }) {
-    const { season } = loaderData;
+    const { season, park } = loaderData;
     const { teams } = season;
     const [team] = teams;
     const { primaryColor } = team;
@@ -86,9 +127,37 @@ export default function SeasonDetails({ loaderData, actionData }) {
             { wins: 0, losses: 0, ties: 0 },
         );
 
-    const textProps = {
-        size: "md",
-    };
+    const detailsConfig = [
+        {
+            icon: IconMapPin,
+            label: "Location",
+            value: season.location || "Not specified",
+            href: park?.googleMapsURI,
+            rightSection: park?.googleMapsURI && (
+                <Group gap={5} style={{ marginLeft: "auto" }}>
+                    <Text size="xs" fw={700} tt="uppercase">
+                        View Map
+                    </Text>
+                    <IconExternalLink size={16} />
+                </Group>
+            ),
+        },
+        {
+            icon: IconCalendarRepeat,
+            label: "Game Days",
+            value: `${season.gameDays}s`,
+        },
+        {
+            icon: IconFriends,
+            label: "League Type",
+            value: season.leagueType,
+        },
+        {
+            icon: IconCurrencyDollar,
+            label: "Sign Up Fee",
+            value: `${season.signUpFee || "TBD"}/player`,
+        },
+    ];
 
     return (
         <Container pt="md">
@@ -121,31 +190,15 @@ export default function SeasonDetails({ loaderData, actionData }) {
                 </Tabs.Tab>
 
                 <Tabs.Panel value="details" pt="md">
-                    <Group justify="space-between" pt="md">
-                        <Group gap="5px">
-                            <IconMapPin size={18} />
-                            <Text {...textProps}>
-                                {season.location || "Not specified"}
-                            </Text>
-                        </Group>
-
-                        <Group gap="5px">
-                            <IconCalendarRepeat size={18} />
-                            <Text {...textProps}>{`${season.gameDays}s`}</Text>
-                        </Group>
-
-                        <Group gap="5px">
-                            <IconFriends size={18} />
-                            <Text {...textProps}>{season.leagueType}</Text>
-                        </Group>
-
-                        <Group gap="5px">
-                            <IconCurrencyDollar size={18} />
-                            <Text {...textProps}>
-                                {`${season.signUpFee || "TBD"}/player`}
-                            </Text>
-                        </Group>
-                    </Group>
+                    <Stack gap="sm" pt="md">
+                        {detailsConfig.map((detail) => (
+                            <DetailCard
+                                key={detail.label}
+                                {...detail}
+                                color={primaryColor}
+                            />
+                        ))}
+                    </Stack>
                 </Tabs.Panel>
 
                 <Tabs.Panel value="games" pt="md">
@@ -161,7 +214,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
                         </Group>
                     </Title>
 
-                    <GamesList games={season.games} />
+                    <GamesList games={season.games} height="50vh" />
                 </Tabs.Panel>
             </TabsWrapper>
         </Container>
