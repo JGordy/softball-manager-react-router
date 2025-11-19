@@ -1,0 +1,32 @@
+import { getSeasonById } from "./seasons";
+import { readDocument } from "@/utils/databases";
+
+// Mock dependencies
+jest.mock("@/utils/databases", () => ({
+    readDocument: jest.fn(),
+}));
+
+describe("Seasons Loader", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    describe("getSeasonById", () => {
+        it("should return season data when seasonId is provided", async () => {
+            const mockSeason = { $id: "season1", name: "Fall 2023" };
+            readDocument.mockResolvedValue(mockSeason);
+
+            const result = await getSeasonById({ seasonId: "season1" });
+
+            expect(readDocument).toHaveBeenCalledWith("seasons", "season1");
+            expect(result.season).toEqual(mockSeason);
+        });
+
+        it("should return empty object when seasonId is missing", async () => {
+            const result = await getSeasonById({ seasonId: null });
+
+            expect(readDocument).not.toHaveBeenCalled();
+            expect(result.season).toEqual({});
+        });
+    });
+});
