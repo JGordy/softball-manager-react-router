@@ -9,7 +9,8 @@
         "typecheck": "react-router typegen && tsc",
         "prepare": "husky",
         "lint": "prettier --check .",
-        "format": "prettier --write ."
+        "format": "prettier --write .",
+        "test": "jest --verbose"
     },
     "dependencies": {
         "@google-cloud/local-auth": "^3.0.1",
@@ -44,13 +45,22 @@
         "react-router": "^7.3.0"
     },
     "devDependencies": {
+        "@babel/preset-env": "^7.28.5",
+        "@babel/preset-react": "^7.28.5",
         "@netlify/vite-plugin-react-router": "^1.0.0",
         "@react-router/dev": "^7.3.0",
         "@tailwindcss/vite": "^4.0.0",
+        "@testing-library/jest-dom": "^6.9.1",
+        "@testing-library/react": "^16.3.0",
         "@types/node": "^20",
         "@types/react": "^19.0.1",
         "@types/react-dom": "^19.0.1",
+        "babel-jest": "^30.2.0",
+        "babel-plugin-transform-import-meta": "^2.3.3",
+        "babel-plugin-transform-vite-meta-env": "^1.0.3",
         "husky": "9.1.7",
+        "jest": "^30.2.0",
+        "jest-environment-jsdom": "^30.2.0",
         "lint-staged": "16.1.6",
         "postcss": "^8.5.1",
         "postcss-preset-mantine": "^1.17.0",
