@@ -79,7 +79,7 @@ export default function TeamDetails({ actionData, loaderData }) {
         <Container pt="md">
             <Group justify="space-between" mb="xl">
                 <BackButton to="/" />
-                <TeamMenu team={team} userId={user.$id} />
+                {managerView && <TeamMenu team={team} userId={user.$id} />}
             </Group>
             <Title order={2} align="center" mt="sm" mb="lg">
                 {team.name}
