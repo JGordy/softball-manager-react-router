@@ -37,17 +37,11 @@ export function getAppwriteClient(context) {
  * Get the current user from context
  * Use this in child route loaders instead of recreating the client
  */
-export async function getCurrentUser() {
-    const context = getAppwriteContext();
-
-    if (!context) {
-        throw new Error(
-            "Appwrite context not initialized. Call initializeAppwriteContext in a parent loader.",
-        );
-    }
+export async function getCurrentUser(context) {
+    const client = getAppwriteClient(context);
 
     try {
-        return await context.account.get();
+        return await client.account.get();
     } catch (error) {
         return null;
     }

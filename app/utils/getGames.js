@@ -26,6 +26,10 @@ export default function getGames({ teams, teamId }) {
                     zone: "utc",
                 });
 
+                if (!gameDate.isValid) {
+                    throw new Error(`Invalid date: ${game.gameDate}`);
+                }
+
                 // Find the team name to add to the game object.
                 const team = teams.find((t) => t.$id === game.teamId);
                 if (team) {
