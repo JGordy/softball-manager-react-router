@@ -1,4 +1,7 @@
+import { useState } from "react";
+
 import { Container, Group } from "@mantine/core";
+import { useListState } from "@mantine/hooks";
 
 import { useOutletContext } from "react-router";
 
@@ -9,6 +12,7 @@ import { savePlayerChart } from "@/actions/lineups";
 import BackButton from "@/components/BackButton";
 
 import LineupContainer from "./components/LineupContainer";
+import LineupMenu from "./components/LineupMenu";
 
 import addPlayerAvailability from "./utils/addPlayerAvailability";
 
@@ -50,14 +54,35 @@ function Lineup({ loaderData }) {
 
     const playersWithAvailability = addPlayerAvailability(attendance, players);
 
+    const probablePlayers = playersWithAvailability?.filter((p) =>
+        ["tentative", "unknown"].includes(p.availability),
+    );
+
+    const [lineupState, lineupHandlers] = useListState(rest.playerChart);
+    console.log({ lineupState });
+    const [hasBeenEdited, setHasBeenEdited] = useState(false);
+
     return (
         <Container p="md">
-            <Group mt="lg" mb="xl">
+            <Group justify="space-between" align="center" mt="lg" mb="xl">
                 <BackButton text="Back to event details" />
+                {managerView && (
+                    <LineupMenu
+                        game={rest.game}
+                        probablePlayers={probablePlayers}
+                        lineupState={lineupState}
+                        lineupHandlers={lineupHandlers}
+                        setHasBeenEdited={setHasBeenEdited}
+                    />
+                )}
             </Group>
             <LineupContainer
                 managerView={managerView}
                 players={playersWithAvailability}
+                lineupState={lineupState}
+                lineupHandlers={lineupHandlers}
+                hasBeenEdited={hasBeenEdited}
+                setHasBeenEdited={setHasBeenEdited}
                 {...rest}
             />
         </Container>
