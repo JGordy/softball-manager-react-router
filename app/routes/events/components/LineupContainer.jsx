@@ -28,7 +28,7 @@ export default function LineupContainer({
     const availablePlayers = players?.filter(
         (p) => p.availability === "accepted",
     );
-    // console.log('/event/:eventId > LineupContainer: ', { availablePlayers, playerChart, parsedChart, listState, players });
+    // console.log('/event/:eventId > LineupContainer: ', { availablePlayers, lineupState, players });
 
     // NOTE: Most leagues require at least 8 players in the field to allow the teams to take the field
     // TODO: Add a database field for minimum number of players?
@@ -45,7 +45,10 @@ export default function LineupContainer({
         try {
             const formData = new FormData();
             formData.append("_action", "save-chart");
-            formData.append("playerChart", JSON.stringify(chart || listState));
+            formData.append(
+                "playerChart",
+                JSON.stringify(chart || lineupState),
+            );
 
             fetcher.submit(formData, {
                 method: "post",
@@ -63,7 +66,7 @@ export default function LineupContainer({
         setHasBeenEdited(false);
     };
 
-    // NOTE: Uses an algorithim I created to generate a lineup and fielding chart
+    // NOTE: Uses an algorithm I created to generate a lineup and fielding chart
     const handleCreateCharts = () => {
         if (hasEnoughPlayers) {
             const batting = createBattingOrder(availablePlayers);
@@ -81,13 +84,13 @@ export default function LineupContainer({
     };
 
     const handleEditChart = (position, playerId, inning) => {
-        const playerIndex = listState.findIndex((p) => p.$id === playerId);
+        const playerIndex = lineupState.findIndex((p) => p.$id === playerId);
 
         if (playerIndex === -1) {
             return; // Or handle the case where the player is not found
         }
 
-        const playerToUpdate = listState[playerIndex];
+        const playerToUpdate = lineupState[playerIndex];
         const inningIndex = parseInt(inning.replace("inning", ""), 10) - 1;
 
         const updatedPositions = [...playerToUpdate.positions];
@@ -153,7 +156,7 @@ export default function LineupContainer({
 
     return (
         <>
-            {lineupState && (
+            {lineupState?.length > 0 && (
                 <>
                     <Card p="sm" radius="lg">
                         <EditablePlayerChart
@@ -180,7 +183,7 @@ export default function LineupContainer({
                                 <Button
                                     {...buttonProps}
                                     leftSection={<IconDeviceFloppy size={18} />}
-                                    onClick={() => handleOnSave()}
+                                    onClick={() => handleOnSave(lineupState)}
                                 >
                                     Save Changes
                                 </Button>

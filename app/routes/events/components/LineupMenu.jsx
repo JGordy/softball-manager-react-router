@@ -22,7 +22,7 @@ export default function LineupMenu({
     const [selectedPlayers, setSelectedPlayers] = useState([]);
 
     const handleAddPlayer = () => {
-        const playersToAdd = probablePlayers.reduce((acc, player) => {
+        const playersToAdd = (probablePlayers ?? []).reduce((acc, player) => {
             if (selectedPlayers.includes(player.$id)) {
                 acc.push({
                     $id: player.$id,
@@ -44,15 +44,21 @@ export default function LineupMenu({
     const [removePlayersDrawerOpened, removePlayersHandlers] =
         useDisclosure(false);
     const handleRemovePlayers = (playerIdsToRemove) => {
-        playerIdsToRemove.forEach((playerId) => {
-            const indexToRemove = lineupState.findIndex(
-                (player) => player.$id === playerId,
-            );
-            if (indexToRemove !== -1) {
-                lineupHandlers.remove(indexToRemove);
-            }
-        });
+        // Collect indices to remove
+        const indicesToRemove = playerIdsToRemove
+            .map((playerId) =>
+                lineupState.findIndex((player) => player.$id === playerId),
+            )
+            .filter((index) => index !== -1);
+        // Sort indices descending to avoid index shifting
+        indicesToRemove
+            .sort((a, b) => b - a)
+            .forEach((index) => {
+                lineupHandlers.remove(index);
+            });
         setHasBeenEdited(true);
+        setSelectedPlayers([]);
+        removePlayersHandlers.close();
     };
 
     const [deleteChartDrawerOpened, deleteChartHandlers] = useDisclosure(false);
@@ -60,7 +66,6 @@ export default function LineupMenu({
         lineupHandlers.setState(null);
 
         try {
-            console.log("Deleting chart...");
             const formData = new FormData();
             formData.append("_action", "save-chart");
             formData.append("playerChart", null);
@@ -70,7 +75,7 @@ export default function LineupMenu({
                 action: `/events/${game.$id}/lineup`,
             });
         } catch (error) {
-            console.error("Error deleting attendance form:", error);
+            console.error("Error deleting chart:", error);
         }
 
         deleteChartHandlers.close();
@@ -123,7 +128,7 @@ export default function LineupMenu({
                     onChange={setSelectedPlayers}
                 >
                     <div mt="xs">
-                        {probablePlayers.map((player) => (
+                        {(probablePlayers ?? []).map((player) => (
                             <Card key={player.$id} p="0" mb="sm">
                                 <Checkbox.Card
                                     radius="md"

@@ -59,7 +59,6 @@ function Lineup({ loaderData }) {
     );
 
     const [lineupState, lineupHandlers] = useListState(rest.playerChart);
-    console.log({ lineupState });
     const [hasBeenEdited, setHasBeenEdited] = useState(false);
 
     return (
