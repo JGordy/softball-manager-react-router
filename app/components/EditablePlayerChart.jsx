@@ -1,35 +1,24 @@
 import React, { useCallback, useMemo, useState } from "react";
-import {
-    ActionIcon,
-    Button,
-    Group,
-    ScrollArea,
-    Select,
-    Table,
-    Text,
-} from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { Group, ScrollArea, Select, Table, Text } from "@mantine/core";
 
-import { IconGripVertical, IconTrash } from "@tabler/icons-react";
+import { IconGripVertical } from "@tabler/icons-react";
 
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 
 import fieldingPositions from "@/constants/positions";
 
-import DrawerContainer from "@/components/DrawerContainer";
-
 import styles from "../styles/playerChart.module.css";
 
 const PositionSelect = React.memo(
-    ({ row, inning, handlePositionChange, positionData, playerChart }) => {
+    ({ row, inning, handlePositionChange, positionData, players }) => {
         const playerLookup = useMemo(() => {
             // Create lookup map
             const lookup = {};
-            playerChart.forEach((player) => {
+            players?.forEach((player) => {
                 lookup[player.$id] = player;
             });
             return lookup;
-        }, [playerChart]);
+        }, [players]);
 
         const renderSelectOption = useCallback(
             ({ option }) => {
@@ -57,7 +46,7 @@ const PositionSelect = React.memo(
                     </Group>
                 );
             },
-            [playerChart],
+            [players],
         );
 
         return (
@@ -77,29 +66,12 @@ const PositionSelect = React.memo(
 
 const EditablePlayerChart = ({
     handleLineupReorder,
-    handleRemovePlayer,
     playerChart,
     setPlayerChart,
     managerView = false,
+    players,
 }) => {
-    const [removePlayerDrawerOpened, removePlayerHandlers] =
-        useDisclosure(false);
-
     const [inningPositions, setInningPositions] = useState({});
-    const [playerToRemove, setPlayerToRemove] = useState(null);
-
-    const openConfirmationDrawer = (player) => {
-        setPlayerToRemove(player);
-        removePlayerHandlers.open();
-    };
-
-    const confirmRemoveAndClose = () => {
-        if (playerToRemove) {
-            handleRemovePlayer(playerToRemove.playerId);
-        }
-        setPlayerToRemove(null);
-        removePlayerHandlers.close();
-    };
 
     const columns = useMemo(
         () => [
@@ -208,7 +180,6 @@ const EditablePlayerChart = ({
                             <Table.Thead className={styles.header}>
                                 <Table.Tr>
                                     {managerView && <Table.Th w={40} />}
-                                    {managerView && <Table.Th w={40} />}
                                     {columns.map((column) => (
                                         <Table.Th key={column.accessor}>
                                             {column.title}
@@ -253,25 +224,6 @@ const EditablePlayerChart = ({
                                                                 </div>
                                                             </Table.Td>
                                                         )}
-                                                        {managerView && (
-                                                            <Table.Td>
-                                                                <ActionIcon
-                                                                    color="red"
-                                                                    onClick={() =>
-                                                                        openConfirmationDrawer(
-                                                                            row,
-                                                                        )
-                                                                    }
-                                                                    variant="subtle"
-                                                                >
-                                                                    <IconTrash
-                                                                        size={
-                                                                            18
-                                                                        }
-                                                                    />
-                                                                </ActionIcon>
-                                                            </Table.Td>
-                                                        )}
                                                         {columns.map(
                                                             (column) => {
                                                                 if (
@@ -282,14 +234,12 @@ const EditablePlayerChart = ({
                                                                     const inning =
                                                                         column.accessor;
                                                                     const player =
-                                                                        playerChart.find(
+                                                                        players?.find(
                                                                             (
                                                                                 p,
                                                                             ) =>
-                                                                                p.firstName +
-                                                                                    " " +
-                                                                                    p.lastName ===
-                                                                                row.player,
+                                                                                p.$id ===
+                                                                                row.playerId,
                                                                         );
 
                                                                     const preferredPositions =
@@ -322,8 +272,8 @@ const EditablePlayerChart = ({
                                                                                     positionData={
                                                                                         positionData
                                                                                     }
-                                                                                    playerChart={
-                                                                                        playerChart
+                                                                                    players={
+                                                                                        players
                                                                                     }
                                                                                 />
                                                                             ) : (
@@ -366,31 +316,6 @@ const EditablePlayerChart = ({
                     </ScrollArea.Autosize>
                 </DragDropContext>
             </div>
-
-            {managerView && (
-                <DrawerContainer
-                    opened={removePlayerDrawerOpened}
-                    onClose={removePlayerHandlers.close}
-                    title="Confirm Removal"
-                    size="xs"
-                >
-                    <Text>
-                        Are you sure you want to remove {playerToRemove?.player}{" "}
-                        from the lineup?
-                    </Text>
-                    <Group justify="space-between" mt="xl" grow>
-                        <Button
-                            variant="outline"
-                            onClick={removePlayerHandlers.close}
-                        >
-                            Cancel
-                        </Button>
-                        <Button color="red" onClick={confirmRemoveAndClose}>
-                            Yes, Remove
-                        </Button>
-                    </Group>
-                </DrawerContainer>
-            )}
         </>
     );
 };
