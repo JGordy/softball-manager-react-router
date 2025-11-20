@@ -169,5 +169,7 @@ export default function createFieldingChart(players, innings = 7) {
         });
     }
 
-    return playersCopy;
+    return playersCopy.map(
+        ({ preferredPositions, dislikedPositions, ...rest }) => rest,
+    );
 }
