@@ -24,6 +24,10 @@ export function formatGameTime(dateString, timeZone, locale = "en-US") {
             timeZone,
         );
 
+        if (!dt.isValid) {
+            throw new Error("Invalid Date");
+        }
+
         return dt.setLocale(locale).toLocaleString({
             year: "numeric",
             month: "long",
@@ -48,6 +52,11 @@ export function formatDate(date, locale = "en-US") {
             date instanceof Date
                 ? DateTime.fromJSDate(date)
                 : DateTime.fromISO(date);
+
+        if (!dt.isValid) {
+            throw new Error("Invalid Date");
+        }
+
         return dt.setLocale(locale).toLocaleString({
             year: "numeric",
             month: "long",
@@ -64,6 +73,11 @@ export function formatTime(dateString, timeZone = "UTC") {
         const dt = DateTime.fromISO(dateString, { setZone: true }).setZone(
             timeZone,
         );
+
+        if (!dt.isValid) {
+            throw new Error("Invalid Time");
+        }
+
         // Return 24-hour format HH:mm
         return dt.toFormat("HH:mm");
     } catch (error) {
