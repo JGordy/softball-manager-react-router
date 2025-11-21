@@ -1,7 +1,16 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { Group, ScrollArea, Select, Table, Text } from "@mantine/core";
+import {
+    Avatar,
+    Group,
+    ScrollArea,
+    Select,
+    Table,
+    Text,
+    ThemeIcon,
+    Tooltip,
+} from "@mantine/core";
 
-import { IconGripVertical } from "@tabler/icons-react";
+import { IconAlertTriangle, IconGripVertical } from "@tabler/icons-react";
 
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 
@@ -10,7 +19,7 @@ import fieldingPositions from "@/constants/positions";
 import styles from "../styles/playerChart.module.css";
 
 const PositionSelect = React.memo(
-    ({ row, inning, handlePositionChange, positionData, players }) => {
+    ({ row, inning, handlePositionChange, positionData, players, error }) => {
         const playerLookup = useMemo(() => {
             // Create lookup map
             const lookup = {};
@@ -59,6 +68,7 @@ const PositionSelect = React.memo(
                 data={positionData}
                 style={{ minWidth: "160px" }}
                 renderOption={renderSelectOption}
+                error={error}
             />
         );
     },
@@ -70,6 +80,7 @@ const EditablePlayerChart = ({
     setPlayerChart,
     managerView = false,
     players,
+    validationResults,
 }) => {
     const [inningPositions, setInningPositions] = useState({});
 
@@ -100,6 +111,8 @@ const EditablePlayerChart = ({
         [],
     );
 
+    const { battingErrors, fieldingErrors } = validationResults || {};
+
     const rows = useMemo(() => {
         return playerChart.map((player, index) => {
             const inningPositionsForPlayer = inningPositions[player.$id] || {};
@@ -117,13 +130,16 @@ const EditablePlayerChart = ({
                 battingOrder: index + 1,
                 playerId: player.$id,
                 player: `${player.firstName} ${player.lastName}`,
+                hasBattingError: battingErrors?.some(
+                    (e) => e.playerId === player.$id,
+                ),
             };
             playerInningPositions.forEach((position, i) => {
                 row[`inning${i + 1}`] = position;
             });
             return row;
         });
-    }, [playerChart, inningPositions]);
+    }, [playerChart, inningPositions, battingErrors]);
 
     const handlePositionChange = useCallback(
         (position, playerId, inning) => {
@@ -184,7 +200,7 @@ const EditablePlayerChart = ({
         <>
             <div className={styles.tableContainer}>
                 <DragDropContext onDragEnd={handleLineupReorder}>
-                    <ScrollArea.Autosize mah={475}>
+                    <ScrollArea.Autosize mah={500}>
                         <Table withTableBorder>
                             <Table.Thead className={styles.header}>
                                 <Table.Tr>
@@ -196,6 +212,53 @@ const EditablePlayerChart = ({
                                     ))}
                                 </Table.Tr>
                             </Table.Thead>
+                            <Table.Tfoot className={styles.footer}>
+                                <Table.Tr className={styles.footerRow}>
+                                    {managerView && <Table.Th />}
+                                    <Table.Th />
+                                    <Table.Th
+                                        className={styles.footerCell}
+                                        pt="md"
+                                    >
+                                        Missing Positions
+                                    </Table.Th>
+                                    {Array.from({ length: 7 }, (_, i) => {
+                                        const inningKey = `inning${i + 1}`;
+                                        const missing =
+                                            fieldingErrors?.[inningKey]
+                                                ?.missing || [];
+
+                                        return (
+                                            <Table.Th
+                                                key={inningKey}
+                                                className={styles.footerCell}
+                                            >
+                                                {missing.length > 0 && (
+                                                    <Avatar.Group>
+                                                        {missing.map((pos) => {
+                                                            const initials =
+                                                                fieldingPositions[
+                                                                    pos
+                                                                ]?.initials ||
+                                                                pos;
+                                                            return (
+                                                                <Avatar
+                                                                    key={pos}
+                                                                    color="red"
+                                                                    radius="xl"
+                                                                    size="md"
+                                                                >
+                                                                    {initials}
+                                                                </Avatar>
+                                                            );
+                                                        })}
+                                                    </Avatar.Group>
+                                                )}
+                                            </Table.Th>
+                                        );
+                                    })}
+                                </Table.Tr>
+                            </Table.Tfoot>
                             <Droppable
                                 droppableId="dnd-list"
                                 direction="vertical"
@@ -258,6 +321,22 @@ const EditablePlayerChart = ({
                                                                             dislikedPositions,
                                                                         );
 
+                                                                    const isDuplicate =
+                                                                        fieldingErrors?.[
+                                                                            inning
+                                                                        ]?.duplicates?.some(
+                                                                            (
+                                                                                d,
+                                                                            ) =>
+                                                                                d.players.includes(
+                                                                                    row.playerId,
+                                                                                ) &&
+                                                                                d.position ===
+                                                                                    row[
+                                                                                        inning
+                                                                                    ],
+                                                                        );
+
                                                                     return (
                                                                         <Table.Td
                                                                             key={
@@ -281,6 +360,9 @@ const EditablePlayerChart = ({
                                                                                     players={
                                                                                         players
                                                                                     }
+                                                                                    error={
+                                                                                        isDuplicate
+                                                                                    }
                                                                                 />
                                                                             ) : (
                                                                                 <Text>
@@ -291,6 +373,38 @@ const EditablePlayerChart = ({
                                                                                     }
                                                                                 </Text>
                                                                             )}
+                                                                        </Table.Td>
+                                                                    );
+                                                                } else if (
+                                                                    column.accessor ===
+                                                                    "player"
+                                                                ) {
+                                                                    return (
+                                                                        <Table.Td
+                                                                            key={
+                                                                                column.accessor
+                                                                            }
+                                                                        >
+                                                                            <Group gap="xs">
+                                                                                <Text>
+                                                                                    {
+                                                                                        row.player
+                                                                                    }
+                                                                                </Text>
+                                                                                {row.hasBattingError && (
+                                                                                    <ThemeIcon
+                                                                                        color="red"
+                                                                                        variant="light"
+                                                                                        size="sm"
+                                                                                    >
+                                                                                        <IconAlertTriangle
+                                                                                            size={
+                                                                                                12
+                                                                                            }
+                                                                                        />
+                                                                                    </ThemeIcon>
+                                                                                )}
+                                                                            </Group>
                                                                         </Table.Td>
                                                                     );
                                                                 } else {
