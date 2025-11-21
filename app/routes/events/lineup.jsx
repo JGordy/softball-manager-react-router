@@ -13,8 +13,10 @@ import BackButton from "@/components/BackButton";
 
 import LineupContainer from "./components/LineupContainer";
 import LineupMenu from "./components/LineupMenu";
+import LineupValidationMenu from "./components/LineupValidationMenu";
 
 import addPlayerAvailability from "./utils/addPlayerAvailability";
+import { validateLineup } from "./utils/validateLineup";
 
 export async function loader({ params, request }) {
     const { eventId } = params;
@@ -57,24 +59,30 @@ function Lineup({ loaderData }) {
     const [lineupState, lineupHandlers] = useListState(rest.playerChart);
     const [hasBeenEdited, setHasBeenEdited] = useState(false);
 
-    // Players not yet in the lineup - available for adding
     const playersNotInLineup = playersWithAvailability?.filter((p) => {
         const isInLineup = lineupState?.some((lp) => lp.$id === p.$id);
         return !isInLineup;
     });
+
+    const validationResults = validateLineup(lineupState, rest.game?.team);
 
     return (
         <Container p="md">
             <Group justify="space-between" align="center" mt="lg" mb="xl">
                 <BackButton text="Back to event details" />
                 {managerView && (
-                    <LineupMenu
-                        game={rest.game}
-                        playersNotInLineup={playersNotInLineup}
-                        lineupState={lineupState}
-                        lineupHandlers={lineupHandlers}
-                        setHasBeenEdited={setHasBeenEdited}
-                    />
+                    <Group gap="lg">
+                        <LineupValidationMenu
+                            validationResults={validationResults}
+                        />
+                        <LineupMenu
+                            game={rest.game}
+                            playersNotInLineup={playersNotInLineup}
+                            lineupState={lineupState}
+                            lineupHandlers={lineupHandlers}
+                            setHasBeenEdited={setHasBeenEdited}
+                        />
+                    </Group>
                 )}
             </Group>
             <LineupContainer
@@ -84,6 +92,7 @@ function Lineup({ loaderData }) {
                 lineupHandlers={lineupHandlers}
                 hasBeenEdited={hasBeenEdited}
                 setHasBeenEdited={setHasBeenEdited}
+                validationResults={validationResults}
                 {...rest}
             />
         </Container>
