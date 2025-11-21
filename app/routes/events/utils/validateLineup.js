@@ -11,19 +11,14 @@ export const validateLineup = (lineup, team) => {
 
     // Helper for ordinal numbers (1st, 2nd, 3rd, 4th, etc.)
     const getOrdinal = (number) => {
-        const suffixes = ["th", "st", "nd", "rd"];
         const lastTwoDigits = number % 100;
-
-        // Handle 11th, 12th, 13th which are exceptions to the standard pattern
-        // (lastTwoDigits - 20) % 10 handles numbers > 20 (e.g. 21st, 22nd, 23rd)
-        // suffixes[lastTwoDigits] handles numbers < 4 (1st, 2nd, 3rd)
-        // suffixes[0] is the default "th"
-        return (
-            number +
-            (suffixes[(lastTwoDigits - 20) % 10] ||
-                suffixes[lastTwoDigits] ||
-                suffixes[0])
-        );
+        // Handle 11th, 12th, 13th as special cases
+        if (lastTwoDigits >= 11 && lastTwoDigits <= 13) {
+            return number + "th";
+        }
+        const lastDigit = number % 10;
+        const suffixes = ["th", "st", "nd", "rd"];
+        return number + (suffixes[lastDigit] || "th");
     };
 
     // 1. Batting Order Validation (Max 3 males in a row) - Only for Coed teams
