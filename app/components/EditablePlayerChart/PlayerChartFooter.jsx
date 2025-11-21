@@ -1,5 +1,5 @@
 import React from "react";
-import { Avatar, Table, Text, Tooltip } from "@mantine/core";
+import { Avatar, Table } from "@mantine/core";
 import fieldingPositions from "@/constants/positions";
 import styles from "../../styles/playerChart.module.css";
 
@@ -25,19 +25,13 @@ const PlayerChartFooter = ({ managerView, fieldingErrors }) => {
                                             fieldingPositions[pos]?.initials ||
                                             pos;
                                         return (
-                                            <Tooltip
-                                                key={pos}
-                                                label={pos}
-                                                withArrow
+                                            <Avatar
+                                                color="red"
+                                                radius="xl"
+                                                size="md"
                                             >
-                                                <Avatar
-                                                    color="red"
-                                                    radius="xl"
-                                                    size="md"
-                                                >
-                                                    {initials}
-                                                </Avatar>
-                                            </Tooltip>
+                                                {initials}
+                                            </Avatar>
                                         );
                                     })}
                                 </Avatar.Group>
