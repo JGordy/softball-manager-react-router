@@ -73,6 +73,15 @@ const EditablePlayerChart = ({
 }) => {
     const [inningPositions, setInningPositions] = useState({});
 
+    // Create a player lookup map for performance
+    const playerLookup = useMemo(() => {
+        const lookup = {};
+        players?.forEach((player) => {
+            lookup[player.$id] = player;
+        });
+        return lookup;
+    }, [players]);
+
     const columns = useMemo(
         () => [
             {
@@ -234,13 +243,10 @@ const EditablePlayerChart = ({
                                                                     const inning =
                                                                         column.accessor;
                                                                     const player =
-                                                                        players?.find(
-                                                                            (
-                                                                                p,
-                                                                            ) =>
-                                                                                p.$id ===
-                                                                                row.playerId,
-                                                                        );
+                                                                        playerLookup[
+                                                                            row
+                                                                                .playerId
+                                                                        ];
 
                                                                     const preferredPositions =
                                                                         player?.preferredPositions;
