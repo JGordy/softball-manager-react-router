@@ -26,6 +26,7 @@ const PlayerChartFooter = ({ managerView, fieldingErrors }) => {
                                             pos;
                                         return (
                                             <Avatar
+                                                key={pos}
                                                 color="red"
                                                 radius="xl"
                                                 size="md"
