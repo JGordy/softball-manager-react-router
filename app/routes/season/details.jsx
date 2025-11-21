@@ -103,7 +103,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
     const [team] = teams;
     const { primaryColor } = team;
 
-    console.log("/season/details.jsx: ", { loaderData });
+    // console.log("/season/details.jsx: ", { loaderData });
 
     useResponseNotification(actionData);
 
