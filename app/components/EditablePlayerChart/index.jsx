@@ -143,10 +143,6 @@ const EditablePlayerChart = ({
                                 ))}
                             </Table.Tr>
                         </Table.Thead>
-                        <PlayerChartFooter
-                            managerView={managerView}
-                            fieldingErrors={fieldingErrors}
-                        />
                         <Droppable droppableId="dnd-list" direction="vertical">
                             {(provided) => (
                                 <Table.Tbody
@@ -175,6 +171,10 @@ const EditablePlayerChart = ({
                                 </Table.Tbody>
                             )}
                         </Droppable>
+                        <PlayerChartFooter
+                            managerView={managerView}
+                            fieldingErrors={fieldingErrors}
+                        />
                     </Table>
                 </ScrollArea.Autosize>
             </DragDropContext>
