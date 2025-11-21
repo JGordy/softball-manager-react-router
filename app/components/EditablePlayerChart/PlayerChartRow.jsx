@@ -58,7 +58,7 @@ const PlayerChartRow = ({
                                                 handlePositionChange
                                             }
                                             positionData={positionData}
-                                            players={players}
+                                            playerLookup={playerLookup}
                                             error={isDuplicate}
                                         />
                                     ) : (
