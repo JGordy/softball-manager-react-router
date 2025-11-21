@@ -54,12 +54,14 @@ function Lineup({ loaderData }) {
 
     const playersWithAvailability = addPlayerAvailability(attendance, players);
 
-    const probablePlayers = playersWithAvailability?.filter((p) =>
-        ["tentative", "unknown"].includes(p.availability),
-    );
-
     const [lineupState, lineupHandlers] = useListState(rest.playerChart);
     const [hasBeenEdited, setHasBeenEdited] = useState(false);
+
+    // Players not yet in the lineup - available for adding
+    const playersNotInLineup = playersWithAvailability?.filter((p) => {
+        const isInLineup = lineupState?.some((lp) => lp.$id === p.$id);
+        return !isInLineup;
+    });
 
     return (
         <Container p="md">
@@ -68,7 +70,7 @@ function Lineup({ loaderData }) {
                 {managerView && (
                     <LineupMenu
                         game={rest.game}
-                        probablePlayers={probablePlayers}
+                        playersNotInLineup={playersNotInLineup}
                         lineupState={lineupState}
                         lineupHandlers={lineupHandlers}
                         setHasBeenEdited={setHasBeenEdited}
