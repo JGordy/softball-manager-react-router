@@ -26,28 +26,30 @@ export const validateLineup = (lineup, team) => {
         );
     };
 
-    // 1. Batting Order Validation (Max 3 males in a row)
-    let consecutiveMales = 0;
-    lineup.forEach((player, index) => {
-        if (player.gender === "Male") {
-            consecutiveMales++;
-        } else {
-            consecutiveMales = 0;
-        }
+    // 1. Batting Order Validation (Max 3 males in a row) - Only for Coed teams
+    if (team?.genderMix === "Coed") {
+        let consecutiveMales = 0;
+        lineup.forEach((player, index) => {
+            if (player.gender === "Male") {
+                consecutiveMales++;
+            } else {
+                consecutiveMales = 0;
+            }
 
-        if (consecutiveMales > 3) {
-            const error = {
-                playerId: player.$id,
-                playerName: `${player.firstName} ${player.lastName}`,
-                count: consecutiveMales,
-                message: `More than 3 consecutive male batters (${consecutiveMales} in a row)`,
-            };
-            battingErrors.push(error);
-            summary.push(
-                `Batting Order: ${player.firstName} ${player.lastName} is the ${getOrdinal(consecutiveMales)} consecutive male batter.`,
-            );
-        }
-    });
+            if (consecutiveMales > 3) {
+                const error = {
+                    playerId: player.$id,
+                    playerName: `${player.firstName} ${player.lastName}`,
+                    count: consecutiveMales,
+                    message: `More than 3 consecutive male batters (${consecutiveMales} in a row)`,
+                };
+                battingErrors.push(error);
+                summary.push(
+                    `Batting Order: ${player.firstName} ${player.lastName} is the ${getOrdinal(consecutiveMales)} consecutive male batter.`,
+                );
+            }
+        });
+    }
 
     // 2. Fielding Validation
     const inningsCount = 7;
