@@ -1,4 +1,5 @@
 import fieldingPositions from "@/constants/positions";
+import { getOrdinal } from "./formatters";
 
 export const validateLineup = (lineup, team) => {
     const battingErrors = [];
@@ -8,18 +9,6 @@ export const validateLineup = (lineup, team) => {
     if (!lineup || lineup.length === 0) {
         return { battingErrors, fieldingErrors, summary };
     }
-
-    // Helper for ordinal numbers (1st, 2nd, 3rd, 4th, etc.)
-    const getOrdinal = (number) => {
-        const lastTwoDigits = number % 100;
-        // Handle 11th, 12th, 13th as special cases
-        if (lastTwoDigits >= 11 && lastTwoDigits <= 13) {
-            return number + "th";
-        }
-        const lastDigit = number % 10;
-        const suffixes = ["th", "st", "nd", "rd"];
-        return number + (suffixes[lastDigit] || "th");
-    };
 
     // 1. Batting Order Validation (Max 3 males in a row) - Only for Coed teams
     if (team?.genderMix === "Coed") {

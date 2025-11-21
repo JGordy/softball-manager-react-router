@@ -7,17 +7,8 @@ import {
     Text,
 } from "@mantine/core";
 import { IconAlertTriangle, IconCheck } from "@tabler/icons-react";
-
-const getOrdinal = (number) => {
-    const lastTwoDigits = number % 100;
-    // Handle 11th, 12th, 13th as special cases
-    if (lastTwoDigits >= 11 && lastTwoDigits <= 13) {
-        return number + "th";
-    }
-    const lastDigit = number % 10;
-    const suffixes = ["th", "st", "nd", "rd"];
-    return number + (suffixes[lastDigit] || "th");
-};
+import { getOrdinal } from "../utils/formatters";
+import fieldingPositions from "@/constants/positions";
 
 // Render helper for player names in duplicate position errors
 const renderPlayerNames = (playerNames) => {
@@ -33,7 +24,8 @@ const renderPlayerNames = (playerNames) => {
 
 // Render helper for missing positions list
 const renderMissingPositions = (missing) => {
-    if (missing.length === 10) {
+    const totalPositions = Object.keys(fieldingPositions).length;
+    if (missing.length === totalPositions) {
         return (
             <Text span c="red" fw={500}>
                 Missing all field positions
