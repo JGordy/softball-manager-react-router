@@ -244,7 +244,12 @@ export default function LineupMenu({
                 >
                     {renderGroupedPlayers()}
                 </Checkbox.Group>
-                <Button onClick={handleAddPlayer} mt="md" fullWidth>
+                <Button
+                    onClick={handleAddPlayer}
+                    mt="md"
+                    fullWidth
+                    disabled={selectedPlayers.length === 0}
+                >
                     Add Selected Players
                 </Button>
             </DrawerContainer>
