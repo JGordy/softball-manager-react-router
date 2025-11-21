@@ -19,6 +19,74 @@ const getOrdinal = (number) => {
     );
 };
 
+// Render helper for player names in duplicate position errors
+const renderPlayerNames = (playerNames) => {
+    return playerNames.map((name, idx) => (
+        <span key={idx}>
+            {idx > 0 ? " and " : ""}
+            <Text span c="red" fw={500}>
+                {name}
+            </Text>
+        </span>
+    ));
+};
+
+// Render helper for missing positions list
+const renderMissingPositions = (missing) => {
+    if (missing.length === 10) {
+        return (
+            <Text span c="red" fw={500}>
+                Missing all field positions
+            </Text>
+        );
+    }
+
+    return (
+        <>
+            Missing{" "}
+            {missing.map((pos, idx) => (
+                <span key={idx}>
+                    {idx > 0 ? ", " : ""}
+                    <Text span c="red" fw={500}>
+                        {pos}
+                    </Text>
+                </span>
+            ))}
+        </>
+    );
+};
+
+// Render helper for duplicate position errors
+const renderDuplicateError = (inningNum, duplicate, key, index) => {
+    return (
+        <Menu.Item key={`dup-${key}-${index}`} style={{ whiteSpace: "normal" }}>
+            <Text size="sm" lh={1.4}>
+                <Text span fw={700}>
+                    Inning {inningNum}:
+                </Text>{" "}
+                <Text span c="red" fw={500}>
+                    {duplicate.position}
+                </Text>{" "}
+                is assigned to {renderPlayerNames(duplicate.playerNames)}.
+            </Text>
+        </Menu.Item>
+    );
+};
+
+// Render helper for missing position errors
+const renderMissingError = (inningNum, missing, key) => {
+    return (
+        <Menu.Item key={`missing-${key}`} style={{ whiteSpace: "normal" }}>
+            <Text size="sm" lh={1.4}>
+                <Text span fw={700}>
+                    Inning {inningNum}:
+                </Text>{" "}
+                {renderMissingPositions(missing)}.
+            </Text>
+        </Menu.Item>
+    );
+};
+
 export default function LineupValidationMenu({ validationResults }) {
     const { battingErrors = [], fieldingErrors = {} } = validationResults || {};
 
@@ -32,10 +100,7 @@ export default function LineupValidationMenu({ validationResults }) {
     let errorCount = battingErrors.length;
     Object.values(fieldingErrors).forEach((e) => {
         errorCount += e.duplicates.length;
-        if (e.missing.length > 0) errorCount += 1; // Count missing block as 1 error per inning? Or per missing pos?
-        // Original logic was based on summary lines.
-        // Summary had 1 line for "Missing X, Y" or "Missing all".
-        // So 1 per inning if missing > 0.
+        if (e.missing.length > 0) errorCount += 1;
     });
 
     return (
@@ -128,122 +193,20 @@ export default function LineupValidationMenu({ validationResults }) {
 
                                         return (
                                             <div key={key}>
-                                                {duplicates.map((d, i) => (
-                                                    <Menu.Item
-                                                        key={`dup-${key}-${i}`}
-                                                        style={{
-                                                            whiteSpace:
-                                                                "normal",
-                                                        }}
-                                                    >
-                                                        <Text
-                                                            size="sm"
-                                                            lh={1.4}
-                                                        >
-                                                            <Text span fw={700}>
-                                                                Inning{" "}
-                                                                {inningNum}:
-                                                            </Text>{" "}
-                                                            <Text
-                                                                span
-                                                                c="red"
-                                                                fw={500}
-                                                            >
-                                                                {d.position}
-                                                            </Text>{" "}
-                                                            is assigned to{" "}
-                                                            {d.playerNames.map(
-                                                                (name, idx) => (
-                                                                    <span
-                                                                        key={
-                                                                            idx
-                                                                        }
-                                                                    >
-                                                                        {idx > 0
-                                                                            ? " and "
-                                                                            : ""}
-                                                                        <Text
-                                                                            span
-                                                                            c="red"
-                                                                            fw={
-                                                                                500
-                                                                            }
-                                                                        >
-                                                                            {
-                                                                                name
-                                                                            }
-                                                                        </Text>
-                                                                    </span>
-                                                                ),
-                                                            )}
-                                                            .
-                                                        </Text>
-                                                    </Menu.Item>
-                                                ))}
-                                                {missing.length > 0 && (
-                                                    <Menu.Item
-                                                        key={`missing-${key}`}
-                                                        style={{
-                                                            whiteSpace:
-                                                                "normal",
-                                                        }}
-                                                    >
-                                                        <Text
-                                                            size="sm"
-                                                            lh={1.4}
-                                                        >
-                                                            <Text span fw={700}>
-                                                                Inning{" "}
-                                                                {inningNum}:
-                                                            </Text>{" "}
-                                                            {missing.length ===
-                                                            10 ? (
-                                                                <Text
-                                                                    span
-                                                                    c="red"
-                                                                    fw={500}
-                                                                >
-                                                                    Missing all
-                                                                    field
-                                                                    positions
-                                                                </Text>
-                                                            ) : (
-                                                                <>
-                                                                    Missing{" "}
-                                                                    {missing.map(
-                                                                        (
-                                                                            pos,
-                                                                            idx,
-                                                                        ) => (
-                                                                            <span
-                                                                                key={
-                                                                                    idx
-                                                                                }
-                                                                            >
-                                                                                {idx >
-                                                                                0
-                                                                                    ? ", "
-                                                                                    : ""}
-                                                                                <Text
-                                                                                    span
-                                                                                    c="red"
-                                                                                    fw={
-                                                                                        500
-                                                                                    }
-                                                                                >
-                                                                                    {
-                                                                                        pos
-                                                                                    }
-                                                                                </Text>
-                                                                            </span>
-                                                                        ),
-                                                                    )}
-                                                                </>
-                                                            )}
-                                                            .
-                                                        </Text>
-                                                    </Menu.Item>
+                                                {duplicates.map((d, i) =>
+                                                    renderDuplicateError(
+                                                        inningNum,
+                                                        d,
+                                                        key,
+                                                        i,
+                                                    ),
                                                 )}
+                                                {missing.length > 0 &&
+                                                    renderMissingError(
+                                                        inningNum,
+                                                        missing,
+                                                        key,
+                                                    )}
                                             </div>
                                         );
                                     },
