@@ -9,14 +9,14 @@ import {
 import { IconAlertTriangle, IconCheck } from "@tabler/icons-react";
 
 const getOrdinal = (number) => {
-    const suffixes = ["th", "st", "nd", "rd"];
     const lastTwoDigits = number % 100;
-    return (
-        number +
-        (suffixes[(lastTwoDigits - 20) % 10] ||
-            suffixes[lastTwoDigits] ||
-            suffixes[0])
-    );
+    // Handle 11th, 12th, 13th as special cases
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 13) {
+        return number + "th";
+    }
+    const lastDigit = number % 10;
+    const suffixes = ["th", "st", "nd", "rd"];
+    return number + (suffixes[lastDigit] || "th");
 };
 
 // Render helper for player names in duplicate position errors
