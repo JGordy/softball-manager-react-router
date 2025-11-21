@@ -23,7 +23,10 @@ export default function LineupMenu({
 
     const handleAddPlayer = () => {
         const playersToAdd = (probablePlayers ?? []).reduce((acc, player) => {
-            if (selectedPlayers.includes(player.$id)) {
+            if (
+                selectedPlayers.includes(player.$id) &&
+                !lineupState.some((lp) => lp.$id === player.$id)
+            ) {
                 acc.push({
                     $id: player.$id,
                     firstName: player.firstName,
@@ -78,6 +81,7 @@ export default function LineupMenu({
             console.error(`Error deleting chart for game ${game.$id}:`, error);
         }
 
+        setHasBeenEdited(false);
         deleteChartHandlers.close();
     };
 
