@@ -286,6 +286,7 @@ export default function LineupMenu({
                     onClick={() => handleRemovePlayers(selectedPlayers)}
                     mt="md"
                     fullWidth
+                    disabled={selectedPlayers.length === 0}
                 >
                     Remove Selected Players
                 </Button>
