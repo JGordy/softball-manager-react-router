@@ -41,7 +41,8 @@ describe("validateLineup", () => {
 
     it("should detect batting order errors (max 3 consecutive males)", () => {
         const lineup = [...mockPlayers]; // 4 males then 1 female
-        const { battingErrors } = validateLineup(lineup);
+        const team = { genderMix: "Coed" };
+        const { battingErrors } = validateLineup(lineup, team);
 
         expect(battingErrors).toHaveLength(1);
         expect(battingErrors[0].playerId).toBe("4");
@@ -90,7 +91,8 @@ describe("validateLineup", () => {
 
     it("should generate summary messages", () => {
         const lineup = [...mockPlayers]; // 4 males
-        const { summary } = validateLineup(lineup);
+        const team = { genderMix: "Coed" };
+        const { summary } = validateLineup(lineup, team);
 
         expect(
             summary.some((s) => s.includes("4th consecutive male batter")),
