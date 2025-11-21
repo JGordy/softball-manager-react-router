@@ -38,6 +38,8 @@ export const validateLineup = (lineup, team) => {
         if (consecutiveMales > 3) {
             const error = {
                 playerId: player.$id,
+                playerName: `${player.firstName} ${player.lastName}`,
+                count: consecutiveMales,
                 message: `More than 3 consecutive male batters (${consecutiveMales} in a row)`,
             };
             battingErrors.push(error);
@@ -76,6 +78,9 @@ export const validateLineup = (lineup, team) => {
                 duplicates.push({
                     position,
                     players: players.map((p) => p.$id),
+                    playerNames: players.map(
+                        (p) => `${p.firstName} ${p.lastName}`,
+                    ),
                     message: `${position} is assigned to multiple players`,
                 });
                 summary.push(
@@ -89,21 +94,24 @@ export const validateLineup = (lineup, team) => {
             (pos) => !positionsInInning[pos],
         );
 
+        let reportedMissing = [];
         if (missing.length > 0) {
             if (missing.length < requiredPositions.length) {
                 summary.push(
                     `Inning ${inningNum}: Missing ${missing.join(", ")}.`,
                 );
+                reportedMissing = missing;
             } else if (lineup.some((p) => p.positions[inningIndex])) {
                 summary.push(
                     `Inning ${inningNum}: Missing all field positions.`,
                 );
+                reportedMissing = missing;
             }
         }
 
         fieldingErrors[`inning${inningNum}`] = {
             duplicates,
-            missing,
+            missing: reportedMissing,
         };
     }
 
