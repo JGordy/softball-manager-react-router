@@ -185,24 +185,35 @@ export default function LineupMenu({
         deleteChartHandlers.close();
     };
 
+    const lineupItems = [];
+
+    // Only show Add/Remove Players if there's a player chart
+    if (lineupState && lineupState.length > 0) {
+        lineupItems.push(
+            {
+                key: "add-players",
+                onClick: addPlayersHandlers.open,
+                leftSection: <IconUserPlus size={18} />,
+                content: <Text>Add Players</Text>,
+            },
+            {
+                key: "remove-players",
+                onClick: removePlayersHandlers.open,
+                leftSection: <IconUserMinus size={18} />,
+                content: <Text>Remove Players</Text>,
+            },
+        );
+    }
+
     const sections = [
-        {
-            label: "Lineup",
-            items: [
-                {
-                    key: "add-players",
-                    onClick: addPlayersHandlers.open,
-                    leftSection: <IconUserPlus size={18} />,
-                    content: <Text>Add Players</Text>,
-                },
-                {
-                    key: "remove-players",
-                    onClick: removePlayersHandlers.open,
-                    leftSection: <IconUserMinus size={18} />,
-                    content: <Text>Remove Players</Text>,
-                },
-            ],
-        },
+        ...(lineupItems.length > 0
+            ? [
+                  {
+                      label: "Lineup",
+                      items: lineupItems,
+                  },
+              ]
+            : []),
         {
             label: "Danger Zone",
             items: [
