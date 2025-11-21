@@ -38,7 +38,7 @@ const PositionSelect = React.memo(
                     </Group>
                 );
             },
-            [players, playerLookup, row.playerId],
+            [players, row.playerId],
         );
 
         return (
