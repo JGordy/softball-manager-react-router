@@ -68,14 +68,14 @@ export default function LineupMenu({
         try {
             const formData = new FormData();
             formData.append("_action", "save-chart");
-            formData.append("playerChart", null);
+            formData.append("playerChart", JSON.stringify(null));
 
             fetcher.submit(formData, {
                 method: "post",
                 action: `/events/${game.$id}/lineup`,
             });
         } catch (error) {
-            console.error("Error deleting chart:", error);
+            console.error(`Error deleting chart for game ${game.$id}:`, error);
         }
 
         deleteChartHandlers.close();
