@@ -13,7 +13,7 @@ export async function updatePlayerAttendance({ values, eventId }) {
             Query.equal("gameId", eventId),
         ]);
 
-        if (response.documents.length === 0) {
+        if (response.rows.length === 0) {
             const result = await createDocument("attendance", ID.unique(), {
                 gameId: eventId,
                 playerId,
@@ -23,8 +23,8 @@ export async function updatePlayerAttendance({ values, eventId }) {
             return { response: result, status: 201, success: true };
         }
 
-        if (response.documents.length > 0) {
-            const currentPlayerAttendance = response.documents.find(
+        if (response.rows.length > 0) {
+            const currentPlayerAttendance = response.rows.find(
                 (doc) => doc.playerId === playerId,
             );
 
