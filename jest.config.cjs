@@ -3,6 +3,9 @@ module.exports = {
     transform: {
         "^.+\\.(js|jsx|ts|tsx)$": "babel-jest",
     },
+    transformIgnorePatterns: [
+        "/node_modules/(?!(node-appwrite|node-fetch-native-with-agent)/).+\\.js$",
+    ],
     moduleNameMapper: {
         "\\.(css|less|scss|sass)$": "<rootDir>/__mocks__/styleMock.js",
         "^@/(.*)$": "<rootDir>/app/$1",
