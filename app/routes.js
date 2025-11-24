@@ -35,7 +35,6 @@ export default [
 
         // Api routes
         route("/api/lineup", "routes/api/generate/lineup.js"),
-        // removed dead API routes
         route("/api/resend-verification", "routes/api/resend-verification.js"),
 
         // Catch all route, 404
