@@ -35,9 +35,6 @@ export default [
 
         // Api routes
         route("/api/lineup", "routes/api/generate/lineup.js"),
-        route("/api/teams", "routes/api/data/teams.js"),
-        route("/api/profile", "routes/api/data/profile.js"),
-        route("/api/user", "routes/api/data/user.js"),
         route("/api/resend-verification", "routes/api/resend-verification.js"),
 
         // Catch all route, 404
