@@ -19,8 +19,10 @@ export async function getUserTeams({ request }) {
             Query.equal("role", ["manager", "player"]),
         ]);
 
+        console.log("memberships", memberships);
+
         // 2. Separate teamIds by role
-        const { managerTeamIds, playerTeamIds } = memberships.documents.reduce(
+        const { managerTeamIds, playerTeamIds } = memberships.rows.reduce(
             (acc, m) => {
                 if (m.role === "manager") {
                     acc.managerTeamIds.push(m.teamId);
@@ -42,7 +44,27 @@ export async function getUserTeams({ request }) {
             const result = await listDocuments("teams", [
                 Query.equal("$id", teamIds),
             ]);
-            return result.documents;
+            const teams = result.rows;
+
+            // For each team, manually fetch seasons and games (TablesDB doesn't auto-populate relationships)
+            for (const team of teams) {
+                const seasonsResponse = await listDocuments("seasons", [
+                    Query.equal("teamId", team.$id),
+                ]);
+                const seasons = seasonsResponse.rows || [];
+
+                // For each season, fetch games
+                for (const season of seasons) {
+                    const gamesResponse = await listDocuments("games", [
+                        Query.equal("seasons", season.$id),
+                    ]);
+                    season.games = gamesResponse.rows || [];
+                }
+
+                team.seasons = seasons;
+            }
+
+            return teams;
         };
 
         const managerTeams = await fetchTeams(managerTeamIds);
@@ -63,12 +85,12 @@ export async function getTeamById({ teamId }) {
         ]);
 
         // 2. Get the manager's id
-        const managerIds = memberships.documents
+        const managerIds = memberships.rows
             .filter((document) => document.role === "manager")
             .map((document) => document.userId);
 
         // 3. Extract userIds
-        const userIds = memberships.documents.map((m) => m.userId);
+        const userIds = memberships.rows.map((m) => m.userId);
 
         // 4. Get all players
         let players = [];
@@ -77,18 +99,30 @@ export async function getTeamById({ teamId }) {
             const result = await listDocuments("users", [
                 Query.equal("$id", userIds),
             ]);
-            players = result.documents;
+            players = result.rows;
         }
 
         const teamData = await readDocument("teams", teamId);
 
-        const formatGames = (season) =>
-            season?.games?.map((game) => {
+        // Manually fetch seasons since TablesDB doesn't auto-populate relationships
+        const seasonsResponse = await listDocuments("seasons", [
+            Query.equal("teamId", teamId),
+        ]);
+        const seasons = seasonsResponse.rows || [];
+
+        // For each season, fetch and attach games
+        for (const season of seasons) {
+            const gamesResponse = await listDocuments("games", [
+                Query.equal("seasonId", season.$id),
+            ]);
+            season.games = (gamesResponse.rows || []).map((game) => {
                 game.teamName = teamData.name;
                 return game;
             });
+        }
 
-        teamData?.seasons?.map((season) => formatGames(season));
+        // Attach seasons to teamData
+        teamData.seasons = seasons;
 
         return { teamData, players, managerIds };
     } else {
