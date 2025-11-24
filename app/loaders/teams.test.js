@@ -87,7 +87,7 @@ describe("Teams Loader", () => {
             };
 
             const mockSeasons = [{ $id: "season1", teamId: "team1" }];
-            const mockGames = [{ $id: "game1" }];
+            const mockGames = [{ $id: "game1", seasonId: "season1" }];
 
             listDocuments.mockResolvedValueOnce({ rows: mockMemberships }); // memberships
             listDocuments.mockResolvedValueOnce({ rows: mockUsers }); // users
@@ -101,7 +101,8 @@ describe("Teams Loader", () => {
             expect(result.managerIds).toContain("user1");
             expect(result.players).toHaveLength(2);
             expect(result.teamData.seasons[0].games[0].teamName).toBe("Team 1");
-            expect(Query.equal).toHaveBeenCalledWith("seasonId", "season1");
+            // Batch query uses array of season IDs
+            expect(Query.equal).toHaveBeenCalledWith("seasonId", ["season1"]);
         });
 
         it("should return empty object if teamId is missing", async () => {

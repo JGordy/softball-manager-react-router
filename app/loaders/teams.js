@@ -46,23 +46,37 @@ export async function getUserTeams({ request }) {
             ]);
             const teams = result.rows;
 
-            // For each team, manually fetch seasons and games (TablesDB doesn't auto-populate relationships)
-            for (const team of teams) {
+            // 1. Batch fetch seasons for all teams
+            const allTeamIds = teams.map((t) => t.$id);
+            let allSeasons = [];
+            if (allTeamIds.length > 0) {
                 const seasonsResponse = await listDocuments("seasons", [
-                    Query.equal("teamId", team.$id),
+                    Query.equal("teamId", allTeamIds),
                 ]);
-                const seasons = seasonsResponse.rows || [];
-
-                // For each season, fetch games
-                for (const season of seasons) {
-                    const gamesResponse = await listDocuments("games", [
-                        Query.equal("seasonId", season.$id),
-                    ]);
-                    season.games = gamesResponse.rows || [];
-                }
-
-                team.seasons = seasons;
+                allSeasons = seasonsResponse.rows || [];
             }
+
+            // 2. Batch fetch games for all seasons
+            const allSeasonIds = allSeasons.map((s) => s.$id);
+            let allGames = [];
+            if (allSeasonIds.length > 0) {
+                const gamesResponse = await listDocuments("games", [
+                    Query.equal("seasonId", allSeasonIds),
+                ]);
+                allGames = gamesResponse.rows || [];
+            }
+
+            // 3. Map games to seasons
+            allSeasons.forEach((season) => {
+                season.games = allGames.filter(
+                    (g) => g.seasonId === season.$id,
+                );
+            });
+
+            // 4. Map seasons to teams
+            teams.forEach((team) => {
+                team.seasons = allSeasons.filter((s) => s.teamId === team.$id);
+            });
 
             return teams;
         };
@@ -105,21 +119,31 @@ export async function getTeamById({ teamId }) {
         const teamData = await readDocument("teams", teamId);
 
         // Manually fetch seasons since TablesDB doesn't auto-populate relationships
+        // Manually fetch seasons since TablesDB doesn't auto-populate relationships
         const seasonsResponse = await listDocuments("seasons", [
             Query.equal("teamId", teamId),
         ]);
         const seasons = seasonsResponse.rows || [];
 
-        // For each season, fetch and attach games
-        for (const season of seasons) {
+        // Batch fetch games for all seasons
+        const seasonIds = seasons.map((s) => s.$id);
+        let allGames = [];
+        if (seasonIds.length > 0) {
             const gamesResponse = await listDocuments("games", [
-                Query.equal("seasonId", season.$id),
+                Query.equal("seasonId", seasonIds),
             ]);
-            season.games = (gamesResponse.rows || []).map((game) => {
-                game.teamName = teamData.name;
-                return game;
-            });
+            allGames = gamesResponse.rows || [];
         }
+
+        // Map games to seasons
+        seasons.forEach((season) => {
+            season.games = allGames
+                .filter((g) => g.seasonId === season.$id)
+                .map((game) => {
+                    game.teamName = teamData.name;
+                    return game;
+                });
+        });
 
         // Attach seasons to teamData
         teamData.seasons = seasons;
