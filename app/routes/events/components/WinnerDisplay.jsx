@@ -153,9 +153,9 @@ export default function WinnerDisplay({
 }) {
     const counts = useMemo(() => {
         const map = {};
-        if (!votes?.documents) return map;
+        if (!votes?.rows) return map;
 
-        votes.documents.forEach((vote) => {
+        votes.rows.forEach((vote) => {
             if (vote.reason !== activeAward) return;
             const playerId = vote.nominated_user_id;
             if (!playerId) return;

@@ -38,22 +38,22 @@ describe("Users Loader", () => {
     describe("getTeamsByUserId", () => {
         it("should return teams for the user", async () => {
             const mockMemberships = [{ teamId: "team1" }, { teamId: "team2" }];
-            const mockTeam1 = [{ $id: "team1", name: "Team 1" }];
-            const mockTeam2 = [{ $id: "team2", name: "Team 2" }];
+            const mockTeams = [
+                { $id: "team1", name: "Team 1" },
+                { $id: "team2", name: "Team 2" },
+            ];
 
-            listDocuments.mockResolvedValueOnce({ documents: mockMemberships }); // memberships
-            listDocuments
-                .mockResolvedValueOnce({ documents: mockTeam1 }) // team 1
-                .mockResolvedValueOnce({ documents: mockTeam2 }); // team 2
+            listDocuments.mockResolvedValueOnce({ rows: mockMemberships }); // memberships
+            listDocuments.mockResolvedValueOnce({ rows: mockTeams }); // teams batch query
 
             const result = await getTeamsByUserId({ userId: "user1" });
 
             expect(result).toHaveLength(2);
-            expect(result).toEqual([...mockTeam1, ...mockTeam2]);
+            expect(result).toEqual(mockTeams);
         });
 
         it("should return empty array if no memberships", async () => {
-            listDocuments.mockResolvedValueOnce({ documents: [] });
+            listDocuments.mockResolvedValueOnce({ rows: [] });
 
             const result = await getTeamsByUserId({ userId: "user1" });
 
@@ -64,7 +64,7 @@ describe("Users Loader", () => {
     describe("getAttendanceByUserId", () => {
         it("should return attendance documents", async () => {
             const mockAttendance = [{ $id: "att1", status: "accepted" }];
-            listDocuments.mockResolvedValue({ documents: mockAttendance });
+            listDocuments.mockResolvedValue({ rows: mockAttendance });
 
             const result = await getAttendanceByUserId({ userId: "user1" });
 
@@ -72,7 +72,7 @@ describe("Users Loader", () => {
         });
 
         it("should return empty array if no documents", async () => {
-            listDocuments.mockResolvedValue({ documents: [] });
+            listDocuments.mockResolvedValue({ rows: [] });
 
             const result = await getAttendanceByUserId({ userId: "user1" });
 
@@ -83,7 +83,7 @@ describe("Users Loader", () => {
     describe("getAwardsByUserId", () => {
         it("should return awards documents", async () => {
             const mockAwards = [{ $id: "award1", name: "MVP" }];
-            listDocuments.mockResolvedValue({ documents: mockAwards });
+            listDocuments.mockResolvedValue({ rows: mockAwards });
 
             const result = await getAwardsByUserId({ userId: "user1" });
 
@@ -91,7 +91,7 @@ describe("Users Loader", () => {
         });
 
         it("should return empty array if no documents", async () => {
-            listDocuments.mockResolvedValue({ documents: [] });
+            listDocuments.mockResolvedValue({ rows: [] });
 
             const result = await getAwardsByUserId({ userId: "user1" });
 

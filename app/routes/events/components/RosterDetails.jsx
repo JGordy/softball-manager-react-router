@@ -83,9 +83,9 @@ export default function RosterDetails({
                             }
                         >
                             {({ attendance, players }) => {
-                                const { documents } = attendance;
+                                const { rows } = attendance;
                                 const playersWithAvailability =
-                                    addPlayerAvailability(documents, players);
+                                    addPlayerAvailability(rows, players);
                                 const availablePlayers =
                                     playersWithAvailability.filter(
                                         (p) => p.availability === "accepted",
@@ -97,7 +97,7 @@ export default function RosterDetails({
                                         ml="28px"
                                         c="dimmed"
                                     >
-                                        {`${documents?.length || 0} responses, ${availablePlayers?.length || 0} ${availablePlayers?.length === 1 ? "player" : "players"} available`}
+                                        {`${rows?.length || 0} responses, ${availablePlayers?.length || 0} ${availablePlayers?.length === 1 ? "player" : "players"} available`}
                                     </Text>
                                 );
                             }}

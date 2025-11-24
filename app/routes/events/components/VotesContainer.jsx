@@ -18,7 +18,7 @@ export default function VotesContainer({
 
     useEffect(() => {
         if (votes) {
-            const userVotes = votes.documents.filter(
+            const userVotes = votes.rows.filter(
                 (vote) => vote.voter_user_id === user.$id,
             );
 
@@ -64,7 +64,7 @@ export default function VotesContainer({
     };
 
     const playersWithAvailability = addPlayerAvailability(
-        attendance.documents,
+        attendance.rows,
         players,
     );
 

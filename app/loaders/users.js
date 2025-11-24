@@ -13,21 +13,15 @@ export async function getTeamsByUserId({ userId }) {
     ]);
 
     // 2. Extract teamIds
-    const teamIds = memberships.documents.map((m) => m.teamId);
+    const teamIds = memberships.rows.map((m) => m.teamId);
 
-    // 3. Call the Appwrite function
+    // 3. Batch fetch all teams in a single query
     let teams = [];
     if (teamIds.length > 0) {
-        // Make multiple queries
-        const promises = teamIds.map(async (teamId) => {
-            const result = await listDocuments("teams", [
-                Query.equal("$id", teamId),
-            ]);
-            return result.documents; // Extract the documents
-        });
-
-        const results = await Promise.all(promises); // Wait for all queries to complete
-        teams = results.flat(); // Flatten the array of arrays into a single array
+        const result = await listDocuments("teams", [
+            Query.equal("$id", teamIds),
+        ]);
+        teams = result.rows || [];
     }
 
     return teams;
@@ -39,7 +33,7 @@ export async function getAttendanceByUserId({ userId }) {
         Query.equal("status", "accepted"),
     ]);
 
-    return attendance.documents.length > 0 ? attendance.documents : [];
+    return attendance.rows.length > 0 ? attendance.rows : [];
 }
 
 export async function getAwardsByUserId({ userId }) {
@@ -55,5 +49,5 @@ export async function getAwardsByUserId({ userId }) {
         Query.equal("winner_user_id", userId),
     ]);
 
-    return awards.documents.length > 0 ? awards.documents : [];
+    return awards.rows.length > 0 ? awards.rows : [];
 }

@@ -19,7 +19,7 @@ export async function getParkByPlaceId({ placeId }) {
             Query.limit(1),
         ]);
 
-        return response.documents.length > 0 ? response.documents[0] : null;
+        return response.rows.length > 0 ? response.rows[0] : null;
     } catch (error) {
         console.error("Error fetching park by placeId:", error);
         return null;

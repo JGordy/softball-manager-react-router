@@ -19,8 +19,10 @@ export async function getUserTeams({ request }) {
             Query.equal("role", ["manager", "player"]),
         ]);
 
+        console.log("memberships", memberships);
+
         // 2. Separate teamIds by role
-        const { managerTeamIds, playerTeamIds } = memberships.documents.reduce(
+        const { managerTeamIds, playerTeamIds } = memberships.rows.reduce(
             (acc, m) => {
                 if (m.role === "manager") {
                     acc.managerTeamIds.push(m.teamId);
@@ -42,7 +44,41 @@ export async function getUserTeams({ request }) {
             const result = await listDocuments("teams", [
                 Query.equal("$id", teamIds),
             ]);
-            return result.documents;
+            const teams = result.rows;
+
+            // 1. Batch fetch seasons for all teams
+            const allTeamIds = teams.map((t) => t.$id);
+            let allSeasons = [];
+            if (allTeamIds.length > 0) {
+                const seasonsResponse = await listDocuments("seasons", [
+                    Query.equal("teamId", allTeamIds),
+                ]);
+                allSeasons = seasonsResponse.rows || [];
+            }
+
+            // 2. Batch fetch games for all seasons
+            const allSeasonIds = allSeasons.map((s) => s.$id);
+            let allGames = [];
+            if (allSeasonIds.length > 0) {
+                const gamesResponse = await listDocuments("games", [
+                    Query.equal("seasonId", allSeasonIds),
+                ]);
+                allGames = gamesResponse.rows || [];
+            }
+
+            // 3. Map games to seasons
+            allSeasons.forEach((season) => {
+                season.games = allGames.filter(
+                    (g) => g.seasonId === season.$id,
+                );
+            });
+
+            // 4. Map seasons to teams
+            teams.forEach((team) => {
+                team.seasons = allSeasons.filter((s) => s.teamId === team.$id);
+            });
+
+            return teams;
         };
 
         const managerTeams = await fetchTeams(managerTeamIds);
@@ -63,12 +99,12 @@ export async function getTeamById({ teamId }) {
         ]);
 
         // 2. Get the manager's id
-        const managerIds = memberships.documents
+        const managerIds = memberships.rows
             .filter((document) => document.role === "manager")
             .map((document) => document.userId);
 
         // 3. Extract userIds
-        const userIds = memberships.documents.map((m) => m.userId);
+        const userIds = memberships.rows.map((m) => m.userId);
 
         // 4. Get all players
         let players = [];
@@ -77,18 +113,39 @@ export async function getTeamById({ teamId }) {
             const result = await listDocuments("users", [
                 Query.equal("$id", userIds),
             ]);
-            players = result.documents;
+            players = result.rows;
         }
 
         const teamData = await readDocument("teams", teamId);
 
-        const formatGames = (season) =>
-            season?.games?.map((game) => {
-                game.teamName = teamData.name;
-                return game;
-            });
+        // Manually fetch seasons since TablesDB doesn't auto-populate relationships
+        const seasonsResponse = await listDocuments("seasons", [
+            Query.equal("teamId", teamId),
+        ]);
+        const seasons = seasonsResponse.rows || [];
 
-        teamData?.seasons?.map((season) => formatGames(season));
+        // Batch fetch games for all seasons
+        const seasonIds = seasons.map((s) => s.$id);
+        let allGames = [];
+        if (seasonIds.length > 0) {
+            const gamesResponse = await listDocuments("games", [
+                Query.equal("seasonId", seasonIds),
+            ]);
+            allGames = gamesResponse.rows || [];
+        }
+
+        // Map games to seasons
+        seasons.forEach((season) => {
+            season.games = allGames
+                .filter((g) => g.seasonId === season.$id)
+                .map((game) => {
+                    game.teamName = teamData.name;
+                    return game;
+                });
+        });
+
+        // Attach seasons to teamData
+        teamData.seasons = seasons;
 
         return { teamData, players, managerIds };
     } else {

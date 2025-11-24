@@ -42,7 +42,7 @@ describe("Attendance Actions", () => {
         const eventId = "event1";
 
         it("should create new attendance when no documents exist", async () => {
-            listDocuments.mockResolvedValue({ documents: [] });
+            listDocuments.mockResolvedValue({ rows: [] });
             createDocument.mockResolvedValue({ $id: "att1" });
 
             const result = await updatePlayerAttendance({
@@ -68,7 +68,7 @@ describe("Attendance Actions", () => {
 
         it("should create new attendance when player not found in existing documents", async () => {
             listDocuments.mockResolvedValue({
-                documents: [{ $id: "att1", playerId: "player2" }],
+                rows: [{ $id: "att1", playerId: "player2" }],
             });
             createDocument.mockResolvedValue({ $id: "att2" });
 
@@ -84,7 +84,7 @@ describe("Attendance Actions", () => {
 
         it("should update existing attendance when player is found", async () => {
             listDocuments.mockResolvedValue({
-                documents: [{ $id: "att1", playerId: "player1" }],
+                rows: [{ $id: "att1", playerId: "player1" }],
             });
             updateDocument.mockResolvedValue({ $id: "att1" });
 

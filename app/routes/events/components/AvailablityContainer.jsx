@@ -192,7 +192,7 @@ export default function AvailabliityContainer({
     // Group players by attendance status (accepted, declined, tentative, unknown)
     const renderGroupedAvailability = () => {
         const byPlayer = new Map(
-            (attendance?.documents || []).map((a) => [a.playerId, a]),
+            (attendance?.rows || []).map((a) => [a.playerId, a]),
         );
 
         // Initialize buckets in the desired order
