@@ -30,12 +30,7 @@ const fields = {
     },
 };
 
-export default function PersonalDetails({
-    player,
-    user,
-    fieldsToDisplay,
-    managerView,
-}) {
+export default function PersonalDetails({ player, user, managerView }) {
     const isCurrentUser = user && player && user.$id === player.$id;
     const isTouchDevice = useMediaQuery("(hover: none) and (pointer: coarse)");
 
@@ -104,7 +99,7 @@ export default function PersonalDetails({
     );
 
     // Render other fields
-    const otherFields = Object.entries({ ...fields, ...fieldsToDisplay })
+    const otherFields = Object.entries({ ...fields })
         .filter(([key]) => key !== "email" && key !== "phoneNumber")
         .map(([key, { icon, label, restricted }]) => {
             const value = player[key];

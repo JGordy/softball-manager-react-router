@@ -174,11 +174,7 @@ export default function UserProfile({ loaderData }) {
                     </Tabs.Panel>
 
                     <Tabs.Panel value="personal">
-                        <PersonalDetails
-                            user={loggedInUser}
-                            player={player}
-                            fieldsToDisplay={fieldsToDisplay}
-                        />
+                        <PersonalDetails player={player} user={loggedInUser} />
                     </Tabs.Panel>
 
                     <Tabs.Panel value="awards">
