@@ -47,6 +47,7 @@ describe("databases utility", () => {
                 tableId: collections.users,
                 rowId: "unique-id",
                 data,
+                permissions: [], // Default empty permissions array
             });
             expect(result).toEqual({ id: "doc-id" });
         });
@@ -63,6 +64,33 @@ describe("databases utility", () => {
                 tableId: collections.users,
                 rowId: "provided-id",
                 data,
+                permissions: [], // Default empty permissions array
+            });
+            expect(result).toEqual({ id: "provided-id" });
+        });
+
+        it("should create a document with permissions", async () => {
+            mockTablesDB.createRow.mockResolvedValue({
+                id: "provided-id",
+            });
+            const data = { name: "test" };
+            const permissions = [
+                'read("team:123")',
+                'update("team:123/manager")',
+            ];
+            const result = await createDocument(
+                "users",
+                "provided-id",
+                data,
+                permissions,
+            );
+
+            expect(mockTablesDB.createRow).toHaveBeenCalledWith({
+                databaseId: dbId,
+                tableId: collections.users,
+                rowId: "provided-id",
+                data,
+                permissions,
             });
             expect(result).toEqual({ id: "provided-id" });
         });
