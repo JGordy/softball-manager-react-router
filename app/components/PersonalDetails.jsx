@@ -125,8 +125,8 @@ export default function PersonalDetails({
 
     return (
         <>
-            {managerView && emailField}
-            {managerView && phoneField}
+            {(managerView || isCurrentUser) && emailField}
+            {(managerView || isCurrentUser) && phoneField}
             {otherFields}
         </>
     );
