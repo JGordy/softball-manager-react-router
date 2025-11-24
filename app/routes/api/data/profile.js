@@ -21,11 +21,11 @@ export async function action({ request, params }) {
         ]);
 
         // 3. Separate teamIds by role
-        const managerTeamIds = memberships.documents
+        const managerTeamIds = memberships.rows
             .filter((m) => m.role === "manager")
             .map((m) => m.teamId);
 
-        const playerTeamIds = memberships.documents
+        const playerTeamIds = memberships.rows
             .filter((m) => m.role === "player")
             .map((m) => m.teamId);
 
@@ -35,15 +35,31 @@ export async function action({ request, params }) {
                 return [];
             }
 
-            const promises = teamIds.map(async (teamId) => {
-                const result = await listDocuments("teams", [
-                    Query.equal("$id", teamId),
-                ]);
-                return result.documents;
-            });
+            // Batch fetch all teams in a single query
+            const result = await listDocuments("teams", [
+                Query.equal("$id", teamIds),
+            ]);
+            const teams = result.rows || [];
 
-            const results = await Promise.all(promises);
-            return results.flat();
+            // For each team, manually fetch seasons and games (TablesDB doesn't auto-populate relationships)
+            for (const team of teams) {
+                const seasonsResponse = await listDocuments("seasons", [
+                    Query.equal("teamId", team.$id),
+                ]);
+                const seasons = seasonsResponse.rows || [];
+
+                // For each season, fetch games
+                for (const season of seasons) {
+                    const gamesResponse = await listDocuments("games", [
+                        Query.equal("seasons", season.$id),
+                    ]);
+                    season.games = gamesResponse.rows || [];
+                }
+
+                team.seasons = seasons;
+            }
+
+            return teams;
         };
 
         if (teamRoles.includes("manager")) {
