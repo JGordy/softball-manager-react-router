@@ -119,7 +119,6 @@ export async function getTeamById({ teamId }) {
         const teamData = await readDocument("teams", teamId);
 
         // Manually fetch seasons since TablesDB doesn't auto-populate relationships
-        // Manually fetch seasons since TablesDB doesn't auto-populate relationships
         const seasonsResponse = await listDocuments("seasons", [
             Query.equal("teamId", teamId),
         ]);
