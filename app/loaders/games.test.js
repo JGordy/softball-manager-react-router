@@ -52,17 +52,22 @@ describe("Games Loader", () => {
                 $id: "game1",
                 gameDate: "2023-10-27T10:00:00Z",
                 playerChart: JSON.stringify(JSON.stringify({ lineup: [] })),
-                seasons: {
-                    $id: "season1",
-                    teams: [{ $id: "team1" }],
-                    parkId: "park1",
-                },
+                seasons: "season1",
+            };
+            const mockSeason = {
+                $id: "season1",
+                teams: ["team1"],
+                parkId: "park1",
             };
             const mockUserIds = [{ userId: "user1", role: "manager" }];
+            const mockTeams = [{ $id: "team1", name: "Team 1" }];
 
             // Mock for loadGameBase
-            readDocument.mockResolvedValueOnce(mockGame);
-            listDocuments.mockResolvedValue({ documents: mockUserIds });
+            readDocument.mockResolvedValueOnce(mockGame); // game
+            readDocument.mockResolvedValueOnce(mockSeason); // season
+            listDocuments
+                .mockResolvedValueOnce({ rows: mockTeams }) // teams query
+                .mockResolvedValue({ rows: mockUserIds }); // memberships query
 
             // Mock for getWeatherData
             readDocument.mockResolvedValue({ latitude: 0, longitude: 0 });
@@ -84,24 +89,28 @@ describe("Games Loader", () => {
                 $id: "game1",
                 gameDate: "2023-10-27T10:00:00Z",
                 playerChart: JSON.stringify(JSON.stringify({ lineup: [] })),
-                seasons: {
-                    $id: "season1",
-                    teams: [{ $id: "team1" }],
-                    parkId: "park1",
-                },
+                seasons: "season1",
+            };
+            const mockSeason = {
+                $id: "season1",
+                teams: ["team1"],
+                parkId: "park1",
             };
             const mockUserIds = [{ userId: "user1", role: "player" }];
             const mockUsers = [{ $id: "user1", name: "Player 1" }];
             const mockAttendance = [{ $id: "att1" }];
+            const mockTeams = [{ $id: "team1", name: "Team 1" }];
 
             // Mock for loadGameBase
-            readDocument.mockResolvedValueOnce(mockGame);
+            readDocument.mockResolvedValueOnce(mockGame); // game
+            readDocument.mockResolvedValueOnce(mockSeason); // season
 
             // Mock all listDocuments calls in order
             listDocuments
-                .mockResolvedValueOnce({ documents: mockUserIds }) // memberships
-                .mockResolvedValueOnce({ documents: mockUsers }) // users in resolvePlayers
-                .mockResolvedValueOnce({ documents: mockAttendance }); // attendance
+                .mockResolvedValueOnce({ rows: mockTeams }) // teams
+                .mockResolvedValueOnce({ rows: mockUserIds }) // memberships
+                .mockResolvedValueOnce({ rows: mockUsers }) // users in resolvePlayers
+                .mockResolvedValueOnce({ rows: mockAttendance }); // attendance
 
             const result = await getEventWithPlayerCharts({
                 request: {},

@@ -49,15 +49,17 @@ describe("Teams Loader", () => {
                 { role: "manager", teamId: "team1" },
                 { role: "player", teamId: "team2" },
             ];
-            listDocuments.mockResolvedValueOnce({ documents: mockMemberships }); // memberships
+            listDocuments.mockResolvedValueOnce({ rows: mockMemberships }); // memberships
 
             const mockManagerTeams = [{ $id: "team1", name: "Team 1" }];
             const mockPlayerTeams = [{ $id: "team2", name: "Team 2" }];
 
             // Mock the batch fetch calls
             listDocuments
-                .mockResolvedValueOnce({ documents: mockManagerTeams }) // manager teams
-                .mockResolvedValueOnce({ documents: mockPlayerTeams }); // player teams
+                .mockResolvedValueOnce({ rows: mockManagerTeams }) // manager teams
+                .mockResolvedValueOnce({ rows: [] }) // seasons for manager team
+                .mockResolvedValueOnce({ rows: mockPlayerTeams }) // player teams
+                .mockResolvedValueOnce({ rows: [] }); // seasons for player team
 
             const result = await getUserTeams({ request: {} });
 
@@ -83,8 +85,13 @@ describe("Teams Loader", () => {
                 seasons: [{ games: [{ $id: "game1" }] }],
             };
 
-            listDocuments.mockResolvedValueOnce({ documents: mockMemberships }); // memberships
-            listDocuments.mockResolvedValueOnce({ documents: mockUsers }); // users
+            const mockSeasons = [{ $id: "season1", teamId: "team1" }];
+            const mockGames = [{ $id: "game1" }];
+
+            listDocuments.mockResolvedValueOnce({ rows: mockMemberships }); // memberships
+            listDocuments.mockResolvedValueOnce({ rows: mockUsers }); // users
+            listDocuments.mockResolvedValueOnce({ rows: mockSeasons }); // seasons
+            listDocuments.mockResolvedValueOnce({ rows: mockGames }); // games for season
             readDocument.mockResolvedValueOnce(mockTeamData); // team data
 
             const result = await getTeamById({ teamId: "team1" });
