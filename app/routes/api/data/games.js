@@ -67,7 +67,8 @@ export async function action({ request, params }) {
             return teams;
         };
 
-        const teams = await fetchTeams(memberships);
+        const teamIds = memberships.rows?.map((m) => m.teamId) || [];
+        const teams = await fetchTeams(teamIds);
 
         const games = getGames({ teams });
 
