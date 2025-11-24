@@ -1,9 +1,11 @@
-import { Card, Group, List, Text } from "@mantine/core";
+import { ActionIcon, Card, Group, Text } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 
 import {
     IconFriends,
     IconHeadphonesFilled,
     IconMail,
+    IconMessage,
     IconPhone,
 } from "@tabler/icons-react";
 
@@ -30,30 +32,102 @@ const fields = {
 
 export default function PersonalDetails({
     player,
+    user,
     fieldsToDisplay,
     managerView,
 }) {
-    return (
-        <Card my="md" radius="lg" withBorder>
-            <Group justify="space-between" align="start">
-                <List spacing="xs" size="sm" mt="8px" center>
-                    {Object.entries({ ...fields, ...fieldsToDisplay }).map(
-                        ([key, { icon, label, restricted }]) => {
-                            const value = player[key];
-                            if (restricted && !managerView) {
-                                return null;
-                            }
-                            return (
-                                <List.Item key={key} icon={icon}>
-                                    <Text size="sm" c={!value ? "red" : ""}>
-                                        {value || `${label} not listed*`}
-                                    </Text>
-                                </List.Item>
-                            );
-                        },
-                    )}
-                </List>
+    const isCurrentUser = user && player && user.$id === player.$id;
+    const isTouchDevice = useMediaQuery("(hover: none) and (pointer: coarse)");
+
+    // Handle email field separately
+    const emailField = (
+        <Card withBorder key="email" my="md" radius="lg">
+            <Group justify="space-between">
+                <Group>
+                    {fields.email.icon}
+                    <Text size="md" c={!player.email ? "red" : ""}>
+                        {player.email || "email not listed*"}
+                    </Text>
+                </Group>
+                {!isCurrentUser && player.email && (
+                    <ActionIcon
+                        component="a"
+                        href={`mailto:${player.email}`}
+                        variant="light"
+                        aria-label="Send email"
+                        radius="xl"
+                        size="lg"
+                    >
+                        {fields.email.icon}
+                    </ActionIcon>
+                )}
             </Group>
         </Card>
+    );
+
+    // Handle phone number field separately
+    const phoneField = (
+        <Card withBorder key="phoneNumber" my="md" radius="lg">
+            <Group justify="space-between">
+                <Group>
+                    {fields.phoneNumber.icon}
+                    <Text size="md" c={!player.phoneNumber ? "red" : ""}>
+                        {player.phoneNumber || "phone number not listed*"}
+                    </Text>
+                </Group>
+                {!isCurrentUser && player.phoneNumber && isTouchDevice && (
+                    <Group gap="xs">
+                        <ActionIcon
+                            component="a"
+                            href={`tel:${player.phoneNumber}`}
+                            variant="light"
+                            aria-label="Call phone number"
+                            radius="xl"
+                            size="lg"
+                        >
+                            {fields.phoneNumber.icon}
+                        </ActionIcon>
+                        <ActionIcon
+                            component="a"
+                            href={`sms:${player.phoneNumber}`}
+                            variant="light"
+                            aria-label="Send text message"
+                            radius="xl"
+                            size="lg"
+                        >
+                            <IconMessage size={20} />
+                        </ActionIcon>
+                    </Group>
+                )}
+            </Group>
+        </Card>
+    );
+
+    // Render other fields
+    const otherFields = Object.entries({ ...fields, ...fieldsToDisplay })
+        .filter(([key]) => key !== "email" && key !== "phoneNumber")
+        .map(([key, { icon, label, restricted }]) => {
+            const value = player[key];
+            if (restricted && !managerView) {
+                return null;
+            }
+            return (
+                <Card withBorder key={key} my="md" radius="lg">
+                    <Group>
+                        {icon}
+                        <Text size="md" c={!value ? "red" : ""}>
+                            {value || `${label} not listed*`}
+                        </Text>
+                    </Group>
+                </Card>
+            );
+        });
+
+    return (
+        <>
+            {managerView && emailField}
+            {managerView && phoneField}
+            {otherFields}
+        </>
     );
 }
