@@ -27,7 +27,7 @@ import TabsWrapper from "@/components/TabsWrapper";
 
 import positions from "@/constants/positions";
 
-export default function PlayerList({ players, managerIds, managerView }) {
+export default function PlayerList({ players, managerIds, managerView, user }) {
     const [selectedPlayerId, setSelectedPlayerId] = useState(null);
     const selectedPlayer = players.find(
         (player) => player.$id === selectedPlayerId,
@@ -133,6 +133,7 @@ export default function PlayerList({ players, managerIds, managerView }) {
 
                         <Tabs.Panel value="personal">
                             <PersonalDetails
+                                user={user}
                                 player={selectedPlayer}
                                 managerView={managerView}
                             />
