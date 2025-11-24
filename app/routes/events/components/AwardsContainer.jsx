@@ -126,7 +126,7 @@ export default function AwardsContainer({ game, team, deferredData, user }) {
                                 const userId = user?.$id;
                                 const userAward =
                                     userId &&
-                                    awards?.documents?.some(
+                                    awards?.rows?.some(
                                         (doc) => doc.winner_user_id === userId,
                                     );
 

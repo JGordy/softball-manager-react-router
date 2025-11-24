@@ -27,10 +27,10 @@ export default function SeasonList({
 
         if (startDate <= today && today <= endDate) {
             const { games } = season;
-            if (games && games.length > 0) {
+            if (games && games?.length > 0) {
                 // Find the upcoming game object, not just the date
                 const upcomingGame = games
-                    .filter((game) => DateTime.fromISO(game.gameDate) > today)
+                    ?.filter((game) => DateTime.fromISO(game.gameDate) > today)
                     .sort(
                         (a, b) =>
                             DateTime.fromISO(a.gameDate).toMillis() -
@@ -84,20 +84,20 @@ export default function SeasonList({
     );
 
     const today = DateTime.local();
-    const inProgressSeasons = seasons.filter(
+    const inProgressSeasons = seasons?.filter(
         (season) =>
             DateTime.fromISO(season.startDate) <= today &&
             DateTime.fromISO(season.endDate) >= today,
     );
     const upcomingSeasons = seasons
-        .filter((season) => DateTime.fromISO(season.startDate) > today)
+        ?.filter((season) => DateTime.fromISO(season.startDate) > today)
         .sort(
             (a, b) =>
                 DateTime.fromISO(a.startDate).toMillis() -
                 DateTime.fromISO(b.startDate).toMillis(),
         );
     const pastSeasons = seasons
-        .filter(
+        ?.filter(
             (season) =>
                 DateTime.fromISO(season.endDate).toMillis() < today.toMillis(),
         )
@@ -134,7 +134,7 @@ export default function SeasonList({
         </Link>
     );
 
-    if (!seasons.length) {
+    if (!seasons?.length) {
         return (
             <>
                 {managerView && addSeasonCta}
@@ -148,7 +148,7 @@ export default function SeasonList({
     return (
         <>
             <ScrollArea h="55vh">
-                {inProgressSeasons.length > 0 && (
+                {inProgressSeasons?.length > 0 && (
                     <>
                         <Text size="lg" fw={700} mt="md" c="dimmed">
                             In Progress
@@ -156,7 +156,7 @@ export default function SeasonList({
                         {inProgressSeasons.map(renderSeason)}
                     </>
                 )}
-                {upcomingSeasons.length > 0 && (
+                {upcomingSeasons?.length > 0 && (
                     <>
                         <Text size="lg" fw={700} mt="md" c="dimmed">
                             Upcoming
@@ -165,7 +165,7 @@ export default function SeasonList({
                     </>
                 )}
 
-                {pastSeasons.length > 0 && (
+                {pastSeasons?.length > 0 && (
                     <>
                         <Text size="lg" fw={700} mt="md" c="dimmed">
                             Past

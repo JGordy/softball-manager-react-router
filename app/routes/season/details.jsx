@@ -99,7 +99,7 @@ function DetailCard({ icon: Icon, label, value, color, href, rightSection }) {
 
 export default function SeasonDetails({ loaderData, actionData }) {
     const { season, park } = loaderData;
-    const { teams } = season;
+    const { teams = [] } = season;
     const [team] = teams;
     const { primaryColor } = team;
 
