@@ -124,7 +124,9 @@ export default function EventsDetails({ loaderData }) {
             <Title order={5} mt="lg" align="center">
                 See detailed information for your upcoming and past games
             </Title>
-            <TabsWrapper defaultValue="upcoming">
+            <TabsWrapper
+                defaultValue={futureGames?.length > 0 ? "upcoming" : "past"}
+            >
                 <Tabs.Tab value="upcoming">
                     <Group gap="xs" align="center" justify="center">
                         <IconCalendarMonth size={16} />
