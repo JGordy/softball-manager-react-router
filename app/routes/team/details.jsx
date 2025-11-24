@@ -101,7 +101,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                         Seasons
                     </Group>
                 </Tabs.Tab>
-                <Tabs.Tab value="games" disabled={seasons.length === 0}>
+                <Tabs.Tab value="games" disabled={seasons?.length === 0}>
                     <Group gap="xs" align="center" justify="center">
                         <IconBallBaseball size={16} />
                         Games

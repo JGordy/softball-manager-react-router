@@ -9,10 +9,7 @@ const getAttendance = async ({ eventId, accepted = false }) => {
         queries.push(Query.equal("status", "accepted"));
     }
 
-    const { documents: attendance } = await listDocuments(
-        "attendance",
-        queries,
-    );
+    const { rows: attendance } = await listDocuments("attendance", queries);
     return attendance;
 };
 
@@ -122,17 +119,45 @@ const getWeatherData = (parkId, game) => {
 
 async function loadGameBase(eventId) {
     try {
-        // Read basic game document and extract season/team ids
-        const {
-            seasons: season,
-            playerChart,
-            ...game
-        } = await readDocument("games", eventId);
-        const { teams = [], parkId } = season;
+        // Read basic game document
+        const gameDoc = await readDocument("games", eventId);
+        const { seasons: seasonId, playerChart, ...game } = gameDoc;
+
+        // Manually fetch the season since TablesDB doesn't auto-populate relationships
+        const season = seasonId
+            ? await readDocument("seasons", seasonId)
+            : null;
+
+        if (!season) {
+            console.warn(`No season found for game ${eventId}`);
+            return null;
+        }
+
+        const { teams: teamIds = [], parkId } = season;
+
+        // Fetch actual team objects (TablesDB only stores IDs in relationships)
+        let teams = [];
+        if (teamIds.length > 0) {
+            const teamsResponse = await listDocuments("teams", [
+                Query.equal("$id", teamIds),
+            ]);
+            teams = teamsResponse.rows || [];
+        } else if (season.teamId) {
+            // Fallback to single teamId if teams array is empty
+            const teamsResponse = await listDocuments("teams", [
+                Query.equal("$id", [season.teamId]),
+            ]);
+            teams = teamsResponse.rows || [];
+        }
+
+        if (teams.length === 0) {
+            console.warn(`No teams found for season ${seasonId}`);
+            return null;
+        }
 
         // Load memberships for the primary team (first team in season)
-        const { documents: userIds } = await listDocuments("memberships", [
-            Query.equal("teamId", [teams[0].$id]),
+        const { rows: userIds } = await listDocuments("memberships", [
+            Query.equal("teamId", teams[0].$id),
         ]);
 
         const managerIds = userIds
@@ -162,15 +187,14 @@ async function loadGameBase(eventId) {
 }
 
 function makeDeferredData({ eventId, userIds, parkId }) {
-    const playerPromises = userIds.map(async ({ userId }) => {
-        const result = await listDocuments("users", [
-            Query.equal("$id", userId),
-        ]);
-        return result.documents;
-    });
-    const playersPromise = Promise.all(playerPromises).then((users) =>
-        users.flat(),
-    );
+    // Batch fetch all users in a single query instead of individual queries
+    const userIdList = userIds.map(({ userId }) => userId);
+    const playersPromise =
+        userIdList.length > 0
+            ? listDocuments("users", [Query.equal("$id", userIdList)]).then(
+                  (result) => result.rows || [],
+              )
+            : Promise.resolve([]);
 
     const parkPromise = parkId
         ? readDocument("parks", parkId)
@@ -197,13 +221,16 @@ function makeDeferredData({ eventId, userIds, parkId }) {
 }
 
 async function resolvePlayers(userIds) {
-    const playerPromises = userIds.map(async ({ userId }) => {
-        const result = await listDocuments("users", [
-            Query.equal("$id", userId),
-        ]);
-        return result.documents;
-    });
-    return Promise.all(playerPromises).then((users) => users.flat());
+    // Batch fetch all users in a single query instead of individual queries
+    const userIdList = userIds.map(({ userId }) => userId);
+    if (userIdList.length === 0) {
+        return [];
+    }
+
+    const result = await listDocuments("users", [
+        Query.equal("$id", userIdList),
+    ]);
+    return result.rows || [];
 }
 
 export async function getEventById({ eventId }) {

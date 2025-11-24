@@ -62,7 +62,7 @@ describe("Parks Loader", () => {
                 name: "Test Park",
                 placeId: "place_123",
             };
-            listDocuments.mockResolvedValue({ documents: [mockPark] });
+            listDocuments.mockResolvedValue({ rows: [mockPark] });
             Query.equal.mockReturnValue('equal("placeId", "place_123")');
             Query.limit.mockReturnValue("limit(1)");
 
@@ -78,7 +78,7 @@ describe("Parks Loader", () => {
         });
 
         it("should return null when no park is found", async () => {
-            listDocuments.mockResolvedValue({ documents: [] });
+            listDocuments.mockResolvedValue({ rows: [] });
 
             const result = await getParkByPlaceId({ placeId: "place_123" });
 

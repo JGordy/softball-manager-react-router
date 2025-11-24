@@ -28,10 +28,10 @@ export default function AwardsDrawerContents({
     // automatically scroll the carousel to the first matching award.
     useEffect(() => {
         if (scrolledRef.current) return;
-        if (!awards?.documents || !embla || !user?.$id) return;
+        if (!awards?.rows || !embla || !user?.$id) return;
 
         // Find the first awards document where the winner_user_id matches current user
-        const assigned = awards.documents.find(
+        const assigned = awards.rows.find(
             (doc) => doc.winner_user_id === user.$id,
         );
 
@@ -58,7 +58,7 @@ export default function AwardsDrawerContents({
     // Reset the initial-scroll guard when awards data changes (so reopening/new data can re-run)
     useEffect(() => {
         scrolledRef.current = false;
-    }, [awards?.documents?.length, awards?.total]);
+    }, [awards?.rows?.length, awards?.total]);
 
     return (
         <Stack justify="center" align="stretch">

@@ -19,15 +19,15 @@ export const collections = {
 
 // Helper function to create a document
 export const createDocument = async (collectionType, id, data) => {
-    const { databases } = createAdminClient();
+    const { tablesDB } = createAdminClient();
     const _id = id || ID.unique();
     try {
-        const response = await databases.createDocument(
+        const response = await tablesDB.createRow({
             databaseId,
-            collections[collectionType],
-            _id,
+            tableId: collections[collectionType],
+            rowId: _id,
             data,
-        );
+        });
         return response;
     } catch (error) {
         console.error(`Error creating ${collectionType} document:`, error);
@@ -37,13 +37,13 @@ export const createDocument = async (collectionType, id, data) => {
 
 // Helper function to list a series of documents
 export const listDocuments = async (collectionType, queries) => {
-    const { databases } = createAdminClient();
+    const { tablesDB } = createAdminClient();
     try {
-        const response = await databases.listDocuments(
+        const response = await tablesDB.listRows({
             databaseId,
-            collections[collectionType],
+            tableId: collections[collectionType],
             queries,
-        );
+        });
         return response;
     } catch (error) {
         console.error(`Error listing ${collectionType} documents:`, error);
@@ -53,13 +53,13 @@ export const listDocuments = async (collectionType, queries) => {
 
 // Helper function to read a document
 export const readDocument = async (collectionType, documentId) => {
-    const { databases } = createAdminClient();
+    const { tablesDB } = createAdminClient();
     try {
-        const response = await databases.getDocument(
+        const response = await tablesDB.getRow({
             databaseId,
-            collections[collectionType],
-            documentId,
-        );
+            tableId: collections[collectionType],
+            rowId: documentId,
+        });
         return response;
     } catch (error) {
         console.error(`Error reading ${collectionType} document:`, error);
@@ -69,14 +69,14 @@ export const readDocument = async (collectionType, documentId) => {
 
 // Helper function to update a document
 export const updateDocument = async (collectionType, documentId, data) => {
-    const { databases } = createAdminClient();
+    const { tablesDB } = createAdminClient();
     try {
-        const response = await databases.updateDocument(
+        const response = await tablesDB.updateRow({
             databaseId,
-            collections[collectionType],
-            documentId,
+            tableId: collections[collectionType],
+            rowId: documentId,
             data,
-        );
+        });
         return response;
     } catch (error) {
         console.error(`Error updating ${collectionType} document:`, error);
@@ -86,13 +86,13 @@ export const updateDocument = async (collectionType, documentId, data) => {
 
 // Helper function to delete a document
 export const deleteDocument = async (collectionType, documentId) => {
-    const { databases } = createAdminClient();
+    const { tablesDB } = createAdminClient();
     try {
-        const response = await databases.deleteDocument(
+        const response = await tablesDB.deleteRow({
             databaseId,
-            collections[collectionType],
-            documentId,
-        );
+            tableId: collections[collectionType],
+            rowId: documentId,
+        });
         return response;
     } catch (error) {
         console.error(`Error deleting ${collectionType} document:`, error);

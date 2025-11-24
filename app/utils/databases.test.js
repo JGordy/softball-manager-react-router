@@ -15,17 +15,17 @@ jest.mock("node-appwrite", () => ({
     },
 }));
 
-const mockDatabases = {
-    createDocument: jest.fn(),
-    listDocuments: jest.fn(),
-    getDocument: jest.fn(),
-    updateDocument: jest.fn(),
-    deleteDocument: jest.fn(),
+const mockTablesDB = {
+    createRow: jest.fn(),
+    listRows: jest.fn(),
+    getRow: jest.fn(),
+    updateRow: jest.fn(),
+    deleteRow: jest.fn(),
 };
 
 jest.mock("@/utils/appwrite/server", () => ({
     createAdminClient: jest.fn(() => ({
-        databases: mockDatabases,
+        tablesDB: mockTablesDB,
     })),
 }));
 
@@ -38,39 +38,37 @@ describe("databases utility", () => {
 
     describe("createDocument", () => {
         it("should create a document with generated ID", async () => {
-            mockDatabases.createDocument.mockResolvedValue({ id: "doc-id" });
+            mockTablesDB.createRow.mockResolvedValue({ id: "doc-id" });
             const data = { name: "test" };
             const result = await createDocument("users", null, data);
 
-            expect(mockDatabases.createDocument).toHaveBeenCalledWith(
-                dbId,
-                collections.users,
-                "unique-id",
+            expect(mockTablesDB.createRow).toHaveBeenCalledWith({
+                databaseId: dbId,
+                tableId: collections.users,
+                rowId: "unique-id",
                 data,
-            );
+            });
             expect(result).toEqual({ id: "doc-id" });
         });
 
         it("should create a document with provided ID", async () => {
-            mockDatabases.createDocument.mockResolvedValue({
+            mockTablesDB.createRow.mockResolvedValue({
                 id: "provided-id",
             });
             const data = { name: "test" };
             const result = await createDocument("users", "provided-id", data);
 
-            expect(mockDatabases.createDocument).toHaveBeenCalledWith(
-                dbId,
-                collections.users,
-                "provided-id",
+            expect(mockTablesDB.createRow).toHaveBeenCalledWith({
+                databaseId: dbId,
+                tableId: collections.users,
+                rowId: "provided-id",
                 data,
-            );
+            });
             expect(result).toEqual({ id: "provided-id" });
         });
 
         it("should throw error on failure", async () => {
-            mockDatabases.createDocument.mockRejectedValue(
-                new Error("DB Error"),
-            );
+            mockTablesDB.createRow.mockRejectedValue(new Error("DB Error"));
             const consoleErrorSpy = jest
                 .spyOn(console, "error")
                 .mockImplementation(() => {});
@@ -85,24 +83,22 @@ describe("databases utility", () => {
 
     describe("listDocuments", () => {
         it("should list documents", async () => {
-            const mockResponse = { documents: [] };
-            mockDatabases.listDocuments.mockResolvedValue(mockResponse);
+            const mockRows = [];
+            mockTablesDB.listRows.mockResolvedValue({ rows: mockRows });
             const queries = ["query"];
 
             const result = await listDocuments("users", queries);
 
-            expect(mockDatabases.listDocuments).toHaveBeenCalledWith(
-                dbId,
-                collections.users,
+            expect(mockTablesDB.listRows).toHaveBeenCalledWith({
+                databaseId: dbId,
+                tableId: collections.users,
                 queries,
-            );
-            expect(result).toEqual(mockResponse);
+            });
+            expect(result.rows).toEqual(mockRows);
         });
 
         it("should throw error on failure", async () => {
-            mockDatabases.listDocuments.mockRejectedValue(
-                new Error("DB Error"),
-            );
+            mockTablesDB.listRows.mockRejectedValue(new Error("DB Error"));
             const consoleErrorSpy = jest
                 .spyOn(console, "error")
                 .mockImplementation(() => {});
@@ -118,20 +114,20 @@ describe("databases utility", () => {
     describe("readDocument", () => {
         it("should read a document", async () => {
             const mockResponse = { id: "doc-id" };
-            mockDatabases.getDocument.mockResolvedValue(mockResponse);
+            mockTablesDB.getRow.mockResolvedValue(mockResponse);
 
             const result = await readDocument("users", "doc-id");
 
-            expect(mockDatabases.getDocument).toHaveBeenCalledWith(
-                dbId,
-                collections.users,
-                "doc-id",
-            );
+            expect(mockTablesDB.getRow).toHaveBeenCalledWith({
+                databaseId: dbId,
+                tableId: collections.users,
+                rowId: "doc-id",
+            });
             expect(result).toEqual(mockResponse);
         });
 
         it("should throw error on failure", async () => {
-            mockDatabases.getDocument.mockRejectedValue(new Error("DB Error"));
+            mockTablesDB.getRow.mockRejectedValue(new Error("DB Error"));
             const consoleErrorSpy = jest
                 .spyOn(console, "error")
                 .mockImplementation(() => {});
@@ -147,24 +143,22 @@ describe("databases utility", () => {
     describe("updateDocument", () => {
         it("should update a document", async () => {
             const mockResponse = { id: "doc-id", updated: true };
-            mockDatabases.updateDocument.mockResolvedValue(mockResponse);
+            mockTablesDB.updateRow.mockResolvedValue(mockResponse);
             const data = { name: "updated" };
 
             const result = await updateDocument("users", "doc-id", data);
 
-            expect(mockDatabases.updateDocument).toHaveBeenCalledWith(
-                dbId,
-                collections.users,
-                "doc-id",
+            expect(mockTablesDB.updateRow).toHaveBeenCalledWith({
+                databaseId: dbId,
+                tableId: collections.users,
+                rowId: "doc-id",
                 data,
-            );
+            });
             expect(result).toEqual(mockResponse);
         });
 
         it("should throw error on failure", async () => {
-            mockDatabases.updateDocument.mockRejectedValue(
-                new Error("DB Error"),
-            );
+            mockTablesDB.updateRow.mockRejectedValue(new Error("DB Error"));
             const consoleErrorSpy = jest
                 .spyOn(console, "error")
                 .mockImplementation(() => {});
@@ -180,22 +174,20 @@ describe("databases utility", () => {
     describe("deleteDocument", () => {
         it("should delete a document", async () => {
             const mockResponse = { deleted: true };
-            mockDatabases.deleteDocument.mockResolvedValue(mockResponse);
+            mockTablesDB.deleteRow.mockResolvedValue(mockResponse);
 
             const result = await deleteDocument("users", "doc-id");
 
-            expect(mockDatabases.deleteDocument).toHaveBeenCalledWith(
-                dbId,
-                collections.users,
-                "doc-id",
-            );
+            expect(mockTablesDB.deleteRow).toHaveBeenCalledWith({
+                databaseId: dbId,
+                tableId: collections.users,
+                rowId: "doc-id",
+            });
             expect(result).toEqual(mockResponse);
         });
 
         it("should throw error on failure", async () => {
-            mockDatabases.deleteDocument.mockRejectedValue(
-                new Error("DB Error"),
-            );
+            mockTablesDB.deleteRow.mockRejectedValue(new Error("DB Error"));
             const consoleErrorSpy = jest
                 .spyOn(console, "error")
                 .mockImplementation(() => {});
