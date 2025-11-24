@@ -1,4 +1,4 @@
-import { updatePlayerAttendance } from "./attendance";
+import { updatePlayerAttendance } from "../attendance";
 import {
     createDocument,
     listDocuments,

@@ -11,7 +11,7 @@ describe("badWordsApi", () => {
         fetch.mockClear();
 
         // Dynamic import to pick up new env vars
-        badWordsApi = await import("./badWordsApi");
+        badWordsApi = await import("../badWordsApi");
     });
 
     afterAll(() => {
@@ -22,7 +22,7 @@ describe("badWordsApi", () => {
         it("should throw error if API key is missing", async () => {
             jest.resetModules();
             process.env.BAD_WORDS_API_KEY = "";
-            const api = await import("./badWordsApi");
+            const api = await import("../badWordsApi");
 
             await expect(api.checkBadWords("some text")).rejects.toThrow(
                 "BAD_WORDS_API_KEY environment variable is not configured",

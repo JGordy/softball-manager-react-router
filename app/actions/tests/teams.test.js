@@ -1,4 +1,4 @@
-import { createTeam, updateTeam, addPlayerToTeam } from "./teams";
+import { createTeam, updateTeam, addPlayerToTeam } from "../teams";
 import { createDocument, updateDocument } from "@/utils/databases";
 import { hasBadWords } from "@/utils/badWordsApi";
 

@@ -1,4 +1,9 @@
-import { createSingleGame, createGames, updateGame, deleteGame } from "./games";
+import {
+    createSingleGame,
+    createGames,
+    updateGame,
+    deleteGame,
+} from "../games";
 import {
     createDocument,
     updateDocument,

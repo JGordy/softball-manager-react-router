@@ -9,7 +9,7 @@ import {
     formatForViewerDate,
     formatForViewerTime,
     isSameDayInZone,
-} from "./dateTime";
+} from "../dateTime";
 import { DateTime, Settings } from "luxon";
 
 describe("dateTime utility", () => {

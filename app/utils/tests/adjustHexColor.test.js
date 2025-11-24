@@ -1,4 +1,4 @@
-import { adjustColorBasedOnDarkness } from "./adjustHexColor";
+import { adjustColorBasedOnDarkness } from "../adjustHexColor";
 
 describe("adjustColorBasedOnDarkness", () => {
     it("should lighten a dark color", () => {

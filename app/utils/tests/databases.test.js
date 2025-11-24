@@ -5,7 +5,7 @@ import {
     updateDocument,
     deleteDocument,
     collections,
-} from "./databases";
+} from "../databases";
 import { ID } from "node-appwrite";
 
 // Mock dependencies
