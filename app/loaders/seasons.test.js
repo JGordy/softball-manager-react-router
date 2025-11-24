@@ -1,5 +1,6 @@
 import { getSeasonById } from "./seasons";
 import { listDocuments, readDocument } from "@/utils/databases";
+import { Query } from "node-appwrite";
 
 // Mock dependencies
 jest.mock("@/utils/databases", () => ({
@@ -22,6 +23,7 @@ describe("Seasons Loader", () => {
 
             expect(readDocument).toHaveBeenCalledWith("seasons", "season1");
             expect(result.season).toEqual(mockSeason);
+            expect(Query.equal).toHaveBeenCalledWith("seasonId", "season1");
         });
 
         it("should return empty object when seasonId is missing", async () => {

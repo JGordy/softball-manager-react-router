@@ -1,6 +1,7 @@
 import { getUserTeams, getTeamById } from "./teams";
 import { listDocuments, readDocument } from "@/utils/databases";
 import { createSessionClient } from "@/utils/appwrite/server";
+import { Query } from "node-appwrite";
 
 // Mock dependencies
 jest.mock("@/utils/databases", () => ({
@@ -100,6 +101,7 @@ describe("Teams Loader", () => {
             expect(result.managerIds).toContain("user1");
             expect(result.players).toHaveLength(2);
             expect(result.teamData.seasons[0].games[0].teamName).toBe("Team 1");
+            expect(Query.equal).toHaveBeenCalledWith("seasonId", "season1");
         });
 
         it("should return empty object if teamId is missing", async () => {

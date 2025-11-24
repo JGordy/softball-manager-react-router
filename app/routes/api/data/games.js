@@ -42,7 +42,7 @@ export async function action({ request, params }) {
                 // For each season, fetch games
                 for (const season of seasons) {
                     const gamesResponse = await listDocuments("games", [
-                        Query.equal("seasons", season.$id),
+                        Query.equal("seasonId", season.$id),
                     ]);
                     season.games = gamesResponse.rows || [];
                 }

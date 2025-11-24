@@ -27,10 +27,10 @@ export default function SeasonList({
 
         if (startDate <= today && today <= endDate) {
             const { games } = season;
-            if (games && games?.length > 0) {
+            if (games?.length > 0) {
                 // Find the upcoming game object, not just the date
                 const upcomingGame = games
-                    ?.filter((game) => DateTime.fromISO(game.gameDate) > today)
+                    .filter((game) => DateTime.fromISO(game.gameDate) > today)
                     .sort(
                         (a, b) =>
                             DateTime.fromISO(a.gameDate).toMillis() -

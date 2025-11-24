@@ -23,7 +23,7 @@ export async function getSeasonById({ seasonId }) {
 
         // Manually fetch games for this season
         const gamesResponse = await listDocuments("games", [
-            Query.equal("seasons", seasonId),
+            Query.equal("seasonId", seasonId),
         ]);
         season.games = gamesResponse.rows || [];
 
