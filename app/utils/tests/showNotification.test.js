@@ -1,4 +1,4 @@
-import { showNotification, useResponseNotification } from "./showNotification";
+import { showNotification, useResponseNotification } from "../showNotification";
 import { notifications } from "@mantine/notifications";
 import { renderHook } from "@testing-library/react";
 import useModal from "@/hooks/useModal";

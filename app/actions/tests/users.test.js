@@ -4,7 +4,7 @@ import {
     updateAccountInfo,
     updatePassword,
     resetPassword,
-} from "./users";
+} from "../users";
 import { createDocument, updateDocument } from "@/utils/databases";
 import { createSessionClient } from "@/utils/appwrite/server";
 import { hasBadWords } from "@/utils/badWordsApi";

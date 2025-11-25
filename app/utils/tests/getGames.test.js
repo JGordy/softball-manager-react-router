@@ -1,4 +1,4 @@
-import getGames from "./getGames";
+import getGames from "../getGames";
 import { Settings } from "luxon";
 
 describe("getGames utility", () => {

@@ -1,4 +1,4 @@
-import { savePlayerChart } from "./lineups";
+import { savePlayerChart } from "../lineups";
 import { updateDocument } from "@/utils/databases";
 
 // Mock dependencies

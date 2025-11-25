@@ -1,4 +1,4 @@
-import { findOrCreatePark, updatePark } from "./parks";
+import { findOrCreatePark, updatePark } from "../parks";
 import { createDocument, updateDocument } from "@/utils/databases";
 import { getParkByPlaceId } from "@/loaders/parks";
 

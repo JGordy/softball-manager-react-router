@@ -1,4 +1,4 @@
-import { logoutAction } from "./logout";
+import { logoutAction } from "../logout";
 import { createSessionClient } from "@/utils/appwrite/server";
 
 // Mock dependencies

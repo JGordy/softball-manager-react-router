@@ -1,4 +1,4 @@
-import sortByDate from "./sortByDate";
+import sortByDate from "../sortByDate";
 
 describe("sortByDate utility", () => {
     it("should sort array by date key ascending", () => {

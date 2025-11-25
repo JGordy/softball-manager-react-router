@@ -12,6 +12,7 @@ import AddTeam from "@/forms/AddTeam";
 import AddSingleGame from "@/forms/AddSingleGame";
 import AddSeason from "@/forms/AddSeason";
 import AddPlayer from "@/forms/AddPlayer";
+import InvitePlayer from "@/forms/InvitePlayer";
 
 import useModal from "@/hooks/useModal";
 
@@ -20,7 +21,7 @@ import MenuContainer from "@/components/MenuContainer";
 export default function TeamMenu({ userId, team }) {
     const { openModal } = useModal();
 
-    const { $id: teamId, seasons, primaryColor } = team;
+    const { $id: teamId, name: teamName, seasons, primaryColor } = team;
 
     const openAddTeamModal = () =>
         openModal({
@@ -36,6 +37,19 @@ export default function TeamMenu({ userId, team }) {
                     actionRoute={`/team/${teamId}`}
                     buttonColor={primaryColor}
                     inputsToDisplay={["name", "gender", "contact", "positions"]}
+                />
+            ),
+        });
+
+    const openInvitePlayerModal = () =>
+        openModal({
+            title: "Invite Player by Email",
+            children: (
+                <InvitePlayer
+                    actionRoute={`/team/${teamId}`}
+                    buttonColor={primaryColor}
+                    teamId={teamId}
+                    teamName={teamName}
                 />
             ),
         });
@@ -83,12 +97,6 @@ export default function TeamMenu({ userId, team }) {
                     leftSection: <IconCalendar size={18} />,
                     content: <Text>Add Season</Text>,
                 },
-                {
-                    key: "add-game",
-                    onClick: openAddGameModal,
-                    leftSection: <IconBallBaseball size={18} />,
-                    content: <Text>Add Game</Text>,
-                },
             ],
         },
         {
@@ -98,14 +106,13 @@ export default function TeamMenu({ userId, team }) {
                     key: "add-player",
                     onClick: openAddPlayerModal,
                     leftSection: <IconUserFilled size={18} />,
-                    content: <Text>Add Player with Details</Text>,
+                    content: <Text>Add Player</Text>,
                 },
                 {
                     key: "invite-player",
-                    disabled: true,
-                    // onClick: openAddPlayerModal,
+                    onClick: openInvitePlayerModal,
                     leftSection: <IconMailFast size={18} />,
-                    content: <Text>Invite Player (Coming Soon!)</Text>,
+                    content: <Text>Invite by Email</Text>,
                 },
             ],
         },

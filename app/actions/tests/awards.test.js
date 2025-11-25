@@ -1,4 +1,4 @@
-import { sendAwardVotes, updateAwardVote } from "./awards";
+import { sendAwardVotes, updateAwardVote } from "../awards";
 import { createDocument, updateDocument } from "@/utils/databases";
 
 // Mock dependencies

@@ -17,6 +17,7 @@ import { createSingleGame } from "@/actions/games";
 import { createPlayer } from "@/actions/users";
 import { createSeason } from "@/actions/seasons";
 import { updateTeam } from "@/actions/teams";
+import { inviteUserByEmail } from "@/utils/invitations";
 
 import { getTeamById } from "@/loaders/teams";
 
@@ -32,9 +33,9 @@ export function links() {
     return [{ rel: "preload", href: fieldSrc, as: "image" }];
 }
 
-export async function loader({ params }) {
+export async function loader({ params, request }) {
     const { teamId } = params;
-    return getTeamById({ teamId });
+    return getTeamById({ teamId, request });
 }
 
 export async function action({ request, params }) {
@@ -44,6 +45,19 @@ export async function action({ request, params }) {
 
     if (_action === "add-player") {
         return createPlayer({ values, teamId });
+    }
+
+    if (_action === "invite-player") {
+        const { email, name } = values;
+        const origin = new URL(request.url).origin;
+        const verificationUrl = `${origin}/verify`;
+
+        return inviteUserByEmail({
+            email,
+            teamId,
+            name,
+            verificationUrl,
+        });
     }
 
     if (_action === "add-season") {

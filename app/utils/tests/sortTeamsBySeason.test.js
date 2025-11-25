@@ -1,4 +1,4 @@
-import sortTeams from "./sortTeamsBySeason";
+import sortTeams from "../sortTeamsBySeason";
 import { Settings } from "luxon";
 
 describe("sortTeamsBySeason utility", () => {

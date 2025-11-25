@@ -1,11 +1,14 @@
 import { Query } from "node-appwrite";
 import { listDocuments, readDocument } from "@/utils/databases";
-import { createSessionClient } from "@/utils/appwrite/server";
+import {
+    createSessionClient,
+    createAdminClient,
+} from "@/utils/appwrite/server";
 
 export async function getUserTeams({ request }) {
     try {
         // Get authenticated user from session
-        const { account } = await createSessionClient(request);
+        const { account, teams } = await createSessionClient(request);
         const user = await account.get();
         const userId = user?.$id;
 
@@ -13,26 +16,74 @@ export async function getUserTeams({ request }) {
             return { managing: [], playing: [], userId: null };
         }
 
-        // 1. Check relationships table to list memberships for the userId, both manager and player
-        const memberships = await listDocuments("memberships", [
-            Query.equal("userId", userId),
-            Query.equal("role", ["manager", "player"]),
-        ]);
+        const managerTeamIds = [];
+        const playerTeamIds = [];
 
-        console.log("memberships", memberships);
+        // Try to get teams from Appwrite Teams API first (for new teams)
+        try {
+            const userTeams = await teams.list();
 
-        // 2. Separate teamIds by role
-        const { managerTeamIds, playerTeamIds } = memberships.rows.reduce(
-            (acc, m) => {
-                if (m.role === "manager") {
-                    acc.managerTeamIds.push(m.teamId);
-                } else if (m.role === "player") {
-                    acc.playerTeamIds.push(m.teamId);
+            // Check each team to determine user's role
+            for (const team of userTeams.teams) {
+                try {
+                    const memberships = await teams.listMemberships(team.$id);
+                    const userMembership = memberships.memberships.find(
+                        (m) => m.userId === userId,
+                    );
+
+                    if (userMembership) {
+                        // Check roles to categorize as manager or player
+                        if (
+                            userMembership.roles.includes("manager") ||
+                            userMembership.roles.includes("owner")
+                        ) {
+                            managerTeamIds.push(team.$id);
+                        } else {
+                            playerTeamIds.push(team.$id);
+                        }
+                    }
+                } catch (error) {
+                    console.error(
+                        `Error checking membership for team ${team.$id}:`,
+                        error,
+                    );
                 }
-                return acc;
-            },
-            { managerTeamIds: [], playerTeamIds: [] },
-        );
+            }
+        } catch (teamsApiError) {
+            console.log(
+                "No Appwrite Teams found or Teams API not available, checking old memberships table...",
+            );
+        }
+
+        // FALLBACK: Check old memberships table for teams not yet migrated
+        // This ensures existing teams continue to work until migration is run
+        try {
+            const oldMemberships = await listDocuments("memberships", [
+                Query.equal("userId", userId),
+            ]);
+
+            for (const membership of oldMemberships.rows) {
+                // Skip if we already found this team via Teams API
+                if (
+                    managerTeamIds.includes(membership.teamId) ||
+                    playerTeamIds.includes(membership.teamId)
+                ) {
+                    continue;
+                }
+
+                // Categorize based on role in old memberships table
+                if (membership.role === "manager") {
+                    managerTeamIds.push(membership.teamId);
+                } else {
+                    playerTeamIds.push(membership.teamId);
+                }
+            }
+        } catch (membershipsError) {
+            console.error(
+                "Error checking old memberships table:",
+                membershipsError,
+            );
+        }
 
         // 3. Fetch teams for managers and players
         const fetchTeams = async (teamIds) => {
@@ -91,22 +142,60 @@ export async function getUserTeams({ request }) {
     }
 }
 
-export async function getTeamById({ teamId }) {
+export async function getTeamById({ teamId, request }) {
     if (teamId) {
-        // 1. Get memberships
-        const memberships = await listDocuments("memberships", [
-            Query.equal("teamId", teamId),
-        ]);
+        const managerIds = [];
+        const userIds = [];
 
-        // 2. Get the manager's id
-        const managerIds = memberships.rows
-            .filter((document) => document.role === "manager")
-            .map((document) => document.userId);
+        // Try to get memberships from Appwrite Teams API first (for new teams)
+        try {
+            // Use Admin client to bypass permission checks for listing team members
+            const { teams } = createAdminClient();
+            const memberships = await teams.listMemberships(teamId);
 
-        // 3. Extract userIds
-        const userIds = memberships.rows.map((m) => m.userId);
+            // Extract user IDs and categorize by role
+            for (const membership of memberships.memberships) {
+                userIds.push(membership.userId);
 
-        // 4. Get all players
+                if (
+                    membership.roles.includes("manager") ||
+                    membership.roles.includes("owner")
+                ) {
+                    managerIds.push(membership.userId);
+                }
+            }
+        } catch (teamsApiError) {
+            console.log(
+                "No Appwrite Teams memberships found, checking old memberships table...",
+            );
+            console.error("Teams API error:", teamsApiError);
+        }
+
+        // FALLBACK: Check old memberships table if no Teams API memberships found
+        if (userIds.length === 0) {
+            try {
+                const oldMemberships = await listDocuments("memberships", [
+                    Query.equal("teamId", teamId),
+                ]);
+
+                // Extract manager IDs
+                const oldManagerIds = oldMemberships.rows
+                    .filter((document) => document.role === "manager")
+                    .map((document) => document.userId);
+                managerIds.push(...oldManagerIds);
+
+                // Extract all user IDs
+                const oldUserIds = oldMemberships.rows.map((m) => m.userId);
+                userIds.push(...oldUserIds);
+            } catch (membershipsError) {
+                console.error(
+                    "Error checking old memberships table:",
+                    membershipsError,
+                );
+            }
+        }
+
+        // Get all players from users table
         let players = [];
         if (userIds.length > 0) {
             // Batch query: fetch all users in a single request

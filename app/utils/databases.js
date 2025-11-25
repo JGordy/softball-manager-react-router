@@ -18,7 +18,12 @@ export const collections = {
 };
 
 // Helper function to create a document
-export const createDocument = async (collectionType, id, data) => {
+export const createDocument = async (
+    collectionType,
+    id,
+    data,
+    permissions = [],
+) => {
     const { tablesDB } = createAdminClient();
     const _id = id || ID.unique();
     try {
@@ -27,6 +32,7 @@ export const createDocument = async (collectionType, id, data) => {
             tableId: collections[collectionType],
             rowId: _id,
             data,
+            permissions,
         });
         return response;
     } catch (error) {
@@ -96,6 +102,27 @@ export const deleteDocument = async (collectionType, documentId) => {
         return response;
     } catch (error) {
         console.error(`Error deleting ${collectionType} document:`, error);
+        throw error;
+    }
+};
+
+// Helper function to update document permissions
+export const updateDocumentPermissions = async (
+    collectionType,
+    documentId,
+    permissions,
+) => {
+    const { tablesDB } = createAdminClient();
+    try {
+        const response = await tablesDB.updateRow({
+            databaseId,
+            tableId: collections[collectionType],
+            rowId: documentId,
+            permissions,
+        });
+        return response;
+    } catch (error) {
+        console.error(`Error updating ${collectionType} permissions:`, error);
         throw error;
     }
 };

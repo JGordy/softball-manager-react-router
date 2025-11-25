@@ -1,5 +1,10 @@
-import { ID } from "node-appwrite";
+import { ID, Permission, Role } from "node-appwrite";
 import { createDocument, updateDocument } from "@/utils/databases.js";
+import {
+    createAppwriteTeam,
+    addExistingUserToTeam,
+    inviteNewMemberByEmail,
+} from "@/utils/teams.js";
 
 import { hasBadWords } from "@/utils/badWordsApi";
 
@@ -19,16 +24,31 @@ export async function createTeam({ values, userId }) {
             };
         }
 
-        const teamId = ID.unique(); // Create this now so it's easier to use later
+        const teamId = ID.unique();
 
-        const team = await createDocument("teams", teamId, teamData);
-
-        // Create document in relationship table for the user and team id's. Assume the user creating the team is a manager
-        await createDocument("memberships", null, {
-            userId,
+        // 1. Create Appwrite Team (handles memberships & permissions)
+        await createAppwriteTeam({
             teamId,
-            role: "manager",
+            name: teamData.name,
+            roles: ["manager", "player", "coach"], // Define your team roles
         });
+
+        // 2. Add creator as first member with owner & manager roles
+        // Note: Using userId means NO email is sent (silent add)
+        await addExistingUserToTeam({
+            teamId,
+            userId,
+            roles: ["owner", "manager"],
+        });
+
+        // 3. Create database record for custom team data with permissions
+        const team = await createDocument("teams", teamId, teamData, [
+            Permission.read(Role.team(teamId)), // All team members can read
+            Permission.update(Role.team(teamId, "manager")), // Only managers can update
+            Permission.delete(Role.team(teamId, "manager")), // Only managers can delete
+        ]);
+
+        // Note: No need for separate memberships table - Appwrite Teams API handles it automatically
 
         return { response: team, status: 201, success: true };
     } catch (error) {
@@ -51,20 +71,45 @@ export async function updateTeam({ values, teamId }) {
     }
 }
 
-export async function addPlayerToTeam({ userId, teamId }) {
+export async function addPlayerToTeam({ userId, email, teamId, name }) {
     try {
-        if (!userId || !teamId) {
-            throw new Error("User Id and Team Id are required");
+        if ((!userId && !email) || !teamId) {
+            throw new Error(
+                "Either userId or email must be provided, along with teamId",
+            );
         }
 
-        // Create document in relationship table for the user and team id's. Add user as a player
-        await createDocument("memberships", null, {
-            userId,
-            teamId,
-            role: "player",
-        });
+        // Decide: Silent add vs Email invitation
+        if (userId) {
+            // User exists in system - add them silently (no email)
+            await addExistingUserToTeam({
+                teamId,
+                userId,
+                roles: ["player"],
+            });
 
-        return { response: team, status: 201 };
+            return {
+                response: { teamId, userId },
+                status: 201,
+                success: true,
+                message: "Player added to team successfully",
+            };
+        } else {
+            // Invite by email - sends invitation email
+            await inviteNewMemberByEmail({
+                teamId,
+                email,
+                roles: ["player"],
+                name,
+            });
+
+            return {
+                response: { teamId, email },
+                status: 201,
+                success: true,
+                message: "Invitation email sent to player",
+            };
+        }
     } catch (error) {
         console.error("Error adding player to existing team:", error);
         throw error;

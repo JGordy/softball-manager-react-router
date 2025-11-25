@@ -1,4 +1,4 @@
-import { createSeason, updateSeason } from "./seasons";
+import { createSeason, updateSeason } from "../seasons";
 import { createDocument, updateDocument } from "@/utils/databases";
 import { hasBadWords } from "@/utils/badWordsApi";
 import { findOrCreatePark } from "@/actions/parks";
