@@ -3,6 +3,7 @@ import { createAdminClient } from "@/utils/appwrite/server";
 import { createDocument, listDocuments } from "@/utils/databases";
 import { addExistingUserToTeam } from "@/utils/teams";
 import { Query } from "node-appwrite";
+import { hasBadWords } from "@/utils/badWordsApi";
 
 /**
  * Invite a user by email to join a team
@@ -23,6 +24,13 @@ export async function inviteUserByEmail({
     verificationUrl,
 }) {
     try {
+        // Validate name if provided
+        if (name && (await hasBadWords(name))) {
+            throw new Error(
+                "Name contains inappropriate language. Please use a different name.",
+            );
+        }
+
         // 1. Check if user already exists in database by email
         const existingUsers = await listDocuments("users", [
             Query.equal("email", email),

@@ -2,11 +2,13 @@ import { inviteUserByEmail } from "../invitations";
 import { createAdminClient } from "@/utils/appwrite/server";
 import { createDocument, listDocuments } from "@/utils/databases";
 import { addExistingUserToTeam } from "@/utils/teams";
+import { hasBadWords } from "@/utils/badWordsApi";
 
 // Mock dependencies
 jest.mock("@/utils/appwrite/server");
 jest.mock("@/utils/databases");
 jest.mock("@/utils/teams");
+jest.mock("@/utils/badWordsApi");
 jest.mock("node-appwrite", () => ({
     ID: {
         unique: jest.fn(() => "unique-user-id"),
@@ -29,6 +31,9 @@ describe("invitations utility", () => {
         createAdminClient.mockReturnValue({
             account: mockAccount,
         });
+
+        // Default: no bad words
+        hasBadWords.mockResolvedValue(false);
     });
 
     afterEach(() => {
@@ -194,6 +199,25 @@ describe("invitations utility", () => {
                 lastName: "",
                 email: "newplayer@example.com",
             });
+        });
+
+        it("should reject invitation if name contains inappropriate language", async () => {
+            hasBadWords.mockResolvedValue(true);
+
+            await expect(
+                inviteUserByEmail({
+                    email,
+                    teamId,
+                    name: "BadWord Name",
+                    verificationUrl,
+                }),
+            ).rejects.toThrow(
+                "Name contains inappropriate language. Please use a different name.",
+            );
+
+            // Should not proceed with any database operations
+            expect(listDocuments).not.toHaveBeenCalled();
+            expect(mockAccount.create).not.toHaveBeenCalled();
         });
 
         it("should handle error when user creation fails", async () => {
