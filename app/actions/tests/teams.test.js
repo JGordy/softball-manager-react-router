@@ -178,11 +178,15 @@ describe("Teams Actions", () => {
         it("should throw error if userId or email and teamId is missing", async () => {
             await expect(
                 addPlayerToTeam({ userId: null, email: null, teamId: "team1" }),
-            ).rejects.toThrow("User Id or email and Team Id are required");
+            ).rejects.toThrow(
+                "Either userId or email must be provided, along with teamId",
+            );
 
             await expect(
                 addPlayerToTeam({ userId: "user1", teamId: null }),
-            ).rejects.toThrow("User Id or email and Team Id are required");
+            ).rejects.toThrow(
+                "Either userId or email must be provided, along with teamId",
+            );
         });
     });
 });
