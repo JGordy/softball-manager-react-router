@@ -3,7 +3,7 @@ import { createAdminClient } from "@/utils/appwrite/server";
 
 /**
  * Create an Appwrite Team
- * The creator is automatically assigned as "owner"
+ * Note: This only creates the team structure. Members must be added separately.
  */
 export async function createAppwriteTeam({
     teamId,

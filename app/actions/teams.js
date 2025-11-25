@@ -48,6 +48,8 @@ export async function createTeam({ values, userId }) {
             Permission.delete(Role.team(teamId, "manager")), // Only managers can delete
         ]);
 
+        // Note: No need for separate memberships table - Appwrite Teams API handles it automatically
+
         return { response: team, status: 201, success: true };
     } catch (error) {
         console.error("Error creating team:", error);
@@ -72,7 +74,9 @@ export async function updateTeam({ values, teamId }) {
 export async function addPlayerToTeam({ userId, email, teamId, name }) {
     try {
         if ((!userId && !email) || !teamId) {
-            throw new Error("User Id or email and Team Id are required");
+            throw new Error(
+                "Either userId or email must be provided, along with teamId",
+            );
         }
 
         // Decide: Silent add vs Email invitation

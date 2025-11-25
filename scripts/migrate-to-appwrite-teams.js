@@ -91,6 +91,7 @@ async function migrateTeamsToAppwriteAPI() {
                 // 3. Get all memberships for this team from your table
                 const memberships = await listDocuments("memberships", [
                     Query.equal("teamId", team.$id),
+                    Query.limit(500), // Handle teams with many members
                 ]);
 
                 log(
