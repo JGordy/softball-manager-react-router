@@ -44,7 +44,7 @@ export default function InvitePlayer({
                     placeholder="John Doe"
                     radius="md"
                     size="md"
-                    description="Personalize the invitation email"
+                    description="Used for account creation if the user is new"
                 />
 
                 {/* Hidden field to pass teamId */}

@@ -48,9 +48,6 @@ export async function createTeam({ values, userId }) {
             Permission.delete(Role.team(teamId, "manager")), // Only managers can delete
         ]);
 
-        // 3. No need for separate memberships table!
-        // Appwrite Teams API handles it automatically
-
         return { response: team, status: 201, success: true };
     } catch (error) {
         console.error("Error creating team:", error);

@@ -28,7 +28,7 @@
  */
 
 import { Query, Permission, Role } from "node-appwrite";
-import { listDocuments, readDocument } from "../app/utils/databases.js";
+import { listDocuments } from "../app/utils/databases.js";
 import {
     createAppwriteTeam,
     addExistingUserToTeam,
@@ -55,6 +55,14 @@ async function migrateTeamsToAppwriteAPI() {
         // 1. Get all teams from database
         log("📋 Fetching all teams from database...", colors.blue);
         const allTeams = await listDocuments("teams", [Query.limit(1000)]);
+
+        if (allTeams.rows.length === 1000) {
+            log(
+                "   ⚠️  WARNING: Hit the 1000 team limit. There may be more teams to migrate!",
+                colors.yellow,
+            );
+        }
+
         log(
             `   Found ${allTeams.rows.length} teams to migrate\n`,
             colors.green,
@@ -91,48 +99,36 @@ async function migrateTeamsToAppwriteAPI() {
 
                 // 4. Add members to Appwrite Team
                 // IMPORTANT: Using Server SDK with userId = NO emails sent!
-                const managers = memberships.rows.filter(
-                    (m) => m.role === "manager",
-                );
-                const players = memberships.rows.filter(
-                    (m) => m.role === "player",
-                );
 
-                // Add managers first
-                for (const membership of managers) {
-                    try {
-                        await addExistingUserToTeam({
-                            teamId: team.$id,
-                            userId: membership.userId,
-                            roles: ["manager"],
-                        });
+                // Map of known roles
+                const roleMap = {
+                    manager: ["manager"],
+                    player: ["player"],
+                    coach: ["coach"],
+                };
+
+                // Add all memberships, handling unknown roles
+                for (const membership of memberships.rows) {
+                    const roles = roleMap[membership.role] || ["player"]; // default to player
+                    if (!roleMap[membership.role]) {
                         log(
-                            `   ✓ Added manager: ${membership.userId}`,
-                            colors.green,
-                        );
-                    } catch (error) {
-                        log(
-                            `   ✗ Failed to add manager ${membership.userId}: ${error.message}`,
-                            colors.red,
+                            `   ⚠️ Unknown role ${membership.role} for user ${membership.userId}, defaulting to player`,
+                            colors.yellow,
                         );
                     }
-                }
-
-                // Add players
-                for (const membership of players) {
                     try {
                         await addExistingUserToTeam({
                             teamId: team.$id,
                             userId: membership.userId,
-                            roles: ["player"],
+                            roles,
                         });
                         log(
-                            `   ✓ Added player: ${membership.userId}`,
+                            `   ✓ Added ${membership.role}: ${membership.userId}`,
                             colors.green,
                         );
                     } catch (error) {
                         log(
-                            `   ✗ Failed to add player ${membership.userId}: ${error.message}`,
+                            `   ✗ Failed to add ${membership.role} ${membership.userId}: ${error.message}`,
                             colors.red,
                         );
                     }
@@ -214,25 +210,27 @@ log("   • Test on development environment first\n", colors.yellow);
 const args = process.argv.slice(2);
 const skipConfirm = args.includes("--yes") || args.includes("-y");
 
-if (!skipConfirm) {
-    log("Type 'yes' to continue: ", colors.yellow);
+(async () => {
+    if (!skipConfirm) {
+        log("Type 'yes' to continue: ", colors.yellow);
 
-    // Simple confirmation (works in Node.js)
-    const readline = require("readline");
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-    });
+        // Simple confirmation (works in Node.js)
+        const readline = (await import("readline")).default;
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+        });
 
-    rl.question("", (answer) => {
-        rl.close();
-        if (answer.toLowerCase() === "yes") {
-            migrateTeamsToAppwriteAPI();
-        } else {
-            log("\n❌ Migration cancelled.\n", colors.red);
-            process.exit(0);
-        }
-    });
-} else {
-    migrateTeamsToAppwriteAPI();
-}
+        rl.question("", (answer) => {
+            rl.close();
+            if (answer.toLowerCase() === "yes") {
+                migrateTeamsToAppwriteAPI();
+            } else {
+                log("\n❌ Migration cancelled.\n", colors.red);
+                process.exit(0);
+            }
+        });
+    } else {
+        migrateTeamsToAppwriteAPI();
+    }
+})();

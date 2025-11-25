@@ -82,7 +82,7 @@ export async function addExistingUserToTeam({ teamId, userId, roles }) {
  * Invite a new member by email (sends invitation email)
  */
 export async function inviteNewMemberByEmail({ teamId, email, roles, name }) {
-    const appUrl = import.meta.env.VITE_APP_URL || "http://localhost:5173";
+    const appUrl = process.env.VITE_APP_URL || "http://localhost:5173";
 
     return addTeamMember({
         teamId,
