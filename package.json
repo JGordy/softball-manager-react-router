@@ -28,7 +28,7 @@
         "@react-router/serve": "^7.3.0",
         "@tabler/icons-react": "^3.34.1",
         "@vercel/react-router": "^1.1.0",
-        "appwrite": "^17.0.0",
+        "appwrite": "^21.4.0",
         "calendar-link": "^2.11.0",
         "canvas-confetti": "^1.9.3",
         "clsx": "^2.1.1",
