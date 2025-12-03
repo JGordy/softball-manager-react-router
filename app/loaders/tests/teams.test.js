@@ -1,10 +1,11 @@
-import { getUserTeams, getTeamById } from "./teams";
 import { listDocuments, readDocument } from "@/utils/databases";
+
 import {
     createSessionClient,
     createAdminClient,
 } from "@/utils/appwrite/server";
-import { Query } from "node-appwrite";
+
+import { getUserTeams, getTeamById } from "../teams";
 
 // Mock dependencies
 jest.mock("@/utils/databases", () => ({

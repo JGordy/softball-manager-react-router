@@ -1,5 +1,6 @@
-import { checkUserHasPassword } from "./invitations";
 import { createAdminClient } from "@/utils/appwrite/server";
+
+import { checkUserHasPassword } from "../invitations";
 
 // Mock dependencies
 jest.mock("@/utils/appwrite/server", () => ({

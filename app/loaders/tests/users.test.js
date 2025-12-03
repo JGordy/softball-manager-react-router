@@ -1,10 +1,11 @@
+import { listDocuments, readDocument } from "@/utils/databases";
+
 import {
     getUserById,
     getTeamsByUserId,
     getAttendanceByUserId,
     getAwardsByUserId,
-} from "./users";
-import { listDocuments, readDocument } from "@/utils/databases";
+} from "../users";
 
 // Mock dependencies
 jest.mock("@/utils/databases", () => ({

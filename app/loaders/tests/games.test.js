@@ -1,6 +1,6 @@
-import { getEventById, getEventWithPlayerCharts } from "./games";
 import { listDocuments, readDocument } from "@/utils/databases";
-import { Query } from "node-appwrite";
+
+import { getEventById, getEventWithPlayerCharts } from "../games";
 
 // Mock dependencies
 jest.mock("@/utils/databases", () => ({
