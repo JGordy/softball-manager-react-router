@@ -14,9 +14,13 @@ jest.mock("cookie", () => ({
 
 // Mock node-appwrite
 const mockUpdatePassword = jest.fn().mockResolvedValue({});
+const mockCreateSession = jest.fn().mockResolvedValue({
+    secret: "test-session-secret",
+});
 jest.mock("node-appwrite", () => ({
     Users: jest.fn().mockImplementation(() => ({
         updatePassword: mockUpdatePassword,
+        createSession: mockCreateSession,
     })),
 }));
 
@@ -32,16 +36,18 @@ jest.mock("appwrite", () => ({
 }));
 
 // Mock server utilities
-const mockCreateSession = jest.fn().mockResolvedValue({
-    secret: "test-session-secret",
-});
 jest.mock("@/utils/appwrite/server", () => ({
     createAdminClient: jest.fn(() => ({
         account: {
             client: {},
-            createSession: mockCreateSession,
         },
     })),
+}));
+
+// Mock databases
+jest.mock("@/utils/databases", () => ({
+    createDocument: jest.fn().mockResolvedValue({}),
+    readDocument: jest.fn().mockRejectedValue(new Error("Not found")),
 }));
 
 describe("Invitations Actions", () => {
@@ -256,7 +262,7 @@ describe("Invitations Actions", () => {
 
             // Response is a Web API, check its properties directly
             expect(result.status).toBe(302);
-            expect(result.headers.get("Location")).toBe("/teams");
+            expect(result.headers.get("Location")).toBe("/");
             expect(result.headers.get("Set-Cookie")).toContain(
                 "appwrite-session",
             );
