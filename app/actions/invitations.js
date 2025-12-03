@@ -122,9 +122,15 @@ export async function acceptTeamInvitation({
  * Set password for a new user who was invited to a team
  * This is a SERVER-SIDE action
  */
-export async function setPasswordForInvitedUser({ userId, email, password }) {
+export async function setPasswordForInvitedUser({
+    userId,
+    email,
+    password,
+    name,
+}) {
     const { Users } = await import("node-appwrite");
     const { createAdminClient } = await import("@/utils/appwrite/server");
+    const { createDocument, readDocument } = await import("@/utils/databases");
     const cookie = await import("cookie");
 
     if (!password || password.length < 8) {
@@ -141,8 +147,40 @@ export async function setPasswordForInvitedUser({ userId, email, password }) {
         // Update the user's password
         await users.updatePassword({ userId, password });
 
-        // Create a session for the user using Server SDK
-        const session = await account.createSession(userId);
+        // Check if user document already exists in the users collection
+        let userDocExists = false;
+        try {
+            await readDocument("users", userId);
+            userDocExists = true;
+        } catch (error) {
+            // Document doesn't exist, we'll create it
+            userDocExists = false;
+        }
+
+        // Create user document in users collection if it doesn't exist
+        // This ensures the Auth user ID matches the users collection document ID
+        if (!userDocExists) {
+            // Parse name into first/last if provided
+            let firstName = "";
+            let lastName = "";
+            if (name) {
+                const nameParts = name.trim().split(" ");
+                firstName = nameParts[0] || "";
+                lastName = nameParts.slice(1).join(" ") || "";
+            }
+
+            await createDocument("users", userId, {
+                email,
+                firstName,
+                lastName,
+                userId, // Store the Auth userId for reference
+                preferredPositions: [],
+                dislikedPositions: [],
+            });
+        }
+
+        // Create a session for the user using Users API (Server SDK)
+        const session = await users.createSession(userId);
 
         // Set the session cookie
         const sessionCookie = cookie.serialize(
@@ -161,7 +199,7 @@ export async function setPasswordForInvitedUser({ userId, email, password }) {
             status: 302,
             headers: {
                 "Set-Cookie": sessionCookie,
-                Location: "/teams",
+                Location: "/",
             },
         });
     } catch (error) {
