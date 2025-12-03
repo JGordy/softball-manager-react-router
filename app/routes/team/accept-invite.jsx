@@ -32,26 +32,34 @@ export async function action({ request }) {
         const password = formData.get("password");
         const userId = formData.get("userId");
         const email = formData.get("email");
+        const name = formData.get("name");
 
         const result = await setPasswordForInvitedUser({
             userId,
             email,
             password,
+            name,
         });
 
         if (result.success) {
-            return redirect("/teams");
+            return redirect("/");
         }
 
         return result;
     }
+
+    return { success: false, message: "Unknown action" };
 }
 
-export async function clientAction({ request, params }) {
+export async function clientAction({ request, params, serverAction }) {
     const { teamId } = params;
-    const formData = await request.formData();
+
+    // Clone the request so we can read formData without consuming the original
+    const clonedRequest = request.clone();
+    const formData = await clonedRequest.formData();
     const _action = formData.get("_action");
 
+    // Only handle accept-invite on client, pass everything else to server
     if (_action === "accept-invite") {
         const membershipId = formData.get("membershipId");
         const userId = formData.get("userId");
@@ -64,17 +72,18 @@ export async function clientAction({ request, params }) {
             secret,
         });
 
-        if (result.success) {
-            return result; // Return the whole result including email and name
-        }
-
         return result;
     }
+
+    // For all other actions (like set-password), pass through to server action
+    return serverAction();
 }
 
 export default function AcceptInvite({ loaderData, actionData, params }) {
     const [searchParams] = useSearchParams();
     const [inviteAccepted, setInviteAccepted] = useState(false);
+    const [userEmail, setUserEmail] = useState("");
+    const [userName, setUserName] = useState("");
 
     const userId = searchParams.get("userId");
     const secret = searchParams.get("secret");
@@ -103,6 +112,12 @@ export default function AcceptInvite({ loaderData, actionData, params }) {
     useEffect(() => {
         if (actionData?.inviteAccepted) {
             setInviteAccepted(true);
+            if (actionData.email) {
+                setUserEmail(actionData.email);
+            }
+            if (actionData.name) {
+                setUserName(actionData.name);
+            }
         }
     }, [actionData]);
 
@@ -141,11 +156,8 @@ export default function AcceptInvite({ loaderData, actionData, params }) {
                             value="set-password"
                         />
                         <input type="hidden" name="userId" value={userId} />
-                        <input
-                            type="hidden"
-                            name="email"
-                            value={actionData?.email}
-                        />
+                        <input type="hidden" name="email" value={userEmail} />
+                        <input type="hidden" name="name" value={userName} />
 
                         <PasswordInput
                             name="password"
