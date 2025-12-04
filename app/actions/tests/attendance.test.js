@@ -12,18 +12,6 @@ jest.mock("@/utils/databases", () => ({
     updateDocument: jest.fn(),
 }));
 
-jest.mock("node-appwrite", () => ({
-    Query: {
-        equal: jest.fn(
-            (field, value) =>
-                `Query.equal("${field}", ${JSON.stringify(value)})`,
-        ),
-    },
-    ID: {
-        unique: jest.fn(() => "unique-id"),
-    },
-}));
-
 describe("Attendance Actions", () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -37,6 +25,7 @@ describe("Attendance Actions", () => {
     describe("updatePlayerAttendance", () => {
         const mockValues = {
             playerId: "player1",
+            teamId: "team1",
             status: "accepted",
         };
         const eventId = "event1";
@@ -61,6 +50,7 @@ describe("Attendance Actions", () => {
                     playerId: "player1",
                     status: "accepted",
                 },
+                expect.any(Array), // permissions array
             );
             expect(result.success).toBe(true);
             expect(result.status).toBe(201);
