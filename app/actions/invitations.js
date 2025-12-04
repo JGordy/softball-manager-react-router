@@ -29,9 +29,9 @@ export async function invitePlayerByEmail({ email, teamId, name, url }) {
                 },
                 body: JSON.stringify({
                     roles: ["player"],
-                    email: email,
-                    url: url,
-                    name: name,
+                    email,
+                    url,
+                    name,
                 }),
             },
         );
