@@ -1,11 +1,12 @@
 import { Text } from "@mantine/core";
-
+import { useDisclosure } from "@mantine/hooks";
 import {
     IconBallBaseball,
     IconCalendar,
     IconEdit,
     IconMailFast,
     IconUserFilled,
+    IconShieldLock,
 } from "@tabler/icons-react";
 
 import AddTeam from "@/forms/AddTeam";
@@ -17,18 +18,22 @@ import InvitePlayer from "@/forms/InvitePlayer";
 import useModal from "@/hooks/useModal";
 
 import MenuContainer from "@/components/MenuContainer";
+import ManageRolesDrawer from "./ManageRolesDrawer";
 
-export default function TeamMenu({ userId, team }) {
+export default function TeamMenu({ userId, team, ownerView, players }) {
     const { openModal } = useModal();
+    const [rolesOpened, { open: openRoles, close: closeRoles }] =
+        useDisclosure(false);
 
     const { $id: teamId, name: teamName, seasons, primaryColor } = team;
 
-    const openAddTeamModal = () =>
+    const openEditTeamModal = () =>
         openModal({
             title: "Edit Team Details",
             children: (
                 <AddTeam
-                    actionRoute={"/"}
+                    action="edit-team"
+                    actionRoute={`/team/${teamId}`}
                     userId={userId}
                     buttonColor={primaryColor}
                 />
@@ -92,8 +97,8 @@ export default function TeamMenu({ userId, team }) {
             label: "Team Details",
             items: [
                 {
-                    key: "add-team",
-                    onClick: openAddTeamModal,
+                    key: "edit-team",
+                    onClick: openEditTeamModal,
                     leftSection: <IconEdit size={18} />,
                     content: <Text>Edit Team</Text>,
                 },
@@ -130,5 +135,29 @@ export default function TeamMenu({ userId, team }) {
         },
     ];
 
-    return <MenuContainer sections={sections} />;
+    if (ownerView) {
+        sections.push({
+            label: "Admin",
+            items: [
+                {
+                    key: "manage-roles",
+                    onClick: openRoles,
+                    leftSection: <IconShieldLock size={18} />,
+                    content: <Text>Manage Roles</Text>,
+                },
+            ],
+        });
+    }
+
+    return (
+        <>
+            <MenuContainer sections={sections} />
+            <ManageRolesDrawer
+                opened={rolesOpened}
+                onClose={closeRoles}
+                players={players}
+                teamId={teamId}
+            />
+        </>
+    );
 }
