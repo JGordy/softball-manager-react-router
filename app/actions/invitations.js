@@ -10,6 +10,9 @@ export async function invitePlayerByEmail({ email, teamId, name, url }) {
     try {
         // Fetch the session from our server API
         const sessionResponse = await fetch("/api/session");
+        if (!sessionResponse.ok) {
+            throw new Error("Failed to retrieve session");
+        }
         const { session } = await sessionResponse.json();
 
         if (!session) {

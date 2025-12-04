@@ -69,6 +69,7 @@ describe("Invitations Actions", () => {
             // Mock session fetch
             global.fetch
                 .mockResolvedValueOnce({
+                    ok: true,
                     json: () => Promise.resolve({ session: "test-session" }),
                 })
                 .mockResolvedValueOnce({
@@ -98,6 +99,7 @@ describe("Invitations Actions", () => {
 
         it("should fail if no session found", async () => {
             global.fetch.mockResolvedValueOnce({
+                ok: true,
                 json: () => Promise.resolve({ session: null }),
             });
 
@@ -117,6 +119,7 @@ describe("Invitations Actions", () => {
         it("should handle API errors", async () => {
             global.fetch
                 .mockResolvedValueOnce({
+                    ok: true,
                     json: () => Promise.resolve({ session: "test-session" }),
                 })
                 .mockResolvedValueOnce({
@@ -141,6 +144,7 @@ describe("Invitations Actions", () => {
         it("should send correct headers and body to Appwrite API", async () => {
             global.fetch
                 .mockResolvedValueOnce({
+                    ok: true,
                     json: () =>
                         Promise.resolve({ session: "my-session-token" }),
                 })
