@@ -18,12 +18,6 @@ jest.mock("@/utils/databases", () => ({
     deleteDocument: jest.fn(),
 }));
 
-jest.mock("node-appwrite", () => ({
-    ID: {
-        unique: jest.fn(() => "unique-id"),
-    },
-}));
-
 jest.mock("@/utils/badWordsApi", () => ({
     hasBadWords: jest.fn(),
 }));
@@ -55,6 +49,7 @@ describe("Games Actions", () => {
                 isHomeGame: "true",
                 opponent: "Team A",
                 seasonId: "season1",
+                teamId: "team1",
                 timeZone: "America/New_York",
             };
 
@@ -62,14 +57,20 @@ describe("Games Actions", () => {
 
             const result = await createSingleGame({ values: mockValues });
 
-            expect(createDocument).toHaveBeenCalledWith("games", "unique-id", {
-                isHomeGame: true,
-                gameDate: "2024-01-01T10:00",
-                opponent: "Team A",
-                seasons: "season1",
-                seasonId: "season1",
-                timeZone: "America/New_York",
-            });
+            expect(createDocument).toHaveBeenCalledWith(
+                "games",
+                "unique-id",
+                {
+                    isHomeGame: true,
+                    gameDate: "2024-01-01T10:00",
+                    opponent: "Team A",
+                    teamId: "team1",
+                    seasons: "season1",
+                    seasonId: "season1",
+                    timeZone: "America/New_York",
+                },
+                expect.any(Array), // permissions array
+            );
             expect(result.success).toBe(true);
             expect(result.status).toBe(201);
         });
@@ -81,6 +82,7 @@ describe("Games Actions", () => {
                 opponent: "BadWord Team",
                 gameDate: "2024-01-01",
                 gameTime: "10:00",
+                teamId: "team1",
             };
 
             const result = await createSingleGame({ values: mockValues });
@@ -95,8 +97,18 @@ describe("Games Actions", () => {
         it("should create multiple games", async () => {
             const mockValues = {
                 games: JSON.stringify([
-                    { opponent: "Team A", gameDate: "2024-01-01" },
-                    { opponent: "Team B", gameDate: "2024-01-02" },
+                    {
+                        opponent: "Team A",
+                        gameDate: "2024-01-01",
+                        teamId: "team1",
+                        seasonId: "season1",
+                    },
+                    {
+                        opponent: "Team B",
+                        gameDate: "2024-01-02",
+                        teamId: "team1",
+                        seasonId: "season1",
+                    },
                 ]),
                 timeZone: "America/New_York",
             };

@@ -1,4 +1,4 @@
-import { ID } from "node-appwrite";
+import { ID, Permission, Role } from "node-appwrite";
 import {
     createDocument,
     deleteDocument,
@@ -22,7 +22,8 @@ function computeResult(score, opponentScore) {
 }
 
 export async function createSingleGame({ values }) {
-    const { gameDate, gameTime, isHomeGame, opponent, ...gameData } = values;
+    const { gameDate, gameTime, isHomeGame, opponent, teamId, ...gameData } =
+        values;
 
     try {
         // Check opponent name for inappropriate language
@@ -34,6 +35,18 @@ export async function createSingleGame({ values }) {
                     "Opponent name contains inappropriate language. Please choose a different name.",
             };
         }
+
+        // Build permissions array if we have teamId
+        const permissions = teamId
+            ? [
+                  Permission.read(Role.team(teamId)), // Team members can read
+                  Permission.update(Role.team(teamId, "manager")), // Managers can update
+                  Permission.update(Role.team(teamId, "owner")), // Owners can update
+                  Permission.delete(Role.team(teamId, "manager")), // Managers can delete
+                  Permission.delete(Role.team(teamId, "owner")), // Owners can delete
+              ]
+            : [];
+
         const updatedGameDate = combineDateTime(
             gameDate,
             gameTime,
@@ -45,6 +58,7 @@ export async function createSingleGame({ values }) {
             isHomeGame: isHomeGame === "true",
             gameDate: updatedGameDate,
             opponent,
+            teamId,
             seasons: values.seasonId,
         };
 
@@ -52,6 +66,7 @@ export async function createSingleGame({ values }) {
             "games",
             ID.unique(),
             updatedGameData,
+            permissions,
         );
 
         return {
@@ -70,14 +85,34 @@ export async function createGames({ values }) {
     const { games: generatedGames, timeZone } = values;
     let games = JSON.parse(generatedGames);
 
+    // Get teamId from the first game (all games have the same teamId)
+    const teamId = games[0]?.teamId;
+
     try {
+        // Build permissions array if we have teamId
+        const permissions = teamId
+            ? [
+                  Permission.read(Role.team(teamId)), // Team members can read
+                  Permission.update(Role.team(teamId, "manager")), // Managers can update
+                  Permission.update(Role.team(teamId, "owner")), // Owners can update
+                  Permission.delete(Role.team(teamId, "manager")), // Managers can delete
+                  Permission.delete(Role.team(teamId, "owner")), // Owners can delete
+              ]
+            : [];
+
         const createdGames = [];
 
         for (const game of games) {
-            const createdGame = await createDocument("games", ID.unique(), {
-                ...game,
-                timeZone,
-            });
+            const createdGame = await createDocument(
+                "games",
+                ID.unique(),
+                {
+                    ...game,
+                    teamId,
+                    timeZone,
+                },
+                permissions,
+            );
             createdGames.push(createdGame);
         }
 
