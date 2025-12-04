@@ -41,8 +41,9 @@ export async function action({ request }) {
             name,
         });
 
-        if (result.success) {
-            return redirect("/");
+        // setPasswordForInvitedUser returns a Response on success (with redirect and cookie)
+        if (result instanceof Response) {
+            return result;
         }
 
         return result;
