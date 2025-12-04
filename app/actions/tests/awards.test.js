@@ -7,12 +7,6 @@ jest.mock("@/utils/databases", () => ({
     updateDocument: jest.fn(),
 }));
 
-jest.mock("node-appwrite", () => ({
-    ID: {
-        unique: jest.fn(() => "unique-id"),
-    },
-}));
-
 describe("Awards Actions", () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -31,6 +25,7 @@ describe("Awards Actions", () => {
                     "Best Hitter": { nominated_user_id: "user2" },
                 }),
                 voter_user_id: "voter1",
+                team_id: "team1",
             };
             const eventId = "event1";
 
@@ -53,6 +48,7 @@ describe("Awards Actions", () => {
                     MVP: { nominated_user_id: "user1", vote_id: "vote1" },
                 }),
                 voter_user_id: "voter1",
+                team_id: "team1",
             };
             const eventId = "event1";
 
@@ -74,6 +70,8 @@ describe("Awards Actions", () => {
                 playerVotes: JSON.stringify({
                     MVP: { nominated_user_id: "user1" },
                 }),
+                voter_user_id: "voter1",
+                team_id: "team1",
             };
 
             createDocument.mockRejectedValue(new Error("Database error"));
