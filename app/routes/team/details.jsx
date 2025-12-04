@@ -64,18 +64,26 @@ export async function action({ request, params }) {
     }
 }
 
-export async function clientAction({ request, params }) {
+export async function clientAction({ request, params, serverAction }) {
     const { teamId } = params;
-    const formData = await request.formData();
-    const { _action, ...values } = Object.fromEntries(formData);
 
+    // Clone the request so we can read formData without consuming the original
+    const clonedRequest = request.clone();
+    const formData = await clonedRequest.formData();
+    const _action = formData.get("_action");
+
+    // Only handle invite-player on client, pass everything else to server
     if (_action === "invite-player") {
-        const { email, name } = values;
+        const email = formData.get("email");
+        const name = formData.get("name");
         // Build the invitation URL from the request
         const url = new URL(request.url);
         const inviteUrl = `${url.origin}/team/${teamId}/accept-invite`;
         return invitePlayerByEmail({ email, teamId, name, url: inviteUrl });
     }
+
+    // For all other actions (like update-role), pass through to server action
+    return serverAction();
 }
 
 export default function TeamDetails({ actionData, loaderData }) {
