@@ -7,6 +7,7 @@ jest.mock("@/utils/appwrite/server", () => ({
     createAdminClient: jest.fn(),
 }));
 
+// Note: This test needs custom Users class mock, so can't use __mocks__/node-appwrite.js
 jest.mock("node-appwrite", () => ({
     Users: jest.fn().mockImplementation(() => ({
         get: jest.fn(),

@@ -37,13 +37,6 @@ export async function createPlayer({ values, teamId, userId }) {
             userId: _userId,
         });
 
-        // Create document in relationship table for the user and team id's.
-        await createDocument("memberships", null, {
-            userId: _userId,
-            teamId,
-            role: "player",
-        });
-
         return { response: { player }, status: 201, success: true };
     } catch (error) {
         console.error("Error creating player:", error);

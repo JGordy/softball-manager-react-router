@@ -18,13 +18,6 @@ jest.mock("@/utils/appwrite/server", () => ({
     createAdminClient: jest.fn(),
 }));
 
-jest.mock("node-appwrite", () => ({
-    Query: {
-        equal: jest.fn(),
-        limit: jest.fn(),
-    },
-}));
-
 describe("Teams Loader", () => {
     beforeEach(() => {
         jest.clearAllMocks();

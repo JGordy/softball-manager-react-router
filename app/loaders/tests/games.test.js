@@ -14,16 +14,6 @@ jest.mock("@/utils/appwrite/server", () => ({
 
 import { createAdminClient } from "@/utils/appwrite/server";
 
-jest.mock("node-appwrite", () => ({
-    Query: {
-        equal: jest.fn(
-            (field, value) =>
-                `Query.equal("${field}", ${JSON.stringify(value)})`,
-        ),
-        limit: jest.fn((value) => `Query.limit(${value})`),
-    },
-}));
-
 // Mock global fetch for weather API
 global.fetch = jest.fn();
 

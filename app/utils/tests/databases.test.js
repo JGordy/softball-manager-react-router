@@ -6,14 +6,6 @@ import {
     deleteDocument,
     collections,
 } from "../databases";
-import { ID } from "node-appwrite";
-
-// Mock dependencies
-jest.mock("node-appwrite", () => ({
-    ID: {
-        unique: jest.fn(() => "unique-id"),
-    },
-}));
 
 const mockTablesDB = {
     createRow: jest.fn(),

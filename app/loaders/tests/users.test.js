@@ -12,12 +12,6 @@ jest.mock("@/utils/databases", () => ({
     readDocument: jest.fn(),
 }));
 
-jest.mock("node-appwrite", () => ({
-    Query: {
-        equal: jest.fn(),
-    },
-}));
-
 describe("Users Loader", () => {
     beforeEach(() => {
         jest.clearAllMocks();

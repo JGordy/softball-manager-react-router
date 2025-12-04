@@ -7,14 +7,6 @@ import {
 import { Client, Account, Databases, TablesDB } from "node-appwrite";
 import { appwriteConfig } from "./config";
 
-// Mock dependencies
-jest.mock("node-appwrite", () => ({
-    Client: jest.fn(),
-    Account: jest.fn(),
-    Databases: jest.fn(),
-    TablesDB: jest.fn(),
-}));
-
 jest.mock("./config", () => ({
     appwriteConfig: {
         endpoint: "https://test.appwrite.io",

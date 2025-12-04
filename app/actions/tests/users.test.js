@@ -23,12 +23,6 @@ jest.mock("@/utils/badWordsApi", () => ({
     hasBadWords: jest.fn(),
 }));
 
-jest.mock("node-appwrite", () => ({
-    ID: {
-        unique: jest.fn(() => "unique-user-id"),
-    },
-}));
-
 describe("Users Actions", () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -58,21 +52,12 @@ describe("Users Actions", () => {
                 userId: null,
             });
 
-            expect(createDocument).toHaveBeenCalledWith(
-                "users",
-                "unique-user-id",
-                {
-                    firstName: "John",
-                    lastName: "Doe",
-                    preferredPositions: ["1B", "OF"],
-                    dislikedPositions: ["P", "C"],
-                    userId: "unique-user-id",
-                },
-            );
-            expect(createDocument).toHaveBeenCalledWith("memberships", null, {
-                userId: "unique-user-id",
-                teamId,
-                role: "player",
+            expect(createDocument).toHaveBeenCalledWith("users", "unique-id", {
+                firstName: "John",
+                lastName: "Doe",
+                preferredPositions: ["1B", "OF"],
+                dislikedPositions: ["P", "C"],
+                userId: "unique-id",
             });
             expect(result.success).toBe(true);
             expect(result.status).toBe(201);

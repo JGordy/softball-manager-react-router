@@ -59,6 +59,7 @@ const AvailabilityOptionsContainer = ({
     managerView,
     currentUserId,
     isGamePast,
+    teamId,
 }) => {
     const fetcher = useFetcher();
     const [opened, { close, toggle }] = useDisclosure(false);
@@ -81,6 +82,7 @@ const AvailabilityOptionsContainer = ({
             formData.append("playerId", playerId);
             formData.append("status", availabilityData[text].value);
             formData.append("updatedBy", currentUserId);
+            formData.append("teamId", teamId);
 
             fetcher.submit(formData, {
                 method: "post",
@@ -173,6 +175,7 @@ export default function AvailabliityContainer({
     game,
     managerView,
     players,
+    team,
 }) {
     const { user } = useOutletContext();
     const currentUserId = user.$id;
@@ -254,6 +257,7 @@ export default function AvailabliityContainer({
                                 isGamePast={isGamePast}
                                 managerView={managerView}
                                 player={player}
+                                teamId={team?.$id}
                             />
                         ))}
                     </Stack>

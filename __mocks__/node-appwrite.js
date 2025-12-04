@@ -19,10 +19,15 @@ module.exports = {
     Permission: {
         read: jest.fn((role) => `read("${role}")`),
         write: jest.fn((role) => `write("${role}")`),
+        update: jest.fn((role) => `update("${role}")`),
+        delete: jest.fn((role) => `delete("${role}")`),
     },
     Role: {
         any: jest.fn(() => "any"),
-        user: jest.fn((id) => `user:${id}`),
-        team: jest.fn((id) => `team:${id}`),
+        users: jest.fn(() => "users"),
+        user: jest.fn((userId) => `user:${userId}`),
+        team: jest.fn((teamId, role) =>
+            role ? `team:${teamId}/${role}` : `team:${teamId}`,
+        ),
     },
 };

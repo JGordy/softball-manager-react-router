@@ -1,4 +1,4 @@
-import { ID } from "node-appwrite";
+import { ID, Permission, Role } from "node-appwrite";
 import { createDocument, updateDocument } from "@/utils/databases.js";
 
 import { getParkByPlaceId } from "@/loaders/parks";
@@ -18,11 +18,23 @@ export async function findOrCreatePark({ values, placeId }) {
 
     const { location, ...rest } = values;
 
-    const newPark = await createDocument("parks", ID.unique(), {
-        ...rest,
-        latitude: location?.lat,
-        longitude: location?.lng,
-    });
+    // Parks are public reference data - anyone can read, authenticated users can modify
+    const permissions = [
+        Permission.read(Role.any()), // Anyone can read park info
+        Permission.update(Role.users()), // Authenticated users can update
+        Permission.delete(Role.users()), // Authenticated users can delete
+    ];
+
+    const newPark = await createDocument(
+        "parks",
+        ID.unique(),
+        {
+            ...rest,
+            latitude: location?.lat,
+            longitude: location?.lng,
+        },
+        permissions,
+    );
 
     return newPark;
 }

@@ -23,22 +23,6 @@ jest.mock("@/utils/teams", () => ({
     inviteNewMemberByEmail: jest.fn(),
 }));
 
-jest.mock("node-appwrite", () => ({
-    ID: {
-        unique: jest.fn(() => "unique-team-id"),
-    },
-    Permission: {
-        read: jest.fn((role) => `read("${role}")`),
-        update: jest.fn((role) => `update("${role}")`),
-        delete: jest.fn((role) => `delete("${role}")`),
-    },
-    Role: {
-        team: jest.fn((teamId, role) =>
-            role ? `team:${teamId}/${role}` : `team:${teamId}`,
-        ),
-    },
-}));
-
 describe("Teams Actions", () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -58,24 +42,24 @@ describe("Teams Actions", () => {
             };
             const userId = "user1";
 
-            createAppwriteTeam.mockResolvedValue({ $id: "unique-team-id" });
+            createAppwriteTeam.mockResolvedValue({ $id: "unique-id" });
             addExistingUserToTeam.mockResolvedValue({
                 $id: "membership1",
             });
-            createDocument.mockResolvedValue({ $id: "unique-team-id" });
+            createDocument.mockResolvedValue({ $id: "unique-id" });
 
             const result = await createTeam({ values: mockValues, userId });
 
             // Should create Appwrite Team
             expect(createAppwriteTeam).toHaveBeenCalledWith({
-                teamId: "unique-team-id",
+                teamId: "unique-id",
                 name: "New Team",
                 roles: ["manager", "player", "coach"],
             });
 
             // Should add creator as owner/manager
             expect(addExistingUserToTeam).toHaveBeenCalledWith({
-                teamId: "unique-team-id",
+                teamId: "unique-id",
                 userId,
                 roles: ["owner", "manager"],
             });
@@ -83,15 +67,15 @@ describe("Teams Actions", () => {
             // Should create database record with permissions
             expect(createDocument).toHaveBeenCalledWith(
                 "teams",
-                "unique-team-id",
+                "unique-id",
                 {
                     name: "New Team",
                     primaryColor: "#FFFFFF",
                 },
                 [
-                    'read("team:unique-team-id")',
-                    'update("team:unique-team-id/manager")',
-                    'delete("team:unique-team-id/manager")',
+                    'read("team:unique-id")',
+                    'update("team:unique-id/manager")',
+                    'delete("team:unique-id/manager")',
                 ],
             );
 
