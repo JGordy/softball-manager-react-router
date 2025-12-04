@@ -43,6 +43,9 @@ const databases = new Databases(client);
 const DATABASE_ID = process.env.VITE_APPWRITE_DATABASE_ID;
 
 // Collection IDs from environment
+// Note: 'awards' collection stores award definitions, not user data requiring permissions.
+// The 'votes' collection stores the actual user votes which are migrated below.
+// The 'users' collection permissions are managed by Appwrite's built-in user system.
 const collections = {
     users: process.env.VITE_APPWRITE_USERS_COLLECTION_ID,
     teams: process.env.VITE_APPWRITE_TEAMS_COLLECTION_ID,
@@ -50,7 +53,7 @@ const collections = {
     games: process.env.VITE_APPWRITE_GAMES_COLLECTION_ID,
     parks: process.env.VITE_APPWRITE_PARKS_COLLECTION_ID,
     attendance: process.env.VITE_APPWRITE_ATTENDANCE_COLLECTION_ID,
-    awards: process.env.VITE_APPWRITE_GAME_AWARDS_COLLECTION_ID,
+    awards: process.env.VITE_APPWRITE_GAME_AWARDS_COLLECTION_ID, // Award definitions (not migrated - static data)
     votes: process.env.VITE_APPWRITE_GAME_VOTES_COLLECTION_ID,
 };
 

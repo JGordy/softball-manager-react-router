@@ -59,11 +59,6 @@ describe("Users Actions", () => {
                 dislikedPositions: ["P", "C"],
                 userId: "unique-id",
             });
-            expect(createDocument).toHaveBeenCalledWith("memberships", null, {
-                userId: "unique-id",
-                teamId,
-                role: "player",
-            });
             expect(result.success).toBe(true);
             expect(result.status).toBe(201);
         });

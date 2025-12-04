@@ -13,10 +13,10 @@ export async function updatePlayerAttendance({ values, eventId }) {
         const permissions = teamId
             ? [
                   Permission.read(Role.team(teamId)), // All team members can read
-                  Permission.update(Role.user(updatedBy || playerId)), // Creator can update
+                  Permission.update(Role.user(playerId)), // Player can update their own
                   Permission.update(Role.team(teamId, "manager")), // Team managers can update
                   Permission.update(Role.team(teamId, "owner")), // Team owners can update
-                  Permission.delete(Role.user(updatedBy || playerId)), // Creator can delete
+                  Permission.delete(Role.user(playerId)), // Player can delete their own
                   Permission.delete(Role.team(teamId, "manager")), // Team managers can delete
                   Permission.delete(Role.team(teamId, "owner")), // Team owners can delete
               ]
