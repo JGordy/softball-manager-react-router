@@ -1,6 +1,6 @@
-import { ID } from "node-appwrite";
-import { createDocument, updateDocument } from "@/utils/databases.js";
+import { ID, Permission, Role } from "node-appwrite";
 
+import { createDocument, updateDocument } from "@/utils/databases.js";
 import { hasBadWords } from "@/utils/badWordsApi";
 
 import { findOrCreatePark } from "@/actions/parks";
@@ -41,14 +41,30 @@ export async function createSeason({ values, teamId }) {
             }
         }
 
-        const season = await createDocument("seasons", seasonId, {
-            ...rest,
-            gameDays: rest.gameDays.split(","), // Split into an array of gameDays
-            parkId: parkId || null,
-            signUpFee: Number(rest.signUpFee),
-            teamId,
-            teams: [teamId],
-        });
+        // Build permissions array for the season
+        const permissions = teamId
+            ? [
+                  Permission.read(Role.team(teamId)), // Team members can read
+                  Permission.update(Role.team(teamId, "manager")), // Managers can update
+                  Permission.update(Role.team(teamId, "owner")), // Owners can update
+                  Permission.delete(Role.team(teamId, "manager")), // Managers can delete
+                  Permission.delete(Role.team(teamId, "owner")), // Owners can delete
+              ]
+            : [];
+
+        const season = await createDocument(
+            "seasons",
+            seasonId,
+            {
+                ...rest,
+                gameDays: rest.gameDays.split(","), // Split into an array of gameDays
+                parkId: parkId || null,
+                signUpFee: Number(rest.signUpFee),
+                teamId,
+                teams: [teamId],
+            },
+            permissions,
+        );
 
         return {
             response: { season },

@@ -58,7 +58,7 @@ export async function action({ request, params }) {
     }
 
     if (_action === "add-games") {
-        return createGames({ values, seasonId });
+        return createGames({ values });
     }
 
     if (_action === "add-single-game") {

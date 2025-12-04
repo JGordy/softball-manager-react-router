@@ -17,12 +17,6 @@ jest.mock("@/actions/parks", () => ({
     findOrCreatePark: jest.fn(),
 }));
 
-jest.mock("node-appwrite", () => ({
-    ID: {
-        unique: jest.fn(() => "unique-season-id"),
-    },
-}));
-
 describe("Seasons Actions", () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -51,7 +45,7 @@ describe("Seasons Actions", () => {
 
             expect(createDocument).toHaveBeenCalledWith(
                 "seasons",
-                "unique-season-id",
+                "unique-id",
                 {
                     seasonName: "Fall 2024",
                     gameDays: ["Monday", "Wednesday"],
@@ -60,6 +54,7 @@ describe("Seasons Actions", () => {
                     teamId,
                     teams: [teamId],
                 },
+                expect.any(Array), // permissions array
             );
             expect(result.success).toBe(true);
             expect(result.status).toBe(201);
