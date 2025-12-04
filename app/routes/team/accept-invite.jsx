@@ -1,4 +1,4 @@
-import { redirect } from "react-router";
+import { redirect, useNavigate } from "react-router";
 import {
     Container,
     Title,
@@ -84,6 +84,7 @@ export default function AcceptInvite({ loaderData, actionData, params }) {
     const [inviteAccepted, setInviteAccepted] = useState(false);
     const [userEmail, setUserEmail] = useState("");
     const [userName, setUserName] = useState("");
+    const navigate = useNavigate();
 
     const userId = searchParams.get("userId");
     const secret = searchParams.get("secret");
@@ -104,9 +105,9 @@ export default function AcceptInvite({ loaderData, actionData, params }) {
     // Redirect to team page if invitation was already confirmed
     useEffect(() => {
         if (actionData?.alreadyConfirmed) {
-            window.location.href = `/team/${params.teamId}`;
+            navigate(`/team/${params.teamId}`);
         }
-    }, [actionData, params.teamId]);
+    }, [actionData, params.teamId, navigate]);
 
     // Update state when invitation is accepted
     useEffect(() => {
@@ -166,6 +167,7 @@ export default function AcceptInvite({ loaderData, actionData, params }) {
                             description="Must be at least 8 characters long"
                             withAsterisk
                             required
+                            minLength={8}
                             mt="md"
                             radius="md"
                             size="md"
