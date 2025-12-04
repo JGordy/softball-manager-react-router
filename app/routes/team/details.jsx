@@ -16,7 +16,7 @@ import TabsWrapper from "@/components/TabsWrapper";
 import { createSingleGame } from "@/actions/games";
 import { createPlayer } from "@/actions/users";
 import { createSeason } from "@/actions/seasons";
-import { updateTeam } from "@/actions/teams";
+import { updateTeam, updateMemberRole } from "@/actions/teams";
 import { invitePlayerByEmail } from "@/actions/invitations";
 
 import { getTeamById } from "@/loaders/teams";
@@ -58,6 +58,10 @@ export async function action({ request, params }) {
     if (_action === "add-single-game") {
         return createSingleGame({ values, teamId });
     }
+
+    if (_action === "update-role") {
+        return updateMemberRole({ values, teamId });
+    }
 }
 
 export async function clientAction({ request, params }) {
@@ -75,12 +79,13 @@ export async function clientAction({ request, params }) {
 }
 
 export default function TeamDetails({ actionData, loaderData }) {
-    const { teamData: team, players, managerIds } = loaderData;
+    const { teamData: team, players, managerIds, ownerIds } = loaderData;
     // console.log('/team/details >', { players, team, managerIds });
 
     const { user } = useOutletContext();
 
     const managerView = managerIds.includes(user?.$id);
+    const ownerView = ownerIds?.includes(user?.$id);
 
     useResponseNotification(actionData);
 
@@ -94,7 +99,14 @@ export default function TeamDetails({ actionData, loaderData }) {
         <Container pt="md">
             <Group justify="space-between" mb="xl">
                 <BackButton to="/" />
-                {managerView && <TeamMenu team={team} userId={user.$id} />}
+                {managerView && (
+                    <TeamMenu
+                        team={team}
+                        userId={user.$id}
+                        ownerView={ownerView}
+                        players={players}
+                    />
+                )}
             </Group>
             <Title order={2} align="center" mt="sm" mb="lg">
                 {team.name}
