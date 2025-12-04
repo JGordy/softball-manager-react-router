@@ -1,5 +1,6 @@
 import { Query } from "node-appwrite";
 import { listDocuments, readDocument } from "@/utils/databases";
+import { createAdminClient } from "@/utils/appwrite/server";
 import { DateTime } from "luxon";
 
 const getAttendance = async ({ eventId, accepted = false }) => {
@@ -155,14 +156,34 @@ async function loadGameBase(eventId) {
             return null;
         }
 
-        // Load memberships for the primary team (first team in season)
-        const { rows: userIds } = await listDocuments("memberships", [
-            Query.equal("teamId", teams[0].$id),
-        ]);
+        // Load memberships for the primary team using Appwrite Teams API
+        const { teams: teamsApi } = createAdminClient();
+        const teamId = teams[0].$id;
 
-        const managerIds = userIds
-            .filter(({ role }) => role === "manager")
-            .map(({ userId }) => userId);
+        let userIds = [];
+        let managerIds = [];
+
+        try {
+            const memberships = await teamsApi.listMemberships(teamId);
+
+            userIds = memberships.memberships.map((m) => ({
+                userId: m.userId,
+                role:
+                    m.roles.includes("manager") || m.roles.includes("owner")
+                        ? "manager"
+                        : "player",
+            }));
+
+            managerIds = memberships.memberships
+                .filter(
+                    (m) =>
+                        m.roles.includes("manager") ||
+                        m.roles.includes("owner"),
+                )
+                .map((m) => m.userId);
+        } catch (teamsApiError) {
+            console.error("Error fetching team memberships:", teamsApiError);
+        }
 
         return {
             game,

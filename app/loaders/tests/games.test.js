@@ -8,6 +8,12 @@ jest.mock("@/utils/databases", () => ({
     readDocument: jest.fn(),
 }));
 
+jest.mock("@/utils/appwrite/server", () => ({
+    createAdminClient: jest.fn(),
+}));
+
+import { createAdminClient } from "@/utils/appwrite/server";
+
 jest.mock("node-appwrite", () => ({
     Query: {
         equal: jest.fn(
@@ -59,15 +65,22 @@ describe("Games Loader", () => {
                 teams: ["team1"],
                 parkId: "park1",
             };
-            const mockUserIds = [{ userId: "user1", role: "manager" }];
             const mockTeams = [{ $id: "team1", name: "Team 1" }];
+
+            // Mock Teams API for memberships
+            const mockListMemberships = jest.fn().mockResolvedValue({
+                memberships: [{ userId: "user1", roles: ["owner", "manager"] }],
+            });
+            createAdminClient.mockReturnValue({
+                teams: { listMemberships: mockListMemberships },
+            });
 
             // Mock for loadGameBase
             readDocument.mockResolvedValueOnce(mockGame); // game
             readDocument.mockResolvedValueOnce(mockSeason); // season
-            listDocuments
-                .mockResolvedValueOnce({ rows: mockTeams }) // teams query
-                .mockResolvedValue({ rows: mockUserIds }); // memberships query
+
+            // Mock for teams query and deferred data queries (users, attendance, awards, votes)
+            listDocuments.mockResolvedValue({ rows: mockTeams });
 
             // Mock for getWeatherData
             readDocument.mockResolvedValue({ latitude: 0, longitude: 0 });
@@ -96,10 +109,17 @@ describe("Games Loader", () => {
                 teams: ["team1"],
                 parkId: "park1",
             };
-            const mockUserIds = [{ userId: "user1", role: "player" }];
             const mockUsers = [{ $id: "user1", name: "Player 1" }];
             const mockAttendance = [{ $id: "att1" }];
             const mockTeams = [{ $id: "team1", name: "Team 1" }];
+
+            // Mock Teams API for memberships
+            const mockListMemberships = jest.fn().mockResolvedValue({
+                memberships: [{ userId: "user1", roles: ["player"] }],
+            });
+            createAdminClient.mockReturnValue({
+                teams: { listMemberships: mockListMemberships },
+            });
 
             // Mock for loadGameBase
             readDocument.mockResolvedValueOnce(mockGame); // game
@@ -108,7 +128,6 @@ describe("Games Loader", () => {
             // Mock all listDocuments calls in order
             listDocuments
                 .mockResolvedValueOnce({ rows: mockTeams }) // teams
-                .mockResolvedValueOnce({ rows: mockUserIds }) // memberships
                 .mockResolvedValueOnce({ rows: mockUsers }) // users in resolvePlayers
                 .mockResolvedValueOnce({ rows: mockAttendance }); // attendance
 
