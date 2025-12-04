@@ -7,6 +7,9 @@ export default [
     route("/verify", "routes/auth/verify.jsx"),
     route("/recovery", "routes/auth/recover.jsx"),
 
+    // Team invitation acceptance (public - users may not be logged in yet)
+    route("/team/:teamId/accept-invite", "routes/team/accept-invite.jsx"),
+
     // The App shell (NavBar) in layout.jsx - protected routes
     layout("routes/layout.jsx", [
         // index('routes/home/home.jsx'),
@@ -36,6 +39,7 @@ export default [
         // Api routes
         route("/api/lineup", "routes/api/generate/lineup.js"),
         route("/api/resend-verification", "routes/api/resend-verification.js"),
+        route("/api/session", "routes/api/session.js"),
 
         // Catch all route, 404
         route("*", "routes/notfound/404.jsx"),

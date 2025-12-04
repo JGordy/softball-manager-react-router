@@ -1,6 +1,8 @@
-import { getSeasonById } from "./seasons";
-import { listDocuments, readDocument } from "@/utils/databases";
 import { Query } from "node-appwrite";
+
+import { listDocuments, readDocument } from "@/utils/databases";
+
+import { getSeasonById } from "../seasons";
 
 // Mock dependencies
 jest.mock("@/utils/databases", () => ({

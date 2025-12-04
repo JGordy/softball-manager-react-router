@@ -1,10 +1,10 @@
+import { listDocuments, readDocument } from "@/utils/databases";
+
 import {
     getUserById,
-    getTeamsByUserId,
     getAttendanceByUserId,
     getAwardsByUserId,
-} from "./users";
-import { listDocuments, readDocument } from "@/utils/databases";
+} from "../users";
 
 // Mock dependencies
 jest.mock("@/utils/databases", () => ({
@@ -32,32 +32,6 @@ describe("Users Loader", () => {
 
             expect(readDocument).toHaveBeenCalledWith("users", "user1");
             expect(result).toEqual(mockUser);
-        });
-    });
-
-    describe("getTeamsByUserId", () => {
-        it("should return teams for the user", async () => {
-            const mockMemberships = [{ teamId: "team1" }, { teamId: "team2" }];
-            const mockTeams = [
-                { $id: "team1", name: "Team 1" },
-                { $id: "team2", name: "Team 2" },
-            ];
-
-            listDocuments.mockResolvedValueOnce({ rows: mockMemberships }); // memberships
-            listDocuments.mockResolvedValueOnce({ rows: mockTeams }); // teams batch query
-
-            const result = await getTeamsByUserId({ userId: "user1" });
-
-            expect(result).toHaveLength(2);
-            expect(result).toEqual(mockTeams);
-        });
-
-        it("should return empty array if no memberships", async () => {
-            listDocuments.mockResolvedValueOnce({ rows: [] });
-
-            const result = await getTeamsByUserId({ userId: "user1" });
-
-            expect(result).toEqual([]);
         });
     });
 

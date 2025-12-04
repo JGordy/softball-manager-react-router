@@ -1,10 +1,11 @@
-import { getUserTeams, getTeamById } from "./teams";
 import { listDocuments, readDocument } from "@/utils/databases";
+
 import {
     createSessionClient,
     createAdminClient,
 } from "@/utils/appwrite/server";
-import { Query } from "node-appwrite";
+
+import { getUserTeams, getTeamById } from "../teams";
 
 // Mock dependencies
 jest.mock("@/utils/databases", () => ({
@@ -84,43 +85,9 @@ describe("Teams Loader", () => {
 
             // Mock the batch fetch calls for database teams
             listDocuments
-                .mockResolvedValueOnce({ rows: [] }) // old memberships (empty)
                 .mockResolvedValueOnce({ rows: mockManagerTeams }) // manager teams from DB
                 .mockResolvedValueOnce({ rows: [] }) // seasons for manager team
                 .mockResolvedValueOnce({ rows: mockPlayerTeams }) // player teams from DB
-                .mockResolvedValueOnce({ rows: [] }); // seasons for player team
-
-            const result = await getUserTeams({ request: {} });
-
-            expect(result.userId).toBe("user1");
-            expect(result.managing).toEqual(mockManagerTeams);
-            expect(result.playing).toEqual(mockPlayerTeams);
-        });
-
-        it("should fallback to old memberships table if Teams API fails", async () => {
-            const mockUser = { $id: "user1" };
-
-            createSessionClient.mockResolvedValue({
-                account: { get: jest.fn().mockResolvedValue(mockUser) },
-                teams: {
-                    list: jest
-                        .fn()
-                        .mockRejectedValue(new Error("Teams API error")),
-                },
-            });
-
-            const mockMemberships = [
-                { role: "manager", teamId: "team1", userId: "user1" },
-                { role: "player", teamId: "team2", userId: "user1" },
-            ];
-            const mockManagerTeams = [{ $id: "team1", name: "Team 1" }];
-            const mockPlayerTeams = [{ $id: "team2", name: "Team 2" }];
-
-            listDocuments
-                .mockResolvedValueOnce({ rows: mockMemberships }) // old memberships
-                .mockResolvedValueOnce({ rows: mockManagerTeams }) // manager teams
-                .mockResolvedValueOnce({ rows: [] }) // seasons for manager team
-                .mockResolvedValueOnce({ rows: mockPlayerTeams }) // player teams
                 .mockResolvedValueOnce({ rows: [] }); // seasons for player team
 
             const result = await getUserTeams({ request: {} });
@@ -162,46 +129,6 @@ describe("Teams Loader", () => {
                 },
             });
 
-            listDocuments.mockResolvedValueOnce({ rows: mockUsers }); // users
-            readDocument.mockResolvedValueOnce(mockTeamData); // team data
-            listDocuments.mockResolvedValueOnce({ rows: mockSeasons }); // seasons
-            listDocuments.mockResolvedValueOnce({ rows: mockGames }); // games
-
-            const result = await getTeamById({
-                teamId: "team1",
-                request: {},
-            });
-
-            expect(result.teamData.$id).toBe("team1");
-            expect(result.managerIds).toContain("user1");
-            expect(result.players).toHaveLength(2);
-        });
-
-        it("should fallback to old memberships table if Teams API fails", async () => {
-            createAdminClient.mockReturnValue({
-                teams: {
-                    listMemberships: jest
-                        .fn()
-                        .mockRejectedValue(new Error("Teams API error")),
-                },
-            });
-
-            const mockMemberships = [
-                { userId: "user1", role: "manager", teamId: "team1" },
-                { userId: "user2", role: "player", teamId: "team1" },
-            ];
-            const mockUsers = [
-                { $id: "user1", name: "Manager" },
-                { $id: "user2", name: "Player" },
-            ];
-            const mockTeamData = {
-                $id: "team1",
-                name: "Team 1",
-            };
-            const mockSeasons = [{ $id: "season1", teamId: "team1" }];
-            const mockGames = [{ $id: "game1", seasonId: "season1" }];
-
-            listDocuments.mockResolvedValueOnce({ rows: mockMemberships }); // old memberships
             listDocuments.mockResolvedValueOnce({ rows: mockUsers }); // users
             readDocument.mockResolvedValueOnce(mockTeamData); // team data
             listDocuments.mockResolvedValueOnce({ rows: mockSeasons }); // seasons

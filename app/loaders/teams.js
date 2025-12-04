@@ -50,42 +50,13 @@ export async function getUserTeams({ request }) {
                 }
             }
         } catch (teamsApiError) {
-            console.log(
-                "No Appwrite Teams found or Teams API not available, checking old memberships table...",
-            );
-        }
-
-        // FALLBACK: Check old memberships table for teams not yet migrated
-        // This ensures existing teams continue to work until migration is run
-        try {
-            const oldMemberships = await listDocuments("memberships", [
-                Query.equal("userId", userId),
-            ]);
-
-            for (const membership of oldMemberships.rows) {
-                // Skip if we already found this team via Teams API
-                if (
-                    managerTeamIds.includes(membership.teamId) ||
-                    playerTeamIds.includes(membership.teamId)
-                ) {
-                    continue;
-                }
-
-                // Categorize based on role in old memberships table
-                if (membership.role === "manager") {
-                    managerTeamIds.push(membership.teamId);
-                } else {
-                    playerTeamIds.push(membership.teamId);
-                }
-            }
-        } catch (membershipsError) {
             console.error(
-                "Error checking old memberships table:",
-                membershipsError,
+                "Error fetching teams from Appwrite Teams API:",
+                teamsApiError,
             );
         }
 
-        // 3. Fetch teams for managers and players
+        // Fetch teams for managers and players
         const fetchTeams = async (teamIds) => {
             if (teamIds.length === 0) {
                 return [];
@@ -165,34 +136,10 @@ export async function getTeamById({ teamId, request }) {
                 }
             }
         } catch (teamsApiError) {
-            console.log(
-                "No Appwrite Teams memberships found, checking old memberships table...",
+            console.error(
+                "Error fetching team memberships from Appwrite Teams API:",
+                teamsApiError,
             );
-            console.error("Teams API error:", teamsApiError);
-        }
-
-        // FALLBACK: Check old memberships table if no Teams API memberships found
-        if (userIds.length === 0) {
-            try {
-                const oldMemberships = await listDocuments("memberships", [
-                    Query.equal("teamId", teamId),
-                ]);
-
-                // Extract manager IDs
-                const oldManagerIds = oldMemberships.rows
-                    .filter((document) => document.role === "manager")
-                    .map((document) => document.userId);
-                managerIds.push(...oldManagerIds);
-
-                // Extract all user IDs
-                const oldUserIds = oldMemberships.rows.map((m) => m.userId);
-                userIds.push(...oldUserIds);
-            } catch (membershipsError) {
-                console.error(
-                    "Error checking old memberships table:",
-                    membershipsError,
-                );
-            }
         }
 
         // Get all players from users table

@@ -1,6 +1,8 @@
-import { getParkById, getParkByPlaceId } from "./parks";
-import { listDocuments, readDocument } from "@/utils/databases";
 import { Query } from "node-appwrite";
+
+import { listDocuments, readDocument } from "@/utils/databases";
+
+import { getParkById, getParkByPlaceId } from "../parks";
 
 // Mock the dependencies
 jest.mock("@/utils/databases", () => ({

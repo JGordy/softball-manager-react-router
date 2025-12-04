@@ -26,7 +26,13 @@ export default function TeamMenu({ userId, team }) {
     const openAddTeamModal = () =>
         openModal({
             title: "Edit Team Details",
-            children: <AddTeam actionRoute={"/"} userId={userId} />,
+            children: (
+                <AddTeam
+                    actionRoute={"/"}
+                    userId={userId}
+                    buttonColor={primaryColor}
+                />
+            ),
         });
 
     const openAddPlayerModal = () =>
@@ -96,6 +102,12 @@ export default function TeamMenu({ userId, team }) {
                     onClick: openAddSeasonModal,
                     leftSection: <IconCalendar size={18} />,
                     content: <Text>Add Season</Text>,
+                },
+                {
+                    key: "add-game",
+                    onClick: openAddGameModal,
+                    leftSection: <IconBallBaseball size={18} />,
+                    content: <Text>Add Game</Text>,
                 },
             ],
         },

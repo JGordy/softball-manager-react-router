@@ -17,7 +17,7 @@ import { createSingleGame } from "@/actions/games";
 import { createPlayer } from "@/actions/users";
 import { createSeason } from "@/actions/seasons";
 import { updateTeam } from "@/actions/teams";
-import { inviteUserByEmail } from "@/utils/invitations";
+import { invitePlayerByEmail } from "@/actions/invitations";
 
 import { getTeamById } from "@/loaders/teams";
 
@@ -47,19 +47,6 @@ export async function action({ request, params }) {
         return createPlayer({ values, teamId });
     }
 
-    if (_action === "invite-player") {
-        const { email, name } = values;
-        const origin = new URL(request.url).origin;
-        const verificationUrl = `${origin}/verify`;
-
-        return inviteUserByEmail({
-            email,
-            teamId,
-            name,
-            verificationUrl,
-        });
-    }
-
     if (_action === "add-season") {
         return createSeason({ values, teamId });
     }
@@ -70,6 +57,20 @@ export async function action({ request, params }) {
 
     if (_action === "add-single-game") {
         return createSingleGame({ values, teamId });
+    }
+}
+
+export async function clientAction({ request, params }) {
+    const { teamId } = params;
+    const formData = await request.formData();
+    const { _action, ...values } = Object.fromEntries(formData);
+
+    if (_action === "invite-player") {
+        const { email, name } = values;
+        // Build the invitation URL from the request
+        const url = new URL(request.url);
+        const inviteUrl = `${url.origin}/team/${teamId}/accept-invite`;
+        return invitePlayerByEmail({ email, teamId, name, url: inviteUrl });
     }
 }
 
