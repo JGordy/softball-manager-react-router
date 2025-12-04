@@ -11,11 +11,6 @@ import { createAdminClient } from "@/utils/appwrite/server";
 
 // Mock dependencies
 jest.mock("@/utils/appwrite/server");
-jest.mock("node-appwrite", () => ({
-    ID: {
-        unique: jest.fn(() => "unique-id"),
-    },
-}));
 
 describe("teams utility", () => {
     const mockTeams = {

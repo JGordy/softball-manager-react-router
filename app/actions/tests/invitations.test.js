@@ -12,7 +12,7 @@ jest.mock("cookie", () => ({
     serialize: jest.fn((name, value, options) => `${name}=${value}; HttpOnly`),
 }));
 
-// Mock node-appwrite
+// Note: This test needs custom Users class mock, so can't use __mocks__/node-appwrite.js
 const mockUpdatePassword = jest.fn().mockResolvedValue({});
 const mockCreateSession = jest.fn().mockResolvedValue({
     secret: "test-session-secret",
