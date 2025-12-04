@@ -4,6 +4,8 @@ import {
     createAppwriteTeam,
     addExistingUserToTeam,
     inviteNewMemberByEmail,
+    getTeamMembers,
+    updateMembershipRoles,
 } from "@/utils/teams.js";
 
 import { hasBadWords } from "@/utils/badWordsApi";
@@ -113,5 +115,42 @@ export async function addPlayerToTeam({ userId, email, teamId, name }) {
     } catch (error) {
         console.error("Error adding player to existing team:", error);
         throw error;
+    }
+}
+
+export async function updateMemberRole({ values, teamId }) {
+    const { playerId: userId, role } = values;
+    try {
+        // 1. Get membership ID
+        const memberships = await getTeamMembers({ teamId });
+        const membership = memberships.memberships.find(
+            (m) => m.userId === userId,
+        );
+
+        if (!membership) {
+            throw new Error("Membership not found");
+        }
+
+        // 2. Determine new roles
+        let newRoles = [];
+        if (role === "owner") {
+            newRoles = ["owner", "manager", "player"];
+        } else if (role === "manager") {
+            newRoles = ["manager", "player"];
+        } else {
+            newRoles = ["player"];
+        }
+
+        // 3. Update roles
+        await updateMembershipRoles({
+            teamId,
+            membershipId: membership.$id,
+            roles: newRoles,
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating member role:", error);
+        return { success: false, error: error.message };
     }
 }

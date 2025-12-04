@@ -1,10 +1,17 @@
-import { createTeam, updateTeam, addPlayerToTeam } from "../teams";
+import {
+    createTeam,
+    updateTeam,
+    addPlayerToTeam,
+    updateMemberRole,
+} from "../teams";
 import { createDocument, updateDocument } from "@/utils/databases";
 import { hasBadWords } from "@/utils/badWordsApi";
 import {
     createAppwriteTeam,
     addExistingUserToTeam,
     inviteNewMemberByEmail,
+    getTeamMembers,
+    updateMembershipRoles,
 } from "@/utils/teams";
 
 // Mock dependencies
@@ -21,6 +28,8 @@ jest.mock("@/utils/teams", () => ({
     createAppwriteTeam: jest.fn(),
     addExistingUserToTeam: jest.fn(),
     inviteNewMemberByEmail: jest.fn(),
+    getTeamMembers: jest.fn(),
+    updateMembershipRoles: jest.fn(),
 }));
 
 describe("Teams Actions", () => {
@@ -171,6 +180,98 @@ describe("Teams Actions", () => {
             ).rejects.toThrow(
                 "Either userId or email must be provided, along with teamId",
             );
+        });
+    });
+
+    describe("updateMemberRole", () => {
+        it("should update role to owner", async () => {
+            const teamId = "team1";
+            const userId = "user1";
+            const membershipId = "membership1";
+
+            getTeamMembers.mockResolvedValue({
+                memberships: [{ userId, $id: membershipId, roles: ["player"] }],
+            });
+            updateMembershipRoles.mockResolvedValue({});
+
+            const result = await updateMemberRole({
+                teamId,
+                values: { playerId: userId, role: "owner" },
+            });
+
+            expect(getTeamMembers).toHaveBeenCalledWith({ teamId });
+            expect(updateMembershipRoles).toHaveBeenCalledWith({
+                teamId,
+                membershipId,
+                roles: ["owner", "manager", "player"],
+            });
+            expect(result.success).toBe(true);
+        });
+
+        it("should update role to manager", async () => {
+            const teamId = "team1";
+            const userId = "user1";
+            const membershipId = "membership1";
+
+            getTeamMembers.mockResolvedValue({
+                memberships: [{ userId, $id: membershipId, roles: ["player"] }],
+            });
+            updateMembershipRoles.mockResolvedValue({});
+
+            const result = await updateMemberRole({
+                teamId,
+                values: { playerId: userId, role: "manager" },
+            });
+
+            expect(updateMembershipRoles).toHaveBeenCalledWith({
+                teamId,
+                membershipId,
+                roles: ["manager", "player"],
+            });
+            expect(result.success).toBe(true);
+        });
+
+        it("should update role to player", async () => {
+            const teamId = "team1";
+            const userId = "user1";
+            const membershipId = "membership1";
+
+            getTeamMembers.mockResolvedValue({
+                memberships: [
+                    { userId, $id: membershipId, roles: ["owner", "manager"] },
+                ],
+            });
+            updateMembershipRoles.mockResolvedValue({});
+
+            const result = await updateMemberRole({
+                teamId,
+                values: { playerId: userId, role: "player" },
+            });
+
+            expect(updateMembershipRoles).toHaveBeenCalledWith({
+                teamId,
+                membershipId,
+                roles: ["player"],
+            });
+            expect(result.success).toBe(true);
+        });
+
+        it("should return error if membership not found", async () => {
+            const teamId = "team1";
+            const userId = "user1";
+
+            getTeamMembers.mockResolvedValue({
+                memberships: [],
+            });
+
+            const result = await updateMemberRole({
+                teamId,
+                values: { playerId: userId, role: "manager" },
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.error).toBe("Membership not found");
+            expect(updateMembershipRoles).not.toHaveBeenCalled();
         });
     });
 });
