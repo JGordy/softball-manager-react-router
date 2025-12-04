@@ -12,12 +12,6 @@ jest.mock("@/loaders/parks", () => ({
     getParkByPlaceId: jest.fn(),
 }));
 
-jest.mock("node-appwrite", () => ({
-    ID: {
-        unique: jest.fn(() => "unique-id"),
-    },
-}));
-
 describe("Parks Actions", () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -56,11 +50,16 @@ describe("Parks Actions", () => {
                 placeId: "place2",
             });
 
-            expect(createDocument).toHaveBeenCalledWith("parks", "unique-id", {
-                name: "New Park",
-                latitude: 40.7128,
-                longitude: -74.006,
-            });
+            expect(createDocument).toHaveBeenCalledWith(
+                "parks",
+                "unique-id",
+                {
+                    name: "New Park",
+                    latitude: 40.7128,
+                    longitude: -74.006,
+                },
+                ['read("any")', 'update("users")', 'delete("users")'],
+            );
             expect(result).toEqual(newPark);
         });
 
