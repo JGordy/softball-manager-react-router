@@ -7,6 +7,7 @@ import { IconAward } from "@tabler/icons-react";
 
 import DeferredLoader from "@/components/DeferredLoader";
 import DrawerContainer from "@/components/DrawerContainer";
+import InlineError from "@/components/InlineError";
 
 import CardSection from "./CardSection";
 import AwardsDrawerContents from "./AwardsDrawerContents";
@@ -109,9 +110,11 @@ export default function AwardsContainer({ game, team, deferredData, user }) {
                                 />
                             }
                             errorElement={
-                                <Text size="xs" mt="5px" ml="28px" c="red">
-                                    Error loading awards details
-                                </Text>
+                                <InlineError
+                                    message="Error loading awards details"
+                                    mt="5px"
+                                    ml="28px"
+                                />
                             }
                         >
                             {({ awards, votes }) => {
@@ -167,9 +170,7 @@ export default function AwardsContainer({ game, team, deferredData, user }) {
                     resolve={deferredData}
                     fallback={null}
                     errorElement={
-                        <div>
-                            <Text c="red">Error loading content.</Text>
-                        </div>
+                        <InlineError message="Error loading content." />
                     }
                 >
                     {(deferred) => (
