@@ -12,6 +12,7 @@ import {
 import CardSection from "./CardSection";
 import DeferredLoader from "@/components/DeferredLoader";
 import DrawerContainer from "@/components/DrawerContainer";
+import InlineError from "@/components/InlineError";
 
 import getGameDateWeather from "../utils/getGameDateWeather";
 import getPrecipitationChanceRating from "../utils/getPrecipitationRating";
@@ -209,9 +210,11 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
                                 />
                             }
                             errorElement={
-                                <Text size="xs" mt="5px" ml="28px" c="red">
-                                    Error loading weather details
-                                </Text>
+                                <InlineError
+                                    message="Error loading weather details"
+                                    mt="5px"
+                                    ml="28px"
+                                />
                             }
                         >
                             {(weather) => {
@@ -241,7 +244,7 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
                 />
             </Card>
 
-            <DeferredLoader resolve={weatherPromise}>
+            <DeferredLoader resolve={weatherPromise} errorElement={null}>
                 {(weather) => {
                     const {
                         hourly: gameDayWeather,
