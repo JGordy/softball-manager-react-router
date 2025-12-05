@@ -170,7 +170,7 @@ export default function AwardsContainer({ game, team, deferredData, user }) {
                     resolve={deferredData}
                     fallback={null}
                     errorElement={
-                        <InlineError message="Error loading content." />
+                        <InlineError message="Error loading content" />
                     }
                 >
                     {(deferred) => (

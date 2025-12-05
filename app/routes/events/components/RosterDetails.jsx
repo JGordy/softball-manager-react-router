@@ -81,6 +81,7 @@ export default function RosterDetails({
                                 <InlineError
                                     message="Error loading details"
                                     mt="5px"
+                                    ml="28px"
                                 />
                             }
                         >
