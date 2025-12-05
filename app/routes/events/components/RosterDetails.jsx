@@ -12,6 +12,7 @@ import {
 
 import DrawerContainer from "@/components/DrawerContainer";
 import DeferredLoader from "@/components/DeferredLoader";
+import InlineError from "@/components/InlineError";
 import PlayerChart from "@/components/PlayerChart";
 
 import addPlayerAvailability from "../utils/addPlayerAvailability";
@@ -77,9 +78,10 @@ export default function RosterDetails({
                                 />
                             }
                             errorElement={
-                                <Text size="xs" mt="5px" c="red">
-                                    Error loading details.
-                                </Text>
+                                <InlineError
+                                    message="Error loading details"
+                                    mt="5px"
+                                />
                             }
                         >
                             {({ attendance, players }) => {
@@ -169,15 +171,20 @@ export default function RosterDetails({
                 </Group>
             </DrawerContainer>
 
-            <DeferredLoader resolve={deferredData}>
-                {({ attendance, players }) => {
-                    return (
-                        <DrawerContainer
-                            opened={availabilityDrawerOpened}
-                            onClose={availabilityDrawerHandlers.close}
-                            title="Availability Details"
-                            size="95%"
-                        >
+            <DrawerContainer
+                opened={availabilityDrawerOpened}
+                onClose={availabilityDrawerHandlers.close}
+                title="Availability Details"
+                size="95%"
+            >
+                <DeferredLoader
+                    resolve={deferredData}
+                    errorElement={
+                        <InlineError message="Unable to load availability data" />
+                    }
+                >
+                    {({ attendance, players }) => {
+                        return (
                             <AvailablityContainer
                                 attendance={attendance}
                                 game={game}
@@ -185,10 +192,10 @@ export default function RosterDetails({
                                 players={players}
                                 team={team}
                             />
-                        </DrawerContainer>
-                    );
-                }}
-            </DeferredLoader>
+                        );
+                    }}
+                </DeferredLoader>
+            </DrawerContainer>
         </>
     );
 }
