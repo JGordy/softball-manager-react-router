@@ -6,29 +6,47 @@
         "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
+:root {
+    /* Semantic Backgrounds */
+    --bg-body: light-dark(#e0ebe8, #101720);
+    --bg-card: light-dark(#f2f4f6, #1a242f);
+    --bg-modal: light-dark(var(--mantine-color-body), #1a242f);
+    --bg-input: light-dark(#f2f4f6, #101720);
+
+    /* Semantic Borders */
+    --border-subtle: light-dark(transparent, #101720);
+    --border-card: light-dark(
+        rgba(16, 23, 32, 0.04),
+        rgba(255, 255, 255, 0.03)
+    );
+
+    /* Semantic Shadows */
+    --shadow-card: light-dark(0 10px 30px rgba(255, 170, 50, 0.06), none);
+}
+
 :root[data-mantine-color-scheme="light"] {
     color-scheme: light;
     --mantine-color-body: #e0ebe8;
-    background-color: #e0ebe8;
+    background-color: var(--bg-body);
 }
 
 :root[data-mantine-color-scheme="dark"] {
     color-scheme: dark;
     --mantine-color-body: #101720;
-    background-color: #101720;
+    background-color: var(--bg-body);
 }
 
 .mantine-Modal-root,
 .mantine-Modal-header,
 .mantine-Modal-content,
 .mantine-ColorInput-dropdown {
-    background-color: light-dark(var(--mantine-color-body), #1a242f);
+    background-color: var(--bg-modal);
 }
 
 .mantine-Card-root,
 .mantine-Accordion-item,
 .mantine-Accordion-item[data-active] {
-    background-color: light-dark(#f2f4f6, #1a242f);
+    background-color: var(--bg-card);
 }
 
 .mantine-Menu-dropdown,
@@ -36,12 +54,12 @@
 .mantine-Popover-dropdown,
 .mantine-Select-options,
 .mantine-Input-input {
-    background-color: light-dark(#f2f4f6, #101720);
+    background-color: var(--bg-input);
 }
 
 .mantine-SegmentedControl-root {
-    background-color: light-dark(#f2f4f6, #1a242f);
-    border: 1px solid light-dark(transparent, #101720);
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-subtle);
 }
 
 .mantine-LoadingOverlay-overlay {
@@ -49,7 +67,7 @@
 }
 
 .mantine-Table-tbody {
-    --table-striped-color: light-dark(#f2f4f6, #1a242f) !important;
+    --table-striped-color: var(--bg-card) !important;
 }
 
 .inner-card {
@@ -57,9 +75,8 @@
 }
 
 .other-receiving-card.mantine-Card-root {
-    background: light-dark(#ffffff, #1a242f);
-    border: 1px solid
-        light-dark(rgba(16, 23, 32, 0.04), rgba(255, 255, 255, 0.03));
+    background: var(--bg-card);
+    border: 1px solid var(--border-card);
 }
 
 .event-details-hero {
@@ -75,7 +92,7 @@
 }
 
 .event-details-hero .score-container {
-    background-color: light-dark(#f2f4f6, #1a242f);
+    background-color: var(--bg-card);
 }
 
 .winner-card.mantine-Card-root {
@@ -87,7 +104,7 @@
     );
     border: 1px solid
         light-dark(rgba(255, 170, 50, 0.14), rgba(255, 223, 93, 0.25));
-    box-shadow: light-dark(0 10px 30px rgba(255, 170, 50, 0.06), none);
+    box-shadow: var(--shadow-card);
 }
 
 .game-card.mantine-Card-root,
