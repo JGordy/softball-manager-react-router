@@ -151,6 +151,21 @@ export async function updateMemberRole({ values, teamId, request }) {
             };
         }
 
+        // Prevent owner from demoting themselves if they're the last owner
+        if (requestingUser.$id === userId && role !== "owner") {
+            const otherOwners = memberships.memberships.filter(
+                (m) => m.userId !== userId && m.roles.includes("owner"),
+            );
+
+            if (otherOwners.length === 0) {
+                return {
+                    success: false,
+                    message:
+                        "Cannot remove the last owner. Assign another owner first.",
+                };
+            }
+        }
+
         // 4. Get target membership
         const membership = memberships.memberships.find(
             (m) => m.userId === userId,

@@ -377,5 +377,32 @@ describe("Teams Actions", () => {
             expect(getTeamMembers).not.toHaveBeenCalled();
             expect(updateMembershipRoles).not.toHaveBeenCalled();
         });
+
+        it("should prevent last owner from demoting themselves", async () => {
+            const teamId = "team1";
+            const userId = "owner-user-id";
+            const membershipId = "membership1";
+
+            getTeamMembers.mockResolvedValue({
+                memberships: [
+                    { userId, $id: membershipId, roles: ["owner"] },
+                    {
+                        userId: "user2",
+                        $id: "membership2",
+                        roles: ["player"],
+                    },
+                ],
+            });
+
+            const result = await updateMemberRole({
+                teamId,
+                values: { playerId: userId, role: "player" },
+                request: mockRequest,
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.message).toContain("last owner");
+            expect(updateMembershipRoles).not.toHaveBeenCalled();
+        });
     });
 });
