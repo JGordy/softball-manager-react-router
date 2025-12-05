@@ -116,7 +116,9 @@ export async function getUserTeams({ request }) {
 export async function getTeamById({ teamId, request }) {
     if (teamId) {
         const managerIds = [];
+        const ownerIds = [];
         const userIds = [];
+        const userRoles = {};
 
         // Try to get memberships from Appwrite Teams API first (for new teams)
         try {
@@ -127,6 +129,11 @@ export async function getTeamById({ teamId, request }) {
             // Extract user IDs and categorize by role
             for (const membership of memberships.memberships) {
                 userIds.push(membership.userId);
+                userRoles[membership.userId] = membership.roles;
+
+                if (membership.roles.includes("owner")) {
+                    ownerIds.push(membership.userId);
+                }
 
                 if (
                     membership.roles.includes("manager") ||
@@ -149,7 +156,10 @@ export async function getTeamById({ teamId, request }) {
             const result = await listDocuments("users", [
                 Query.equal("$id", userIds),
             ]);
-            players = result.rows;
+            players = result.rows.map((player) => ({
+                ...player,
+                roles: userRoles[player.$id] || [],
+            }));
         }
 
         const teamData = await readDocument("teams", teamId);
@@ -183,7 +193,7 @@ export async function getTeamById({ teamId, request }) {
         // Attach seasons to teamData
         teamData.seasons = seasons;
 
-        return { teamData, players, managerIds };
+        return { teamData, players, managerIds, ownerIds };
     } else {
         return { teamData: {} };
     }

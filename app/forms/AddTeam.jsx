@@ -15,7 +15,7 @@ export default function AddTeam({
             action={action}
             actionRoute={actionRoute}
             buttonColor={buttonColor}
-            confirmText="Create Team"
+            confirmText={action === "edit-team" ? "Update Team" : "Create Team"}
         >
             {userId && <input type="hidden" name="userId" value={userId} />}
 

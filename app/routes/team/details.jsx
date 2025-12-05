@@ -16,7 +16,7 @@ import TabsWrapper from "@/components/TabsWrapper";
 import { createSingleGame } from "@/actions/games";
 import { createPlayer } from "@/actions/users";
 import { createSeason } from "@/actions/seasons";
-import { updateTeam } from "@/actions/teams";
+import { updateTeam, updateMemberRole } from "@/actions/teams";
 import { invitePlayerByEmail } from "@/actions/invitations";
 
 import { getTeamById } from "@/loaders/teams";
@@ -58,29 +58,42 @@ export async function action({ request, params }) {
     if (_action === "add-single-game") {
         return createSingleGame({ values, teamId });
     }
+
+    if (_action === "update-role") {
+        return updateMemberRole({ values, teamId, request });
+    }
 }
 
-export async function clientAction({ request, params }) {
+export async function clientAction({ request, params, serverAction }) {
     const { teamId } = params;
-    const formData = await request.formData();
-    const { _action, ...values } = Object.fromEntries(formData);
 
+    // Clone the request so we can read formData without consuming the original
+    const clonedRequest = request.clone();
+    const formData = await clonedRequest.formData();
+    const _action = formData.get("_action");
+
+    // Only handle invite-player on client, pass everything else to server
     if (_action === "invite-player") {
-        const { email, name } = values;
+        const email = formData.get("email");
+        const name = formData.get("name");
         // Build the invitation URL from the request
         const url = new URL(request.url);
         const inviteUrl = `${url.origin}/team/${teamId}/accept-invite`;
         return invitePlayerByEmail({ email, teamId, name, url: inviteUrl });
     }
+
+    // For all other actions (like update-role), pass through to server action
+    return serverAction();
 }
 
 export default function TeamDetails({ actionData, loaderData }) {
-    const { teamData: team, players, managerIds } = loaderData;
+    const { teamData: team, players, managerIds, ownerIds } = loaderData;
     // console.log('/team/details >', { players, team, managerIds });
 
     const { user } = useOutletContext();
 
     const managerView = managerIds.includes(user?.$id);
+    const ownerView = ownerIds?.includes(user?.$id);
 
     useResponseNotification(actionData);
 
@@ -94,7 +107,14 @@ export default function TeamDetails({ actionData, loaderData }) {
         <Container pt="md">
             <Group justify="space-between" mb="xl">
                 <BackButton to="/" />
-                {managerView && <TeamMenu team={team} userId={user.$id} />}
+                {managerView && (
+                    <TeamMenu
+                        team={team}
+                        userId={user.$id}
+                        ownerView={ownerView}
+                        players={players}
+                    />
+                )}
             </Group>
             <Title order={2} align="center" mt="sm" mb="lg">
                 {team.name}

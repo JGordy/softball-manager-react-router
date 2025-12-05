@@ -1,10 +1,17 @@
-import { createTeam, updateTeam, addPlayerToTeam } from "../teams";
+import {
+    createTeam,
+    updateTeam,
+    addPlayerToTeam,
+    updateMemberRole,
+} from "../teams";
 import { createDocument, updateDocument } from "@/utils/databases";
 import { hasBadWords } from "@/utils/badWordsApi";
 import {
     createAppwriteTeam,
     addExistingUserToTeam,
     inviteNewMemberByEmail,
+    getTeamMembers,
+    updateMembershipRoles,
 } from "@/utils/teams";
 
 // Mock dependencies
@@ -21,6 +28,8 @@ jest.mock("@/utils/teams", () => ({
     createAppwriteTeam: jest.fn(),
     addExistingUserToTeam: jest.fn(),
     inviteNewMemberByEmail: jest.fn(),
+    getTeamMembers: jest.fn(),
+    updateMembershipRoles: jest.fn(),
 }));
 
 describe("Teams Actions", () => {
@@ -171,6 +180,229 @@ describe("Teams Actions", () => {
             ).rejects.toThrow(
                 "Either userId or email must be provided, along with teamId",
             );
+        });
+    });
+
+    describe("updateMemberRole", () => {
+        let mockRequest;
+        let mockAccount;
+        let mockCreateSessionClient;
+
+        beforeEach(async () => {
+            // Mock the request object
+            mockRequest = {};
+
+            // Mock the account.get() response
+            mockAccount = {
+                get: jest.fn().mockResolvedValue({ $id: "owner-user-id" }),
+            };
+
+            // Mock createSessionClient
+            mockCreateSessionClient = jest.fn().mockResolvedValue({
+                account: mockAccount,
+            });
+
+            // Mock the dynamic import
+            jest.doMock("@/utils/appwrite/server", () => ({
+                createSessionClient: mockCreateSessionClient,
+            }));
+        });
+
+        it("should update role to owner", async () => {
+            const teamId = "team1";
+            const userId = "user1";
+            const membershipId = "membership1";
+            const ownerMembershipId = "owner-membership-id";
+
+            getTeamMembers.mockResolvedValue({
+                memberships: [
+                    { userId, $id: membershipId, roles: ["player"] },
+                    {
+                        userId: "owner-user-id",
+                        $id: ownerMembershipId,
+                        roles: ["owner"],
+                    },
+                ],
+            });
+            updateMembershipRoles.mockResolvedValue({});
+
+            const result = await updateMemberRole({
+                teamId,
+                values: { playerId: userId, role: "owner" },
+                request: mockRequest,
+            });
+
+            expect(getTeamMembers).toHaveBeenCalledWith({ teamId });
+            expect(updateMembershipRoles).toHaveBeenCalledWith({
+                teamId,
+                membershipId,
+                roles: ["owner", "manager", "player"],
+            });
+            expect(result.success).toBe(true);
+            expect(result.message).toBe("Member role updated successfully");
+        });
+
+        it("should update role to manager", async () => {
+            const teamId = "team1";
+            const userId = "user1";
+            const membershipId = "membership1";
+            const ownerMembershipId = "owner-membership-id";
+
+            getTeamMembers.mockResolvedValue({
+                memberships: [
+                    { userId, $id: membershipId, roles: ["player"] },
+                    {
+                        userId: "owner-user-id",
+                        $id: ownerMembershipId,
+                        roles: ["owner"],
+                    },
+                ],
+            });
+            updateMembershipRoles.mockResolvedValue({});
+
+            const result = await updateMemberRole({
+                teamId,
+                values: { playerId: userId, role: "manager" },
+                request: mockRequest,
+            });
+
+            expect(updateMembershipRoles).toHaveBeenCalledWith({
+                teamId,
+                membershipId,
+                roles: ["manager", "player"],
+            });
+            expect(result.success).toBe(true);
+        });
+
+        it("should update role to player", async () => {
+            const teamId = "team1";
+            const userId = "user1";
+            const membershipId = "membership1";
+            const ownerMembershipId = "owner-membership-id";
+
+            getTeamMembers.mockResolvedValue({
+                memberships: [
+                    { userId, $id: membershipId, roles: ["owner", "manager"] },
+                    {
+                        userId: "owner-user-id",
+                        $id: ownerMembershipId,
+                        roles: ["owner"],
+                    },
+                ],
+            });
+            updateMembershipRoles.mockResolvedValue({});
+
+            const result = await updateMemberRole({
+                teamId,
+                values: { playerId: userId, role: "player" },
+                request: mockRequest,
+            });
+
+            expect(updateMembershipRoles).toHaveBeenCalledWith({
+                teamId,
+                membershipId,
+                roles: ["player"],
+            });
+            expect(result.success).toBe(true);
+        });
+
+        it("should return error if membership not found", async () => {
+            const teamId = "team1";
+            const userId = "user1";
+            const ownerMembershipId = "owner-membership-id";
+
+            getTeamMembers.mockResolvedValue({
+                memberships: [
+                    {
+                        userId: "owner-user-id",
+                        $id: ownerMembershipId,
+                        roles: ["owner"],
+                    },
+                ],
+            });
+
+            const result = await updateMemberRole({
+                teamId,
+                values: { playerId: userId, role: "manager" },
+                request: mockRequest,
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.message).toBe("Membership not found");
+            expect(updateMembershipRoles).not.toHaveBeenCalled();
+        });
+
+        it("should return error if requesting user is not an owner", async () => {
+            const teamId = "team1";
+            const userId = "user1";
+            const membershipId = "membership1";
+            const managerMembershipId = "manager-membership-id";
+
+            getTeamMembers.mockResolvedValue({
+                memberships: [
+                    { userId, $id: membershipId, roles: ["player"] },
+                    {
+                        userId: "owner-user-id",
+                        $id: managerMembershipId,
+                        roles: ["manager"],
+                    },
+                ],
+            });
+
+            const result = await updateMemberRole({
+                teamId,
+                values: { playerId: userId, role: "manager" },
+                request: mockRequest,
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.message).toBe(
+                "Only team owners can change member roles",
+            );
+            expect(updateMembershipRoles).not.toHaveBeenCalled();
+        });
+
+        it("should return error for invalid role", async () => {
+            const teamId = "team1";
+            const userId = "user1";
+
+            const result = await updateMemberRole({
+                teamId,
+                values: { playerId: userId, role: "invalid-role" },
+                request: mockRequest,
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.message).toContain("Invalid role");
+            expect(getTeamMembers).not.toHaveBeenCalled();
+            expect(updateMembershipRoles).not.toHaveBeenCalled();
+        });
+
+        it("should prevent last owner from demoting themselves", async () => {
+            const teamId = "team1";
+            const userId = "owner-user-id";
+            const membershipId = "membership1";
+
+            getTeamMembers.mockResolvedValue({
+                memberships: [
+                    { userId, $id: membershipId, roles: ["owner"] },
+                    {
+                        userId: "user2",
+                        $id: "membership2",
+                        roles: ["player"],
+                    },
+                ],
+            });
+
+            const result = await updateMemberRole({
+                teamId,
+                values: { playerId: userId, role: "player" },
+                request: mockRequest,
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.message).toContain("last owner");
+            expect(updateMembershipRoles).not.toHaveBeenCalled();
         });
     });
 });
