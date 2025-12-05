@@ -7,6 +7,7 @@ import { formatGameTime } from "@/utils/dateTime";
 
 import DrawerContainer from "@/components/DrawerContainer";
 import DeferredLoader from "@/components/DeferredLoader";
+import InlineError from "@/components/InlineError";
 
 import ParkDetailsDrawer from "./ParkDetailsDrawer";
 import CalendarDetails from "./CalendarDetails";
@@ -51,6 +52,13 @@ export default function DetailsCard({ game, deferredData, season, team }) {
                                     radius="xl"
                                 />
                             }
+                            errorElement={
+                                <InlineError
+                                    message="Details unavailable"
+                                    mt="5px"
+                                    ml="28px"
+                                />
+                            }
                         >
                             {({ park }) => (
                                 <>
@@ -82,7 +90,11 @@ export default function DetailsCard({ game, deferredData, season, team }) {
                 />
             </Card>
 
-            <DeferredLoader resolve={deferredData} fallback={null}>
+            <DeferredLoader
+                resolve={deferredData}
+                fallback={null}
+                errorElement={null}
+            >
                 {({ park }) => (
                     <>
                         <DrawerContainer
