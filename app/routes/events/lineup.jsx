@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Container, Group } from "@mantine/core";
 import { useListState } from "@mantine/hooks";
 
-import { useOutletContext } from "react-router";
+import { useOutletContext, useParams } from "react-router";
 
 import { getEventWithPlayerCharts } from "@/loaders/games";
 
@@ -12,11 +12,11 @@ import { savePlayerChart } from "@/actions/lineups";
 import BackButton from "@/components/BackButton";
 
 import LineupContainer from "./components/LineupContainer";
-import LineupMenu from "./components/LineupMenu";
-import LineupValidationMenu from "./components/LineupValidationMenu";
+import LineupMenu from "@/components/Lineup/LineupMenu";
+import LineupValidationMenu from "@/components/Lineup/LineupValidationMenu";
 
 import addPlayerAvailability from "./utils/addPlayerAvailability";
-import { validateLineup } from "./utils/validateLineup";
+import { validateLineup } from "@/components/Lineup/utils/validateLineup";
 
 export async function loader({ params, request }) {
     const { eventId } = params;
@@ -39,6 +39,7 @@ function Lineup({ loaderData }) {
     console.log("/events/:eventId/lineup > ", { ...loaderData });
 
     const { user } = useOutletContext();
+    const { eventId } = useParams();
     const currentUserId = user.$id;
 
     const {
@@ -77,6 +78,7 @@ function Lineup({ loaderData }) {
                         />
                         <LineupMenu
                             game={rest.game}
+                            actionUrl={`/events/${eventId}/lineup`}
                             playersNotInLineup={playersNotInLineup}
                             lineupState={lineupState}
                             lineupHandlers={lineupHandlers}
