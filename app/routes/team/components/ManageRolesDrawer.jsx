@@ -14,6 +14,7 @@ export default function ManageRolesDrawer({
     onClose,
     players,
     teamId,
+    userId,
 }) {
     const fetcher = useFetcher();
 
@@ -41,6 +42,11 @@ export default function ManageRolesDrawer({
         });
     }, [players]);
 
+    // Count total owners to prevent last owner from demoting themselves
+    const ownerCount = useMemo(() => {
+        return players.filter((p) => p.roles.includes("owner")).length;
+    }, [players]);
+
     return (
         <DrawerContainer
             opened={opened}
@@ -56,6 +62,10 @@ export default function ManageRolesDrawer({
                     else if (player.roles.includes("manager"))
                         currentRole = "manager";
 
+                    const isCurrentUser = player.$id === userId;
+                    const isOwner = currentRole === "owner";
+                    const isLastOwner = isOwner && ownerCount === 1;
+
                     return (
                         <Group
                             key={player.$id}
@@ -70,6 +80,7 @@ export default function ManageRolesDrawer({
                                 />
                                 <Text fw={500}>
                                     {player.firstName} {player.lastName}
+                                    {isCurrentUser && " (You)"}
                                 </Text>
                             </Group>
                             <Select
@@ -79,7 +90,10 @@ export default function ManageRolesDrawer({
                                 onChange={(value) =>
                                     handleRoleChange(player.$id, value)
                                 }
-                                disabled={fetcher.state !== "idle"}
+                                disabled={
+                                    fetcher.state !== "idle" ||
+                                    (isCurrentUser && isLastOwner)
+                                }
                                 w={120}
                                 allowDeselect={false}
                                 comboboxProps={{ zIndex: 10000 }}
