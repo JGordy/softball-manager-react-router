@@ -1,6 +1,13 @@
+import { useMemo } from "react";
 import { useFetcher } from "react-router";
 import { Avatar, Group, Select, Stack, Text } from "@mantine/core";
 import DrawerContainer from "@/components/DrawerContainer";
+
+const getRoleWeight = (roles) => {
+    if (roles.includes("owner")) return 3;
+    if (roles.includes("manager")) return 2;
+    return 1;
+};
 
 export default function ManageRolesDrawer({
     opened,
@@ -28,15 +35,11 @@ export default function ManageRolesDrawer({
         });
     };
 
-    const getRoleWeight = (roles) => {
-        if (roles.includes("owner")) return 3;
-        if (roles.includes("manager")) return 2;
-        return 1;
-    };
-
-    const sortedPlayers = [...players].sort((a, b) => {
-        return getRoleWeight(b.roles) - getRoleWeight(a.roles);
-    });
+    const sortedPlayers = useMemo(() => {
+        return [...players].sort((a, b) => {
+            return getRoleWeight(b.roles) - getRoleWeight(a.roles);
+        });
+    }, [players]);
 
     return (
         <DrawerContainer

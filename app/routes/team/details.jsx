@@ -60,7 +60,7 @@ export async function action({ request, params }) {
     }
 
     if (_action === "update-role") {
-        return updateMemberRole({ values, teamId });
+        return updateMemberRole({ values, teamId, request });
     }
 }
 

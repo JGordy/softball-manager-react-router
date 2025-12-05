@@ -118,20 +118,52 @@ export async function addPlayerToTeam({ userId, email, teamId, name }) {
     }
 }
 
-export async function updateMemberRole({ values, teamId }) {
+export async function updateMemberRole({ values, teamId, request }) {
     const { playerId: userId, role } = values;
+
+    // Validate role input
+    const validRoles = ["owner", "manager", "player"];
+    if (!validRoles.includes(role)) {
+        return {
+            success: false,
+            message: `Invalid role: ${role}. Must be one of: ${validRoles.join(", ")}`,
+        };
+    }
+
     try {
-        // 1. Get membership ID
+        // 1. Get requesting user from session
+        const { createSessionClient } = await import("@/utils/appwrite/server");
+        const { account } = await createSessionClient(request);
+        const requestingUser = await account.get();
+
+        // 2. Get team memberships
         const memberships = await getTeamMembers({ teamId });
+
+        // 3. Verify requesting user is an owner
+        const requestingMembership = memberships.memberships.find(
+            (m) => m.userId === requestingUser.$id,
+        );
+
+        if (!requestingMembership?.roles.includes("owner")) {
+            return {
+                success: false,
+                message: "Only team owners can change member roles",
+            };
+        }
+
+        // 4. Get target membership
         const membership = memberships.memberships.find(
             (m) => m.userId === userId,
         );
 
         if (!membership) {
-            throw new Error("Membership not found");
+            return {
+                success: false,
+                message: "Membership not found",
+            };
         }
 
-        // 2. Determine new roles
+        // 5. Determine new roles
         let newRoles = [];
         if (role === "owner") {
             newRoles = ["owner", "manager", "player"];
@@ -141,16 +173,22 @@ export async function updateMemberRole({ values, teamId }) {
             newRoles = ["player"];
         }
 
-        // 3. Update roles
+        // 6. Update roles
         await updateMembershipRoles({
             teamId,
             membershipId: membership.$id,
             roles: newRoles,
         });
 
-        return { success: true };
+        return {
+            success: true,
+            message: "Member role updated successfully",
+        };
     } catch (error) {
         console.error("Error updating member role:", error);
-        return { success: false, error: error.message };
+        return {
+            success: false,
+            message: error.message || "Failed to update member role",
+        };
     }
 }
