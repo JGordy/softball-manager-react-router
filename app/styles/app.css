@@ -6,131 +6,94 @@
         "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
-:root[data-mantine-color-scheme="dark"] {
-    --mantine-color-body: #101720;
-
-    background-color: #101720;
-
-    .mantine-Card-root,
-    .mantine-Modal-root,
-    .mantine-Modal-header,
-    .mantine-Modal-content,
-    .mantine-ColorInput-dropdown,
-    .mantine-Accordion-item {
-        /* background-color: #192431; */
-        background-color: #1a242f;
-    }
-
-    /* .game-card.mantine-Card-root, */
-    .event-details-hero {
-        background-image:
-            linear-gradient(rgb(26, 36, 47, 0.9), rgb(26, 36, 47, 0.9)),
-            url("https://fra.cloud.appwrite.io/v1/storage/buckets/67af948b00375c741493/files/68793d820012b4a23cb3/view?project=679b95f10030c4821c90&mode=admin");
-
-        background-size: cover;
-        background-position: center center;
-    }
-
-    .team-card.mantine-Card-root {
-        /* background-image:
-            linear-gradient(rgb(26, 36, 47, 0.9), rgb(26, 36, 47, 0.9)),
-            url("https://fra.cloud.appwrite.io/v1/storage/buckets/67af948b00375c741493/files/687a8cb40025ea271333/view?project=679b95f10030c4821c90&mode=admin"); */
-
-        background-size: cover;
-        background-position: center center;
-    }
-
-    .mantine-Menu-dropdown,
-    .mantine-Select-wrapper,
-    .mantine-Popover-dropdown,
-    .mantine-Select-options,
-    .mantine-Input-input {
-        background-color: #101720;
-    }
-
-    .mantine-SegmentedControl-root {
-        background-color: #1a242f;
-        /* border: 1px solid #424242; */
-        border: 1px solid #101720;
-    }
-
-    .mantine-LoadingOverlay-overlay {
-        /* background-color: #192431; */
-        background-color: #1a242f00;
-    }
-
-    .mantine-Table-tbody {
-        --table-striped-color: #1a242f !important;
-    }
-
-    /* Winner display styling: dark keeps the gold gradient, light uses a subtler pastel card */
-    .winner-card.mantine-Card-root {
-        background: linear-gradient(
-            135deg,
-            rgba(255, 223, 93, 0.06),
-            rgba(255, 255, 255, 0)
-        );
-        border: 1px solid rgba(255, 223, 93, 0.25);
-    }
-
-    .other-receiving-card.mantine-Card-root {
-        background: #1a242f;
-        border: 1px solid rgba(255, 255, 255, 0.03);
-    }
+:root[data-mantine-color-scheme="light"] {
+    color-scheme: light;
+    --mantine-color-body: #e0ebe8;
+    background-color: #e0ebe8;
 }
 
-:root[data-mantine-color-scheme="light"] {
-    --mantine-color-body: #e0ebe8;
+:root[data-mantine-color-scheme="dark"] {
+    color-scheme: dark;
+    --mantine-color-body: #101720;
+    background-color: #101720;
+}
 
-    /* body {
-        background: linear-gradient(#eeeeee, #d9ecdf);
-    } */
+.mantine-Modal-root,
+.mantine-Modal-header,
+.mantine-Modal-content,
+.mantine-ColorInput-dropdown {
+    background-color: light-dark(var(--mantine-color-body), #1a242f);
+}
 
-    .mantine-Accordion-item,
-    .mantine-Card-root {
-        background-color: #f2f4f6;
-    }
+.mantine-Card-root,
+.mantine-Accordion-item,
+.mantine-Accordion-item[data-active] {
+    background-color: light-dark(#f2f4f6, #1a242f);
+}
 
-    .event-details-hero {
-        background-image:
-            linear-gradient(
-                rgba(182, 203, 188, 0.85),
-                rgb(182, 203, 188, 0.85)
-            ),
-            url("https://fra.cloud.appwrite.io/v1/storage/buckets/67af948b00375c741493/files/68793d820012b4a23cb3/view?project=679b95f10030c4821c90&mode=admin");
+.mantine-Menu-dropdown,
+.mantine-Select-wrapper,
+.mantine-Popover-dropdown,
+.mantine-Select-options,
+.mantine-Input-input {
+    background-color: light-dark(#f2f4f6, #101720);
+}
 
-        background-size: cover;
-        background-position: center center;
+.mantine-SegmentedControl-root {
+    background-color: light-dark(#f2f4f6, #1a242f);
+    border: 1px solid light-dark(transparent, #101720);
+}
 
-        .score-container {
-            background-color: #e0ebe8;
-        }
-    }
+.mantine-LoadingOverlay-overlay {
+    background-color: light-dark(transparent, #1a242f00);
+}
 
-    .game-card.mantine-Card-root {
-        background-size: cover;
-        background-position: center center;
-    }
+.mantine-Table-tbody {
+    --table-striped-color: light-dark(#f2f4f6, #1a242f) !important;
+}
 
-    .inner-card {
-        background-color: #cee2d6 !important;
-    }
+.inner-card {
+    background-color: light-dark(#cee2d6, transparent) !important;
+}
 
-    .winner-card.mantine-Card-root {
-        background: linear-gradient(
-            135deg,
-            #fff7e9 0%,
-            #ffe9b8 50%,
-            #fff7e2 100%
-        );
-        border: 1px solid rgba(255, 170, 50, 0.14);
-        box-shadow: 0 10px 30px rgba(255, 170, 50, 0.06);
-    }
+.other-receiving-card.mantine-Card-root {
+    background: light-dark(#ffffff, #1a242f);
+    border: 1px solid
+        light-dark(rgba(16, 23, 32, 0.04), rgba(255, 255, 255, 0.03));
+}
 
-    .other-receiving-card.mantine-Card-root {
-        background: #ffffff;
-        border: 1px solid rgba(16, 23, 32, 0.04);
-    }
+.event-details-hero {
+    background-image:
+        linear-gradient(
+            light-dark(rgba(182, 203, 188, 0.85), rgb(26, 36, 47, 0.9)),
+            light-dark(rgb(182, 203, 188, 0.85), rgb(26, 36, 47, 0.9))
+        ),
+        url("https://fra.cloud.appwrite.io/v1/storage/buckets/67af948b00375c741493/files/68793d820012b4a23cb3/view?project=679b95f10030c4821c90&mode=admin");
+
+    background-size: cover;
+    background-position: center center;
+}
+
+.event-details-hero .score-container {
+    background-color: light-dark(#e0ebe8, transparent);
+}
+
+.winner-card.mantine-Card-root {
+    background: linear-gradient(
+        135deg,
+        light-dark(#fff7e9, rgba(255, 223, 93, 0.06)) 0%,
+        light-dark(#ffe9b8, rgba(255, 223, 93, 0.03)) 50%,
+        light-dark(#fff7e2, rgba(255, 255, 255, 0)) 100%
+    );
+    border: 1px solid
+        light-dark(rgba(255, 170, 50, 0.14), rgba(255, 223, 93, 0.25));
+    box-shadow: light-dark(0 10px 30px rgba(255, 170, 50, 0.06), none);
+}
+
+.game-card.mantine-Card-root,
+.team-card.mantine-Card-root {
+    background-size: cover;
+    background-position: center center;
 }
 
 main {
