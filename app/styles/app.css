@@ -75,7 +75,7 @@
 }
 
 .event-details-hero .score-container {
-    background-color: light-dark(#e0ebe8, transparent);
+    background-color: light-dark(#f2f4f6, #1a242f);
 }
 
 .winner-card.mantine-Card-root {
