@@ -157,6 +157,7 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                 onClose={closeRoles}
                 players={players}
                 teamId={teamId}
+                userId={userId}
             />
         </>
     );
