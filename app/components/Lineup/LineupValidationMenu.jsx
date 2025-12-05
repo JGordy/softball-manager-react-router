@@ -7,7 +7,7 @@ import {
     Text,
 } from "@mantine/core";
 import { IconAlertTriangle, IconCheck } from "@tabler/icons-react";
-import { getOrdinal } from "../utils/formatters";
+import { getOrdinal } from "./utils/formatters";
 import fieldingPositions from "@/constants/positions";
 
 // Render helper for player names in duplicate position errors
