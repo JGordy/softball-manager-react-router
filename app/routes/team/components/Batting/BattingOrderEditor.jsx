@@ -16,6 +16,88 @@ const getBatsColor = (bats) => {
     }
 };
 
+// Drag handle component
+function DragHandle({ dragHandleProps }) {
+    return (
+        <div
+            {...dragHandleProps}
+            style={{
+                cursor: "grab",
+                display: "flex",
+                alignItems: "center",
+            }}
+        >
+            <IconGripVertical size={18} color="gray" />
+        </div>
+    );
+}
+
+// Player info badges (gender icon + bats badge)
+function PlayerBadges({ player }) {
+    return (
+        <Group gap="xs" ml="auto" wrap="nowrap">
+            {player.gender === "Female" && (
+                <IconGenderFemale
+                    size={18}
+                    color="var(--mantine-color-pink-5)"
+                />
+            )}
+            {player.bats && (
+                <Badge
+                    size="sm"
+                    variant="light"
+                    color={getBatsColor(player.bats)}
+                >
+                    Bats: {player.bats}
+                </Badge>
+            )}
+        </Group>
+    );
+}
+
+// Individual draggable player row
+function DraggablePlayerRow({ playerId, player, index, managerView, isLast }) {
+    return (
+        <Draggable
+            key={playerId}
+            draggableId={playerId}
+            index={index}
+            isDragDisabled={!managerView}
+        >
+            {(provided, snapshot) => (
+                <Card
+                    padding="xs"
+                    radius="md"
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    style={{
+                        ...provided.draggableProps.style,
+                        borderColor: snapshot.isDragging
+                            ? "var(--mantine-color-blue-filled)"
+                            : undefined,
+                    }}
+                >
+                    <Group wrap="nowrap">
+                        {managerView && (
+                            <DragHandle
+                                dragHandleProps={provided.dragHandleProps}
+                            />
+                        )}
+                        <Text fw={700} w={30}>
+                            {index + 1}.
+                        </Text>
+                        <Text size="sm">
+                            {player.firstName} {player.lastName}
+                        </Text>
+                        <PlayerBadges player={player} />
+                    </Group>
+                    {!isLast && <Divider mt="xs" />}
+                </Card>
+            )}
+        </Draggable>
+    );
+}
+
 export default function BattingOrderEditor({
     lineup,
     players,
@@ -53,83 +135,14 @@ export default function BattingOrderEditor({
                                 if (!player) return null;
 
                                 return (
-                                    <Draggable
+                                    <DraggablePlayerRow
                                         key={playerId}
-                                        draggableId={playerId}
+                                        playerId={playerId}
+                                        player={player}
                                         index={index}
-                                        isDragDisabled={!managerView}
-                                    >
-                                        {(provided, snapshot) => (
-                                            <Card
-                                                padding="xs"
-                                                radius="md"
-                                                ref={provided.innerRef}
-                                                {...provided.draggableProps}
-                                                style={{
-                                                    ...provided.draggableProps
-                                                        .style,
-                                                    borderColor:
-                                                        snapshot.isDragging
-                                                            ? "var(--mantine-color-blue-filled)"
-                                                            : undefined,
-                                                }}
-                                            >
-                                                <Group wrap="nowrap">
-                                                    {managerView && (
-                                                        <div
-                                                            {...provided.dragHandleProps}
-                                                            style={{
-                                                                cursor: "grab",
-                                                                display: "flex",
-                                                                alignItems:
-                                                                    "center",
-                                                            }}
-                                                        >
-                                                            <IconGripVertical
-                                                                size={18}
-                                                                color="gray"
-                                                            />
-                                                        </div>
-                                                    )}
-                                                    <Text fw={700} w={30}>
-                                                        {index + 1}.
-                                                    </Text>
-                                                    <Text size="sm">
-                                                        {player.firstName}{" "}
-                                                        {player.lastName}
-                                                    </Text>
-                                                    <Group
-                                                        gap="xs"
-                                                        ml="auto"
-                                                        wrap="nowrap"
-                                                    >
-                                                        {player.gender ===
-                                                            "Female" && (
-                                                            <IconGenderFemale
-                                                                size={18}
-                                                                color="var(--mantine-color-pink-5)"
-                                                            />
-                                                        )}
-                                                        {player.bats && (
-                                                            <Badge
-                                                                size="sm"
-                                                                variant="light"
-                                                                color={getBatsColor(
-                                                                    player.bats,
-                                                                )}
-                                                            >
-                                                                Bats:{" "}
-                                                                {player.bats}
-                                                            </Badge>
-                                                        )}
-                                                    </Group>
-                                                </Group>
-                                                {index < lineup.length - 1 && (
-                                                    <Divider mt="xs" />
-                                                )}
-                                            </Card>
-                                        )}
-                                    </Draggable>
+                                        managerView={managerView}
+                                        isLast={index === lineup.length - 1}
+                                    />
                                 );
                             })}
                             {provided.placeholder}
