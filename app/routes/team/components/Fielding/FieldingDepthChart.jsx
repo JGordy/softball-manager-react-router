@@ -108,7 +108,12 @@ const DraggablePlayerItem = ({
                 </Text>
             </Group>
             {managerView && (
-                <ActionIcon color="red" variant="subtle" onClick={onRemove}>
+                <ActionIcon
+                    color="red"
+                    variant="subtle"
+                    onClick={onRemove}
+                    aria-label="Remove player from position"
+                >
                     <IconTrash size={16} />
                 </ActionIcon>
             )}

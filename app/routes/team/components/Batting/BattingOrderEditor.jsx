@@ -47,7 +47,6 @@ export default function BattingOrderEditor({
                                     >
                                         {(provided, snapshot) => (
                                             <Card
-                                                // withBorder
                                                 padding="xs"
                                                 radius="md"
                                                 ref={provided.innerRef}

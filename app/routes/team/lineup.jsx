@@ -48,24 +48,23 @@ export default function TeamLineup({ loaderData }) {
         }
     }
 
-    // Fallback if idealLineup is empty or failed parse: all players, alphabetically?
-    // Or just empty and let them build it?
     // Let's seed it with all players if empty so they have something to drag.
     if (!initialIdealLineup || initialIdealLineup.length === 0) {
         initialIdealLineup = players.map((p) => p.$id);
     }
-    // Ensure all current players are in the list if not already (in case of new players added after lineup set)
-    // Actually, better to just append missing ones at the end?
+
+    // Filter out IDs that no longer exist in players array (deleted players) FIRST
+    initialIdealLineup = initialIdealLineup.filter((id) =>
+        players.some((p) => p.$id === id),
+    );
+
+    // THEN ensure all current players are in the list (in case of new players added after lineup set)
     const missingPlayers = players
         .filter((p) => !initialIdealLineup.includes(p.$id))
         .map((p) => p.$id);
     if (missingPlayers.length > 0) {
         initialIdealLineup = [...initialIdealLineup, ...missingPlayers];
     }
-    // Filter out IDs that no longer exist in players array (deleted players)
-    initialIdealLineup = initialIdealLineup.filter((id) =>
-        players.some((p) => p.$id === id),
-    );
 
     // Parse the idealPositioning
     let initialIdealPositioning = {};
