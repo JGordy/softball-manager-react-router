@@ -20,8 +20,7 @@ import { validateLineup } from "./components/Lineup/utils/validateLineup";
 
 export async function loader({ params, request }) {
     const { eventId } = params;
-    console.log("/events/:eventId > ", { eventId });
-
+    // console.log("/events/:eventId > ", { eventId });
     return await getEventWithPlayerCharts({ eventId, request });
 }
 
@@ -36,7 +35,7 @@ export async function action({ request, params }) {
 }
 
 function Lineup({ loaderData }) {
-    console.log("/events/:eventId/lineup > ", { ...loaderData });
+    // console.log("/events/:eventId/lineup > ", { ...loaderData });
 
     const { user } = useOutletContext();
     const { eventId } = useParams();

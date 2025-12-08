@@ -15,7 +15,6 @@ const useModal = () => {
     };
 
     const updateModal = (id, { title, children, ...rest }) => {
-        console.log({ id, title, children, ...rest });
         modals.updateModal(id, {
             title,
             children,

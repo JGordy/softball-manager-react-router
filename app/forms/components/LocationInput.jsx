@@ -63,7 +63,6 @@ export default function LocationInput({
                         const uniqueResults = Array.from(
                             uniqueResultsMap.values(),
                         );
-                        console.log({ uniqueResults });
                         setOptions(uniqueResults);
                         setAutocompleteData(
                             uniqueResults.map((option) => option.displayName),

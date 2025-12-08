@@ -213,7 +213,6 @@ export async function updateGame({ values, eventId }) {
 }
 
 export async function deleteGame({ values, eventId }) {
-    console.log("deleteGame: ", { eventId, values });
     // TODO: Add permission check here with values.userId
     try {
         await deleteDocument("games", eventId);
