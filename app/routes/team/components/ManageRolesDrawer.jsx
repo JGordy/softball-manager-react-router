@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useFetcher } from "react-router";
-import { Avatar, Group, Select, Stack, Text } from "@mantine/core";
+import { Avatar, Divider, Group, Select, Stack, Text } from "@mantine/core";
 import DrawerContainer from "@/components/DrawerContainer";
 
 const getRoleWeight = (roles) => {
@@ -54,8 +54,8 @@ export default function ManageRolesDrawer({
             title="Manage Member Roles"
             size="xl"
         >
-            <Stack gap="lg">
-                {sortedPlayers.map((player) => {
+            <Stack gap="md">
+                {sortedPlayers.map((player, index) => {
                     // Determine current role (highest privilege)
                     let currentRole = "player";
                     if (player.roles.includes("owner")) currentRole = "owner";
@@ -67,38 +67,42 @@ export default function ManageRolesDrawer({
                     const isLastOwner = isOwner && ownerCount === 1;
 
                     return (
-                        <Group
-                            key={player.$id}
-                            justify="space-between"
-                            wrap="nowrap"
-                        >
-                            <Group wrap="nowrap">
-                                <Avatar
-                                    name={`${player.firstName} ${player.lastName}`}
-                                    radius="xl"
-                                    color="initials"
+                        <>
+                            <Group
+                                key={player.$id}
+                                justify="space-between"
+                                wrap="nowrap"
+                            >
+                                <Group wrap="nowrap">
+                                    <Avatar
+                                        name={`${player.firstName} ${player.lastName}`}
+                                        radius="xl"
+                                        size="sm"
+                                        color="initials"
+                                    />
+                                    <Text fw={500} size="sm">
+                                        {player.firstName} {player.lastName}
+                                        {isCurrentUser && " (You)"}
+                                    </Text>
+                                </Group>
+                                <Select
+                                    size="sm"
+                                    value={currentRole}
+                                    data={roleOptions}
+                                    onChange={(value) =>
+                                        handleRoleChange(player.$id, value)
+                                    }
+                                    disabled={
+                                        fetcher.state !== "idle" ||
+                                        (isCurrentUser && isLastOwner)
+                                    }
+                                    w={120}
+                                    allowDeselect={false}
+                                    comboboxProps={{ zIndex: 10000 }}
                                 />
-                                <Text fw={500}>
-                                    {player.firstName} {player.lastName}
-                                    {isCurrentUser && " (You)"}
-                                </Text>
                             </Group>
-                            <Select
-                                size="sm"
-                                value={currentRole}
-                                data={roleOptions}
-                                onChange={(value) =>
-                                    handleRoleChange(player.$id, value)
-                                }
-                                disabled={
-                                    fetcher.state !== "idle" ||
-                                    (isCurrentUser && isLastOwner)
-                                }
-                                w={120}
-                                allowDeselect={false}
-                                comboboxProps={{ zIndex: 10000 }}
-                            />
-                        </Group>
+                            {index < sortedPlayers.length - 1 && <Divider />}
+                        </>
                     );
                 })}
             </Stack>
