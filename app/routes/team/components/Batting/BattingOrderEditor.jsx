@@ -83,9 +83,10 @@ export default function BattingOrderEditor({
                                                     <Avatar
                                                         name={`${player.firstName} ${player.lastName}`}
                                                         radius="xl"
+                                                        size="sm"
                                                         color="initials"
                                                     />
-                                                    <Text>
+                                                    <Text size="sm">
                                                         {player.firstName}{" "}
                                                         {player.lastName}
                                                     </Text>
