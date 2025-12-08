@@ -8,7 +8,7 @@ import {
     IconInfoCircle,
 } from "@tabler/icons-react";
 
-import EditablePlayerChart from "@/components/EditablePlayerChart";
+import EditablePlayerChart from "./EditablePlayerChart";
 
 import createBattingOrder from "../utils/createBattingOrder";
 import createFieldingChart from "../utils/createFieldingChart";
