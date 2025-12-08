@@ -1,0 +1,327 @@
+import { useState } from "react";
+
+import {
+    Avatar,
+    ActionIcon,
+    Button,
+    Card,
+    Checkbox,
+    Divider,
+    Group,
+    Stack,
+    Text,
+    Title,
+    useMantineTheme,
+} from "@mantine/core";
+import { Carousel } from "@mantine/carousel";
+import { useDisclosure } from "@mantine/hooks";
+
+import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
+
+import { IconPlus, IconTrash, IconGripVertical } from "@tabler/icons-react";
+
+import fieldingPositions from "@/constants/positions";
+import DrawerContainer from "@/components/DrawerContainer";
+
+import classes from "./FieldingDepthChart.module.css";
+
+// Simple player selector specifically for this use case
+const PlayerSelector = ({ players, onSelect, onClose }) => {
+    const [selected, setSelected] = useState([]);
+
+    const handleSubmit = () => {
+        onSelect(selected);
+        onClose();
+    };
+
+    // Sort players alphabetically
+    const sortedPlayers = [...players].sort((a, b) =>
+        `${a.lastName} ${a.firstName}`.localeCompare(
+            `${b.lastName} ${b.firstName}`,
+        ),
+    );
+
+    return (
+        <Stack>
+            <Checkbox.Group value={selected} onChange={setSelected}>
+                <Stack>
+                    {sortedPlayers.map((p) => (
+                        <Card key={p.$id} p="xs" withBorder>
+                            <Checkbox
+                                value={p.$id}
+                                label={`${p.firstName} ${p.lastName}`}
+                                style={{ cursor: "pointer" }}
+                            />
+                        </Card>
+                    ))}
+                </Stack>
+            </Checkbox.Group>
+            <Button onClick={handleSubmit} disabled={selected.length === 0}>
+                Add Selected
+            </Button>
+        </Stack>
+    );
+};
+
+// Extracted component for draggable player items to reduce nesting
+const DraggablePlayerItem = ({
+    player,
+    provided,
+    snapshot,
+    managerView,
+    onRemove,
+    showDivider,
+    theme,
+}) => (
+    <Card
+        p="xs"
+        radius="md"
+        ref={provided.innerRef}
+        {...provided.draggableProps}
+        style={{
+            ...provided.draggableProps.style,
+            borderColor: snapshot.isDragging ? theme.colors.blue[6] : undefined,
+        }}
+    >
+        <Group justify="space-between">
+            <Group gap="sm">
+                {managerView && (
+                    <div
+                        {...provided.dragHandleProps}
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            cursor: "grab",
+                        }}
+                    >
+                        <IconGripVertical size={16} color="gray" />
+                    </div>
+                )}
+                <Avatar
+                    radius="xl"
+                    size="sm"
+                    color="initials"
+                    name={`${player.firstName} ${player.lastName}`}
+                />
+                <Text size="sm">
+                    {player.firstName} {player.lastName}
+                </Text>
+            </Group>
+            {managerView && (
+                <ActionIcon color="red" variant="subtle" onClick={onRemove}>
+                    <IconTrash size={16} />
+                </ActionIcon>
+            )}
+        </Group>
+        {showDivider && <Divider mt="xs" />}
+    </Card>
+);
+
+export default function FieldingDepthChart({
+    positioning,
+    players,
+    handlePositionUpdate,
+    managerView,
+}) {
+    const theme = useMantineTheme();
+    const positions = Object.keys(fieldingPositions);
+
+    // State to track active slide
+    const [activeSlide, setActiveSlide] = useState(0);
+    const activePosition = positions[activeSlide];
+
+    // State for add player drawer
+    const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
+        useDisclosure(false);
+
+    const handleAddPlayers = (playerIds) => {
+        if (!activePosition) return;
+
+        const currentList = positioning[activePosition] || [];
+        // Avoid duplicates
+        const newIds = playerIds.filter((id) => !currentList.includes(id));
+
+        if (newIds.length > 0) {
+            handlePositionUpdate(activePosition, [...currentList, ...newIds]);
+        }
+    };
+
+    const handleRemovePlayer = (position, playerId) => {
+        const currentList = positioning[position] || [];
+        const newList = currentList.filter((id) => id !== playerId);
+        handlePositionUpdate(position, newList);
+    };
+
+    const onDragEnd = (result) => {
+        const { source, destination } = result;
+        if (!destination) return;
+        if (source.index === destination.index) return;
+
+        const currentList = [...(positioning[activePosition] || [])];
+        const [moved] = currentList.splice(source.index, 1);
+        currentList.splice(destination.index, 0, moved);
+
+        handlePositionUpdate(activePosition, currentList);
+    };
+
+    // Helper to get player details
+    const getPlayer = (id) => players.find((p) => p.$id === id);
+
+    // Get active position details
+    const activeAssignedPlayerIds = positioning[activePosition] || [];
+
+    return (
+        <Stack>
+            {/* Position Selector Carousel */}
+            <Carousel
+                slideSize="80%"
+                slideGap="md"
+                withIndicators
+                withControls={false}
+                height={120}
+                onSlideChange={setActiveSlide}
+                classNames={{
+                    indicator: classes.indicator,
+                }}
+                emblaOptions={{
+                    loop: true,
+                    dragFree: false,
+                    align: "center",
+                }}
+                mt="lg"
+                pb="sm"
+            >
+                {positions.map((position) => {
+                    const count = (positioning[position] || []).length;
+                    return (
+                        <Carousel.Slide key={position}>
+                            <Card
+                                shadow="sm"
+                                radius="lg"
+                                withBorder
+                                display="flex"
+                                style={{
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                }}
+                            >
+                                <Stack align="center" gap="xs">
+                                    <Title order={3} ta="center">
+                                        {position}
+                                    </Title>
+                                    <Text size="sm" c="dimmed">
+                                        {count === 0
+                                            ? "No players"
+                                            : `${count} Player${count !== 1 ? "s" : ""}`}
+                                    </Text>
+                                </Stack>
+                            </Card>
+                        </Carousel.Slide>
+                    );
+                })}
+            </Carousel>
+
+            {/* Active Position Depth Chart */}
+            <Stack mt="lg">
+                <Title order={4} ta="center">
+                    Depth Chart
+                </Title>
+
+                {activeAssignedPlayerIds.length === 0 ? (
+                    <Text c="dimmed" ta="center" py="xl">
+                        No players assigned to this position.
+                    </Text>
+                ) : (
+                    <DragDropContext onDragEnd={onDragEnd}>
+                        <Droppable droppableId={`droppable-${activePosition}`}>
+                            {(provided) => (
+                                <Card withBorder radius="lg" p="xs">
+                                    <Stack
+                                        {...provided.droppableProps}
+                                        ref={provided.innerRef}
+                                        gap={0}
+                                    >
+                                        {activeAssignedPlayerIds.map(
+                                            (playerId, index) => {
+                                                const player =
+                                                    getPlayer(playerId);
+                                                if (!player) return null;
+
+                                                return (
+                                                    <Draggable
+                                                        key={playerId}
+                                                        draggableId={playerId}
+                                                        index={index}
+                                                        isDragDisabled={
+                                                            !managerView
+                                                        }
+                                                    >
+                                                        {(
+                                                            provided,
+                                                            snapshot,
+                                                        ) => (
+                                                            <DraggablePlayerItem
+                                                                player={player}
+                                                                provided={
+                                                                    provided
+                                                                }
+                                                                snapshot={
+                                                                    snapshot
+                                                                }
+                                                                managerView={
+                                                                    managerView
+                                                                }
+                                                                onRemove={() =>
+                                                                    handleRemovePlayer(
+                                                                        activePosition,
+                                                                        playerId,
+                                                                    )
+                                                                }
+                                                                showDivider={
+                                                                    index <
+                                                                    activeAssignedPlayerIds.length -
+                                                                        1
+                                                                }
+                                                                theme={theme}
+                                                            />
+                                                        )}
+                                                    </Draggable>
+                                                );
+                                            },
+                                        )}
+                                        {provided.placeholder}
+                                    </Stack>
+                                </Card>
+                            )}
+                        </Droppable>
+                    </DragDropContext>
+                )}
+
+                {managerView && (
+                    <Button
+                        variant="light"
+                        leftSection={<IconPlus size={16} />}
+                        onClick={openDrawer}
+                        fullWidth
+                        mt="sm"
+                    >
+                        Add Player
+                    </Button>
+                )}
+            </Stack>
+
+            <DrawerContainer
+                opened={drawerOpened}
+                onClose={closeDrawer}
+                title={`Add Players to ${activePosition}`}
+                size="md"
+            >
+                <PlayerSelector
+                    players={players}
+                    onSelect={handleAddPlayers}
+                    onClose={closeDrawer}
+                />
+            </DrawerContainer>
+        </Stack>
+    );
+}
