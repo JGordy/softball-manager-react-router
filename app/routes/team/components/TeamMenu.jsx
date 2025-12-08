@@ -103,7 +103,7 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                     key: "edit-team",
                     onClick: openEditTeamModal,
                     leftSection: <IconEdit size={18} />,
-                    content: <Text>Edit Team</Text>,
+                    content: <Text>Edit Team Details</Text>,
                 },
                 {
                     key: "add-season",
@@ -117,28 +117,28 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                     leftSection: <IconBallBaseball size={18} />,
                     content: <Text>Add Game</Text>,
                 },
+            ],
+        },
+        {
+            label: "Roster",
+            items: [
                 {
                     key: "ideal-lineup",
                     onClick: () => navigate(`/team/${teamId}/lineup`),
                     leftSection: <IconClipboardList size={18} />,
-                    content: <Text>Ideal Lineup</Text>,
+                    content: <Text>Set Lineups</Text>,
                 },
-            ],
-        },
-        {
-            label: "Players",
-            items: [
-                {
-                    key: "add-player",
-                    onClick: openAddPlayerModal,
-                    leftSection: <IconUserFilled size={18} />,
-                    content: <Text>Add Player</Text>,
-                },
+                // {
+                //     key: "add-player",
+                //     onClick: openAddPlayerModal,
+                //     leftSection: <IconUserFilled size={18} />,
+                //     content: <Text>Add Player</Text>,
+                // },
                 {
                     key: "invite-player",
                     onClick: openInvitePlayerModal,
                     leftSection: <IconMailFast size={18} />,
-                    content: <Text>Invite by Email</Text>,
+                    content: <Text>Invite Player</Text>,
                 },
             ],
         },
