@@ -50,6 +50,7 @@ const availabilityData = {
 
 export default function LineupMenu({
     game,
+    actionUrl,
     lineupState,
     lineupHandlers,
     playersNotInLineup,
@@ -175,10 +176,13 @@ export default function LineupMenu({
 
             fetcher.submit(formData, {
                 method: "post",
-                action: `/events/${game.$id}/lineup`,
+                action: actionUrl,
             });
         } catch (error) {
-            console.error(`Error deleting chart for game ${game.$id}:`, error);
+            console.error(
+                `Error deleting chart${game ? ` for game ${game.$id}` : ""}:`,
+                error,
+            );
         }
 
         setHasBeenEdited(false);

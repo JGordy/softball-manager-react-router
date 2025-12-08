@@ -24,6 +24,7 @@ export default [
 
         // Team routes
         route("/team/:teamId", "routes/team/details.jsx"),
+        route("/team/:teamId/lineup", "routes/team/lineup.jsx"),
 
         // Season routes
         route("/season/:seasonId", "routes/season/details.jsx"),

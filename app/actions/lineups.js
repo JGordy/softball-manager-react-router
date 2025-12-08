@@ -16,6 +16,40 @@ export async function savePlayerChart({ values, eventId }) {
     }
 }
 
+export async function saveBattingOrder({ values, teamId }) {
+    const { idealLineup } = values;
+    try {
+        const teamDetails = await updateDocument("teams", teamId, {
+            idealLineup:
+                typeof idealLineup === "string"
+                    ? idealLineup
+                    : JSON.stringify(idealLineup),
+        });
+
+        return { response: { teamDetails }, status: 204, success: true };
+    } catch (error) {
+        console.error("Error updating team batting order:", error);
+        throw error;
+    }
+}
+
+export async function saveFieldingPositions({ values, teamId }) {
+    const { idealPositioning } = values;
+    try {
+        const teamDetails = await updateDocument("teams", teamId, {
+            idealPositioning:
+                typeof idealPositioning === "string"
+                    ? idealPositioning
+                    : JSON.stringify(idealPositioning),
+        });
+
+        return { response: { teamDetails }, status: 204, success: true };
+    } catch (error) {
+        console.error("Error updating team fielding positions:", error);
+        throw error;
+    }
+}
+
 // Calls the gemini generative ai to generate a lineup and field chart
 export async function generatePlayerChart({ values }) {
     console.log("generatePlayerChart: ", { values });

@@ -7,6 +7,7 @@ import {
     IconMailFast,
     IconUserFilled,
     IconShieldLock,
+    IconClipboardList,
 } from "@tabler/icons-react";
 
 import AddTeam from "@/forms/AddTeam";
@@ -14,6 +15,7 @@ import AddSingleGame from "@/forms/AddSingleGame";
 import AddSeason from "@/forms/AddSeason";
 import AddPlayer from "@/forms/AddPlayer";
 import InvitePlayer from "@/forms/InvitePlayer";
+import { useNavigate } from "react-router";
 
 import useModal from "@/hooks/useModal";
 
@@ -21,6 +23,7 @@ import MenuContainer from "@/components/MenuContainer";
 import ManageRolesDrawer from "./ManageRolesDrawer";
 
 export default function TeamMenu({ userId, team, ownerView, players }) {
+    const navigate = useNavigate();
     const { openModal } = useModal();
     const [rolesOpened, { open: openRoles, close: closeRoles }] =
         useDisclosure(false);
@@ -113,6 +116,12 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                     onClick: openAddGameModal,
                     leftSection: <IconBallBaseball size={18} />,
                     content: <Text>Add Game</Text>,
+                },
+                {
+                    key: "ideal-lineup",
+                    onClick: () => navigate(`/team/${teamId}/lineup`),
+                    leftSection: <IconClipboardList size={18} />,
+                    content: <Text>Ideal Lineup</Text>,
                 },
             ],
         },
