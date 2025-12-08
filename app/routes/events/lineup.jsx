@@ -12,11 +12,11 @@ import { savePlayerChart } from "@/actions/lineups";
 import BackButton from "@/components/BackButton";
 
 import LineupContainer from "./components/LineupContainer";
-import LineupMenu from "@/components/Lineup/LineupMenu";
-import LineupValidationMenu from "@/components/Lineup/LineupValidationMenu";
+import LineupMenu from "./components/Lineup/LineupMenu";
+import LineupValidationMenu from "./components/Lineup/LineupValidationMenu";
 
 import addPlayerAvailability from "./utils/addPlayerAvailability";
-import { validateLineup } from "@/components/Lineup/utils/validateLineup";
+import { validateLineup } from "./components/Lineup/utils/validateLineup";
 
 export async function loader({ params, request }) {
     const { eventId } = params;
