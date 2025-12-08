@@ -1,192 +1,95 @@
 import { useFetcher } from "react-router";
+import { Tabs } from "@mantine/core";
 
-import { Alert, Button, Card, Group, Text } from "@mantine/core";
-
-import {
-    IconArrowBackUp,
-    IconDeviceFloppy,
-    IconInfoCircle,
-} from "@tabler/icons-react";
-
-import EditablePlayerChart from "@/components/EditablePlayerChart";
-
-import createBattingOrder from "@/routes/events/utils/createBattingOrder";
-import createFieldingChart from "@/routes/events/utils/createFieldingChart";
+import TabsWrapper from "@/components/TabsWrapper";
+import BattingOrderEditor from "./Batting/BattingOrderEditor";
+import FieldingDepthChart from "./Fielding/FieldingDepthChart";
 
 export default function TeamLineupContainer({
     team,
     managerView,
-    playerChart,
     players,
-    lineupState,
-    lineupHandlers,
-    hasBeenEdited,
-    setHasBeenEdited,
-    validationResults,
+    idealLineup, // Array of player IDs
+    lineupHandlers, // useListState handlers for idealLineup
+    idealPositioning, // Object of position -> Array of player IDs
+    setIdealPositioning,
 }) {
     const fetcher = useFetcher();
 
-    // Ideally for a team "ideal lineup", we consider all active players available.
-    // If you have a specific "active" status, filter by that. For now, using all players.
-    const availablePlayers = players;
-
-    // A minimum of 8 players is usually required to make a meaningful chart
-    const hasEnoughPlayers = availablePlayers?.length > 7;
-
-    let message = "Ideal lineup has not yet been set. You can create it below.";
-
-    if (!hasEnoughPlayers) {
-        message = `There aren't enough players to create a lineup. A minimum of 8 players is required (${availablePlayers?.length || 0} available).`;
-    }
-
-    const handleOnSave = (chart) => {
+    const submitBattingOrder = (newLineup) => {
         try {
             const formData = new FormData();
-            formData.append("_action", "save-chart");
-            formData.append(
-                "playerChart",
-                JSON.stringify(chart || lineupState),
-            );
+            formData.append("_action", "save-batting-order");
+            formData.append("idealLineup", JSON.stringify(newLineup));
 
             fetcher.submit(formData, {
                 method: "post",
                 action: `/team/${team.$id}/lineup`,
             });
-
-            setHasBeenEdited(false);
         } catch (error) {
-            console.error("Error submitting lineup form:", error);
+            console.error("Error submitting batting order:", error);
         }
     };
 
-    const handleResetChart = () => {
-        lineupHandlers.setState(playerChart);
-        setHasBeenEdited(false);
-    };
+    const submitFieldingPositions = (newPositioning) => {
+        try {
+            const formData = new FormData();
+            formData.append("_action", "save-fielding-positions");
+            formData.append("idealPositioning", JSON.stringify(newPositioning));
 
-    // Reuse the existing algorithm logic
-    const handleCreateCharts = () => {
-        if (hasEnoughPlayers) {
-            const batting = createBattingOrder(availablePlayers);
-
-            if (batting?.length > 0) {
-                const fieldingChart = createFieldingChart(batting);
-
-                if (fieldingChart?.length > 0) {
-                    lineupHandlers.setState(fieldingChart);
-                }
-
-                // Auto-save on initial creation if desired, or let user save.
-                // Letting user save is safer so they can tweak it first.
-                setHasBeenEdited(true);
-            }
+            fetcher.submit(formData, {
+                method: "post",
+                action: `/team/${team.$id}/lineup`,
+            });
+        } catch (error) {
+            console.error("Error submitting fielding positions:", error);
         }
     };
 
-    const handleEditChart = (position, playerId, inning) => {
-        const playerIndex = lineupState.findIndex((p) => p.$id === playerId);
+    const handleBattingReorder = ({ from, to }) => {
+        if (from === to) return;
 
-        if (playerIndex === -1) {
-            return;
-        }
+        lineupHandlers.reorder({ from, to });
 
-        const playerToUpdate = lineupState[playerIndex];
-        const inningIndex = parseInt(inning.replace("inning", ""), 10) - 1;
-
-        const updatedPositions = [...playerToUpdate.positions];
-        updatedPositions[inningIndex] = position;
-
-        lineupHandlers.setItemProp(playerIndex, "positions", updatedPositions);
-
-        setHasBeenEdited(true);
+        // Calculate new lineup for database save
+        const newLineup = [...idealLineup];
+        const [moved] = newLineup.splice(from, 1);
+        newLineup.splice(to, 0, moved);
+        submitBattingOrder(newLineup);
     };
 
-    const handleLineupReorder = ({ destination, source }) => {
-        if (destination.index !== source.index) {
-            setHasBeenEdited(true);
-        }
-        return lineupHandlers.reorder({
-            from: source.index,
-            to: destination?.index || 0,
-        });
-    };
+    const handlePositionUpdate = (position, playerIds) => {
+        const newPositioning = {
+            ...idealPositioning,
+            [position]: playerIds,
+        };
 
-    const buttonProps = {
-        disabled: fetcher.state === "loading" || !hasBeenEdited,
-        loading: fetcher.state === "loading",
-        loaderProps: { type: "dots" },
+        setIdealPositioning(newPositioning);
+        submitFieldingPositions(newPositioning);
     };
-
-    if (!lineupState || lineupState.length === 0) {
-        return (
-            <>
-                {managerView ? (
-                    <>
-                        <Alert
-                            title={
-                                hasEnoughPlayers
-                                    ? "Ideal Lineup not yet set"
-                                    : "Not enough players"
-                            }
-                            variant="light"
-                            color={hasEnoughPlayers ? "yellow" : "red"}
-                            icon={<IconInfoCircle size={18} />}
-                        >
-                            {message}
-                        </Alert>
-                        {hasEnoughPlayers && (
-                            <Button
-                                mt="sm"
-                                onClick={handleCreateCharts}
-                                fullWidth
-                            >
-                                Generate Initial Lineup & Fielding Chart
-                            </Button>
-                        )}
-                    </>
-                ) : (
-                    <Text>
-                        Ideal Batting Lineup and Fielding Chart have not yet
-                        been set by the manager.
-                    </Text>
-                )}
-            </>
-        );
-    }
 
     return (
-        <>
-            <Card p="sm" radius="lg">
-                <EditablePlayerChart
-                    setPlayerChart={handleEditChart}
-                    playerChart={lineupState}
-                    players={players}
-                    managerView={managerView}
-                    handleLineupReorder={handleLineupReorder}
-                    validationResults={validationResults}
-                />
-            </Card>
+        <TabsWrapper defaultValue="batting">
+            <Tabs.Tab value="batting">Batting Order</Tabs.Tab>
+            <Tabs.Tab value="fielding">Fielding Depth Chart</Tabs.Tab>
 
-            {managerView && (
-                <Group justify="space-between" my="lg" grow>
-                    <Button
-                        {...buttonProps}
-                        color="blue"
-                        leftSection={<IconArrowBackUp size={18} />}
-                        onClick={handleResetChart}
-                        variant="light"
-                    >
-                        Reset Changes
-                    </Button>
-                    <Button
-                        {...buttonProps}
-                        leftSection={<IconDeviceFloppy size={18} />}
-                        onClick={() => handleOnSave(lineupState)}
-                    >
-                        Save Ideal Lineup
-                    </Button>
-                </Group>
-            )}
-        </>
+            <Tabs.Panel value="batting" pt="xs">
+                <BattingOrderEditor
+                    lineup={idealLineup}
+                    players={players}
+                    handleReorder={handleBattingReorder}
+                    managerView={managerView}
+                />
+            </Tabs.Panel>
+
+            <Tabs.Panel value="fielding" pt="xs">
+                <FieldingDepthChart
+                    positioning={idealPositioning}
+                    players={players}
+                    handlePositionUpdate={handlePositionUpdate}
+                    managerView={managerView}
+                />
+            </Tabs.Panel>
+        </TabsWrapper>
     );
 }

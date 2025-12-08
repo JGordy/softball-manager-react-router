@@ -16,19 +16,36 @@ export async function savePlayerChart({ values, eventId }) {
     }
 }
 
-export async function saveTeamLineup({ values, teamId }) {
-    const { playerChart } = values;
+export async function saveBattingOrder({ values, teamId }) {
+    const { idealLineup } = values;
     try {
         const teamDetails = await updateDocument("teams", teamId, {
             idealLineup:
-                typeof playerChart === "string"
-                    ? playerChart
-                    : JSON.stringify(playerChart),
+                typeof idealLineup === "string"
+                    ? idealLineup
+                    : JSON.stringify(idealLineup),
         });
 
         return { response: { teamDetails }, status: 204, success: true };
     } catch (error) {
-        console.error("Error updating team ideal lineup:", error);
+        console.error("Error updating team batting order:", error);
+        throw error;
+    }
+}
+
+export async function saveFieldingPositions({ values, teamId }) {
+    const { idealPositioning } = values;
+    try {
+        const teamDetails = await updateDocument("teams", teamId, {
+            idealPositioning:
+                typeof idealPositioning === "string"
+                    ? idealPositioning
+                    : JSON.stringify(idealPositioning),
+        });
+
+        return { response: { teamDetails }, status: 204, success: true };
+    } catch (error) {
+        console.error("Error updating team fielding positions:", error);
         throw error;
     }
 }
