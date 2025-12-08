@@ -1,6 +1,20 @@
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
-import { Avatar, Card, Divider, Group, Stack, Text } from "@mantine/core";
-import { IconGripVertical } from "@tabler/icons-react";
+import { Badge, Card, Divider, Group, Stack, Text } from "@mantine/core";
+import { IconGenderFemale, IconGripVertical } from "@tabler/icons-react";
+
+// Helper to get badge color based on batting handedness
+const getBatsColor = (bats) => {
+    switch (bats) {
+        case "Left":
+            return "green";
+        case "Right":
+            return "blue";
+        case "Switch":
+            return "orange";
+        default:
+            return "gray";
+    }
+};
 
 export default function BattingOrderEditor({
     lineup,
@@ -80,16 +94,35 @@ export default function BattingOrderEditor({
                                                     <Text fw={700} w={30}>
                                                         {index + 1}.
                                                     </Text>
-                                                    <Avatar
-                                                        name={`${player.firstName} ${player.lastName}`}
-                                                        radius="xl"
-                                                        size="sm"
-                                                        color="initials"
-                                                    />
                                                     <Text size="sm">
                                                         {player.firstName}{" "}
                                                         {player.lastName}
                                                     </Text>
+                                                    <Group
+                                                        gap="xs"
+                                                        ml="auto"
+                                                        wrap="nowrap"
+                                                    >
+                                                        {player.gender ===
+                                                            "Female" && (
+                                                            <IconGenderFemale
+                                                                size={18}
+                                                                color="var(--mantine-color-pink-5)"
+                                                            />
+                                                        )}
+                                                        {player.bats && (
+                                                            <Badge
+                                                                size="sm"
+                                                                variant="light"
+                                                                color={getBatsColor(
+                                                                    player.bats,
+                                                                )}
+                                                            >
+                                                                Bats:{" "}
+                                                                {player.bats}
+                                                            </Badge>
+                                                        )}
+                                                    </Group>
                                                 </Group>
                                                 {index < lineup.length - 1 && (
                                                     <Divider mt="xs" />
