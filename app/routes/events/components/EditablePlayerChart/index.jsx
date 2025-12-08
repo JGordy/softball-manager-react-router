@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import { ScrollArea, Table } from "@mantine/core";
 import { DragDropContext, Droppable } from "@hello-pangea/dnd";
 import fieldingPositions from "@/constants/positions";
-import styles from "../../styles/playerChart.module.css";
+import styles from "@/styles/playerChart.module.css";
 import PlayerChartFooter from "./PlayerChartFooter";
 import PlayerChartRow from "./PlayerChartRow";
 

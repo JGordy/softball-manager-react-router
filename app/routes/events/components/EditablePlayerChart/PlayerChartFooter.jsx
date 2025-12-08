@@ -1,7 +1,7 @@
 import React from "react";
 import { Avatar, Table } from "@mantine/core";
 import fieldingPositions from "@/constants/positions";
-import styles from "../../styles/playerChart.module.css";
+import styles from "@/styles/playerChart.module.css";
 
 const PlayerChartFooter = ({ managerView, fieldingErrors }) => {
     return (
