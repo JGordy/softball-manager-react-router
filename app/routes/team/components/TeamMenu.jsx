@@ -97,7 +97,7 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
 
     const sections = [
         {
-            label: "Team Details",
+            label: "Team Options",
             items: [
                 {
                     key: "edit-team",
