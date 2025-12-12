@@ -23,8 +23,12 @@ export default function LineupContainer({
     hasBeenEdited,
     setHasBeenEdited,
     validationResults,
+    teams,
 }) {
     const fetcher = useFetcher();
+
+    // Get the team data for ideal lineup/positioning
+    const team = teams?.[0] || game?.team;
 
     const availablePlayers = players?.filter(
         (p) => p.availability === "accepted",
@@ -68,12 +72,17 @@ export default function LineupContainer({
     };
 
     // NOTE: Uses an algorithm I created to generate a lineup and fielding chart
+    // Team-level idealLineup and idealPositioning take precedence over player preferences
     const handleCreateCharts = () => {
         if (hasEnoughPlayers) {
-            const batting = createBattingOrder(availablePlayers);
+            const batting = createBattingOrder(availablePlayers, {
+                idealLineup: team?.idealLineup,
+            });
 
             if (batting?.length > 0) {
-                const fieldingChart = createFieldingChart(batting);
+                const fieldingChart = createFieldingChart(batting, {
+                    idealPositioning: team?.idealPositioning,
+                });
 
                 if (fieldingChart?.length > 0) {
                     lineupHandlers.setState(fieldingChart);
