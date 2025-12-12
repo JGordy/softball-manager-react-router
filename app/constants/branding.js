@@ -1,6 +1,6 @@
 const branding = {
-    name: "Field Marshal",
-    tagline: "Command Your Season.",
+    name: "RostrHQ",
+    tagline: "The Advantage Starts Here.",
 };
 
 export default branding;
