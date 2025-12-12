@@ -5,10 +5,11 @@ import {
     Center,
     Container,
     Group,
+    Image,
     Paper,
     PasswordInput,
     Text,
-    Title,
+    useComputedColorScheme,
 } from "@mantine/core";
 
 import {
@@ -17,10 +18,13 @@ import {
 } from "@/utils/appwrite/server";
 
 import branding from "@/constants/branding";
+import images from "@/constants/images";
 
 import AutocompleteEmail from "@/components/AutocompleteEmail";
 
 import { redirectIfAuthenticated } from "./utils/redirectIfAuthenticated";
+
+const { brandLogoDark, brandLogoLight } = images;
 
 // Check if user is already logged in, redirect to home if so
 export async function loader({ request }) {
@@ -65,17 +69,21 @@ export async function action({ request }) {
 
 export default function Login() {
     const actionData = useActionData();
+    const computedColorScheme = useComputedColorScheme("light");
+    const brandLogo =
+        computedColorScheme === "light" ? brandLogoLight : brandLogoDark;
 
     return (
         <Container size="xs">
             <Center style={{ minHeight: "100vh" }}>
                 <Paper radius="md" p="xl" withBorder style={{ width: "100%" }}>
-                    <Title order={1} ta="center" mt="md" mb="xs" c="green">
-                        {branding.name}
-                    </Title>
-                    <Text ta="center" mb={50}>
-                        {branding.tagline}
-                    </Text>
+                    <Image
+                        src={brandLogo}
+                        alt={branding.name}
+                        px="xl"
+                        my="xl"
+                    />
+
                     <Form method="post">
                         <AutocompleteEmail />
                         <PasswordInput

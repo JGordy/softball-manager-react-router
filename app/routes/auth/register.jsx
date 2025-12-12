@@ -7,15 +7,17 @@ import {
     Center,
     Container,
     Group,
+    Image,
     Paper,
     PasswordInput,
     Stack,
     Text,
     TextInput,
-    Title,
+    useComputedColorScheme,
 } from "@mantine/core";
 
 import branding from "@/constants/branding";
+import images from "@/constants/images";
 
 import AutocompleteEmail from "@/components/AutocompleteEmail";
 
@@ -30,6 +32,8 @@ import { createDocument } from "@/utils/databases";
 import { showNotification } from "@/utils/showNotification";
 
 import { redirectIfAuthenticated } from "./utils/redirectIfAuthenticated";
+
+const { brandLogoDark, brandLogoLight } = images;
 
 // Check if user is already logged in, redirect to home if so
 export async function loader({ request }) {
@@ -96,6 +100,10 @@ export async function action({ request }) {
 }
 
 export default function Register({ actionData }) {
+    const computedColorScheme = useComputedColorScheme("light");
+    const brandLogo =
+        computedColorScheme === "light" ? brandLogoLight : brandLogoDark;
+
     useEffect(() => {
         if (actionData?.error) {
             showNotification({
@@ -109,12 +117,13 @@ export default function Register({ actionData }) {
         <Container size="xs">
             <Center style={{ minHeight: "100vh" }}>
                 <Paper radius="md" p="xl" withBorder style={{ width: "100%" }}>
-                    <Title order={1} ta="center" mt="md" mb="xs" c="green">
-                        {branding.name}
-                    </Title>
-                    <Text ta="center" mb={50}>
-                        {branding.tagline}
-                    </Text>
+                    <Image
+                        src={brandLogo}
+                        alt={branding.name}
+                        px="xl"
+                        my="xl"
+                    />
+
                     <Form method="post">
                         <Stack>
                             <TextInput
