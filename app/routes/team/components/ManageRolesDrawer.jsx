@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { Fragment, useMemo } from "react";
 import { useFetcher } from "react-router";
 import { Avatar, Divider, Group, Select, Stack, Text } from "@mantine/core";
 import DrawerContainer from "@/components/DrawerContainer";
@@ -67,12 +67,8 @@ export default function ManageRolesDrawer({
                     const isLastOwner = isOwner && ownerCount === 1;
 
                     return (
-                        <>
-                            <Group
-                                key={player.$id}
-                                justify="space-between"
-                                wrap="nowrap"
-                            >
+                        <Fragment key={player.$id}>
+                            <Group justify="space-between" wrap="nowrap">
                                 <Group wrap="nowrap">
                                     <Avatar
                                         name={`${player.firstName} ${player.lastName}`}
@@ -102,7 +98,7 @@ export default function ManageRolesDrawer({
                                 />
                             </Group>
                             {index < sortedPlayers.length - 1 && <Divider />}
-                        </>
+                        </Fragment>
                     );
                 })}
             </Stack>

@@ -6,6 +6,8 @@ module.exports = {
     transformIgnorePatterns: [
         "/node_modules/(?!(node-appwrite|node-fetch-native-with-agent)/).+\\.js$",
     ],
+    // Path aliases - @/ covers most cases. Add others only if needed.
+    // Keep in sync with vite.config.ts and tsconfig.json
     moduleNameMapper: {
         "\\.(css|less|scss|sass)$": "<rootDir>/__mocks__/styleMock.js",
         "^@/(.*)$": "<rootDir>/app/$1",
