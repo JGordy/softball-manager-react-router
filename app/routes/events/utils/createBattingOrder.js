@@ -3,7 +3,7 @@
  *
  * @param {Array} players - Array of player objects with $id, gender, etc.
  * @param {Object} options - Configuration options
- * @param {string} options.idealLineup - JSON string array of player IDs in preferred order (from team settings)
+ * @param {string|Array} options.idealLineup - JSON string or array of player IDs in preferred order (from team settings)
  * @param {number} options.maxConsecutiveMales - Maximum consecutive male batters allowed (default: 3)
  * @returns {Array} - Ordered array of players for the batting lineup
  */

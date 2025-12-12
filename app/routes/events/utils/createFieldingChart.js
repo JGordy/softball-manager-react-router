@@ -94,7 +94,7 @@ const assignPosition = (player, availablePositions, idealPositioning) => {
  * @param {Array} players - Array of player objects with $id, preferredPositions, etc.
  * @param {Object} options - Configuration options
  * @param {number} options.innings - Number of innings (default: 7)
- * @param {string} options.idealPositioning - JSON string of position preferences from team settings
+ * @param {string|Object} options.idealPositioning - JSON string or object of position preferences from team settings
  * @returns {Array} - Array of players with positions array for each inning
  */
 export default function createFieldingChart(players, options = {}) {

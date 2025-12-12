@@ -13,8 +13,6 @@ describe("createFieldingChart utility", () => {
         ...overrides,
     });
 
-    const TOTAL_POSITIONS = 10; // Number of field positions
-
     describe("basic functionality", () => {
         it("should return players with positions array for each inning", () => {
             const players = Array.from({ length: 10 }, (_, i) =>
