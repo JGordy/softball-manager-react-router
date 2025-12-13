@@ -53,6 +53,12 @@ export const links = () => [
         rel: "manifest",
         href: "/manifest.json",
     },
+    {
+        rel: "icon",
+        type: "image/png",
+        sizes: "192x192",
+        href: "/android-chrome-icon192x192.png",
+    },
 ];
 
 export async function loader({ request }) {
