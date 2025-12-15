@@ -197,13 +197,13 @@ export default function LineupMenu({
             {
                 key: "add-players",
                 onClick: addPlayersHandlers.open,
-                leftSection: <IconUserPlus size={18} />,
+                leftSection: <IconUserPlus size={20} />,
                 content: <Text>Add Players</Text>,
             },
             {
                 key: "remove-players",
                 onClick: removePlayersHandlers.open,
-                leftSection: <IconUserMinus size={18} />,
+                leftSection: <IconUserMinus size={20} />,
                 content: <Text>Remove Players</Text>,
             },
         );
@@ -225,7 +225,7 @@ export default function LineupMenu({
                     key: "delete-chart",
                     color: "red",
                     onClick: deleteChartHandlers.open,
-                    leftSection: <IconTrashX size={18} />,
+                    leftSection: <IconTrashX size={20} />,
                     content: <Text>Delete Chart</Text>,
                 },
             ],

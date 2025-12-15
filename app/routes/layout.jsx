@@ -34,7 +34,7 @@ function Layout({ loaderData }) {
                 <LoadingOverlay
                     data-overlay="layout"
                     visible={isNavigating}
-                    zIndex={500}
+                    zIndex={150}
                     loaderProps={{
                         color: "green",
                         size: "xl",
