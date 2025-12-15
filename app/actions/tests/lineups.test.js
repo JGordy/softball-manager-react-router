@@ -4,10 +4,20 @@ import {
     saveFieldingPositions,
 } from "../lineups";
 import { updateDocument } from "@/utils/databases";
+import { getTeamMembers } from "@/utils/teams";
+import { sendLineupFinalizedNotification } from "@/actions/notifications";
 
 // Mock dependencies
 jest.mock("@/utils/databases", () => ({
     updateDocument: jest.fn(),
+}));
+
+jest.mock("@/utils/teams", () => ({
+    getTeamMembers: jest.fn(),
+}));
+
+jest.mock("@/actions/notifications", () => ({
+    sendLineupFinalizedNotification: jest.fn(),
 }));
 
 describe("Lineups Actions", () => {
@@ -39,6 +49,95 @@ describe("Lineups Actions", () => {
             });
             expect(result.success).toBe(true);
             expect(result.status).toBe(204);
+        });
+
+        it("should send notification when sendNotification is true", async () => {
+            const mockValues = {
+                playerChart: { lineup: ["player1", "player2"] },
+            };
+            const eventId = "event1";
+            const teamId = "team123";
+
+            updateDocument.mockResolvedValue({
+                $id: eventId,
+                teamId,
+                opponent: "Test Opponent",
+            });
+
+            getTeamMembers.mockResolvedValue({
+                memberships: [{ userId: "user1" }, { userId: "user2" }],
+            });
+
+            sendLineupFinalizedNotification.mockResolvedValue({
+                success: true,
+            });
+
+            const result = await savePlayerChart({
+                values: mockValues,
+                eventId,
+                sendNotification: true,
+            });
+
+            expect(result.success).toBe(true);
+            expect(getTeamMembers).toHaveBeenCalledWith({ teamId });
+            expect(sendLineupFinalizedNotification).toHaveBeenCalledWith({
+                gameId: eventId,
+                teamId,
+                userIds: ["user1", "user2"],
+                gameName: "Game vs Test Opponent",
+            });
+        });
+
+        it("should not send notification when sendNotification is false", async () => {
+            const mockValues = {
+                playerChart: { lineup: ["player1", "player2"] },
+            };
+            const eventId = "event1";
+
+            updateDocument.mockResolvedValue({
+                $id: eventId,
+                teamId: "team123",
+            });
+
+            const result = await savePlayerChart({
+                values: mockValues,
+                eventId,
+                sendNotification: false,
+            });
+
+            expect(result.success).toBe(true);
+            expect(getTeamMembers).not.toHaveBeenCalled();
+            expect(sendLineupFinalizedNotification).not.toHaveBeenCalled();
+        });
+
+        it("should not fail if notification sending fails", async () => {
+            const mockValues = {
+                playerChart: { lineup: ["player1", "player2"] },
+            };
+            const eventId = "event1";
+
+            updateDocument.mockResolvedValue({
+                $id: eventId,
+                teamId: "team123",
+                opponent: "Test",
+            });
+
+            getTeamMembers.mockResolvedValue({
+                memberships: [{ userId: "user1" }],
+            });
+
+            sendLineupFinalizedNotification.mockRejectedValue(
+                new Error("Notification failed"),
+            );
+
+            // Should not throw even if notification fails
+            const result = await savePlayerChart({
+                values: mockValues,
+                eventId,
+                sendNotification: true,
+            });
+
+            expect(result.success).toBe(true);
         });
 
         it("should handle errors", async () => {
