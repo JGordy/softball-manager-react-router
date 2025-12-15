@@ -39,11 +39,34 @@ export function useNotifications() {
         if (supported) {
             setPermission(getNotificationPermission() || "default");
 
-            // Check if we have a stored push target ID
+            // Check if we have a stored push target ID and verify it with the server
             const storedTargetId = localStorage.getItem(PUSH_TARGET_KEY);
+
             if (storedTargetId) {
-                setPushTargetId(storedTargetId);
-                setIsSubscribed(true);
+                // Verify with server
+                const verifyUrl = `/api/push-target?targetId=${encodeURIComponent(storedTargetId)}`;
+
+                fetch(verifyUrl, {
+                    method: "GET",
+                    credentials: "include",
+                })
+                    .then(async (response) => {
+                        if (response.ok) {
+                            setPushTargetId(storedTargetId);
+                            setIsSubscribed(true);
+                        } else {
+                            // Not valid, clear localStorage
+                            localStorage.removeItem(PUSH_TARGET_KEY);
+                            setPushTargetId(null);
+                            setIsSubscribed(false);
+                        }
+                    })
+                    .catch((err) => {
+                        // On error, assume not valid
+                        localStorage.removeItem(PUSH_TARGET_KEY);
+                        setPushTargetId(null);
+                        setIsSubscribed(false);
+                    });
             }
         }
     }, []);
