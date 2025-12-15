@@ -1,3 +1,7 @@
+import { useEffect } from "react";
+import { onMessage } from "firebase/messaging";
+import { getMessagingIfSupported } from "@/utils/firebase";
+import { showNotification } from "@/utils/showNotification";
 import {
     isRouteErrorResponse,
     Link,
@@ -118,7 +122,7 @@ function Layout({ children, context }) {
                     defaultColorScheme="auto"
                     theme={theme}
                 >
-                    <Notifications />
+                    <Notifications position="top-center" zIndex={10000} />
                     <ModalsProvider>{children}</ModalsProvider>
                 </MantineProvider>
                 <ScrollRestoration />
@@ -130,6 +134,25 @@ function Layout({ children, context }) {
 
 export default function App({ loaderData }) {
     const { darkMode } = loaderData;
+
+    useEffect(() => {
+        let unsubscribe;
+        getMessagingIfSupported().then((messaging) => {
+            if (messaging) {
+                unsubscribe = onMessage(messaging, (payload) => {
+                    showNotification({
+                        title: payload.notification?.title || "Notification",
+                        message: payload.notification?.body || "",
+                        variant: "info",
+                        autoClose: 5000,
+                    });
+                });
+            }
+        });
+        return () => {
+            if (unsubscribe) unsubscribe();
+        };
+    }, []);
 
     return (
         <Layout context={{ darkMode }}>

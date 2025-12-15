@@ -32,6 +32,11 @@ export async function action({ request, params }) {
     if (_action === "save-chart") {
         return savePlayerChart({ eventId, values });
     }
+
+    if (_action === "finalize-chart") {
+        // Finalize and send notifications to team members
+        return savePlayerChart({ eventId, values, sendNotification: true });
+    }
 }
 
 function Lineup({ loaderData }) {

@@ -2,7 +2,15 @@ import { useEffect, useState } from "react";
 
 import { Form, useOutletContext } from "react-router";
 
-import { ActionIcon, Alert, Button, Divider, Group, Text } from "@mantine/core";
+import {
+    ActionIcon,
+    Alert,
+    Button,
+    Divider,
+    Group,
+    Stack,
+    Text,
+} from "@mantine/core";
 
 import { useDisclosure } from "@mantine/hooks";
 
@@ -56,16 +64,22 @@ export default function AuthPanel({ actionData }) {
         });
 
     return (
-        <>
+        <Stack gap="md">
+            <Text size="sm" c="dimmed">
+                Manage your login credentials. Keep your account secure by using
+                a strong, unique password.
+            </Text>
+
+            <Divider />
+
             {actionSuccess && (
-                <Alert mb="md" variant="light" color="green" title="Success!">
+                <Alert variant="light" color="green" title="Success!">
                     {actionSuccess}
                 </Alert>
             )}
 
             {formError && (
                 <Alert
-                    mb="md"
                     variant="light"
                     color="red"
                     title="Invalid Form Submission"
@@ -74,8 +88,8 @@ export default function AuthPanel({ actionData }) {
                 </Alert>
             )}
 
-            <Group justify="space-between" mb="sm">
-                <Text>Change Password</Text>
+            <Group justify="space-between">
+                <Text size="sm">Change Password</Text>
                 <ActionIcon
                     variant="subtle"
                     color="gray"
@@ -89,7 +103,7 @@ export default function AuthPanel({ actionData }) {
             </Group>
 
             <Group justify="space-between">
-                <Text>Reset Password</Text>
+                <Text size="sm">Reset Password</Text>
                 <ActionIcon
                     variant="subtle"
                     color="gray"
@@ -102,7 +116,7 @@ export default function AuthPanel({ actionData }) {
                 </ActionIcon>
             </Group>
 
-            <Divider my="sm" />
+            <Divider />
 
             <Button
                 color="red"
@@ -110,6 +124,7 @@ export default function AuthPanel({ actionData }) {
                 variant="subtle"
                 px="0px"
                 size="md"
+                justify="flex-start"
             >
                 <Group gap="xs">
                     <IconLogout2 size={16} mr="xs" />
@@ -155,6 +170,6 @@ export default function AuthPanel({ actionData }) {
                     </Button>
                 </Form>
             </DrawerContainer>
-        </>
+        </Stack>
     );
 }
