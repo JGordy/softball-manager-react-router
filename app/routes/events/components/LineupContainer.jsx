@@ -9,6 +9,8 @@ import {
     IconInfoCircle,
 } from "@tabler/icons-react";
 
+import { getGameDayStatus } from "@/utils/dateTime";
+
 import EditablePlayerChart from "./EditablePlayerChart";
 
 import createBattingOrder from "../utils/createBattingOrder";
@@ -67,8 +69,12 @@ export default function LineupContainer({
         }
     };
 
-    // Finalize lineup and send notifications to team members
-    const handleFinalizeAndNotify = () => {
+    const handleResetChart = () => {
+        lineupHandlers.setState(playerChart);
+        setHasBeenEdited(false);
+    };
+
+    const handleSaveAndPublish = () => {
         try {
             const formData = new FormData();
             formData.append("_action", "finalize-chart");
@@ -83,11 +89,6 @@ export default function LineupContainer({
         } catch (error) {
             console.error("Error finalizing lineup:", error);
         }
-    };
-
-    const handleResetChart = () => {
-        lineupHandlers.setState(playerChart);
-        setHasBeenEdited(false);
     };
 
     // NOTE: Uses an algorithm I created to generate a lineup and fielding chart
@@ -183,12 +184,16 @@ export default function LineupContainer({
         loaderProps: { type: "dots" },
     };
 
-    // Button props for finalize - enabled when there's a lineup (doesn't require edits)
-    const finalizeButtonProps = {
+    const publishButtonProps = {
         disabled: fetcher.state === "loading" || !lineupState?.length,
         loading: fetcher.state === "loading",
         loaderProps: { type: "dots" },
     };
+
+    // Check if game is in the past
+    const isGameInPast = game?.gameDate
+        ? getGameDayStatus(game.gameDate) === "past"
+        : false;
 
     return (
         <>
@@ -221,20 +226,25 @@ export default function LineupContainer({
                                     {...buttonProps}
                                     leftSection={<IconDeviceFloppy size={18} />}
                                     onClick={() => handleOnSave(lineupState)}
+                                    variant="light"
                                 >
                                     Save Changes
                                 </Button>
                             </Group>
-                            <Button
-                                {...finalizeButtonProps}
-                                fullWidth
-                                color="green"
-                                leftSection={<IconBellRinging size={18} />}
-                                onClick={handleFinalizeAndNotify}
-                                variant="light"
-                            >
-                                Finalize & Notify Team
-                            </Button>
+                            {!isGameInPast && (
+                                <Button
+                                    {...publishButtonProps}
+                                    fullWidth
+                                    color="green"
+                                    leftSection={<IconBellRinging size={18} />}
+                                    onClick={handleSaveAndPublish}
+                                    variant="filled"
+                                >
+                                    {hasBeenEdited
+                                        ? "Save & Publish"
+                                        : "Publish"}
+                                </Button>
+                            )}
                         </>
                     )}
                 </>
