@@ -5,6 +5,7 @@ import {
     TablesDB,
     Teams,
     Users,
+    Messaging,
 } from "node-appwrite";
 import { appwriteConfig } from "./config.js";
 
@@ -82,6 +83,9 @@ export async function createSessionClient(request) {
         get users() {
             return new Users(client);
         },
+        get messaging() {
+            return new Messaging(client);
+        },
     };
 }
 
@@ -112,6 +116,9 @@ export function createAdminClient() {
         },
         get users() {
             return new Users(client);
+        },
+        get messaging() {
+            return new Messaging(client);
         },
     };
 }
