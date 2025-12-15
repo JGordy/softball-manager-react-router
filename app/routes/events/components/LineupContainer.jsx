@@ -4,6 +4,7 @@ import { Alert, Button, Card, Group, Text } from "@mantine/core";
 
 import {
     IconArrowBackUp,
+    IconBellRinging,
     IconDeviceFloppy,
     IconInfoCircle,
 } from "@tabler/icons-react";
@@ -63,6 +64,24 @@ export default function LineupContainer({
             setHasBeenEdited(false);
         } catch (error) {
             console.error("Error submitting attendance form:", error);
+        }
+    };
+
+    // Finalize lineup and send notifications to team members
+    const handleFinalizeAndNotify = () => {
+        try {
+            const formData = new FormData();
+            formData.append("_action", "finalize-chart");
+            formData.append("playerChart", JSON.stringify(lineupState));
+
+            fetcher.submit(formData, {
+                method: "post",
+                action: `/events/${game.$id}/lineup`,
+            });
+
+            setHasBeenEdited(false);
+        } catch (error) {
+            console.error("Error finalizing lineup:", error);
         }
     };
 
@@ -164,6 +183,13 @@ export default function LineupContainer({
         loaderProps: { type: "dots" },
     };
 
+    // Button props for finalize - enabled when there's a lineup (doesn't require edits)
+    const finalizeButtonProps = {
+        disabled: fetcher.state === "loading" || !lineupState?.length,
+        loading: fetcher.state === "loading",
+        loaderProps: { type: "dots" },
+    };
+
     return (
         <>
             {lineupState?.length > 0 && (
@@ -199,6 +225,16 @@ export default function LineupContainer({
                                     Save Changes
                                 </Button>
                             </Group>
+                            <Button
+                                {...finalizeButtonProps}
+                                fullWidth
+                                color="green"
+                                leftSection={<IconBellRinging size={18} />}
+                                onClick={handleFinalizeAndNotify}
+                                variant="light"
+                            >
+                                Finalize & Notify Team
+                            </Button>
                         </>
                     )}
                 </>
