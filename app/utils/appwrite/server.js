@@ -1,4 +1,11 @@
-import { Client, Account, Databases, TablesDB, Teams } from "node-appwrite";
+import {
+    Client,
+    Account,
+    Databases,
+    TablesDB,
+    Teams,
+    Users,
+} from "node-appwrite";
 import { appwriteConfig } from "./config.js";
 
 // Cookie configuration
@@ -72,6 +79,9 @@ export async function createSessionClient(request) {
         get teams() {
             return new Teams(client);
         },
+        get users() {
+            return new Users(client);
+        },
     };
 }
 
@@ -99,6 +109,9 @@ export function createAdminClient() {
         },
         get teams() {
             return new Teams(client);
+        },
+        get users() {
+            return new Users(client);
         },
     };
 }
