@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { useOutletContext } from "react-router";
 
-import { ActionIcon, Alert, Group, Text } from "@mantine/core";
+import { ActionIcon, Alert, Divider, Group, Stack, Text } from "@mantine/core";
 
 import { IconPencil, IconMail, IconPhone } from "@tabler/icons-react";
 
@@ -69,10 +69,16 @@ export default function AccountPanel({ actionData }) {
         });
 
     return (
-        <>
+        <Stack gap="md">
+            <Text size="sm" c="dimmed">
+                View and update your contact information. This is how teammates
+                and managers can reach you.
+            </Text>
+
+            <Divider />
+
             {actionSuccess && (
                 <Alert
-                    mb="md"
                     variant="light"
                     color="green"
                     title="Success!"
@@ -84,7 +90,6 @@ export default function AccountPanel({ actionData }) {
 
             {formError && (
                 <Alert
-                    mb="md"
                     variant="light"
                     color="red"
                     title="Invalid Form Submission"
@@ -94,18 +99,20 @@ export default function AccountPanel({ actionData }) {
                 </Alert>
             )}
 
-            <Text size="sm" mb="sm">
+            <Text size="sm" fw={500}>
                 Contact Details
             </Text>
             <Group justify="space-between">
                 <div>
-                    <Group align="center" mt="xs">
-                        <IconMail />
-                        <Text>{user.email || "No email provided"}</Text>
+                    <Group align="center" gap="xs">
+                        <IconMail size={18} />
+                        <Text size="sm">
+                            {user.email || "No email provided"}
+                        </Text>
                     </Group>
-                    <Group align="center" mt="xs">
-                        <IconPhone />
-                        <Text>{formatPhoneNumber(user.phone)}</Text>
+                    <Group align="center" gap="xs" mt="xs">
+                        <IconPhone size={18} />
+                        <Text size="sm">{formatPhoneNumber(user.phone)}</Text>
                     </Group>
                 </div>
 
@@ -120,6 +127,6 @@ export default function AccountPanel({ actionData }) {
                     <IconPencil />
                 </ActionIcon>
             </Group>
-        </>
+        </Stack>
     );
 }

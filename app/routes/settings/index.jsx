@@ -14,6 +14,7 @@ import { logoutAction } from "@/actions/logout";
 import UserHeader from "@/components/UserHeader";
 import AccountPanel from "./components/AccountPanel";
 import AuthPanel from "./components/AuthPanel";
+import NotificationsPanel from "./components/NotificationsPanel";
 
 export async function action({ request }) {
     const formData = await request.formData();
@@ -69,13 +70,20 @@ export default function Settings({ actionData }) {
                     </Accordion.Panel>
                 </Accordion.Item>
 
-                <Accordion.Item value="leagues">
+                <Accordion.Item value="notifications">
+                    <Accordion.Control>Notifications</Accordion.Control>
+                    <Accordion.Panel>
+                        <NotificationsPanel />
+                    </Accordion.Panel>
+                </Accordion.Item>
+
+                {/* <Accordion.Item value="leagues">
                     <Accordion.Control>Leagues</Accordion.Control>
                     <Accordion.Panel>
                         This feature is under development. Please check back
                         later for updates.
                     </Accordion.Panel>
-                </Accordion.Item>
+                </Accordion.Item> */}
             </Accordion>
         </Container>
     );
