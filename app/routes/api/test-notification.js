@@ -10,14 +10,6 @@ import { createSessionClient } from "@/utils/appwrite/server";
 import { sendPushNotification } from "@/actions/notifications";
 
 export async function action({ request }) {
-    // Only allow in development
-    if (process.env.NODE_ENV === "production") {
-        return Response.json(
-            { error: "This endpoint is only available in development" },
-            { status: 403 },
-        );
-    }
-
     try {
         // Get the current user
         const { account } = await createSessionClient(request);
