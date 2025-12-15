@@ -3,8 +3,6 @@
  * Handles push events and notification clicks for deep linking
  */
 
-const CACHE_NAME = "softball-manager-v1";
-
 // Handle push events from the server
 self.addEventListener("push", (event) => {
     console.log("[Service Worker] Push received:", event);
