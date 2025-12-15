@@ -7,6 +7,7 @@ importScripts(
 );
 
 firebase.initializeApp({
+    // For project identification not authorization, so this is safe to be public
     apiKey: "AIzaSyC57SjPhxUNhLnh07KtC7BDP1UjD_LzruM",
     authDomain: "softball-lineup-creator.firebaseapp.com",
     projectId: "softball-lineup-creator",
