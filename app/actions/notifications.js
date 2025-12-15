@@ -19,12 +19,80 @@ import {
 } from "@/utils/notifications.js";
 
 /**
+ * Get a push target for the current user by targetId
+ * @param {Request} request - The incoming request (for session)
+ * @param {string} targetId - The push target ID to look up
+ * @returns {Promise<Object|null>} The push target object if found and owned by user, else null
+ */
+export async function getPushTarget({ request, targetId }) {
+    if (!targetId) {
+        throw new Error("Target ID is required");
+    }
+
+    // Get current user
+    const { account } = await createSessionClient(request);
+    const user = await account.get();
+
+    // Use admin client to fetch the target
+    const { users } = createAdminClient();
+
+    // Try to fetch the target for this user
+    try {
+        const target = await users.getTarget({
+            userId: user.$id,
+            targetId: targetId,
+        });
+
+        // Verify ownership
+        if (target && target.userId === user.$id) {
+            return target;
+        }
+        return null;
+    } catch (err) {
+        // Not found or not owned by user
+        console.error("[getPushTarget] Error fetching push target:", err);
+        return null;
+    }
+}
+
+/**
+ * List all push targets for the current user
+ * @param {Request} request - The incoming request (for session)
+ * @returns {Promise<Array>} Array of push targets
+ */
+export async function listPushTargets({ request }) {
+    // Get current user
+    const { account } = await createSessionClient(request);
+    const user = await account.get();
+
+    // Use admin client to fetch the targets
+    const { users } = createAdminClient();
+
+    try {
+        const result = await users.listTargets({
+            userId: user.$id,
+        });
+
+        // Filter to only push targets
+        const pushTargets = result.targets.filter(
+            (target) => target.providerType === MessagingProviderType.Push,
+        );
+
+        return pushTargets;
+    } catch (err) {
+        console.error("[listPushTargets] Error:", err);
+        return [];
+    }
+}
+
+/**
  * Create a push target for the current user (server-side)
  * This registers the user's device for push notifications
+ * If a target with the same FCM token already exists, returns that instead
  * @param {Request} request - The incoming request (for session)
  * @param {string} fcmToken - The FCM token from the browser
  * @param {string} providerId - The FCM provider ID
- * @returns {Promise<Object>} The created push target
+ * @returns {Promise<Object>} The created or existing push target
  */
 export async function createPushTarget({ request, fcmToken, providerId }) {
     if (!fcmToken) {
@@ -40,6 +108,29 @@ export async function createPushTarget({ request, fcmToken, providerId }) {
 
     // Use admin client to create the push target via Users service
     const { users } = createAdminClient();
+
+    // Check if a target with this FCM token already exists
+    try {
+        const existingTargets = await users.listTargets({
+            userId: user.$id,
+        });
+
+        const existingPushTarget = existingTargets.targets.find(
+            (target) =>
+                target.providerType === MessagingProviderType.Push &&
+                target.identifier === fcmToken,
+        );
+
+        if (existingPushTarget) {
+            return existingPushTarget;
+        }
+    } catch (err) {
+        console.log(
+            "[createPushTarget] Could not check for existing targets:",
+            err,
+        );
+        // Continue to create new target
+    }
 
     const targetId = ID.unique();
     const target = await users.createTarget({
