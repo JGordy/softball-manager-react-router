@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { getToken, onMessage } from "firebase/messaging";
+import { onMessage } from "firebase/messaging";
 import { getMessagingIfSupported } from "@/utils/firebase";
 import { showNotification } from "@/utils/showNotification";
 import {
