@@ -1,6 +1,11 @@
 import { useEffect, useRef } from "react";
 
-import { Form, useNavigation, useOutletContext } from "react-router";
+import {
+    Form,
+    useNavigate,
+    useNavigation,
+    useOutletContext,
+} from "react-router";
 
 import { Box, Button, Container, Group, Text, Title } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
@@ -73,6 +78,7 @@ export default function EventDetails({ loaderData, actionData }) {
     const [deleteDrawerOpened, deleteDrawerHandlers] = useDisclosure(false);
 
     const navigation = useNavigation();
+    const navigate = useNavigate();
     const { closeAllModals } = useModal();
 
     const { user } = useOutletContext();
@@ -81,6 +87,13 @@ export default function EventDetails({ loaderData, actionData }) {
     const isDeleting =
         navigation.state === "submitting" &&
         navigation.formData?.get("_action") === "delete-game";
+
+    // Close drawer immediately when delete starts
+    useEffect(() => {
+        if (isDeleting) {
+            deleteDrawerHandlers.close();
+        }
+    }, [isDeleting, deleteDrawerHandlers]);
 
     const { game, deferredData, managerIds, season, teams, weatherPromise } =
         loaderData;
@@ -104,6 +117,11 @@ export default function EventDetails({ loaderData, actionData }) {
             if (actionData?.success && !handledActionRef.current) {
                 handledActionRef.current = true;
                 closeAllModals();
+
+                // If game was deleted, navigate back
+                if (actionData.deleted) {
+                    navigate(-1);
+                }
             } else if (!actionData) {
                 // reset when there's no action data so future actions can run
                 handledActionRef.current = false;
@@ -113,7 +131,7 @@ export default function EventDetails({ loaderData, actionData }) {
         } catch (jsonError) {
             console.error("Error handling actionData:", jsonError);
         }
-    }, [actionData, closeAllModals]);
+    }, [actionData, closeAllModals, navigate]);
 
     return (
         <>

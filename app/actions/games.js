@@ -4,7 +4,6 @@ import {
     deleteDocument,
     updateDocument,
 } from "@/utils/databases.js";
-import { redirect } from "react-router";
 import { combineDateTime } from "@/utils/dateTime";
 import { hasBadWords } from "@/utils/badWordsApi";
 
@@ -216,8 +215,13 @@ export async function deleteGame({ values, eventId }) {
     // TODO: Add permission check here with values.userId
     try {
         await deleteDocument("games", eventId);
-        // On success, redirect to the events list page.
-        return redirect("/events");
+
+        return {
+            success: true,
+            status: 200,
+            message: "Game deleted successfully!",
+            deleted: true,
+        };
     } catch (error) {
         console.error("Error deleting game:", error);
         throw error;
