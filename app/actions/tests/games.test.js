@@ -197,7 +197,7 @@ describe("Games Actions", () => {
             });
 
             expect(deleteDocument).toHaveBeenCalledWith("games", "game1");
-            expect(result.redirect).toBe("/events");
+            expect(result.deleted).toBe(true);
         });
     });
 });
