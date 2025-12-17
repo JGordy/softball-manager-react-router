@@ -1,52 +1,74 @@
 import { SchemaType } from "@google/generative-ai";
 
-const schema = {
-    type: SchemaType.ARRAY,
-    items: {
-        type: SchemaType.OBJECT,
-        properties: {
-            id: {
-                type: SchemaType.STRING,
-            },
-            firstName: {
-                type: SchemaType.STRING,
-            },
-            lastName: {
-                type: SchemaType.STRING,
-            },
-            gender: {
-                type: SchemaType.STRING,
-            },
-            battingRating: {
-                type: SchemaType.INTEGER,
-            },
-            fieldRating: {
-                type: SchemaType.INTEGER,
-            },
-            preferredPositions: {
-                type: SchemaType.ARRAY,
-                items: {
-                    type: SchemaType.STRING,
+/**
+ * Schema for AI-generated lineup response
+ * This schema defines the structure that includes:
+ * - Lineup: Array of players in batting order with fielding positions
+ * - Reasoning: Explanation for why this lineup was chosen
+ */
+const lineupSchema = {
+    type: SchemaType.OBJECT,
+    description: "Generated lineup with reasoning",
+    properties: {
+        lineup: {
+            type: SchemaType.ARRAY,
+            description:
+                "Array of players in batting order with fielding positions for each inning",
+            items: {
+                type: SchemaType.OBJECT,
+                description:
+                    "Player with their fielding positions for each inning",
+                properties: {
+                    $id: {
+                        type: SchemaType.STRING,
+                        description: "Unique player ID from the database",
+                        nullable: false,
+                    },
+                    firstName: {
+                        type: SchemaType.STRING,
+                        description: "Player's first name",
+                        nullable: false,
+                    },
+                    lastName: {
+                        type: SchemaType.STRING,
+                        description: "Player's last name",
+                        nullable: false,
+                    },
+                    gender: {
+                        type: SchemaType.STRING,
+                        description: "Player's gender (Male or Female)",
+                        nullable: false,
+                    },
+                    positions: {
+                        type: SchemaType.ARRAY,
+                        description:
+                            "Array of fielding positions for each inning (7 innings). Use 'Out' if player is not fielding",
+                        items: {
+                            type: SchemaType.STRING,
+                            description:
+                                "Fielding position name or 'Out' if not fielding this inning",
+                        },
+                        nullable: false,
+                    },
                 },
+                required: [
+                    "$id",
+                    "firstName",
+                    "lastName",
+                    "gender",
+                    "positions",
+                ],
             },
-            positions: {
-                type: SchemaType.ARRAY,
-                items: {
-                    type: SchemaType.STRING,
-                },
-            },
+            nullable: false,
         },
-        required: [
-            "id",
-            "firstName",
-            "lastName",
-            "gender",
-            "battingRating",
-            "fieldRating",
-            "preferredPositions",
-            "positions",
-        ],
+        reasoning: {
+            type: SchemaType.STRING,
+            description:
+                "Detailed explanation of why this batting order was chosen based on historical performance patterns. Include specific insights from the data analysis.",
+            nullable: false,
+        },
     },
+    required: ["lineup", "reasoning"],
 };
 
-export default schema;
+export default lineupSchema;
