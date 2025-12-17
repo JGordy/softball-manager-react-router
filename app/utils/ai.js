@@ -14,7 +14,7 @@ function initializeAI() {
 
 /**
  * Create a generative model with the specified configuration
- * @param {string} modelName - The name of the model to use (default: "gemini-2.0-flash-exp")
+ * @param {string} modelName - The name of the model to use (default: "gemini-2.5-flash")
  * @param {Object} generationConfig - Configuration for the model generation
  * @returns {GenerativeModel} The initialized model
  */
@@ -39,7 +39,12 @@ export function parseAIResponse(responseText) {
         return JSON.parse(responseText);
     } catch (error) {
         console.error("Error parsing AI response:", error);
-        console.error("Response text:", responseText);
+        // Truncate response text to avoid logging potentially sensitive data
+        const truncatedText =
+            responseText?.length > 200
+                ? `${responseText.substring(0, 200)}... (truncated, ${responseText.length} chars total)`
+                : responseText;
+        console.error("Response text (truncated):", truncatedText);
         return null;
     }
 }

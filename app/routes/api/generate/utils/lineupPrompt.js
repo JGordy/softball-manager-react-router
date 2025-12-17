@@ -108,7 +108,7 @@ Result: Male, Male, Male, Female, Male, Male, Male, Female, Male, Male, Male, Fe
 1. **HIGHEST PRIORITY: Team Fielding Preferences (idealPositioning)** - If the team has assigned specific players to positions, ALWAYS use these assignments first
 2. **SECOND PRIORITY: Players who were "Out" in previous innings** - they should play first
 3. **THIRD PRIORITY: Player preferredPositions** - as a guide when possible
-4. **FOURTH PRIORITY: Avoid player dislikedPositions** - when alternatives exist
+4. **FOURTH PRIORITY: Avoid assigning players to their dislikedPositions** - when alternatives exist
 
 ### Core Fielding Rules:
 - **All 10 positions must be filled each inning** if you have 10+ players

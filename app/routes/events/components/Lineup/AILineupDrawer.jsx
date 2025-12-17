@@ -11,6 +11,8 @@ import TabsWrapper from "@/components/TabsWrapper";
 
 import markdownStyles from "@/styles/markdown.module.css";
 
+const MIN_PLAYERS_FOR_AI_LINEUP = 10;
+
 const LOADING_MESSAGES = [
     "AI is warming up in the bullpen to generate your lineup...",
     "The AI coach is crunching the stats for your winning lineup...",
@@ -70,9 +72,12 @@ export default function AILineupDrawer({
                     p.availability === "tentative",
             );
 
-            if (!availablePlayers || availablePlayers.length < 10) {
+            if (
+                !availablePlayers ||
+                availablePlayers.length < MIN_PLAYERS_FOR_AI_LINEUP
+            ) {
                 setAiError(
-                    "Need at least 10 available players to generate a lineup",
+                    `Need at least ${MIN_PLAYERS_FOR_AI_LINEUP} available players to generate a lineup`,
                 );
                 return;
             }
@@ -102,19 +107,24 @@ export default function AILineupDrawer({
     };
 
     // Handle AI fetcher response - store in local state instead of applying immediately
-    if (aiFetcher.data && !aiFetcher.data.error && aiFetcher.state === "idle") {
-        if (aiFetcher.data.lineup && !generatedLineup) {
-            setGeneratedLineup(aiFetcher.data.lineup);
-            setAiReasoning(aiFetcher.data.reasoning || null);
+    useEffect(() => {
+        if (aiFetcher.state !== "idle") {
+            return;
         }
-    }
 
-    // Handle AI fetcher error
-    if (aiFetcher.data?.error && aiFetcher.state === "idle") {
-        if (!aiError) {
+        // Successful AI response
+        if (aiFetcher.data && !aiFetcher.data.error && !generatedLineup) {
+            if (aiFetcher.data.lineup) {
+                setGeneratedLineup(aiFetcher.data.lineup);
+                setAiReasoning(aiFetcher.data.reasoning || null);
+            }
+        }
+
+        // AI error response
+        if (aiFetcher.data?.error && !aiError) {
             setAiError(aiFetcher.data.error);
         }
-    }
+    }, [aiFetcher.data, aiFetcher.state, generatedLineup, aiError]);
 
     // Apply the generated lineup to the actual lineup state
     const handleApplyGeneratedLineup = () => {
@@ -128,11 +138,12 @@ export default function AILineupDrawer({
         }
     };
 
-    // Close drawer and reset state
+    // Close drawer and reset state (clear any generated lineup to avoid stale data)
     const handleClose = () => {
         onClose();
         setAiError(null);
-        // Keep generated lineup visible if user closes and reopens
+        setGeneratedLineup(null);
+        setAiReasoning(null);
     };
 
     const handleRegenerate = () => {

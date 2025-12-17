@@ -6,6 +6,57 @@ import lineupSchema from "./utils/lineupSchema";
 import lineupPrompt from "./utils/lineupPrompt";
 
 /**
+ * Build the complete prompt for the AI lineup generation
+ * @param {Object} params - Parameters for building the prompt
+ * @returns {string} The complete prompt
+ */
+function buildFullPrompt({
+    lineupPrompt,
+    teamContext,
+    historicalContext,
+    fieldingContext,
+    playerData,
+}) {
+    return `${lineupPrompt}${teamContext}${historicalContext}${fieldingContext}
+
+## AVAILABLE PLAYERS FOR THIS GAME
+${JSON.stringify(playerData, null, 2)}
+
+## YOUR TASK
+Analyze the historical data above and generate the "HOTTEST" lineup - the batting order most likely to produce HIGH OFFENSIVE OUTPUT based on the patterns you observe in successful games. Remember to maintain gender balance rules for coed teams.
+
+For fielding positions, prioritize the team's idealPositioning preferences, then distribute remaining positions fairly.
+
+**IMPORTANT**: You must provide detailed reasoning explaining:
+1. What patterns you identified in the historical data
+2. Why you chose this specific batting order
+3. Which players or combinations showed strong performance
+4. How you balanced performance data with league rules
+5. Any specific insights from high-scoring games
+6. Do NOT send reasoning for field positioning
+7. Do NOT include player $id's in your reasoning response as this will get rendered to the user
+
+Generate the optimal lineup now with your detailed reasoning.`;
+}
+
+/**
+ * Sanitize reasoning text to remove any database IDs that might have been included by the AI
+ * @param {string} reasoning - The reasoning text from the AI
+ * @returns {string} Sanitized reasoning text without database IDs
+ */
+function sanitizeReasoning(reasoning) {
+    if (!reasoning) return reasoning;
+
+    // Remove patterns that look like Appwrite database IDs (alphanumeric strings ~20 chars)
+    // Pattern: [ID: <id>] or ID: <id> or just standalone IDs
+    return reasoning
+        .replace(/\[ID:\s*[a-zA-Z0-9_-]{15,}\]/g, "")
+        .replace(/ID:\s*[a-zA-Z0-9_-]{15,}/g, "")
+        .replace(/\$id[:\s]*['"]*[a-zA-Z0-9_-]{15,}['"]*\b/g, "")
+        .trim();
+}
+
+/**
  * Generate an optimal softball lineup based on historical performance data
  * POST /api/generate/lineup
  *
@@ -68,46 +119,58 @@ export async function action({ request }) {
         ]);
 
         // Step 3 & 4: Gather lineup and result data for each game
-        const historicalData = seasonGames.rows
-            .filter((g) => g.playerChart && g.result)
-            .map((g) => {
-                let playerChart = [];
+        // Filter and validate games with proper error handling
+        const historicalData = seasonGames.rows.reduce((acc, g) => {
+            // Skip games without required data early
+            if (!g.result || !g.playerChart) {
+                return acc;
+            }
 
-                try {
-                    // Handle double-stringified JSON (Appwrite sometimes does this)
-                    let parsed =
-                        typeof g.playerChart === "string"
-                            ? JSON.parse(g.playerChart)
-                            : g.playerChart;
+            let playerChart = [];
 
-                    // If it's still a string after first parse, parse again
-                    if (typeof parsed === "string") {
-                        parsed = JSON.parse(parsed);
-                    }
+            try {
+                // Handle double-stringified JSON (Appwrite sometimes does this)
+                let parsed =
+                    typeof g.playerChart === "string"
+                        ? JSON.parse(g.playerChart)
+                        : g.playerChart;
 
-                    playerChart = Array.isArray(parsed) ? parsed : [];
-                } catch (e) {
-                    console.error(
-                        `Error parsing playerChart for game ${g.$id}:`,
-                        e,
-                    );
+                // If it's still a string after first parse, parse again
+                if (typeof parsed === "string") {
+                    parsed = JSON.parse(parsed);
                 }
 
-                // The result data is stored directly on the game object, not nested
-                const runsScored = parseInt(g.score) || 0;
-                const opponentRuns = parseInt(g.opponentScore) || 0;
-                const gameResult = g.result || "unknown";
+                playerChart = Array.isArray(parsed) ? parsed : [];
+            } catch (e) {
+                console.error(
+                    `Error parsing playerChart for game ${g.$id}:`,
+                    e,
+                );
+                // Skip this game's data instead of including empty lineup
+                return acc;
+            }
 
-                return {
-                    gameId: g.$id,
-                    gameDate: g.gameDate || g.dateTime,
-                    lineup: playerChart,
-                    runsScored,
-                    opponentRuns,
-                    gameResult,
-                };
-            })
-            .filter((g) => Array.isArray(g.lineup) && g.lineup.length > 0); // Only include games with valid lineups
+            // Only include games with valid, non-empty lineups
+            if (!Array.isArray(playerChart) || playerChart.length === 0) {
+                return acc;
+            }
+
+            // The result data is stored directly on the game object, not nested
+            const runsScored = parseInt(g.score) || 0;
+            const opponentRuns = parseInt(g.opponentScore) || 0;
+            const gameResult = g.result || "unknown";
+
+            acc.push({
+                gameId: g.$id,
+                gameDate: g.gameDate || g.dateTime,
+                lineup: playerChart,
+                runsScored,
+                opponentRuns,
+                gameResult,
+            });
+
+            return acc;
+        }, []);
 
         console.log(
             `Found ${historicalData.length} games with lineup and result data`,
@@ -220,26 +283,13 @@ This is a same-gender team. Gender balance rules do not apply to batting order.
 `;
 
         // Build the complete prompt
-        const fullPrompt = `${lineupPrompt}${teamContext}${historicalContext}${fieldingContext}
-
-## AVAILABLE PLAYERS FOR THIS GAME
-${JSON.stringify(playerData, null, 2)}
-
-## YOUR TASK
-Analyze the historical data above and generate the "HOTTEST" lineup - the batting order most likely to produce HIGH OFFENSIVE OUTPUT based on the patterns you observe in successful games. Remember to maintain gender balance rules for coed teams.
-
-For fielding positions, prioritize the team's idealPositioning preferences, then distribute remaining positions fairly.
-
-**IMPORTANT**: You must provide detailed reasoning explaining:
-1. What patterns you identified in the historical data
-2. Why you chose this specific batting order
-3. Which players or combinations showed strong performance
-4. How you balanced performance data with league rules
-5. Any specific insights from high-scoring games
-6. Do NOT send reasoning for field positioning
-7. Do NOT include player $id's in your reasoning response as this will get rendered to the user
-
-Generate the optimal lineup now with your detailed reasoning.`;
+        const fullPrompt = buildFullPrompt({
+            lineupPrompt,
+            teamContext,
+            historicalContext,
+            fieldingContext,
+            playerData,
+        });
 
         // Generate the lineup using AI
         const responseText = await generateContent(model, fullPrompt);
@@ -252,14 +302,26 @@ Generate the optimal lineup now with your detailed reasoning.`;
         }
 
         const generatedLineup = aiResponse.lineup;
-        const reasoning = aiResponse.reasoning || "No reasoning provided";
+        const reasoning = sanitizeReasoning(
+            aiResponse.reasoning || "No reasoning provided",
+        );
 
-        // Validate the response structure
-        if (
-            !Array.isArray(generatedLineup) ||
-            generatedLineup.length !== players.length
-        ) {
-            throw new Error("AI response does not match expected format");
+        // Validate the response structure: must be a non-empty array
+        if (!Array.isArray(generatedLineup) || generatedLineup.length === 0) {
+            throw new Error(
+                "AI response does not match expected lineup format",
+            );
+        }
+
+        // Warn (but do not fail) if the lineup length differs from the input players length
+        if (generatedLineup.length !== players.length) {
+            console.warn(
+                "Generated lineup length differs from input players length",
+                {
+                    expectedPlayers: players.length,
+                    generatedLineupLength: generatedLineup.length,
+                },
+            );
         }
 
         // Ensure each player has exactly 7 positions
@@ -293,13 +355,15 @@ Generate the optimal lineup now with your detailed reasoning.`;
     } catch (error) {
         console.error("Error generating lineup:", error);
 
+        const isDevelopment = process.env.NODE_ENV === "development";
+        const safeErrorMessage = isDevelopment
+            ? error.message || "Failed to generate lineup"
+            : "Failed to generate lineup";
+
         return new Response(
             JSON.stringify({
-                error: error.message || "Failed to generate lineup",
-                details:
-                    process.env.NODE_ENV === "development"
-                        ? error.stack
-                        : undefined,
+                error: safeErrorMessage,
+                details: isDevelopment ? error.stack : undefined,
             }),
             {
                 status: 500,
