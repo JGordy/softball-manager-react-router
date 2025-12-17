@@ -132,54 +132,55 @@ export async function action({ request }) {
         }));
 
         // Build historical performance context
-        let historicalContext = "";
+        const historicalContext =
+            historicalData.length > 0
+                ? `
 
-        if (historicalData.length > 0) {
-            historicalContext += "\n\n## HISTORICAL PERFORMANCE DATA\n";
-            historicalContext += `You have access to ${historicalData.length} previous games from this season with lineup and scoring data.\n`;
-            historicalContext +=
-                "Your task is to analyze these lineups and identify patterns that correlate with HIGH OFFENSIVE OUTPUT (runs scored).\n";
-            historicalContext += "\n**ANALYSIS INSTRUCTIONS:**";
-            historicalContext +=
-                "\n1. Look for patterns: Which players batting together produced more runs?";
-            historicalContext +=
-                "\n2. Identify 'hot' batting positions: Which spots in the order tend to produce runs?";
-            historicalContext +=
-                "\n3. Notice successful sequences: Did certain player combinations work well?";
-            historicalContext +=
-                "\n4. Consider overall team performance: Games with higher run totals";
-            historicalContext +=
-                "\n5. Generate a lineup that replicates these successful patterns";
-            historicalContext += "\n\n**PREVIOUS GAMES:**\n";
+## HISTORICAL PERFORMANCE DATA
+You have access to ${historicalData.length} previous games from this season with lineup and scoring data.
+Your task is to analyze these lineups and identify patterns that correlate with HIGH OFFENSIVE OUTPUT (runs scored).
 
-            historicalData.forEach((game, index) => {
-                historicalContext += `\n### Game ${index + 1} (${game.gameDate})`;
-                historicalContext += `\n- Runs Scored: ${game.runsScored}`;
-                historicalContext += `\n- Opponent Runs: ${game.opponentRuns}`;
-                historicalContext += `\n- Result: ${game.gameResult}`;
-                historicalContext += `\n- Batting Order:\n`;
+**ANALYSIS INSTRUCTIONS:**
+1. Look for patterns: Which players batting together produced more runs?
+2. Identify 'hot' batting positions: Which spots in the order tend to produce runs?
+3. Notice successful sequences: Did certain player combinations work well?
+4. Consider overall team performance: Games with higher run totals
+5. Generate a lineup that replicates these successful patterns
 
-                game.lineup.forEach((player, pos) => {
-                    const matchingPlayer = playerData.find(
-                        (p) => p.$id === player.$id,
-                    );
-                    const playerInfo = matchingPlayer
-                        ? `${matchingPlayer.firstName} ${matchingPlayer.lastName} (${matchingPlayer.gender})`
-                        : `${player.firstName || "Unknown"} ${player.lastName || "Player"}`;
-                    historicalContext += `  ${pos + 1}. ${playerInfo} [ID: ${player.$id}]\n`;
-                });
-            });
-        } else {
-            historicalContext += "\n\n## NO HISTORICAL DATA AVAILABLE\n";
-            historicalContext +=
-                "This is the first game of the season or no previous games have results recorded.\n";
-            historicalContext +=
-                "Generate a balanced lineup based on player positions and gender balance rules.\n";
-        }
+**PREVIOUS GAMES:**
+${historicalData
+    .map((game, index) => {
+        const lineupList = game.lineup
+            .map((player, pos) => {
+                const matchingPlayer = playerData.find(
+                    (p) => p.$id === player.$id,
+                );
+                const playerInfo = matchingPlayer
+                    ? `${matchingPlayer.firstName} ${matchingPlayer.lastName} (${matchingPlayer.gender})`
+                    : `${player.firstName || "Unknown"} ${player.lastName || "Player"}`;
+                return `  ${pos + 1}. ${playerInfo} [ID: ${player.$id}]`;
+            })
+            .join("\n");
+
+        return `
+### Game ${index + 1} (${game.gameDate})
+- Runs Scored: ${game.runsScored}
+- Opponent Runs: ${game.opponentRuns}
+- Result: ${game.gameResult}
+- Batting Order:
+${lineupList}`;
+    })
+    .join("\n")}
+`
+                : `
+
+## NO HISTORICAL DATA AVAILABLE
+This is the first game of the season or no previous games have results recorded.
+Generate a balanced lineup based on player positions and gender balance rules.
+`;
 
         // Parse team settings for fielding positioning
         let idealPositioning = {};
-        let fieldingContext = "";
 
         if (team?.idealPositioning) {
             try {
@@ -192,20 +193,31 @@ export async function action({ request }) {
             }
         }
 
-        if (Object.keys(idealPositioning).length > 0) {
-            fieldingContext += "\n\n## TEAM FIELDING PREFERENCES\n";
-            fieldingContext +=
-                "The team has preferred fielding positions for specific players. You MUST prioritize these assignments.\n";
-            fieldingContext += `\nPreferred fielding assignments (position -> player IDs):\n${JSON.stringify(idealPositioning, null, 2)}`;
-            fieldingContext +=
-                "\n\nFor positions without team preferences, distribute players fairly based on their preferredPositions.\n";
-        }
+        const fieldingContext =
+            Object.keys(idealPositioning).length > 0
+                ? `
+
+## TEAM FIELDING PREFERENCES
+The team has preferred fielding positions for specific players. You MUST prioritize these assignments.
+
+Preferred fielding assignments (position -> player IDs):
+${JSON.stringify(idealPositioning, null, 2)}
+
+For positions without team preferences, distribute players fairly based on their preferredPositions.
+`
+                : "";
 
         // Build team context for gender rules
         const teamContext =
             team?.genderMix === "Coed"
-                ? "\n\n**CRITICAL LEAGUE RULE**: This is a COED team. You MUST enforce the gender balance rule: no more than 3 consecutive male batters."
-                : "\n\nThis is a same-gender team. Gender balance rules do not apply to batting order.";
+                ? `
+
+**CRITICAL LEAGUE RULE**: This is a COED team. You MUST enforce the gender balance rule: no more than 3 consecutive male batters.
+`
+                : `
+
+This is a same-gender team. Gender balance rules do not apply to batting order.
+`;
 
         // Build the complete prompt
         const fullPrompt = `${lineupPrompt}${teamContext}${historicalContext}${fieldingContext}
@@ -224,6 +236,7 @@ For fielding positions, prioritize the team's idealPositioning preferences, then
 3. Which players or combinations showed strong performance
 4. How you balanced performance data with league rules
 5. Any specific insights from high-scoring games
+6. Do not send reasoning for field positioning
 
 Generate the optimal lineup now with your detailed reasoning.`;
 
@@ -269,7 +282,7 @@ Generate the optimal lineup now with your detailed reasoning.`;
             JSON.stringify({
                 success: true,
                 lineup: validatedLineup,
-                reasoning: reasoning,
+                reasoning,
             }),
             {
                 status: 200,
