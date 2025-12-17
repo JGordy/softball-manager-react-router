@@ -236,7 +236,8 @@ For fielding positions, prioritize the team's idealPositioning preferences, then
 3. Which players or combinations showed strong performance
 4. How you balanced performance data with league rules
 5. Any specific insights from high-scoring games
-6. Do not send reasoning for field positioning
+6. Do NOT send reasoning for field positioning
+7. Do NOT include player $id's in your reasoning response as this will get rendered to the user
 
 Generate the optimal lineup now with your detailed reasoning.`;
 

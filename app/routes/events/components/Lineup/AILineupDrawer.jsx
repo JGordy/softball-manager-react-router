@@ -188,9 +188,9 @@ export default function AILineupDrawer({
                         </Button>
                         {loadingText && (
                             <Text
-                                size="sm"
+                                size="md"
                                 variant="gradient"
-                                gradient={{ from: "blue", to: "cyan", deg: 90 }}
+                                gradient={{ from: "pink", to: "cyan", deg: 90 }}
                                 ta="center"
                                 mt="md"
                             >
