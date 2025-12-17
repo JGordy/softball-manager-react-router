@@ -52,8 +52,8 @@ function Lineup({ loaderData }) {
         managerIds,
         players,
         attendance,
+        teams,
         // season,
-        // teams,
         ...rest
     } = loaderData;
 
@@ -69,7 +69,10 @@ function Lineup({ loaderData }) {
         return !isInLineup;
     });
 
-    const validationResults = validateLineup(lineupState, rest.game?.team);
+    // Use the first team from the teams array
+    const team = teams?.[0];
+
+    const validationResults = validateLineup(lineupState, team);
 
     return (
         <Container p="md">
@@ -82,8 +85,10 @@ function Lineup({ loaderData }) {
                         />
                         <LineupMenu
                             game={rest.game}
+                            team={team}
                             actionUrl={`/events/${eventId}/lineup`}
                             playersNotInLineup={playersNotInLineup}
+                            players={playersWithAvailability}
                             lineupState={lineupState}
                             lineupHandlers={lineupHandlers}
                             setHasBeenEdited={setHasBeenEdited}
