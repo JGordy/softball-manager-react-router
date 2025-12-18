@@ -83,7 +83,8 @@ export async function getUserTeams({ request }) {
             let allGames = [];
             if (allSeasonIds.length > 0) {
                 const gamesResponse = await listDocuments("games", [
-                    Query.equal("seasonId", allSeasonIds),
+                    Query.equal("seasons", allSeasonIds),
+                    Query.limit(100), // Increase limit to get all games
                 ]);
                 allGames = gamesResponse.rows || [];
             }
@@ -91,7 +92,8 @@ export async function getUserTeams({ request }) {
             // 3. Map games to seasons
             allSeasons.forEach((season) => {
                 season.games = allGames.filter(
-                    (g) => g.seasonId === season.$id,
+                    (g) =>
+                        g.seasons === season.$id || g.seasonId === season.$id,
                 );
             });
 
@@ -175,7 +177,8 @@ export async function getTeamById({ teamId, request }) {
         let allGames = [];
         if (seasonIds.length > 0) {
             const gamesResponse = await listDocuments("games", [
-                Query.equal("seasonId", seasonIds),
+                Query.equal("seasons", seasonIds),
+                Query.limit(100), // Increase limit to get all games
             ]);
             allGames = gamesResponse.rows || [];
         }
@@ -183,7 +186,10 @@ export async function getTeamById({ teamId, request }) {
         // Map games to seasons
         seasons.forEach((season) => {
             season.games = allGames
-                .filter((g) => g.seasonId === season.$id)
+                .filter(
+                    (g) =>
+                        g.seasons === season.$id || g.seasonId === season.$id,
+                )
                 .map((game) => {
                     game.teamName = teamData.name;
                     return game;
