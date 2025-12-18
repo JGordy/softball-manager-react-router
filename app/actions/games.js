@@ -58,6 +58,7 @@ export async function createSingleGame({ values }) {
             gameDate: updatedGameDate,
             opponent,
             teamId,
+            seasonId: values.seasonId,
             seasons: values.seasonId,
         };
 
@@ -109,6 +110,9 @@ export async function createGames({ values }) {
                     ...game,
                     teamId,
                     timeZone,
+                    // Ensure both seasonId and seasons are set
+                    seasonId: game.seasonId || game.seasons,
+                    seasons: game.seasons || game.seasonId,
                 },
                 permissions,
             );
