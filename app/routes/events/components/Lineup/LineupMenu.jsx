@@ -20,10 +20,12 @@ import {
     IconSquareXFilled,
     IconHelpTriangleFilled,
     IconMessageCircleOff,
+    IconSparkles,
 } from "@tabler/icons-react";
 
 import DrawerContainer from "@/components/DrawerContainer";
 import MenuContainer from "@/components/MenuContainer";
+import AILineupDrawer from "./AILineupDrawer";
 
 const availabilityData = {
     accepted: {
@@ -50,10 +52,12 @@ const availabilityData = {
 
 export default function LineupMenu({
     game,
+    team,
     actionUrl,
     lineupState,
     lineupHandlers,
     playersNotInLineup,
+    players,
     setHasBeenEdited,
 }) {
     const fetcher = useFetcher();
@@ -189,7 +193,34 @@ export default function LineupMenu({
         deleteChartHandlers.close();
     };
 
+    // AI lineup generation drawer
+    const [aiGenerateDrawerOpened, aiGenerateHandlers] = useDisclosure(false);
+
     const lineupItems = [];
+
+    // AI Generation - always show if we have players
+    if (players && players.length > 0) {
+        lineupItems.push({
+            key: "generate-ai-lineup",
+            onClick: aiGenerateHandlers.open,
+            leftSection: (
+                <Text
+                    variant="gradient"
+                    gradient={{ from: "blue", to: "cyan", deg: 90 }}
+                >
+                    <IconSparkles size={20} />
+                </Text>
+            ),
+            content: (
+                <Text
+                    variant="gradient"
+                    gradient={{ from: "blue", to: "cyan", deg: 90 }}
+                >
+                    Generate AI Lineup
+                </Text>
+            ),
+        });
+    }
 
     // Only show Add/Remove Players if there's a player chart
     if (lineupState && lineupState.length > 0) {
@@ -324,6 +355,16 @@ export default function LineupMenu({
                     </Button>
                 </Group>
             </DrawerContainer>
+
+            <AILineupDrawer
+                opened={aiGenerateDrawerOpened}
+                onClose={aiGenerateHandlers.close}
+                game={game}
+                team={team}
+                players={players}
+                lineupHandlers={lineupHandlers}
+                setHasBeenEdited={setHasBeenEdited}
+            />
         </>
     );
 }

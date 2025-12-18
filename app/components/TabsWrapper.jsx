@@ -36,6 +36,7 @@ export default function TabsWrapper({
     onChange: controlledOnChange,
     color = "var(--mantine-color-green-filled)",
     children,
+    mt = "xl",
 }) {
     const [rootRef, setRootRef] = useState(null);
     const [uncontrolledValue, setUncontrolledValue] = useState(
@@ -99,7 +100,7 @@ export default function TabsWrapper({
     });
 
     return (
-        <Tabs variant="none" value={value} onChange={setValue} mt="xl">
+        <Tabs variant="none" value={value} onChange={setValue} mt={mt}>
             <Tabs.List ref={setRootRef} className={classes.list}>
                 {tabs}
                 <FloatingIndicator
