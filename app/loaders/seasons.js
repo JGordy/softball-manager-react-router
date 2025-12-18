@@ -6,13 +6,7 @@ export async function getSeasonById({ seasonId }) {
         const season = await readDocument("seasons", seasonId);
 
         // Manually fetch teams since TablesDB doesn't auto-populate relationships
-        if (season.teams && season.teams.length > 0) {
-            const teamsResponse = await listDocuments("teams", [
-                Query.equal("$id", season.teams),
-            ]);
-            season.teams = teamsResponse.rows || [];
-        } else if (season.teamId) {
-            // Fallback: if teams array doesn't exist but teamId does, use that
+        if (season.teamId) {
             const teamsResponse = await listDocuments("teams", [
                 Query.equal("$id", [season.teamId]),
             ]);
@@ -23,7 +17,8 @@ export async function getSeasonById({ seasonId }) {
 
         // Manually fetch games for this season
         const gamesResponse = await listDocuments("games", [
-            Query.equal("seasonId", seasonId),
+            Query.equal("seasons", seasonId),
+            Query.limit(100), // Increase limit to get all games
         ]);
         season.games = gamesResponse.rows || [];
 
