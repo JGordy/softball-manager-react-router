@@ -48,7 +48,7 @@ export default function AILineupDrawer({
         if (isLoading) {
             setLoadingText("Putting the finishing touches on your roster...");
         } else if (isSubmitting) {
-            // Cycle through loading messages every 3 seconds
+            // Cycle through loading messages every 5 seconds
             let messageIndex = 0;
             setLoadingText(LOADING_MESSAGES[0]);
 
