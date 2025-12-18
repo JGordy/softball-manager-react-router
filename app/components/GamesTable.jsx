@@ -46,7 +46,7 @@ export default function GamesTable({
                     cellValue = formatForViewerTime(
                         game.gameDate,
                         game.timeZone,
-                        { format: "HH:mm" },
+                        { format: "h:mm a" },
                     );
                 } else {
                     cellValue = game[column]; // Other columns

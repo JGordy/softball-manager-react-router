@@ -121,9 +121,10 @@ export default function GenerateSeasonGames({
         setGeneratedGames([]);
     };
 
-    const handleSetGameTimesChange = (value) => {
-        // Mantine TimeInput may provide a Date or a string depending on config.
-        // Normalize to a Luxon DateTime in the user's timezone.
+    const handleSetGameTimesChange = (event) => {
+        // Mantine 8.x TimeInput returns the event, we need event.target.value
+        const value = event?.target?.value || event;
+
         if (!value) {
             setGameTimes(null);
             return;
@@ -131,7 +132,7 @@ export default function GenerateSeasonGames({
 
         let selectedDt;
         if (typeof value === "string") {
-            // Expect format like "HH:mm"
+            // Mantine 8.x format: "HH:mm" (e.g., "13:00" or "01:00")
             const [hours, minutes] = value.split(":");
             selectedDt = DateTime.now()
                 .setZone(currentTimeZone)
@@ -141,15 +142,20 @@ export default function GenerateSeasonGames({
                     second: 0,
                     millisecond: 0,
                 });
-        } else if (value instanceof Date) {
-            selectedDt = DateTime.fromJSDate(value).setZone(currentTimeZone);
-        } else if (DateTime.isDateTime(value)) {
-            selectedDt = value.setZone(currentTimeZone);
         } else {
-            // Fallback: try to coerce
-            selectedDt = DateTime.fromISO(String(value)).setZone(
-                currentTimeZone,
+            // Fallback for unexpected types
+            console.warn(
+                "Unexpected time value format:",
+                value,
+                "Full event:",
+                event,
             );
+            return;
+        }
+
+        if (!selectedDt.isValid) {
+            console.error("Invalid DateTime created from:", value);
+            return;
         }
 
         setGameTimes(selectedDt);
@@ -223,13 +229,12 @@ export default function GenerateSeasonGames({
             <Divider size="sm" my="sm" />
             <TimeInput
                 label="Game Times"
-                placeholder="Select a default start time for your games "
+                placeholder="Select a default start time for your games"
                 ref={ref}
                 rightSection={pickerControl}
                 onChange={handleSetGameTimesChange}
-                format="24"
                 mb="sm"
-                defaultValue="19:00"
+                value={gameTimes ? gameTimes.toFormat("HH:mm") : "19:00"}
                 radius="md"
             />
             <Select
