@@ -144,9 +144,7 @@ export async function action({ request }) {
             } catch (e) {
                 // Log error without exposing potentially sensitive player data
                 const errorMessage =
-                    e && typeof e === "object" && "message" in e
-                        ? String(e.message)
-                        : String(e);
+                    e instanceof Error && e.message ? e.message : String(e);
                 const safeErrorMessage =
                     errorMessage.length > 200
                         ? `${errorMessage.slice(0, 200)}...`

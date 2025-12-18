@@ -58,5 +58,5 @@ export function parseAIResponse(responseText) {
 export async function generateContent(model, prompt) {
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    return await response.text();
+    return response.text();
 }
