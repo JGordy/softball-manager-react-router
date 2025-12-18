@@ -25,7 +25,7 @@ describe("Seasons Loader", () => {
 
             expect(readDocument).toHaveBeenCalledWith("seasons", "season1");
             expect(result.season).toEqual(mockSeason);
-            expect(Query.equal).toHaveBeenCalledWith("seasonId", "season1");
+            expect(Query.equal).toHaveBeenCalledWith("seasons", "season1");
         });
 
         it("should return empty object when seasonId is missing", async () => {
