@@ -47,12 +47,12 @@ Generate the optimal lineup now with your detailed reasoning.`;
 function sanitizeReasoning(reasoning) {
     if (!reasoning) return reasoning;
 
-    // Remove patterns that look like Appwrite database IDs (alphanumeric strings ~20 chars)
+    // Remove patterns that look like Appwrite database IDs (fixed-length alphanumeric strings, ~20 chars)
     // Pattern: [ID: <id>] or ID: <id> or just standalone IDs
     return reasoning
-        .replace(/\[ID:\s*[a-zA-Z0-9_-]{15,}\]/g, "")
-        .replace(/ID:\s*[a-zA-Z0-9_-]{15,}/g, "")
-        .replace(/\$id[:\s]*['"]*[a-zA-Z0-9_-]{15,}['"]*\b/g, "")
+        .replace(/\[ID:\s*[a-zA-Z0-9_-]{20}\]/g, "")
+        .replace(/ID:\s*[a-zA-Z0-9_-]{20}\b/g, "")
+        .replace(/\$id[:\s]*['"]*[a-zA-Z0-9_-]{20}['"]*\b/g, "")
         .trim();
 }
 
@@ -142,9 +142,18 @@ export async function action({ request }) {
 
                 playerChart = Array.isArray(parsed) ? parsed : [];
             } catch (e) {
+                // Log error without exposing potentially sensitive player data
+                const errorMessage =
+                    e && typeof e === "object" && "message" in e
+                        ? String(e.message)
+                        : String(e);
+                const safeErrorMessage =
+                    errorMessage.length > 200
+                        ? `${errorMessage.slice(0, 200)}...`
+                        : errorMessage;
+
                 console.error(
-                    `Error parsing playerChart for game ${g.$id}:`,
-                    e,
+                    `Error parsing playerChart for game ${g.$id}: ${safeErrorMessage}`,
                 );
                 // Skip this game's data instead of including empty lineup
                 return acc;
@@ -155,7 +164,7 @@ export async function action({ request }) {
                 return acc;
             }
 
-            // The result data is stored directly on the game object, not nested
+            // The result data (score, opponentScore, result) is stored directly on the game object, not in a nested result object
             const runsScored = parseInt(g.score) || 0;
             const opponentRuns = parseInt(g.opponentScore) || 0;
             const gameResult = g.result || "unknown";

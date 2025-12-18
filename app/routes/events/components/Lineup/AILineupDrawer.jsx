@@ -11,6 +11,7 @@ import TabsWrapper from "@/components/TabsWrapper";
 
 import markdownStyles from "@/styles/markdown.module.css";
 
+// Need at least 10 players to fill all fielding positions and generate a meaningful batting order
 const MIN_PLAYERS_FOR_AI_LINEUP = 10;
 
 const LOADING_MESSAGES = [
@@ -40,6 +41,7 @@ export default function AILineupDrawer({
     const [generatedLineup, setGeneratedLineup] = useState(null);
     const [loadingText, setLoadingText] = useState(null);
     const [aiReasoning, setAiReasoning] = useState(null);
+    const [loadingInterval, setLoadingInterval] = useState(null);
 
     // Manage loading text based on fetcher state
     useEffect(() => {
@@ -55,9 +57,14 @@ export default function AILineupDrawer({
                 setLoadingText(LOADING_MESSAGES[messageIndex]);
             }, 5000);
 
+            setLoadingInterval(interval);
             return () => clearInterval(interval);
         } else {
             setLoadingText(null);
+            if (loadingInterval) {
+                clearInterval(loadingInterval);
+                setLoadingInterval(null);
+            }
         }
     }, [aiFetcher.state]);
 
@@ -101,8 +108,21 @@ export default function AILineupDrawer({
                 },
             );
         } catch (error) {
-            console.error("Error generating AI lineup:", error);
-            setAiError(error.message || "Failed to generate lineup");
+            const message =
+                error instanceof Error ? error.message : String(error || "");
+
+            if (process.env.NODE_ENV === "development") {
+                console.error("Error generating AI lineup:", error);
+            } else {
+                console.error("Error generating AI lineup:", message);
+            }
+
+            const userMessage =
+                process.env.NODE_ENV === "development"
+                    ? message || "Failed to generate lineup"
+                    : "Failed to generate lineup";
+
+            setAiError(userMessage);
         }
     };
 
@@ -140,6 +160,11 @@ export default function AILineupDrawer({
 
     // Close drawer and reset state (clear any generated lineup to avoid stale data)
     const handleClose = () => {
+        // Clear any active loading interval to prevent memory leaks
+        if (loadingInterval) {
+            clearInterval(loadingInterval);
+            setLoadingInterval(null);
+        }
         onClose();
         setAiError(null);
         setGeneratedLineup(null);
@@ -197,18 +222,18 @@ export default function AILineupDrawer({
                         >
                             Generate Lineup
                         </Button>
-                        {loadingText && (
-                            <Text
-                                size="md"
-                                variant="gradient"
-                                gradient={{ from: "pink", to: "cyan", deg: 90 }}
-                                ta="center"
-                                mt="md"
-                            >
-                                {loadingText}
-                            </Text>
-                        )}
                     </Group>
+                    {loadingText && (
+                        <Text
+                            size="md"
+                            variant="gradient"
+                            gradient={{ from: "pink", to: "cyan", deg: 90 }}
+                            ta="center"
+                            mt="md"
+                        >
+                            {loadingText}
+                        </Text>
+                    )}
                 </Stack>
             ) : (
                 <>

@@ -36,7 +36,7 @@ const lineupSchema = {
                     },
                     gender: {
                         type: SchemaType.STRING,
-                        description: "Player's gender (Male or Female)",
+                        description: "Player's gender (male or female)",
                         nullable: false,
                     },
                     positions: {
