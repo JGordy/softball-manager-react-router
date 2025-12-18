@@ -347,6 +347,39 @@ This is a same-gender team. Gender balance rules do not apply to batting order.
             };
         });
 
+        // Validate that the generated lineup player IDs match the input player IDs
+        const inputPlayerIdSet = new Set(players.map((p) => p.$id));
+        const lineupPlayerIds = validatedLineup.map((p) => p.$id);
+        const lineupPlayerIdSet = new Set(lineupPlayerIds);
+
+        // Ensure there are no duplicate player IDs in the generated lineup
+        if (lineupPlayerIds.length !== lineupPlayerIdSet.size) {
+            throw new Error("Generated lineup contains duplicate player IDs");
+        }
+
+        // Ensure the lineup contains exactly the same player IDs as the input
+        if (lineupPlayerIdSet.size !== inputPlayerIdSet.size) {
+            throw new Error(
+                "Generated lineup does not contain the same number of unique players as the input",
+            );
+        }
+
+        for (const id of inputPlayerIdSet) {
+            if (!lineupPlayerIdSet.has(id)) {
+                throw new Error(
+                    `Generated lineup is missing player with id ${id}`,
+                );
+            }
+        }
+
+        for (const id of lineupPlayerIdSet) {
+            if (!inputPlayerIdSet.has(id)) {
+                throw new Error(
+                    `Generated lineup contains unknown player with id ${id}`,
+                );
+            }
+        }
+
         // Return the generated lineup with reasoning
         return new Response(
             JSON.stringify({
