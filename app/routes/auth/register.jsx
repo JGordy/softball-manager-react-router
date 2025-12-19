@@ -133,7 +133,7 @@ export default function Register({ actionData }) {
         }
         if (actionData?.success) {
             identifyUser(actionData.userId);
-            trackEvent("registration-success", { userId: actionData.userId });
+            trackEvent("registration-success");
             navigate("/", { replace: true });
         }
     }, [actionData, navigate]);

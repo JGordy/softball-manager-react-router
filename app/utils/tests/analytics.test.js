@@ -51,12 +51,10 @@ describe("analytics utility", () => {
 
         // Depending on how import.meta.env is handled in tests,
         // this might log or do nothing. We'll verify if it logs.
-        if (import.meta.env.DEV) {
-            expect(consoleLogSpy).toHaveBeenCalledWith(
-                `[Umami Analytics] Track Event: "${eventName}"`,
-                eventData,
-            );
-        }
+        expect(consoleLogSpy).toHaveBeenCalledWith(
+            `[Umami Analytics] Track Event: "${eventName}"`,
+            eventData,
+        );
     });
 
     it("should handle missing data gracefully", () => {
@@ -100,11 +98,9 @@ describe("analytics utility", () => {
 
             identifyUser(userId);
 
-            if (import.meta.env.DEV) {
-                expect(consoleLogSpy).toHaveBeenCalledWith(
-                    `[Umami Analytics] Identify User: "${userId}"`,
-                );
-            }
+            expect(consoleLogSpy).toHaveBeenCalledWith(
+                `[Umami Analytics] Identify User: "${userId}"`,
+            );
         });
 
         it("should catch and log errors if identification fails", () => {

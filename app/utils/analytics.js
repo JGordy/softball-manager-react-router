@@ -12,7 +12,7 @@ export const trackEvent = (name, data) => {
             window.umami.track(name, data);
         } else if (import.meta.env.DEV) {
             // Log to console in dev mode for debugging
-            console.log(`[Umami Analytics] Track Event: "${name}"`, data || "");
+            console.log(`[Umami Analytics] Track Event: "${name}"`, data);
         }
     } catch (error) {
         console.error("Error tracking event with Umami:", error);
