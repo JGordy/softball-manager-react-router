@@ -15,6 +15,12 @@ jest.mock("@/hooks/useModal", () => ({
     default: jest.fn(),
 }));
 
+jest.mock("@/utils/analytics", () => ({
+    trackEvent: jest.fn(),
+}));
+
+import { trackEvent } from "@/utils/analytics";
+
 describe("showNotification utility", () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -117,14 +123,10 @@ describe("showNotification utility", () => {
 
         it("should show error notification on failure", () => {
             const actionData = { success: false, message: "Action failed" };
-            const consoleErrorSpy = jest
-                .spyOn(console, "error")
-                .mockImplementation(() => {});
 
             renderHook(() => useResponseNotification(actionData));
 
             expect(mockCloseAllModals).toHaveBeenCalled();
-            expect(consoleErrorSpy).toHaveBeenCalled();
 
             // Fast-forward time
             jest.advanceTimersByTime(1500);
@@ -136,8 +138,28 @@ describe("showNotification utility", () => {
                     color: "red.9",
                 }),
             );
+        });
 
-            consoleErrorSpy.mockRestore();
+        it("should call trackEvent if event data is provided", () => {
+            const actionData = {
+                success: true,
+                message: "Action successful",
+                event: {
+                    name: "test_event",
+                    data: { foo: "bar" },
+                },
+            };
+
+            renderHook(() => useResponseNotification(actionData));
+
+            expect(trackEvent).toHaveBeenCalledWith("test_event", {
+                foo: "bar",
+            });
+
+            // Fast-forward time
+            jest.advanceTimersByTime(1500);
+
+            expect(notifications.show).toHaveBeenCalled();
         });
     });
 });

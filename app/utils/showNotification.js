@@ -68,7 +68,7 @@ export function useResponseNotification(actionData) {
 
         if (actionData?.success) {
             // Track event if provided
-            if (Object.keys(actionData.event).length) {
+            if (actionData.event && Object.keys(actionData.event).length) {
                 const { name, data } = actionData.event;
                 trackEvent(name, data);
             }
