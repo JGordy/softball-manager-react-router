@@ -90,6 +90,40 @@ export async function createSessionClient(request) {
 }
 
 /**
+ * Creates an Appwrite client configured with a specific session secret
+ * Useful for acting on behalf of a user when the session cookie hasn't been set yet (e.g., during registration)
+ */
+export function createSessionClientFromSecret(secret) {
+    appwriteConfig.validate();
+
+    const client = new Client()
+        .setEndpoint(appwriteConfig.endpoint)
+        .setProject(appwriteConfig.projectId)
+        .setSession(secret);
+
+    return {
+        get account() {
+            return new Account(client);
+        },
+        get databases() {
+            return new Databases(client);
+        },
+        get tablesDB() {
+            return new TablesDB(client);
+        },
+        get teams() {
+            return new Teams(client);
+        },
+        get users() {
+            return new Users(client);
+        },
+        get messaging() {
+            return new Messaging(client);
+        },
+    };
+}
+
+/**
  * Creates an admin Appwrite client (for operations that don't require user session)
  * Use sparingly - only when you need to perform admin operations
  */

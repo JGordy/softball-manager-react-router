@@ -107,6 +107,21 @@ function Layout({ children, context }) {
                     name="viewport"
                     content="width=device-width, initial-scale=1"
                 />
+
+                {/* Umami Tracking Script */}
+                {import.meta.env.PROD &&
+                    import.meta.env.VITE_UMAMI_WEBSITE_ID &&
+                    import.meta.env.VITE_UMAMI_SCRIPT_URL && (
+                        <script
+                            async
+                            defer
+                            data-website-id={
+                                import.meta.env.VITE_UMAMI_WEBSITE_ID
+                            }
+                            src={import.meta.env.VITE_UMAMI_SCRIPT_URL}
+                        ></script>
+                    )}
+
                 <ColorSchemeScript
                     // TODO: Figure out the mismatch of themes before turning this back on
                     // defaultColorScheme={darkMode ? 'dark' : 'light'}
