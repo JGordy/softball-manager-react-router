@@ -2,6 +2,7 @@ import {
     serializeSessionCookie,
     parseSessionCookie,
     createSessionClient,
+    createSessionClientFromSecret,
     createAdminClient,
 } from "./server";
 import { Client, Account, Databases, TablesDB } from "node-appwrite";
@@ -109,6 +110,29 @@ describe("appwrite server utility", () => {
             await createSessionClient(request);
 
             expect(mockClientInstance.setSession).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("createSessionClientFromSecret", () => {
+        it("should create client with provided secret", () => {
+            const secret = "manual-secret";
+            const client = createSessionClientFromSecret(secret);
+
+            expect(appwriteConfig.validate).toHaveBeenCalled();
+            expect(Client).toHaveBeenCalled();
+            expect(mockClientInstance.setEndpoint).toHaveBeenCalledWith(
+                "https://test.appwrite.io",
+            );
+            expect(mockClientInstance.setProject).toHaveBeenCalledWith(
+                "test-project",
+            );
+            expect(mockClientInstance.setSession).toHaveBeenCalledWith(
+                "manual-secret",
+            );
+
+            expect(client.account).toBeInstanceOf(Account);
+            expect(client.databases).toBeInstanceOf(Databases);
+            expect(client.tablesDB).toBeInstanceOf(TablesDB);
         });
     });
 
