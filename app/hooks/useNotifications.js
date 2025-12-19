@@ -288,7 +288,6 @@ export function useNotifications() {
      */
     const toggleSubscription = useCallback(async () => {
         if (isSubscribed) {
-            trackEvent("notifications-unsubscribe");
             return unsubscribe();
         } else {
             return subscribe();
