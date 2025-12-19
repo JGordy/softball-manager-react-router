@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { getToken } from "firebase/messaging";
+import { trackEvent } from "@/utils/analytics";
 
 import {
     isPushSupported,
@@ -209,6 +210,7 @@ export function useNotifications() {
             localStorage.setItem(PUSH_TARGET_KEY, result.targetId);
             setPushTargetId(result.targetId);
             setIsSubscribed(true);
+            trackEvent("notifications-subscribe");
 
             return {
                 success: true,
@@ -268,6 +270,7 @@ export function useNotifications() {
             localStorage.removeItem(PUSH_TARGET_KEY);
             setPushTargetId(null);
             setIsSubscribed(false);
+            trackEvent("notifications-unsubscribe");
 
             return { success: true };
         } catch (err) {
@@ -285,6 +288,7 @@ export function useNotifications() {
      */
     const toggleSubscription = useCallback(async () => {
         if (isSubscribed) {
+            trackEvent("notifications-unsubscribe");
             return unsubscribe();
         } else {
             return subscribe();
