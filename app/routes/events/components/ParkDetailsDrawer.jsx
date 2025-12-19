@@ -2,9 +2,14 @@ import { Button, Flex, Group, Text } from "@mantine/core";
 import { useClipboard } from "@mantine/hooks";
 
 import { IconMapPin, IconLocationFilled, IconCopy } from "@tabler/icons-react";
+import { trackEvent } from "@/utils/analytics";
 
 export default function ParkDetailsDrawer({ park }) {
     const clipboard = useClipboard({ timeout: 500 });
+
+    const handleViewOnGoogleMaps = () => {
+        trackEvent("view-park-on-google-maps", { parkId: park.$id });
+    };
 
     return (
         <>
@@ -28,6 +33,7 @@ export default function ParkDetailsDrawer({ park }) {
                 rel="noopener noreferrer"
                 size="lg"
                 fullWidth
+                onClick={handleViewOnGoogleMaps}
             >
                 <Group justify="center" gap="xs">
                     <IconLocationFilled size={18} />
