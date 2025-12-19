@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { notifications } from "@mantine/notifications";
 
+import { trackEvent } from "@/utils/analytics";
+
 import useModal from "@/hooks/useModal";
 
 import classes from "@/styles/notifications.module.css";
@@ -65,6 +67,12 @@ export function useResponseNotification(actionData) {
         closeAllModals();
 
         if (actionData?.success) {
+            // Track event if provided
+            if (Object.keys(actionData.event).length) {
+                const { name, data } = actionData.event;
+                trackEvent(name, data);
+            }
+
             const timeoutId = setTimeout(() => {
                 showNotification({
                     variant: "success",
@@ -75,7 +83,6 @@ export function useResponseNotification(actionData) {
         }
 
         if (actionData && actionData.success === false) {
-            console.error("An error occurred.", actionData.message);
             const timeoutId = setTimeout(() => {
                 showNotification({
                     variant: "error",
