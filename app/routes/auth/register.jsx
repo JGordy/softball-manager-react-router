@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { redirect, Form, Link } from "react-router";
+import { data, Form, Link, useNavigate, useNavigation } from "react-router";
 import { ID } from "node-appwrite";
 
 import {
@@ -25,11 +25,13 @@ import { hasBadWords } from "@/utils/badWordsApi";
 
 import {
     createAdminClient,
+    createSessionClientFromSecret,
     serializeSessionCookie,
 } from "@/utils/appwrite/server";
 
 import { createDocument } from "@/utils/databases";
 import { showNotification } from "@/utils/showNotification";
+import { trackEvent, identifyUser } from "@/utils/analytics";
 
 import { redirectIfAuthenticated } from "./utils/redirectIfAuthenticated";
 
@@ -82,17 +84,31 @@ export async function action({ request }) {
         );
 
         // Send verification email
-        const origin = new URL(request.url).origin;
-        await account.createVerification(`${origin}/verify`);
+        try {
+            const { account: sessionAccount } = createSessionClientFromSecret(
+                session.secret,
+            );
+            const origin = new URL(request.url).origin;
+            await sessionAccount.createVerification(`${origin}/verify`);
+        } catch (verificationError) {
+            // Log the error but don't fail the registration
+            console.error(
+                "Verification email failed to send:",
+                verificationError,
+            );
+        }
 
         // Set the session cookie and redirect to home
         const cookieHeader = serializeSessionCookie(session.secret);
 
-        return redirect("/", {
-            headers: {
-                "Set-Cookie": cookieHeader,
+        return data(
+            { success: true, userId: user.$id },
+            {
+                headers: {
+                    "Set-Cookie": cookieHeader,
+                },
             },
-        });
+        );
     } catch (error) {
         console.error("Registration error:", error);
         return { error: error.message || "Failed to create account" };
@@ -103,6 +119,10 @@ export default function Register({ actionData }) {
     const computedColorScheme = useComputedColorScheme("light");
     const brandLogo =
         computedColorScheme === "light" ? brandLogoLight : brandLogoDark;
+    const navigate = useNavigate();
+    const navigation = useNavigation();
+
+    const isSubmitting = navigation.state === "submitting";
 
     useEffect(() => {
         if (actionData?.error) {
@@ -111,7 +131,12 @@ export default function Register({ actionData }) {
                 message: actionData.error,
             });
         }
-    }, [actionData]);
+        if (actionData?.success) {
+            identifyUser(actionData.userId);
+            trackEvent("registration-success", { userId: actionData.userId });
+            navigate("/", { replace: true });
+        }
+    }, [actionData, navigate]);
 
     return (
         <Container size="xs">
@@ -130,15 +155,21 @@ export default function Register({ actionData }) {
                                 label="Name"
                                 name="name"
                                 placeholder="Your name"
+                                disabled={isSubmitting}
                             />
-                            <AutocompleteEmail />
+                            <AutocompleteEmail disabled={isSubmitting} />
                             <PasswordInput
                                 name="password"
                                 type="password"
                                 label="Password"
                                 placeholder="Your password"
+                                disabled={isSubmitting}
                             />
-                            <Button type="submit" fullWidth>
+                            <Button
+                                type="submit"
+                                fullWidth
+                                loading={isSubmitting}
+                            >
                                 Register
                             </Button>
                         </Stack>
