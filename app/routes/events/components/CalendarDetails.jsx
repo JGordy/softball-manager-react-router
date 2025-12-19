@@ -11,6 +11,7 @@ import {
 
 import { google, ics, outlook, office365 } from "calendar-link";
 import { formatForViewerTime, formatForViewerDate } from "@/utils/dateTime";
+import { trackEvent } from "@/utils/analytics";
 
 const calendarMap = {
     google: {
@@ -62,6 +63,13 @@ export default function CalendarDetails({ game, park, team }) {
         timeZone: timeZone,
     };
 
+    const handleAddToCalendar = (calendar) => {
+        trackEvent("add-event-to-calendar", {
+            eventId: game.$id,
+            calendar,
+        });
+    };
+
     const [firstkey, ...items] = calendarOrder();
     const firstItem = calendarMap[firstkey];
 
@@ -89,6 +97,7 @@ export default function CalendarDetails({ game, park, team }) {
                 rel="noopener noreferrer"
                 size="lg"
                 fullWidth
+                onClick={() => handleAddToCalendar(firstItem.label)}
             >
                 <Group gap="md" justify="center" mr="10px">
                     {firstItem.icon}
@@ -110,6 +119,7 @@ export default function CalendarDetails({ game, park, team }) {
                             target="_blank"
                             rel="noopener noreferrer"
                             variant="outline"
+                            onClick={() => handleAddToCalendar(label)}
                         >
                             <Group gap="5px" justify="center" wrap="nowrap">
                                 {icon}
