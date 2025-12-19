@@ -74,6 +74,12 @@ export async function createSingleGame({ values }) {
             status: 201,
             success: true,
             message: "Game created successfully!",
+            event: {
+                name: "game-created",
+                data: {
+                    gameId: createdGame.$id,
+                },
+            },
         };
     } catch (error) {
         console.error("Error creating game:", error);
@@ -124,6 +130,12 @@ export async function createGames({ values }) {
             status: 201,
             success: true,
             message: `${createdGames.length} games created successfully!`,
+            event: {
+                name: "games-generated",
+                data: {
+                    teamId,
+                },
+            },
         };
     } catch (error) {
         console.error("Error creating games:", error);

@@ -10,6 +10,8 @@ import {
     IconZoomQuestion,
 } from "@tabler/icons-react";
 
+import { trackEvent } from "@/utils/analytics";
+
 import DrawerContainer from "@/components/DrawerContainer";
 import DeferredLoader from "@/components/DeferredLoader";
 import InlineError from "@/components/InlineError";
@@ -33,6 +35,7 @@ export default function RosterDetails({
 
     const handlePrintLineup = () => {
         window?.print();
+        trackEvent("print-lineup", { eventId: game.$id });
     };
 
     return (

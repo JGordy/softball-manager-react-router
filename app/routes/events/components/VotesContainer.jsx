@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useFetcher } from "react-router";
 
 import { Button, Select, Text } from "@mantine/core";
+import { trackEvent } from "@/utils/analytics";
 
 import addPlayerAvailability from "../utils/addPlayerAvailability";
 
@@ -58,6 +59,8 @@ export default function VotesContainer({
                 action: `/events/${game.$id}`,
                 method: "post",
             });
+
+            trackEvent("submit-game-votes", { eventId: game.$id });
         } catch (error) {
             console.error("Error submitting votes:", error);
         }

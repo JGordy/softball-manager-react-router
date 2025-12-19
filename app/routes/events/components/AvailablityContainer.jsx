@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useOutletContext, useFetcher } from "react-router";
+import { DateTime } from "luxon";
 
 import {
     ActionIcon,
@@ -24,7 +25,7 @@ import {
 } from "@tabler/icons-react";
 
 import positions from "@/constants/positions";
-import { DateTime } from "luxon";
+import { trackEvent } from "@/utils/analytics";
 
 const availabilityData = {
     accepted: {
@@ -87,6 +88,12 @@ const AvailabilityOptionsContainer = ({
             fetcher.submit(formData, {
                 method: "post",
                 action: `/events/${game.$id}`,
+            });
+
+            trackEvent("submit-event-attendance", {
+                eventId: game.$id,
+                submittedBy:
+                    currentUserId === player.$id ? "player" : "manager",
             });
         } catch (error) {
             console.error("Error submitting attendance form:", error);

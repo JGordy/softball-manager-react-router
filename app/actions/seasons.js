@@ -71,6 +71,12 @@ export async function createSeason({ values, teamId }) {
             status: 201,
             success: true,
             message: "Season created successfully!",
+            event: {
+                name: "season-created",
+                data: {
+                    seasonId,
+                },
+            },
         };
     } catch (error) {
         console.error("Error creating season:", error);
