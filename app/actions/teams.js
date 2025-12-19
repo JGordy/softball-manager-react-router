@@ -50,9 +50,17 @@ export async function createTeam({ values, userId }) {
             Permission.delete(Role.team(teamId, "manager")), // Only managers can delete
         ]);
 
-        // Note: No need for separate memberships table - Appwrite Teams API handles it automatically
-
-        return { response: team, status: 201, success: true };
+        return {
+            response: team,
+            status: 201,
+            success: true,
+            event: {
+                name: "team-created",
+                data: {
+                    teamId,
+                },
+            },
+        };
     } catch (error) {
         console.error("Error creating team:", error);
         throw error;
@@ -95,6 +103,12 @@ export async function addPlayerToTeam({ userId, email, teamId, name }) {
                 status: 201,
                 success: true,
                 message: "Player added to team successfully",
+                event: {
+                    name: "player-added-to-team",
+                    data: {
+                        teamId,
+                    },
+                },
             };
         } else {
             // Invite by email - sends invitation email
@@ -110,6 +124,12 @@ export async function addPlayerToTeam({ userId, email, teamId, name }) {
                 status: 201,
                 success: true,
                 message: "Invitation email sent to player",
+                event: {
+                    name: "player-invited-to-team",
+                    data: {
+                        teamId,
+                    },
+                },
             };
         }
     } catch (error) {
