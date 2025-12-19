@@ -7,6 +7,7 @@
 import { Button, Group, Text, Alert, Stack } from "@mantine/core";
 import { IconBell, IconBellOff, IconAlertCircle } from "@tabler/icons-react";
 import { useNotifications } from "@/hooks/useNotifications";
+import { trackEvent } from "@/utils/analytics";
 
 export default function NotificationToggle() {
     const {
@@ -18,6 +19,13 @@ export default function NotificationToggle() {
         toggleSubscription,
         clearError,
     } = useNotifications();
+
+    const handleToggleSubscription = () => {
+        trackEvent("notifications-toggle-click", {
+            isSubscribed,
+        });
+        toggleSubscription();
+    };
 
     // Browser doesn't support push notifications
     if (!isSupported) {
@@ -76,7 +84,7 @@ export default function NotificationToggle() {
                     variant={isSubscribed ? "light" : "filled"}
                     color={isSubscribed ? "red" : "blue"}
                     loading={isLoading}
-                    onClick={toggleSubscription}
+                    onClick={handleToggleSubscription}
                     size="sm"
                 >
                     {isSubscribed ? "Disable" : "Enable"}
