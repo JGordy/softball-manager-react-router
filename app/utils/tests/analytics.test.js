@@ -1,4 +1,4 @@
-import { trackEvent } from "../analytics";
+import { trackEvent, identifyUser } from "../analytics";
 
 describe("analytics utility", () => {
     let originalUmami;
@@ -81,5 +81,45 @@ describe("analytics utility", () => {
             "Error tracking event with Umami:",
             expect.any(Error),
         );
+    });
+
+    describe("identifyUser", () => {
+        it("should call window.umami.identify if it exists", () => {
+            const mockIdentify = jest.fn();
+            window.umami = { identify: mockIdentify };
+
+            const userId = "user-123";
+            identifyUser(userId);
+
+            expect(mockIdentify).toHaveBeenCalledWith(userId);
+            expect(consoleLogSpy).not.toHaveBeenCalled();
+        });
+
+        it("should log to console in dev mode if window.umami is missing", () => {
+            const userId = "dev-user-123";
+
+            identifyUser(userId);
+
+            if (import.meta.env.DEV) {
+                expect(consoleLogSpy).toHaveBeenCalledWith(
+                    `[Umami Analytics] Identify User: "${userId}"`,
+                );
+            }
+        });
+
+        it("should catch and log errors if identification fails", () => {
+            window.umami = {
+                identify: () => {
+                    throw new Error("Identify Failed");
+                },
+            };
+
+            identifyUser("failing-user");
+
+            expect(consoleErrorSpy).toHaveBeenCalledWith(
+                "Error identifying user with Umami:",
+                expect.any(Error),
+            );
+        });
     });
 });

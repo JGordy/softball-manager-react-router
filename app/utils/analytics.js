@@ -18,3 +18,21 @@ export const trackEvent = (name, data) => {
         console.error("Error tracking event with Umami:", error);
     }
 };
+
+/**
+ * Identify the current user with a unique ID.
+ * This allows Umami to track the same user across multiple sessions.
+ *
+ * @param {string} userId - The unique user ID (e.g., Appwrite $id)
+ */
+export const identifyUser = (userId) => {
+    try {
+        if (typeof window !== "undefined" && window.umami) {
+            window.umami.identify(userId);
+        } else if (import.meta.env.DEV) {
+            console.log(`[Umami Analytics] Identify User: "${userId}"`);
+        }
+    } catch (error) {
+        console.error("Error identifying user with Umami:", error);
+    }
+};
