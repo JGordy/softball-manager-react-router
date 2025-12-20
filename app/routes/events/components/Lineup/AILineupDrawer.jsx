@@ -6,6 +6,8 @@ import { Button, Card, Group, Stack, Text, Alert, Tabs } from "@mantine/core";
 
 import { IconSparkles, IconCheck, IconInfoCircle } from "@tabler/icons-react";
 
+import { trackEvent } from "@/utils/analytics";
+
 import DrawerContainer from "@/components/DrawerContainer";
 import TabsWrapper from "@/components/TabsWrapper";
 
@@ -107,6 +109,10 @@ export default function AILineupDrawer({
                     encType: "application/json",
                 },
             );
+            trackEvent("ai-lineup-requested", {
+                teamId: team.$id,
+                gameId: game?.$id,
+            });
         } catch (error) {
             const message =
                 error instanceof Error ? error.message : String(error || "");
@@ -137,6 +143,10 @@ export default function AILineupDrawer({
             if (aiFetcher.data.lineup) {
                 setGeneratedLineup(aiFetcher.data.lineup);
                 setAiReasoning(aiFetcher.data.reasoning || null);
+                trackEvent("ai-lineup-generated", {
+                    teamId: team.$id,
+                    gameId: game?.$id,
+                });
             }
         }
 
@@ -155,6 +165,10 @@ export default function AILineupDrawer({
             setAiReasoning(null);
             onClose();
             setAiError(null);
+            trackEvent("ai-lineup-applied", {
+                teamId: team.$id,
+                gameId: game?.$id,
+            });
         }
     };
 
