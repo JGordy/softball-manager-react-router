@@ -65,7 +65,17 @@ export async function savePlayerChart({
             }
         }
 
-        return { response: { gameDetails }, status: 204, success: true };
+        return {
+            response: { gameDetails },
+            status: 204,
+            success: true,
+            event: {
+                name: sendNotification ? "lineup-notified" : "lineup-saved",
+                data: {
+                    eventId,
+                },
+            },
+        };
     } catch (error) {
         console.error("Error updating lineup and fielding chart:", error);
         throw error;

@@ -39,7 +39,7 @@ export async function action({ request, params }) {
     }
 }
 
-function Lineup({ loaderData }) {
+function Lineup({ loaderData, actionData }) {
     // console.log("/events/:eventId/lineup > ", { ...loaderData });
 
     const { user } = useOutletContext();
@@ -68,6 +68,16 @@ function Lineup({ loaderData }) {
         const isInLineup = lineupState?.some((lp) => lp.$id === p.$id);
         return !isInLineup;
     });
+
+    useEffect(() => {
+        if (
+            actionData?.success &&
+            actionData?.event &&
+            Object.keys(actionData.event).length
+        ) {
+            trackEvent(actionData.event.name, actionData.event.data);
+        }
+    }, [actionData]);
 
     // Use the first team from the teams array
     const team = teams?.[0];
