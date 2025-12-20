@@ -79,6 +79,12 @@ describe("Lineups Actions", () => {
             });
 
             expect(result.success).toBe(true);
+            expect(result.event).toEqual({
+                name: "lineup-notified",
+                data: {
+                    eventId,
+                },
+            });
             expect(getTeamMembers).toHaveBeenCalledWith({ teamId });
             expect(sendLineupFinalizedNotification).toHaveBeenCalledWith({
                 gameId: eventId,
@@ -106,6 +112,12 @@ describe("Lineups Actions", () => {
             });
 
             expect(result.success).toBe(true);
+            expect(result.event).toEqual({
+                name: "lineup-saved",
+                data: {
+                    eventId,
+                },
+            });
             expect(getTeamMembers).not.toHaveBeenCalled();
             expect(sendLineupFinalizedNotification).not.toHaveBeenCalled();
         });
