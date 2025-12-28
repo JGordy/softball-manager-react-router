@@ -8,12 +8,9 @@ import {
     Image,
     Paper,
     PasswordInput,
-    Stack,
     Text,
     useComputedColorScheme,
     Divider,
-    Box,
-    Anchor,
 } from "@mantine/core";
 import GoogleButton from "@/components/GoogleButton";
 
