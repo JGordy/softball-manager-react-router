@@ -14,10 +14,10 @@ export async function loader({ request }) {
         const user = await account.get();
 
         // Check for "Generic" names (Profile Incomplete)
-        const isProfileIncomplete = !user.name || user.name === "User";
+        const isProfileIncomplete =
+            !user.name || user.name.trim() === "" || user.name === "User";
 
-        const url = new URL(request.url);
-        if (isProfileIncomplete && url.pathname !== "/auth/setup") {
+        if (isProfileIncomplete) {
             throw redirect("/auth/setup");
         }
 
