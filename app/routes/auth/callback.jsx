@@ -46,6 +46,7 @@ export async function loader({ request }) {
                         headers: {
                             Authorization: `Bearer ${googleIdentity.providerAccessToken}`,
                         },
+                        signal: AbortSignal.timeout(5000),
                     },
                 );
 
