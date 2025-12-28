@@ -25,6 +25,7 @@ export default function UserHeader({ children, subText }) {
             <Group justify="space-between">
                 <Group my="md">
                     <Avatar
+                        src={user?.prefs?.avatarUrl}
                         color="green"
                         name={user?.name}
                         alt={user?.name}

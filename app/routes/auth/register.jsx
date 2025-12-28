@@ -14,12 +14,13 @@ import {
     Text,
     TextInput,
     useComputedColorScheme,
+    Divider,
 } from "@mantine/core";
-
 import branding from "@/constants/branding";
 import images from "@/constants/images";
 
 import AutocompleteEmail from "@/components/AutocompleteEmail";
+import GoogleButton from "@/components/GoogleButton";
 
 import { hasBadWords } from "@/utils/badWordsApi";
 
@@ -147,6 +148,19 @@ export default function Register({ actionData }) {
                         alt={branding.name}
                         px="xl"
                         my="xl"
+                    />
+
+                    <Group grow mb="md" mt="md">
+                        <GoogleButton
+                            component={Link}
+                            to="/auth/oauth?provider=google"
+                        />
+                    </Group>
+
+                    <Divider
+                        label="Or register with email"
+                        labelPosition="center"
+                        my="lg"
                     />
 
                     <Form method="post">

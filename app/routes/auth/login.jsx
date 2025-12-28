@@ -8,9 +8,14 @@ import {
     Image,
     Paper,
     PasswordInput,
+    Stack,
     Text,
     useComputedColorScheme,
+    Divider,
+    Box,
+    Anchor,
 } from "@mantine/core";
+import GoogleButton from "@/components/GoogleButton";
 
 import {
     createAdminClient,
@@ -23,12 +28,19 @@ import images from "@/constants/images";
 import AutocompleteEmail from "@/components/AutocompleteEmail";
 
 import { redirectIfAuthenticated } from "./utils/redirectIfAuthenticated";
+import { useEffect } from "react";
+import { showNotification } from "@/utils/showNotification";
 
 const { brandLogoDark, brandLogoLight } = images;
 
 // Check if user is already logged in, redirect to home if so
 export async function loader({ request }) {
-    return redirectIfAuthenticated(request);
+    const response = await redirectIfAuthenticated(request);
+    if (response) return response;
+
+    const url = new URL(request.url);
+    const urlError = url.searchParams.get("error");
+    return { urlError };
 }
 
 // Server-side action - creates session and sets cookie
@@ -67,11 +79,25 @@ export async function action({ request }) {
     }
 }
 
-export default function Login() {
+export default function Login({ loaderData }) {
     const actionData = useActionData();
     const computedColorScheme = useComputedColorScheme("light");
     const brandLogo =
         computedColorScheme === "light" ? brandLogoLight : brandLogoDark;
+
+    const displayError = actionData?.error || loaderData?.urlError;
+
+    useEffect(() => {
+        if (actionData?.error) {
+            showNotification({
+                variant: "error",
+                message: actionData.error,
+            });
+        }
+        if (actionData?.success) {
+            // Handle success notification if needed
+        }
+    }, [actionData]);
 
     return (
         <Container size="xs">
@@ -82,6 +108,17 @@ export default function Login() {
                         alt={branding.name}
                         px="xl"
                         my="xl"
+                    />
+
+                    <GoogleButton
+                        component={Link}
+                        to="/auth/oauth?provider=google"
+                    />
+
+                    <Divider
+                        label="Or continue with email"
+                        labelPosition="center"
+                        my="lg"
                     />
 
                     <Form method="post">
@@ -110,9 +147,11 @@ export default function Login() {
                             Register
                         </Text>
                     </Group>
-                    <Center>
-                        {actionData?.error && (
-                            <Text c="red.5">{actionData?.error}</Text>
+                    <Center mt="md">
+                        {displayError && (
+                            <Text c="red.5" size="sm">
+                                {displayError}
+                            </Text>
                         )}
                     </Center>
                 </Paper>
