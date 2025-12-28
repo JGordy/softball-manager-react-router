@@ -10,7 +10,9 @@ import {
     PasswordInput,
     Text,
     useComputedColorScheme,
+    Divider,
 } from "@mantine/core";
+import GoogleButton from "@/components/GoogleButton";
 
 import {
     createAdminClient,
@@ -23,12 +25,34 @@ import images from "@/constants/images";
 import AutocompleteEmail from "@/components/AutocompleteEmail";
 
 import { redirectIfAuthenticated } from "./utils/redirectIfAuthenticated";
+import { useEffect } from "react";
+import { showNotification } from "@/utils/showNotification";
 
 const { brandLogoDark, brandLogoLight } = images;
 
 // Check if user is already logged in, redirect to home if so
 export async function loader({ request }) {
-    return redirectIfAuthenticated(request);
+    const response = await redirectIfAuthenticated(request);
+    if (response) return response;
+
+    const url = new URL(request.url);
+    const urlError = url.searchParams.get("error");
+
+    // Map generic error codes to user-friendly messages
+    const errorMessages = {
+        auth_failure: "Authentication failed. Please try again.",
+        missing_provider: "Authentication provider is missing.",
+        invalid_provider:
+            "The selected authentication provider is not supported.",
+        oauth_failed: "OAuth authentication failed.",
+        oauth_error: "An error occurred during the OAuth process.",
+        invalid_session: "Session parameters are missing or invalid.",
+        callback_error: "An error occurred during authentication callback.",
+    };
+
+    const displayError = urlError ? errorMessages[urlError] || urlError : null;
+
+    return { urlError: displayError };
 }
 
 // Server-side action - creates session and sets cookie
@@ -67,11 +91,23 @@ export async function action({ request }) {
     }
 }
 
-export default function Login() {
+export default function Login({ loaderData }) {
     const actionData = useActionData();
     const computedColorScheme = useComputedColorScheme("light");
     const brandLogo =
         computedColorScheme === "light" ? brandLogoLight : brandLogoDark;
+
+    const displayError = actionData?.error || loaderData?.urlError;
+
+    useEffect(() => {
+        const errorMessage = actionData?.error || loaderData?.urlError;
+        if (errorMessage) {
+            showNotification({
+                variant: "error",
+                message: errorMessage,
+            });
+        }
+    }, [actionData?.error, loaderData?.urlError]);
 
     return (
         <Container size="xs">
@@ -82,6 +118,17 @@ export default function Login() {
                         alt={branding.name}
                         px="xl"
                         my="xl"
+                    />
+
+                    <GoogleButton
+                        component={Link}
+                        to="/auth/oauth?provider=google"
+                    />
+
+                    <Divider
+                        label="Or continue with email"
+                        labelPosition="center"
+                        my="lg"
                     />
 
                     <Form method="post">
@@ -110,9 +157,11 @@ export default function Login() {
                             Register
                         </Text>
                     </Group>
-                    <Center>
-                        {actionData?.error && (
-                            <Text c="red.5">{actionData?.error}</Text>
+                    <Center mt="md">
+                        {displayError && (
+                            <Text c="red.5" size="sm">
+                                {displayError}
+                            </Text>
                         )}
                     </Center>
                 </Paper>
