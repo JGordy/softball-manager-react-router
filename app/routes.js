@@ -6,12 +6,15 @@ export default [
     route("/register", "routes/auth/register.jsx"),
     route("/verify", "routes/auth/verify.jsx"),
     route("/recovery", "routes/auth/recover.jsx"),
+    route("/auth/oauth", "routes/auth/oauth.jsx"),
+    route("/auth/callback", "routes/auth/callback.jsx"),
 
     // Team invitation acceptance (public - users may not be logged in yet)
     route("/team/:teamId/accept-invite", "routes/team/accept-invite.jsx"),
 
     // The App shell (NavBar) in layout.jsx - protected routes
     layout("routes/layout.jsx", [
+        route("/auth/setup", "routes/auth/setup.jsx"),
         // index('routes/home/home.jsx'),
         route("/", "routes/home/home.jsx"),
 

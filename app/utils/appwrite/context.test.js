@@ -11,8 +11,8 @@ jest.mock("./server", () => ({
     createSessionClient: jest.fn(),
 }));
 
-// Mock react-router createContext if it's not available in test env
-jest.mock("react-router", () => ({
+// Mock react createContext if it's not available in test env
+jest.mock("react", () => ({
     createContext: jest.fn(() => "mock-context-key"),
 }));
 
