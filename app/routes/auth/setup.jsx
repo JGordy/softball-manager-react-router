@@ -47,7 +47,7 @@ export async function action({ request, context }) {
         const { account } = client;
 
         // Update name
-        await account.updateName(name);
+        await account.updateName(trimmedName);
 
         return redirect("/");
     } catch (error) {

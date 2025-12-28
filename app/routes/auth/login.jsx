@@ -100,10 +100,11 @@ export default function Login({ loaderData }) {
     const displayError = actionData?.error || loaderData?.urlError;
 
     useEffect(() => {
-        if (actionData?.error) {
+        const errorMessage = actionData?.error || loaderData?.urlError;
+        if (errorMessage) {
             showNotification({
                 variant: "error",
-                message: actionData.error,
+                message: errorMessage,
             });
         }
     }, [actionData]);
