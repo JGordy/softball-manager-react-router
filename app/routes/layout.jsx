@@ -31,7 +31,9 @@ export async function loader({ request }) {
 
         // If it's a standard "not logged in" error, redirect silently
         const isUnauthorized =
+            error.code === "401" ||
             error.code === 401 ||
+            error.status === 401 ||
             error.type === "general_unauthorized_scope" ||
             error.message?.includes('missing scopes (["account"])');
 

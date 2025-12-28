@@ -12,8 +12,8 @@ import { appwriteConfig } from "@/utils/appwrite/config";
 export default function UserAvatar({ user, size = 40, className = "" }) {
     const avatarUrl = useMemo(() => {
         // 1. Check if user has a provider-supplied avatar in preferences
-        if (user?.prefs?.avatar) {
-            return user.prefs.avatar;
+        if (user?.prefs?.avatarUrl) {
+            return user.prefs.avatarUrl;
         }
 
         // 2. Fallback: Use Appwrite Avatars API to generate initials

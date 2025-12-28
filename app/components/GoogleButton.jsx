@@ -19,6 +19,7 @@ export function GoogleButton({ onClick, disabled, ...rest }) {
                         viewBox="0 0 48 48"
                         xmlnsXlink="http://www.w3.org/1999/xlink"
                         style={{ display: "block" }}
+                        aria-label="Google logo"
                     >
                         <path
                             fill="#EA4335"
@@ -42,7 +43,6 @@ export function GoogleButton({ onClick, disabled, ...rest }) {
                 <span className={classes.gsiMaterialButtonContents}>
                     Sign in with Google
                 </span>
-                <span style={{ display: "none" }}>Sign in with Google</span>
             </div>
         </UnstyledButton>
     );

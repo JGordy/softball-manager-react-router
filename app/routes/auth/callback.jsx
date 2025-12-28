@@ -18,7 +18,7 @@ export async function loader({ request }) {
     if (!userId || !secret) {
         console.error("Callback loader - Missing parameters:", {
             userId,
-            secret,
+            missingSecret: !secret,
         });
         throw redirect("/login?error=Invalid session parameters");
     }

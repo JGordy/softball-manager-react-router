@@ -14,6 +14,12 @@ export async function loader({ request }) {
         return redirect("/login?error=Missing provider");
     }
 
+    // Validate provider against an allowlist to prevent unexpected or unsupported values
+    const allowedProviders = ["google"];
+    if (!allowedProviders.includes(provider)) {
+        return redirect("/login?error=Invalid provider");
+    }
+
     try {
         const { account } = createAdminClient();
 

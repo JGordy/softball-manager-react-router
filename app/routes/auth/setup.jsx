@@ -36,7 +36,9 @@ export async function action({ request, context }) {
     const formData = await request.formData();
     const name = formData.get("name");
 
-    if (!name) {
+    const trimmedName = typeof name === "string" ? name.trim() : "";
+
+    if (!trimmedName) {
         return { error: "Name is required." };
     }
 

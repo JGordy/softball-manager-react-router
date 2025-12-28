@@ -91,9 +91,6 @@ export default function Login({ loaderData }) {
                 message: actionData.error,
             });
         }
-        if (actionData?.success) {
-            // Handle success notification if needed
-        }
     }, [actionData]);
 
     return (
