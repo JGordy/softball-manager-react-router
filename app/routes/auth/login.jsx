@@ -107,7 +107,7 @@ export default function Login({ loaderData }) {
                 message: errorMessage,
             });
         }
-    }, [actionData]);
+    }, [actionData?.error, loaderData?.urlError]);
 
     return (
         <Container size="xs">
