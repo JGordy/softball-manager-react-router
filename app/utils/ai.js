@@ -19,7 +19,7 @@ function initializeAI() {
  * @returns {GenerativeModel} The initialized model
  */
 export function createModel({
-    modelName = "gemini-2.5-flash",
+    modelName = "gemini-3-flash-preview",
     generationConfig = {},
 } = {}) {
     const genAI = initializeAI();
