@@ -10,8 +10,7 @@
         "prepare": "husky",
         "lint": "prettier --check .",
         "format": "prettier --write .",
-        "test": "jest --verbose",
-        "migrate:teams": "node scripts/migrate-to-appwrite-teams.js"
+        "test": "jest --verbose"
     },
     "dependencies": {
         "@google-cloud/local-auth": "^3.0.1",
