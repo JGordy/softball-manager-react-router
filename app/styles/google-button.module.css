@@ -89,17 +89,17 @@
 }
 
 .gsiMaterialButton:disabled .gsiMaterialButtonContents {
-    opacity: 38%;
+    opacity: 0.38;
 }
 
 .gsiMaterialButton:disabled .gsiMaterialButtonIcon {
-    opacity: 38%;
+    opacity: 0.38;
 }
 
 .gsiMaterialButton:not(:disabled):active .gsiMaterialButtonState,
 .gsiMaterialButton:not(:disabled):focus .gsiMaterialButtonState {
     background-color: #303030;
-    opacity: 12%;
+    opacity: 0.12;
 }
 
 .gsiMaterialButton:not(:disabled):hover {
@@ -113,5 +113,5 @@
 
 .gsiMaterialButton:not(:disabled):hover .gsiMaterialButtonState {
     background-color: #303030;
-    opacity: 8%;
+    opacity: 0.08;
 }
