@@ -20,7 +20,7 @@ export async function loader({ request }) {
             userId,
             missingSecret: !secret,
         });
-        throw redirect("/login?error=Invalid session parameters");
+        throw redirect("/login?error=invalid_session");
     }
 
     try {
@@ -48,6 +48,16 @@ export async function loader({ request }) {
                         },
                     },
                 );
+
+                if (!response.ok) {
+                    console.error(
+                        "Google API error:",
+                        response.status,
+                        response.statusText,
+                    );
+                    throw new Error("Failed to fetch Google user info");
+                }
+
                 const googleUser = await response.json();
 
                 if (googleUser.picture) {
@@ -88,6 +98,6 @@ export async function loader({ request }) {
         // If it's already a Response (e.g., a thrown redirect), re-throw it
         if (error instanceof Response) throw error;
         console.error("OAuth callback error:", error);
-        throw redirect(`/login?error=${encodeURIComponent(error.message)}`);
+        throw redirect("/login?error=callback_error");
     }
 }

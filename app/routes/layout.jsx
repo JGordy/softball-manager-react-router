@@ -42,8 +42,8 @@ export async function loader({ request }) {
         }
 
         console.error("Layout loader - Auth failure:", error.message);
-        // For other errors, include the message for debugging
-        throw redirect(`/login?error=${encodeURIComponent(error.message)}`);
+        // For other errors, use a generic error code to avoid leaking details in the URL
+        throw redirect(`/login?error=auth_failure`);
     }
 }
 

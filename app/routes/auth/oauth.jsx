@@ -11,13 +11,13 @@ export async function loader({ request }) {
     const origin = url.origin;
 
     if (!provider) {
-        return redirect("/login?error=Missing provider");
+        return redirect("/login?error=missing_provider");
     }
 
     // Validate provider against an allowlist to prevent unexpected or unsupported values
     const allowedProviders = ["google"];
     if (!allowedProviders.includes(provider)) {
-        return redirect("/login?error=Invalid provider");
+        return redirect("/login?error=invalid_provider");
     }
 
     try {
@@ -28,12 +28,12 @@ export async function loader({ request }) {
         const redirectUrl = await account.createOAuth2Token(
             provider,
             `${origin}/auth/callback`,
-            `${origin}/login?error=OAuth failed`,
+            `${origin}/login?error=oauth_failed`,
         );
 
         return redirect(redirectUrl);
     } catch (error) {
         console.error("OAuth redirect error:", error);
-        return redirect(`/login?error=${encodeURIComponent(error.message)}`);
+        return redirect("/login?error=oauth_error");
     }
 }

@@ -37,7 +37,22 @@ export async function loader({ request }) {
 
     const url = new URL(request.url);
     const urlError = url.searchParams.get("error");
-    return { urlError };
+
+    // Map generic error codes to user-friendly messages
+    const errorMessages = {
+        auth_failure: "Authentication failed. Please try again.",
+        missing_provider: "Authentication provider is missing.",
+        invalid_provider:
+            "The selected authentication provider is not supported.",
+        oauth_failed: "OAuth authentication failed.",
+        oauth_error: "An error occurred during the OAuth process.",
+        invalid_session: "Session parameters are missing or invalid.",
+        callback_error: "An error occurred during authentication callback.",
+    };
+
+    const displayError = urlError ? errorMessages[urlError] || urlError : null;
+
+    return { urlError: displayError };
 }
 
 // Server-side action - creates session and sets cookie
