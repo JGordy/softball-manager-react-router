@@ -20,7 +20,7 @@ export default function UserAvatar({ user, size = 40, className = "" }) {
         // We use the account's name or a fallback
         const name = user?.name || user?.email || "User";
         const baseUrl = `${appwriteConfig.endpoint}/avatars/initials`;
-        return `${baseUrl}?name=${encodeURIComponent(name)}&width=${size}&height=${size}&project=${appwriteConfig.projectId}`;
+        return `${baseUrl}?name=${encodeURIComponent(name)}&width=${size}&height=${size}`;
     }, [user, size]);
 
     return (
