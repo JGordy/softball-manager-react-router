@@ -165,8 +165,7 @@ export default function EventDetails({ loaderData, actionData }) {
                 team={team}
             />
 
-            {/* TODO: Add back the gameIsPast check */}
-            {managerView && (
+            {managerView && !gameIsPast && (
                 <ScoringCard gameId={game.$id} isLive={gameInProgress} />
             )}
 
