@@ -231,6 +231,10 @@ function makeDeferredData({ eventId, userIds, parkId }) {
     const votesPromise = listDocuments("votes", [
         Query.equal("game_id", eventId),
     ]);
+    const logsPromise = listDocuments("game_logs", [
+        Query.equal("gameId", eventId),
+        Query.orderAsc("$createdAt"),
+    ]).then((result) => result.rows || []);
 
     return {
         players: playersPromise,
@@ -238,6 +242,7 @@ function makeDeferredData({ eventId, userIds, parkId }) {
         attendance: attendancePromise,
         awards: awardsPromise,
         votes: votesPromise,
+        logs: logsPromise,
     };
 }
 
