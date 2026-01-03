@@ -1,19 +1,19 @@
 import { ID } from "node-appwrite";
 import { createAdminClient } from "@/utils/appwrite/server";
 
-const databaseId = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+const databaseId = process.env.APPWRITE_DATABASE_ID;
 
 // Specific collection IDs
 export const collections = {
-    users: import.meta.env.VITE_APPWRITE_USERS_COLLECTION_ID,
-    teams: import.meta.env.VITE_APPWRITE_TEAMS_COLLECTION_ID,
-    seasons: import.meta.env.VITE_APPWRITE_SEASONS_COLLECTION_ID,
-    games: import.meta.env.VITE_APPWRITE_GAMES_COLLECTION_ID,
-    parks: import.meta.env.VITE_APPWRITE_PARKS_COLLECTION_ID,
-    forms: import.meta.env.VITE_APPWRITE_FORMS_COLLECTION_ID,
-    attendance: import.meta.env.VITE_APPWRITE_ATTENDANCE_COLLECTION_ID,
-    awards: import.meta.env.VITE_APPWRITE_GAME_AWARDS_COLLECTION_ID,
-    votes: import.meta.env.VITE_APPWRITE_GAME_VOTES_COLLECTION_ID,
+    users: process.env.APPWRITE_USERS_COLLECTION_ID,
+    teams: process.env.APPWRITE_TEAMS_COLLECTION_ID,
+    seasons: process.env.APPWRITE_SEASONS_COLLECTION_ID,
+    games: process.env.APPWRITE_GAMES_COLLECTION_ID,
+    parks: process.env.APPWRITE_PARKS_COLLECTION_ID,
+    forms: process.env.APPWRITE_FORMS_COLLECTION_ID,
+    attendance: process.env.APPWRITE_ATTENDANCE_COLLECTION_ID,
+    awards: process.env.APPWRITE_GAME_AWARDS_COLLECTION_ID,
+    votes: process.env.APPWRITE_GAME_VOTES_COLLECTION_ID,
 };
 
 // Helper function to create a document

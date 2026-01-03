@@ -22,7 +22,7 @@ jest.mock("@/utils/appwrite/server", () => ({
 }));
 
 describe("databases utility", () => {
-    const dbId = process.env.VITE_APPWRITE_DATABASE_ID;
+    const dbId = process.env.APPWRITE_DATABASE_ID;
 
     beforeEach(() => {
         jest.clearAllMocks();
