@@ -37,7 +37,6 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                 <AddTeam
                     action="edit-team"
                     actionRoute={`/team/${teamId}`}
-                    userId={userId}
                     buttonColor={primaryColor}
                 />
             ),
