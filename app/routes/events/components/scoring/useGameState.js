@@ -25,8 +25,24 @@ export function useGameState({ logs, game, playerChart }) {
             logs.length > 0 ? logs[logs.length - 1].$id : "empty";
         if (latestLogId === lastSyncLogId.current) return;
 
-        // 1. Current Batter Index (only our logs count for batter rotation)
-        setBattingOrderIndex(logs.length % playerChart.length);
+        // 1. Current Batter Index
+        // Calculate based on the last logged batter to handle undo correctly
+        if (logs.length > 0) {
+            const lastLog = logs[logs.length - 1];
+            // Find the last batter's index in the player chart
+            const lastBatterIndex = playerChart.findIndex(
+                (p) => p.$id === lastLog.playerId,
+            );
+            // Next batter is the one after the last logged batter
+            const nextIndex =
+                lastBatterIndex >= 0
+                    ? (lastBatterIndex + 1) % playerChart.length
+                    : 0;
+            setBattingOrderIndex(nextIndex);
+        } else {
+            // No logs yet, start with first batter
+            setBattingOrderIndex(0);
+        }
 
         // 2. Score Calculation
         const teamRBIs = logs.reduce((acc, l) => acc + (Number(l.rbi) || 0), 0);
