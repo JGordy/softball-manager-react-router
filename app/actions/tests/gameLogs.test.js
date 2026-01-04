@@ -1,5 +1,5 @@
 import { createDocument, deleteDocument } from "@/utils/databases";
-import { logGameEvent, undoLastGameEvent } from "../gameLogs";
+import { logGameEvent, undoGameEvent } from "../gameLogs";
 
 jest.mock("@/utils/databases", () => ({
     createDocument: jest.fn(),
@@ -64,7 +64,7 @@ describe("gameLogs actions", () => {
         it("should successfully undo a game event", async () => {
             deleteDocument.mockResolvedValue({});
 
-            const result = await undoLastGameEvent({ logId: "log789" });
+            const result = await undoGameEvent({ logId: "log789" });
 
             expect(deleteDocument).toHaveBeenCalledWith("game_logs", "log789");
             expect(result.success).toBe(true);
@@ -73,7 +73,7 @@ describe("gameLogs actions", () => {
         it("should handle errors when undoing a game event", async () => {
             deleteDocument.mockRejectedValue(new Error("Delete error"));
 
-            const result = await undoLastGameEvent({ logId: "log789" });
+            const result = await undoGameEvent({ logId: "log789" });
 
             expect(result.success).toBe(false);
             expect(result.error).toBe("Delete error");
