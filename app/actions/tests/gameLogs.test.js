@@ -60,7 +60,7 @@ describe("gameLogs actions", () => {
         });
     });
 
-    describe("undoLastGameEvent", () => {
+    describe("undoGameEvent", () => {
         it("should successfully undo a game event", async () => {
             deleteDocument.mockResolvedValue({});
 
