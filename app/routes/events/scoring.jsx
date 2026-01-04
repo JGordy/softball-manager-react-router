@@ -8,7 +8,7 @@ import { getEventById } from "@/loaders/games";
 
 import { updateGame } from "@/actions/games";
 
-import { logGameEvent, undoLastGameEvent } from "@/actions/gameLogs";
+import { logGameEvent, undoGameEvent } from "@/actions/gameLogs";
 
 import ScoringContainer from "./components/scoring/ScoringContainer";
 
@@ -31,7 +31,7 @@ export async function action({ request, params }) {
         });
     }
     if (_action === "undo-game-event") {
-        return undoLastGameEvent({ logId: values.logId });
+        return undoGameEvent({ logId: values.logId });
     }
     if (_action === "update-game-score") {
         return updateGame({ values, eventId });

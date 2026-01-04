@@ -45,7 +45,7 @@ export const logGameEvent = async ({
     }
 };
 
-export const undoLastGameEvent = async ({ logId }) => {
+export const undoGameEvent = async ({ logId }) => {
     try {
         await deleteDocument("game_logs", logId);
         return { success: true };
