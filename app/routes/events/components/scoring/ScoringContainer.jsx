@@ -36,7 +36,6 @@ function getEventDescription(actionType, batterName, position) {
     if (actionType === "E")
         return `${batterName} reaches on an error by ${position}`;
     if (actionType === "BB") return `${batterName} walks`;
-    if (actionType === "HBP") return `${batterName} hit by pitch`;
     if (actionType === "K") return `${batterName} strikes out`;
 
     return `${batterName}: ${actionType}${position ? ` (${position})` : ""}`;
@@ -163,7 +162,7 @@ export default function ScoringContainer({
             };
 
             // Process Batter
-            processRunner(runnerResults.batter, "first"); // Batter 'staying' implies safe at 1st normally, but handled by explicit targets like 'first'
+            processRunner(runnerResults.batter, "first");
 
             // Process Existing Runners
             ["first", "second", "third"].forEach((base) => {
@@ -171,15 +170,6 @@ export default function ScoringContainer({
                     processRunner(runnerResults[base], base);
                 }
             });
-
-            // Also ensure the primary action-type out is counted if not already handled
-            if (
-                BATTED_OUTS.includes(actionType) &&
-                runnerResults.batter !== "out"
-            ) {
-                // Historically, the batter is the one who 'grounded out' (so batter='out')
-                // But if the drawer says batter is NOT out (e.g. reached on FC), we respect that.
-            }
         } else if (actionType === "K" || BATTED_OUTS.includes(actionType)) {
             outsRecorded++;
             // Default: runners stay on automatic outs with no drawer (like K)

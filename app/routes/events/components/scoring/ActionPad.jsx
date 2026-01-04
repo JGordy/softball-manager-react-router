@@ -19,7 +19,6 @@ export default function ActionPad({ onAction }) {
     const others = [
         { label: "BB", color: "blue", value: "BB" },
         { label: "ERR", color: "orange", value: "E" },
-        // { label: "HIT BY PITCH", color: "blue", value: "HBP" },
     ];
 
     return (
