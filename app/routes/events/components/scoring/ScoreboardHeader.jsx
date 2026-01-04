@@ -23,7 +23,14 @@ export default function ScoreboardHeader({
                 </Stack>
 
                 <Stack gap={0} align="center" style={{ flex: 1 }}>
-                    <Group gap={4}>
+                    <Group
+                        gap={4}
+                        aria-label={
+                            halfInning === "top"
+                                ? "Top of inning"
+                                : "Bottom of inning"
+                        }
+                    >
                         {halfInning === "top" ? (
                             <IconCaretUpFilled
                                 size={16}
@@ -37,13 +44,16 @@ export default function ScoreboardHeader({
                         )}
                         <Text fw={700}>{inning}</Text>
                     </Group>
-                    <Group gap={2}>
+                    <Group gap={2} aria-label={`${outs} outs`}>
                         <Box
                             style={{
                                 width: 8,
                                 height: 8,
                                 borderRadius: "50%",
-                                backgroundColor: outs >= 1 ? "red" : "#eee",
+                                backgroundColor:
+                                    outs >= 1
+                                        ? "var(--mantine-color-red-filled)"
+                                        : "#eee",
                             }}
                         />
                         <Box
@@ -51,7 +61,10 @@ export default function ScoreboardHeader({
                                 width: 8,
                                 height: 8,
                                 borderRadius: "50%",
-                                backgroundColor: outs >= 2 ? "red" : "#eee",
+                                backgroundColor:
+                                    outs >= 2
+                                        ? "var(--mantine-color-red-filled)"
+                                        : "#eee",
                             }}
                         />
                         <Text size="xs" c="dimmed" ml={4}>

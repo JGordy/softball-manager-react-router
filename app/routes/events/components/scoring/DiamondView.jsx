@@ -99,7 +99,11 @@ function HomePlate({ style }) {
                 ...style,
             }}
         >
-            <svg viewBox="0 0 24 24" style={{ display: "block" }}>
+            <svg
+                viewBox="0 0 24 24"
+                style={{ display: "block" }}
+                aria-label="Home plate"
+            >
                 <path
                     d="M1,1 L23,1 L23,12 L12,23 L1,12 Z"
                     fill="white"

@@ -98,7 +98,7 @@ function handleRunnerResults(runnerResults, runners) {
 }
 
 /**
- * Handles automatic outs (strikeouts and batted outs without runners).
+ * Handles automatic outs for strikeouts.
  * Runners stay in place.
  */
 function handleAutomaticOut(runners) {

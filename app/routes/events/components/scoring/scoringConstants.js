@@ -11,7 +11,6 @@ export const EVENT_TYPE_MAP = {
     "Line Out": "out",
     "Pop Out": "out",
     E: "error",
-    FC: "fielders_choice",
 };
 
 // Helper functions to get UI or DB values by category
