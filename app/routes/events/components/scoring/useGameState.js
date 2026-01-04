@@ -77,20 +77,14 @@ export function useGameState({ logs, game, playerChart }) {
             setRunners(currentRunners);
         } else {
             setInning(1);
-            setHalfInning(game.isHomeGame ? "top" : "top"); // Standard start
+            setHalfInning("top"); // Standard start
             setOuts(0);
             setRunners({ first: false, second: false, third: false });
         }
 
         // Mark this log ID as synced
         lastSyncLogId.current = latestLogId;
-    }, [
-        logs,
-        playerChart.length,
-        game.score,
-        game.opponentScore,
-        game.isHomeGame,
-    ]);
+    }, [logs, playerChart.length, game.score, game.opponentScore]);
 
     return {
         inning,

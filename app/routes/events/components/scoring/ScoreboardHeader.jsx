@@ -1,4 +1,4 @@
-import { Card, Group, Text, Stack } from "@mantine/core";
+import { Card, Group, Text, Stack, Box } from "@mantine/core";
 import { IconCaretUpFilled, IconCaretDownFilled } from "@tabler/icons-react";
 
 export default function ScoreboardHeader({
@@ -71,8 +71,4 @@ export default function ScoreboardHeader({
             </Group>
         </Card>
     );
-}
-
-function Box({ style, ...props }) {
-    return <div style={{ ...style }} {...props} />;
 }
