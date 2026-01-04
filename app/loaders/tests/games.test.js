@@ -83,6 +83,7 @@ describe("Games Loader", () => {
             expect(result.deferredData).toBeDefined();
             expect(result.deferredData.players).toBeInstanceOf(Promise);
             expect(result.deferredData.park).toBeInstanceOf(Promise);
+            expect(result.deferredData.logs).toBeInstanceOf(Promise);
         });
     });
 
