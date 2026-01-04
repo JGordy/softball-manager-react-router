@@ -1,19 +1,5 @@
 import { createDocument, deleteDocument } from "@/utils/databases";
-
-const eventTypeOptions = {
-    "1B": "single",
-    "2B": "double",
-    "3B": "triple",
-    HR: "homerun",
-    BB: "walk",
-    "Ground Out": "out",
-    "Fly Out": "out",
-    "Line Out": "out",
-    "Pop Out": "out",
-    K: "out",
-    E: "error",
-    FC: "fielders_choice",
-};
+import { EVENT_TYPE_MAP } from "@/routes/events/components/scoring/scoringConstants";
 
 export const logGameEvent = async ({
     gameId,
@@ -32,7 +18,7 @@ export const logGameEvent = async ({
             inning: parseInt(inning),
             halfInning,
             playerId,
-            eventType: eventTypeOptions[eventType],
+            eventType: EVENT_TYPE_MAP[eventType],
             rbi: parseInt(rbi),
             outsOnPlay: parseInt(outsOnPlay),
             description,

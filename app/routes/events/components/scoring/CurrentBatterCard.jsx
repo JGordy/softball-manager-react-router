@@ -6,7 +6,11 @@ export default function CurrentBatterCard({ currentBatter, logs }) {
 
     const batterLogs = logs.filter((l) => l.playerId === currentBatter.$id);
     const hits = batterLogs.filter((l) => HITS.includes(l.eventType));
-    const ab = batterLogs.filter((l) => !WALKS.includes(l.eventType)).length;
+    // At-bats exclude walks and errors
+    const nonAtBatEvents = [...WALKS, "error"];
+    const ab = batterLogs.filter(
+        (l) => !nonAtBatEvents.includes(l.eventType),
+    ).length;
     const rbis = batterLogs.reduce((sum, l) => sum + (l.rbi || 0), 0);
     const hitTypes = hits.map((h) => h.eventType).join(", ");
 

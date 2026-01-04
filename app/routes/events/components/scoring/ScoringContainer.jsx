@@ -7,7 +7,7 @@ import { useDisclosure } from "@mantine/hooks";
 import TabsWrapper from "@/components/TabsWrapper";
 
 import { useGameState } from "./useGameState";
-import { BATTED_OUTS, WALKS } from "./scoringConstants";
+import { UI_BATTED_OUTS, UI_WALKS } from "./scoringConstants";
 
 import ScoreboardHeader from "./ScoreboardHeader";
 import DiamondView from "./DiamondView";
@@ -56,11 +56,11 @@ function handleWalk(runners) {
         // Batter always goes to first
         first: true,
         // Runner on first is forced to second
-        // Runner on second advances to second only if forced by runner on first
+        // Runner on second stays on second if there's no runner on first
         second: r1 || (r2 && !r1),
         // Runner on second is forced to third only if both first and second were occupied
-        // Runner on third stays unless forced home
-        third: (r1 && r2) || (r3 && !(r1 && r2)),
+        // Runner on third stays unless unless the bases are loaded
+        third: (r1 && r2) || (r3 && (!r1 || !r2)),
     };
 
     return { newRunners, runsOnPlay, outsRecorded: 0 };
@@ -195,7 +195,7 @@ export default function ScoringContainer({
 
     const initiateAction = (actionType) => {
         // Direct actions that don't need a position
-        if (["K", ...WALKS].includes(actionType)) {
+        if (["K", ...UI_WALKS].includes(actionType)) {
             completeAction(actionType);
         } else {
             setPendingAction(actionType);
@@ -218,12 +218,12 @@ export default function ScoringContainer({
         let result;
 
         // Route to appropriate handler based on event type
-        if (WALKS.includes(actionType)) {
+        if (UI_WALKS.includes(actionType)) {
             result = handleWalk(runners);
         } else if (runnerResults) {
             // Manual overrides from Drawer (Used for Hits, Errors, and Batted Outs)
             result = handleRunnerResults(runnerResults, runners);
-        } else if (actionType === "K" || BATTED_OUTS.includes(actionType)) {
+        } else if (actionType === "K" || UI_BATTED_OUTS.includes(actionType)) {
             result = handleAutomaticOut(runners);
         } else {
             // Unexpected case: preserve existing base state to avoid data corruption

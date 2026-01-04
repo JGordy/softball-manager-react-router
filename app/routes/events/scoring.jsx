@@ -31,7 +31,7 @@ export async function action({ request, params }) {
         });
     }
     if (_action === "undo-game-event") {
-        return undoGameEvent({ logId: values.logId });
+        return await undoGameEvent({ logId: values.logId });
     }
     if (_action === "update-game-score") {
         return updateGame({ values, eventId });
