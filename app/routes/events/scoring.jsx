@@ -24,7 +24,7 @@ export async function action({ request, params }) {
 
     if (_action === "log-game-event") {
         const { baseState, ...logData } = values;
-        return logGameEvent({
+        return await logGameEvent({
             gameId: eventId,
             ...logData,
             baseState: baseState ? JSON.parse(baseState) : null,
