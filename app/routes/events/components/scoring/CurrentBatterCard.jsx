@@ -1,5 +1,5 @@
 import { Card, Group, Stack, Text, Badge } from "@mantine/core";
-import { HITS, WALKS } from "./scoringConstants";
+import { HITS, WALKS, getUILabel } from "./scoringConstants";
 
 export default function CurrentBatterCard({ currentBatter, logs }) {
     if (!currentBatter) return null;
@@ -12,7 +12,9 @@ export default function CurrentBatterCard({ currentBatter, logs }) {
         (l) => !nonAtBatEvents.includes(l.eventType),
     ).length;
     const rbis = batterLogs.reduce((sum, l) => sum + (l.rbi || 0), 0);
-    const hitTypes = hits.map((h) => h.eventType).join(", ");
+
+    // Map database eventType values to UI-friendly labels
+    const hitTypes = hits.map((h) => getUILabel(h.eventType)).join(", ");
 
     return (
         <Card withBorder p="sm" radius="md">

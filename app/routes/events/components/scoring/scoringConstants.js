@@ -42,3 +42,12 @@ export const UI_BATTED_OUTS = getUIValues("battedOuts");
 export const HITS = getDBValues("hits");
 export const WALKS = getDBValues("walks");
 export const OUTS = getDBValues("outs");
+
+// Helper to get UI label from database value
+export const getUILabel = (dbValue) => {
+    return (
+        Object.keys(EVENT_TYPE_MAP).find(
+            (key) => EVENT_TYPE_MAP[key] === dbValue,
+        ) || dbValue
+    );
+};

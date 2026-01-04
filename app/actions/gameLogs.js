@@ -15,12 +15,12 @@ export const logGameEvent = async ({
     try {
         const response = await createDocument("game_logs", null, {
             gameId,
-            inning: parseInt(inning),
+            inning: parseInt(inning, 10),
             halfInning,
             playerId,
             eventType: EVENT_TYPE_MAP[eventType],
-            rbi: parseInt(rbi),
-            outsOnPlay: parseInt(outsOnPlay),
+            rbi: parseInt(rbi, 10),
+            outsOnPlay: parseInt(outsOnPlay, 10),
             description,
             baseState: JSON.stringify(baseState),
         });

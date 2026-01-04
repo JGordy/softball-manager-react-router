@@ -44,7 +44,7 @@ export default function GameScoring() {
     const { user } = useOutletContext();
 
     const team = teams?.[0];
-    const isManager = managerIds.includes(user.$id);
+    const isManager = !!(user && managerIds && managerIds.includes(user.$id));
 
     if (!isManager) {
         return (

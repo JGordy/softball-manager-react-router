@@ -52,13 +52,13 @@ export function useGameState({ logs, game, playerChart }) {
         // 3. Game State (Inning, Half, Outs, Runners)
         if (logs.length > 0) {
             const lastLog = logs[logs.length - 1];
-            let currentInning = parseInt(lastLog.inning) || 1;
+            let currentInning = parseInt(lastLog.inning, 10) || 1;
             let currentHalf = lastLog.halfInning || "top";
 
             // Sum outs in the CURRENT half inning
             const currentHalfLogs = logs.filter(
                 (l) =>
-                    parseInt(l.inning) === currentInning &&
+                    parseInt(l.inning, 10) === currentInning &&
                     l.halfInning === currentHalf,
             );
             let currentOuts = currentHalfLogs.reduce(
@@ -69,7 +69,10 @@ export function useGameState({ logs, game, playerChart }) {
             let currentRunners = { first: false, second: false, third: false };
             try {
                 if (lastLog.baseState) {
-                    currentRunners = JSON.parse(lastLog.baseState);
+                    currentRunners =
+                        typeof lastLog.baseState === "string"
+                            ? JSON.parse(lastLog.baseState)
+                            : lastLog.baseState;
                 }
             } catch (e) {
                 console.warn("Failed to parse base state from log", lastLog);

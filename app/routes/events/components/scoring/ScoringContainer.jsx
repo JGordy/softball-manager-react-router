@@ -59,7 +59,7 @@ function handleWalk(runners) {
         // Runner on second stays on second if there's no runner on first
         second: r1 || (r2 && !r1),
         // Runner on second is forced to third only if both first and second were occupied
-        // Runner on third stays unless unless the bases are loaded
+        // Runner on third stays unless the bases are loaded
         third: (r1 && r2) || (r3 && (!r1 || !r2)),
     };
 
