@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFetcher } from "react-router";
 
 import { Card, Group, Stack, Text, Tabs } from "@mantine/core";
@@ -41,6 +41,74 @@ function getEventDescription(actionType, batterName, position) {
     return `${batterName}: ${actionType}${position ? ` (${position})` : ""}`;
 }
 
+/**
+ * Handles walk events with correct forced runner advancement logic.
+ * A walk forces all runners to advance only if there's a force play.
+ */
+function handleWalk(runners) {
+    const { first: r1, second: r2, third: r3 } = runners;
+    let runsOnPlay = 0;
+
+    // Runner on third scores only if all bases were occupied (forced home)
+    if (r1 && r2 && r3) runsOnPlay++;
+
+    const newRunners = {
+        // Batter always goes to first
+        first: true,
+        // Runner on first is forced to second
+        // Runner on second advances to second only if forced by runner on first
+        second: r1 || (r2 && !r1),
+        // Runner on second is forced to third only if both first and second were occupied
+        // Runner on third stays unless forced home
+        third: (r1 && r2) || (r3 && !(r1 && r2)),
+    };
+
+    return { newRunners, runsOnPlay, outsRecorded: 0 };
+}
+
+/**
+ * Handles events where the drawer provides manual runner results.
+ * Used for hits, errors, and batted outs with runners.
+ */
+function handleRunnerResults(runnerResults, runners) {
+    let newRunners = { first: false, second: false, third: false };
+    let runsOnPlay = 0;
+    let outsRecorded = 0;
+
+    const processRunner = (result, originBase) => {
+        if (!result) return;
+        if (result === "score") runsOnPlay++;
+        else if (result === "out") outsRecorded++;
+        else if (result === "stay" && originBase) newRunners[originBase] = true;
+        else if (["first", "second", "third"].includes(result))
+            newRunners[result] = true;
+    };
+
+    // Process Batter
+    processRunner(runnerResults.batter, "first");
+
+    // Process Existing Runners
+    ["first", "second", "third"].forEach((base) => {
+        if (runners[base]) {
+            processRunner(runnerResults[base], base);
+        }
+    });
+
+    return { newRunners, runsOnPlay, outsRecorded };
+}
+
+/**
+ * Handles automatic outs (strikeouts and batted outs without runners).
+ * Runners stay in place.
+ */
+function handleAutomaticOut(runners) {
+    return {
+        newRunners: { ...runners },
+        runsOnPlay: 0,
+        outsRecorded: 1,
+    };
+}
+
 export default function ScoringContainer({
     game,
     playerChart,
@@ -48,10 +116,23 @@ export default function ScoringContainer({
     initialLogs = [],
 }) {
     const fetcher = useFetcher();
+    const [logs, setLogs] = useState(initialLogs);
 
-    // We keep some local state for animations and immediate feedback,
-    // but the source of truth for logs will come from the loader/fetcher.
-    const logs = fetcher.data?.logs || initialLogs;
+    // Update logs when fetcher returns a new log or when undo succeeds
+    useEffect(() => {
+        if (fetcher.data?.success && fetcher.data?.log) {
+            // New log created - append it
+            setLogs((prev) => [...prev, fetcher.data.log]);
+        } else if (fetcher.data?.success && fetcher.state === "idle") {
+            // Undo succeeded - refetch is needed, use initial logs from loader
+            // This will be handled by revalidation
+        }
+    }, [fetcher.data, fetcher.state]);
+
+    // Sync with initialLogs when they change (from loader revalidation)
+    useEffect(() => {
+        setLogs(initialLogs);
+    }, [initialLogs]);
 
     // Use custom hook for game state management and syncing
     const {
@@ -82,8 +163,6 @@ export default function ScoringContainer({
         : halfInning === "top";
 
     const currentBatter = playerChart[battingOrderIndex];
-
-    // Calculate current batter's game stats
 
     const advanceHalfInning = () => {
         setOuts(0);
@@ -136,70 +215,29 @@ export default function ScoringContainer({
             position,
         );
 
-        let newRunners = { first: false, second: false, third: false };
-        let outsRecorded = 0;
-        let runsOnPlay = 0;
+        let result;
 
-        // 1. Handle the Batter
+        // Route to appropriate handler based on event type
         if (WALKS.includes(actionType)) {
-            // Forced logic for walks
-            if (runners.first && runners.second && runners.third) runsOnPlay++;
-            newRunners = {
-                first: true,
-                second: runners.first || runners.second,
-                third: (runners.first && runners.second) || runners.third,
-            };
+            result = handleWalk(runners);
         } else if (runnerResults) {
             // Manual overrides from Drawer (Used for Hits, Errors, and Batted Outs)
-            const processRunner = (result, originBase) => {
-                if (!result) return;
-                if (result === "score") runsOnPlay++;
-                else if (result === "out") outsRecorded++;
-                else if (result === "stay" && originBase)
-                    newRunners[originBase] = true;
-                else if (["first", "second", "third"].includes(result))
-                    newRunners[result] = true;
-            };
-
-            // Process Batter
-            processRunner(runnerResults.batter, "first");
-
-            // Process Existing Runners
-            ["first", "second", "third"].forEach((base) => {
-                if (runners[base]) {
-                    processRunner(runnerResults[base], base);
-                }
-            });
+            result = handleRunnerResults(runnerResults, runners);
         } else if (actionType === "K" || BATTED_OUTS.includes(actionType)) {
-            outsRecorded++;
-            // Default: runners stay on automatic outs with no drawer (like K)
-            newRunners = { ...runners };
+            result = handleAutomaticOut(runners);
         } else {
-            // Fallback/Deterministic logic (for things like BB/HBP if runnerResults missing)
-            if (actionType === "1B" || actionType === "E") {
-                if (runners.third) runsOnPlay++;
-                newRunners = {
-                    first: true,
-                    second: runners.first,
-                    third: runners.second,
-                };
-            } else if (actionType === "2B") {
-                if (runners.third) runsOnPlay++;
-                if (runners.second) runsOnPlay++;
-                newRunners = {
-                    first: false,
-                    second: true,
-                    third: runners.first,
-                };
-            } else if (actionType === "HR") {
-                runsOnPlay =
-                    1 +
-                    (runners.first ? 1 : 0) +
-                    (runners.second ? 1 : 0) +
-                    (runners.third ? 1 : 0);
-                newRunners = { first: false, second: false, third: false };
-            }
+            // Unexpected case: preserve existing base state to avoid data corruption
+            console.warn(
+                `Unexpected action type without runner results: ${actionType}`,
+            );
+            result = {
+                newRunners: { ...runners },
+                runsOnPlay: 0,
+                outsRecorded: 0,
+            };
         }
+
+        const { newRunners, runsOnPlay, outsRecorded } = result;
 
         // Submit to server
         fetcher.submit(
