@@ -76,7 +76,7 @@ export default function GameScoring() {
                 {({ logs }) => (
                     <ScoringContainer
                         game={game}
-                        playerChart={game.playerChart}
+                        playerChart={game.playerChart || []}
                         team={team}
                         initialLogs={logs}
                     />

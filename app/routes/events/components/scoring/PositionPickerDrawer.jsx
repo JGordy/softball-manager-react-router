@@ -37,7 +37,9 @@ export default function PositionPickerDrawer({
     // Initial "Guess" for runners based on actionType
     useEffect(() => {
         if (opened) {
-            const isHit = ["1B", "2B", "3B", "HR", "E"].includes(actionType);
+            const isHit = ["1B", "2B", "3B", "HR", "E", "FC"].includes(
+                actionType,
+            );
 
             const results = {
                 first: runners.first ? (isHit ? "second" : "stay") : null,
@@ -80,6 +82,8 @@ export default function PositionPickerDrawer({
                 return "Home Run to...";
             case "E":
                 return "Error by...";
+            case "FC":
+                return "Fielder's Choice by...";
             case "Ground Out":
                 return "Grounded out to...";
             case "Fly Out":
@@ -95,7 +99,7 @@ export default function PositionPickerDrawer({
 
     const getColor = () => {
         if (["1B", "2B", "3B", "HR"].includes(actionType)) return "green";
-        if (actionType === "E") return "orange";
+        if (actionType === "E" || actionType === "FC") return "orange";
         return "red";
     };
 

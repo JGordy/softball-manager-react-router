@@ -19,6 +19,7 @@ export default function ActionPad({ onAction }) {
     const others = [
         { label: "BB", color: "blue", value: "BB" },
         { label: "ERR", color: "orange", value: "E" },
+        { label: "FC", color: "orange", value: "FC" },
     ];
 
     return (

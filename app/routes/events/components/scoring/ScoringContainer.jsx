@@ -7,7 +7,7 @@ import { useDisclosure } from "@mantine/hooks";
 import TabsWrapper from "@/components/TabsWrapper";
 
 import { useGameState } from "./useGameState";
-import { UI_BATTED_OUTS, UI_WALKS } from "./scoringConstants";
+import { UI_BATTED_OUTS, UI_WALKS, EVENT_TYPE_MAP } from "./scoringConstants";
 
 import ScoreboardHeader from "./ScoreboardHeader";
 import DiamondView from "./DiamondView";
@@ -35,6 +35,8 @@ function getEventDescription(actionType, batterName, position) {
         return `${batterName} pops out to ${position}`;
     if (actionType === "E")
         return `${batterName} reaches on an error by ${position}`;
+    if (actionType === "FC")
+        return `${batterName} reaches on a fielder's choice to ${position}`;
     if (actionType === "BB") return `${batterName} walks`;
     if (actionType === "K") return `${batterName} strikes out`;
 
@@ -118,14 +120,21 @@ export default function ScoringContainer({
     const fetcher = useFetcher();
     const [logs, setLogs] = useState(initialLogs);
 
-    // Update logs when fetcher returns a new log or when undo succeeds
+    // Update logs when fetcher returns a new log successfully
     useEffect(() => {
-        if (fetcher.data?.success && fetcher.data?.log) {
-            // New log created - append it
-            setLogs((prev) => [...prev, fetcher.data.log]);
-        } else if (fetcher.data?.success && fetcher.state === "idle") {
-            // Undo succeeded - refetch is needed, use initial logs from loader
-            // This will be handled by revalidation
+        if (
+            fetcher.data?.success &&
+            fetcher.data?.log &&
+            fetcher.state === "idle"
+        ) {
+            // New log created - append it if it's not already in the list
+            setLogs((prev) => {
+                const logExists = prev.some(
+                    (log) => log.$id === fetcher.data.log.$id,
+                );
+                if (logExists) return prev;
+                return [...prev, fetcher.data.log];
+            });
         }
     }, [fetcher.data, fetcher.state]);
 
@@ -275,13 +284,17 @@ export default function ScoringContainer({
     const undoLast = () => {
         if (logs.length === 0) return;
         const lastLog = logs[logs.length - 1];
+        if (!lastLog || !lastLog.$id) {
+            console.error("Cannot undo: invalid last log", lastLog);
+            return;
+        }
         fetcher.submit(
             { _action: "undo-game-event", logId: lastLog.$id },
             { method: "post" },
         );
     };
 
-    if (!playerChart || playerChart.length === 0) {
+    if (playerChart.length === 0) {
         return (
             <Card p="xl" withBorder radius="lg" ta="center">
                 <Text fw={700} mb="xs">
@@ -308,7 +321,7 @@ export default function ScoringContainer({
 
             <TabsWrapper defaultValue="live" mt={0}>
                 <Tabs.Tab value="live">Live</Tabs.Tab>
-                <Tabs.Tab value="history">History</Tabs.Tab>
+                <Tabs.Tab value="plays">Plays</Tabs.Tab>
 
                 <Tabs.Panel value="live" pt="md">
                     <Stack gap="md">
@@ -356,7 +369,7 @@ export default function ScoringContainer({
                     </Stack>
                 </Tabs.Panel>
 
-                <Tabs.Panel value="history" pt="md">
+                <Tabs.Panel value="plays" pt="md">
                     <PlayHistoryList logs={logs} />
                 </Tabs.Panel>
             </TabsWrapper>
