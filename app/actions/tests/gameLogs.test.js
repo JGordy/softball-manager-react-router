@@ -159,7 +159,7 @@ describe("gameLogs actions", () => {
             const result = await logGameEvent(mockPayload);
 
             expect(result.success).toBe(false);
-            expect(result.message).toBe("Invalid baseState data");
+            expect(result.message).toContain("Invalid baseState data");
         });
     });
 

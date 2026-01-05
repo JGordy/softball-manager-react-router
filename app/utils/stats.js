@@ -30,6 +30,7 @@ export const calculateGameStats = (logs = [], playerChart = []) => {
             RBI: 0, // Runs Batted In
             BB: 0, // Walks
             K: 0, // Strikeouts
+            SF: 0, // Sacrifice Flies
             AVG: ".000", // Batting Average
             OBP: ".000", // On-Base Percentage
             SLG: ".000", // Slugging Percentage
@@ -75,6 +76,11 @@ export const calculateGameStats = (logs = [], playerChart = []) => {
             batterStats.BB++;
             // Walks do not count as At Bats
         }
+        // Sac Fly Detection
+        else if (standardizedEvent === "sacrifice_fly") {
+            batterStats.SF++;
+            // Sac flies do not count as At Bats
+        }
         // Out Detection
         else if (
             OUTS.includes(standardizedEvent) ||
@@ -114,9 +120,9 @@ export const calculateGameStats = (logs = [], playerChart = []) => {
                 : ".000";
 
         // OBP = (H + BB + HBP) / (AB + BB + HBP + SF)
-        // Simplified: (H + BB) / (AB + BB) (ignoring Sac Flies/HBP for now as we don't track them)
+        // Simplified: (H + BB) / (AB + BB + SF) (ignoring HBP for now as we don't track them)
         const obpNumerator = stat.H + stat.BB;
-        const obpDenominator = stat.AB + stat.BB;
+        const obpDenominator = stat.AB + stat.BB + stat.SF;
         stat.OBP =
             obpDenominator > 0
                 ? (obpNumerator / obpDenominator).toFixed(3).replace(/^0/, "")
@@ -154,21 +160,23 @@ export const calculateTeamTotals = (statsArray) => {
         "2B": 0,
         "3B": 0,
         HR: 0,
+        SF: 0,
         PA: 0,
     };
 
     statsArray.forEach((stat) => {
-        totals.AB += stat.AB;
-        totals.H += stat.H;
-        totals.R += stat.R;
-        totals.RBI += stat.RBI;
-        totals.BB += stat.BB;
-        totals.K += stat.K;
-        totals["1B"] += stat["1B"];
-        totals["2B"] += stat["2B"];
-        totals["3B"] += stat["3B"];
-        totals.HR += stat.HR;
-        totals.PA += stat.PA;
+        totals.AB += stat.AB || 0;
+        totals.H += stat.H || 0;
+        totals.R += stat.R || 0;
+        totals.RBI += stat.RBI || 0;
+        totals.BB += stat.BB || 0;
+        totals.K += stat.K || 0;
+        totals.SF += stat.SF || 0;
+        totals["1B"] += stat["1B"] || 0;
+        totals["2B"] += stat["2B"] || 0;
+        totals["3B"] += stat["3B"] || 0;
+        totals.HR += stat.HR || 0;
+        totals.PA += stat.PA || 0;
     });
 
     // Calculate Team Rates
@@ -178,7 +186,7 @@ export const calculateTeamTotals = (statsArray) => {
             : ".000";
 
     const obpNumerator = totals.H + totals.BB;
-    const obpDenominator = totals.AB + totals.BB;
+    const obpDenominator = totals.AB + totals.BB + totals.SF;
     totals.OBP =
         obpDenominator > 0
             ? (obpNumerator / obpDenominator).toFixed(3).replace(/^0/, "")

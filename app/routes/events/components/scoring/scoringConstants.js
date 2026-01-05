@@ -12,6 +12,7 @@ export const EVENT_TYPE_MAP = {
     "Pop Out": "out",
     E: "error",
     FC: "fielders_choice",
+    SF: "sacrifice_fly",
 };
 
 // Helper functions to get UI or DB values by category

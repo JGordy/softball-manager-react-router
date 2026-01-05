@@ -349,6 +349,40 @@ describe("calculateGameStats", () => {
         // Should not throw
         expect(() => calculateGameStats(logs, mockPlayerChart)).not.toThrow();
     });
+
+    it("should calculate OBP correctly with sacrifice flies", () => {
+        const logs = [
+            {
+                playerId: "player1",
+                eventType: "single", // H:1, AB:1, PA:1
+                rbi: 0,
+            },
+            {
+                playerId: "player1",
+                eventType: "BB", // BB:1, AB:1, PA:2
+                rbi: 0,
+            },
+            {
+                playerId: "player1",
+                eventType: "sacrifice_fly", // SF:1, AB:1, PA:3
+                rbi: 1,
+            },
+            {
+                playerId: "player1",
+                eventType: "out", // AB:2, PA:4
+                rbi: 0,
+            },
+        ];
+        // AB: 2, H: 1, BB: 1, SF: 1
+        // AVG: 1 / 2 = .500
+        // OBP: (1 + 1) / (2 + 1 + 1) = 2 / 4 = .500
+        const result = calculateGameStats(logs, mockPlayerChart);
+        expect(result[0].AB).toBe(2);
+        expect(result[0].PA).toBe(4);
+        expect(result[0].SF).toBe(1);
+        expect(result[0].AVG).toBe(".500");
+        expect(result[0].OBP).toBe(".500");
+    });
 });
 
 describe("calculateTeamTotals", () => {

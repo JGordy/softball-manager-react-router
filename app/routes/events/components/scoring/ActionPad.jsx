@@ -19,15 +19,24 @@ const outs = [
     { label: "POP", color: OUT_COLOR, value: "Pop Out" },
 ];
 
-export default function ActionPad({ onAction, runners }) {
+export default function ActionPad({ onAction, runners, outs: currentOuts }) {
     const basesEmpty = !runners.first && !runners.second && !runners.third;
+    const isTwoOuts = currentOuts === 2;
 
     const fielders_choice = {
         label: "FC",
         color: "orange",
         value: "FC",
         variant: "light",
-        disabled: basesEmpty,
+        disabled: basesEmpty || isTwoOuts,
+    };
+
+    const sac_fly = {
+        label: "SF",
+        color: "orange",
+        value: "SF",
+        variant: "light",
+        disabled: basesEmpty || isTwoOuts,
     };
 
     return (
@@ -55,7 +64,7 @@ export default function ActionPad({ onAction, runners }) {
                 OUTS
             </Text>
             <SimpleGrid cols={2} spacing="xs">
-                {[...outs, fielders_choice].map((btn) => (
+                {[...outs, fielders_choice, sac_fly].map((btn) => (
                     <Button
                         key={btn.value}
                         color={btn.color}
