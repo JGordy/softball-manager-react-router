@@ -126,3 +126,57 @@ export const updateDocumentPermissions = async (
         throw error;
     }
 };
+
+// Transaction helpers
+export const createTransaction = async () => {
+    const { tablesDB } = createAdminClient();
+    try {
+        const transaction = await tablesDB.createTransaction();
+        return transaction;
+    } catch (error) {
+        console.error("Error creating transaction:", error);
+        throw error;
+    }
+};
+
+export const createOperations = async (transactionId, operations) => {
+    const { tablesDB } = createAdminClient();
+    try {
+        const response = await tablesDB.createOperations({
+            transactionId,
+            operations,
+        });
+        return response;
+    } catch (error) {
+        console.error("Error creating operations:", error);
+        throw error;
+    }
+};
+
+export const commitTransaction = async (transactionId) => {
+    const { tablesDB } = createAdminClient();
+    try {
+        const response = await tablesDB.updateTransaction({
+            transactionId,
+            commit: true,
+        });
+        return response;
+    } catch (error) {
+        console.error("Error committing transaction:", error);
+        throw error;
+    }
+};
+
+export const rollbackTransaction = async (transactionId) => {
+    const { tablesDB } = createAdminClient();
+    try {
+        const response = await tablesDB.updateTransaction({
+            transactionId,
+            rollback: true,
+        });
+        return response;
+    } catch (error) {
+        console.error("Error rolling back transaction:", error);
+        throw error;
+    }
+};

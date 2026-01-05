@@ -3,12 +3,7 @@ import { ScrollArea, Text, Group, Stack, Paper, Badge } from "@mantine/core";
 export default function PlayHistoryList({ logs }) {
     if (!logs.length) {
         return (
-            <Paper
-                withBorder
-                p="md"
-                radius="md"
-                bg="var(--mantine-color-gray-0)"
-            >
+            <Paper withBorder p="md" radius="md">
                 <Text size="sm" c="dimmed" ta="center">
                     No plays logged yet for this game.
                 </Text>

@@ -9,9 +9,9 @@ export function useGameState({ logs, game, playerChart }) {
         Number(game.opponentScore || 0),
     );
     const [runners, setRunners] = useState({
-        first: false,
-        second: false,
-        third: false,
+        first: null,
+        second: null,
+        third: null,
     });
     const [battingOrderIndex, setBattingOrderIndex] = useState(0);
 
@@ -48,8 +48,8 @@ export function useGameState({ logs, game, playerChart }) {
         }
 
         // 2. Score Calculation
-        const teamRBIs = logs.reduce((acc, l) => acc + (Number(l.rbi) || 0), 0);
-        setScore(Number(game.score || 0) + teamRBIs);
+        // Now that we persist score to the database, just use that value
+        setScore(Number(game.score || 0));
         setOpponentScore(Number(game.opponentScore || 0));
 
         // 3. Game State (Inning, Half, Outs, Runners)
@@ -69,7 +69,7 @@ export function useGameState({ logs, game, playerChart }) {
                 0,
             );
 
-            let currentRunners = { first: false, second: false, third: false };
+            let currentRunners = { first: null, second: null, third: null };
             try {
                 if (lastLog.baseState) {
                     currentRunners =
@@ -84,7 +84,7 @@ export function useGameState({ logs, game, playerChart }) {
             // If the last play ended the half inning, advance it
             if (currentOuts >= 3) {
                 currentOuts = 0;
-                currentRunners = { first: false, second: false, third: false };
+                currentRunners = { first: null, second: null, third: null };
                 if (currentHalf === "top") {
                     currentHalf = "bottom";
                 } else {
@@ -101,7 +101,7 @@ export function useGameState({ logs, game, playerChart }) {
             setInning(1);
             setHalfInning("top"); // Standard start
             setOuts(0);
-            setRunners({ first: false, second: false, third: false });
+            setRunners({ first: null, second: null, third: null });
         }
 
         // Mark this log ID as synced

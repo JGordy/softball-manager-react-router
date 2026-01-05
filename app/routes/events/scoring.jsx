@@ -1,5 +1,5 @@
-import { useLoaderData, useOutletContext } from "react-router";
-import { Container, Title, Box, Group, Skeleton } from "@mantine/core";
+import { useLoaderData, useOutletContext, useActionData } from "react-router";
+import { Container, Title, Box, Group } from "@mantine/core";
 
 import BackButton from "@/components/BackButton";
 import DeferredLoader from "@/components/DeferredLoader";
@@ -10,7 +10,10 @@ import { updateGame } from "@/actions/games";
 
 import { logGameEvent, undoGameEvent } from "@/actions/gameLogs";
 
+import { useResponseNotification } from "@/utils/showNotification";
+
 import ScoringContainer from "./components/scoring/ScoringContainer";
+import ScoringLoadingSkeleton from "./components/scoring/ScoringLoadingSkeleton";
 
 export async function loader({ params, request }) {
     const { eventId } = params;
@@ -42,6 +45,9 @@ export async function action({ request, params }) {
 export default function GameScoring() {
     const { game, deferredData, teams, managerIds } = useLoaderData();
     const { user } = useOutletContext();
+    const actionData = useActionData();
+
+    useResponseNotification(actionData);
 
     const team = teams?.[0];
     const isManager = !!(user && managerIds && managerIds.includes(user.$id));
@@ -71,7 +77,7 @@ export default function GameScoring() {
 
             <DeferredLoader
                 resolve={deferredData}
-                fallback={<Skeleton height={500} radius="lg" />}
+                fallback={<ScoringLoadingSkeleton />}
             >
                 {({ logs }) => (
                     <ScoringContainer

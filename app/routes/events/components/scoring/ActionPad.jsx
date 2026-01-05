@@ -1,37 +1,55 @@
 import { Button, SimpleGrid, Stack, Text, Divider } from "@mantine/core";
 
-export default function ActionPad({ onAction }) {
-    const hits = [
-        { label: "1B", color: "green", value: "1B" },
-        { label: "2B", color: "green", value: "2B" },
-        { label: "3B", color: "green", value: "3B" },
-        { label: "HR", color: "green", value: "HR" },
-    ];
+const HIT_COLOR = "green";
+const onBase = [
+    { label: "1B", color: HIT_COLOR, value: "1B" },
+    { label: "2B", color: HIT_COLOR, value: "2B" },
+    { label: "3B", color: HIT_COLOR, value: "3B" },
+    { label: "HR", color: HIT_COLOR, value: "HR" },
+    { label: "BB", color: "blue", value: "BB", variant: "light" },
+    { label: "ERR", color: "orange", value: "E", variant: "light" },
+];
 
-    const outs = [
-        { label: "K", color: "red", value: "K" },
-        { label: "GRD", color: "red", value: "Ground Out" },
-        { label: "FLY", color: "red", value: "Fly Out" },
-        { label: "LINE", color: "red", value: "Line Out" },
-        { label: "POP", color: "red", value: "Pop Out" },
-    ];
+const OUT_COLOR = "red";
+const outs = [
+    { label: "K", color: OUT_COLOR, value: "K" },
+    { label: "GRD", color: OUT_COLOR, value: "Ground Out" },
+    { label: "FLY", color: OUT_COLOR, value: "Fly Out" },
+    { label: "LINE", color: OUT_COLOR, value: "Line Out" },
+    { label: "POP", color: OUT_COLOR, value: "Pop Out" },
+];
 
-    const others = [
-        { label: "BB", color: "blue", value: "BB" },
-        { label: "ERR", color: "orange", value: "E" },
-        { label: "FC", color: "orange", value: "FC" },
-    ];
+export default function ActionPad({ onAction, runners, outs: currentOuts }) {
+    const basesEmpty = !runners.first && !runners.second && !runners.third;
+    const isTwoOuts = currentOuts === 2;
+
+    const fielders_choice = {
+        label: "FC",
+        color: "orange",
+        value: "FC",
+        variant: "light",
+        disabled: basesEmpty,
+    };
+
+    const sac_fly = {
+        label: "SF",
+        color: "orange",
+        value: "SF",
+        variant: "light",
+        disabled: basesEmpty || isTwoOuts,
+    };
 
     return (
         <Stack gap="xs">
             <Text size="xs" fw={700} c="dimmed" mb={-5}>
-                HITS
+                ON BASE
             </Text>
             <SimpleGrid cols={2} spacing="xs">
-                {hits.map((btn) => (
+                {onBase.map((btn) => (
                     <Button
                         key={btn.value}
-                        bg={btn.color}
+                        color={btn.color}
+                        variant={btn.variant || "filled"}
                         radius="md"
                         onClick={() => onAction(btn.value)}
                     >
@@ -46,34 +64,14 @@ export default function ActionPad({ onAction }) {
                 OUTS
             </Text>
             <SimpleGrid cols={2} spacing="xs">
-                {outs.map((btn) => (
+                {[...outs, fielders_choice, sac_fly].map((btn) => (
                     <Button
                         key={btn.value}
                         color={btn.color}
-                        variant="filled"
+                        variant={btn.variant || "filled"}
                         radius="md"
                         onClick={() => onAction(btn.value)}
-                    >
-                        {btn.label}
-                    </Button>
-                ))}
-            </SimpleGrid>
-
-            <Divider my="sm" />
-
-            <Text size="xs" fw={700} c="dimmed" mb={-5}>
-                OTHER
-            </Text>
-            <SimpleGrid cols={2} spacing="xs">
-                {others.map((btn) => (
-                    <Button
-                        key={btn.value}
-                        color={btn.color}
-                        variant="light"
-                        fullWidth
-                        size="sm"
-                        radius="md"
-                        onClick={() => onAction(btn.value)}
+                        disabled={btn.disabled}
                     >
                         {btn.label}
                     </Button>

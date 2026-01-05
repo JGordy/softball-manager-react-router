@@ -4,6 +4,10 @@ import {
     readDocument,
     updateDocument,
     deleteDocument,
+    createTransaction,
+    createOperations,
+    commitTransaction,
+    rollbackTransaction,
     collections,
 } from "../databases";
 
@@ -13,6 +17,9 @@ const mockTablesDB = {
     getRow: jest.fn(),
     updateRow: jest.fn(),
     deleteRow: jest.fn(),
+    createTransaction: jest.fn(),
+    createOperations: jest.fn(),
+    updateTransaction: jest.fn(),
 };
 
 jest.mock("@/utils/appwrite/server", () => ({
@@ -217,6 +224,149 @@ describe("databases utility", () => {
             );
             expect(consoleErrorSpy).toHaveBeenCalled();
             consoleErrorSpy.mockRestore();
+        });
+    });
+
+    describe("Transaction Functions", () => {
+        describe("createTransaction", () => {
+            it("should create a transaction", async () => {
+                const mockTransaction = { $id: "txn-123" };
+                mockTablesDB.createTransaction.mockResolvedValue(
+                    mockTransaction,
+                );
+
+                const result = await createTransaction();
+
+                expect(mockTablesDB.createTransaction).toHaveBeenCalledWith();
+                expect(result).toEqual(mockTransaction);
+            });
+
+            it("should throw error on failure", async () => {
+                mockTablesDB.createTransaction.mockRejectedValue(
+                    new Error("Transaction Error"),
+                );
+                const consoleErrorSpy = jest
+                    .spyOn(console, "error")
+                    .mockImplementation(() => {});
+
+                await expect(createTransaction()).rejects.toThrow(
+                    "Transaction Error",
+                );
+                expect(consoleErrorSpy).toHaveBeenCalled();
+                consoleErrorSpy.mockRestore();
+            });
+        });
+
+        describe("createOperations", () => {
+            it("should create operations for a transaction", async () => {
+                const transactionId = "txn-123";
+                const operations = [
+                    {
+                        action: "create",
+                        databaseId: dbId,
+                        tableId: collections.game_logs,
+                        rowId: "log-123",
+                        data: { eventType: "single" },
+                    },
+                    {
+                        action: "update",
+                        databaseId: dbId,
+                        tableId: collections.games,
+                        rowId: "game-456",
+                        data: { score: "5" },
+                    },
+                ];
+                const mockResponse = { success: true };
+                mockTablesDB.createOperations.mockResolvedValue(mockResponse);
+
+                const result = await createOperations(
+                    transactionId,
+                    operations,
+                );
+
+                expect(mockTablesDB.createOperations).toHaveBeenCalledWith({
+                    transactionId,
+                    operations,
+                });
+                expect(result).toEqual(mockResponse);
+            });
+
+            it("should throw error on failure", async () => {
+                mockTablesDB.createOperations.mockRejectedValue(
+                    new Error("Operations Error"),
+                );
+                const consoleErrorSpy = jest
+                    .spyOn(console, "error")
+                    .mockImplementation(() => {});
+
+                await expect(createOperations("txn-123", [])).rejects.toThrow(
+                    "Operations Error",
+                );
+                expect(consoleErrorSpy).toHaveBeenCalled();
+                consoleErrorSpy.mockRestore();
+            });
+        });
+
+        describe("commitTransaction", () => {
+            it("should commit a transaction", async () => {
+                const transactionId = "txn-123";
+                const mockResponse = { committed: true };
+                mockTablesDB.updateTransaction.mockResolvedValue(mockResponse);
+
+                const result = await commitTransaction(transactionId);
+
+                expect(mockTablesDB.updateTransaction).toHaveBeenCalledWith({
+                    transactionId,
+                    commit: true,
+                });
+                expect(result).toEqual(mockResponse);
+            });
+
+            it("should throw error on failure", async () => {
+                mockTablesDB.updateTransaction.mockRejectedValue(
+                    new Error("Commit Error"),
+                );
+                const consoleErrorSpy = jest
+                    .spyOn(console, "error")
+                    .mockImplementation(() => {});
+
+                await expect(commitTransaction("txn-123")).rejects.toThrow(
+                    "Commit Error",
+                );
+                expect(consoleErrorSpy).toHaveBeenCalled();
+                consoleErrorSpy.mockRestore();
+            });
+        });
+
+        describe("rollbackTransaction", () => {
+            it("should rollback a transaction", async () => {
+                const transactionId = "txn-123";
+                const mockResponse = { rolledBack: true };
+                mockTablesDB.updateTransaction.mockResolvedValue(mockResponse);
+
+                const result = await rollbackTransaction(transactionId);
+
+                expect(mockTablesDB.updateTransaction).toHaveBeenCalledWith({
+                    transactionId,
+                    rollback: true,
+                });
+                expect(result).toEqual(mockResponse);
+            });
+
+            it("should throw error on failure", async () => {
+                mockTablesDB.updateTransaction.mockRejectedValue(
+                    new Error("Rollback Error"),
+                );
+                const consoleErrorSpy = jest
+                    .spyOn(console, "error")
+                    .mockImplementation(() => {});
+
+                await expect(rollbackTransaction("txn-123")).rejects.toThrow(
+                    "Rollback Error",
+                );
+                expect(consoleErrorSpy).toHaveBeenCalled();
+                consoleErrorSpy.mockRestore();
+            });
         });
     });
 });
