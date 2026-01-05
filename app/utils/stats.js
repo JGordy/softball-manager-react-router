@@ -132,8 +132,8 @@ export const calculateGameStats = (logs = [], playerChart = []) => {
 
         // OPS = OBP + SLG
         // Note: We need floating point values for accurate addition, then format
-        const obpVal = parseFloat(stat.OBP === ".000" ? 0 : stat.OBP);
-        const slgVal = parseFloat(stat.SLG === ".000" ? 0 : stat.SLG);
+        const obpVal = parseFloat(stat.OBP || 0);
+        const slgVal = parseFloat(stat.SLG || 0);
         stat.OPS = (obpVal + slgVal).toFixed(3).replace(/^0/, "");
     });
 
@@ -191,8 +191,8 @@ export const calculateTeamTotals = (statsArray) => {
             ? (totalBases / totals.AB).toFixed(3).replace(/^0/, "")
             : ".000";
 
-    const obpVal = parseFloat(totals.OBP === ".000" ? 0 : totals.OBP);
-    const slgVal = parseFloat(totals.SLG === ".000" ? 0 : totals.SLG);
+    const obpVal = parseFloat(totals.OBP || 0);
+    const slgVal = parseFloat(totals.SLG || 0);
     totals.OPS = (obpVal + slgVal).toFixed(3).replace(/^0/, "");
 
     return totals;

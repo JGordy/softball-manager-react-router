@@ -19,6 +19,7 @@ import DefenseCard from "./DefenseCard";
 import LastPlayCard from "./LastPlayCard";
 import FieldingControls from "./FieldingControls";
 import BoxScore from "./BoxScore";
+import OnDeckCard from "./OnDeckCard";
 
 function getEventDescription(actionType, batterName, position) {
     if (actionType === "1B") return `${batterName} singles to ${position}`;
@@ -186,6 +187,7 @@ export default function ScoringContainer({
         : halfInning === "top";
 
     const currentBatter = playerChart[battingOrderIndex];
+    const onDeckBatter = playerChart[battingOrderIndex + 1];
 
     const advanceHalfInning = () => {
         setOuts(0);
@@ -341,10 +343,13 @@ export default function ScoringContainer({
                 <Tabs.Panel value="live" pt="md">
                     <Stack gap="md">
                         {isOurBatting ? (
-                            <CurrentBatterCard
-                                currentBatter={currentBatter}
-                                logs={logs}
-                            />
+                            <>
+                                <CurrentBatterCard
+                                    currentBatter={currentBatter}
+                                    logs={logs}
+                                />
+                                <OnDeckCard onDeckBatter={onDeckBatter} />
+                            </>
                         ) : (
                             <DefenseCard teamName={team.name} />
                         )}
@@ -374,7 +379,6 @@ export default function ScoringContainer({
                                 {isOurBatting ? (
                                     <ActionPad
                                         onAction={initiateAction}
-                                        currentOuts={outs}
                                         runners={runners}
                                     />
                                 ) : (

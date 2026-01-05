@@ -43,10 +43,15 @@ export const logGameEvent = async ({
                 });
             } catch (scoreError) {
                 console.error("Failed to update game score:", scoreError);
+                // Rollback: delete the log that was just created
+                try {
+                    await deleteDocument("game_logs", response.$id);
+                } catch (deleteError) {
+                    console.error("Failed to rollback game log:", deleteError);
+                }
                 return {
                     success: false,
-                    message:
-                        "Event logged but score update failed. Please refresh the page.",
+                    message: "Failed to update score. Event was not logged.",
                     error: scoreError.message,
                 };
             }

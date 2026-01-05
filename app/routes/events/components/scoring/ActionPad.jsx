@@ -1,33 +1,33 @@
 import { Button, SimpleGrid, Stack, Text, Divider } from "@mantine/core";
 
+const HIT_COLOR = "green";
 const onBase = [
-    { label: "1B", color: "green", value: "1B" },
-    { label: "2B", color: "green", value: "2B" },
-    { label: "3B", color: "green", value: "3B" },
-    { label: "HR", color: "green", value: "HR" },
+    { label: "1B", color: HIT_COLOR, value: "1B" },
+    { label: "2B", color: HIT_COLOR, value: "2B" },
+    { label: "3B", color: HIT_COLOR, value: "3B" },
+    { label: "HR", color: HIT_COLOR, value: "HR" },
     { label: "BB", color: "blue", value: "BB" },
     { label: "ERR", color: "orange", value: "E" },
 ];
 
-const color = "red";
-let outs = [
-    { label: "K", color, value: "K" },
-    { label: "GRD", color, value: "Ground Out" },
-    { label: "FLY", color, value: "Fly Out" },
-    { label: "LINE", color, value: "Line Out" },
-    { label: "POP", color, value: "Pop Out" },
+const OUT_COLOR = "red";
+const outs = [
+    { label: "K", color: OUT_COLOR, value: "K" },
+    { label: "GRD", color: OUT_COLOR, value: "Ground Out" },
+    { label: "FLY", color: OUT_COLOR, value: "Fly Out" },
+    { label: "LINE", color: OUT_COLOR, value: "Line Out" },
+    { label: "POP", color: OUT_COLOR, value: "Pop Out" },
 ];
 
-export default function ActionPad({ onAction, currentOuts = 0, runners }) {
+export default function ActionPad({ onAction, runners }) {
     const basesEmpty = !runners.first && !runners.second && !runners.third;
-    const hasTwoOuts = currentOuts === 2;
 
     const fielders_choice = {
         label: "FC",
         color: "orange",
         value: "FC",
         variant: "light",
-        disabled: basesEmpty || hasTwoOuts,
+        disabled: basesEmpty,
     };
 
     return (
