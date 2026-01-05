@@ -18,6 +18,7 @@ import CurrentBatterCard from "./CurrentBatterCard";
 import DefenseCard from "./DefenseCard";
 import LastPlayCard from "./LastPlayCard";
 import FieldingControls from "./FieldingControls";
+import BoxScore from "./BoxScore";
 
 function getEventDescription(actionType, batterName, position) {
     if (actionType === "1B") return `${batterName} singles to ${position}`;
@@ -46,23 +47,25 @@ function getEventDescription(actionType, batterName, position) {
 /**
  * Handles walk events with correct forced runner advancement logic.
  * A walk forces all runners to advance only if there's a force play.
+ * Now tracks specific Player IDs.
  */
-function handleWalk(runners) {
+function handleWalk(runners, batterId) {
     const { first: r1, second: r2, third: r3 } = runners;
+    const scoredIds = [];
     let runsOnPlay = 0;
 
     // Runner on third scores only if all bases were occupied (forced home)
-    if (r1 && r2 && r3) runsOnPlay++;
+    if (r1 && r2 && r3) {
+        runsOnPlay++;
+        scoredIds.push(r3);
+    }
 
+    // Walk logic: Batter to 1st, force runners only if necessary
     const newRunners = {
-        // Batter always goes to first
-        first: true,
-        // Runner on first is forced to second
-        // Runner on second stays on second if there's no runner on first
-        second: r1 || (r2 && !r1),
-        // Runner on second is forced to third only if both first and second were occupied
-        // Runner on third stays unless the bases are loaded
-        third: (r1 && r2) || (r3 && (!r1 || !r2)),
+        first: batterId,
+        second: r1 ? r1 : r2, // If R1 exists, they're forced to 2nd. Else R2 stays.
+        third: r1 && r2 ? r2 : r3, // If R2 is forced (bases loaded), they go to 3rd. Else R3 stays.
+        scored: scoredIds,
     };
 
     return { newRunners, runsOnPlay, outsRecorded: 0 };
@@ -72,27 +75,43 @@ function handleWalk(runners) {
  * Handles events where the drawer provides manual runner results.
  * Used for hits, errors, and batted outs with runners.
  */
-function handleRunnerResults(runnerResults, runners) {
-    let newRunners = { first: false, second: false, third: false };
+function handleRunnerResults(runnerResults, runners, batterId) {
+    let newRunners = { first: null, second: null, third: null, scored: [] };
     let runsOnPlay = 0;
     let outsRecorded = 0;
 
-    const processRunner = (result, originBase) => {
-        if (!result) return;
-        if (result === "score") runsOnPlay++;
-        else if (result === "out") outsRecorded++;
-        else if (result === "stay" && originBase) newRunners[originBase] = true;
-        else if (["first", "second", "third"].includes(result))
-            newRunners[result] = true;
+    const processRunner = (result, runnerId) => {
+        if (!result || !runnerId) return;
+
+        if (result === "score") {
+            runsOnPlay++;
+            newRunners.scored.push(runnerId);
+        } else if (result === "out") {
+            outsRecorded++;
+        } else if (result === "stay") {
+            // Find where they were (we passed existing runners)
+            // We can't know origin base easily here without passing it?
+            // Actually, the caller knows. But simpler:
+            // We iterate bases below. If result is 'stay', we put them back on that base.
+        } else if (["first", "second", "third"].includes(result)) {
+            newRunners[result] = runnerId;
+        }
     };
 
     // Process Batter
-    processRunner(runnerResults.batter, "first");
+    processRunner(runnerResults.batter, batterId);
 
     // Process Existing Runners
+    // We must handle 'stay' correctly here by knowing the origin
     ["first", "second", "third"].forEach((base) => {
-        if (runners[base]) {
-            processRunner(runnerResults[base], base);
+        const runnerId = runners[base];
+        if (runnerId) {
+            const result = runnerResults[base];
+            if (result === "stay") {
+                newRunners[base] = runnerId;
+            } else {
+                processRunner(result, runnerId);
+            }
         }
     });
 
@@ -105,7 +124,7 @@ function handleRunnerResults(runnerResults, runners) {
  */
 function handleAutomaticOut(runners) {
     return {
-        newRunners: { ...runners },
+        newRunners: { ...runners, scored: [] },
         runsOnPlay: 0,
         outsRecorded: 1,
     };
@@ -175,7 +194,7 @@ export default function ScoringContainer({
 
     const advanceHalfInning = () => {
         setOuts(0);
-        setRunners({ first: false, second: false, third: false });
+        setRunners({ first: null, second: null, third: null });
         if (halfInning === "top") {
             setHalfInning("bottom");
         } else {
@@ -228,10 +247,10 @@ export default function ScoringContainer({
 
         // Route to appropriate handler based on event type
         if (UI_WALKS.includes(actionType)) {
-            result = handleWalk(runners);
+            result = handleWalk(runners, batter.$id);
         } else if (runnerResults) {
             // Manual overrides from Drawer (Used for Hits, Errors, and Batted Outs)
-            result = handleRunnerResults(runnerResults, runners);
+            result = handleRunnerResults(runnerResults, runners, batter.$id);
         } else if (actionType === "K" || UI_BATTED_OUTS.includes(actionType)) {
             result = handleAutomaticOut(runners);
         } else {
@@ -322,6 +341,7 @@ export default function ScoringContainer({
             <TabsWrapper defaultValue="live" mt={0}>
                 <Tabs.Tab value="live">Live</Tabs.Tab>
                 <Tabs.Tab value="plays">Plays</Tabs.Tab>
+                <Tabs.Tab value="boxscore">Box Score</Tabs.Tab>
 
                 <Tabs.Panel value="live" pt="md">
                     <Stack gap="md">
@@ -349,6 +369,7 @@ export default function ScoringContainer({
                                         isSubmitting={
                                             fetcher.state === "submitting"
                                         }
+                                        playerChart={playerChart}
                                     />
                                 )}
                             </Stack>
@@ -370,7 +391,25 @@ export default function ScoringContainer({
                 </Tabs.Panel>
 
                 <Tabs.Panel value="plays" pt="md">
-                    <PlayHistoryList logs={logs} />
+                    <Stack gap="md">
+                        {isOurBatting ? (
+                            <CurrentBatterCard
+                                currentBatter={currentBatter}
+                                logs={logs}
+                            />
+                        ) : (
+                            <DefenseCard teamName={team.name} />
+                        )}
+                        <PlayHistoryList logs={logs} />
+                    </Stack>
+                </Tabs.Panel>
+
+                <Tabs.Panel value="boxscore" pt="md">
+                    <BoxScore
+                        logs={logs}
+                        playerChart={playerChart}
+                        currentBatter={currentBatter}
+                    />
                 </Tabs.Panel>
             </TabsWrapper>
 
