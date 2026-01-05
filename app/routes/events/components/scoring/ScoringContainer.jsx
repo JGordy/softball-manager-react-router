@@ -187,7 +187,10 @@ export default function ScoringContainer({
         : halfInning === "top";
 
     const currentBatter = playerChart[battingOrderIndex];
-    const onDeckBatter = playerChart[battingOrderIndex + 1];
+    const onDeckBatter =
+        playerChart.length > 0
+            ? playerChart[(battingOrderIndex + 1) % playerChart.length]
+            : undefined;
 
     const advanceHalfInning = () => {
         setOuts(0);
