@@ -1,4 +1,9 @@
-import { createDocument, deleteDocument } from "@/utils/databases";
+import {
+    createDocument,
+    deleteDocument,
+    readDocument,
+    updateDocument,
+} from "@/utils/databases";
 import { EVENT_TYPE_MAP } from "@/routes/events/components/scoring/scoringConstants";
 
 export const logGameEvent = async ({
@@ -13,17 +18,35 @@ export const logGameEvent = async ({
     baseState,
 }) => {
     try {
+        const runs = parseInt(rbi, 10) || 0;
+
+        // 1. Log the event
         const response = await createDocument("game_logs", null, {
             gameId,
             inning: parseInt(inning, 10),
             halfInning,
             playerId,
             eventType: EVENT_TYPE_MAP[eventType] || eventType,
-            rbi: parseInt(rbi, 10),
+            rbi: runs,
             outsOnPlay: parseInt(outsOnPlay, 10),
             description,
             baseState: JSON.stringify(baseState),
         });
+
+        // 2. If runs were scored, update the game document
+        if (runs > 0) {
+            try {
+                const game = await readDocument("games", gameId);
+                const currentScore = parseInt(game.score || 0, 10);
+                await updateDocument("games", gameId, {
+                    score: String(currentScore + runs),
+                });
+            } catch (scoreError) {
+                console.error("Failed to update game score:", scoreError);
+                // We don't fail the log creation if score update fails, just log error
+            }
+        }
+
         return { success: true, log: response };
     } catch (error) {
         console.error("Error logging game event:", error);
@@ -33,6 +56,25 @@ export const logGameEvent = async ({
 
 export const undoGameEvent = async ({ logId }) => {
     try {
+        // 1. Fetch the log to see if we need to revert score
+        const log = await readDocument("game_logs", logId);
+        const runs = parseInt(log.rbi || 0, 10);
+
+        // 2. If the log had runs, decrement the game score
+        if (runs > 0) {
+            try {
+                const game = await readDocument("games", log.gameId);
+                const currentScore = parseInt(game.score || 0, 10);
+                const newScore = Math.max(0, currentScore - runs);
+                await updateDocument("games", log.gameId, {
+                    score: String(newScore),
+                });
+            } catch (scoreError) {
+                console.error("Failed to revert game score:", scoreError);
+            }
+        }
+
+        // 3. Delete the log
         await deleteDocument("game_logs", logId);
         return { success: true };
     } catch (error) {
