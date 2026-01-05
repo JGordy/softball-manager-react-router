@@ -372,7 +372,11 @@ export default function ScoringContainer({
                             {/* Right Column: Actions */}
                             <Stack style={{ flex: 1 }}>
                                 {isOurBatting ? (
-                                    <ActionPad onAction={initiateAction} />
+                                    <ActionPad
+                                        onAction={initiateAction}
+                                        currentOuts={outs}
+                                        runners={runners}
+                                    />
                                 ) : (
                                     <FieldingControls
                                         onOut={handleOpponentOut}
