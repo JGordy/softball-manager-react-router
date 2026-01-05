@@ -18,7 +18,7 @@ export const logGameEvent = async ({
             inning: parseInt(inning, 10),
             halfInning,
             playerId,
-            eventType: EVENT_TYPE_MAP[eventType],
+            eventType: EVENT_TYPE_MAP[eventType] || eventType,
             rbi: parseInt(rbi, 10),
             outsOnPlay: parseInt(outsOnPlay, 10),
             description,
