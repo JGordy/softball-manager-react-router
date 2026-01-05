@@ -6,8 +6,8 @@ const onBase = [
     { label: "2B", color: HIT_COLOR, value: "2B" },
     { label: "3B", color: HIT_COLOR, value: "3B" },
     { label: "HR", color: HIT_COLOR, value: "HR" },
-    { label: "BB", color: "blue", value: "BB" },
-    { label: "ERR", color: "orange", value: "E" },
+    { label: "BB", color: "blue", value: "BB", variant: "light" },
+    { label: "ERR", color: "orange", value: "E", variant: "light" },
 ];
 
 const OUT_COLOR = "red";
@@ -40,7 +40,7 @@ export default function ActionPad({ onAction, runners }) {
                     <Button
                         key={btn.value}
                         color={btn.color}
-                        variant={btn.color === "green" ? "filled" : "light"}
+                        variant={btn.variant}
                         radius="md"
                         onClick={() => onAction(btn.value)}
                     >
