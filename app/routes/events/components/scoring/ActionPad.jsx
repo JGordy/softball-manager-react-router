@@ -28,7 +28,7 @@ export default function ActionPad({ onAction, runners, outs: currentOuts }) {
         color: "orange",
         value: "FC",
         variant: "light",
-        disabled: basesEmpty || isTwoOuts,
+        disabled: basesEmpty,
     };
 
     const sac_fly = {
@@ -49,7 +49,7 @@ export default function ActionPad({ onAction, runners, outs: currentOuts }) {
                     <Button
                         key={btn.value}
                         color={btn.color}
-                        variant={btn.variant}
+                        variant={btn.variant || "filled"}
                         radius="md"
                         onClick={() => onAction(btn.value)}
                     >
