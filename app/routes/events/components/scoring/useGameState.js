@@ -20,6 +20,9 @@ export function useGameState({ logs, game, playerChart }) {
 
     // Sync state from logs on load or update
     useEffect(() => {
+        // Safety check: ensure playerChart exists
+        if (!playerChart || playerChart.length === 0) return;
+
         // Skip sync if we have no logs or if we've already synced this latest log
         const latestLogId =
             logs.length > 0 ? logs[logs.length - 1].$id : "empty";
@@ -103,7 +106,7 @@ export function useGameState({ logs, game, playerChart }) {
 
         // Mark this log ID as synced
         lastSyncLogId.current = latestLogId;
-    }, [logs, playerChart.length, game.score, game.opponentScore]);
+    }, [logs, playerChart, game.score, game.opponentScore]);
 
     return {
         inning,
