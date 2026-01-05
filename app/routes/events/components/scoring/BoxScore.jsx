@@ -9,9 +9,25 @@ export default function BoxScore({ logs, playerChart, currentBatter }) {
         return { stats, totals };
     }, [logs, playerChart]);
 
+    // Check for duplicate first names
+    const firstNameCounts = useMemo(() => {
+        const counts = {};
+        stats.forEach((stat) => {
+            const firstName = stat.player.firstName;
+            counts[firstName] = (counts[firstName] || 0) + 1;
+        });
+        return counts;
+    }, [stats]);
+
     const rows = stats.map((stat) => {
         const isCurrentBatter =
             currentBatter && stat.player.$id === currentBatter.$id;
+
+        const hasDuplicateFirstName =
+            firstNameCounts[stat.player.firstName] > 1;
+        const displayName = hasDuplicateFirstName
+            ? `${stat.player.firstName} ${stat.player.lastName.charAt(0)}.`
+            : stat.player.firstName;
 
         return (
             <Table.Tr
@@ -24,8 +40,7 @@ export default function BoxScore({ logs, playerChart, currentBatter }) {
             >
                 <Table.Td>
                     <Text size="sm" fw={isCurrentBatter ? 700 : 500}>
-                        {stat.player.firstName} {stat.player.lastName.charAt(0)}
-                        .
+                        {displayName}
                     </Text>
                 </Table.Td>
                 <Table.Td ta="center">{stat.AB}</Table.Td>
