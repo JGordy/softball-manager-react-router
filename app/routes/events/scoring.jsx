@@ -1,4 +1,4 @@
-import { useLoaderData, useOutletContext } from "react-router";
+import { useLoaderData, useOutletContext, useActionData } from "react-router";
 import { Container, Title, Box, Group, Skeleton } from "@mantine/core";
 
 import BackButton from "@/components/BackButton";
@@ -9,6 +9,8 @@ import { getEventById } from "@/loaders/games";
 import { updateGame } from "@/actions/games";
 
 import { logGameEvent, undoGameEvent } from "@/actions/gameLogs";
+
+import { useResponseNotification } from "@/utils/showNotification";
 
 import ScoringContainer from "./components/scoring/ScoringContainer";
 
@@ -42,6 +44,9 @@ export async function action({ request, params }) {
 export default function GameScoring() {
     const { game, deferredData, teams, managerIds } = useLoaderData();
     const { user } = useOutletContext();
+    const actionData = useActionData();
+
+    useResponseNotification(actionData);
 
     const team = teams?.[0];
     const isManager = !!(user && managerIds && managerIds.includes(user.$id));

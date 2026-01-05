@@ -64,7 +64,7 @@ function handleWalk(runners, batterId) {
     const newRunners = {
         first: batterId,
         second: r1 ? r1 : r2, // If R1 exists, they're forced to 2nd. Else R2 stays.
-        third: r1 && r2 ? r2 : r3, // If R2 is forced (bases loaded), they go to 3rd. Else R3 stays.
+        third: r1 && r2 ? r2 : r3, // If both R1 and R2 exist, R2 is forced to 3rd. Else R3 stays.
         scored: scoredIds,
     };
 
@@ -88,11 +88,6 @@ function handleRunnerResults(runnerResults, runners, batterId) {
             newRunners.scored.push(runnerId);
         } else if (result === "out") {
             outsRecorded++;
-        } else if (result === "stay") {
-            // Find where they were (we passed existing runners)
-            // We can't know origin base easily here without passing it?
-            // Actually, the caller knows. But simpler:
-            // We iterate bases below. If result is 'stay', we put them back on that base.
         } else if (["first", "second", "third"].includes(result)) {
             newRunners[result] = runnerId;
         }
@@ -102,7 +97,7 @@ function handleRunnerResults(runnerResults, runners, batterId) {
     processRunner(runnerResults.batter, batterId);
 
     // Process Existing Runners
-    // We must handle 'stay' correctly here by knowing the origin
+    // Handle 'stay' results by keeping runner on their current base (the iteration variable)
     ["first", "second", "third"].forEach((base) => {
         const runnerId = runners[base];
         if (runnerId) {

@@ -43,7 +43,12 @@ export const logGameEvent = async ({
                 });
             } catch (scoreError) {
                 console.error("Failed to update game score:", scoreError);
-                // We don't fail the log creation if score update fails, just log error
+                return {
+                    success: false,
+                    message:
+                        "Event logged but score update failed. Please refresh the page.",
+                    error: scoreError.message,
+                };
             }
         }
 
@@ -71,6 +76,11 @@ export const undoGameEvent = async ({ logId }) => {
                 });
             } catch (scoreError) {
                 console.error("Failed to revert game score:", scoreError);
+                return {
+                    success: false,
+                    message: "Failed to revert score. Please refresh the page.",
+                    error: scoreError.message,
+                };
             }
         }
 
