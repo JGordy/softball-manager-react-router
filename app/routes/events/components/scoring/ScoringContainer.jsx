@@ -255,7 +255,7 @@ export default function ScoringContainer({
                 inning,
                 halfInning,
                 playerId: batter.$id,
-                eventType: EVENT_TYPE_MAP[actionType] || actionType,
+                eventType: actionType,
                 rbi: runsOnPlay,
                 outsOnPlay: outsRecorded,
                 description,
