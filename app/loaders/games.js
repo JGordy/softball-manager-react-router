@@ -234,6 +234,7 @@ function makeDeferredData({ eventId, userIds, parkId }) {
     const logsPromise = listDocuments("game_logs", [
         Query.equal("gameId", eventId),
         Query.orderAsc("$createdAt"),
+        Query.limit(150), // Increase limit to handle games with many plays
     ]).then((result) => result.rows || []);
 
     return {
