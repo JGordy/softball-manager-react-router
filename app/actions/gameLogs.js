@@ -37,7 +37,7 @@ export const logGameEvent = async ({
             console.error("Failed to stringify baseState:", stringifyError);
             return {
                 success: false,
-                message: "Invalid baseState data",
+                message: `Invalid baseState data: ${stringifyError.message}`,
                 error: stringifyError.message,
             };
         }

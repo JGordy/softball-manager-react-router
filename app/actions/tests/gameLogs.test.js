@@ -2,7 +2,6 @@ import {
     createDocument,
     deleteDocument,
     readDocument,
-    updateDocument,
     createTransaction,
     createOperations,
     commitTransaction,

@@ -48,7 +48,7 @@ function getEventDescription(actionType, batterName, position) {
 /**
  * Handles walk events with correct forced runner advancement logic.
  * A walk forces all runners to advance only if there's a force play.
- * Now tracks specific Player IDs.
+ * Returns updated base state with player IDs for runners and any who scored.
  */
 function handleWalk(runners, batterId) {
     const { first: r1, second: r2, third: r3 } = runners;
@@ -98,12 +98,12 @@ function handleRunnerResults(runnerResults, runners, batterId) {
     processRunner(runnerResults.batter, batterId);
 
     // Process Existing Runners
-    // Handle 'stay' results by keeping runner on their current base (the iteration variable)
     ["first", "second", "third"].forEach((base) => {
         const runnerId = runners[base];
         if (runnerId) {
             const result = runnerResults[base];
             if (result === "stay") {
+                // Handle 'stay' results by keeping runner on their current base (the iteration variable)
                 newRunners[base] = runnerId;
             } else {
                 processRunner(result, runnerId);
@@ -383,6 +383,7 @@ export default function ScoringContainer({
                                     <ActionPad
                                         onAction={initiateAction}
                                         runners={runners}
+                                        outs={outs}
                                     />
                                 ) : (
                                     <FieldingControls
