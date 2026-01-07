@@ -131,6 +131,7 @@ export default function ScoringContainer({
     playerChart,
     team,
     initialLogs = [],
+    gameFinal = false,
 }) {
     const fetcher = useFetcher();
     const [logs, setLogs] = useState(initialLogs);
@@ -336,6 +337,7 @@ export default function ScoringContainer({
                 outs={outs}
                 teamName={team.name}
                 opponentName={game.opponent}
+                gameFinal={gameFinal}
             />
 
             <TabsWrapper defaultValue="live" mt={0}>
@@ -345,16 +347,22 @@ export default function ScoringContainer({
 
                 <Tabs.Panel value="live" pt="md">
                     <Stack gap="md">
-                        {isOurBatting ? (
+                        {!gameFinal && (
                             <>
-                                <CurrentBatterCard
-                                    currentBatter={currentBatter}
-                                    logs={logs}
-                                />
-                                <OnDeckCard onDeckBatter={onDeckBatter} />
+                                {isOurBatting ? (
+                                    <>
+                                        <CurrentBatterCard
+                                            currentBatter={currentBatter}
+                                            logs={logs}
+                                        />
+                                        <OnDeckCard
+                                            onDeckBatter={onDeckBatter}
+                                        />
+                                    </>
+                                ) : (
+                                    <DefenseCard teamName={team.name} />
+                                )}
                             </>
-                        ) : (
-                            <DefenseCard teamName={team.name} />
                         )}
 
                         <Group align="start" gap="xl" wrap="nowrap">
@@ -379,18 +387,22 @@ export default function ScoringContainer({
 
                             {/* Right Column: Actions */}
                             <Stack style={{ flex: 1 }}>
-                                {isOurBatting ? (
-                                    <ActionPad
-                                        onAction={initiateAction}
-                                        runners={runners}
-                                        outs={outs}
-                                    />
-                                ) : (
-                                    <FieldingControls
-                                        onOut={handleOpponentOut}
-                                        onRun={handleOpponentRun}
-                                        onSkip={advanceHalfInning}
-                                    />
+                                {!gameFinal && (
+                                    <>
+                                        {isOurBatting ? (
+                                            <ActionPad
+                                                onAction={initiateAction}
+                                                runners={runners}
+                                                outs={outs}
+                                            />
+                                        ) : (
+                                            <FieldingControls
+                                                onOut={handleOpponentOut}
+                                                onRun={handleOpponentRun}
+                                                onSkip={advanceHalfInning}
+                                            />
+                                        )}
+                                    </>
                                 )}
                             </Stack>
                         </Group>
@@ -399,13 +411,17 @@ export default function ScoringContainer({
 
                 <Tabs.Panel value="plays" pt="md">
                     <Stack gap="md">
-                        {isOurBatting ? (
-                            <CurrentBatterCard
-                                currentBatter={currentBatter}
-                                logs={logs}
-                            />
-                        ) : (
-                            <DefenseCard teamName={team.name} />
+                        {!gameFinal && (
+                            <>
+                                {isOurBatting ? (
+                                    <CurrentBatterCard
+                                        currentBatter={currentBatter}
+                                        logs={logs}
+                                    />
+                                ) : (
+                                    <DefenseCard teamName={team.name} />
+                                )}
+                            </>
                         )}
                         <PlayHistoryList logs={logs} />
                     </Stack>
@@ -416,6 +432,7 @@ export default function ScoringContainer({
                         logs={logs}
                         playerChart={playerChart}
                         currentBatter={currentBatter}
+                        gameFinal={gameFinal}
                     />
                 </Tabs.Panel>
             </TabsWrapper>

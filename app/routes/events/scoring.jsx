@@ -14,6 +14,7 @@ import { useResponseNotification } from "@/utils/showNotification";
 
 import ScoringContainer from "./components/scoring/ScoringContainer";
 import ScoringLoadingSkeleton from "./components/scoring/ScoringLoadingSkeleton";
+import ScoringMenu from "./components/scoring/ScoringMenu";
 
 export async function loader({ params, request }) {
     const { eventId } = params;
@@ -38,6 +39,9 @@ export async function action({ request, params }) {
     }
     if (_action === "update-game-score") {
         return updateGame({ values, eventId });
+    }
+    if (_action === "end-game") {
+        return updateGame({ values: { gameFinal: true }, eventId });
     }
     return null;
 }
@@ -68,11 +72,10 @@ export default function GameScoring() {
 
     return (
         <Container size="md" py="xl">
-            <Group justify="space-between" mb="xl">
+            <Group justify="space-between" align="center" mb="xl">
                 <BackButton />
-                <Title order={3}>
-                    Live Scoring: {game.opponent || "Opponent"}
-                </Title>
+                <Title order={3}>Live Scoring</Title>
+                <ScoringMenu gameFinal={game.gameFinal} />
             </Group>
 
             <DeferredLoader
@@ -85,6 +88,7 @@ export default function GameScoring() {
                         playerChart={game.playerChart || []}
                         team={team}
                         initialLogs={logs}
+                        gameFinal={game.gameFinal}
                     />
                 )}
             </DeferredLoader>
