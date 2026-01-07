@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useFetcher } from "react-router";
+import { useFetcher, useLocation, useNavigate } from "react-router";
 
 import { Card, Group, Stack, Text, Tabs } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
@@ -134,7 +134,42 @@ export default function ScoringContainer({
     gameFinal = false,
 }) {
     const fetcher = useFetcher();
+    const location = useLocation();
+    const navigate = useNavigate();
     const [logs, setLogs] = useState(initialLogs);
+
+    // Initialize tab from URL hash if present, otherwise default based on gameFinal
+    const getInitialTab = () => {
+        const hash = location?.hash?.replace(/^#/, "") || null;
+        const validTabs = ["live", "plays", "boxscore"];
+        if (hash && validTabs.includes(hash)) return hash;
+        return gameFinal ? "plays" : "live";
+    };
+
+    const [activeTab, setActiveTab] = useState(getInitialTab);
+
+    // Keep tab state in sync when location.hash changes (back/forward navigation)
+    useEffect(() => {
+        const hash = location?.hash?.replace(/^#/, "") || null;
+        const validTabs = ["live", "plays", "boxscore"];
+        if (hash && validTabs.includes(hash) && hash !== activeTab) {
+            setActiveTab(hash);
+        }
+    }, [location.hash]);
+
+    // Update URL hash when tab changes (without page refresh)
+    const handleTabChange = (value) => {
+        if (!value) return;
+        if (value === activeTab) return;
+
+        // Update state immediately for instant tab switch
+        setActiveTab(value);
+
+        // Then update URL in background
+        const newHash = `#${value}`;
+        const url = `${location.pathname}${location.search}${newHash}`;
+        navigate(url, { replace: false });
+    };
 
     // Update logs when fetcher returns a new log successfully
     useEffect(() => {
@@ -340,8 +375,8 @@ export default function ScoringContainer({
                 gameFinal={gameFinal}
             />
 
-            <TabsWrapper defaultValue="live" mt={0}>
-                <Tabs.Tab value="live">Live</Tabs.Tab>
+            <TabsWrapper value={activeTab} onChange={handleTabChange} mt={0}>
+                {!gameFinal && <Tabs.Tab value="live">Live</Tabs.Tab>}
                 <Tabs.Tab value="plays">Plays</Tabs.Tab>
                 <Tabs.Tab value="boxscore">Box Score</Tabs.Tab>
 
@@ -423,7 +458,10 @@ export default function ScoringContainer({
                                 )}
                             </>
                         )}
-                        <PlayHistoryList logs={logs} />
+                        <PlayHistoryList
+                            logs={logs}
+                            playerChart={playerChart}
+                        />
                     </Stack>
                 </Tabs.Panel>
 
