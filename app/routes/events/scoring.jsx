@@ -59,7 +59,7 @@ export default function GameScoring() {
     if (!isManager) {
         return (
             <Container size="sm" py="xl">
-                <BackButton mb="xl" />
+                <BackButton to={`/events/${game.$id}`} mb="xl" />
                 <Box ta="center" py="xl">
                     <Title order={2} mb="md">
                         Access Denied
@@ -73,7 +73,7 @@ export default function GameScoring() {
     return (
         <Container size="md" py="xl">
             <Group justify="space-between" align="center" mb="xl">
-                <BackButton />
+                <BackButton to={`/events/${game.$id}`} />
                 <Title order={3}>Live Scoring</Title>
                 <ScoringMenu gameFinal={game.gameFinal} />
             </Group>
