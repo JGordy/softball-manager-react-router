@@ -18,7 +18,14 @@ import ScoringMenu from "./components/scoring/ScoringMenu";
 
 export async function loader({ params, request }) {
     const { eventId } = params;
-    return await getEventById({ eventId, request });
+    return await getEventById({
+        eventId,
+        includeWeather: false,
+        includeAttendance: false,
+        includeAwards: false,
+        includeVotes: false,
+        includePark: false,
+    });
 }
 
 export async function action({ request, params }) {
