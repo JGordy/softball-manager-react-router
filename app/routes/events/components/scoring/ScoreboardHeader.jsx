@@ -25,19 +25,23 @@ const StatusBadge = ({ status }) => {
             children: "Offline",
         },
         idle: {
-            display: "none",
+            style: { display: "none" },
         },
     };
 
+    const badgeProps = status
+        ? statusProps[status] || {}
+        : { style: { visibility: "hidden" } };
+
+    const { style: statusStyle, ...restBadgeProps } = badgeProps;
+
     return (
-        status && (
-            <Badge
-                variant="light"
-                size="sm"
-                style={{ textTransform: "none" }}
-                {...statusProps[status]}
-            />
-        )
+        <Badge
+            variant="light"
+            size="sm"
+            style={{ textTransform: "none", ...(statusStyle || {}) }}
+            {...restBadgeProps}
+        />
     );
 };
 

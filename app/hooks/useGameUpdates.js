@@ -58,6 +58,8 @@ export function useGameUpdates(
                     throw new Error(`HTTP ${sessionResponse.status}`);
                 }
                 const { session } = await sessionResponse.json();
+                if (isCancelled) return;
+
                 if (session) {
                     client.setSession(session);
                 }
