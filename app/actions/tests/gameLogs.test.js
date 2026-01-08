@@ -50,7 +50,7 @@ describe("gameLogs actions", () => {
 
             const mockTransaction = { $id: "txn-123" };
             createTransaction.mockResolvedValue(mockTransaction);
-            readDocument.mockResolvedValue({ score: "5" });
+            readDocument.mockResolvedValue({ score: "5", teamId: "team789" });
             createOperations.mockResolvedValue({});
             commitTransaction.mockResolvedValue({});
 
@@ -75,6 +75,11 @@ describe("gameLogs actions", () => {
                             description: "John Doe singles",
                             baseState: JSON.stringify(mockPayload.baseState),
                         }),
+                        permissions: expect.arrayContaining([
+                            'read("any")',
+                            'update("team:team789/manager")',
+                            'delete("team:team789/owner")',
+                        ]),
                     }),
                     expect.objectContaining({
                         action: "update",
@@ -102,12 +107,29 @@ describe("gameLogs actions", () => {
             };
 
             createDocument.mockResolvedValue({ $id: "log790", ...mockPayload });
+            readDocument.mockResolvedValue({
+                $id: "game123",
+                teamId: "team789",
+                score: "0",
+            });
 
             const result = await logGameEvent(mockPayload);
 
-            expect(createDocument).toHaveBeenCalled();
+            expect(createDocument).toHaveBeenCalledWith(
+                "game_logs",
+                null, // rowId
+                expect.objectContaining({
+                    gameId: "game123",
+                    playerId: "player456",
+                }),
+                expect.arrayContaining([
+                    'read("any")',
+                    'update("team:team789/manager")',
+                    'delete("team:team789/owner")',
+                ]),
+            );
             expect(createTransaction).not.toHaveBeenCalled();
-            expect(readDocument).not.toHaveBeenCalled();
+            expect(readDocument).toHaveBeenCalledWith("games", "game123");
             expect(result.success).toBe(true);
         });
 
@@ -126,7 +148,7 @@ describe("gameLogs actions", () => {
 
             const mockTransaction = { $id: "txn-123" };
             createTransaction.mockResolvedValue(mockTransaction);
-            readDocument.mockResolvedValue({ score: "5" });
+            readDocument.mockResolvedValue({ score: "5", teamId: "team789" });
             createOperations.mockRejectedValue(new Error("Database error"));
             rollbackTransaction.mockResolvedValue({});
 

@@ -9,12 +9,13 @@ import {
     collections,
 } from "@/utils/databases";
 import { EVENT_TYPE_MAP } from "@/routes/events/components/scoring/scoringConstants";
-import { ID } from "node-appwrite";
+import { ID, Permission, Role } from "node-appwrite";
 
 const databaseId = process.env.APPWRITE_DATABASE_ID;
 
 export const logGameEvent = async ({
     gameId,
+    teamId: providedTeamId,
     inning,
     halfInning,
     playerId,
@@ -28,6 +29,27 @@ export const logGameEvent = async ({
 
     try {
         const runs = parseInt(rbi, 10) || 0;
+
+        // Fetch game to get teamId if not provided, or if we need score for transaction
+        let teamId = providedTeamId;
+        let game = null;
+
+        if (!teamId || runs > 0) {
+            game = await readDocument("games", gameId);
+            if (!teamId) teamId = game?.teamId;
+        }
+
+        const teamRoles = ["manager", "owner"];
+
+        const permissions = [
+            Permission.read(Role.any()),
+            ...teamRoles.map((role) =>
+                Permission.update(Role.team(teamId, role)),
+            ),
+            ...teamRoles.map((role) =>
+                Permission.delete(Role.team(teamId, role)),
+            ),
+        ];
 
         // Validate baseState before stringify
         let baseStateStr;
@@ -61,7 +83,6 @@ export const logGameEvent = async ({
             const logId = ID.unique();
 
             // Read current score to calculate new score
-            const game = await readDocument("games", gameId);
             const currentScore = parseInt(game.score || 0, 10);
             const newScore = currentScore + runs;
 
@@ -73,6 +94,7 @@ export const logGameEvent = async ({
                     tableId: collections.game_logs,
                     rowId: logId,
                     data: logPayload,
+                    permissions,
                 },
                 {
                     action: "update",
@@ -95,6 +117,7 @@ export const logGameEvent = async ({
                 "game_logs",
                 null,
                 logPayload,
+                permissions,
             );
 
             return { success: true, log: response };

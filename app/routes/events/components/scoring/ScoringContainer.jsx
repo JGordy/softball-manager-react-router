@@ -5,6 +5,7 @@ import { Card, Group, Stack, Text, Tabs } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
 import TabsWrapper from "@/components/TabsWrapper";
+import { useGameUpdates } from "@/hooks/useGameUpdates";
 
 import { useGameState } from "./useGameState";
 import { UI_BATTED_OUTS, UI_WALKS, EVENT_TYPE_MAP } from "./scoringConstants";
@@ -138,6 +139,29 @@ export default function ScoringContainer({
     const location = useLocation();
     const navigate = useNavigate();
     const [logs, setLogs] = useState(initialLogs);
+
+    // Real-time updates for game logs
+    const { status: realtimeStatus } = useGameUpdates(game.$id, {
+        onNewLog: (newLog) => {
+            setLogs((prev) => {
+                const logExists = prev.some((log) => log.$id === newLog.$id);
+                if (logExists) return prev;
+                return [...prev, newLog];
+            });
+        },
+        onUpdateLog: (updatedLog) => {
+            setLogs((prev) =>
+                prev.map((log) =>
+                    log.$id === updatedLog.$id ? updatedLog : log,
+                ),
+            );
+        },
+        onDeleteLog: (deletedLogId) => {
+            setLogs((prev) => prev.filter((log) => log.$id !== deletedLogId));
+        },
+        gameDate: game.gameDate,
+        gameFinal,
+    });
 
     // Initialize tab from URL hash if present, otherwise default based on gameFinal
     const getInitialTab = () => {
@@ -332,6 +356,7 @@ export default function ScoringContainer({
         fetcher.submit(
             {
                 _action: "log-game-event",
+                teamId: team.$id,
                 inning,
                 halfInning,
                 playerId: batter.$id,
@@ -398,6 +423,7 @@ export default function ScoringContainer({
                 teamName={team.name}
                 opponentName={game.opponent}
                 gameFinal={gameFinal}
+                realtimeStatus={realtimeStatus}
             />
 
             <TabsWrapper value={activeTab} onChange={handleTabChange} mt={0}>

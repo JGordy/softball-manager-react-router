@@ -1,5 +1,49 @@
 import { Card, Group, Text, Stack, Box, Badge } from "@mantine/core";
-import { IconCaretUpFilled, IconCaretDownFilled } from "@tabler/icons-react";
+import {
+    IconCaretUpFilled,
+    IconCaretDownFilled,
+    IconBroadcast,
+    IconBroadcastOff,
+} from "@tabler/icons-react";
+
+const StatusBadge = ({ status }) => {
+    const statusProps = {
+        connected: {
+            color: "blue",
+            leftSection: <IconBroadcast size={12} />,
+            className: "live-pulse",
+            style: { textTransform: "none" },
+            children: "Live",
+        },
+        connecting: {
+            color: "gray",
+            children: "Syncing...",
+        },
+        error: {
+            color: "orange",
+            leftSection: <IconBroadcastOff size={12} />,
+            children: "Offline",
+        },
+        idle: {
+            style: { display: "none" },
+        },
+    };
+
+    const badgeProps = status
+        ? statusProps[status] || {}
+        : { style: { visibility: "hidden" } };
+
+    const { style: statusStyle, ...restBadgeProps } = badgeProps;
+
+    return (
+        <Badge
+            variant="light"
+            size="sm"
+            style={{ textTransform: "none", ...(statusStyle || {}) }}
+            {...restBadgeProps}
+        />
+    );
+};
 
 export default function ScoreboardHeader({
     score,
@@ -10,12 +54,13 @@ export default function ScoreboardHeader({
     teamName,
     opponentName,
     gameFinal = false,
+    realtimeStatus = "connecting",
 }) {
     return (
         <Card withBorder p="md" radius="lg">
             <Group justify="space-between" align="center">
                 <Stack gap={0} align="center" style={{ flex: 1 }}>
-                    <Text size="xs" fw={700} c="dimmed">
+                    <Text size="xs" fw={700} c="dimmed" ta="center">
                         {teamName}
                     </Text>
                     <Text size="xl" fw={900}>
@@ -83,7 +128,7 @@ export default function ScoreboardHeader({
                 </Stack>
 
                 <Stack gap={0} align="center" style={{ flex: 1 }}>
-                    <Text size="xs" fw={700} c="dimmed">
+                    <Text size="xs" fw={700} c="dimmed" ta="center">
                         {opponentName || "Opponent"}
                     </Text>
                     <Text size="xl" fw={900}>
@@ -91,6 +136,11 @@ export default function ScoreboardHeader({
                     </Text>
                 </Stack>
             </Group>
+            <Box mt={12}>
+                <Group justify="center">
+                    <StatusBadge status={realtimeStatus} />
+                </Group>
+            </Box>
         </Card>
     );
 }

@@ -207,35 +207,49 @@ async function loadGameBase(eventId) {
     }
 }
 
-function makeDeferredData({ eventId, userIds, parkId }) {
+function makeDeferredData({ eventId, userIds, parkId, options = {} }) {
+    const {
+        includePlayers = true,
+        includePark = true,
+        includeAttendance = true,
+        includeAwards = true,
+        includeVotes = true,
+        includeLogs = true,
+    } = options;
+
     // Batch fetch all users in a single query instead of individual queries
     const userIdList = userIds.map(({ userId }) => userId);
     const playersPromise =
-        userIdList.length > 0
+        includePlayers && userIdList.length > 0
             ? listDocuments("users", [Query.equal("$id", userIdList)]).then(
                   (result) => result.rows || [],
               )
             : Promise.resolve([]);
 
-    const parkPromise = parkId
-        ? readDocument("parks", parkId)
-        : Promise.resolve(null);
+    const parkPromise =
+        includePark && parkId
+            ? readDocument("parks", parkId)
+            : Promise.resolve(null);
 
-    const attendancePromise = listDocuments("attendance", [
-        Query.equal("gameId", eventId),
-    ]);
+    const attendancePromise = includeAttendance
+        ? listDocuments("attendance", [Query.equal("gameId", eventId)])
+        : Promise.resolve({ rows: [], total: 0 });
 
-    const awardsPromise = listDocuments("awards", [
-        Query.equal("game_id", eventId),
-    ]);
-    const votesPromise = listDocuments("votes", [
-        Query.equal("game_id", eventId),
-    ]);
-    const logsPromise = listDocuments("game_logs", [
-        Query.equal("gameId", eventId),
-        Query.orderAsc("$createdAt"),
-        Query.limit(150), // Increase limit to handle games with many plays
-    ]).then((result) => result.rows || []);
+    const awardsPromise = includeAwards
+        ? listDocuments("awards", [Query.equal("game_id", eventId)])
+        : Promise.resolve({ rows: [], total: 0 });
+
+    const votesPromise = includeVotes
+        ? listDocuments("votes", [Query.equal("game_id", eventId)])
+        : Promise.resolve({ rows: [], total: 0 });
+
+    const logsPromise = includeLogs
+        ? listDocuments("game_logs", [
+              Query.equal("gameId", eventId),
+              Query.orderAsc("$createdAt"),
+              Query.limit(150), // Increase limit to handle games with many plays
+          ]).then((result) => result.rows || [])
+        : Promise.resolve([]);
 
     return {
         players: playersPromise,
@@ -260,7 +274,10 @@ async function resolvePlayers(userIds) {
     return result.rows || [];
 }
 
-export async function getEventById({ eventId }) {
+export async function getEventById({ eventId, ...options }) {
+    // Extract weather option and pass the rest to deferred data
+    const { includeWeather = true, ...deferredOptions } = options;
+
     // Use shared loader helper to get base data for the event
     const baseData = await loadGameBase(eventId);
 
@@ -281,7 +298,12 @@ export async function getEventById({ eventId }) {
         baseData;
 
     // Build deferred data object (promises for lazy loading in the UI)
-    const deferredData = makeDeferredData({ eventId, userIds, parkId });
+    const deferredData = makeDeferredData({
+        eventId,
+        userIds,
+        parkId,
+        options: deferredOptions,
+    });
 
     return {
         gameDeleted: false,
@@ -295,7 +317,9 @@ export async function getEventById({ eventId }) {
         season,
         teams,
         // Deferred data for weather, but is conditional so we didn't add it to the deferredData
-        weatherPromise: getWeatherData(parkId, game),
+        weatherPromise: includeWeather
+            ? getWeatherData(parkId, game)
+            : Promise.resolve(null),
     };
 }
 
