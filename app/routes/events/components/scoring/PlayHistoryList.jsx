@@ -59,7 +59,10 @@ export default function PlayHistoryList({ logs, playerChart }) {
                                     </Group>
                                 </Group>
                                 <Group justify="space-between" wrap="nowrap">
-                                    <Group gap={4}>
+                                    <Group
+                                        gap={4}
+                                        aria-label={`${log.halfInning === "top" ? "Top" : "Bottom"} of inning ${log.inning}`}
+                                    >
                                         {log.halfInning === "top" ? (
                                             <IconCaretUpFilled
                                                 size={12}
