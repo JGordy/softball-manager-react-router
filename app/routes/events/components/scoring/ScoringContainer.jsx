@@ -132,6 +132,7 @@ export default function ScoringContainer({
     team,
     initialLogs = [],
     gameFinal = false,
+    isManager = false,
 }) {
     const fetcher = useFetcher();
     const location = useLocation();
@@ -147,6 +148,13 @@ export default function ScoringContainer({
     };
 
     const [activeTab, setActiveTab] = useState(getInitialTab);
+
+    // Sync activeTab with gameFinal status
+    useEffect(() => {
+        if (gameFinal && activeTab === "live") {
+            handleTabChange("plays");
+        }
+    }, [gameFinal, activeTab]);
 
     // Keep tab state in sync when location.hash changes (back/forward navigation)
     useEffect(() => {
@@ -411,7 +419,7 @@ export default function ScoringContainer({
                                 {logs.length > 0 && isOurBatting && (
                                     <LastPlayCard
                                         lastLog={logs[logs.length - 1]}
-                                        onUndo={undoLast}
+                                        onUndo={isManager ? undoLast : null}
                                         isSubmitting={
                                             fetcher.state === "submitting"
                                         }
@@ -422,7 +430,7 @@ export default function ScoringContainer({
 
                             {/* Right Column: Actions */}
                             <Stack style={{ flex: 1 }}>
-                                {!gameFinal && (
+                                {isManager && !gameFinal && (
                                     <>
                                         {isOurBatting ? (
                                             <ActionPad
