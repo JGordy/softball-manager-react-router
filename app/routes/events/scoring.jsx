@@ -43,6 +43,9 @@ export async function action({ request, params }) {
     if (_action === "end-game") {
         return updateGame({ values: { gameFinal: true }, eventId });
     }
+    if (_action === "resume-game") {
+        return updateGame({ values: { gameFinal: false }, eventId });
+    }
     return null;
 }
 
@@ -56,26 +59,12 @@ export default function GameScoring() {
     const team = teams?.[0];
     const isManager = !!(user && managerIds && managerIds.includes(user.$id));
 
-    if (!isManager) {
-        return (
-            <Container size="sm" py="xl">
-                <BackButton to={`/events/${game.$id}`} mb="xl" />
-                <Box ta="center" py="xl">
-                    <Title order={2} mb="md">
-                        Access Denied
-                    </Title>
-                    <p>Only team managers can score games.</p>
-                </Box>
-            </Container>
-        );
-    }
-
     return (
         <Container size="md" py="xl">
             <Group justify="space-between" align="center" mb="xl">
                 <BackButton to={`/events/${game.$id}`} />
-                <Title order={3}>Live Scoring</Title>
-                <ScoringMenu gameFinal={game.gameFinal} />
+                <Title order={3}>Scoring & Statistics</Title>
+                {isManager && <ScoringMenu gameFinal={game.gameFinal} />}
             </Group>
 
             <DeferredLoader
@@ -89,6 +78,7 @@ export default function GameScoring() {
                         team={team}
                         initialLogs={logs}
                         gameFinal={game.gameFinal}
+                        isManager={isManager}
                     />
                 )}
             </DeferredLoader>
