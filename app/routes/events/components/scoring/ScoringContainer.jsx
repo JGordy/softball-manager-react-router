@@ -151,7 +151,7 @@ export default function ScoringContainer({
         return gameFinal ? "plays" : "live";
     };
 
-    const [activeTab, setActiveTab] = useState(getInitialTab);
+    const [activeTab, setActiveTab] = useState(() => getInitialTab());
 
     // Update URL hash when tab changes (without page refresh)
     const handleTabChange = useCallback(
@@ -173,18 +173,28 @@ export default function ScoringContainer({
     // Sync activeTab with gameFinal status
     useEffect(() => {
         if (gameFinal && activeTab === "live") {
-            handleTabChange("plays");
+            const nextTab = "plays";
+            setActiveTab(nextTab);
+            const newHash = `#${nextTab}`;
+            const url = `${location.pathname}${location.search}${newHash}`;
+            navigate(url, { replace: false });
         }
-    }, [gameFinal, activeTab, handleTabChange]);
+    }, [gameFinal, activeTab, location.pathname, location.search, navigate]);
 
     // Keep tab state in sync when location.hash changes (back/forward navigation)
     useEffect(() => {
         const hash = location?.hash?.replace(/^#/, "") || null;
         const validTabs = ["live", "plays", "boxscore"];
+
+        // Do not switch to "live" tab when the game is final
+        if (hash === "live" && gameFinal) {
+            return;
+        }
+
         if (hash && validTabs.includes(hash) && hash !== activeTab) {
             setActiveTab(hash);
         }
-    }, [location.hash, activeTab]);
+    }, [location.hash, activeTab, gameFinal]);
 
     // Update logs when fetcher returns a new log successfully
     useEffect(() => {
