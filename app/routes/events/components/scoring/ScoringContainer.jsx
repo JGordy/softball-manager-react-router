@@ -141,7 +141,7 @@ export default function ScoringContainer({
     const [logs, setLogs] = useState(initialLogs);
 
     // Real-time updates for game logs
-    useGameUpdates(game.$id, {
+    const { status: realtimeStatus } = useGameUpdates(game.$id, {
         onNewLog: (newLog) => {
             setLogs((prev) => {
                 const logExists = prev.some((log) => log.$id === newLog.$id);
@@ -413,6 +413,7 @@ export default function ScoringContainer({
                 teamName={team.name}
                 opponentName={game.opponent}
                 gameFinal={gameFinal}
+                realtimeStatus={realtimeStatus}
             />
 
             <TabsWrapper value={activeTab} onChange={handleTabChange} mt={0}>
