@@ -109,12 +109,12 @@ export default function PlayHistoryList({ logs, playerChart }) {
                                         {log.halfInning === "top" ? (
                                             <IconCaretUpFilled
                                                 size={12}
-                                                color="var(--mantine-color-dimmed)"
+                                                color="var(--mantine-color-blue-9)"
                                             />
                                         ) : (
                                             <IconCaretDownFilled
                                                 size={12}
-                                                color="var(--mantine-color-dimmed)"
+                                                color="var(--mantine-color-blue-9)"
                                             />
                                         )}
                                         <Text size="xs" c="dimmed">
