@@ -102,12 +102,17 @@ describe("gameLogs actions", () => {
             };
 
             createDocument.mockResolvedValue({ $id: "log790", ...mockPayload });
+            readDocument.mockResolvedValue({
+                $id: "game123",
+                teamId: "team789",
+                score: "0",
+            });
 
             const result = await logGameEvent(mockPayload);
 
             expect(createDocument).toHaveBeenCalled();
             expect(createTransaction).not.toHaveBeenCalled();
-            expect(readDocument).not.toHaveBeenCalled();
+            expect(readDocument).toHaveBeenCalledWith("games", "game123");
             expect(result.success).toBe(true);
         });
 

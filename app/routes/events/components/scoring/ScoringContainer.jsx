@@ -5,6 +5,7 @@ import { Card, Group, Stack, Text, Tabs } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
 import TabsWrapper from "@/components/TabsWrapper";
+import { useGameUpdates } from "@/hooks/useGameUpdates";
 
 import { useGameState } from "./useGameState";
 import { UI_BATTED_OUTS, UI_WALKS, EVENT_TYPE_MAP } from "./scoringConstants";
@@ -138,6 +139,20 @@ export default function ScoringContainer({
     const location = useLocation();
     const navigate = useNavigate();
     const [logs, setLogs] = useState(initialLogs);
+
+    // Real-time updates for game logs
+    useGameUpdates(game.$id, {
+        onNewLog: (newLog) => {
+            setLogs((prev) => {
+                const logExists = prev.some((log) => log.$id === newLog.$id);
+                if (logExists) return prev;
+                return [...prev, newLog];
+            });
+        },
+        onDeleteLog: (deletedLogId) => {
+            setLogs((prev) => prev.filter((log) => log.$id !== deletedLogId));
+        },
+    });
 
     // Initialize tab from URL hash if present, otherwise default based on gameFinal
     const getInitialTab = () => {
