@@ -15,6 +15,7 @@ const databaseId = process.env.APPWRITE_DATABASE_ID;
 
 export const logGameEvent = async ({
     gameId,
+    teamId: providedTeamId,
     inning,
     halfInning,
     playerId,
@@ -29,16 +30,25 @@ export const logGameEvent = async ({
     try {
         const runs = parseInt(rbi, 10) || 0;
 
-        // Fetch game to get teamId for permissions
-        const game = await readDocument("games", gameId);
-        const teamId = game.teamId;
+        // Fetch game to get teamId if not provided, or if we need score for transaction
+        let teamId = providedTeamId;
+        let game = null;
+
+        if (!teamId || runs > 0) {
+            game = await readDocument("games", gameId);
+            if (!teamId) teamId = game?.teamId;
+        }
+
+        const teamRoles = ["manager", "owner"];
 
         const permissions = [
             Permission.read(Role.any()),
-            Permission.update(Role.team(teamId, "manager")),
-            Permission.update(Role.team(teamId, "owner")),
-            Permission.delete(Role.team(teamId, "manager")),
-            Permission.delete(Role.team(teamId, "owner")),
+            ...teamRoles.map((role) =>
+                Permission.update(Role.team(teamId, role)),
+            ),
+            ...teamRoles.map((role) =>
+                Permission.delete(Role.team(teamId, role)),
+            ),
         ];
 
         // Validate baseState before stringify
