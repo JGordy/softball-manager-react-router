@@ -24,6 +24,9 @@ const StatusBadge = ({ status }) => {
             leftSection: <IconBroadcastOff size={12} />,
             children: "Offline",
         },
+        idle: {
+            display: "none",
+        },
     };
 
     return (
@@ -47,7 +50,7 @@ export default function ScoreboardHeader({
     teamName,
     opponentName,
     gameFinal = false,
-    realtimeStatus = "connected",
+    realtimeStatus = "connecting",
 }) {
     return (
         <Card withBorder p="md" radius="lg">
