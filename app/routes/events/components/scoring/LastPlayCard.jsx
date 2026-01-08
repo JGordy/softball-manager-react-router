@@ -75,18 +75,20 @@ export default function LastPlayCard({
                         {runnerMovements.join(", ")}
                     </Text>
                 )}
-                <Button
-                    variant="light"
-                    size="xs"
-                    color="red"
-                    mt={5}
-                    leftSection={<IconArrowBackUp size={12} />}
-                    onClick={onUndo}
-                    loading={isSubmitting}
-                    fullWidth
-                >
-                    Undo
-                </Button>
+                {onUndo && (
+                    <Button
+                        variant="light"
+                        size="xs"
+                        color="red"
+                        mt={5}
+                        leftSection={<IconArrowBackUp size={12} />}
+                        onClick={onUndo}
+                        loading={isSubmitting}
+                        fullWidth
+                    >
+                        Undo
+                    </Button>
+                )}
             </Stack>
         </Card>
     );

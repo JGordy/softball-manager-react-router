@@ -1,5 +1,5 @@
 import { Text, Group, Button } from "@mantine/core";
-import { IconFlag } from "@tabler/icons-react";
+import { IconFlag, IconPlayerPlay } from "@tabler/icons-react";
 import { useFetcher } from "react-router";
 
 import MenuContainer from "@/components/MenuContainer";
@@ -44,17 +44,58 @@ export default function ScoringMenu({ gameFinal = false }) {
         });
     };
 
+    const handleResumeGame = () => {
+        openModal({
+            title: "Resume Game",
+            children: (
+                <>
+                    <Text size="sm" mb="md">
+                        Are you sure you want to resume this game? This will
+                        enable scoring controls again.
+                    </Text>
+                    <Group justify="flex-end" mt="xl">
+                        <Button
+                            variant="subtle"
+                            color="gray"
+                            onClick={closeAllModals}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            color="blue"
+                            onClick={() => {
+                                fetcher.submit(
+                                    { _action: "resume-game" },
+                                    { method: "post" },
+                                );
+                                closeAllModals();
+                            }}
+                        >
+                            Resume Game
+                        </Button>
+                    </Group>
+                </>
+            ),
+        });
+    };
+
     const sections = [
         {
             label: "Game Controls",
             items: [
-                {
-                    key: "end-game",
-                    onClick: handleEndGame,
-                    leftSection: <IconFlag size={14} />,
-                    content: <Text>End Game</Text>,
-                    disabled: gameFinal,
-                },
+                gameFinal
+                    ? {
+                          key: "resume-game",
+                          onClick: handleResumeGame,
+                          leftSection: <IconPlayerPlay size={14} />,
+                          content: <Text>Resume Game</Text>,
+                      }
+                    : {
+                          key: "end-game",
+                          onClick: handleEndGame,
+                          leftSection: <IconFlag size={14} />,
+                          content: <Text>End Game</Text>,
+                      },
             ],
         },
     ];
