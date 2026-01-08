@@ -1,19 +1,41 @@
 import { useEffect, useState, useRef } from "react";
+import { DateTime } from "luxon";
 import { client } from "@/utils/appwrite/client";
 
-export function useGameUpdates(gameId, { onNewLog, onDeleteLog }) {
+export function useGameUpdates(
+    gameId,
+    { onNewLog, onUpdateLog, onDeleteLog, gameDate, gameFinal },
+) {
     const [status, setStatus] = useState("connecting");
-    const handlersRef = useRef({ onNewLog, onDeleteLog });
+    const handlersRef = useRef({ onNewLog, onUpdateLog, onDeleteLog });
 
     // Update refs whenever handlers change, without triggering effects
     useEffect(() => {
-        handlersRef.current = { onNewLog, onDeleteLog };
-    }, [onNewLog, onDeleteLog]);
+        handlersRef.current = { onNewLog, onUpdateLog, onDeleteLog };
+    }, [onNewLog, onUpdateLog, onDeleteLog]);
 
     useEffect(() => {
         if (!gameId) {
             setStatus("idle");
             return;
+        }
+
+        // Check if we should even attempt to connect
+        if (gameFinal) {
+            setStatus("idle");
+            return;
+        }
+
+        if (gameDate) {
+            const now = DateTime.now();
+            const start = DateTime.fromISO(gameDate);
+            const end = start.plus({ minutes: 90 });
+
+            // If game is in the future or more than 1.5 hours past start, stay idle
+            if (now < start || now > end) {
+                setStatus("idle");
+                return;
+            }
         }
 
         let unsubscribe;
@@ -32,16 +54,25 @@ export function useGameUpdates(gameId, { onNewLog, onDeleteLog }) {
 
             try {
                 const sessionResponse = await fetch("/api/session");
+                if (!sessionResponse.ok) {
+                    throw new Error(`HTTP ${sessionResponse.status}`);
+                }
                 const { session } = await sessionResponse.json();
                 if (session) {
                     client.setSession(session);
                 }
             } catch (err) {
-                console.error("WebSocket session sync failed:", err);
+                console.warn(
+                    "WebSocket session sync failed, attempting guest connection:",
+                    err,
+                );
+                // We continue here to allow public/guest read access if configured on the table
             }
 
             if (isCancelled) return;
 
+            // Note: Appwrite Tables API currently requires collection-level row subscriptions.
+            // Row-level attribute filtering (gameId) is performed client-side in the callback.
             const channels = [
                 `databases.${databaseId}.tables.${collectionId}.rows`,
             ];
@@ -55,6 +86,10 @@ export function useGameUpdates(gameId, { onNewLog, onDeleteLog }) {
                             response.events.some((e) => e.includes(".create"))
                         ) {
                             handlersRef.current.onNewLog?.(data);
+                        } else if (
+                            response.events.some((e) => e.includes(".update"))
+                        ) {
+                            handlersRef.current.onUpdateLog?.(data);
                         } else if (
                             response.events.some((e) => e.includes(".delete"))
                         ) {
@@ -73,9 +108,10 @@ export function useGameUpdates(gameId, { onNewLog, onDeleteLog }) {
 
         return () => {
             isCancelled = true;
+            setStatus("idle");
             if (unsubscribe) unsubscribe();
         };
-    }, [gameId]); // Only restart if the gameId changes
+    }, [gameId, gameDate, gameFinal]); // Only restart if the gameId, date, or final status changes
 
     return { status };
 }

@@ -149,9 +149,18 @@ export default function ScoringContainer({
                 return [...prev, newLog];
             });
         },
+        onUpdateLog: (updatedLog) => {
+            setLogs((prev) =>
+                prev.map((log) =>
+                    log.$id === updatedLog.$id ? updatedLog : log,
+                ),
+            );
+        },
         onDeleteLog: (deletedLogId) => {
             setLogs((prev) => prev.filter((log) => log.$id !== deletedLogId));
         },
+        gameDate: game.gameDate,
+        gameFinal,
     });
 
     // Initialize tab from URL hash if present, otherwise default based on gameFinal
@@ -347,6 +356,7 @@ export default function ScoringContainer({
         fetcher.submit(
             {
                 _action: "log-game-event",
+                teamId: team.$id,
                 inning,
                 halfInning,
                 playerId: batter.$id,
