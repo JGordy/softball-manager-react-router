@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useFetcher } from "react-router";
+import { useState, useEffect, useCallback } from "react";
+import { useFetcher, useLocation, useNavigate } from "react-router";
 
 import { Card, Group, Stack, Text, Tabs } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
@@ -131,9 +131,70 @@ export default function ScoringContainer({
     playerChart,
     team,
     initialLogs = [],
+    gameFinal = false,
+    isManager = false,
 }) {
     const fetcher = useFetcher();
+    const location = useLocation();
+    const navigate = useNavigate();
     const [logs, setLogs] = useState(initialLogs);
+
+    // Initialize tab from URL hash if present, otherwise default based on gameFinal
+    const getInitialTab = () => {
+        const hash = location?.hash?.replace(/^#/, "") || null;
+        const validTabs = ["live", "plays", "boxscore"];
+        if (hash && validTabs.includes(hash)) {
+            // If game is final, don't allow 'live' tab
+            if (gameFinal && hash === "live") return "plays";
+            return hash;
+        }
+        return gameFinal ? "plays" : "live";
+    };
+
+    const [activeTab, setActiveTab] = useState(() => getInitialTab());
+
+    // Update URL hash when tab changes (without page refresh)
+    const handleTabChange = useCallback(
+        (value) => {
+            if (!value) return;
+            if (value === activeTab) return;
+
+            // Update state immediately for instant tab switch
+            setActiveTab(value);
+
+            // Then update URL in background
+            const newHash = `#${value}`;
+            const url = `${location.pathname}${location.search}${newHash}`;
+            navigate(url, { replace: false });
+        },
+        [activeTab, location.pathname, location.search, navigate],
+    );
+
+    // Sync activeTab with gameFinal status
+    useEffect(() => {
+        if (gameFinal && activeTab === "live") {
+            const nextTab = "plays";
+            setActiveTab(nextTab);
+            const newHash = `#${nextTab}`;
+            const url = `${location.pathname}${location.search}${newHash}`;
+            navigate(url, { replace: false });
+        }
+    }, [gameFinal, location.pathname, location.search, navigate]);
+
+    // Keep tab state in sync when location.hash changes (back/forward navigation)
+    useEffect(() => {
+        const hash = location?.hash?.replace(/^#/, "") || null;
+        const validTabs = ["live", "plays", "boxscore"];
+
+        // Do not switch to "live" tab when the game is final
+        if (hash === "live" && gameFinal) {
+            return;
+        }
+
+        if (hash && validTabs.includes(hash)) {
+            setActiveTab(hash);
+        }
+    }, [location.hash, gameFinal]);
 
     // Update logs when fetcher returns a new log successfully
     useEffect(() => {
@@ -336,25 +397,32 @@ export default function ScoringContainer({
                 outs={outs}
                 teamName={team.name}
                 opponentName={game.opponent}
+                gameFinal={gameFinal}
             />
 
-            <TabsWrapper defaultValue="live" mt={0}>
-                <Tabs.Tab value="live">Live</Tabs.Tab>
+            <TabsWrapper value={activeTab} onChange={handleTabChange} mt={0}>
+                {!gameFinal && <Tabs.Tab value="live">Live</Tabs.Tab>}
                 <Tabs.Tab value="plays">Plays</Tabs.Tab>
                 <Tabs.Tab value="boxscore">Box Score</Tabs.Tab>
 
                 <Tabs.Panel value="live" pt="md">
                     <Stack gap="md">
-                        {isOurBatting ? (
+                        {!gameFinal && (
                             <>
-                                <CurrentBatterCard
-                                    currentBatter={currentBatter}
-                                    logs={logs}
-                                />
-                                <OnDeckCard onDeckBatter={onDeckBatter} />
+                                {isOurBatting ? (
+                                    <>
+                                        <CurrentBatterCard
+                                            currentBatter={currentBatter}
+                                            logs={logs}
+                                        />
+                                        <OnDeckCard
+                                            onDeckBatter={onDeckBatter}
+                                        />
+                                    </>
+                                ) : (
+                                    <DefenseCard teamName={team.name} />
+                                )}
                             </>
-                        ) : (
-                            <DefenseCard teamName={team.name} />
                         )}
 
                         <Group align="start" gap="xl" wrap="nowrap">
@@ -368,7 +436,7 @@ export default function ScoringContainer({
                                 {logs.length > 0 && isOurBatting && (
                                     <LastPlayCard
                                         lastLog={logs[logs.length - 1]}
-                                        onUndo={undoLast}
+                                        onUndo={isManager ? undoLast : null}
                                         isSubmitting={
                                             fetcher.state === "submitting"
                                         }
@@ -379,18 +447,22 @@ export default function ScoringContainer({
 
                             {/* Right Column: Actions */}
                             <Stack style={{ flex: 1 }}>
-                                {isOurBatting ? (
-                                    <ActionPad
-                                        onAction={initiateAction}
-                                        runners={runners}
-                                        outs={outs}
-                                    />
-                                ) : (
-                                    <FieldingControls
-                                        onOut={handleOpponentOut}
-                                        onRun={handleOpponentRun}
-                                        onSkip={advanceHalfInning}
-                                    />
+                                {isManager && !gameFinal && (
+                                    <>
+                                        {isOurBatting ? (
+                                            <ActionPad
+                                                onAction={initiateAction}
+                                                runners={runners}
+                                                outs={outs}
+                                            />
+                                        ) : (
+                                            <FieldingControls
+                                                onOut={handleOpponentOut}
+                                                onRun={handleOpponentRun}
+                                                onSkip={advanceHalfInning}
+                                            />
+                                        )}
+                                    </>
                                 )}
                             </Stack>
                         </Group>
@@ -399,15 +471,22 @@ export default function ScoringContainer({
 
                 <Tabs.Panel value="plays" pt="md">
                     <Stack gap="md">
-                        {isOurBatting ? (
-                            <CurrentBatterCard
-                                currentBatter={currentBatter}
-                                logs={logs}
-                            />
-                        ) : (
-                            <DefenseCard teamName={team.name} />
+                        {!gameFinal && (
+                            <>
+                                {isOurBatting ? (
+                                    <CurrentBatterCard
+                                        currentBatter={currentBatter}
+                                        logs={logs}
+                                    />
+                                ) : (
+                                    <DefenseCard teamName={team.name} />
+                                )}
+                            </>
                         )}
-                        <PlayHistoryList logs={logs} />
+                        <PlayHistoryList
+                            logs={logs}
+                            playerChart={playerChart}
+                        />
                     </Stack>
                 </Tabs.Panel>
 
@@ -416,6 +495,7 @@ export default function ScoringContainer({
                         logs={logs}
                         playerChart={playerChart}
                         currentBatter={currentBatter}
+                        gameFinal={gameFinal}
                     />
                 </Tabs.Panel>
             </TabsWrapper>

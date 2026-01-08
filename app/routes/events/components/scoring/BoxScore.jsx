@@ -2,7 +2,12 @@ import { useMemo } from "react";
 import { Table, ScrollArea, Text, Card } from "@mantine/core";
 import { calculateGameStats, calculateTeamTotals } from "@/utils/stats";
 
-export default function BoxScore({ logs, playerChart, currentBatter }) {
+export default function BoxScore({
+    logs,
+    playerChart,
+    currentBatter,
+    gameFinal = false,
+}) {
     const { stats, totals } = useMemo(() => {
         const stats = calculateGameStats(logs, playerChart);
         const totals = calculateTeamTotals(stats);
@@ -21,7 +26,9 @@ export default function BoxScore({ logs, playerChart, currentBatter }) {
 
     const rows = stats.map((stat) => {
         const isCurrentBatter =
-            currentBatter && stat.player.$id === currentBatter.$id;
+            !gameFinal &&
+            currentBatter &&
+            stat.player.$id === currentBatter.$id;
 
         const hasDuplicateFirstName =
             firstNameCounts[stat.player.firstName] > 1;

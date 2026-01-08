@@ -1,6 +1,8 @@
 import { ScrollArea, Text, Group, Stack, Paper, Badge } from "@mantine/core";
+import { IconCaretUpFilled, IconCaretDownFilled } from "@tabler/icons-react";
+import { getRunnerMovement } from "./scoringUtils";
 
-export default function PlayHistoryList({ logs }) {
+export default function PlayHistoryList({ logs, playerChart }) {
     if (!logs.length) {
         return (
             <Paper withBorder p="md" radius="md">
@@ -14,46 +16,83 @@ export default function PlayHistoryList({ logs }) {
     return (
         <ScrollArea h={400} offsetScrollbars>
             <Stack gap="xs">
-                {[...logs].reverse().map((log) => (
-                    <Paper key={log.$id} withBorder p="xs" radius="md">
-                        <Group justify="space-between" wrap="nowrap">
-                            <Stack gap={2}>
-                                <Text size="sm" fw={700}>
-                                    {log.description}
-                                </Text>
-                                <Text size="xs" c="dimmed">
-                                    Inning {log.inning} •{" "}
-                                    {log.halfInning === "top"
-                                        ? "Top"
-                                        : "Bottom"}
-                                </Text>
-                            </Stack>
+                {[...logs].reverse().map((log) => {
+                    const runnerMovements = getRunnerMovement(
+                        log.baseState,
+                        playerChart,
+                    );
 
-                            <Group gap={5} wrap="nowrap">
-                                {log.rbi > 0 && (
-                                    <Badge
+                    return (
+                        <Paper key={log.$id} withBorder p="xs" radius="md">
+                            <Stack gap={4}>
+                                <Group justify="space-between" wrap="nowrap">
+                                    <Text
                                         size="sm"
-                                        color="blue"
-                                        variant="filled"
+                                        fw={700}
+                                        style={{ flex: 1 }}
                                     >
-                                        {log.rbi}{" "}
-                                        {log.rbi === 1 ? "RBI" : "RBIs"}
-                                    </Badge>
-                                )}
-                                {log.outsOnPlay > 0 && (
-                                    <Badge
-                                        size="sm"
-                                        color="red"
-                                        variant="filled"
+                                        {log.description}
+                                    </Text>
+                                    <Group gap={5} wrap="nowrap">
+                                        {log.rbi > 0 && (
+                                            <Badge
+                                                size="sm"
+                                                color="blue"
+                                                variant="filled"
+                                            >
+                                                {log.rbi}{" "}
+                                                {log.rbi === 1 ? "RBI" : "RBIs"}
+                                            </Badge>
+                                        )}
+                                        {log.outsOnPlay > 0 && (
+                                            <Badge
+                                                size="sm"
+                                                color="red"
+                                                variant="filled"
+                                            >
+                                                {log.outsOnPlay}{" "}
+                                                {log.outsOnPlay === 1
+                                                    ? "Out"
+                                                    : "Outs"}
+                                            </Badge>
+                                        )}
+                                    </Group>
+                                </Group>
+                                <Group justify="space-between" wrap="nowrap">
+                                    <Group
+                                        gap={4}
+                                        aria-label={`${log.halfInning === "top" ? "Top" : "Bottom"} of inning ${log.inning}`}
                                     >
-                                        {log.outsOnPlay}{" "}
-                                        {log.outsOnPlay === 1 ? "Out" : "Outs"}
-                                    </Badge>
-                                )}
-                            </Group>
-                        </Group>
-                    </Paper>
-                ))}
+                                        {log.halfInning === "top" ? (
+                                            <IconCaretUpFilled
+                                                size={12}
+                                                color="var(--mantine-color-blue-9)"
+                                            />
+                                        ) : (
+                                            <IconCaretDownFilled
+                                                size={12}
+                                                color="var(--mantine-color-blue-9)"
+                                            />
+                                        )}
+                                        <Text size="xs" c="dimmed">
+                                            {log.inning}
+                                        </Text>
+                                    </Group>
+                                    {runnerMovements.length > 0 && (
+                                        <Text
+                                            size="xs"
+                                            c="dimmed"
+                                            style={{ lineHeight: 1.3 }}
+                                            ta="right"
+                                        >
+                                            {runnerMovements.join(", ")}
+                                        </Text>
+                                    )}
+                                </Group>
+                            </Stack>
+                        </Paper>
+                    );
+                })}
             </Stack>
         </ScrollArea>
     );

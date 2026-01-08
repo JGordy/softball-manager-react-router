@@ -14,6 +14,7 @@ import { useResponseNotification } from "@/utils/showNotification";
 
 import ScoringContainer from "./components/scoring/ScoringContainer";
 import ScoringLoadingSkeleton from "./components/scoring/ScoringLoadingSkeleton";
+import ScoringMenu from "./components/scoring/ScoringMenu";
 
 export async function loader({ params, request }) {
     const { eventId } = params;
@@ -39,6 +40,12 @@ export async function action({ request, params }) {
     if (_action === "update-game-score") {
         return updateGame({ values, eventId });
     }
+    if (_action === "end-game") {
+        return updateGame({ values: { gameFinal: true }, eventId });
+    }
+    if (_action === "resume-game") {
+        return updateGame({ values: { gameFinal: false }, eventId });
+    }
     return null;
 }
 
@@ -52,27 +59,12 @@ export default function GameScoring() {
     const team = teams?.[0];
     const isManager = !!(user && managerIds && managerIds.includes(user.$id));
 
-    if (!isManager) {
-        return (
-            <Container size="sm" py="xl">
-                <BackButton mb="xl" />
-                <Box ta="center" py="xl">
-                    <Title order={2} mb="md">
-                        Access Denied
-                    </Title>
-                    <p>Only team managers can score games.</p>
-                </Box>
-            </Container>
-        );
-    }
-
     return (
         <Container size="md" py="xl">
-            <Group justify="space-between" mb="xl">
-                <BackButton />
-                <Title order={3}>
-                    Live Scoring: {game.opponent || "Opponent"}
-                </Title>
+            <Group justify="space-between" align="center" mb="xl">
+                <BackButton to={`/events/${game.$id}`} />
+                <Title order={3}>Scoring & Statistics</Title>
+                {isManager && <ScoringMenu gameFinal={game.gameFinal} />}
             </Group>
 
             <DeferredLoader
@@ -85,6 +77,8 @@ export default function GameScoring() {
                         playerChart={game.playerChart || []}
                         team={team}
                         initialLogs={logs}
+                        gameFinal={game.gameFinal}
+                        isManager={isManager}
                     />
                 )}
             </DeferredLoader>
