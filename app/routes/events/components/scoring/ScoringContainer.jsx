@@ -179,7 +179,7 @@ export default function ScoringContainer({
             const url = `${location.pathname}${location.search}${newHash}`;
             navigate(url, { replace: false });
         }
-    }, [gameFinal, activeTab, location.pathname, location.search, navigate]);
+    }, [gameFinal, location.pathname, location.search, navigate]);
 
     // Keep tab state in sync when location.hash changes (back/forward navigation)
     useEffect(() => {
@@ -191,10 +191,10 @@ export default function ScoringContainer({
             return;
         }
 
-        if (hash && validTabs.includes(hash) && hash !== activeTab) {
+        if (hash && validTabs.includes(hash)) {
             setActiveTab(hash);
         }
-    }, [location.hash, activeTab, gameFinal]);
+    }, [location.hash, gameFinal]);
 
     // Update logs when fetcher returns a new log successfully
     useEffect(() => {
