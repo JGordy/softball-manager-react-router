@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useFetcher, useLocation, useNavigate } from "react-router";
 
 import { Card, Group, Stack, Text, Tabs } from "@mantine/core";
@@ -143,18 +143,39 @@ export default function ScoringContainer({
     const getInitialTab = () => {
         const hash = location?.hash?.replace(/^#/, "") || null;
         const validTabs = ["live", "plays", "boxscore"];
-        if (hash && validTabs.includes(hash)) return hash;
+        if (hash && validTabs.includes(hash)) {
+            // If game is final, don't allow 'live' tab
+            if (gameFinal && hash === "live") return "plays";
+            return hash;
+        }
         return gameFinal ? "plays" : "live";
     };
 
     const [activeTab, setActiveTab] = useState(getInitialTab);
+
+    // Update URL hash when tab changes (without page refresh)
+    const handleTabChange = useCallback(
+        (value) => {
+            if (!value) return;
+            if (value === activeTab) return;
+
+            // Update state immediately for instant tab switch
+            setActiveTab(value);
+
+            // Then update URL in background
+            const newHash = `#${value}`;
+            const url = `${location.pathname}${location.search}${newHash}`;
+            navigate(url, { replace: false });
+        },
+        [activeTab, location.pathname, location.search, navigate],
+    );
 
     // Sync activeTab with gameFinal status
     useEffect(() => {
         if (gameFinal && activeTab === "live") {
             handleTabChange("plays");
         }
-    }, [gameFinal, activeTab]);
+    }, [gameFinal, activeTab, handleTabChange]);
 
     // Keep tab state in sync when location.hash changes (back/forward navigation)
     useEffect(() => {
@@ -163,21 +184,7 @@ export default function ScoringContainer({
         if (hash && validTabs.includes(hash) && hash !== activeTab) {
             setActiveTab(hash);
         }
-    }, [location.hash]);
-
-    // Update URL hash when tab changes (without page refresh)
-    const handleTabChange = (value) => {
-        if (!value) return;
-        if (value === activeTab) return;
-
-        // Update state immediately for instant tab switch
-        setActiveTab(value);
-
-        // Then update URL in background
-        const newHash = `#${value}`;
-        const url = `${location.pathname}${location.search}${newHash}`;
-        navigate(url, { replace: false });
-    };
+    }, [location.hash, activeTab]);
 
     // Update logs when fetcher returns a new log successfully
     useEffect(() => {
