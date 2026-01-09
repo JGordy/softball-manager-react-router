@@ -30,7 +30,10 @@ export default function ScoringMenu({ gameFinal = false }) {
                             color="red"
                             onClick={() => {
                                 fetcher.submit(
-                                    { _action: "end-game" },
+                                    {
+                                        _action: "end-game",
+                                        gameFinal: true,
+                                    },
                                     { method: "post" },
                                 );
                                 closeAllModals();
@@ -65,7 +68,10 @@ export default function ScoringMenu({ gameFinal = false }) {
                             color="blue"
                             onClick={() => {
                                 fetcher.submit(
-                                    { _action: "resume-game" },
+                                    {
+                                        _action: "resume-game",
+                                        gameFinal: false,
+                                    },
                                     { method: "post" },
                                 );
                                 closeAllModals();

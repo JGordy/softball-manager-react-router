@@ -6,8 +6,13 @@ import {
 } from "@/utils/databases.js";
 import { combineDateTime } from "@/utils/dateTime";
 import { hasBadWords } from "@/utils/badWordsApi";
+import { getNotifiableTeamMembers } from "@/utils/teams.js";
 
 import { removeEmptyValues } from "./utils/formUtils";
+import {
+    sendGameFinalNotification,
+    sendAwardVoteNotification,
+} from "./notifications";
 
 function computeResult(score, opponentScore) {
     const a = parseInt(String(score).trim(), 10);
@@ -188,12 +193,19 @@ export async function updateGame({ values, eventId }) {
         if (result) dataToUpdate.result = result;
     }
 
-    // Normalize countTowardsRecord when provided from the form (checkbox/switch)
+    // Normalize Boolean flags when provided from forms or API
     if (Object.prototype.hasOwnProperty.call(values, "countTowardsRecord")) {
         dataToUpdate.countTowardsRecord =
             values.countTowardsRecord === "true" ||
             values.countTowardsRecord === "on" ||
             values.countTowardsRecord === true;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(values, "gameFinal")) {
+        dataToUpdate.gameFinal =
+            values.gameFinal === "true" ||
+            values.gameFinal === "on" ||
+            values.gameFinal === true;
     }
 
     delete dataToUpdate.gameTime;
@@ -214,6 +226,62 @@ export async function updateGame({ values, eventId }) {
             eventId,
             dataToUpdate,
         );
+
+        // Send notification if game is finalized or score is updated
+        const isSetFinal = dataToUpdate.gameFinal === true;
+        const scoresProvided =
+            dataToUpdate.hasOwnProperty("score") &&
+            dataToUpdate.hasOwnProperty("opponentScore");
+
+        if (isSetFinal || scoresProvided) {
+            try {
+                // Get team members to notify
+                const teamId = gameDetails.teamId;
+
+                if (teamId) {
+                    const userIds = await getNotifiableTeamMembers(teamId);
+
+                    if (userIds.length > 0) {
+                        const result = computeResult(
+                            gameDetails.score,
+                            gameDetails.opponentScore,
+                        );
+
+                        const scoreDisplay = `${result} ${
+                            gameDetails.score || 0
+                        } - ${gameDetails.opponentScore || 0}`;
+
+                        await sendGameFinalNotification({
+                            gameId: eventId,
+                            teamId,
+                            userIds,
+                            opponent: gameDetails.opponent || "Opponent",
+                            score: scoreDisplay,
+                        });
+
+                        // Send award vote reminder after 5.5 seconds
+                        setTimeout(() => {
+                            sendAwardVoteNotification({
+                                gameId: eventId,
+                                teamId,
+                                userIds,
+                                opponent: gameDetails.opponent || "Opponent",
+                            }).catch((err) =>
+                                console.error(
+                                    "Error sending award vote notification:",
+                                    err,
+                                ),
+                            );
+                        }, 5500);
+                    }
+                }
+            } catch (notifyError) {
+                console.error(
+                    "Error sending game final notification:",
+                    notifyError,
+                );
+            }
+        }
 
         return {
             response: { gameDetails },

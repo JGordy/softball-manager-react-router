@@ -79,7 +79,14 @@ self.addEventListener("notificationclick", (event) => {
     }
 
     // Get the URL to open (from notification data or default)
-    const urlToOpen = data.url || "/";
+    let urlToOpen = data.url || "/";
+
+    // Ensure the URL is absolute for clients.openWindow
+    if (urlToOpen.startsWith("/")) {
+        urlToOpen = new URL(urlToOpen, self.location.origin).href;
+    }
+
+    console.log("[Service Worker] Opening URL:", urlToOpen);
 
     event.waitUntil(
         clients
@@ -91,6 +98,9 @@ self.addEventListener("notificationclick", (event) => {
                         client.url.includes(self.location.origin) &&
                         "focus" in client
                     ) {
+                        console.log(
+                            "[Service Worker] Found existing window, navigating...",
+                        );
                         // Navigate the existing window to the notification URL
                         client.navigate(urlToOpen);
                         return client.focus();
@@ -98,6 +108,9 @@ self.addEventListener("notificationclick", (event) => {
                 }
                 // No existing window, open a new one
                 if (clients.openWindow) {
+                    console.log(
+                        "[Service Worker] No existing window, opening new one...",
+                    );
                     return clients.openWindow(urlToOpen);
                 }
             }),

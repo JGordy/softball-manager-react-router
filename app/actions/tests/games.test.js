@@ -10,6 +10,11 @@ import {
     deleteDocument,
 } from "@/utils/databases";
 import { hasBadWords } from "@/utils/badWordsApi";
+import {
+    sendGameFinalNotification,
+    sendAwardVoteNotification,
+} from "../notifications";
+import { getNotifiableTeamMembers } from "@/utils/teams";
 
 // Mock dependencies
 jest.mock("@/utils/databases", () => ({
@@ -26,6 +31,15 @@ jest.mock("@/utils/dateTime", () => ({
     combineDateTime: jest.fn((date, time) => `${date}T${time}`),
 }));
 
+jest.mock("../notifications", () => ({
+    sendGameFinalNotification: jest.fn().mockResolvedValue({ success: true }),
+    sendAwardVoteNotification: jest.fn().mockResolvedValue({ success: true }),
+}));
+
+jest.mock("@/utils/teams", () => ({
+    getNotifiableTeamMembers: jest.fn(),
+}));
+
 jest.mock("react-router", () => ({
     redirect: jest.fn((path) => ({ redirect: path })),
 }));
@@ -35,6 +49,8 @@ describe("Games Actions", () => {
         jest.clearAllMocks();
         jest.spyOn(console, "error").mockImplementation(() => {});
         hasBadWords.mockResolvedValue(false);
+
+        getNotifiableTeamMembers.mockResolvedValue(["user1"]);
     });
 
     afterEach(() => {
@@ -184,6 +200,66 @@ describe("Games Actions", () => {
 
             expect(result.success).toBe(false);
             expect(result.status).toBe(400);
+        });
+
+        it("should send notification when game is final", async () => {
+            jest.useFakeTimers();
+            const mockGame = {
+                $id: "game1",
+                teamId: "team1",
+                opponent: "Tigers",
+                score: "12",
+                opponentScore: "4",
+                result: "won",
+                gameFinal: true,
+            };
+            updateDocument.mockResolvedValue(mockGame);
+
+            await updateGame({
+                values: { gameFinal: "true" },
+                eventId: "game1",
+            });
+
+            expect(sendGameFinalNotification).toHaveBeenCalledWith({
+                gameId: "game1",
+                teamId: "team1",
+                userIds: ["user1"],
+                opponent: "Tigers",
+                score: "won 12 - 4",
+            });
+
+            // Fast-forward 5.5 seconds
+            jest.advanceTimersByTime(5500);
+
+            expect(sendAwardVoteNotification).toHaveBeenCalledWith({
+                gameId: "game1",
+                teamId: "team1",
+                userIds: ["user1"],
+                opponent: "Tigers",
+            });
+            jest.useRealTimers();
+        });
+
+        it("should send notification when scores are provided", async () => {
+            jest.useFakeTimers();
+            const mockGame = {
+                $id: "game1",
+                teamId: "team1",
+                opponent: "Tigers",
+                score: "12",
+                opponentScore: "4",
+            };
+            updateDocument.mockResolvedValue(mockGame);
+
+            await updateGame({
+                values: { score: "12", opponentScore: "4" },
+                eventId: "game1",
+            });
+
+            expect(sendGameFinalNotification).toHaveBeenCalled();
+            jest.advanceTimersByTime(5500);
+            expect(sendAwardVoteNotification).toHaveBeenCalled();
+            jest.useRealTimers();
         });
     });
 

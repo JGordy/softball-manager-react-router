@@ -1,5 +1,5 @@
 import { useLoaderData, useOutletContext, useActionData } from "react-router";
-import { Container, Title, Box, Group } from "@mantine/core";
+import { Container, Title, Group } from "@mantine/core";
 
 import BackButton from "@/components/BackButton";
 import DeferredLoader from "@/components/DeferredLoader";
@@ -48,10 +48,10 @@ export async function action({ request, params }) {
         return updateGame({ values, eventId });
     }
     if (_action === "end-game") {
-        return updateGame({ values: { gameFinal: true }, eventId });
+        return updateGame({ values, eventId });
     }
     if (_action === "resume-game") {
-        return updateGame({ values: { gameFinal: false }, eventId });
+        return updateGame({ values, eventId });
     }
     return null;
 }

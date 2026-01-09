@@ -179,6 +179,7 @@ export async function deletePushTarget({ request, targetId }) {
  * @param {string} options.body - Notification body text
  * @param {string} [options.type] - Notification type from NOTIFICATION_TYPES
  * @param {string} [options.url] - Deep link URL
+ * @param {string} [options.origin] - Origin to use for absolute URLs
  * @param {Object} [options.data] - Additional data
  * @returns {Promise<Object>} Result of the notification send operation
  */
@@ -188,6 +189,7 @@ export async function sendPushNotification({
     body,
     type = NOTIFICATION_TYPES.TEAM_ANNOUNCEMENT,
     url = "/",
+    origin,
     data = {},
 }) {
     // Validate inputs
@@ -197,11 +199,21 @@ export async function sendPushNotification({
 
     userIds.forEach(validateUserId);
 
+    // Resolve absolute URL if origin is provided
+    let finalUrl = url;
+    if (origin && url.startsWith("/")) {
+        try {
+            finalUrl = new URL(url, origin).href;
+        } catch (e) {
+            console.error("Error resolving absolute URL:", e);
+        }
+    }
+
     const payload = formatNotificationPayload({
         title,
         body,
         type,
-        url,
+        url: finalUrl,
         data,
     });
 
@@ -326,7 +338,7 @@ export async function sendGameReminder({
         title: "⚾ Game Reminder",
         body: `${gameName} at ${gameTime}${location ? ` - ${location}` : ""}`,
         type: NOTIFICATION_TYPES.GAME_REMINDER,
-        url: `/gameday/${gameId}`,
+        url: `/events/${gameId}`,
         data: {
             gameId,
             teamId,
@@ -361,7 +373,7 @@ export async function sendLineupFinalizedNotification({
         title: "📋 Lineup Posted",
         body: `The lineup for ${gameName} has been finalized. Check your position!`,
         type: NOTIFICATION_TYPES.LINEUP_FINALIZED,
-        url: `/gameday/${gameId}`,
+        url: `/events/${gameId}#lineup`,
         data: {
             gameId,
             teamId,
@@ -396,12 +408,81 @@ export async function sendAttendanceRequest({
         title: "📝 RSVP Requested",
         body: `Please confirm your attendance for ${gameName} on ${gameDate}`,
         type: NOTIFICATION_TYPES.ATTENDANCE_REQUEST,
-        url: `/gameday/${gameId}`,
+        url: `/events/${gameId}#attendance`,
         data: {
             gameId,
             teamId,
             gameName,
             gameDate,
+        },
+    });
+}
+
+/**
+ * Send a notification when a game is final
+ * @param {Object} options - Notification options
+ * @param {string} options.gameId - Game ID
+ * @param {string} options.teamId - Team ID
+ * @param {string[]} options.userIds - User IDs to notify
+ * @param {string} options.opponent - Opponent name
+ * @param {string} options.score - Game final score (e.g. "12 - 4")
+ * @returns {Promise<Object>} Result of the notification send operation
+ */
+export async function sendGameFinalNotification({
+    gameId,
+    teamId,
+    userIds,
+    opponent,
+    score,
+}) {
+    if (!gameId) {
+        throw new Error("Game ID is required");
+    }
+
+    return sendPushNotification({
+        userIds,
+        title: "🏁 Game Final",
+        body: `The game against ${opponent} just went final. We ${score}`,
+        type: NOTIFICATION_TYPES.GAME_FINAL,
+        url: `/events/${gameId}/scoring#boxscore`,
+        data: {
+            gameId,
+            teamId,
+            opponent,
+            score,
+        },
+    });
+}
+
+/**
+ * Send a notification to remind players to vote for game awards
+ * @param {Object} options - Notification options
+ * @param {string} options.gameId - Game ID
+ * @param {string} options.teamId - Team ID
+ * @param {string[]} options.userIds - User IDs to notify
+ * @param {string} options.opponent - Opponent name
+ * @returns {Promise<Object>} Result of the notification send operation
+ */
+export async function sendAwardVoteNotification({
+    gameId,
+    teamId,
+    userIds,
+    opponent,
+}) {
+    if (!gameId) {
+        throw new Error("Game ID is required");
+    }
+
+    return sendPushNotification({
+        userIds,
+        title: "🏆 Time to Vote!",
+        body: `The game against ${opponent} is over. Head over to the awards tab and vote for today's top performers!`,
+        type: NOTIFICATION_TYPES.VOTE_REMINDER,
+        url: `/events/${gameId}#awards`,
+        data: {
+            gameId,
+            teamId,
+            opponent,
         },
     });
 }
