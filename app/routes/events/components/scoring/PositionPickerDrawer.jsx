@@ -8,13 +8,17 @@ import {
     SegmentedControl,
     Avatar,
     Image,
+    Badge,
+    ThemeIcon,
 } from "@mantine/core";
+import { IconRun, IconOutbound } from "@tabler/icons-react";
 
 import images from "@/constants/images";
 import styles from "@/styles/positionPicker.module.css";
 
 import DrawerContainer from "@/components/DrawerContainer";
 import POSITIONS from "@/constants/positions";
+import DiamondView from "./DiamondView";
 
 export default function PositionPickerDrawer({
     opened,
@@ -22,6 +26,8 @@ export default function PositionPickerDrawer({
     onSelect,
     actionType,
     runners,
+    playerChart,
+    currentBatter,
 }) {
     const [selectedPosition, setSelectedPosition] = useState(null);
     const [runnerResults, setRunnerResults] = useState({});
@@ -75,29 +81,33 @@ export default function PositionPickerDrawer({
     }, [opened, actionType, runners]);
 
     const getTitle = () => {
+        const name = currentBatter?.firstName || "Batter";
+
         switch (actionType) {
             case "1B":
-                return "Single to...";
+                return `${name} singles to...`;
             case "2B":
-                return "Double to...";
+                return `${name} doubles to...`;
             case "3B":
-                return "Triple to...";
+                return `${name} triples to...`;
             case "HR":
-                return "Home Run to...";
+                return `${name} homers to...`;
             case "E":
-                return "Error by...";
+                return `${name} reaches on error by...`;
             case "FC":
-                return "Fielder's Choice by...";
+                return `${name} reaches on FC to...`;
+            case "SAC":
+                return `${name} sacrifices to...`;
             case "Ground Out":
-                return "Grounded out to...";
+                return `${name} grounds out to...`;
             case "Fly Out":
-                return "Flies out to...";
+                return `${name} flies out to...`;
             case "Line Out":
-                return "Lined out to...";
-            case "Pop Out":
-                return "Popped out to...";
+                return `${name} lines out to...`;
+            case "Sac Fly":
+                return `${name} sacrifices to...`;
             default:
-                return "Fielded Out by...";
+                return `${name} - Select Position`;
         }
     };
 
@@ -139,28 +149,25 @@ export default function PositionPickerDrawer({
         ];
 
         return (
-            <>
-                <Divider label="Runner Advancement" labelPosition="center" />
-                <Stack gap="sm">
-                    {configs.map(
-                        (config) =>
-                            runners[config.base] && (
-                                <RunnerControl
-                                    key={config.base}
-                                    label={config.label}
-                                    value={runnerResults[config.base]}
-                                    onChange={(val) =>
-                                        setRunnerResults((prev) => ({
-                                            ...prev,
-                                            [config.base]: val,
-                                        }))
-                                    }
-                                    intermediateOptions={config.options}
-                                />
-                            ),
-                    )}
-                </Stack>
-            </>
+            <Stack gap="sm" mt="sm">
+                {configs.map(
+                    (config) =>
+                        runners[config.base] && (
+                            <RunnerControl
+                                key={config.base}
+                                label={config.label}
+                                value={runnerResults[config.base]}
+                                onChange={(val) =>
+                                    setRunnerResults((prev) => ({
+                                        ...prev,
+                                        [config.base]: val,
+                                    }))
+                                }
+                                intermediateOptions={config.options}
+                            />
+                        ),
+                )}
+            </Stack>
         );
     };
 
@@ -169,6 +176,175 @@ export default function PositionPickerDrawer({
         const img = new window.Image();
         img.src = images.fieldSrc;
     }, []);
+
+    const getProjectedState = () => {
+        // Track WHO is on which base (playerId or null)
+        const projectedRunners = { first: null, second: null, third: null };
+        const occupiedBases = { first: false, second: false, third: false };
+        let runsScored = 0;
+        let outsRecorded = 0;
+
+        // Note: We don't have the batter's ID easily available here without passing it down
+        // or finding it from the game state. For now, we might handle "batter" generically
+        // or require the batterId to be passed.
+        // HOWEVER: The visual feedback might just need to know "someone" is there.
+        // But for the list on the right, we want names.
+        // Let's assume we can't easily get the batter's name without more props,
+        // BUT we can track the existing runners by ID.
+        // Determining the batter's identity might be tricky if not passed.
+        // Let's just use a placeholder "Batter" if we don't have the ID,
+        // OR better: The user sees "Batter" in the UI anyway.
+
+        // Helper to process a result
+        const processResult = (result, runnerId, sourceBase) => {
+            if (!result) return;
+            if (result === "score") {
+                runsScored++;
+            } else if (result === "out") {
+                outsRecorded++;
+            } else if (["first", "second", "third"].includes(result)) {
+                projectedRunners[result] = runnerId;
+                occupiedBases[result] = true;
+            } else if (result === "stay" && sourceBase) {
+                projectedRunners[sourceBase] = runnerId;
+                occupiedBases[sourceBase] = true;
+            }
+        };
+
+        // Process batter - we'll treat them as a special "Batter" entity if we don't have ID
+        // actually, we don't need the ID for the batter in the `runners` map if we just show "Batter"
+        // But wait, if R1 goes to 2nd, and Batter goes to 1st.
+        if (runnerResults.batter) {
+            processResult(runnerResults.batter, "Batter", null);
+        }
+
+        // Process existing runners
+        const bases = ["first", "second", "third"];
+        bases.forEach((base) => {
+            if (runners[base]) {
+                const result = runnerResults[base];
+                processResult(result, runners[base], base);
+            }
+        });
+
+        return { projectedRunners, occupiedBases, runsScored, outsRecorded };
+    };
+
+    const getPlayerName = (id) => {
+        if (!id) return "Empty";
+        if (id === "Batter") return "Batter";
+        const player = playerChart?.find((p) => p.$id === id);
+        return player ? `${player.firstName}` : "Unknown";
+    };
+
+    const renderConfirmation = () => {
+        const { projectedRunners, occupiedBases, runsScored, outsRecorded } =
+            getProjectedState();
+
+        return (
+            <>
+                <Group justify="space-between" mb="xs">
+                    <Text size="sm" fw={700}>
+                        Fielded by: {selectedPosition}
+                    </Text>
+                    <Button
+                        variant="subtle"
+                        size="xs"
+                        onClick={() => setSelectedPosition(null)}
+                    >
+                        Change
+                    </Button>
+                </Group>
+
+                <Divider label="Runner Advancement" labelPosition="center" />
+
+                <Group align="start" grow wrap="nowrap">
+                    {/* Left Column: Visual Diamond */}
+                    <Stack align="center" gap="xs">
+                        <DiamondView
+                            runners={occupiedBases}
+                            withTitle={false}
+                        />
+                    </Stack>
+
+                    {/* Right Column: Runners List & Stats */}
+                    <Stack gap="sm" pl="xs">
+                        {/* Badges First */}
+                        {(runsScored > 0 || outsRecorded > 0) && (
+                            <Group gap="xs">
+                                {runsScored > 0 && (
+                                    <Badge size="md" color="blue">
+                                        {runsScored} RBI
+                                        {runsScored > 1 ? "s" : ""}
+                                    </Badge>
+                                )}
+                                {outsRecorded > 0 && (
+                                    <Badge size="md" color="red">
+                                        {outsRecorded} OUT
+                                        {outsRecorded > 1 ? "S" : ""}
+                                    </Badge>
+                                )}
+                            </Group>
+                        )}
+
+                        {runsScored > 0 || (outsRecorded > 0 && <Divider />)}
+
+                        <Stack gap="xs">
+                            <Text size="xs" fw={700} c="dimmed">
+                                PROJECTED RUNNERS
+                            </Text>
+                            {[
+                                { base: "third", label: "3rd" },
+                                { base: "second", label: "2nd" },
+                                { base: "first", label: "1st" },
+                            ].map((b) => (
+                                <Group
+                                    key={b.base}
+                                    justify="space-between"
+                                    wrap="nowrap"
+                                >
+                                    <Badge
+                                        variant="filled"
+                                        color="gray"
+                                        size="sm"
+                                        w={40}
+                                    >
+                                        {b.label}
+                                    </Badge>
+                                    <Text
+                                        size="sm"
+                                        fw={500}
+                                        style={{
+                                            textOverflow: "ellipsis",
+                                            overflow: "hidden",
+                                            whiteSpace: "nowrap",
+                                        }}
+                                    >
+                                        {getPlayerName(
+                                            projectedRunners[b.base],
+                                        )}
+                                    </Text>
+                                </Group>
+                            ))}
+                        </Stack>
+                    </Stack>
+                </Group>
+
+                {hasRunners && renderRunners()}
+
+                <Button
+                    color={getColor()}
+                    fullWidth
+                    size="md"
+                    radius="md"
+                    onClick={handleConfirm}
+                    mt="md"
+                >
+                    Confirm Play
+                </Button>
+            </>
+        );
+    };
 
     return (
         <DrawerContainer
@@ -227,33 +403,7 @@ export default function PositionPickerDrawer({
                         </div>
                     </>
                 ) : (
-                    <>
-                        <Group justify="space-between">
-                            <Text size="sm" fw={700}>
-                                Fielded by: {selectedPosition}
-                            </Text>
-                            <Button
-                                variant="subtle"
-                                size="xs"
-                                onClick={() => setSelectedPosition(null)}
-                            >
-                                Change
-                            </Button>
-                        </Group>
-
-                        {hasRunners && renderRunners()}
-
-                        <Button
-                            color={getColor()}
-                            fullWidth
-                            size="md"
-                            radius="md"
-                            onClick={handleConfirm}
-                            mt="md"
-                        >
-                            Confirm Play
-                        </Button>
-                    </>
+                    renderConfirmation()
                 )}
 
                 <Button

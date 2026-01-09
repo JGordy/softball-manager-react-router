@@ -532,6 +532,8 @@ export default function ScoringContainer({
                 actionType={pendingAction}
                 runners={runners}
                 onSelect={(payload) => completeAction(pendingAction, payload)}
+                playerChart={playerChart}
+                currentBatter={currentBatter}
             />
         </Stack>
     );
