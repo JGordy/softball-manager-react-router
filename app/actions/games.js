@@ -244,7 +244,7 @@ export async function updateGame({ values, eventId }) {
                             gameDetails.opponentScore,
                         );
 
-                        const scoreDisplay = `${result}${
+                        const scoreDisplay = `${result} ${
                             gameDetails.score || 0
                         } - ${gameDetails.opponentScore || 0}`;
 

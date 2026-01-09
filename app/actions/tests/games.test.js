@@ -220,7 +220,7 @@ describe("Games Actions", () => {
                 teamId: "team1",
                 userIds: ["user1"],
                 opponent: "Tigers",
-                score: "Won 12 - 4",
+                score: "won 12 - 4",
             });
         });
 
