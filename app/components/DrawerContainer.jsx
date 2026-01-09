@@ -10,6 +10,7 @@ export default function DrawerContainer({
     size = "md",
     title,
     zIndex = 5000,
+    ...props
 }) {
     return (
         <Drawer
@@ -29,6 +30,7 @@ export default function DrawerContainer({
             }}
             title={title}
             zIndex={zIndex}
+            {...props}
         >
             {children}
         </Drawer>
