@@ -191,3 +191,22 @@ export async function deleteAppwriteTeam({ teamId }) {
         throw error;
     }
 }
+
+/**
+ * Get user IDs of team members who have notifications enabled
+ * @param {string} teamId - The team ID
+ * @returns {Promise<string[]>} Array of user IDs
+ */
+export async function getNotifiableTeamMembers(teamId) {
+    try {
+        const memberships = await getTeamMembers({ teamId });
+        // Return all member user IDs for now
+        // TODO: Filter by user notification preferences when implemented
+        return memberships.memberships
+            .filter((m) => m.userId) // Ensure userId exists
+            .map((m) => m.userId);
+    } catch (error) {
+        console.error("Error getting team members for notifications:", error);
+        return [];
+    }
+}
