@@ -9,7 +9,10 @@ import { hasBadWords } from "@/utils/badWordsApi";
 import { getNotifiableTeamMembers } from "@/utils/teams.js";
 
 import { removeEmptyValues } from "./utils/formUtils";
-import { sendGameFinalNotification } from "./notifications";
+import {
+    sendGameFinalNotification,
+    sendAwardVoteNotification,
+} from "./notifications";
 
 function computeResult(score, opponentScore) {
     const a = parseInt(String(score).trim(), 10);
@@ -255,6 +258,21 @@ export async function updateGame({ values, eventId }) {
                             opponent: gameDetails.opponent || "Opponent",
                             score: scoreDisplay,
                         });
+
+                        // Send award vote reminder after 5 seconds
+                        setTimeout(() => {
+                            sendAwardVoteNotification({
+                                gameId: eventId,
+                                teamId,
+                                userIds,
+                                opponent: gameDetails.opponent || "Opponent",
+                            }).catch((err) =>
+                                console.error(
+                                    "Error sending award vote notification:",
+                                    err,
+                                ),
+                            );
+                        }, 5000);
                     }
                 }
             } catch (notifyError) {

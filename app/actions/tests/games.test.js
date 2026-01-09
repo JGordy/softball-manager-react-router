@@ -10,7 +10,10 @@ import {
     deleteDocument,
 } from "@/utils/databases";
 import { hasBadWords } from "@/utils/badWordsApi";
-import { sendGameFinalNotification } from "../notifications";
+import {
+    sendGameFinalNotification,
+    sendAwardVoteNotification,
+} from "../notifications";
 import { getNotifiableTeamMembers } from "@/utils/teams";
 
 // Mock dependencies
@@ -29,7 +32,8 @@ jest.mock("@/utils/dateTime", () => ({
 }));
 
 jest.mock("../notifications", () => ({
-    sendGameFinalNotification: jest.fn(),
+    sendGameFinalNotification: jest.fn().mockResolvedValue({ success: true }),
+    sendAwardVoteNotification: jest.fn().mockResolvedValue({ success: true }),
 }));
 
 jest.mock("@/utils/teams", () => ({
@@ -199,6 +203,7 @@ describe("Games Actions", () => {
         });
 
         it("should send notification when game is final", async () => {
+            jest.useFakeTimers();
             const mockGame = {
                 $id: "game1",
                 teamId: "team1",
@@ -222,9 +227,21 @@ describe("Games Actions", () => {
                 opponent: "Tigers",
                 score: "won 12 - 4",
             });
+
+            // Fast-forward 3 seconds
+            jest.advanceTimersByTime(5000);
+
+            expect(sendAwardVoteNotification).toHaveBeenCalledWith({
+                gameId: "game1",
+                teamId: "team1",
+                userIds: ["user1"],
+                opponent: "Tigers",
+            });
+            jest.useRealTimers();
         });
 
         it("should send notification when scores are provided", async () => {
+            jest.useFakeTimers();
             const mockGame = {
                 $id: "game1",
                 teamId: "team1",
@@ -240,6 +257,9 @@ describe("Games Actions", () => {
             });
 
             expect(sendGameFinalNotification).toHaveBeenCalled();
+            jest.advanceTimersByTime(5000);
+            expect(sendAwardVoteNotification).toHaveBeenCalled();
+            jest.useRealTimers();
         });
     });
 
