@@ -1,13 +1,17 @@
 import { useState, useEffect } from "react";
 import {
     Button,
-    SimpleGrid,
     Group,
     Stack,
     Text,
     Divider,
     SegmentedControl,
+    Avatar,
+    Image,
 } from "@mantine/core";
+
+import images from "@/constants/images";
+import styles from "@/styles/positionPicker.module.css";
 
 import DrawerContainer from "@/components/DrawerContainer";
 import POSITIONS from "@/constants/positions";
@@ -160,13 +164,20 @@ export default function PositionPickerDrawer({
         );
     };
 
+    // Preload field image
+    useEffect(() => {
+        const img = new window.Image();
+        img.src = images.fieldSrc;
+    }, []);
+
     return (
         <DrawerContainer
             opened={opened}
             onClose={onClose}
             title={getTitle()}
             position="bottom"
-            size="md"
+            size="lg"
+            keepMounted
         >
             <Stack gap="md" pb="xl">
                 {!selectedPosition ? (
@@ -174,24 +185,46 @@ export default function PositionPickerDrawer({
                         <Text size="sm" c="dimmed">
                             Select the defender involved:
                         </Text>
-                        <SimpleGrid cols={5} spacing="xs">
-                            {positions.map((pos) => (
-                                <Button
-                                    key={pos.value}
-                                    color={getColor()}
-                                    variant="filled"
-                                    radius="md"
-                                    h={60}
-                                    onClick={() =>
-                                        setSelectedPosition(pos.value)
-                                    }
-                                >
-                                    <Text fw={900} c="white">
-                                        {pos.label}
-                                    </Text>
-                                </Button>
-                            ))}
-                        </SimpleGrid>
+
+                        <div className={styles.imageContainer}>
+                            <Image
+                                src={images.fieldSrc}
+                                alt="Softball Field"
+                                className={styles.fieldImage}
+                            />
+                            {positions.map((pos) => {
+                                const positionKey = Object.keys(POSITIONS).find(
+                                    (key) =>
+                                        POSITIONS[key].initials === pos.value,
+                                );
+                                const className = positionKey
+                                    ? styles[
+                                          positionKey
+                                              .toLowerCase()
+                                              .replace(/\s+/g, "")
+                                      ]
+                                    : "";
+
+                                return (
+                                    <div
+                                        key={pos.value}
+                                        className={`${styles.fieldingPosition} ${className}`}
+                                        onClick={() =>
+                                            setSelectedPosition(pos.value)
+                                        }
+                                    >
+                                        <Avatar
+                                            size="md"
+                                            radius="xl"
+                                            color={getColor()}
+                                            variant="filled"
+                                        >
+                                            {pos.label}
+                                        </Avatar>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </>
                 ) : (
                     <>
@@ -224,7 +257,8 @@ export default function PositionPickerDrawer({
                 )}
 
                 <Button
-                    variant="subtle"
+                    variant="light"
+                    radius="md"
                     fullWidth
                     onClick={onClose}
                     color="gray"
