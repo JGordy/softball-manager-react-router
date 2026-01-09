@@ -6,8 +6,10 @@ import {
 } from "@/utils/databases.js";
 import { combineDateTime } from "@/utils/dateTime";
 import { hasBadWords } from "@/utils/badWordsApi";
+import { getNotifiableTeamMembers } from "@/utils/teams.js";
 
 import { removeEmptyValues } from "./utils/formUtils";
+import { sendGameFinalNotification } from "./notifications";
 
 function computeResult(score, opponentScore) {
     const a = parseInt(String(score).trim(), 10);
@@ -188,12 +190,19 @@ export async function updateGame({ values, eventId }) {
         if (result) dataToUpdate.result = result;
     }
 
-    // Normalize countTowardsRecord when provided from the form (checkbox/switch)
+    // Normalize Boolean flags when provided from forms or API
     if (Object.prototype.hasOwnProperty.call(values, "countTowardsRecord")) {
         dataToUpdate.countTowardsRecord =
             values.countTowardsRecord === "true" ||
             values.countTowardsRecord === "on" ||
             values.countTowardsRecord === true;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(values, "gameFinal")) {
+        dataToUpdate.gameFinal =
+            values.gameFinal === "true" ||
+            values.gameFinal === "on" ||
+            values.gameFinal === true;
     }
 
     delete dataToUpdate.gameTime;
@@ -214,6 +223,53 @@ export async function updateGame({ values, eventId }) {
             eventId,
             dataToUpdate,
         );
+
+        // Send notification if game is finalized or score is updated
+        const isSetFinal = dataToUpdate.gameFinal === true;
+        const scoresProvided =
+            dataToUpdate.hasOwnProperty("score") &&
+            dataToUpdate.hasOwnProperty("opponentScore");
+
+        if (isSetFinal || scoresProvided) {
+            try {
+                // Get team members to notify
+                const teamId = gameDetails.teamId;
+
+                if (teamId) {
+                    const userIds = await getNotifiableTeamMembers(teamId);
+
+                    if (userIds.length > 0) {
+                        const result = computeResult(
+                            dataToUpdate.score,
+                            dataToUpdate.opponentScore,
+                        );
+
+                        const resultDisplay = result
+                            ? result.charAt(0).toUpperCase() +
+                              result.slice(1) +
+                              " "
+                            : "";
+
+                        const scoreDisplay = `${resultDisplay}${
+                            gameDetails.score || 0
+                        } - ${gameDetails.opponentScore || 0}`;
+
+                        await sendGameFinalNotification({
+                            gameId: eventId,
+                            teamId,
+                            userIds,
+                            opponent: gameDetails.opponent || "Opponent",
+                            score: scoreDisplay,
+                        });
+                    }
+                }
+            } catch (notifyError) {
+                console.error(
+                    "Error sending game final notification:",
+                    notifyError,
+                );
+            }
+        }
 
         return {
             response: { gameDetails },
