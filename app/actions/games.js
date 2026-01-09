@@ -240,17 +240,11 @@ export async function updateGame({ values, eventId }) {
 
                     if (userIds.length > 0) {
                         const result = computeResult(
-                            dataToUpdate.score,
-                            dataToUpdate.opponentScore,
+                            gameDetails.score,
+                            gameDetails.opponentScore,
                         );
 
-                        const resultDisplay = result
-                            ? result.charAt(0).toUpperCase() +
-                              result.slice(1) +
-                              " "
-                            : "";
-
-                        const scoreDisplay = `${resultDisplay}${
+                        const scoreDisplay = `${result}${
                             gameDetails.score || 0
                         } - ${gameDetails.opponentScore || 0}`;
 

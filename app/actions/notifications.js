@@ -442,7 +442,7 @@ export async function sendGameFinalNotification({
     return sendPushNotification({
         userIds,
         title: "🏁 Game Final",
-        body: `The game against ${opponent} is over. Final Score: ${score}`,
+        body: `The game against ${opponent} just went final. \n\nWe ${score}`,
         type: NOTIFICATION_TYPES.GAME_FINAL,
         url: `/events/${gameId}/scoring#boxscore`,
         data: {
