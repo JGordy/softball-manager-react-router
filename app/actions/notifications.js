@@ -424,7 +424,7 @@ export async function sendAttendanceRequest({
  * @param {string} options.gameId - Game ID
  * @param {string} options.teamId - Team ID
  * @param {string[]} options.userIds - User IDs to notify
- * @param {string} options.gameName - Name/description of the game
+ * @param {string} options.opponent - Opponent name
  * @param {string} options.score - Game final score (e.g. "12 - 4")
  * @returns {Promise<Object>} Result of the notification send operation
  */
@@ -442,7 +442,7 @@ export async function sendGameFinalNotification({
     return sendPushNotification({
         userIds,
         title: "🏁 Game Final",
-        body: `The game against ${opponent} just went final. \n\nWe ${score}`,
+        body: `The game against ${opponent} just went final. We ${score}`,
         type: NOTIFICATION_TYPES.GAME_FINAL,
         url: `/events/${gameId}/scoring#boxscore`,
         data: {

@@ -228,8 +228,8 @@ describe("Games Actions", () => {
                 score: "won 12 - 4",
             });
 
-            // Fast-forward 3 seconds
-            jest.advanceTimersByTime(5000);
+            // Fast-forward 5.5 seconds
+            jest.advanceTimersByTime(5500);
 
             expect(sendAwardVoteNotification).toHaveBeenCalledWith({
                 gameId: "game1",
@@ -257,7 +257,7 @@ describe("Games Actions", () => {
             });
 
             expect(sendGameFinalNotification).toHaveBeenCalled();
-            jest.advanceTimersByTime(5000);
+            jest.advanceTimersByTime(5500);
             expect(sendAwardVoteNotification).toHaveBeenCalled();
             jest.useRealTimers();
         });

@@ -259,7 +259,7 @@ export async function updateGame({ values, eventId }) {
                             score: scoreDisplay,
                         });
 
-                        // Send award vote reminder after 5 seconds
+                        // Send award vote reminder after 5.5 seconds
                         setTimeout(() => {
                             sendAwardVoteNotification({
                                 gameId: eventId,
@@ -272,7 +272,7 @@ export async function updateGame({ values, eventId }) {
                                     err,
                                 ),
                             );
-                        }, 5000);
+                        }, 5500);
                     }
                 }
             } catch (notifyError) {
