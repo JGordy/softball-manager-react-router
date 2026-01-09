@@ -6,6 +6,7 @@ import {
     getTeamMembers,
     updateMembershipRoles,
     removeTeamMember,
+    getNotifiableTeamMembers,
 } from "../teams";
 import { createAdminClient } from "@/utils/appwrite/server";
 
@@ -340,6 +341,44 @@ describe("teams utility", () => {
 
             expect(console.error).toHaveBeenCalledWith(
                 "Error removing team member:",
+                error,
+            );
+        });
+    });
+
+    describe("getNotifiableTeamMembers", () => {
+        it("should return array of user IDs from memberships", async () => {
+            const teamId = "team123";
+            const mockMemberships = {
+                memberships: [
+                    { userId: "user1", email: "user1@example.com" },
+                    { userId: "user2", email: "user2@example.com" },
+                    { userId: null, email: "pending@example.com" }, // Pending member
+                ],
+            };
+
+            mockTeams.listMemberships.mockResolvedValue(mockMemberships);
+
+            const result = await getNotifiableTeamMembers(teamId);
+
+            expect(mockTeams.listMemberships).toHaveBeenCalledWith(
+                teamId,
+                undefined,
+                undefined,
+            );
+            expect(result).toEqual(["user1", "user2"]);
+        });
+
+        it("should return an empty array if an error occurs", async () => {
+            const teamId = "team123";
+            const error = new Error("Appwrite error");
+            mockTeams.listMemberships.mockRejectedValue(error);
+
+            const result = await getNotifiableTeamMembers(teamId);
+
+            expect(result).toEqual([]);
+            expect(console.error).toHaveBeenCalledWith(
+                "Error getting team members for notifications:",
                 error,
             );
         });
