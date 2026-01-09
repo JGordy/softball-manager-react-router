@@ -96,16 +96,16 @@ export default function PositionPickerDrawer({
                 return `${name} reaches on error by...`;
             case "FC":
                 return `${name} reaches on FC to...`;
-            case "SAC":
-                return `${name} sacrifices to...`;
+            case "SF":
+                return `${name} sac flies to...`;
             case "Ground Out":
                 return `${name} grounds out to...`;
             case "Fly Out":
                 return `${name} flies out to...`;
             case "Line Out":
                 return `${name} lines out to...`;
-            case "Sac Fly":
-                return `${name} sacrifices to...`;
+            case "Pop Out":
+                return `${name} pops out to...`;
             default:
                 return `${name} - Select Position`;
         }
