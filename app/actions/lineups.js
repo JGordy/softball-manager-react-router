@@ -1,25 +1,6 @@
 import { updateDocument } from "@/utils/databases.js";
-import { getTeamMembers } from "@/utils/teams.js";
+import { getNotifiableTeamMembers } from "@/utils/teams.js";
 import { sendLineupFinalizedNotification } from "@/actions/notifications.js";
-
-/**
- * Get user IDs of team members who have notifications enabled
- * @param {string} teamId - The team ID
- * @returns {Promise<string[]>} Array of user IDs
- */
-async function getNotifiableTeamMembers(teamId) {
-    try {
-        const memberships = await getTeamMembers({ teamId });
-        // Return all member user IDs for now
-        // TODO: Filter by user notification preferences when implemented
-        return memberships.memberships
-            .filter((m) => m.userId) // Ensure userId exists
-            .map((m) => m.userId);
-    } catch (error) {
-        console.error("Error getting team members for notifications:", error);
-        return [];
-    }
-}
 
 // Save a created lineup and field chart to appwrite database
 export async function savePlayerChart({

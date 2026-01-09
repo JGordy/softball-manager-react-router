@@ -4,7 +4,7 @@ import {
     saveFieldingPositions,
 } from "../lineups";
 import { updateDocument } from "@/utils/databases";
-import { getTeamMembers } from "@/utils/teams";
+import { getNotifiableTeamMembers } from "@/utils/teams";
 import { sendLineupFinalizedNotification } from "@/actions/notifications";
 
 // Mock dependencies
@@ -13,7 +13,7 @@ jest.mock("@/utils/databases", () => ({
 }));
 
 jest.mock("@/utils/teams", () => ({
-    getTeamMembers: jest.fn(),
+    getNotifiableTeamMembers: jest.fn(),
 }));
 
 jest.mock("@/actions/notifications", () => ({
@@ -64,9 +64,7 @@ describe("Lineups Actions", () => {
                 opponent: "Test Opponent",
             });
 
-            getTeamMembers.mockResolvedValue({
-                memberships: [{ userId: "user1" }, { userId: "user2" }],
-            });
+            getNotifiableTeamMembers.mockResolvedValue(["user1", "user2"]);
 
             sendLineupFinalizedNotification.mockResolvedValue({
                 success: true,
@@ -85,7 +83,7 @@ describe("Lineups Actions", () => {
                     eventId,
                 },
             });
-            expect(getTeamMembers).toHaveBeenCalledWith({ teamId });
+            expect(getNotifiableTeamMembers).toHaveBeenCalledWith(teamId);
             expect(sendLineupFinalizedNotification).toHaveBeenCalledWith({
                 gameId: eventId,
                 teamId,
@@ -118,7 +116,7 @@ describe("Lineups Actions", () => {
                     eventId,
                 },
             });
-            expect(getTeamMembers).not.toHaveBeenCalled();
+            expect(getNotifiableTeamMembers).not.toHaveBeenCalled();
             expect(sendLineupFinalizedNotification).not.toHaveBeenCalled();
         });
 
@@ -134,9 +132,7 @@ describe("Lineups Actions", () => {
                 opponent: "Test",
             });
 
-            getTeamMembers.mockResolvedValue({
-                memberships: [{ userId: "user1" }],
-            });
+            getNotifiableTeamMembers.mockResolvedValue(["user1"]);
 
             sendLineupFinalizedNotification.mockRejectedValue(
                 new Error("Notification failed"),
