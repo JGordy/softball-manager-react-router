@@ -1,0 +1,80 @@
+.imageContainer {
+    position: relative;
+    max-width: 100%;
+    margin: 0 auto;
+    aspect-ratio: 1 / 1;
+    min-height: 300px;
+}
+
+.fieldImage {
+    width: 100%;
+    height: auto;
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.fieldingPosition {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+    z-index: 10;
+}
+
+.fieldingPosition:hover {
+    transform: translate(-50%, -50%) scale(1.1);
+    z-index: 20;
+}
+
+.pitcher {
+    left: 50%;
+    top: 62%;
+}
+
+.catcher {
+    left: 50%;
+    top: 78%;
+}
+
+.firstbase {
+    left: 66%;
+    top: 56%;
+}
+
+.secondbase {
+    left: 57%;
+    top: 49%;
+}
+
+.thirdbase {
+    left: 34%;
+    top: 56%;
+}
+
+.shortstop {
+    left: 43%;
+    top: 49%;
+}
+
+.leftfield {
+    left: 25%;
+    top: 35%;
+}
+
+.leftcenterfield {
+    left: 40%;
+    top: 25%;
+}
+
+.rightcenterfield {
+    left: 60%;
+    top: 25%;
+}
+
+.rightfield {
+    left: 75%;
+    top: 35%;
+}
