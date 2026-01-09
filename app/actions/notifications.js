@@ -453,3 +453,36 @@ export async function sendGameFinalNotification({
         },
     });
 }
+
+/**
+ * Send a notification to remind players to vote for game awards
+ * @param {Object} options - Notification options
+ * @param {string} options.gameId - Game ID
+ * @param {string} options.teamId - Team ID
+ * @param {string[]} options.userIds - User IDs to notify
+ * @param {string} options.opponent - Opponent name
+ * @returns {Promise<Object>} Result of the notification send operation
+ */
+export async function sendAwardVoteNotification({
+    gameId,
+    teamId,
+    userIds,
+    opponent,
+}) {
+    if (!gameId) {
+        throw new Error("Game ID is required");
+    }
+
+    return sendPushNotification({
+        userIds,
+        title: "🏆 Time to Vote!",
+        body: `The game against ${opponent} is over. Head over to the awards tab and vote for today's top performers!`,
+        type: NOTIFICATION_TYPES.VOTE_REMINDER,
+        url: `/events/${gameId}#awards`,
+        data: {
+            gameId,
+            teamId,
+            opponent,
+        },
+    });
+}

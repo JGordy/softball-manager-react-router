@@ -11,6 +11,7 @@ export const NOTIFICATION_TYPES = {
     ATTENDANCE_REQUEST: "attendance_request",
     INVITATION: "invitation",
     GAME_FINAL: "game_final",
+    VOTE_REMINDER: "vote_reminder",
 };
 
 // Notification topics for broadcast messaging

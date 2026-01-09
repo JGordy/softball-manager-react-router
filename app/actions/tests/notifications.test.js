@@ -7,6 +7,7 @@ import {
     sendLineupFinalizedNotification,
     sendAttendanceRequest,
     sendGameFinalNotification,
+    sendAwardVoteNotification,
 } from "../notifications";
 
 // Use the __mocks__/node-appwrite.js mock for generic Appwrite SDK classes
@@ -273,6 +274,30 @@ describe("notifications actions", () => {
                 userIds: ["user-1"],
                 gameName: "Game vs Opponent",
                 score: "10-2",
+            });
+
+            expect(result.success).toBe(true);
+        });
+    });
+
+    describe("sendAwardVoteNotification", () => {
+        it("should throw error if gameId is missing", async () => {
+            await expect(
+                sendAwardVoteNotification({
+                    gameId: "",
+                    teamId: "team-123",
+                    userIds: ["user-1"],
+                    opponent: "Tigers",
+                }),
+            ).rejects.toThrow("Game ID is required");
+        });
+
+        it("should send award vote notification with correct format", async () => {
+            const result = await sendAwardVoteNotification({
+                gameId: "game-123",
+                teamId: "team-123",
+                userIds: ["user-1"],
+                opponent: "Tigers",
             });
 
             expect(result.success).toBe(true);
