@@ -1,11 +1,13 @@
 import { Box, Card, Text } from "@mantine/core";
 
-export default function DiamondView({ runners }) {
+export default function DiamondView({ runners, withTitle = true }) {
     return (
         <>
-            <Text size="xs" fw={700} c="dimmed" mb={-5}>
-                ON BASE
-            </Text>
+            {withTitle && (
+                <Text size="xs" fw={700} c="dimmed" mb={-5}>
+                    ON BASE
+                </Text>
+            )}
             <Card
                 withBorder
                 radius="lg"
