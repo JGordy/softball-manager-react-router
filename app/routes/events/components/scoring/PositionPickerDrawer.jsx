@@ -414,6 +414,18 @@ export default function PositionPickerDrawer({
                                         onClick={() =>
                                             setSelectedPosition(pos.value)
                                         }
+                                        onKeyDown={(e) => {
+                                            if (
+                                                e.key === "Enter" ||
+                                                e.key === " "
+                                            ) {
+                                                e.preventDefault();
+                                                setSelectedPosition(pos.value);
+                                            }
+                                        }}
+                                        tabIndex={0}
+                                        role="button"
+                                        aria-label={pos.label}
                                     >
                                         <Avatar
                                             size="md"
