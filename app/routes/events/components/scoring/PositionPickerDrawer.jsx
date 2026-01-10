@@ -9,9 +9,7 @@ import {
     Avatar,
     Image,
     Badge,
-    ThemeIcon,
 } from "@mantine/core";
-import { IconRun, IconOutbound } from "@tabler/icons-react";
 
 import images from "@/constants/images";
 import styles from "@/styles/positionPicker.module.css";
@@ -28,6 +26,7 @@ export default function PositionPickerDrawer({
     runners,
     playerChart,
     currentBatter,
+    outs,
 }) {
     const [selectedPosition, setSelectedPosition] = useState(null);
     const [runnerResults, setRunnerResults] = useState({});
@@ -127,16 +126,41 @@ export default function PositionPickerDrawer({
     const hasRunners = runners.first || runners.second || runners.third;
 
     const renderRunners = () => {
+        // 1. Home Runs: No controls needed, everyone scores automatically
+        if (actionType === "HR") return null;
+
+        // 2. Third Out: If the play results in the 3rd out, no runner advancement is possible
+        // Calculate outs from the play itself first
+        let newOuts = 0;
+        if (
+            ["Fly Out", "Ground Out", "Line Out", "Pop Out", "K"].includes(
+                actionType,
+            )
+        )
+            newOuts = 1;
+        // SF is technically an out but allows advancement. But if it's the 3rd out, it doesn't matter.
+        if (actionType === "SF") newOuts = 1;
+
+        if ((outs || 0) + newOuts >= 3) {
+            return (
+                <Text size="sm" c="dimmed" fs="italic" ta="center" mt="sm">
+                    Inning over. No runner advancement.
+                </Text>
+            );
+        }
+
         const configs = [
             {
                 base: "third",
                 label: "Runner on 3rd",
                 options: [],
+                shouldShow: runners.third,
             },
             {
                 base: "second",
                 label: "Runner on 2nd",
                 options: [{ label: "3rd", value: "third" }],
+                shouldShow: runners.second,
             },
             {
                 base: "first",
@@ -145,14 +169,30 @@ export default function PositionPickerDrawer({
                     { label: "2nd", value: "second" },
                     { label: "3rd", value: "third" },
                 ],
+                shouldShow: runners.first,
             },
         ];
+
+        // 3. Error / Fielder's Choice: Allow Batter advancement
+        if (["E", "FC"].includes(actionType)) {
+            configs.push({
+                base: "batter",
+                label: "Batter",
+                options: [
+                    { label: "1st", value: "first" }, // Default
+                    { label: "2nd", value: "second" },
+                    { label: "3rd", value: "third" },
+                ],
+                // Always show for E/FC
+                shouldShow: true,
+            });
+        }
 
         return (
             <Stack gap="sm" mt="sm">
                 {configs.map(
                     (config) =>
-                        runners[config.base] && (
+                        config.shouldShow && (
                             <RunnerControl
                                 key={config.base}
                                 label={config.label}
@@ -184,17 +224,6 @@ export default function PositionPickerDrawer({
         let runsScored = 0;
         let outsRecorded = 0;
 
-        // Note: We don't have the batter's ID easily available here without passing it down
-        // or finding it from the game state. For now, we might handle "batter" generically
-        // or require the batterId to be passed.
-        // HOWEVER: The visual feedback might just need to know "someone" is there.
-        // But for the list on the right, we want names.
-        // Let's assume we can't easily get the batter's name without more props,
-        // BUT we can track the existing runners by ID.
-        // Determining the batter's identity might be tricky if not passed.
-        // Let's just use a placeholder "Batter" if we don't have the ID,
-        // OR better: The user sees "Batter" in the UI anyway.
-
         // Helper to process a result
         const processResult = (result, runnerId, sourceBase) => {
             if (!result) return;
@@ -211,9 +240,6 @@ export default function PositionPickerDrawer({
             }
         };
 
-        // Process batter - we'll treat them as a special "Batter" entity if we don't have ID
-        // actually, we don't need the ID for the batter in the `runners` map if we just show "Batter"
-        // But wait, if R1 goes to 2nd, and Batter goes to 1st.
         if (runnerResults.batter) {
             processResult(runnerResults.batter, "Batter", null);
         }
