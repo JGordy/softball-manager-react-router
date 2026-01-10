@@ -8,7 +8,7 @@ import {
     rollbackTransaction,
     collections,
 } from "@/utils/databases";
-import { EVENT_TYPE_MAP } from "@/routes/events/components/scoring/scoringConstants";
+import { EVENT_TYPE_MAP } from "@/routes/events/constants/scoringConstants";
 import { ID, Permission, Role } from "node-appwrite";
 
 const databaseId = process.env.APPWRITE_DATABASE_ID;

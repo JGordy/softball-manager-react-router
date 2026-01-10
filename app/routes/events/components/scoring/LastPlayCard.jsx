@@ -1,6 +1,6 @@
 import { Card, Stack, Text, Button } from "@mantine/core";
 import { IconArrowBackUp } from "@tabler/icons-react";
-import { getRunnerMovement } from "./scoringUtils";
+import { getRunnerMovement } from "../../utils/scoringUtils";
 
 export default function LastPlayCard({
     lastLog,

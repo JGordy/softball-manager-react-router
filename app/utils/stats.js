@@ -3,7 +3,7 @@ import {
     WALKS,
     OUTS,
     EVENT_TYPE_MAP,
-} from "@/routes/events/components/scoring/scoringConstants";
+} from "@/routes/events/constants/scoringConstants";
 
 /**
  * Calculate standard softball statistics for a set of game logs.
