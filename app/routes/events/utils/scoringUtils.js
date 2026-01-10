@@ -121,7 +121,7 @@ export function handleRunnerResults(runnerResults, runners, batterId) {
     // Process Batter
     processRunner(runnerResults.batter, batterId);
 
-    // Process Runers
+    // Process Runners
     ["first", "second", "third"].forEach((base) => {
         if (runners[base]) {
             const result = runnerResults[base];
