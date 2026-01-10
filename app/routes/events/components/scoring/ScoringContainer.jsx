@@ -7,8 +7,15 @@ import { useDisclosure } from "@mantine/hooks";
 import TabsWrapper from "@/components/TabsWrapper";
 import { useGameUpdates } from "@/hooks/useGameUpdates";
 
-import { useGameState } from "./useGameState";
-import { UI_BATTED_OUTS, UI_WALKS, EVENT_TYPE_MAP } from "./scoringConstants";
+import { useGameState } from "../../hooks/useGameState";
+
+import { UI_BATTED_OUTS, UI_WALKS } from "../../constants/scoringConstants";
+
+import {
+    getEventDescription,
+    handleWalk,
+    handleRunnerResults,
+} from "../../utils/scoringUtils";
 
 import ScoreboardHeader from "./ScoreboardHeader";
 import DiamondView from "./DiamondView";
@@ -21,99 +28,6 @@ import LastPlayCard from "./LastPlayCard";
 import FieldingControls from "./FieldingControls";
 import BoxScore from "./BoxScore";
 import OnDeckCard from "./OnDeckCard";
-
-function getEventDescription(actionType, batterName, position) {
-    if (actionType === "1B") return `${batterName} singles to ${position}`;
-    if (actionType === "2B") return `${batterName} doubles to ${position}`;
-    if (actionType === "3B") return `${batterName} triples to ${position}`;
-    if (actionType === "HR")
-        return `${batterName} hits a home run to ${position}`;
-    if (actionType === "Ground Out")
-        return `${batterName} grounds out to ${position}`;
-    if (actionType === "Fly Out")
-        return `${batterName} flies out to ${position}`;
-    if (actionType === "Line Out")
-        return `${batterName} lines out to ${position}`;
-    if (actionType === "Pop Out")
-        return `${batterName} pops out to ${position}`;
-    if (actionType === "E")
-        return `${batterName} reaches on an error by ${position}`;
-    if (actionType === "FC")
-        return `${batterName} reaches on a fielder's choice to ${position}`;
-    if (actionType === "BB") return `${batterName} walks`;
-    if (actionType === "K") return `${batterName} strikes out`;
-
-    return `${batterName}: ${actionType}${position ? ` (${position})` : ""}`;
-}
-
-/**
- * Handles walk events with correct forced runner advancement logic.
- * A walk forces all runners to advance only if there's a force play.
- * Returns updated base state with player IDs for runners and any who scored.
- */
-function handleWalk(runners, batterId) {
-    const { first: r1, second: r2, third: r3 } = runners;
-    const scoredIds = [];
-    let runsOnPlay = 0;
-
-    // Runner on third scores only if all bases were occupied (forced home)
-    if (r1 && r2 && r3) {
-        runsOnPlay++;
-        scoredIds.push(r3);
-    }
-
-    // Walk logic: Batter to 1st, force runners only if necessary
-    const newRunners = {
-        first: batterId,
-        second: r1 ? r1 : r2, // If R1 exists, they're forced to 2nd. Else R2 stays.
-        third: r1 && r2 ? r2 : r3, // If both R1 and R2 exist, R2 is forced to 3rd. Else R3 stays.
-        scored: scoredIds,
-    };
-
-    return { newRunners, runsOnPlay, outsRecorded: 0 };
-}
-
-/**
- * Handles events where the drawer provides manual runner results.
- * Used for hits, errors, and batted outs with runners.
- */
-function handleRunnerResults(runnerResults, runners, batterId) {
-    let newRunners = { first: null, second: null, third: null, scored: [] };
-    let runsOnPlay = 0;
-    let outsRecorded = 0;
-
-    const processRunner = (result, runnerId) => {
-        if (!result || !runnerId) return;
-
-        if (result === "score") {
-            runsOnPlay++;
-            newRunners.scored.push(runnerId);
-        } else if (result === "out") {
-            outsRecorded++;
-        } else if (["first", "second", "third"].includes(result)) {
-            newRunners[result] = runnerId;
-        }
-    };
-
-    // Process Batter
-    processRunner(runnerResults.batter, batterId);
-
-    // Process Existing Runners
-    ["first", "second", "third"].forEach((base) => {
-        const runnerId = runners[base];
-        if (runnerId) {
-            const result = runnerResults[base];
-            if (result === "stay") {
-                // Handle 'stay' results by keeping runner on their current base (the iteration variable)
-                newRunners[base] = runnerId;
-            } else {
-                processRunner(result, runnerId);
-            }
-        }
-    });
-
-    return { newRunners, runsOnPlay, outsRecorded };
-}
 
 /**
  * Handles automatic outs for strikeouts.
