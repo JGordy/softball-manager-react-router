@@ -205,3 +205,121 @@ export const calculateTeamTotals = (statsArray) => {
 
     return totals;
 };
+
+/**
+ * Calculate statistics for a single player based on a set of game logs.
+ * Returns an object with detailed counts and calculated rates.
+ *
+ * @param {Array} logs - Array of game log objects for a single player
+ * @returns {Object} Stats object
+ */
+export const calculatePlayerStats = (logs) => {
+    let hits = 0;
+    let ab = 0; // At Bats
+    let rbi = 0;
+    let doubles = 0;
+    let triples = 0;
+    let homeruns = 0;
+
+    // Detailed counts
+    const details = {
+        "1B": 0,
+        "2B": 0,
+        "3B": 0,
+        HR: 0,
+        BB: 0,
+        K: 0,
+        RBI: 0,
+        Outs: 0,
+        E: 0,
+        FC: 0,
+        SF: 0,
+    };
+
+    logs.forEach((log) => {
+        const type = log.eventType;
+        const logRbi = log.rbi || 0;
+
+        rbi += logRbi;
+        details.RBI += logRbi;
+
+        switch (type) {
+            case "single":
+                hits++;
+                ab++;
+                details["1B"]++;
+                break;
+            case "double":
+                hits++;
+                ab++;
+                doubles++;
+                details["2B"]++;
+                break;
+            case "triple":
+                hits++;
+                ab++;
+                triples++;
+                details["3B"]++;
+                break;
+            case "homerun":
+                hits++;
+                ab++;
+                homeruns++;
+                details.HR++;
+                break;
+            case "walk":
+                details.BB++;
+                break;
+            case "out":
+                ab++;
+                details.Outs++;
+                details.K++;
+                break;
+            case "error":
+                ab++;
+                details.E++;
+                break;
+            case "fielders_choice":
+                ab++;
+                details.FC++;
+                break;
+            case "sacrifice_fly":
+                details.SF++;
+                break;
+            default:
+                break;
+        }
+    });
+
+    // Calculated Stats
+    const plateAppearances = ab + details.BB + details.SF;
+    const avg = ab > 0 ? (hits / ab).toFixed(3) : ".000";
+
+    const obp =
+        plateAppearances > 0
+            ? ((hits + details.BB) / plateAppearances).toFixed(3)
+            : ".000";
+
+    const totalBases =
+        details["1B"] + 2 * details["2B"] + 3 * details["3B"] + 4 * details.HR;
+    const slg = ab > 0 ? (totalBases / ab).toFixed(3) : ".000";
+
+    const opsVal = parseFloat(obp) + parseFloat(slg);
+    const ops = opsVal.toFixed(3);
+
+    return {
+        hits,
+        ab,
+        rbi,
+        doubles,
+        triples,
+        homeruns,
+        details,
+        calculated: {
+            avg: avg.replace(/^0+/, ""),
+            obp: obp.replace(/^0+/, ""),
+            slg: slg.replace(/^0+/, ""),
+            ops: ops.replace(/^0+/, ""),
+        },
+    };
+};
