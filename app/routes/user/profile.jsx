@@ -87,7 +87,7 @@ export async function loader({ params, request }) {
     const url = new URL(request.url);
     const hash = url.hash.replace(/^#/, "") || null;
 
-    const validTabs = ["player", "personal", "awards"];
+    const validTabs = ["player", "stats", "awards"];
     const defaultTab = validTabs.includes(hash) ? hash : "player";
 
     return {
@@ -123,7 +123,7 @@ export default function UserProfile({ loaderData }) {
 
     useResponseNotification(actionData);
 
-    const validTabs = ["player", "personal", "awards"];
+    const validTabs = ["player", "stats", "awards"];
     const [tab, setTab] = useState(defaultTab);
 
     // Keep tab state in sync when location.hash changes (back/forward navigation)
@@ -158,25 +158,25 @@ export default function UserProfile({ loaderData }) {
 
                 <TabsWrapper value={tab} onChange={handleTabChange}>
                     <Tabs.Tab value="player">
-                        <Group gap="5px" align="center" justify="center">
+                        <Group gap="xs" align="center" justify="center">
                             <IconUserSquareRounded size={16} />
                             Player
                         </Group>
                     </Tabs.Tab>
                     {/* <Tabs.Tab value="personal">
-                        <Group gap="5px" align="center" justify="center">
+                        <Group gap="xs" align="center" justify="center">
                             <IconUserSquareRounded size={16} />
                             Details
                         </Group>
                     </Tabs.Tab> */}
                     <Tabs.Tab value="stats">
-                        <Group gap="5px" align="center" justify="center">
+                        <Group gap="xs" align="center" justify="center">
                             <IconClipboardData size={16} />
                             Stats
                         </Group>
                     </Tabs.Tab>
                     <Tabs.Tab value="awards">
-                        <Group gap="5px" align="center" justify="center">
+                        <Group gap="xs" align="center" justify="center">
                             <IconAward size={16} />
                             Awards
                         </Group>

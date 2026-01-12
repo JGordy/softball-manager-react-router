@@ -5,6 +5,8 @@ import {
     EVENT_TYPE_MAP,
 } from "@/routes/events/constants/scoringConstants";
 
+const formatStat = (val) => val.replace(/^0/, "");
+
 /**
  * Calculate standard softball statistics for a set of game logs.
  *
@@ -115,9 +117,7 @@ export const calculateGameStats = (logs = [], playerChart = []) => {
     Object.values(statsMap).forEach((stat) => {
         // AVG = H / AB
         stat.AVG =
-            stat.AB > 0
-                ? (stat.H / stat.AB).toFixed(3).replace(/^0/, "")
-                : ".000";
+            stat.AB > 0 ? formatStat((stat.H / stat.AB).toFixed(3)) : ".000";
 
         // OBP = (H + BB + HBP) / (AB + BB + HBP + SF)
         // Simplified: (H + BB) / (AB + BB + SF) (ignoring HBP for now as we don't track them)
@@ -125,7 +125,7 @@ export const calculateGameStats = (logs = [], playerChart = []) => {
         const obpDenominator = stat.AB + stat.BB + stat.SF;
         stat.OBP =
             obpDenominator > 0
-                ? (obpNumerator / obpDenominator).toFixed(3).replace(/^0/, "")
+                ? formatStat((obpNumerator / obpDenominator).toFixed(3))
                 : ".000";
 
         // SLG = (1B + 2*2B + 3*3B + 4*HR) / AB
@@ -133,14 +133,14 @@ export const calculateGameStats = (logs = [], playerChart = []) => {
             stat["1B"] + 2 * stat["2B"] + 3 * stat["3B"] + 4 * stat.HR;
         stat.SLG =
             stat.AB > 0
-                ? (totalBases / stat.AB).toFixed(3).replace(/^0/, "")
+                ? formatStat((totalBases / stat.AB).toFixed(3))
                 : ".000";
 
         // OPS = OBP + SLG
         // Note: We need floating point values for accurate addition, then format
         const obpVal = parseFloat(stat.OBP || 0);
         const slgVal = parseFloat(stat.SLG || 0);
-        stat.OPS = (obpVal + slgVal).toFixed(3).replace(/^0/, "");
+        stat.OPS = formatStat((obpVal + slgVal).toFixed(3));
     });
 
     // Return as array suitable for Table rows
@@ -181,27 +181,25 @@ export const calculateTeamTotals = (statsArray) => {
 
     // Calculate Team Rates
     totals.AVG =
-        totals.AB > 0
-            ? (totals.H / totals.AB).toFixed(3).replace(/^0/, "")
-            : ".000";
+        totals.AB > 0 ? formatStat((totals.H / totals.AB).toFixed(3)) : ".000";
 
     const obpNumerator = totals.H + totals.BB;
     const obpDenominator = totals.AB + totals.BB + totals.SF;
     totals.OBP =
         obpDenominator > 0
-            ? (obpNumerator / obpDenominator).toFixed(3).replace(/^0/, "")
+            ? formatStat((obpNumerator / obpDenominator).toFixed(3))
             : ".000";
 
     const totalBases =
         totals["1B"] + 2 * totals["2B"] + 3 * totals["3B"] + 4 * totals.HR;
     totals.SLG =
         totals.AB > 0
-            ? (totalBases / totals.AB).toFixed(3).replace(/^0/, "")
+            ? formatStat((totalBases / totals.AB).toFixed(3))
             : ".000";
 
     const obpVal = parseFloat(totals.OBP || 0);
     const slgVal = parseFloat(totals.SLG || 0);
-    totals.OPS = (obpVal + slgVal).toFixed(3).replace(/^0/, "");
+    totals.OPS = formatStat((obpVal + slgVal).toFixed(3));
 
     return totals;
 };
@@ -326,10 +324,10 @@ export const calculatePlayerStats = (logs) => {
         homeruns,
         details,
         calculated: {
-            avg: avg.replace(/^0+/, ""),
-            obp: obp.replace(/^0+/, ""),
-            slg: slg.replace(/^0+/, ""),
-            ops: ops.replace(/^0+/, ""),
+            avg: formatStat(avg),
+            obp: formatStat(obp),
+            slg: formatStat(slg),
+            ops: formatStat(ops),
         },
     };
 };

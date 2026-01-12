@@ -678,4 +678,32 @@ describe("calculatePlayerStats", () => {
         expect(stats.calculated.obp).toBe(".750");
         expect(stats.calculated.ops).toBe("2.500");
     });
+
+    it("should handle UI key event types and standardize them", () => {
+        const logs = [
+            { eventType: "1B", rbi: 0 },
+            { eventType: "2B", rbi: 0 },
+            { eventType: "3B", rbi: 0 },
+            { eventType: "HR", rbi: 1 },
+            { eventType: "K", rbi: 0 },
+            { eventType: "BB", rbi: 0 },
+            { eventType: "SF", rbi: 1 },
+        ];
+        // 1B, 2B, 3B, HR = single, double, triple, homerun (4 hits, 4 AB)
+        // K = out (1 AB, 1 out, 1 K)
+        // BB = walk (0 AB, 1 BB)
+        // SF = sacrifice_fly (0 AB, 1 SF)
+        // Total: AB: 5, Hits: 4, BB: 1, SF: 1, RBI: 2, K: 1
+
+        const stats = calculatePlayerStats(logs);
+
+        expect(stats.ab).toBe(5);
+        expect(stats.hits).toBe(4);
+        expect(stats.details.BB).toBe(1);
+        expect(stats.details.SF).toBe(1);
+        expect(stats.details.K).toBe(1);
+        expect(stats.rbi).toBe(2);
+        // AVG = 4 / 5 = .800
+        expect(stats.calculated.avg).toBe(".800");
+    });
 });
