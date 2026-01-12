@@ -80,10 +80,7 @@ describe("getRunnerConfigs", () => {
             (c) => c.base === "batter",
         );
         expect(config.options).toHaveLength(2);
-        expect(config.options.map((o) => o.value)).toEqual([
-            "second",
-            "third",
-        ]);
+        expect(config.options.map((o) => o.value)).toEqual(["second", "third"]);
     });
 
     it("should provide correct options for a triple (3B)", () => {

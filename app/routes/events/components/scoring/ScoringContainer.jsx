@@ -21,7 +21,7 @@ import ScoreboardHeader from "./ScoreboardHeader";
 import DiamondView from "./DiamondView";
 import ActionPad from "./ActionPad";
 import PlayHistoryList from "./PlayHistoryList";
-import PositionPickerDrawer from "./PositionPickerDrawer";
+import PlayActionDrawer from "./PlayActionDrawer";
 import CurrentBatterCard from "./CurrentBatterCard";
 import DefenseCard from "./DefenseCard";
 import LastPlayCard from "./LastPlayCard";
@@ -233,6 +233,9 @@ export default function ScoringContainer({
     const completeAction = (actionType, payload = null) => {
         const position = payload?.position || null;
         const runnerResults = payload?.runnerResults || null;
+        const hitCoordinates = payload?.hitCoordinates || { x: null, y: null };
+        const hitLocation = payload?.hitLocation || null;
+        const battingSide = payload?.battingSide || "right";
 
         const batter = playerChart[battingOrderIndex];
         const batterName = `${batter.firstName} ${batter.lastName}`;
@@ -241,6 +244,7 @@ export default function ScoringContainer({
             batterName,
             position,
             runnerResults,
+            hitLocation,
         );
 
         let result;
@@ -279,6 +283,10 @@ export default function ScoringContainer({
                 rbi: runsOnPlay,
                 outsOnPlay: outsRecorded,
                 description,
+                hitX: hitCoordinates.x,
+                hitY: hitCoordinates.y,
+                hitLocation,
+                battingSide,
                 baseState: JSON.stringify(newRunners),
             },
             { method: "post" },
@@ -441,7 +449,7 @@ export default function ScoringContainer({
                 </Tabs.Panel>
             </TabsWrapper>
 
-            <PositionPickerDrawer
+            <PlayActionDrawer
                 opened={drawerOpened}
                 onClose={closeDrawer}
                 actionType={pendingAction}
