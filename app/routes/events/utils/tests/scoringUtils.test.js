@@ -1,4 +1,4 @@
-import { getRunnerMovement } from "../scoringUtils";
+import { getRunnerMovement, getEventDescription } from "../scoringUtils";
 
 describe("getRunnerMovement", () => {
     const mockPlayerChart = [
@@ -91,5 +91,60 @@ describe("getRunnerMovement", () => {
         };
         const result = getRunnerMovement(baseState, mockPlayerChart);
         expect(result).toEqual(["1B: Mike T."]);
+    });
+});
+
+describe("getEventDescription", () => {
+    it("should include hit description when provided for extra base hits", () => {
+        const result = getEventDescription(
+            "2B",
+            "Mike Trout",
+            "LF",
+            null,
+            "deep left-center gap",
+        );
+        expect(result).toBe("Mike Trout doubles to deep left-center gap");
+    });
+
+    it("should fallback to position if hit description is missing", () => {
+        const result = getEventDescription("1B", "Shohei Ohtani", "RF");
+        expect(result).toBe("Shohei Ohtani singles to RF");
+    });
+
+    it("should format errors with both position and hit location", () => {
+        const result = getEventDescription(
+            "E",
+            "Mookie Betts",
+            "SS",
+            null,
+            "to shortstop",
+        );
+        expect(result).toBe(
+            "Mookie Betts reaches on an error by SS (to shortstop)",
+        );
+    });
+
+    it("should format fielder's choice with hit location", () => {
+        const result = getEventDescription(
+            "FC",
+            "Freddie Freeman",
+            "3B",
+            null,
+            "down the third base line",
+        );
+        expect(result).toBe(
+            "Freddie Freeman reaches on a fielder's choice to 3B (down the third base line)",
+        );
+    });
+
+    it("should include hit description for outs", () => {
+        const result = getEventDescription(
+            "Fly Out",
+            "Jarren Duran",
+            "CF",
+            null,
+            "deep center field",
+        );
+        expect(result).toBe("Jarren Duran flies out to deep center field");
     });
 });
