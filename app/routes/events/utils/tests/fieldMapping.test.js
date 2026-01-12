@@ -65,6 +65,33 @@ describe("getFieldZone", () => {
         expect(getFieldZone(70, 30)).toBe("right field");
     });
 
+    it("should identify 'up the middle' hits", () => {
+        // x=50, y=45 => dx=0, dy=33 => distance=33, angle=0
+        // distance 33 is between 25 (pitcher) and 35 (up the middle threshold)
+        expect(getFieldZone(50, 45)).toBe("up the middle");
+    });
+
+    it("should identify hits to the left-center gap", () => {
+        // Angle between 7 and 22 degrees
+        // dx=-12, dy=48 -> dist=49.5 (standard), angle=-14 (gap)
+        expect(getFieldZone(38, 30)).toBe("left-center gap");
+    });
+
+    it("should identify hits to the right-center gap", () => {
+        // dx=12, dy=48 -> dist=49.5 (standard), angle=14 (gap)
+        expect(getFieldZone(62, 30)).toBe("right-center gap");
+    });
+
+    it("should identify shallow right field", () => {
+        // dx=20, dy=33 -> dist=38.6 (shallow), angle=31 (field)
+        expect(getFieldZone(70, 45)).toBe("shallow right field");
+    });
+
+    it("should identify deep right field", () => {
+        // distance > 55
+        expect(getFieldZone(85, 20)).toBe("deep right field");
+    });
+
     it("should handle null coordinates gracefully", () => {
         expect(getFieldZone(null, null)).toBe("");
     });

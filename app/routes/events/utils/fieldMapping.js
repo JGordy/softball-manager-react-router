@@ -1,6 +1,26 @@
+const ORIGIN_X = 50;
+const ORIGIN_Y = 78; // Visual home plate location
+
+const FOUL_ANGLE_THRESHOLD = 44.5;
+const CATCHER_DISTANCE_THRESHOLD = 8;
+const PITCHER_DISTANCE_THRESHOLD = 25;
+const UP_THE_MIDDLE_DISTANCE_THRESHOLD = 35;
+
+const DEPTH_THRESHOLD = {
+    INFIELD: 38,
+    SHALLOW: 45,
+    STANDARD: 55,
+};
+
+const ANGLE_THRESHOLD = {
+    LINE: 36,
+    FIELD: 22,
+    GAP: 7,
+};
+
 /**
  * Translates x, y percentage coordinates into descriptive field locations.
- * Home plate is assumed to be at x=50, y=100.
+ * Home plate is assumed to be at x=50, y=78.
  *
  * @param {number} x - The x coordinate (0-100)
  * @param {number} y - The y coordinate (0-100)
@@ -9,26 +29,23 @@
 export function getFieldZone(x, y) {
     if (x === null || y === null) return "";
 
-    // Home Plate is the bottom tip of the diamond, visually around y=78
-    const originX = 50;
-    const originY = 78;
-
-    const dx = x - originX;
-    const dy = originY - y;
+    const dx = x - ORIGIN_X;
+    const dy = ORIGIN_Y - y;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
     const horizontalAngle = Math.atan2(dx, Math.max(0.1, dy)) * (180 / Math.PI);
 
-    if (dy < -1 || Math.abs(horizontalAngle) > 44.5) return "foul ball";
+    if (dy < -1 || Math.abs(horizontalAngle) > FOUL_ANGLE_THRESHOLD)
+        return "foul ball";
 
-    if (distance < 8) return "in front of the catcher";
+    if (distance < CATCHER_DISTANCE_THRESHOLD) return "in front of the catcher";
 
     let depth = "";
-    if (distance < 38) {
+    if (distance < DEPTH_THRESHOLD.INFIELD) {
         depth = "infield";
-    } else if (distance < 45) {
+    } else if (distance < DEPTH_THRESHOLD.SHALLOW) {
         depth = "shallow";
-    } else if (distance < 55) {
+    } else if (distance < DEPTH_THRESHOLD.STANDARD) {
         depth = "standard";
     } else {
         depth = "deep";
@@ -37,19 +54,21 @@ export function getFieldZone(x, y) {
     let direction = "";
     const absAngle = Math.abs(horizontalAngle);
 
-    if (absAngle > 36)
+    if (absAngle > ANGLE_THRESHOLD.LINE)
         direction =
             horizontalAngle < 0 ? "left field line" : "right field line";
-    else if (absAngle > 22)
+    else if (absAngle > ANGLE_THRESHOLD.FIELD)
         direction = horizontalAngle < 0 ? "left field" : "right field";
-    else if (absAngle > 7)
+    else if (absAngle > ANGLE_THRESHOLD.GAP)
         direction =
             horizontalAngle < 0 ? "left-center gap" : "right-center gap";
     else direction = "center field";
 
     if (depth === "infield") {
-        if (absAngle < 8 && distance < 25) return "back to the pitcher";
-        if (absAngle < 8 && distance < 35) return "up the middle";
+        if (absAngle < 8 && distance < PITCHER_DISTANCE_THRESHOLD)
+            return "back to the pitcher";
+        if (absAngle < 8 && distance < UP_THE_MIDDLE_DISTANCE_THRESHOLD)
+            return "up the middle";
         if (absAngle > 35)
             return horizontalAngle < 0
                 ? "down the third base line"
