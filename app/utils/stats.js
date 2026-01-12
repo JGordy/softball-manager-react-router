@@ -5,6 +5,8 @@ import {
     EVENT_TYPE_MAP,
 } from "@/routes/events/constants/scoringConstants";
 
+const formatStat = (val) => val.replace(/^0/, "");
+
 /**
  * Calculate standard softball statistics for a set of game logs.
  *
@@ -115,9 +117,7 @@ export const calculateGameStats = (logs = [], playerChart = []) => {
     Object.values(statsMap).forEach((stat) => {
         // AVG = H / AB
         stat.AVG =
-            stat.AB > 0
-                ? (stat.H / stat.AB).toFixed(3).replace(/^0/, "")
-                : ".000";
+            stat.AB > 0 ? formatStat((stat.H / stat.AB).toFixed(3)) : ".000";
 
         // OBP = (H + BB + HBP) / (AB + BB + HBP + SF)
         // Simplified: (H + BB) / (AB + BB + SF) (ignoring HBP for now as we don't track them)
@@ -125,7 +125,7 @@ export const calculateGameStats = (logs = [], playerChart = []) => {
         const obpDenominator = stat.AB + stat.BB + stat.SF;
         stat.OBP =
             obpDenominator > 0
-                ? (obpNumerator / obpDenominator).toFixed(3).replace(/^0/, "")
+                ? formatStat((obpNumerator / obpDenominator).toFixed(3))
                 : ".000";
 
         // SLG = (1B + 2*2B + 3*3B + 4*HR) / AB
@@ -133,14 +133,14 @@ export const calculateGameStats = (logs = [], playerChart = []) => {
             stat["1B"] + 2 * stat["2B"] + 3 * stat["3B"] + 4 * stat.HR;
         stat.SLG =
             stat.AB > 0
-                ? (totalBases / stat.AB).toFixed(3).replace(/^0/, "")
+                ? formatStat((totalBases / stat.AB).toFixed(3))
                 : ".000";
 
         // OPS = OBP + SLG
         // Note: We need floating point values for accurate addition, then format
         const obpVal = parseFloat(stat.OBP || 0);
         const slgVal = parseFloat(stat.SLG || 0);
-        stat.OPS = (obpVal + slgVal).toFixed(3).replace(/^0/, "");
+        stat.OPS = formatStat((obpVal + slgVal).toFixed(3));
     });
 
     // Return as array suitable for Table rows
@@ -181,27 +181,153 @@ export const calculateTeamTotals = (statsArray) => {
 
     // Calculate Team Rates
     totals.AVG =
-        totals.AB > 0
-            ? (totals.H / totals.AB).toFixed(3).replace(/^0/, "")
-            : ".000";
+        totals.AB > 0 ? formatStat((totals.H / totals.AB).toFixed(3)) : ".000";
 
     const obpNumerator = totals.H + totals.BB;
     const obpDenominator = totals.AB + totals.BB + totals.SF;
     totals.OBP =
         obpDenominator > 0
-            ? (obpNumerator / obpDenominator).toFixed(3).replace(/^0/, "")
+            ? formatStat((obpNumerator / obpDenominator).toFixed(3))
             : ".000";
 
     const totalBases =
         totals["1B"] + 2 * totals["2B"] + 3 * totals["3B"] + 4 * totals.HR;
     totals.SLG =
         totals.AB > 0
-            ? (totalBases / totals.AB).toFixed(3).replace(/^0/, "")
+            ? formatStat((totalBases / totals.AB).toFixed(3))
             : ".000";
 
     const obpVal = parseFloat(totals.OBP || 0);
     const slgVal = parseFloat(totals.SLG || 0);
-    totals.OPS = (obpVal + slgVal).toFixed(3).replace(/^0/, "");
+    totals.OPS = formatStat((obpVal + slgVal).toFixed(3));
 
     return totals;
+};
+
+/**
+ * Calculate statistics for a single player based on a set of game logs.
+ * Returns an object with detailed counts and calculated rates.
+ *
+ * @param {Array} logs - Array of game log objects for a single player
+ * @returns {Object} Stats object
+ */
+export const calculatePlayerStats = (logs) => {
+    let hits = 0;
+    let ab = 0; // At Bats
+    let rbi = 0;
+    let doubles = 0;
+    let triples = 0;
+    let homeruns = 0;
+
+    // Detailed counts
+    const details = {
+        "1B": 0,
+        "2B": 0,
+        "3B": 0,
+        HR: 0,
+        BB: 0,
+        K: 0,
+        RBI: 0,
+        Outs: 0,
+        E: 0,
+        FC: 0,
+        SF: 0,
+    };
+
+    logs.forEach((log) => {
+        const eventType = log.eventType;
+        const logRbi = log.rbi || 0;
+
+        rbi += logRbi;
+        details.RBI += logRbi;
+
+        // Standardize event type
+        let type = eventType;
+        const isUIKey = Object.keys(EVENT_TYPE_MAP).includes(eventType);
+        if (isUIKey) {
+            type = EVENT_TYPE_MAP[eventType];
+        }
+
+        switch (type) {
+            case "single":
+                hits++;
+                ab++;
+                details["1B"]++;
+                break;
+            case "double":
+                hits++;
+                ab++;
+                doubles++;
+                details["2B"]++;
+                break;
+            case "triple":
+                hits++;
+                ab++;
+                triples++;
+                details["3B"]++;
+                break;
+            case "homerun":
+                hits++;
+                ab++;
+                homeruns++;
+                details.HR++;
+                break;
+            case "walk":
+                details.BB++;
+                break;
+            case "out":
+                ab++;
+                details.Outs++;
+                // Track strikeout specifically if event was 'K'
+                if (eventType === "K") {
+                    details.K++;
+                }
+                break;
+            case "error":
+                ab++;
+                details.E++;
+                break;
+            case "fielders_choice":
+                ab++;
+                details.FC++;
+                break;
+            case "sacrifice_fly":
+                details.SF++;
+                break;
+            default:
+                break;
+        }
+    });
+
+    // Calculated Stats
+    const obpDenominator = ab + details.BB + details.SF;
+    const avg = ab > 0 ? (hits / ab).toFixed(3) : ".000";
+
+    const obp =
+        obpDenominator > 0
+            ? ((hits + details.BB) / obpDenominator).toFixed(3)
+            : ".000";
+
+    const totalBases =
+        details["1B"] + 2 * details["2B"] + 3 * details["3B"] + 4 * details.HR;
+    const slg = ab > 0 ? (totalBases / ab).toFixed(3) : ".000";
+
+    const opsVal = parseFloat(obp) + parseFloat(slg);
+    const ops = opsVal.toFixed(3);
+
+    return {
+        hits,
+        ab,
+        rbi,
+        doubles,
+        triples,
+        homeruns,
+        details,
+        calculated: {
+            avg: formatStat(avg),
+            obp: formatStat(obp),
+            slg: formatStat(slg),
+            ops: formatStat(ops),
+        },
+    };
 };

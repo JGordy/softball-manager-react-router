@@ -1,4 +1,8 @@
-import { calculateGameStats, calculateTeamTotals } from "../stats";
+import {
+    calculateGameStats,
+    calculateTeamTotals,
+    calculatePlayerStats,
+} from "../stats";
 
 describe("calculateGameStats", () => {
     const mockPlayerChart = [
@@ -602,5 +606,104 @@ describe("calculateTeamTotals", () => {
         const totals = calculateTeamTotals(statsArray);
 
         expect(totals.AVG).toBe("1.000");
+    });
+});
+
+describe("calculatePlayerStats", () => {
+    it("should initialize with zero stats for empty logs", () => {
+        const stats = calculatePlayerStats([]);
+        expect(stats.hits).toBe(0);
+        expect(stats.ab).toBe(0);
+        expect(stats.rbi).toBe(0);
+        expect(stats.calculated.avg).toBe(".000");
+    });
+
+    it("should correctly calculate basic batting stats", () => {
+        const logs = [
+            { eventType: "single", rbi: 0 },
+            { eventType: "double", rbi: 1 },
+            { eventType: "out", rbi: 0 },
+            { eventType: "triple", rbi: 2 },
+        ];
+
+        const stats = calculatePlayerStats(logs);
+
+        expect(stats.ab).toBe(4);
+        expect(stats.hits).toBe(3); // 1B, 2B, 3B
+        expect(stats.rbi).toBe(3);
+        expect(stats.details["1B"]).toBe(1);
+        expect(stats.details["2B"]).toBe(1);
+        expect(stats.details["3B"]).toBe(1);
+        expect(stats.calculated.avg).toBe(".750"); // 3/4
+    });
+
+    it("should handle walks and sac flies correctly for OBP", () => {
+        const logs = [
+            { eventType: "single", rbi: 0 },
+            { eventType: "walk", rbi: 0 },
+            { eventType: "sacrifice_fly", rbi: 1 },
+            { eventType: "out", rbi: 0 },
+        ];
+        // AB: 2 (single, out), H: 1
+        // BB: 1, SF: 1
+        // AVG: 1 / 2 = .500
+        // OBP: (1 + 1) / (2 + 1 + 1) = 2 / 4 = .500
+
+        const stats = calculatePlayerStats(logs);
+
+        expect(stats.ab).toBe(2);
+        expect(stats.hits).toBe(1);
+        expect(stats.details.BB).toBe(1);
+        expect(stats.details.SF).toBe(1);
+        expect(stats.calculated.avg).toBe(".500");
+        expect(stats.calculated.obp).toBe(".500");
+    });
+
+    it("should calculate SLG and OPS correctly", () => {
+        const logs = [
+            { eventType: "single", rbi: 0 }, // 1 base
+            { eventType: "double", rbi: 0 }, // 2 bases
+            { eventType: "homerun", rbi: 1 }, // 4 bases
+            { eventType: "out", rbi: 0 }, // 0 bases
+        ];
+        // AB: 4
+        // Total Bases: 1 + 2 + 4 = 7
+        // SLG: 7 / 4 = 1.750
+        // OBP: 3 / 4 = .750
+        // OPS: 1.750 + .750 = 2.500
+
+        const stats = calculatePlayerStats(logs);
+
+        expect(stats.calculated.slg).toBe("1.750");
+        expect(stats.calculated.obp).toBe(".750");
+        expect(stats.calculated.ops).toBe("2.500");
+    });
+
+    it("should handle UI key event types and standardize them", () => {
+        const logs = [
+            { eventType: "1B", rbi: 0 },
+            { eventType: "2B", rbi: 0 },
+            { eventType: "3B", rbi: 0 },
+            { eventType: "HR", rbi: 1 },
+            { eventType: "K", rbi: 0 },
+            { eventType: "BB", rbi: 0 },
+            { eventType: "SF", rbi: 1 },
+        ];
+        // 1B, 2B, 3B, HR = single, double, triple, homerun (4 hits, 4 AB)
+        // K = out (1 AB, 1 out, 1 K)
+        // BB = walk (0 AB, 1 BB)
+        // SF = sacrifice_fly (0 AB, 1 SF)
+        // Total: AB: 5, Hits: 4, BB: 1, SF: 1, RBI: 2, K: 1
+
+        const stats = calculatePlayerStats(logs);
+
+        expect(stats.ab).toBe(5);
+        expect(stats.hits).toBe(4);
+        expect(stats.details.BB).toBe(1);
+        expect(stats.details.SF).toBe(1);
+        expect(stats.details.K).toBe(1);
+        expect(stats.rbi).toBe(2);
+        // AVG = 4 / 5 = .800
+        expect(stats.calculated.avg).toBe(".800");
     });
 });

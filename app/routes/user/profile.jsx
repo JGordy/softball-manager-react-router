@@ -10,7 +10,8 @@ import { Container, Group, Tabs } from "@mantine/core";
 
 import {
     IconAward,
-    IconBallBaseball,
+    // IconBallBaseball,
+    IconClipboardData,
     IconFriends,
     IconHeadphonesFilled,
     IconMail,
@@ -25,12 +26,17 @@ import TabsWrapper from "@/components/TabsWrapper";
 
 import { updateUser } from "@/actions/users";
 
-import { getAwardsByUserId, getUserById } from "@/loaders/users";
+import {
+    getAwardsByUserId,
+    getStatsByUserId,
+    getUserById,
+} from "@/loaders/users";
 
 import { useResponseNotification } from "@/utils/showNotification";
 
 import AlertIncomplete from "./components/AlertIncomplete";
 import PlayerAwards from "./components/PlayerAwards";
+import PlayerStats from "./components/PlayerStats";
 import ProfileMenu from "./components/ProfileMenu";
 
 const fieldsToDisplay = {
@@ -81,19 +87,20 @@ export async function loader({ params, request }) {
     const url = new URL(request.url);
     const hash = url.hash.replace(/^#/, "") || null;
 
-    const validTabs = ["player", "personal", "awards"];
+    const validTabs = ["player", "stats", "awards"];
     const defaultTab = validTabs.includes(hash) ? hash : "player";
 
     return {
         player: await getUserById({ userId }),
         awardsPromise: getAwardsByUserId({ userId }),
+        statsPromise: getStatsByUserId({ userId }),
         defaultTab,
     };
 }
 
 export default function UserProfile({ loaderData }) {
     // console.log("UserProfile: ", { ...loaderData });
-    const { awardsPromise, player, defaultTab } = loaderData;
+    const { awardsPromise, statsPromise, player, defaultTab } = loaderData;
 
     const { user: loggedInUser } = useOutletContext(); // The currently logged-in user from layout
     const location = useLocation();
@@ -116,7 +123,7 @@ export default function UserProfile({ loaderData }) {
 
     useResponseNotification(actionData);
 
-    const validTabs = ["player", "personal", "awards"];
+    const validTabs = ["player", "stats", "awards"];
     const [tab, setTab] = useState(defaultTab);
 
     // Keep tab state in sync when location.hash changes (back/forward navigation)
@@ -152,14 +159,20 @@ export default function UserProfile({ loaderData }) {
                 <TabsWrapper value={tab} onChange={handleTabChange}>
                     <Tabs.Tab value="player">
                         <Group gap="xs" align="center" justify="center">
-                            <IconBallBaseball size={16} />
+                            <IconUserSquareRounded size={16} />
                             Player
                         </Group>
                     </Tabs.Tab>
-                    <Tabs.Tab value="personal">
+                    {/* <Tabs.Tab value="personal">
                         <Group gap="xs" align="center" justify="center">
                             <IconUserSquareRounded size={16} />
-                            Personal
+                            Details
+                        </Group>
+                    </Tabs.Tab> */}
+                    <Tabs.Tab value="stats">
+                        <Group gap="xs" align="center" justify="center">
+                            <IconClipboardData size={16} />
+                            Stats
                         </Group>
                     </Tabs.Tab>
                     <Tabs.Tab value="awards">
@@ -170,11 +183,15 @@ export default function UserProfile({ loaderData }) {
                     </Tabs.Tab>
 
                     <Tabs.Panel value="player">
+                        <PersonalDetails player={player} user={loggedInUser} />
                         <PlayerDetails user={loggedInUser} player={player} />
                     </Tabs.Panel>
 
-                    <Tabs.Panel value="personal">
-                        <PersonalDetails player={player} user={loggedInUser} />
+                    {/* <Tabs.Panel value="personal">
+                    </Tabs.Panel> */}
+
+                    <Tabs.Panel value="stats">
+                        <PlayerStats statsPromise={statsPromise} />
                     </Tabs.Panel>
 
                     <Tabs.Panel value="awards">

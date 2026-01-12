@@ -4,7 +4,9 @@ import {
     getUserById,
     getAttendanceByUserId,
     getAwardsByUserId,
+    getStatsByUserId,
 } from "../users";
+import { Query } from "node-appwrite";
 
 // Mock dependencies
 jest.mock("@/utils/databases", () => ({
@@ -15,6 +17,63 @@ jest.mock("@/utils/databases", () => ({
 describe("Users Loader", () => {
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    describe("getStatsByUserId", () => {
+        it("should return logs and games", async () => {
+            const mockLogs = [
+                { $id: "log1", gameId: "game1", eventType: "single" },
+                { $id: "log2", gameId: "game1", eventType: "out" },
+                { $id: "log3", gameId: "game2", eventType: "double" },
+            ];
+            const mockGames = [
+                { $id: "game1", opponent: "Opponent A" },
+                { $id: "game2", opponent: "Opponent B" },
+            ];
+
+            // Mock first call (logs)
+            listDocuments.mockImplementationOnce(() =>
+                Promise.resolve({ rows: mockLogs }),
+            );
+            // Mock second call (games)
+            listDocuments.mockImplementationOnce(() =>
+                Promise.resolve({ rows: mockGames }),
+            );
+
+            const result = await getStatsByUserId({ userId: "user1" });
+
+            expect(listDocuments).toHaveBeenNthCalledWith(
+                1,
+                "game_logs",
+                expect.arrayContaining([
+                    Query.equal("playerId", "user1"),
+                    Query.orderDesc("$createdAt"),
+                ]),
+            );
+
+            // Check that we requested the correct game IDs
+            expect(listDocuments).toHaveBeenNthCalledWith(
+                2,
+                "games",
+                expect.arrayContaining([
+                    Query.equal("$id", ["game1", "game2"]),
+                ]),
+            );
+
+            expect(result).toEqual({
+                logs: mockLogs,
+                games: mockGames,
+            });
+        });
+
+        it("should return empty arrays if no logs found", async () => {
+            listDocuments.mockResolvedValueOnce({ rows: [] });
+
+            const result = await getStatsByUserId({ userId: "user1" });
+
+            expect(listDocuments).toHaveBeenCalledTimes(1);
+            expect(result).toEqual({ logs: [], games: [] });
+        });
     });
 
     describe("getUserById", () => {
