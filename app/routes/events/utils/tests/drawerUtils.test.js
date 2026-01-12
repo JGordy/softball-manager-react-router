@@ -29,11 +29,11 @@ describe("getDrawerTitle", () => {
 describe("getRunnerConfigs", () => {
     const emptyRunners = { first: null, second: null, third: null };
 
-    it("should return standard configs for regular hit", () => {
+    it("should return standard configs PLUS batter for regular hit", () => {
         const configs = getRunnerConfigs("1B", emptyRunners);
-        expect(configs).toHaveLength(3);
-        // Batter config is NOT added
-        expect(configs.find((c) => c.base === "batter")).toBeUndefined();
+        expect(configs).toHaveLength(4);
+        // Batter config IS added
+        expect(configs.find((c) => c.base === "batter")).toBeDefined();
     });
 
     it("should add Batter config for Errors", () => {

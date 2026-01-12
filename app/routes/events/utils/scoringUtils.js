@@ -45,28 +45,80 @@ export function getRunnerMovement(baseState, playerChart) {
     return movements;
 }
 
-export function getEventDescription(actionType, batterName, position) {
-    if (actionType === "1B") return `${batterName} singles to ${position}`;
-    if (actionType === "2B") return `${batterName} doubles to ${position}`;
-    if (actionType === "3B") return `${batterName} triples to ${position}`;
-    if (actionType === "HR")
-        return `${batterName} hits a home run to ${position}`;
-    if (actionType === "Ground Out")
-        return `${batterName} grounds out to ${position}`;
-    if (actionType === "Fly Out")
-        return `${batterName} flies out to ${position}`;
-    if (actionType === "Line Out")
-        return `${batterName} lines out to ${position}`;
-    if (actionType === "Pop Out")
-        return `${batterName} pops out to ${position}`;
-    if (actionType === "E")
-        return `${batterName} reaches on an error by ${position}`;
-    if (actionType === "FC")
-        return `${batterName} reaches on a fielder's choice to ${position}`;
-    if (actionType === "BB") return `${batterName} walks`;
-    if (actionType === "K") return `${batterName} strikes out`;
+const BASE_RANKS = {
+    out: 0,
+    stay: 1,
+    first: 2,
+    second: 3,
+    third: 4,
+    score: 5,
+};
 
-    return `${batterName}: ${actionType}${position ? ` (${position})` : ""}`;
+const EXPECTED_BATTER_BASE = {
+    "1B": "first",
+    "2B": "second",
+    "3B": "third",
+    HR: "score",
+    E: "first",
+    FC: "first",
+};
+
+export function getEventDescription(
+    actionType,
+    batterName,
+    position,
+    runnerResults = null,
+) {
+    let baseDesc = "";
+    if (actionType === "1B") baseDesc = `${batterName} singles to ${position}`;
+    else if (actionType === "2B")
+        baseDesc = `${batterName} doubles to ${position}`;
+    else if (actionType === "3B")
+        baseDesc = `${batterName} triples to ${position}`;
+    else if (actionType === "HR")
+        baseDesc = `${batterName} hits a home run to ${position}`;
+    else if (actionType === "Ground Out")
+        baseDesc = `${batterName} grounds out to ${position}`;
+    else if (actionType === "Fly Out")
+        baseDesc = `${batterName} flies out to ${position}`;
+    else if (actionType === "Line Out")
+        baseDesc = `${batterName} lines out to ${position}`;
+    else if (actionType === "Pop Out")
+        baseDesc = `${batterName} pops out to ${position}`;
+    else if (actionType === "E")
+        baseDesc = `${batterName} reaches on an error by ${position}`;
+    else if (actionType === "FC")
+        baseDesc = `${batterName} reaches on a fielder's choice to ${position}`;
+    else if (actionType === "BB") baseDesc = `${batterName} walks`;
+    else if (actionType === "K") baseDesc = `${batterName} strikes out`;
+    else
+        baseDesc = `${batterName}: ${actionType}${position ? ` (${position})` : ""}`;
+
+    // Add advancement context if batter moved further than expected
+    if (runnerResults?.batter && EXPECTED_BATTER_BASE[actionType]) {
+        const actual = runnerResults.batter;
+        const expected = EXPECTED_BATTER_BASE[actionType];
+
+        if (BASE_RANKS[actual] > BASE_RANKS[expected]) {
+            const advancement =
+                actual === "score" ? "scores" : `advances to ${actual}`;
+
+            // If it was already an error, just say "on the play", otherwise specify "on error"
+            // per user request for hit advancement
+            const context = ["E", "FC"].includes(actionType)
+                ? "on the play"
+                : "on error";
+            baseDesc += ` and ${advancement} ${context}`;
+        } else if (
+            actual === "out" &&
+            actionType !== "K" &&
+            !actionType.includes("Out")
+        ) {
+            baseDesc += " and is out on the play";
+        }
+    }
+
+    return baseDesc;
 }
 
 /**
