@@ -59,8 +59,8 @@ export const calculateGameStats = (logs = [], playerChart = []) => {
         batterStats.PA++;
         batterStats.RBI += parseInt(log.rbi || 0, 10);
 
-        // Track Strikeouts (before standardization since K maps to 'out')
-        if (eventType === "K") {
+        // Track Strikeouts
+        if (eventType === "K" || standardizedEvent === "strikeout") {
             batterStats.K++;
         }
 
@@ -276,10 +276,15 @@ export const calculatePlayerStats = (logs) => {
                 details.BB++;
                 break;
             case "out":
+            case "strikeout":
+            case "ground_out":
+            case "fly_out":
+            case "line_out":
+            case "pop_out":
                 ab++;
                 details.Outs++;
-                // Track strikeout specifically if event was 'K'
-                if (eventType === "K") {
+                // Track strikeout specifically
+                if (eventType === "K" || type === "strikeout") {
                     details.K++;
                 }
                 break;
