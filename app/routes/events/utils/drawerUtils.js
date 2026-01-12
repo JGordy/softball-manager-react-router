@@ -54,18 +54,27 @@ export function getRunnerConfigs(actionType, runners) {
         },
     ];
 
-    // Error / Fielder's Choice: Allow Batter advancement
-    if (["E", "FC"].includes(actionType)) {
+    // Hits / Error / Fielder's Choice: Allow Batter advancement
+    const isOnBase = ["1B", "2B", "3B", "E", "FC"].includes(actionType);
+    if (isOnBase) {
+        const options = [];
+        if (["1B", "E", "FC"].includes(actionType)) {
+            options.push({ label: "1st", value: "first" });
+            options.push({ label: "2nd", value: "second" });
+            options.push({ label: "3rd", value: "third" });
+        } else if (actionType === "2B") {
+            options.push({ label: "2nd", value: "second" });
+            options.push({ label: "3rd", value: "third" });
+        } else if (actionType === "3B") {
+            options.push({ label: "3rd", value: "third" });
+        }
+
         configs.push({
             base: "batter",
             label: "Batter",
-            options: [
-                { label: "1st", value: "first" }, // Default
-                { label: "2nd", value: "second" },
-                { label: "3rd", value: "third" },
-            ],
-            // Always show for E/FC
+            options,
             shouldShow: true,
+            hideStay: true,
         });
     }
     return configs;
