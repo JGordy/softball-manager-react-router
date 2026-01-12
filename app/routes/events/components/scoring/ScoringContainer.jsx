@@ -240,6 +240,7 @@ export default function ScoringContainer({
             actionType,
             batterName,
             position,
+            runnerResults,
         );
 
         let result;

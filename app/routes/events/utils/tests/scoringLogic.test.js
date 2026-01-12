@@ -20,6 +20,27 @@ describe("getEventDescription", () => {
             "Joseph: XYZ (SS)",
         );
     });
+
+    it("should include advancement context if batter moves further than expected on error", () => {
+        const runnerResults = { batter: "second" };
+        expect(getEventDescription("E", "Joseph", "RF", runnerResults)).toBe(
+            "Joseph reaches on an error by RF and advances to second on the play",
+        );
+    });
+
+    it("should include advancement context if batter moves further than expected on hits", () => {
+        const runnerResults = { batter: "third" };
+        expect(getEventDescription("1B", "Joseph", "LF", runnerResults)).toBe(
+            "Joseph singles to LF and advances to third on error",
+        );
+    });
+
+    it("should include out context if batter out on hit play", () => {
+        const runnerResults = { batter: "out" };
+        expect(getEventDescription("1B", "Joseph", "LF", runnerResults)).toBe(
+            "Joseph singles to LF and is out on the play",
+        );
+    });
 });
 
 describe("handleWalk", () => {

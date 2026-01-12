@@ -1,22 +1,23 @@
 import { Button, SimpleGrid, Stack, Text, Divider } from "@mantine/core";
+import { UI_KEYS } from "../../constants/scoringConstants";
 
 const HIT_COLOR = "green";
 const onBase = [
-    { label: "1B", color: HIT_COLOR, value: "1B" },
-    { label: "2B", color: HIT_COLOR, value: "2B" },
-    { label: "3B", color: HIT_COLOR, value: "3B" },
-    { label: "HR", color: HIT_COLOR, value: "HR" },
-    { label: "BB", color: "blue", value: "BB", variant: "light" },
-    { label: "ERR", color: "orange", value: "E", variant: "light" },
+    { label: "1B", color: HIT_COLOR, value: UI_KEYS.SINGLE },
+    { label: "2B", color: HIT_COLOR, value: UI_KEYS.DOUBLE },
+    { label: "3B", color: HIT_COLOR, value: UI_KEYS.TRIPLE },
+    { label: "HR", color: HIT_COLOR, value: UI_KEYS.HOMERUN },
+    { label: "BB", color: "blue", value: UI_KEYS.WALK, variant: "light" },
+    { label: "ERR", color: "orange", value: UI_KEYS.ERROR, variant: "light" },
 ];
 
 const OUT_COLOR = "red";
 const outs = [
-    { label: "K", color: OUT_COLOR, value: "K" },
-    { label: "GRD", color: OUT_COLOR, value: "Ground Out" },
-    { label: "FLY", color: OUT_COLOR, value: "Fly Out" },
-    { label: "LINE", color: OUT_COLOR, value: "Line Out" },
-    { label: "POP", color: OUT_COLOR, value: "Pop Out" },
+    { label: "K", color: OUT_COLOR, value: UI_KEYS.STRIKEOUT },
+    { label: "GRD", color: OUT_COLOR, value: UI_KEYS.GROUND_OUT },
+    { label: "FLY", color: OUT_COLOR, value: UI_KEYS.FLY_OUT },
+    { label: "LINE", color: OUT_COLOR, value: UI_KEYS.LINE_OUT },
+    { label: "POP", color: OUT_COLOR, value: UI_KEYS.POP_OUT },
 ];
 
 export default function ActionPad({ onAction, runners, outs: currentOuts }) {
@@ -26,7 +27,7 @@ export default function ActionPad({ onAction, runners, outs: currentOuts }) {
     const fielders_choice = {
         label: "FC",
         color: "orange",
-        value: "FC",
+        value: UI_KEYS.FIELDERS_CHOICE,
         variant: "light",
         disabled: basesEmpty,
     };
@@ -34,7 +35,7 @@ export default function ActionPad({ onAction, runners, outs: currentOuts }) {
     const sac_fly = {
         label: "SF",
         color: "orange",
-        value: "SF",
+        value: UI_KEYS.SACRIFICE_FLY,
         variant: "light",
         disabled: basesEmpty || isTwoOuts,
     };

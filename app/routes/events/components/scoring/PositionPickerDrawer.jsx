@@ -96,26 +96,27 @@ export default function PositionPickerDrawer({
         }
 
         const configs = getRunnerConfigs(actionType, runners);
+        const visibleConfigs = configs.filter((config) => config.shouldShow);
+
+        if (visibleConfigs.length === 0) return null;
 
         return (
             <Stack gap="sm" mt="sm">
-                {configs.map(
-                    (config) =>
-                        config.shouldShow && (
-                            <RunnerControl
-                                key={config.base}
-                                label={config.label}
-                                value={runnerResults[config.base]}
-                                onChange={(val) =>
-                                    setRunnerResults((prev) => ({
-                                        ...prev,
-                                        [config.base]: val,
-                                    }))
-                                }
-                                intermediateOptions={config.options}
-                            />
-                        ),
-                )}
+                {visibleConfigs.map((config) => (
+                    <RunnerControl
+                        key={config.base}
+                        label={config.label}
+                        value={runnerResults[config.base]}
+                        onChange={(val) =>
+                            setRunnerResults((prev) => ({
+                                ...prev,
+                                [config.base]: val,
+                            }))
+                        }
+                        intermediateOptions={config.options}
+                        hideStay={config.hideStay}
+                    />
+                ))}
             </Stack>
         );
     };
@@ -209,7 +210,7 @@ export default function PositionPickerDrawer({
                     </Stack>
                 </Group>
 
-                {hasRunners && renderRunners()}
+                {renderRunners()}
 
                 <Button
                     color={getColor()}
@@ -306,11 +307,17 @@ export default function PositionPickerDrawer({
     );
 }
 
-function RunnerControl({ label, value, onChange, intermediateOptions = [] }) {
+function RunnerControl({
+    label,
+    value,
+    onChange,
+    intermediateOptions = [],
+    hideStay = false,
+}) {
     if (value === null || value === undefined) return null;
 
     const data = [
-        { label: "Stay", value: "stay" },
+        ...(!hideStay ? [{ label: "Stay", value: "stay" }] : []),
         ...intermediateOptions,
         { label: "Score", value: "score" },
         { label: "OUT", value: "out" },

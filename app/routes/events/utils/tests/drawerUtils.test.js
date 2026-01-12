@@ -29,11 +29,11 @@ describe("getDrawerTitle", () => {
 describe("getRunnerConfigs", () => {
     const emptyRunners = { first: null, second: null, third: null };
 
-    it("should return standard configs for regular hit", () => {
+    it("should return standard configs PLUS batter for regular hit", () => {
         const configs = getRunnerConfigs("1B", emptyRunners);
-        expect(configs).toHaveLength(3);
-        // Batter config is NOT added
-        expect(configs.find((c) => c.base === "batter")).toBeUndefined();
+        expect(configs).toHaveLength(4);
+        // Batter config IS added
+        expect(configs.find((c) => c.base === "batter")).toBeDefined();
     });
 
     it("should add Batter config for Errors", () => {
@@ -61,5 +61,43 @@ describe("getRunnerConfigs", () => {
         expect(firstConfig.shouldShow).toBe("p1"); // Truthy
         expect(secondConfig.shouldShow).toBe(null); // Falsy
         expect(thirdConfig.shouldShow).toBe("p3"); // Truthy
+    });
+
+    it("should provide correct options for a single (1B)", () => {
+        const config = getRunnerConfigs("1B", {}).find(
+            (c) => c.base === "batter",
+        );
+        expect(config.options).toHaveLength(3);
+        expect(config.options.map((o) => o.value)).toEqual([
+            "first",
+            "second",
+            "third",
+        ]);
+    });
+
+    it("should provide correct options for a double (2B)", () => {
+        const config = getRunnerConfigs("2B", {}).find(
+            (c) => c.base === "batter",
+        );
+        expect(config.options).toHaveLength(2);
+        expect(config.options.map((o) => o.value)).toEqual([
+            "second",
+            "third",
+        ]);
+    });
+
+    it("should provide correct options for a triple (3B)", () => {
+        const config = getRunnerConfigs("3B", {}).find(
+            (c) => c.base === "batter",
+        );
+        expect(config.options).toHaveLength(1);
+        expect(config.options.map((o) => o.value)).toEqual(["third"]);
+    });
+
+    it("should set hideStay=true for batter config on hits", () => {
+        const config = getRunnerConfigs("1B", {}).find(
+            (c) => c.base === "batter",
+        );
+        expect(config.hideStay).toBe(true);
     });
 });
