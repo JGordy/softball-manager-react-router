@@ -706,4 +706,34 @@ describe("calculatePlayerStats", () => {
         // AVG = 4 / 5 = .800
         expect(stats.calculated.avg).toBe(".800");
     });
+
+    it("should handle new granular out types correctly", () => {
+        const outTypes = [
+            "strikeout",
+            "ground_out",
+            "fly_out",
+            "line_out",
+            "pop_out",
+        ];
+        const logs = outTypes.map((type) => ({ eventType: type }));
+
+        const stats = calculatePlayerStats(logs);
+
+        expect(stats.ab).toBe(5);
+        expect(stats.details.Outs).toBe(5);
+        expect(stats.details.K).toBe(1); // Only strikeout
+    });
+
+    it("should handle error and fielders_choice database values", () => {
+        const logs = [
+            { eventType: "error" },
+            { eventType: "fielders_choice" },
+        ];
+
+        const stats = calculatePlayerStats(logs);
+
+        expect(stats.ab).toBe(2);
+        expect(stats.details.E).toBe(1);
+        expect(stats.details.FC).toBe(1);
+    });
 });
