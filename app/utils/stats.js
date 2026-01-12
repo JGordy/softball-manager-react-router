@@ -237,11 +237,18 @@ export const calculatePlayerStats = (logs) => {
     };
 
     logs.forEach((log) => {
-        const type = log.eventType;
+        const eventType = log.eventType;
         const logRbi = log.rbi || 0;
 
         rbi += logRbi;
         details.RBI += logRbi;
+
+        // Standardize event type
+        let type = eventType;
+        const isUIKey = Object.keys(EVENT_TYPE_MAP).includes(eventType);
+        if (isUIKey) {
+            type = EVENT_TYPE_MAP[eventType];
+        }
 
         switch (type) {
             case "single":
@@ -273,7 +280,10 @@ export const calculatePlayerStats = (logs) => {
             case "out":
                 ab++;
                 details.Outs++;
-                details.K++;
+                // Track strikeout specifically if event was 'K'
+                if (eventType === "K") {
+                    details.K++;
+                }
                 break;
             case "error":
                 ab++;
@@ -292,12 +302,12 @@ export const calculatePlayerStats = (logs) => {
     });
 
     // Calculated Stats
-    const plateAppearances = ab + details.BB + details.SF;
+    const obpDenominator = ab + details.BB + details.SF;
     const avg = ab > 0 ? (hits / ab).toFixed(3) : ".000";
 
     const obp =
-        plateAppearances > 0
-            ? ((hits + details.BB) / plateAppearances).toFixed(3)
+        obpDenominator > 0
+            ? ((hits + details.BB) / obpDenominator).toFixed(3)
             : ".000";
 
     const totalBases =
