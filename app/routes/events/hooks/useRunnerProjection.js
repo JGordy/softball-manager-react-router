@@ -55,6 +55,15 @@ export function useRunnerProjection({ opened, actionType, runners, outs }) {
         }
     }, [opened, actionType, runners]);
 
+    /**
+     * Calculates the projected state of the game based on the current runner results.
+     *
+     * @returns {Object} An object containing:
+     * - projectedRunners: Mapping of bases to player IDs (or "Batter")
+     * - occupiedBases: Boolean mapping of which bases will be occupied
+     * - runsScored: Total runs resulting from the play
+     * - outsRecorded: Total outs resulting from the play
+     */
     const getProjectedState = () => {
         // Track WHO is on which base (playerId or null)
         const projectedRunners = { first: null, second: null, third: null };

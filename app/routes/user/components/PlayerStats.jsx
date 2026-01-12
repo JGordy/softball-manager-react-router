@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Center, Stack, Text } from "@mantine/core";
+import { Center, Group, Stack, Text, Table, Paper } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
 import DeferredLoader from "@/components/DeferredLoader";
+import { calculatePlayerStats } from "@/utils/stats";
 
 import GameStatsCard from "./stats/GameStatsCard";
 import StatsDetailDrawer from "./stats/StatsDetailDrawer";
@@ -55,8 +56,102 @@ export default function PlayerStats({ statsPromise }) {
                 // Take last 10 games
                 const last10GameIds = sortedGameIds.slice(0, 10);
 
+                const overallStats = calculatePlayerStats(logs);
+
                 return (
                     <Stack gap="md" mt="md">
+                        <Paper withBorder p="md" radius="md">
+                            <Text fw={700} mb="xs">
+                                Last {sortedGameIds.length} Games
+                            </Text>
+                            <Group my="md" grow>
+                                <Stack gap={0} align="center">
+                                    <Text
+                                        size="xs"
+                                        c="dimmed"
+                                        tt="uppercase"
+                                        fw={700}
+                                    >
+                                        AVG
+                                    </Text>
+                                    <Text fw={700} size="lg">
+                                        {overallStats.calculated.avg}
+                                    </Text>
+                                </Stack>
+                                <Stack gap={0} align="center">
+                                    <Text
+                                        size="xs"
+                                        c="dimmed"
+                                        tt="uppercase"
+                                        fw={700}
+                                    >
+                                        OBP
+                                    </Text>
+                                    <Text fw={700} size="lg">
+                                        {overallStats.calculated.obp}
+                                    </Text>
+                                </Stack>
+                                <Stack gap={0} align="center">
+                                    <Text
+                                        size="xs"
+                                        c="dimmed"
+                                        tt="uppercase"
+                                        fw={700}
+                                    >
+                                        SLG
+                                    </Text>
+                                    <Text fw={700} size="lg">
+                                        {overallStats.calculated.slg}
+                                    </Text>
+                                </Stack>
+                                <Stack gap={0} align="center">
+                                    <Text
+                                        size="xs"
+                                        c="dimmed"
+                                        tt="uppercase"
+                                        fw={700}
+                                    >
+                                        OPS
+                                    </Text>
+                                    <Text fw={700} size="lg">
+                                        {overallStats.calculated.ops}
+                                    </Text>
+                                </Stack>
+                            </Group>
+                            <Table horizontalSpacing="sm" verticalSpacing="xs">
+                                <Table.Thead>
+                                    <Table.Tr>
+                                        <Table.Th>AB</Table.Th>
+                                        <Table.Th>H</Table.Th>
+                                        <Table.Th>RBI</Table.Th>
+                                        <Table.Th>2B</Table.Th>
+                                        <Table.Th>3B</Table.Th>
+                                        <Table.Th>HR</Table.Th>
+                                        <Table.Th>BB</Table.Th>
+                                    </Table.Tr>
+                                </Table.Thead>
+                                <Table.Tbody>
+                                    <Table.Tr>
+                                        <Table.Td>{overallStats.ab}</Table.Td>
+                                        <Table.Td>{overallStats.hits}</Table.Td>
+                                        <Table.Td>{overallStats.rbi}</Table.Td>
+                                        <Table.Td>
+                                            {overallStats.doubles}
+                                        </Table.Td>
+                                        <Table.Td>
+                                            {overallStats.triples}
+                                        </Table.Td>
+                                        <Table.Td>
+                                            {overallStats.homeruns}
+                                        </Table.Td>
+                                        <Table.Td>
+                                            {overallStats.details.BB}
+                                        </Table.Td>
+                                    </Table.Tr>
+                                </Table.Tbody>
+                            </Table>
+                        </Paper>
+
                         {last10GameIds.map((gameId) => {
                             const game = gamesMap[gameId];
                             const gameLogs = logsByGame[gameId];

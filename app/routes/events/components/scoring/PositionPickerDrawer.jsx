@@ -43,9 +43,10 @@ export default function PositionPickerDrawer({
         outsRecorded,
     } = useRunnerProjection({ opened, actionType, runners, outs });
 
-    const positions = Object.values(POSITIONS).map((pos) => ({
+    const positions = Object.entries(POSITIONS).map(([key, pos]) => ({
         label: pos.initials,
         value: pos.initials,
+        fullName: key,
     }));
 
     // Reset local state when drawer closes
@@ -247,17 +248,12 @@ export default function PositionPickerDrawer({
                                 className={styles.fieldImage}
                             />
                             {positions.map((pos) => {
-                                const positionKey = Object.keys(POSITIONS).find(
-                                    (key) =>
-                                        POSITIONS[key].initials === pos.value,
-                                );
-                                const className = positionKey
-                                    ? styles[
-                                          positionKey
-                                              .toLowerCase()
-                                              .replace(/\s+/g, "")
-                                      ]
-                                    : "";
+                                const className =
+                                    styles[
+                                        pos.fullName
+                                            .toLowerCase()
+                                            .replace(/\s+/g, "")
+                                    ];
 
                                 return (
                                     <div
@@ -277,7 +273,7 @@ export default function PositionPickerDrawer({
                                         }}
                                         tabIndex={0}
                                         role="button"
-                                        aria-label={`Select ${positionKey} position`}
+                                        aria-label={`Select ${pos.fullName} position`}
                                     >
                                         <Avatar
                                             size="md"
