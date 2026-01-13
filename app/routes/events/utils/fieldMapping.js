@@ -1,18 +1,19 @@
-const ORIGIN_X = 50;
-const ORIGIN_Y = 78; // Visual home plate location
+export const ORIGIN_X = 50;
+export const ORIGIN_Y = 78; // Visual home plate location
 
-const FOUL_ANGLE_THRESHOLD = 44.5;
-const CATCHER_DISTANCE_THRESHOLD = 8;
-const PITCHER_DISTANCE_THRESHOLD = 25;
-const UP_THE_MIDDLE_DISTANCE_THRESHOLD = 35;
+export const FOUL_ANGLE_THRESHOLD = 44.5;
+export const CATCHER_DISTANCE_THRESHOLD = 8;
+export const PITCHER_DISTANCE_THRESHOLD = 25;
+export const UP_THE_MIDDLE_DISTANCE_THRESHOLD = 35;
+export const MAX_DISTANCE_THRESHOLD = 68;
 
-const DEPTH_THRESHOLD = {
+export const DEPTH_THRESHOLD = {
     INFIELD: 38,
     SHALLOW: 45,
     STANDARD: 55,
 };
 
-const ANGLE_THRESHOLD = {
+export const ANGLE_THRESHOLD = {
     LINE: 36,
     FIELD: 22,
     GAP: 7,
@@ -65,10 +66,12 @@ export function getFieldZone(x, y) {
     else direction = "center field";
 
     if (depth === "infield") {
-        if (absAngle < 8 && distance < PITCHER_DISTANCE_THRESHOLD)
-            return "back to the pitcher";
-        if (absAngle < 8 && distance < UP_THE_MIDDLE_DISTANCE_THRESHOLD)
+        if (absAngle < 8) {
+            if (distance < PITCHER_DISTANCE_THRESHOLD)
+                return "back to the pitcher";
             return "up the middle";
+        }
+
         if (absAngle > 35)
             return horizontalAngle < 0
                 ? "down the third base line"

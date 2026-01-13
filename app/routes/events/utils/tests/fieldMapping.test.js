@@ -13,6 +13,11 @@ describe("getFieldZone", () => {
         expect(getFieldZone(20, 78)).toBe("foul ball");
     });
 
+    it("should identify zones even if coordinate is past the fence (UI handles clamping)", () => {
+        // x=50, y=5 => dx=0, dy=73 => distance=73
+        expect(getFieldZone(50, 5)).toBe("deep center field");
+    });
+
     it("should identify hit down the first base line", () => {
         expect(getFieldZone(65, 61)).toBe("down the first base line");
     });
@@ -50,7 +55,7 @@ describe("getFieldZone", () => {
     });
 
     it("should identify deep left field", () => {
-        expect(getFieldZone(20, 10)).toBe("deep left field");
+        expect(getFieldZone(20, 20)).toBe("deep left field");
     });
 
     it("should identify standard left field (no prefix)", () => {
