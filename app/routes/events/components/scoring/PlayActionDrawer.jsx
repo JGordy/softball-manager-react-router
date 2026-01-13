@@ -387,7 +387,7 @@ export default function PlayActionDrawer({
                             label={hitLocation || "Touch the field"}
                             opened={!!hitLocation && isDragging}
                             position="top"
-                            offset={35}
+                            offset={40}
                             withinPortal={false}
                         >
                             <div
