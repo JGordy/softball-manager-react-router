@@ -317,6 +317,7 @@ export default function PlayActionDrawer({
                     ref={containerRef}
                     className={styles.imageContainer}
                     style={{ touchAction: "none" }}
+                    onContextMenu={(e) => e.preventDefault()}
                     onPointerDown={(e) => {
                         setIsDragging(true);
                         handlePointerEvent(e);
