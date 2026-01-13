@@ -6,7 +6,7 @@ import {
     Divider,
     Group,
     Image,
-    Card,
+    Paper,
     SegmentedControl,
     Stack,
     Text,
@@ -20,10 +20,23 @@ import DrawerContainer from "@/components/DrawerContainer";
 import POSITIONS from "@/constants/positions";
 
 import DiamondView from "./DiamondView";
+import FieldHighlight from "./FieldHighlight";
 
+import { FIELD_CENTROIDS } from "../../constants/fieldCentroids";
 import { useRunnerProjection } from "../../hooks/useRunnerProjection";
 import { getDrawerTitle, getRunnerConfigs } from "../../utils/drawerUtils";
-import { getFieldZone } from "../../utils/fieldMapping";
+import {
+    getFieldZone,
+    ORIGIN_X,
+    ORIGIN_Y,
+    MAX_DISTANCE_THRESHOLD,
+} from "../../utils/fieldMapping";
+
+const getActionColor = (actionType) => {
+    if (["1B", "2B", "3B", "HR"].includes(actionType)) return "green";
+    if (actionType === "E" || actionType === "FC") return "orange";
+    return "red";
+};
 
 export default function PlayActionDrawer({
     opened,
@@ -58,28 +71,12 @@ export default function PlayActionDrawer({
         outsRecorded,
     } = useRunnerProjection({ opened, actionType, runners, outs });
 
-    const positions = Object.entries(POSITIONS).map(([key, pos]) => {
-        // Map centroids from CSS for snap logic
-        const centroids = {
-            Pitcher: { x: 50, y: 62 },
-            Catcher: { x: 50, y: 78 },
-            "First Base": { x: 66, y: 56 },
-            "Second Base": { x: 57, y: 49 },
-            "Third Base": { x: 34, y: 56 },
-            Shortstop: { x: 43, y: 49 },
-            "Left Field": { x: 25, y: 35 },
-            "Left Center Field": { x: 40, y: 25 },
-            "Right Center Field": { x: 60, y: 25 },
-            "Right Field": { x: 75, y: 35 },
-        };
-
-        return {
-            label: pos.initials,
-            value: pos.initials,
-            fullName: key,
-            centroid: centroids[key] || { x: 0, y: 0 },
-        };
-    });
+    const positions = Object.entries(POSITIONS).map(([key, pos]) => ({
+        label: pos.initials,
+        value: pos.initials,
+        fullName: key,
+        centroid: FIELD_CENTROIDS[key] || { x: 0, y: 0 },
+    }));
 
     // Reset local state when drawer closes
     useEffect(() => {
@@ -100,12 +97,6 @@ export default function PlayActionDrawer({
         });
     };
 
-    const getColor = () => {
-        if (["1B", "2B", "3B", "HR"].includes(actionType)) return "green";
-        if (actionType === "E" || actionType === "FC") return "orange";
-        return "red";
-    };
-
     const handlePointerEvent = (e) => {
         if (!containerRef.current) return;
 
@@ -117,22 +108,36 @@ export default function PlayActionDrawer({
         const constrainedX = Math.max(0, Math.min(100, x));
         const constrainedY = Math.max(0, Math.min(100, y));
 
+        // Max distance clamping (outfield fence)
+        let finalX = constrainedX;
+        let finalY = constrainedY;
+
+        const dx = constrainedX - ORIGIN_X;
+        const dy = ORIGIN_Y - constrainedY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist > MAX_DISTANCE_THRESHOLD) {
+            const ratio = MAX_DISTANCE_THRESHOLD / dist;
+            finalX = ORIGIN_X + dx * ratio;
+            finalY = ORIGIN_Y - dy * ratio;
+        }
+
         // Only update if it's fair territory
-        const location = getFieldZone(constrainedX, constrainedY);
+        const location = getFieldZone(finalX, finalY);
         if (location === "foul ball") return;
 
-        setHitCoordinates({ x: constrainedX, y: constrainedY });
+        setHitCoordinates({ x: finalX, y: finalY });
 
         // Find nearest position to snap
         let nearestPos = null;
         let minDistance = Infinity;
 
         positions.forEach((pos) => {
-            const dx = constrainedX - pos.centroid.x;
-            const dy = constrainedY - pos.centroid.y;
-            const dist = dx * dx + dy * dy;
-            if (dist < minDistance) {
-                minDistance = dist;
+            const snapDx = finalX - pos.centroid.x;
+            const snapDy = finalY - pos.centroid.y;
+            const snapDist = snapDx * snapDx + snapDy * snapDy;
+            if (snapDist < minDistance) {
+                minDistance = snapDist;
                 nearestPos = pos.value;
             }
         });
@@ -200,15 +205,14 @@ export default function PlayActionDrawer({
     const renderConfirmation = () => {
         return (
             <>
-                <Group justify="space-between" mb="xs">
+                <Group justify="space-between" my="sm">
                     <Stack gap={0}>
                         <Text size="sm" fw={700}>
                             Fielded by: {selectedPosition}
                         </Text>
                         {hitLocation && (
                             <Text size="xs" c="dimmed">
-                                Location: {hitLocation} (
-                                {battingSide === "left" ? "L" : "R"})
+                                Location: {hitLocation}
                             </Text>
                         )}
                     </Stack>
@@ -293,7 +297,7 @@ export default function PlayActionDrawer({
                 {renderRunners()}
 
                 <Button
-                    color={getColor()}
+                    color={getActionColor(actionType)}
                     fullWidth
                     size="md"
                     radius="md"
@@ -303,6 +307,107 @@ export default function PlayActionDrawer({
                     Confirm Play
                 </Button>
             </>
+        );
+    };
+
+    const renderFieldInteraction = () => {
+        return (
+            <Paper radius="md" p="0">
+                <div
+                    ref={containerRef}
+                    className={styles.imageContainer}
+                    style={{ touchAction: "none" }}
+                    onPointerDown={(e) => {
+                        setIsDragging(true);
+                        handlePointerEvent(e);
+                    }}
+                    onPointerMove={(e) => {
+                        if (isDragging) {
+                            handlePointerEvent(e);
+                        }
+                    }}
+                    onPointerUp={() => setIsDragging(false)}
+                    onPointerLeave={() => setIsDragging(false)}
+                >
+                    <Image
+                        src={images.fieldSrc}
+                        alt="Interactive softball field diagram"
+                        className={styles.fieldImage}
+                        draggable={false}
+                    />
+                    <FieldHighlight x={hitCoordinates.x} y={hitCoordinates.y} />
+                    {positions.map((pos) => {
+                        const className =
+                            styles[
+                                pos.fullName.toLowerCase().replace(/\s+/g, "")
+                            ];
+
+                        const isSelected = selectedPosition === pos.value;
+
+                        return (
+                            <div
+                                key={pos.value}
+                                className={`${styles.fieldingPosition} ${className}`}
+                                onClick={() => {
+                                    setSelectedPosition(pos.value);
+                                    // If just clicked, set coords to centroid
+                                    setHitCoordinates(pos.centroid);
+                                }}
+                                tabIndex={0}
+                                role="button"
+                            >
+                                <Avatar
+                                    size="sm"
+                                    radius="xl"
+                                    color={
+                                        isSelected
+                                            ? getActionColor(actionType)
+                                            : "gray"
+                                    }
+                                    variant={isSelected ? "filled" : "light"}
+                                    style={{
+                                        transform: isSelected
+                                            ? "scale(1.2)"
+                                            : "scale(1.1)",
+                                        transition: "transform 0.1s ease",
+                                        border: isSelected
+                                            ? "2px solid white"
+                                            : "none",
+                                    }}
+                                >
+                                    {pos.label}
+                                </Avatar>
+                            </div>
+                        );
+                    })}
+
+                    {hitCoordinates.x && (
+                        <Tooltip
+                            label={hitLocation || "Touch the field"}
+                            opened={!!hitLocation && isDragging}
+                            position="top"
+                            offset={35}
+                            withinPortal={false}
+                        >
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    left: `${hitCoordinates.x}%`,
+                                    top: `${hitCoordinates.y}%`,
+                                    width: 12,
+                                    height: 12,
+                                    backgroundColor: "white",
+                                    borderRadius: "50%",
+                                    border: "2px solid var(--mantine-color-blue-filled)",
+                                    transform: "translate(-50%, -50%)",
+                                    pointerEvents: "none",
+                                    zIndex: 5,
+                                }}
+                            />
+                        </Tooltip>
+                    )}
+                </div>
+            </Paper>
         );
     };
 
@@ -316,127 +421,32 @@ export default function PlayActionDrawer({
             keepMounted
         >
             <Stack gap="md" pb="xl">
-                <Group justify="center">
-                    <Text size="lg">Batting:</Text>
+                <Group justify="start">
+                    <Text fw={700} size="md">
+                        Batting
+                    </Text>
                     <SegmentedControl
                         fullWidth
                         value={battingSide}
                         onChange={setBattingSide}
                         data={[
-                            { label: "Left", value: "left" },
                             { label: "Right", value: "right" },
+                            { label: "Left", value: "left" },
                         ]}
                         color="blue"
                     />
                 </Group>
 
-                <Text size="sm" c="dimmed">
-                    Select approximate field location where the ball was hit
-                </Text>
-
-                {!hitCoordinates.x || isDragging ? (
-                    <Card radius="md" p="0" pt="md" withBorder>
-                        <div
-                            ref={containerRef}
-                            className={styles.imageContainer}
-                            style={{ touchAction: "none" }}
-                            onPointerDown={(e) => {
-                                setIsDragging(true);
-                                handlePointerEvent(e);
-                            }}
-                            onPointerMove={(e) => {
-                                if (isDragging) {
-                                    handlePointerEvent(e);
-                                }
-                            }}
-                            onPointerUp={() => setIsDragging(false)}
-                            onPointerLeave={() => setIsDragging(false)}
-                        >
-                            <Image
-                                src={images.fieldSrc}
-                                alt="Interactive softball field diagram"
-                                className={styles.fieldImage}
-                                draggable={false}
-                            />
-                            {positions.map((pos) => {
-                                const className =
-                                    styles[
-                                        pos.fullName
-                                            .toLowerCase()
-                                            .replace(/\s+/g, "")
-                                    ];
-
-                                const isSelected =
-                                    selectedPosition === pos.value;
-
-                                return (
-                                    <div
-                                        key={pos.value}
-                                        className={`${styles.fieldingPosition} ${className}`}
-                                        onClick={() => {
-                                            setSelectedPosition(pos.value);
-                                            // If just clicked, set coords to centroid
-                                            setHitCoordinates(pos.centroid);
-                                        }}
-                                        tabIndex={0}
-                                        role="button"
-                                    >
-                                        <Avatar
-                                            size="md"
-                                            radius="xl"
-                                            color={
-                                                isSelected ? getColor() : "gray"
-                                            }
-                                            variant={
-                                                isSelected ? "filled" : "light"
-                                            }
-                                            style={{
-                                                transform: isSelected
-                                                    ? "scale(1.2)"
-                                                    : "scale(1)",
-                                                transition:
-                                                    "transform 0.1s ease",
-                                                border: isSelected
-                                                    ? "2px solid white"
-                                                    : "none",
-                                            }}
-                                        >
-                                            {pos.label}
-                                        </Avatar>
-                                    </div>
-                                );
-                            })}
-
-                            {hitCoordinates.x && (
-                                <Tooltip
-                                    label={hitLocation || "Touch the field"}
-                                    opened={!!hitLocation && isDragging}
-                                    position="top"
-                                    offset={15}
-                                    withinPortal={false}
-                                >
-                                    <div
-                                        style={{
-                                            position: "absolute",
-                                            left: `${hitCoordinates.x}%`,
-                                            top: `${hitCoordinates.y}%`,
-                                            width: 12,
-                                            height: 12,
-                                            backgroundColor: "white",
-                                            borderRadius: "50%",
-                                            border: "2px solid var(--mantine-color-blue-filled)",
-                                            transform: "translate(-50%, -50%)",
-                                            pointerEvents: "none",
-                                            zIndex: 5,
-                                        }}
-                                    />
-                                </Tooltip>
-                            )}
-                        </div>
-                    </Card>
-                ) : (
-                    renderConfirmation()
+                {(!hitCoordinates.x || isDragging) && (
+                    <Text size="sm" ta="center" c="dimmed" my="sm">
+                        Touch and drag to the appropriate field location where
+                        the ball was hit
+                    </Text>
                 )}
+
+                {!hitCoordinates.x || isDragging
+                    ? renderFieldInteraction()
+                    : renderConfirmation()}
 
                 <Button
                     variant="light"
