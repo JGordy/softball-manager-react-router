@@ -68,31 +68,31 @@ export function getEventDescription(
     batterName,
     position,
     runnerResults = null,
+    hitLocation = null,
 ) {
+    const loc = hitLocation ? `${hitLocation}` : position;
     let baseDesc = "";
-    if (actionType === "1B") baseDesc = `${batterName} singles to ${position}`;
-    else if (actionType === "2B")
-        baseDesc = `${batterName} doubles to ${position}`;
-    else if (actionType === "3B")
-        baseDesc = `${batterName} triples to ${position}`;
+
+    if (actionType === "1B") baseDesc = `${batterName} singles to ${loc}`;
+    else if (actionType === "2B") baseDesc = `${batterName} doubles to ${loc}`;
+    else if (actionType === "3B") baseDesc = `${batterName} triples to ${loc}`;
     else if (actionType === "HR")
-        baseDesc = `${batterName} hits a home run to ${position}`;
+        baseDesc = `${batterName} hits a home run to ${loc}`;
     else if (actionType === "Ground Out")
-        baseDesc = `${batterName} grounds out to ${position}`;
+        baseDesc = `${batterName} grounds out to ${loc}`;
     else if (actionType === "Fly Out")
-        baseDesc = `${batterName} flies out to ${position}`;
+        baseDesc = `${batterName} flies out to ${loc}`;
     else if (actionType === "Line Out")
-        baseDesc = `${batterName} lines out to ${position}`;
+        baseDesc = `${batterName} lines out to ${loc}`;
     else if (actionType === "Pop Out")
-        baseDesc = `${batterName} pops out to ${position}`;
+        baseDesc = `${batterName} pops out to ${loc}`;
     else if (actionType === "E")
-        baseDesc = `${batterName} reaches on an error by ${position}`;
+        baseDesc = `${batterName} reaches on an error by ${position}${hitLocation ? ` (${hitLocation})` : ""}`;
     else if (actionType === "FC")
-        baseDesc = `${batterName} reaches on a fielder's choice to ${position}`;
+        baseDesc = `${batterName} reaches on a fielder's choice to ${position}${hitLocation ? ` (${hitLocation})` : ""}`;
     else if (actionType === "BB") baseDesc = `${batterName} walks`;
     else if (actionType === "K") baseDesc = `${batterName} strikes out`;
-    else
-        baseDesc = `${batterName}: ${actionType}${position ? ` (${position})` : ""}`;
+    else baseDesc = `${batterName}: ${actionType}${loc ? ` (${loc})` : ""}`;
 
     // Add advancement context if batter moved further than expected
     if (runnerResults?.batter && EXPECTED_BATTER_BASE[actionType]) {

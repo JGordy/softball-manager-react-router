@@ -24,6 +24,10 @@ export const logGameEvent = async ({
     outsOnPlay,
     description,
     baseState,
+    hitX,
+    hitY,
+    hitLocation,
+    battingSide,
 }) => {
     let transaction = null;
 
@@ -75,6 +79,10 @@ export const logGameEvent = async ({
             outsOnPlay: parseInt(outsOnPlay, 10),
             description,
             baseState: baseStateStr,
+            hitX: hitX ? parseFloat(hitX) : null,
+            hitY: hitY ? parseFloat(hitY) : null,
+            hitLocation,
+            battingSide,
         };
 
         // If runs > 0, use transaction for atomicity

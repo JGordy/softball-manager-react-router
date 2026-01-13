@@ -41,6 +41,57 @@ describe("getEventDescription", () => {
             "Joseph singles to LF and is out on the play",
         );
     });
+
+    it("should use hitLocation for description when provided", () => {
+        expect(
+            getEventDescription("1B", "Joseph", "LF", null, "deep left field"),
+        ).toBe("Joseph singles to deep left field");
+    });
+
+    it("should use hitLocation in parentheses for errors", () => {
+        expect(
+            getEventDescription(
+                "E",
+                "Joseph",
+                "LF",
+                null,
+                "shallow left field",
+            ),
+        ).toBe("Joseph reaches on an error by LF (shallow left field)");
+    });
+
+    it("should include hit description when provided for extra base hits", () => {
+        const result = getEventDescription(
+            "2B",
+            "Joseph",
+            "LF",
+            null,
+            "deep left-center gap",
+        );
+        expect(result).toBe("Joseph doubles to deep left-center gap");
+    });
+
+    it("should format errors with both position and hit location", () => {
+        const result = getEventDescription(
+            "E",
+            "Joseph",
+            "SS",
+            null,
+            "to shortstop",
+        );
+        expect(result).toBe("Joseph reaches on an error by SS (to shortstop)");
+    });
+
+    it("should include hit description for outs", () => {
+        const result = getEventDescription(
+            "Fly Out",
+            "Joseph",
+            "CF",
+            null,
+            "deep center field",
+        );
+        expect(result).toBe("Joseph flies out to deep center field");
+    });
 });
 
 describe("handleWalk", () => {

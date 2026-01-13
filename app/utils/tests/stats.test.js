@@ -725,10 +725,7 @@ describe("calculatePlayerStats", () => {
     });
 
     it("should handle error and fielders_choice database values", () => {
-        const logs = [
-            { eventType: "error" },
-            { eventType: "fielders_choice" },
-        ];
+        const logs = [{ eventType: "error" }, { eventType: "fielders_choice" }];
 
         const stats = calculatePlayerStats(logs);
 
