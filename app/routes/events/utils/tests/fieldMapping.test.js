@@ -1,4 +1,4 @@
-import { getFieldZone } from "../fieldMapping";
+import { getFieldZone, getClampedCoordinates } from "../fieldMapping";
 
 describe("getFieldZone", () => {
     it("should identify catcher location correctly", () => {
@@ -99,5 +99,85 @@ describe("getFieldZone", () => {
 
     it("should handle null coordinates gracefully", () => {
         expect(getFieldZone(null, null)).toBe("");
+        expect(getFieldZone(50, null)).toBe("");
+        expect(getFieldZone(null, 78)).toBe("");
+    });
+
+    describe("Home Runs", () => {
+        it("should identify over-the-fence home run to center field", () => {
+            // distance > 68 (MAX_DISTANCE_THRESHOLD)
+            expect(getFieldZone(50, 5, "HR")).toBe("home run to center field");
+        });
+
+        it("should identify over-the-fence home run to left field", () => {
+            // x=10, y=10 => distance=78.9 (>68)
+            // angle ≈ -30deg (left field)
+            expect(getFieldZone(10, 10, "HR")).toBe("home run to left field");
+        });
+
+        it("should identify inside-the-park home run to center field (standard depth)", () => {
+            // distance = 50 (MIN_HR_DISTANCE_THRESHOLD)
+            expect(getFieldZone(50, 28, "HR")).toBe(
+                "inside the park home run to center field",
+            );
+        });
+
+        it("should identify inside-the-park home run to deep center field", () => {
+            // distance = 63 (Deep depth range)
+            expect(getFieldZone(50, 15, "HR")).toBe(
+                "inside the park home run to deep center field",
+            );
+        });
+
+        it("should still identify foul balls when HR action is selected", () => {
+            expect(getFieldZone(20, 78, "HR")).toBe("foul ball");
+        });
+    });
+});
+
+describe("getClampedCoordinates", () => {
+    it("should clamp a deep hit to the fence for singles", () => {
+        // x=50, y=5 => dist=73 (>68)
+        const result = getClampedCoordinates(50, 5, "1B");
+        expect(result.y).toBeCloseTo(10, 0); // 78 - 68 = 10
+    });
+
+    it("should allow a deep hit beyond the fence for home runs", () => {
+        // x=50, y=5 => dist=73 (below 80)
+        const result = getClampedCoordinates(50, 5, "HR");
+        expect(result.y).toBe(5);
+    });
+
+    it("should snap a shallow hit to the standard outfield floor for home runs", () => {
+        // Click at pitcher location: x=50, y=62 (dist=16)
+        const result = getClampedCoordinates(50, 62, "HR");
+        // Should snap to MIN_HR_DISTANCE_THRESHOLD (50)
+        expect(result.y).toBeCloseTo(28, 0);
+    });
+
+    it("should snap an origin click to the outfield floor for home runs", () => {
+        // Click exactly at home plate
+        const result = getClampedCoordinates(50, 78, "HR");
+        expect(result.y).toBeCloseTo(28, 0);
+    });
+
+    it("should not clamp a normal infield hit for singles", () => {
+        const result = getClampedCoordinates(50, 62, "1B");
+        expect(result.x).toBe(50);
+        expect(result.y).toBe(62);
+    });
+
+    it("should clamp a deep hit to standard outfield for pop outs", () => {
+        // x=50, y=10 => dist=68 (Exactly at fence)
+        // Pop Out max is DEPTH_THRESHOLD.STANDARD (55).
+        const result = getClampedCoordinates(50, 10, "Pop Out");
+        expect(result.y).toBeCloseTo(23, 0); // 78 - 55 = 23
+    });
+
+    it("should snap an infield hit to shallow outfield for fly outs", () => {
+        // x=50, y=60 => dist=18 (Pitcher area)
+        // Fly Out min is DEPTH_THRESHOLD.INFIELD (38).
+        const result = getClampedCoordinates(50, 60, "Fly Out");
+        expect(result.y).toBeCloseTo(39.9, 1); // 78 - 38.1 = 39.9
     });
 });

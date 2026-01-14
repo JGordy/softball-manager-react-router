@@ -7,7 +7,7 @@ import {
     MAX_DISTANCE_THRESHOLD,
     DEPTH_THRESHOLD,
     ANGLE_THRESHOLD,
-} from "../../utils/fieldMapping";
+} from "../../constants/fieldMapping";
 
 /**
  * Helper to convert baseball coordinates (distance and angle from home plate)
@@ -85,33 +85,42 @@ function describeRingSegment(x, y, minR, maxR, minA, maxA) {
     ].join(" ");
 }
 
-export default function FieldHighlight({ x, y }) {
+export default function FieldHighlight({ x, y, actionType }) {
     if (x === null || y === null) return null;
 
     // 1. Calculate how far and at what angle the ball was hit from Home Plate
     const dx = x - ORIGIN_X;
     const dy = ORIGIN_Y - y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
+    const rawDistance = Math.sqrt(dx * dx + dy * dy);
+    // Round to match clamped precision
+    const distance = Math.round(rawDistance * 100) / 100;
     const angle = Math.atan2(dx, Math.max(0.1, dy)) * (180 / Math.PI);
     const absAngle = Math.abs(angle);
 
-    // Foul ball and boundary check (don't show highlight if outside lines or past fence)
+    // Foul ball and boundary check (don't show highlight if outside lines or significantly past fence)
+    const isPastFence = distance > MAX_DISTANCE_THRESHOLD;
+    const isWithinVisualFence = distance <= MAX_DISTANCE_THRESHOLD + 0.5;
+
     if (
         dy < -1 ||
         absAngle > FOUL_ANGLE_THRESHOLD ||
-        distance > MAX_DISTANCE_THRESHOLD
+        (!isWithinVisualFence && actionType !== "HR")
     )
         return null;
 
     let minR, maxR, minA, maxA;
+    const isHR = actionType === "HR" && isPastFence;
 
     // 2. Determine the Depth Band (The "Rainbow" distance from home)
-    if (distance < CATCHER_DISTANCE_THRESHOLD) {
+    if (isHR) {
+        minR = MAX_DISTANCE_THRESHOLD;
+        maxR = distance;
+    } else if (distance <= CATCHER_DISTANCE_THRESHOLD) {
         minR = 0;
         maxR = CATCHER_DISTANCE_THRESHOLD;
         minA = -FOUL_ANGLE_THRESHOLD;
         maxA = FOUL_ANGLE_THRESHOLD;
-    } else if (distance < DEPTH_THRESHOLD.INFIELD) {
+    } else if (distance <= DEPTH_THRESHOLD.INFIELD) {
         minR = CATCHER_DISTANCE_THRESHOLD;
         maxR = DEPTH_THRESHOLD.INFIELD;
 
@@ -125,37 +134,40 @@ export default function FieldHighlight({ x, y }) {
             }
             minA = -8;
             maxA = 8;
-        } else if (absAngle > 35) {
-            minA = angle < 0 ? -FOUL_ANGLE_THRESHOLD : 35;
-            maxA = angle < 0 ? -35 : FOUL_ANGLE_THRESHOLD;
-        } else if (absAngle > 25) {
-            minA = angle < 0 ? -35 : 25;
-            maxA = angle < 0 ? -25 : 35;
+        } else if (absAngle >= ANGLE_THRESHOLD.LINE) {
+            minA = angle < 0 ? -FOUL_ANGLE_THRESHOLD : ANGLE_THRESHOLD.LINE;
+            maxA = angle < 0 ? -ANGLE_THRESHOLD.LINE : FOUL_ANGLE_THRESHOLD;
+        } else if (absAngle >= ANGLE_THRESHOLD.FIELD) {
+            minA = angle < 0 ? -ANGLE_THRESHOLD.LINE : ANGLE_THRESHOLD.FIELD;
+            maxA = angle < 0 ? -ANGLE_THRESHOLD.FIELD : ANGLE_THRESHOLD.LINE;
         } else {
-            minA = angle < 0 ? -25 : 8;
-            maxA = angle < 0 ? -8 : 25;
+            minA = angle < 0 ? -ANGLE_THRESHOLD.FIELD : 8;
+            maxA = angle < 0 ? -8 : ANGLE_THRESHOLD.FIELD;
         }
     } else {
         // Outfield zones (Shallow, Standard, Deep)
-        if (distance < DEPTH_THRESHOLD.SHALLOW) {
+        if (distance <= DEPTH_THRESHOLD.SHALLOW) {
             minR = DEPTH_THRESHOLD.INFIELD;
             maxR = DEPTH_THRESHOLD.SHALLOW;
-        } else if (distance < DEPTH_THRESHOLD.STANDARD) {
+        } else if (distance <= DEPTH_THRESHOLD.STANDARD) {
             minR = DEPTH_THRESHOLD.SHALLOW;
             maxR = DEPTH_THRESHOLD.STANDARD;
         } else {
             minR = DEPTH_THRESHOLD.STANDARD;
             maxR = MAX_DISTANCE_THRESHOLD;
         }
+    }
 
-        // 3. Determine the Direction Band (Wedges for Left Field, Gaps, Center, etc.)
-        if (absAngle > ANGLE_THRESHOLD.LINE) {
+    // 3. Determine the Direction Band (Wedges for Left Field, Gaps, Center, etc.)
+    // Only apply if it hasn't been set by catcher/infield special logic, or if it's an HR/Outfield hit
+    if (minA === undefined) {
+        if (absAngle >= ANGLE_THRESHOLD.LINE) {
             minA = angle < 0 ? -FOUL_ANGLE_THRESHOLD : ANGLE_THRESHOLD.LINE;
             maxA = angle < 0 ? -ANGLE_THRESHOLD.LINE : FOUL_ANGLE_THRESHOLD;
-        } else if (absAngle > ANGLE_THRESHOLD.FIELD) {
+        } else if (absAngle >= ANGLE_THRESHOLD.FIELD) {
             minA = angle < 0 ? -ANGLE_THRESHOLD.LINE : ANGLE_THRESHOLD.FIELD;
             maxA = angle < 0 ? -ANGLE_THRESHOLD.FIELD : ANGLE_THRESHOLD.LINE;
-        } else if (absAngle > ANGLE_THRESHOLD.GAP) {
+        } else if (absAngle >= ANGLE_THRESHOLD.GAP) {
             minA = angle < 0 ? -ANGLE_THRESHOLD.FIELD : ANGLE_THRESHOLD.GAP;
             maxA = angle < 0 ? -ANGLE_THRESHOLD.GAP : ANGLE_THRESHOLD.FIELD;
         } else {
@@ -173,6 +185,11 @@ export default function FieldHighlight({ x, y }) {
         maxA,
     );
 
+    const highlightColor = isHR
+        ? "rgba(255, 215, 0, 0.4)"
+        : "rgba(255, 255, 255, 0.2)";
+    const strokeColor = isHR ? "#FFD700" : "white";
+
     return (
         <svg
             viewBox="0 0 100 100"
@@ -184,12 +201,13 @@ export default function FieldHighlight({ x, y }) {
                 height: "100%",
                 pointerEvents: "none",
                 zIndex: 4,
+                overflow: "visible",
             }}
         >
             <path
                 d={path}
-                fill="rgba(255, 255, 255, 0.2)"
-                stroke="rgba(255, 255, 255, 0.2)"
+                fill={highlightColor}
+                stroke={highlightColor}
                 strokeWidth="6"
                 strokeLinejoin="round"
                 strokeLinecap="round"
@@ -198,7 +216,7 @@ export default function FieldHighlight({ x, y }) {
             <path
                 d={path}
                 fill="none"
-                stroke="white"
+                stroke={strokeColor}
                 strokeWidth="1.2"
                 strokeLinejoin="round"
                 strokeLinecap="round"

@@ -10,6 +10,7 @@
     -khtml-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
+    overflow: visible !important;
 }
 
 .fieldImage {
