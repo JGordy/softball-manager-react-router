@@ -7,7 +7,7 @@ import {
     MAX_DISTANCE_THRESHOLD,
     DEPTH_THRESHOLD,
     ANGLE_THRESHOLD,
-} from "../../utils/fieldMapping";
+} from "../../constants/fieldMapping";
 
 /**
  * Helper to convert baseball coordinates (distance and angle from home plate)
@@ -85,7 +85,7 @@ function describeRingSegment(x, y, minR, maxR, minA, maxA) {
     ].join(" ");
 }
 
-export default function FieldHighlight({ x, y }) {
+export default function FieldHighlight({ x, y, actionType }) {
     if (x === null || y === null) return null;
 
     // 1. Calculate how far and at what angle the ball was hit from Home Plate
@@ -96,17 +96,23 @@ export default function FieldHighlight({ x, y }) {
     const absAngle = Math.abs(angle);
 
     // Foul ball and boundary check (don't show highlight if outside lines or past fence)
+    const isPastFence = distance > MAX_DISTANCE_THRESHOLD;
+
     if (
         dy < -1 ||
         absAngle > FOUL_ANGLE_THRESHOLD ||
-        distance > MAX_DISTANCE_THRESHOLD
+        (isPastFence && actionType !== "HR")
     )
         return null;
 
     let minR, maxR, minA, maxA;
+    const isHR = actionType === "HR" && isPastFence;
 
     // 2. Determine the Depth Band (The "Rainbow" distance from home)
-    if (distance < CATCHER_DISTANCE_THRESHOLD) {
+    if (isHR) {
+        minR = MAX_DISTANCE_THRESHOLD;
+        maxR = distance;
+    } else if (distance < CATCHER_DISTANCE_THRESHOLD) {
         minR = 0;
         maxR = CATCHER_DISTANCE_THRESHOLD;
         minA = -FOUL_ANGLE_THRESHOLD;
@@ -147,8 +153,11 @@ export default function FieldHighlight({ x, y }) {
             minR = DEPTH_THRESHOLD.STANDARD;
             maxR = MAX_DISTANCE_THRESHOLD;
         }
+    }
 
-        // 3. Determine the Direction Band (Wedges for Left Field, Gaps, Center, etc.)
+    // 3. Determine the Direction Band (Wedges for Left Field, Gaps, Center, etc.)
+    // Only apply if it hasn't been set by catcher/infield special logic, or if it's an HR/Outfield hit
+    if (minA === undefined) {
         if (absAngle > ANGLE_THRESHOLD.LINE) {
             minA = angle < 0 ? -FOUL_ANGLE_THRESHOLD : ANGLE_THRESHOLD.LINE;
             maxA = angle < 0 ? -ANGLE_THRESHOLD.LINE : FOUL_ANGLE_THRESHOLD;
@@ -173,6 +182,11 @@ export default function FieldHighlight({ x, y }) {
         maxA,
     );
 
+    const highlightColor = isHR
+        ? "rgba(255, 215, 0, 0.4)"
+        : "rgba(255, 255, 255, 0.2)";
+    const strokeColor = isHR ? "#FFD700" : "white";
+
     return (
         <svg
             viewBox="0 0 100 100"
@@ -188,8 +202,8 @@ export default function FieldHighlight({ x, y }) {
         >
             <path
                 d={path}
-                fill="rgba(255, 255, 255, 0.2)"
-                stroke="rgba(255, 255, 255, 0.2)"
+                fill={highlightColor}
+                stroke={highlightColor}
                 strokeWidth="6"
                 strokeLinejoin="round"
                 strokeLinecap="round"
@@ -198,7 +212,7 @@ export default function FieldHighlight({ x, y }) {
             <path
                 d={path}
                 fill="none"
-                stroke="white"
+                stroke={strokeColor}
                 strokeWidth="1.2"
                 strokeLinejoin="round"
                 strokeLinecap="round"
