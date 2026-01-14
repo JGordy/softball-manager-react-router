@@ -124,7 +124,16 @@ export default function PlayActionDrawer({
         let nearestPos = null;
         let minDistance = Infinity;
 
-        positions.forEach((pos) => {
+        // For Fly Outs, only outfielders catch them.
+        // For Pop Outs and others, anyone can be the fielder.
+        const snapPositions =
+            actionType === "Fly Out"
+                ? positions.filter((p) =>
+                      ["LF", "LC", "RC", "RF"].includes(p.value),
+                  )
+                : positions;
+
+        snapPositions.forEach((pos) => {
             const snapDx = finalX - pos.centroid.x;
             const snapDy = finalY - pos.centroid.y;
             const snapDist = snapDx * snapDx + snapDy * snapDy;
@@ -308,7 +317,7 @@ export default function PlayActionDrawer({
                 <div
                     ref={containerRef}
                     className={styles.imageContainer}
-                    style={{ touchAction: "none" }}
+                    style={{ touchAction: "none", margin: "10px auto" }}
                     onContextMenu={(e) => e.preventDefault()}
                     onPointerDown={(e) => {
                         setIsDragging(true);
