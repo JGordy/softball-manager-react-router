@@ -189,8 +189,17 @@ export default function FieldHighlight({ x, y }) {
             <path
                 d={path}
                 fill="rgba(255, 255, 255, 0.2)"
+                stroke="rgba(255, 255, 255, 0.2)"
+                strokeWidth="6"
+                strokeLinejoin="round"
+                strokeLinecap="round"
+                style={{ transition: "d 0.1s ease" }}
+            />
+            <path
+                d={path}
+                fill="none"
                 stroke="white"
-                strokeWidth="0.8"
+                strokeWidth="1.2"
                 strokeLinejoin="round"
                 strokeLinecap="round"
                 style={{ transition: "d 0.1s ease" }}
