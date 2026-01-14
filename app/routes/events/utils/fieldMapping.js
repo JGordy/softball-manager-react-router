@@ -8,6 +8,7 @@ import {
     DEPTH_THRESHOLD,
     ANGLE_THRESHOLD,
     EXTENDED_DISTANCE_THRESHOLD,
+    MIN_HR_DISTANCE_THRESHOLD,
 } from "../constants/fieldMapping";
 
 /**
@@ -24,7 +25,9 @@ export function getFieldZone(x, y, actionType) {
 
     const dx = x - ORIGIN_X;
     const dy = ORIGIN_Y - y;
-    const distance = Math.sqrt(dx * dx + dy * dy);
+    const rawDistance = Math.sqrt(dx * dx + dy * dy);
+    // Round to match clamped precision
+    const distance = Math.round(rawDistance * 100) / 100;
 
     const horizontalAngle = Math.atan2(dx, Math.max(0.1, dy)) * (180 / Math.PI);
 
@@ -50,26 +53,26 @@ export function getFieldZone(x, y, actionType) {
         return `home run to ${direction}`;
     }
 
-    if (distance < DEPTH_THRESHOLD.INFIELD) {
+    if (distance <= DEPTH_THRESHOLD.INFIELD) {
         if (absAngle < 8) {
             if (distance < PITCHER_DISTANCE_THRESHOLD)
                 return "back to the pitcher";
             return "up the middle";
         }
 
-        if (absAngle > 35)
+        if (absAngle >= ANGLE_THRESHOLD.LINE)
             return horizontalAngle < 0
                 ? "down the third base line"
                 : "down the first base line";
-        if (absAngle > 25)
+        if (absAngle >= ANGLE_THRESHOLD.FIELD)
             return horizontalAngle < 0 ? "to third base" : "to first base";
         return horizontalAngle < 0 ? "to shortstop" : "to second base";
     }
 
     let depth = "";
-    if (distance < DEPTH_THRESHOLD.SHALLOW) {
+    if (distance <= DEPTH_THRESHOLD.SHALLOW) {
         depth = "shallow";
-    } else if (distance < DEPTH_THRESHOLD.STANDARD) {
+    } else if (distance <= DEPTH_THRESHOLD.STANDARD) {
         depth = "standard";
     } else {
         depth = "deep";
@@ -99,18 +102,27 @@ export function getClampedCoordinates(x, y, actionType) {
     const dy = ORIGIN_Y - y;
     const dist = Math.sqrt(dx * dx + dy * dy);
 
-    const maxDist =
-        actionType === "HR"
-            ? EXTENDED_DISTANCE_THRESHOLD
-            : MAX_DISTANCE_THRESHOLD;
+    let maxDist = MAX_DISTANCE_THRESHOLD;
+    if (actionType === "HR") {
+        maxDist = EXTENDED_DISTANCE_THRESHOLD;
+    } else if (actionType === "Pop Out") {
+        // Pop outs can now go to standard outfield depth
+        maxDist = DEPTH_THRESHOLD.STANDARD;
+    }
 
-    const minDist = actionType === "HR" ? 50 : 0;
+    let minDist = 0;
+    if (actionType === "HR") {
+        minDist = MIN_HR_DISTANCE_THRESHOLD;
+    } else if (actionType === "Fly Out") {
+        // Fly outs must be at least shallow outfield (45)
+        minDist = DEPTH_THRESHOLD.INFIELD;
+    }
 
     let finalX = x;
     let finalY = y;
 
     if (dist > maxDist) {
-        const ratio = maxDist / dist;
+        const ratio = (maxDist - 0.1) / dist; // Stay slightly inside the boundary
         finalX = ORIGIN_X + dx * ratio;
         finalY = ORIGIN_Y - dy * ratio;
     } else if (dist < minDist) {
@@ -119,11 +131,15 @@ export function getClampedCoordinates(x, y, actionType) {
             finalX = ORIGIN_X;
             finalY = ORIGIN_Y - minDist;
         } else {
-            const ratio = minDist / dist;
+            const ratio = (minDist + 0.1) / dist; // Stay slightly inside the boundary
             finalX = ORIGIN_X + dx * ratio;
             finalY = ORIGIN_Y - dy * ratio;
         }
     }
 
-    return { x: finalX, y: finalY };
+    // Round to avoid floating point mismatch between components
+    return {
+        x: Math.round(finalX * 100) / 100,
+        y: Math.round(finalY * 100) / 100,
+    };
 }
