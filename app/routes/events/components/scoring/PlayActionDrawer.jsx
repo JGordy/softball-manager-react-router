@@ -25,12 +25,7 @@ import FieldHighlight from "./FieldHighlight";
 import { FIELD_CENTROIDS } from "../../constants/fieldCentroids";
 import { useRunnerProjection } from "../../hooks/useRunnerProjection";
 import { getDrawerTitle, getRunnerConfigs } from "../../utils/drawerUtils";
-import {
-    getFieldZone,
-    ORIGIN_X,
-    ORIGIN_Y,
-    MAX_DISTANCE_THRESHOLD,
-} from "../../utils/fieldMapping";
+import { getFieldZone, getClampedCoordinates } from "../../utils/fieldMapping";
 
 const getActionColor = (actionType) => {
     if (["1B", "2B", "3B", "HR"].includes(actionType)) return "green";
@@ -60,7 +55,11 @@ export default function PlayActionDrawer({
         }
     }, [currentBatter, opened]);
 
-    const hitLocation = getFieldZone(hitCoordinates.x, hitCoordinates.y);
+    const hitLocation = getFieldZone(
+        hitCoordinates.x,
+        hitCoordinates.y,
+        actionType,
+    );
 
     const {
         runnerResults,
@@ -108,22 +107,15 @@ export default function PlayActionDrawer({
         const constrainedX = Math.max(0, Math.min(100, x));
         const constrainedY = Math.max(0, Math.min(100, y));
 
-        // Max distance clamping (outfield fence)
-        let finalX = constrainedX;
-        let finalY = constrainedY;
-
-        const dx = constrainedX - ORIGIN_X;
-        const dy = ORIGIN_Y - constrainedY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
-        if (dist > MAX_DISTANCE_THRESHOLD) {
-            const ratio = MAX_DISTANCE_THRESHOLD / dist;
-            finalX = ORIGIN_X + dx * ratio;
-            finalY = ORIGIN_Y - dy * ratio;
-        }
+        // Handle hit boundaries and HR floors
+        const { x: finalX, y: finalY } = getClampedCoordinates(
+            constrainedX,
+            constrainedY,
+            actionType,
+        );
 
         // Only update if it's fair territory
-        const location = getFieldZone(finalX, finalY);
+        const location = getFieldZone(finalX, finalY, actionType);
         if (location === "foul ball") return;
 
         setHitCoordinates({ x: finalX, y: finalY });
@@ -336,7 +328,11 @@ export default function PlayActionDrawer({
                         className={styles.fieldImage}
                         draggable={false}
                     />
-                    <FieldHighlight x={hitCoordinates.x} y={hitCoordinates.y} />
+                    <FieldHighlight
+                        x={hitCoordinates.x}
+                        y={hitCoordinates.y}
+                        actionType={actionType}
+                    />
                     {positions.map((pos) => {
                         const className =
                             styles[
