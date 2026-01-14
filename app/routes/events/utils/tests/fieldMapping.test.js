@@ -176,8 +176,8 @@ describe("getClampedCoordinates", () => {
 
     it("should snap an infield hit to shallow outfield for fly outs", () => {
         // x=50, y=60 => dist=18 (Pitcher area)
-        // Fly Out min is DEPTH_THRESHOLD.SHALLOW (45).
+        // Fly Out min is DEPTH_THRESHOLD.INFIELD (38).
         const result = getClampedCoordinates(50, 60, "Fly Out");
-        expect(result.y).toBeCloseTo(33, 0); // 78 - 45 = 33
+        expect(result.y).toBeCloseTo(39.9, 1); // 78 - 38.1 = 39.9
     });
 });
