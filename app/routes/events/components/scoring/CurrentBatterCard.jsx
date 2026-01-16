@@ -1,5 +1,5 @@
 import { Card, Group, Stack, Text, Badge } from "@mantine/core";
-import { HITS, WALKS, getUILabel } from "../../constants/scoringConstants";
+import { HITS, WALKS, getUILabel } from "@/constants/scoring";
 
 export default function CurrentBatterCard({ currentBatter, logs }) {
     if (!currentBatter) return null;

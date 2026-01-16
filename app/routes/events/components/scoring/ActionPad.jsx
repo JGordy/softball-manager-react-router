@@ -1,5 +1,5 @@
 import { Button, SimpleGrid, Stack, Text, Divider } from "@mantine/core";
-import { UI_KEYS } from "../../constants/scoringConstants";
+import { UI_KEYS } from "@/constants/scoring";
 
 const HIT_COLOR = "green";
 const onBase = [

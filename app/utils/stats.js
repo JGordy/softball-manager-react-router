@@ -1,9 +1,4 @@
-import {
-    HITS,
-    WALKS,
-    OUTS,
-    EVENT_TYPE_MAP,
-} from "@/routes/events/constants/scoringConstants";
+import { HITS, WALKS, OUTS, EVENT_TYPE_MAP } from "@/constants/scoring";
 
 const formatStat = (val) => val.replace(/^0/, "");
 

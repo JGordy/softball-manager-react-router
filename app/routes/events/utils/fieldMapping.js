@@ -9,7 +9,7 @@ import {
     ANGLE_THRESHOLD,
     EXTENDED_DISTANCE_THRESHOLD,
     MIN_HR_DISTANCE_THRESHOLD,
-} from "../constants/fieldMapping";
+} from "@/constants/fieldMapping";
 
 /**
  * Translates x, y percentage coordinates into descriptive field locations.

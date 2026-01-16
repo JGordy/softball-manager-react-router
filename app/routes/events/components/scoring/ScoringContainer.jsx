@@ -9,7 +9,7 @@ import { useGameUpdates } from "@/hooks/useGameUpdates";
 
 import { useGameState } from "../../hooks/useGameState";
 
-import { UI_BATTED_OUTS, UI_WALKS } from "../../constants/scoringConstants";
+import { UI_BATTED_OUTS, UI_WALKS } from "@/constants/scoring";
 
 import {
     getEventDescription,
