@@ -18,7 +18,10 @@ import {
     IconChevronRight,
     IconClipboardCheck,
     IconUserSquareRounded,
+    IconMap2,
 } from "@tabler/icons-react";
+
+import ContactSprayChart from "@/components/ContactSprayChart";
 
 import DrawerContainer from "@/components/DrawerContainer";
 import PlayerDetails from "@/components/PlayerDetails";
@@ -27,7 +30,13 @@ import TabsWrapper from "@/components/TabsWrapper";
 
 import positions from "@/constants/positions";
 
-export default function PlayerList({ players, managerIds, managerView, user }) {
+export default function PlayerList({
+    players,
+    managerIds,
+    managerView,
+    user,
+    teamLogs = [],
+}) {
     const [selectedPlayerId, setSelectedPlayerId] = useState(null);
     const selectedPlayer = players.find(
         (player) => player.$id === selectedPlayerId,
@@ -126,6 +135,12 @@ export default function PlayerList({ players, managerIds, managerView, user }) {
                                 Personal
                             </Group>
                         </Tabs.Tab>
+                        <Tabs.Tab value="spray">
+                            <Group gap="xs" align="center" justify="center">
+                                <IconMap2 size={16} />
+                                Charts
+                            </Group>
+                        </Tabs.Tab>
 
                         <Tabs.Panel value="player">
                             <PlayerDetails player={selectedPlayer} />
@@ -136,6 +151,14 @@ export default function PlayerList({ players, managerIds, managerView, user }) {
                                 user={user}
                                 player={selectedPlayer}
                                 managerView={managerView}
+                            />
+                        </Tabs.Panel>
+
+                        <Tabs.Panel value="spray" pt="lg">
+                            <ContactSprayChart
+                                hits={teamLogs.filter(
+                                    (log) => log.playerId === selectedPlayerId,
+                                )}
                             />
                         </Tabs.Panel>
                     </TabsWrapper>

@@ -87,7 +87,13 @@ export async function clientAction({ request, params, serverAction }) {
 }
 
 export default function TeamDetails({ actionData, loaderData }) {
-    const { teamData: team, players, managerIds, ownerIds } = loaderData;
+    const {
+        teamData: team,
+        players,
+        managerIds,
+        ownerIds,
+        teamLogs,
+    } = loaderData;
     // console.log('/team/details >', { players, team, managerIds });
 
     const { user } = useOutletContext();
@@ -149,6 +155,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                         managerIds={managerIds}
                         managerView={managerView}
                         user={user}
+                        teamLogs={teamLogs}
                     />
                 </Tabs.Panel>
 
