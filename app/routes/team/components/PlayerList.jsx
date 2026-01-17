@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import {
     Avatar,
@@ -43,6 +43,11 @@ export default function PlayerList({
     );
 
     const [opened, { open: openPlayerDetails, close }] = useDisclosure(false);
+
+    const playerHits = useMemo(() => {
+        if (!selectedPlayerId) return [];
+        return teamLogs.filter((log) => log.playerId === selectedPlayerId);
+    }, [teamLogs, selectedPlayerId]);
 
     const openPlayerDetailsDrawer = (playerId) => {
         setSelectedPlayerId(playerId);
@@ -155,11 +160,7 @@ export default function PlayerList({
                         </Tabs.Panel>
 
                         <Tabs.Panel value="spray" pt="lg">
-                            <ContactSprayChart
-                                hits={teamLogs.filter(
-                                    (log) => log.playerId === selectedPlayerId,
-                                )}
-                            />
+                            <ContactSprayChart hits={playerHits} />
                         </Tabs.Panel>
                     </TabsWrapper>
                 </DrawerContainer>

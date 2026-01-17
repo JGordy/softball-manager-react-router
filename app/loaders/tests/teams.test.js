@@ -126,6 +126,7 @@ describe("Teams Loader", () => {
             readDocument.mockResolvedValueOnce(mockTeamData); // team data
             listDocuments.mockResolvedValueOnce({ rows: mockSeasons }); // seasons
             listDocuments.mockResolvedValueOnce({ rows: mockGames }); // games
+            listDocuments.mockResolvedValueOnce({ rows: [] }); // game logs
 
             const result = await getTeamById({
                 teamId: "team1",

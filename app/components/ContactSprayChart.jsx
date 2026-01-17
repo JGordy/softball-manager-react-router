@@ -2,17 +2,15 @@ import { useMemo, useState } from "react";
 
 import {
     Box,
+    Button,
     Card,
+    Collapse,
+    Chip,
     Group,
     Image,
-    Tooltip,
     Select,
     Stack,
-    Text,
-    Chip,
-    Divider,
-    Collapse,
-    Button,
+    Tooltip,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import {
@@ -52,80 +50,92 @@ const CATEGORIES_DATA = [
 ];
 
 export default function ContactSprayChart({ hits = [] }) {
-    const [battingSideObj, setBattingSideObj] = useState(OVERALL);
+    const [battingSide, setBattingSide] = useState(OVERALL);
     const [categoryFilter, setCategoryFilter] = useState("ALL");
     const [locationFilter, setLocationFilter] = useState("ALL");
     const [opened, { toggle }] = useDisclosure(false);
 
     const filteredHits = useMemo(() => {
-        return hits.filter((hit) => {
-            // Only include items with coordinates for spray chart
-            if (hit.hitX == null || hit.hitY == null) return false;
+        return hits
+            .filter((hit) => {
+                // Only include items with coordinates for spray chart
+                if (hit.hitX == null || hit.hitY == null) return false;
 
-            // Batting side filter
-            const sideMatch =
-                battingSideObj === OVERALL ||
-                hit.battingSide?.toUpperCase() === battingSideObj;
+                // Batting side filter
+                const sideMatch =
+                    battingSide === OVERALL ||
+                    hit.battingSide?.toUpperCase() === battingSide;
 
-            if (!sideMatch) return false;
+                if (!sideMatch) return false;
 
-            // Category filter
-            const eventType = hit.eventType || hit.result;
-            let normalizedKey = eventType;
-            if (EVENT_TYPE_MAP[eventType]) {
-                normalizedKey = EVENT_TYPE_MAP[eventType];
-            }
-
-            if (categoryFilter === "HITS") {
-                if (!HITS.includes(normalizedKey)) return false;
-            } else if (categoryFilter === "OUTS") {
-                if (!OUTS.includes(normalizedKey)) return false;
-            } else if (categoryFilter !== "ALL") {
-                if (normalizedKey !== categoryFilter) return false;
-            }
-
-            // Location filter
-            const loc = (hit.hitLocation || hit.direction || "").toLowerCase();
-            if (locationFilter !== "ALL") {
-                if (locationFilter === "LF") {
-                    if (!loc.includes("left")) return false;
-                } else if (locationFilter === "CF") {
-                    if (!loc.includes("center")) return false;
-                } else if (locationFilter === "RF") {
-                    if (!loc.includes("right")) return false;
-                } else if (locationFilter === "IF") {
-                    const isInfield =
-                        loc.includes("base") ||
-                        loc.includes("short") ||
-                        loc.includes("middle") ||
-                        loc.includes("pitcher") ||
-                        loc.includes("catcher") ||
-                        loc.includes("front");
-                    if (!isInfield) return false;
+                // Category filter
+                const eventType = hit.eventType || hit.result;
+                let normalizedKey = eventType;
+                if (EVENT_TYPE_MAP[eventType]) {
+                    normalizedKey = EVENT_TYPE_MAP[eventType];
                 }
-            }
 
-            return true;
-        });
-    }, [hits, battingSideObj, categoryFilter, locationFilter]);
+                if (categoryFilter === "HITS") {
+                    if (!HITS.includes(normalizedKey)) return false;
+                } else if (categoryFilter === "OUTS") {
+                    if (!OUTS.includes(normalizedKey)) return false;
+                } else if (categoryFilter !== "ALL") {
+                    if (normalizedKey !== categoryFilter) return false;
+                }
+
+                // Location filter
+                const loc = (
+                    hit.hitLocation ||
+                    hit.direction ||
+                    ""
+                ).toLowerCase();
+                if (locationFilter !== "ALL") {
+                    if (locationFilter === "LF") {
+                        if (!loc.includes("left")) return false;
+                    } else if (locationFilter === "CF") {
+                        if (!loc.includes("center")) return false;
+                    } else if (locationFilter === "RF") {
+                        if (!loc.includes("right")) return false;
+                    } else if (locationFilter === "IF") {
+                        const isInfield =
+                            loc.includes("base") ||
+                            loc.includes("short") ||
+                            loc.includes("middle") ||
+                            loc.includes("pitcher") ||
+                            loc.includes("catcher") ||
+                            loc.includes("front");
+                        if (!isInfield) return false;
+                    }
+                }
+
+                return true;
+            })
+            .map((hit) => {
+                // Pre-calculate normalized key, color and label to avoid duplication in render
+                const eventType = hit.eventType || hit.result;
+                const normalizedKey = EVENT_TYPE_MAP[eventType] || eventType;
+                const color = RESULT_COLORS[normalizedKey] || RESULT_COLORS.out;
+                const label = getUILabel(normalizedKey);
+
+                return {
+                    ...hit,
+                    normalizedKey,
+                    color,
+                    label,
+                };
+            });
+    }, [hits, battingSide, categoryFilter, locationFilter]);
 
     return (
-        <Box className={styles.container}>
+        <Box>
             <Stack gap="xs" mb="md">
                 <Group justify="space-between" align="center">
-                    <Chip.Group
-                        value={battingSideObj}
-                        onChange={setBattingSideObj}
-                    >
+                    <Chip.Group value={battingSide} onChange={setBattingSide}>
                         <Group gap="5px">
                             <Chip value={OVERALL} variant="light" color="green">
                                 All
                             </Chip>
-                            <Chip
-                                value={BATS_LEFT}
-                                variant="light"
-                                color="green"
-                            >
+                            <Chip value={BATS_LEFT} variant="light" color="green">
                                 Left
                             </Chip>
                             <Chip
@@ -193,7 +203,7 @@ export default function ContactSprayChart({ hits = [] }) {
                             onClick={() => {
                                 setCategoryFilter("ALL");
                                 setLocationFilter("ALL");
-                                setBattingSideObj(OVERALL);
+                                setBattingSide(OVERALL);
                             }}
                         >
                             Reset Filters
@@ -242,22 +252,12 @@ export default function ContactSprayChart({ hits = [] }) {
                         const cpX = midX;
                         const cpY = midY - arcHeight;
 
-                        // Normalize event type to DB key
-                        const eventType = hit.eventType || hit.result;
-                        let normalizedKey = eventType;
-                        if (EVENT_TYPE_MAP[eventType]) {
-                            normalizedKey = EVENT_TYPE_MAP[eventType];
-                        }
-
-                        const color =
-                            RESULT_COLORS[normalizedKey] || RESULT_COLORS.out;
-
                         return (
                             <path
                                 key={`path-${hit.$id}`}
                                 d={`M ${startX} ${startY} Q ${cpX} ${cpY} ${endX} ${endY}`}
                                 fill="none"
-                                stroke={color}
+                                stroke={hit.color}
                                 strokeWidth="0.5"
                                 opacity="0.6"
                                 strokeLinecap="round"
@@ -267,18 +267,10 @@ export default function ContactSprayChart({ hits = [] }) {
                 </svg>
 
                 {filteredHits.map((hit) => {
-                    const eventType = hit.eventType || hit.result;
-                    let normalizedKey = eventType;
-                    if (EVENT_TYPE_MAP[eventType]) {
-                        normalizedKey = EVENT_TYPE_MAP[eventType];
-                    }
-                    const color =
-                        RESULT_COLORS[normalizedKey] || RESULT_COLORS.out;
-
                     return (
                         <Tooltip
                             key={hit.$id}
-                            label={`${getUILabel(hit.eventType || hit.result)} ${hit.hitLocation || hit.direction ? `(${hit.hitLocation || hit.direction})` : ""}`}
+                            label={`${hit.label} ${hit.hitLocation || hit.direction ? `(${hit.hitLocation || hit.direction})` : ""}`}
                             withArrow
                         >
                             <Box
@@ -286,7 +278,7 @@ export default function ContactSprayChart({ hits = [] }) {
                                 style={{
                                     left: `${hit.hitX}%`,
                                     top: `${hit.hitY}%`,
-                                    backgroundColor: color,
+                                    backgroundColor: hit.color,
                                     borderColor: "white", // ensure border color is applied
                                 }}
                             />
