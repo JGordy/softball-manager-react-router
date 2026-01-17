@@ -49,6 +49,34 @@ const CATEGORIES_DATA = [
     { label: getUILabel("sacrifice_fly"), value: "sacrifice_fly" },
 ];
 
+/**
+ * Renders an interactive contact spray chart overlayed on a field image.
+ *
+ * The chart plots batted-ball events using their normalized field coordinates
+ * (`hitX`, `hitY`) and allows filtering by batting side, result category, and
+ * general hit location. Each point is colored and labeled based on the
+ * normalized event type.
+ *
+ * @param {Object} props - Component props.
+ * @param {Object[]} [props.hits=[]] - Array of batted-ball events to display.
+ * @param {number} props.hits[].hitX - Normalized x-coordinate of contact on the field,
+ *     relative to the origin defined by {@link ORIGIN_X}.
+ * @param {number} props.hits[].hitY - Normalized y-coordinate of contact on the field,
+ *     relative to the origin defined by {@link ORIGIN_Y}.
+ * @param {string} [props.hits[].eventType] - Raw event type key for the play
+ *     (e.g., "single", "flyout"); may be mapped via {@link EVENT_TYPE_MAP}.
+ * @param {string} [props.hits[].result] - Fallback result key when `eventType`
+ *     is not provided.
+ * @param {string} [props.hits[].battingSide] - Batting side for the event
+ *     ("LEFT", "RIGHT", or similar), used for side-based filtering.
+ * @param {string} [props.hits[].hitLocation] - Textual description of where the
+ *     ball was hit (e.g., "left field", "center field"); used for location filters.
+ * @param {string} [props.hits[].direction] - Optional alternative to `hitLocation`
+ *     describing the hit direction (e.g., "right field line").
+ *
+ * @returns {JSX.Element} A card containing the filter controls, field image, and
+ * plotted contact points with tooltips for each batted-ball event.
+ */
 export default function ContactSprayChart({ hits = [] }) {
     const [battingSide, setBattingSide] = useState(OVERALL);
     const [categoryFilter, setCategoryFilter] = useState("ALL");
@@ -57,6 +85,20 @@ export default function ContactSprayChart({ hits = [] }) {
 
     const filteredHits = useMemo(() => {
         return hits
+            .map((hit) => {
+                // Pre-calculate normalized key, color and label to avoid duplication
+                const eventType = hit.eventType || hit.result;
+                const normalizedKey = EVENT_TYPE_MAP[eventType] || eventType;
+                const color = RESULT_COLORS[normalizedKey] || RESULT_COLORS.out;
+                const label = getUILabel(normalizedKey);
+
+                return {
+                    ...hit,
+                    normalizedKey,
+                    color,
+                    label,
+                };
+            })
             .filter((hit) => {
                 // Only include items with coordinates for spray chart
                 if (hit.hitX == null || hit.hitY == null) return false;
@@ -69,18 +111,12 @@ export default function ContactSprayChart({ hits = [] }) {
                 if (!sideMatch) return false;
 
                 // Category filter
-                const eventType = hit.eventType || hit.result;
-                let normalizedKey = eventType;
-                if (EVENT_TYPE_MAP[eventType]) {
-                    normalizedKey = EVENT_TYPE_MAP[eventType];
-                }
-
                 if (categoryFilter === "HITS") {
-                    if (!HITS.includes(normalizedKey)) return false;
+                    if (!HITS.includes(hit.normalizedKey)) return false;
                 } else if (categoryFilter === "OUTS") {
-                    if (!OUTS.includes(normalizedKey)) return false;
+                    if (!OUTS.includes(hit.normalizedKey)) return false;
                 } else if (categoryFilter !== "ALL") {
-                    if (normalizedKey !== categoryFilter) return false;
+                    if (hit.normalizedKey !== categoryFilter) return false;
                 }
 
                 // Location filter
@@ -109,20 +145,6 @@ export default function ContactSprayChart({ hits = [] }) {
                 }
 
                 return true;
-            })
-            .map((hit) => {
-                // Pre-calculate normalized key, color and label to avoid duplication in render
-                const eventType = hit.eventType || hit.result;
-                const normalizedKey = EVENT_TYPE_MAP[eventType] || eventType;
-                const color = RESULT_COLORS[normalizedKey] || RESULT_COLORS.out;
-                const label = getUILabel(normalizedKey);
-
-                return {
-                    ...hit,
-                    normalizedKey,
-                    color,
-                    label,
-                };
             });
     }, [hits, battingSide, categoryFilter, locationFilter]);
 
@@ -135,7 +157,11 @@ export default function ContactSprayChart({ hits = [] }) {
                             <Chip value={OVERALL} variant="light" color="green">
                                 All
                             </Chip>
-                            <Chip value={BATS_LEFT} variant="light" color="green">
+                            <Chip
+                                value={BATS_LEFT}
+                                variant="light"
+                                color="green"
+                            >
                                 Left
                             </Chip>
                             <Chip
