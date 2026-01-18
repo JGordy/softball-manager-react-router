@@ -7,7 +7,7 @@ import { useDisclosure } from "@mantine/hooks";
 import TabsWrapper from "@/components/TabsWrapper";
 import { useGameUpdates } from "@/hooks/useGameUpdates";
 
-import { useGameState } from "../../hooks/useGameState";
+import { useGameState } from "../hooks/useGameState";
 
 import { UI_BATTED_OUTS, UI_WALKS } from "@/constants/scoring";
 
@@ -15,7 +15,7 @@ import {
     getEventDescription,
     handleWalk,
     handleRunnerResults,
-} from "../../utils/scoringUtils";
+} from "../utils/gamedayUtils";
 
 import ScoreboardHeader from "./ScoreboardHeader";
 import DiamondView from "./DiamondView";
@@ -41,7 +41,7 @@ function handleAutomaticOut(runners) {
     };
 }
 
-export default function ScoringContainer({
+export default function GamedayContainer({
     game,
     playerChart,
     team,

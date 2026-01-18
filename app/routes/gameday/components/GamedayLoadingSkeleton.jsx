@@ -1,6 +1,6 @@
 import { Stack, Card, Group, Skeleton } from "@mantine/core";
 
-export default function ScoringLoadingSkeleton() {
+export default function GamedayLoadingSkeleton() {
     return (
         <Stack gap="md">
             {/* Scoreboard */}

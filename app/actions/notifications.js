@@ -444,7 +444,7 @@ export async function sendGameFinalNotification({
         title: "🏁 Game Final",
         body: `The game against ${opponent} just went final. We ${score}`,
         type: NOTIFICATION_TYPES.GAME_FINAL,
-        url: `/events/${gameId}/scoring#boxscore`,
+        url: `/events/${gameId}/gameday#boxscore`,
         data: {
             gameId,
             teamId,

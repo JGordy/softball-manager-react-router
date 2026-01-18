@@ -1,6 +1,6 @@
 import { ScrollArea, Text, Group, Stack, Paper, Badge } from "@mantine/core";
 import { IconCaretUpFilled, IconCaretDownFilled } from "@tabler/icons-react";
-import { getRunnerMovement } from "../../utils/scoringUtils";
+import { getRunnerMovement } from "../utils/gamedayUtils";
 
 export default function PlayHistoryList({ logs, playerChart }) {
     if (!logs.length) {
