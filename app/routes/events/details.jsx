@@ -165,9 +165,12 @@ export default function EventDetails({ loaderData, actionData }) {
                 team={team}
             />
 
-            {managerView && !gameIsPast && (
-                <ScoringCard gameId={game.$id} isLive={gameInProgress} />
-            )}
+            <ScoringCard
+                gameId={game.$id}
+                isLive={gameInProgress}
+                isPast={gameIsPast}
+                managerView={managerView}
+            />
 
             {gameIsPast ? (
                 <AwardsContainer

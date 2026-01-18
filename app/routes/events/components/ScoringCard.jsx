@@ -1,10 +1,38 @@
-import { Card, Text, Badge, Group } from "@mantine/core";
-import { IconScoreboard, IconActivity } from "@tabler/icons-react";
 import { useNavigate } from "react-router";
+import { Card, Text, Badge, Group } from "@mantine/core";
+import {
+    IconScoreboard,
+    IconActivity,
+    IconClipboardData,
+} from "@tabler/icons-react";
+
 import CardSection from "./CardSection";
 
-export default function ScoringCard({ gameId, isLive }) {
+export default function ScoringCard({ gameId, isLive, isPast, managerView }) {
     const navigate = useNavigate();
+
+    let titleLabel = "Game Scoring & Stats";
+    let heading = managerView ? "Score this Game" : "Game Stats";
+    let subHeading = managerView
+        ? "Access the granular play-by-play scoring interface."
+        : "Box scores and play-by-play will be available when the game starts.";
+    let leftSection = <IconScoreboard size={20} />;
+
+    if (isPast) {
+        titleLabel = "Game Summary";
+        heading = "View Stats & Recap";
+        subHeading = "View the play-by-play and final box score.";
+        leftSection = <IconClipboardData size={20} />;
+    } else if (isLive) {
+        titleLabel = "Live Game Scoring";
+        if (managerView) {
+            heading = "Score this Game";
+            subHeading = "Keep the book updated with real-time stats.";
+        } else {
+            heading = "Follow the Action";
+            subHeading = "Watch the play-by-play unfold in real-time.";
+        }
+    }
 
     return (
         <Card
@@ -26,7 +54,7 @@ export default function ScoringCard({ gameId, isLive }) {
                     fw={isLive ? 700 : 400}
                     c={isLive ? "green" : undefined}
                 >
-                    Live Game Scoring
+                    {titleLabel}
                 </Text>
                 {isLive && (
                     <Badge
@@ -42,13 +70,11 @@ export default function ScoringCard({ gameId, isLive }) {
 
             <CardSection
                 onClick={() => navigate(`/events/${gameId}/scoring`)}
-                heading="Score this Game"
-                leftSection={<IconScoreboard size={20} />}
+                heading={heading}
+                leftSection={leftSection}
                 subHeading={
                     <Text size="xs" ml="28px" mt="2px" c="dimmed">
-                        {isLive
-                            ? "Keep the book updated with real-time stats."
-                            : "Access the granular play-by-play scoring interface."}
+                        {subHeading}
                     </Text>
                 }
             />
