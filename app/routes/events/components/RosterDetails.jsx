@@ -17,7 +17,7 @@ import DeferredLoader from "@/components/DeferredLoader";
 import InlineError from "@/components/InlineError";
 import PlayerChart from "@/components/PlayerChart";
 
-import addPlayerAvailability from "../utils/addPlayerAvailability";
+import addPlayerAvailability from "@/utils/addPlayerAvailability";
 
 import AvailablityContainer from "./AvailablityContainer";
 import CardSection from "./CardSection";
