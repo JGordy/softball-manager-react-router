@@ -1,0 +1,3 @@
+?? commit_output.txt
+?? log_output.txt
+?? status_output.txt

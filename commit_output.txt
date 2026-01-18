@@ -1,0 +1,5 @@
+On branch move-scoring-route-component
+Untracked files:
+	commit_output.txt
+
+nothing added to commit but untracked files present
