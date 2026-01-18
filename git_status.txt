@@ -1,7 +1,0 @@
-?? commit_output.txt
-?? git_history.txt
-?? git_status.txt
-?? log_output.txt
-?? staged_diff.txt
-?? status_output.txt
-?? unstaged_diff.txt
