@@ -1,6 +1,18 @@
 import { useState } from "react";
-import { Center, Group, Stack, Text, Table, Paper } from "@mantine/core";
+import {
+    Center,
+    Group,
+    Stack,
+    Text,
+    Table,
+    Paper,
+    Button,
+} from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { IconMap2 } from "@tabler/icons-react";
+
+import ContactSprayChart from "@/components/ContactSprayChart";
+import DrawerContainer from "@/components/DrawerContainer";
 
 import DeferredLoader from "@/components/DeferredLoader";
 import { calculatePlayerStats } from "@/utils/stats";
@@ -10,6 +22,8 @@ import StatsDetailDrawer from "./stats/StatsDetailDrawer";
 
 export default function PlayerStats({ statsPromise }) {
     const [opened, { open, close }] = useDisclosure(false);
+    const [sprayOpened, { open: openSpray, close: closeSpray }] =
+        useDisclosure(false);
     const [selectedGame, setSelectedGame] = useState(null);
 
     const handleGameClick = (game, logs) => {
@@ -150,6 +164,15 @@ export default function PlayerStats({ statsPromise }) {
                                     </Table.Tr>
                                 </Table.Tbody>
                             </Table>
+                            <Button
+                                leftSection={<IconMap2 size={16} />}
+                                variant="light"
+                                onClick={openSpray}
+                                mt="xs"
+                                fullWidth
+                            >
+                                View Spray Chart
+                            </Button>
                         </Paper>
 
                         {last10GameIds.map((gameId) => {
@@ -176,6 +199,15 @@ export default function PlayerStats({ statsPromise }) {
                             game={selectedGame?.game}
                             logs={selectedGame?.logs}
                         />
+
+                        <DrawerContainer
+                            opened={sprayOpened}
+                            onClose={closeSpray}
+                            title="Contact Spray Chart"
+                            size="xl"
+                        >
+                            <ContactSprayChart hits={logs} />
+                        </DrawerContainer>
                     </Stack>
                 );
             }}

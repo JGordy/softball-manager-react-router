@@ -183,6 +183,21 @@ export async function getTeamById({ teamId, request }) {
             allGames = gamesResponse.rows || [];
         }
 
+        // Batch fetch logs for all games
+        const gameIds = allGames.map((g) => g.$id);
+        let allLogs = [];
+        if (gameIds.length > 0) {
+            // Fetch logs in batches if needed, or increase limit.
+            // For now, assuming < 5000 logs for a team view or using a reasonable limit.
+            // Appwrite limit is typically 5000 with offset, or 100 default.
+            // We use a safe high number.
+            const logsResponse = await listDocuments("game_logs", [
+                Query.equal("gameId", gameIds),
+                Query.limit(5000),
+            ]);
+            allLogs = logsResponse?.rows || [];
+        }
+
         // Map games to seasons
         seasons.forEach((season) => {
             season.games = allGames
@@ -199,7 +214,7 @@ export async function getTeamById({ teamId, request }) {
         // Attach seasons to teamData
         teamData.seasons = seasons;
 
-        return { teamData, players, managerIds, ownerIds };
+        return { teamData, players, managerIds, ownerIds, teamLogs: allLogs };
     } else {
         return { teamData: {} };
     }

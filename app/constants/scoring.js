@@ -81,3 +81,19 @@ export const getUILabel = (dbValue) => {
         ) || dbValue
     );
 };
+
+export const RESULT_COLORS = {
+    single: "#4CAF50", // Green
+    double: "#2196F3", // Blue
+    triple: "#9C27B0", // Purple
+    homerun: "#FFD700", // Gold
+    out: "#E57373", // Red
+    strikeout: "#E57373",
+    ground_out: "#E57373",
+    fly_out: "#E57373",
+    line_out: "#E57373",
+    pop_out: "#E57373",
+    fielders_choice: "#FF9800", // Orange
+    error: "#FF9800", // Orange
+    sacrifice_fly: "#E57373", // Red
+};

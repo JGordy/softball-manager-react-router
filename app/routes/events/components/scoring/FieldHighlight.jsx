@@ -7,7 +7,7 @@ import {
     MAX_DISTANCE_THRESHOLD,
     DEPTH_THRESHOLD,
     ANGLE_THRESHOLD,
-} from "../../constants/fieldMapping";
+} from "@/constants/fieldMapping";
 
 /**
  * Helper to convert baseball coordinates (distance and angle from home plate)
