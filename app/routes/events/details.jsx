@@ -29,7 +29,7 @@ import GameMenu from "./components/GameMenu";
 import RosterDetails from "./components/RosterDetails";
 import Scoreboard from "./components/Scoreboard";
 import WeatherCard from "./components/WeatherCard";
-import ScoringCard from "./components/ScoringCard";
+import GamedayCard from "./components/GamedayCard";
 
 export async function action({ request, params }) {
     const { eventId } = params;
@@ -165,13 +165,12 @@ export default function EventDetails({ loaderData, actionData }) {
                 team={team}
             />
 
-            <ScoringCard
+            <GamedayCard
                 gameId={game.$id}
                 isLive={gameInProgress}
                 isPast={gameIsPast}
                 managerView={managerView}
             />
-
             {gameIsPast ? (
                 <AwardsContainer
                     game={game}

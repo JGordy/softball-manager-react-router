@@ -8,23 +8,23 @@ import {
 
 import CardSection from "./CardSection";
 
-export default function ScoringCard({ gameId, isLive, isPast, managerView }) {
+export default function GamedayCard({ gameId, isLive, isPast, managerView }) {
     const navigate = useNavigate();
 
-    let titleLabel = "Game Scoring & Stats";
-    let heading = managerView ? "Score this Game" : "Game Stats";
+    let titleLabel = "Gameday Hub";
+    let heading = managerView ? "Score the Game" : "Follow The Action";
     let subHeading = managerView
-        ? "Access the granular play-by-play scoring interface."
-        : "Box scores and play-by-play will be available when the game starts.";
+        ? "Access real-time scoring, stats, and play-by-play."
+        : "Follow the game with live updates and box scores.";
     let leftSection = <IconScoreboard size={20} />;
 
     if (isPast) {
-        titleLabel = "Game Summary";
+        titleLabel = "Gameday Recap";
         heading = "View Stats & Recap";
-        subHeading = "View the play-by-play and final box score.";
+        subHeading = "Check out the play-by-play and final box score.";
         leftSection = <IconClipboardData size={20} />;
     } else if (isLive) {
-        titleLabel = "Live Game Scoring";
+        titleLabel = "Ongoing Gameday";
         if (managerView) {
             heading = "Score this Game";
             subHeading = "Keep the book updated with real-time stats.";
@@ -69,7 +69,7 @@ export default function ScoringCard({ gameId, isLive, isPast, managerView }) {
             </Group>
 
             <CardSection
-                onClick={() => navigate(`/events/${gameId}/scoring`)}
+                onClick={() => navigate(`/events/${gameId}/gameday`)}
                 heading={heading}
                 leftSection={leftSection}
                 subHeading={

@@ -12,9 +12,9 @@ import { logGameEvent, undoGameEvent } from "@/actions/gameLogs";
 
 import { useResponseNotification } from "@/utils/showNotification";
 
-import ScoringContainer from "./components/scoring/ScoringContainer";
-import ScoringLoadingSkeleton from "./components/scoring/ScoringLoadingSkeleton";
-import ScoringMenu from "./components/scoring/ScoringMenu";
+import GamedayContainer from "./components/GamedayContainer";
+import GamedayLoadingSkeleton from "./components/GamedayLoadingSkeleton";
+import GamedayMenu from "./components/GamedayMenu";
 
 export async function loader({ params, request }) {
     const { eventId } = params;
@@ -56,7 +56,7 @@ export async function action({ request, params }) {
     return null;
 }
 
-export default function GameScoring() {
+export default function Gameday() {
     const { game, deferredData, teams, managerIds } = useLoaderData();
     const { user } = useOutletContext();
     const actionData = useActionData();
@@ -70,16 +70,16 @@ export default function GameScoring() {
         <Container size="md" py="xl">
             <Group justify="space-between" align="center" mb="xl">
                 <BackButton to={`/events/${game.$id}`} />
-                <Title order={3}>Scoring & Statistics</Title>
-                {isManager && <ScoringMenu gameFinal={game.gameFinal} />}
+                <Title order={3}>Scoring & Stats</Title>
+                {isManager && <GamedayMenu gameFinal={game.gameFinal} />}
             </Group>
 
             <DeferredLoader
                 resolve={deferredData}
-                fallback={<ScoringLoadingSkeleton />}
+                fallback={<GamedayLoadingSkeleton />}
             >
                 {({ logs }) => (
-                    <ScoringContainer
+                    <GamedayContainer
                         game={game}
                         playerChart={game.playerChart || []}
                         team={team}

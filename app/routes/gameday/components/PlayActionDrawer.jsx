@@ -22,10 +22,10 @@ import POSITIONS from "@/constants/positions";
 import DiamondView from "./DiamondView";
 import FieldHighlight from "./FieldHighlight";
 
-import { FIELD_CENTROIDS } from "../../constants/fieldCentroids";
-import { useRunnerProjection } from "../../hooks/useRunnerProjection";
-import { getDrawerTitle, getRunnerConfigs } from "../../utils/drawerUtils";
-import { getFieldZone, getClampedCoordinates } from "../../utils/fieldMapping";
+import { FIELD_CENTROIDS } from "../constants/fieldCentroids";
+import { useRunnerProjection } from "../hooks/useRunnerProjection";
+import { getDrawerTitle, getRunnerConfigs } from "../utils/drawerUtils";
+import { getFieldZone, getClampedCoordinates } from "../utils/fieldMapping";
 
 const getActionColor = (actionType) => {
     if (["1B", "2B", "3B", "HR"].includes(actionType)) return "green";

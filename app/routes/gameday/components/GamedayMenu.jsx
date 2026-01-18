@@ -5,7 +5,7 @@ import { useFetcher } from "react-router";
 import MenuContainer from "@/components/MenuContainer";
 import useModal from "@/hooks/useModal";
 
-export default function ScoringMenu({ gameFinal = false }) {
+export default function GamedayMenu({ gameFinal }) {
     const fetcher = useFetcher();
     const { openModal, closeAllModals } = useModal();
 
