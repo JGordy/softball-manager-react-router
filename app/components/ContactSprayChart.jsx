@@ -293,14 +293,22 @@ export default function ContactSprayChart({ hits = [] }) {
                 </svg>
 
                 {filteredHits.map((hit) => {
+                    const location = hit.hitLocation || hit.direction;
                     return (
                         <Tooltip
                             key={hit.$id}
-                            label={`${hit.label} ${hit.hitLocation || hit.direction ? `(${hit.hitLocation || hit.direction})` : ""}`}
+                            label={
+                                location
+                                    ? `${hit.label} (${location})`
+                                    : hit.label
+                            }
                             withArrow
                         >
                             <Box
                                 className={styles.hitMarker}
+                                tabIndex={0}
+                                role="img"
+                                aria-label={`${hit.label}${location ? ` at ${location}` : ""}`}
                                 style={{
                                     left: `${hit.hitX}%`,
                                     top: `${hit.hitY}%`,
