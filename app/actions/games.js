@@ -206,6 +206,11 @@ export async function updateGame({ values, eventId }) {
             values.gameFinal === "true" ||
             values.gameFinal === "on" ||
             values.gameFinal === true;
+
+        dataToUpdate.result = computeResult(
+            dataToUpdate.score,
+            dataToUpdate.opponentScore,
+        );
     }
 
     delete dataToUpdate.gameTime;
