@@ -71,7 +71,7 @@ export default function Gameday() {
             <Group justify="space-between" align="center" mb="xl">
                 <BackButton to={`/events/${game.$id}`} />
                 <Title order={3}>Scoring & Stats</Title>
-                {isManager && <GamedayMenu gameFinal={game.gameFinal} />}
+                {isManager && <GamedayMenu {...game} />}
             </Group>
 
             <DeferredLoader
