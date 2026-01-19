@@ -108,7 +108,7 @@ export default function EventDetails({ loaderData, actionData }) {
 
     const team = teams?.[0];
     const managerView = managerIds.includes(currentUserId);
-    const canScore = scorekeeperIds?.includes(currentUserId);
+    const canScore = scorekeeperIds.includes(currentUserId);
 
     const { gameDate, playerChart, result } = game;
 
