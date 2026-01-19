@@ -17,6 +17,8 @@ import {
     handleRunnerResults,
 } from "../utils/gamedayUtils";
 
+import { showNotification } from "@/utils/showNotification";
+
 import ScoreboardHeader from "./ScoreboardHeader";
 import DiamondView from "./DiamondView";
 import ActionPad from "./ActionPad";
@@ -55,27 +57,34 @@ export default function GamedayContainer({
     const [logs, setLogs] = useState(initialLogs);
 
     // Real-time updates for game logs
-    const { status: realtimeStatus } = useGameUpdates(game.$id, {
-        onNewLog: (newLog) => {
-            setLogs((prev) => {
-                const logExists = prev.some((log) => log.$id === newLog.$id);
-                if (logExists) return prev;
-                return [...prev, newLog];
-            });
+    const { status: realtimeStatus, error: realtimeError } = useGameUpdates(
+        game.$id,
+        {
+            onNewLog: (newLog) => {
+                setLogs((prev) => {
+                    const logExists = prev.some(
+                        (log) => log.$id === newLog.$id,
+                    );
+                    if (logExists) return prev;
+                    return [...prev, newLog];
+                });
+            },
+            onUpdateLog: (updatedLog) => {
+                setLogs((prev) =>
+                    prev.map((log) =>
+                        log.$id === updatedLog.$id ? updatedLog : log,
+                    ),
+                );
+            },
+            onDeleteLog: (deletedLogId) => {
+                setLogs((prev) =>
+                    prev.filter((log) => log.$id !== deletedLogId),
+                );
+            },
+            gameDate: game.gameDate,
+            gameFinal,
         },
-        onUpdateLog: (updatedLog) => {
-            setLogs((prev) =>
-                prev.map((log) =>
-                    log.$id === updatedLog.$id ? updatedLog : log,
-                ),
-            );
-        },
-        onDeleteLog: (deletedLogId) => {
-            setLogs((prev) => prev.filter((log) => log.$id !== deletedLogId));
-        },
-        gameDate: game.gameDate,
-        gameFinal,
-    });
+    );
 
     // Initialize tab from URL hash if present, otherwise default based on gameFinal
     const getInitialTab = () => {
@@ -152,10 +161,34 @@ export default function GamedayContainer({
         }
     }, [fetcher.data, fetcher.state]);
 
-    // Sync with initialLogs when they change (from loader revalidation)
+    // Sync initialLogs when they change
     useEffect(() => {
         setLogs(initialLogs);
     }, [initialLogs]);
+
+    // Show notification on realtime error for debugging on mobile
+    useEffect(() => {
+        if (realtimeStatus === "error" && realtimeError) {
+            showNotification({
+                title: "Realtime Debug",
+                message: realtimeError,
+                variant: "error",
+                autoClose: false,
+            });
+        }
+    }, [realtimeStatus, realtimeError]);
+
+    // Show notification on fetcher error for debugging on mobile
+    useEffect(() => {
+        if (fetcher.data?.error) {
+            showNotification({
+                title: "Action Debug",
+                message: fetcher.data.error,
+                variant: "error",
+                autoClose: false,
+            });
+        }
+    }, [fetcher.data]);
 
     // Use custom hook for game state management and syncing
     const {
@@ -337,6 +370,24 @@ export default function GamedayContainer({
 
     return (
         <Stack gap="md">
+            {realtimeError && (
+                <Card withBorder p="xs" radius="md" bg="red.0" c="red.9">
+                    <Text size="xs" fw={700}>
+                        Realtime Error:
+                    </Text>
+                    <Text size="xs">{realtimeError}</Text>
+                </Card>
+            )}
+
+            {fetcher.data?.error && (
+                <Card withBorder p="xs" radius="md" bg="red.0" c="red.9">
+                    <Text size="xs" fw={700}>
+                        Action Error:
+                    </Text>
+                    <Text size="xs">{fetcher.data.error}</Text>
+                </Card>
+            )}
+
             <ScoreboardHeader
                 score={score}
                 opponentScore={opponentScore}

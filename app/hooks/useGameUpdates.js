@@ -7,6 +7,7 @@ export function useGameUpdates(
     { onNewLog, onUpdateLog, onDeleteLog, gameDate, gameFinal },
 ) {
     const [status, setStatus] = useState("connecting");
+    const [error, setError] = useState(null);
     const handlersRef = useRef({ onNewLog, onUpdateLog, onDeleteLog });
 
     // Update refs whenever handlers change, without triggering effects
@@ -48,6 +49,9 @@ export function useGameUpdates(
                 .VITE_APPWRITE_GAME_LOGS_COLLECTION_ID;
 
             if (!databaseId || !collectionId) {
+                const msg = `Missing environment variables: ${!databaseId ? "VITE_APPWRITE_DATABASE_ID" : ""} ${!collectionId ? "VITE_APPWRITE_GAME_LOGS_COLLECTION_ID" : ""}`;
+                console.error(msg);
+                setError(msg);
                 setStatus("error");
                 return;
             }
@@ -68,7 +72,8 @@ export function useGameUpdates(
                     "WebSocket session sync failed, attempting guest connection:",
                     err,
                 );
-                // We continue here to allow public/guest read access if configured on the table
+                // We keep it as a warning but don't set status to error yet
+                // as guest connection might still work if permissions allow.
             }
 
             if (isCancelled) return;
@@ -100,8 +105,10 @@ export function useGameUpdates(
                     }
                 });
                 setStatus("connected");
+                setError(null);
             } catch (err) {
                 console.error("Realtime subscription failed:", err);
+                setError(err.message || "Realtime subscription failed");
                 setStatus("error");
             }
         }
@@ -113,7 +120,7 @@ export function useGameUpdates(
             setStatus("idle");
             if (unsubscribe) unsubscribe();
         };
-    }, [gameId, gameDate, gameFinal]); // Only restart if the gameId, date, or final status changes
+    }, [gameId, gameDate, gameFinal]);
 
-    return { status };
+    return { status, error };
 }
