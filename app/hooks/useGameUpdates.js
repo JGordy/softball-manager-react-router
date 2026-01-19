@@ -84,19 +84,35 @@ export function useGameUpdates(
                     const data = response.payload;
 
                     if (data.gameId === gameId) {
-                        if (
-                            response.events.some((e) => e.includes(".create"))
-                        ) {
-                            handlersRef.current.onNewLog?.(data);
-                        } else if (
-                            response.events.some((e) => e.includes(".update"))
-                        ) {
-                            handlersRef.current.onUpdateLog?.(data);
-                        } else if (
-                            response.events.some((e) => e.includes(".delete"))
-                        ) {
-                            handlersRef.current.onDeleteLog?.(data.$id);
-                        }
+                        // Set syncing status immediately to trigger UI feedback
+                        setStatus("syncing");
+
+                        // Small delay before applying the change to logs,
+                        // giving the user time to see the "Updating" state.
+                        setTimeout(() => {
+                            if (isCancelled) return;
+
+                            if (
+                                response.events.some((e) =>
+                                    e.includes(".create"),
+                                )
+                            ) {
+                                handlersRef.current.onNewLog?.(data);
+                            } else if (
+                                response.events.some((e) =>
+                                    e.includes(".update"),
+                                )
+                            ) {
+                                handlersRef.current.onUpdateLog?.(data);
+                            } else if (
+                                response.events.some((e) =>
+                                    e.includes(".delete"),
+                                )
+                            ) {
+                                handlersRef.current.onDeleteLog?.(data.$id);
+                            }
+                            setStatus("connected");
+                        }, 1000);
                     }
                 });
                 setStatus("connected");

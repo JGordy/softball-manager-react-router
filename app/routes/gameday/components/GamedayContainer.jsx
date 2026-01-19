@@ -1,7 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { useFetcher, useLocation, useNavigate } from "react-router";
 
-import { Card, Group, Stack, Text, Tabs } from "@mantine/core";
+import {
+    Card,
+    Group,
+    Stack,
+    Text,
+    Tabs,
+    Box,
+    LoadingOverlay,
+} from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
 import TabsWrapper from "@/components/TabsWrapper";
@@ -174,6 +182,8 @@ export default function GamedayContainer({
         battingOrderIndex,
         setBattingOrderIndex,
     } = useGameState({ logs, game, playerChart });
+
+    const isSyncing = fetcher.state !== "idle" || realtimeStatus === "syncing";
 
     const [pendingAction, setPendingAction] = useState(null);
     const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
@@ -349,105 +359,118 @@ export default function GamedayContainer({
                 realtimeStatus={realtimeStatus}
             />
 
-            <TabsWrapper value={activeTab} onChange={handleTabChange} mt={0}>
-                {!gameFinal && <Tabs.Tab value="live">Live</Tabs.Tab>}
-                <Tabs.Tab value="plays">Plays</Tabs.Tab>
-                <Tabs.Tab value="boxscore">Box Score</Tabs.Tab>
+            <Box pos="relative">
+                <LoadingOverlay
+                    visible={isSyncing}
+                    overlayProps={{ radius: "lg", blur: 1, opacity: 0.1 }}
+                    loaderProps={{ color: "blue", type: "dots" }}
+                    zIndex={100}
+                />
+                <TabsWrapper
+                    value={activeTab}
+                    onChange={handleTabChange}
+                    mt={0}
+                >
+                    {!gameFinal && <Tabs.Tab value="live">Live</Tabs.Tab>}
+                    <Tabs.Tab value="plays">Plays</Tabs.Tab>
+                    <Tabs.Tab value="boxscore">Box Score</Tabs.Tab>
+                    {/* ... (panels remain the same) */}
 
-                <Tabs.Panel value="live" pt="md">
-                    <Stack gap="md">
-                        {!gameFinal && (
-                            <>
-                                {isOurBatting ? (
-                                    <>
+                    <Tabs.Panel value="live" pt="md">
+                        <Stack gap="md">
+                            {!gameFinal && (
+                                <>
+                                    {isOurBatting ? (
+                                        <>
+                                            <CurrentBatterCard
+                                                currentBatter={currentBatter}
+                                                logs={logs}
+                                            />
+                                            <OnDeckCard
+                                                onDeckBatter={onDeckBatter}
+                                            />
+                                        </>
+                                    ) : (
+                                        <DefenseCard teamName={team.name} />
+                                    )}
+                                </>
+                            )}
+
+                            <Group align="start" gap="xl" wrap="nowrap">
+                                {/* Left Column: Visuals & Context */}
+                                <Stack
+                                    gap="sm"
+                                    style={{ width: 180, flexShrink: 0 }}
+                                >
+                                    <DiamondView runners={runners} />
+
+                                    {logs.length > 0 && isOurBatting && (
+                                        <LastPlayCard
+                                            lastLog={logs[logs.length - 1]}
+                                            onUndo={isManager ? undoLast : null}
+                                            isSubmitting={
+                                                fetcher.state === "submitting"
+                                            }
+                                            playerChart={playerChart}
+                                        />
+                                    )}
+                                </Stack>
+
+                                {/* Right Column: Actions */}
+                                <Stack style={{ flex: 1 }}>
+                                    {isManager && !gameFinal && (
+                                        <>
+                                            {isOurBatting ? (
+                                                <ActionPad
+                                                    onAction={initiateAction}
+                                                    runners={runners}
+                                                    outs={outs}
+                                                />
+                                            ) : (
+                                                <FieldingControls
+                                                    onOut={handleOpponentOut}
+                                                    onRun={handleOpponentRun}
+                                                    onSkip={advanceHalfInning}
+                                                />
+                                            )}
+                                        </>
+                                    )}
+                                </Stack>
+                            </Group>
+                        </Stack>
+                    </Tabs.Panel>
+
+                    <Tabs.Panel value="plays" pt="md">
+                        <Stack gap="md">
+                            {!gameFinal && (
+                                <>
+                                    {isOurBatting ? (
                                         <CurrentBatterCard
                                             currentBatter={currentBatter}
                                             logs={logs}
                                         />
-                                        <OnDeckCard
-                                            onDeckBatter={onDeckBatter}
-                                        />
-                                    </>
-                                ) : (
-                                    <DefenseCard teamName={team.name} />
-                                )}
-                            </>
-                        )}
+                                    ) : (
+                                        <DefenseCard teamName={team.name} />
+                                    )}
+                                </>
+                            )}
+                            <PlayHistoryList
+                                logs={logs}
+                                playerChart={playerChart}
+                            />
+                        </Stack>
+                    </Tabs.Panel>
 
-                        <Group align="start" gap="xl" wrap="nowrap">
-                            {/* Left Column: Visuals & Context */}
-                            <Stack
-                                gap="sm"
-                                style={{ width: 180, flexShrink: 0 }}
-                            >
-                                <DiamondView runners={runners} />
-
-                                {logs.length > 0 && isOurBatting && (
-                                    <LastPlayCard
-                                        lastLog={logs[logs.length - 1]}
-                                        onUndo={isManager ? undoLast : null}
-                                        isSubmitting={
-                                            fetcher.state === "submitting"
-                                        }
-                                        playerChart={playerChart}
-                                    />
-                                )}
-                            </Stack>
-
-                            {/* Right Column: Actions */}
-                            <Stack style={{ flex: 1 }}>
-                                {isManager && !gameFinal && (
-                                    <>
-                                        {isOurBatting ? (
-                                            <ActionPad
-                                                onAction={initiateAction}
-                                                runners={runners}
-                                                outs={outs}
-                                            />
-                                        ) : (
-                                            <FieldingControls
-                                                onOut={handleOpponentOut}
-                                                onRun={handleOpponentRun}
-                                                onSkip={advanceHalfInning}
-                                            />
-                                        )}
-                                    </>
-                                )}
-                            </Stack>
-                        </Group>
-                    </Stack>
-                </Tabs.Panel>
-
-                <Tabs.Panel value="plays" pt="md">
-                    <Stack gap="md">
-                        {!gameFinal && (
-                            <>
-                                {isOurBatting ? (
-                                    <CurrentBatterCard
-                                        currentBatter={currentBatter}
-                                        logs={logs}
-                                    />
-                                ) : (
-                                    <DefenseCard teamName={team.name} />
-                                )}
-                            </>
-                        )}
-                        <PlayHistoryList
+                    <Tabs.Panel value="boxscore" pt="md">
+                        <BoxScore
                             logs={logs}
                             playerChart={playerChart}
+                            currentBatter={currentBatter}
+                            gameFinal={gameFinal}
                         />
-                    </Stack>
-                </Tabs.Panel>
-
-                <Tabs.Panel value="boxscore" pt="md">
-                    <BoxScore
-                        logs={logs}
-                        playerChart={playerChart}
-                        currentBatter={currentBatter}
-                        gameFinal={gameFinal}
-                    />
-                </Tabs.Panel>
-            </TabsWrapper>
+                    </Tabs.Panel>
+                </TabsWrapper>
+            </Box>
 
             <PlayActionDrawer
                 opened={drawerOpened}

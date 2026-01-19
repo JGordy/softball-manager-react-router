@@ -19,6 +19,11 @@ const StatusBadge = ({ status }) => {
             color: "gray",
             children: "Syncing...",
         },
+        syncing: {
+            color: "blue",
+            className: "live-pulse",
+            children: "Updating...",
+        },
         error: {
             color: "orange",
             leftSection: <IconBroadcastOff size={12} />,
