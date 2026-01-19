@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useFetcher, useLocation, useNavigate } from "react-router";
 
 import {
@@ -36,6 +36,7 @@ import LastPlayCard from "./LastPlayCard";
 import FieldingControls from "./FieldingControls";
 import BoxScore from "./BoxScore";
 import OnDeckCard from "./OnDeckCard";
+import ContactSprayChart from "@/components/ContactSprayChart";
 
 /**
  * Handles automatic outs for strikeouts.
@@ -88,7 +89,7 @@ export default function GamedayContainer({
     // Initialize tab from URL hash if present, otherwise default based on gameFinal
     const getInitialTab = () => {
         const hash = location?.hash?.replace(/^#/, "") || null;
-        const validTabs = ["live", "plays", "boxscore"];
+        const validTabs = ["live", "plays", "boxscore", "spray"];
         if (hash && validTabs.includes(hash)) {
             // If game is final, don't allow 'live' tab
             if (gameFinal && hash === "live") return "plays";
@@ -98,6 +99,20 @@ export default function GamedayContainer({
     };
 
     const [activeTab, setActiveTab] = useState(() => getInitialTab());
+
+    const batters = useMemo(() => {
+        return playerChart
+            .map((p) => {
+                const name =
+                    `${p.firstName || ""} ${p.lastName || ""}`.trim() ||
+                    "Unknown Player";
+                return {
+                    value: p.$id,
+                    label: name,
+                };
+            })
+            .sort((a, b) => a.label.localeCompare(b.label));
+    }, [playerChart]);
 
     // Update URL hash when tab changes (without page refresh)
     const handleTabChange = useCallback(
@@ -125,12 +140,12 @@ export default function GamedayContainer({
             const url = `${location.pathname}${location.search}${newHash}`;
             navigate(url, { replace: false });
         }
-    }, [gameFinal, location.pathname, location.search, navigate]);
+    }, [gameFinal, activeTab, location.pathname, location.search, navigate]);
 
     // Keep tab state in sync when location.hash changes (back/forward navigation)
     useEffect(() => {
         const hash = location?.hash?.replace(/^#/, "") || null;
-        const validTabs = ["live", "plays", "boxscore"];
+        const validTabs = ["live", "plays", "boxscore", "spray"];
 
         // Do not switch to "live" tab when the game is final
         if (hash === "live" && gameFinal) {
@@ -374,7 +389,7 @@ export default function GamedayContainer({
                     {!gameFinal && <Tabs.Tab value="live">Live</Tabs.Tab>}
                     <Tabs.Tab value="plays">Plays</Tabs.Tab>
                     <Tabs.Tab value="boxscore">Box Score</Tabs.Tab>
-                    {/* ... (panels remain the same) */}
+                    <Tabs.Tab value="spray">Spray Chart</Tabs.Tab>
 
                     <Tabs.Panel value="live" pt="md">
                         <Stack gap="md">
@@ -467,6 +482,14 @@ export default function GamedayContainer({
                             playerChart={playerChart}
                             currentBatter={currentBatter}
                             gameFinal={gameFinal}
+                        />
+                    </Tabs.Panel>
+
+                    <Tabs.Panel value="spray" pt="md">
+                        <ContactSprayChart
+                            hits={logs}
+                            showBattingSide={false}
+                            batters={batters}
                         />
                     </Tabs.Panel>
                 </TabsWrapper>
