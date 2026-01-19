@@ -5,7 +5,7 @@ import { useFetcher } from "react-router";
 import MenuContainer from "@/components/MenuContainer";
 import useModal from "@/hooks/useModal";
 
-export default function GamedayMenu({ gameFinal }) {
+export default function GamedayMenu({ gameFinal, score, opponentScore }) {
     const fetcher = useFetcher();
     const { openModal, closeAllModals } = useModal();
 
@@ -33,6 +33,8 @@ export default function GamedayMenu({ gameFinal }) {
                                     {
                                         _action: "end-game",
                                         gameFinal: true,
+                                        score,
+                                        opponentScore,
                                     },
                                     { method: "post" },
                                 );
