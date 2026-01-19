@@ -96,11 +96,19 @@ export default function EventDetails({ loaderData, actionData }) {
         }
     }, [isDeleting, deleteDrawerHandlers]);
 
-    const { game, deferredData, managerIds, season, teams, weatherPromise } =
-        loaderData;
+    const {
+        game,
+        deferredData,
+        managerIds,
+        scorekeeperIds,
+        season,
+        teams,
+        weatherPromise,
+    } = loaderData;
 
     const team = teams?.[0];
     const managerView = managerIds.includes(currentUserId);
+    const canScore = scorekeeperIds.includes(currentUserId);
 
     const { gameDate, playerChart, result } = game;
 
@@ -169,7 +177,7 @@ export default function EventDetails({ loaderData, actionData }) {
                 gameId={game.$id}
                 isLive={gameInProgress}
                 isPast={gameIsPast}
-                managerView={managerView}
+                canScore={canScore}
             />
             {gameIsPast ? (
                 <AwardsContainer

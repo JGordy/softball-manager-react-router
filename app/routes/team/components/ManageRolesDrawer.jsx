@@ -4,8 +4,9 @@ import { Avatar, Divider, Group, Select, Stack, Text } from "@mantine/core";
 import DrawerContainer from "@/components/DrawerContainer";
 
 const getRoleWeight = (roles) => {
-    if (roles.includes("owner")) return 3;
-    if (roles.includes("manager")) return 2;
+    if (roles.includes("owner")) return 4;
+    if (roles.includes("manager")) return 3;
+    if (roles.includes("scorekeeper")) return 2;
     return 1;
 };
 
@@ -20,6 +21,7 @@ export default function ManageRolesDrawer({
 
     const roleOptions = [
         { value: "player", label: "Player" },
+        { value: "scorekeeper", label: "Scorekeeper" },
         { value: "manager", label: "Manager" },
         { value: "owner", label: "Owner" },
     ];
@@ -61,6 +63,8 @@ export default function ManageRolesDrawer({
                     if (player.roles.includes("owner")) currentRole = "owner";
                     else if (player.roles.includes("manager"))
                         currentRole = "manager";
+                    else if (player.roles.includes("scorekeeper"))
+                        currentRole = "scorekeeper";
 
                     const isCurrentUser = player.$id === userId;
                     const isOwner = currentRole === "owner";

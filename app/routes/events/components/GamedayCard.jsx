@@ -8,12 +8,12 @@ import {
 
 import CardSection from "./CardSection";
 
-export default function GamedayCard({ gameId, isLive, isPast, managerView }) {
+export default function GamedayCard({ gameId, isLive, isPast, canScore }) {
     const navigate = useNavigate();
 
     let titleLabel = "Gameday Hub";
-    let heading = managerView ? "Score the Game" : "Follow The Action";
-    let subHeading = managerView
+    let heading = canScore ? "Score the Game" : "Follow The Action";
+    let subHeading = canScore
         ? "Access real-time scoring, stats, and play-by-play."
         : "Follow the game with live updates and box scores.";
     let leftSection = <IconScoreboard size={20} />;
@@ -25,7 +25,7 @@ export default function GamedayCard({ gameId, isLive, isPast, managerView }) {
         leftSection = <IconClipboardData size={20} />;
     } else if (isLive) {
         titleLabel = "Ongoing Gameday";
-        if (managerView) {
+        if (canScore) {
             heading = "Score this Game";
             subHeading = "Keep the book updated with real-time stats.";
         } else {

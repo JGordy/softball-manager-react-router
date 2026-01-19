@@ -119,6 +119,7 @@ export async function getTeamById({ teamId, request }) {
     if (teamId) {
         const managerIds = [];
         const ownerIds = [];
+        const scorekeeperIds = [];
         const userIds = [];
         const userRoles = {};
 
@@ -142,6 +143,14 @@ export async function getTeamById({ teamId, request }) {
                     membership.roles.includes("owner")
                 ) {
                     managerIds.push(membership.userId);
+                }
+
+                if (
+                    membership.roles.includes("scorekeeper") ||
+                    membership.roles.includes("manager") ||
+                    membership.roles.includes("owner")
+                ) {
+                    scorekeeperIds.push(membership.userId);
                 }
             }
         } catch (teamsApiError) {
@@ -214,7 +223,14 @@ export async function getTeamById({ teamId, request }) {
         // Attach seasons to teamData
         teamData.seasons = seasons;
 
-        return { teamData, players, managerIds, ownerIds, teamLogs: allLogs };
+        return {
+            teamData,
+            players,
+            managerIds,
+            ownerIds,
+            scorekeeperIds,
+            teamLogs: allLogs,
+        };
     } else {
         return { teamData: {} };
     }
