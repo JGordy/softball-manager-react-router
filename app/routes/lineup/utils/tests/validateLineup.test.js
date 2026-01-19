@@ -1,4 +1,4 @@
-import { validateLineup } from "./validateLineup";
+import { validateLineup } from "../validateLineup";
 
 describe("validateLineup", () => {
     const mockPlayers = [

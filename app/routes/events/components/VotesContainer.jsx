@@ -4,7 +4,7 @@ import { useFetcher } from "react-router";
 import { Button, Select, Text } from "@mantine/core";
 import { trackEvent } from "@/utils/analytics";
 
-import addPlayerAvailability from "../utils/addPlayerAvailability";
+import addPlayerAvailability from "@/utils/addPlayerAvailability";
 
 export default function VotesContainer({
     attendance,
