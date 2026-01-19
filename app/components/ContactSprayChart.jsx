@@ -10,7 +10,9 @@ import {
     Image,
     Select,
     Stack,
+    Text,
     Tooltip,
+    ColorSwatch,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import {
@@ -35,8 +37,17 @@ const OVERALL = "OVERALL";
 const BATS_LEFT = "LEFT";
 const BATS_RIGHT = "RIGHT";
 
+const LEGEND_ITEMS = [
+    { label: "Single", color: RESULT_COLORS.single },
+    { label: "Double", color: RESULT_COLORS.double },
+    { label: "Triple", color: RESULT_COLORS.triple },
+    { label: "Home Run", color: RESULT_COLORS.homerun },
+    { label: "Out", color: RESULT_COLORS.out },
+    { label: "Error / FC", color: RESULT_COLORS.error },
+];
+
 const CATEGORIES_DATA = [
-    { label: "All Results", value: "ALL" },
+    { label: "All", value: "ALL" },
     { label: "All Hits", value: "HITS" },
     { label: "All Outs", value: "OUTS" },
     ...HITS.map((h) => ({ label: getUILabel(h), value: h })),
@@ -77,10 +88,15 @@ const CATEGORIES_DATA = [
  * @returns {JSX.Element} A card containing the filter controls, field image, and
  * plotted contact points with tooltips for each batted-ball event.
  */
-export default function ContactSprayChart({ hits = [] }) {
+export default function ContactSprayChart({
+    hits = [],
+    showBattingSide = true,
+    batters = [],
+}) {
     const [battingSide, setBattingSide] = useState(OVERALL);
     const [categoryFilter, setCategoryFilter] = useState("ALL");
     const [locationFilter, setLocationFilter] = useState("ALL");
+    const [playerFilter, setPlayerFilter] = useState("ALL");
     const [opened, { toggle }] = useDisclosure(false);
 
     const filteredHits = useMemo(() => {
@@ -103,8 +119,14 @@ export default function ContactSprayChart({ hits = [] }) {
                 // Only include items with coordinates for spray chart
                 if (hit.hitX == null || hit.hitY == null) return false;
 
+                // Player filter
+                if (playerFilter !== "ALL" && hit.playerId !== playerFilter) {
+                    return false;
+                }
+
                 // Batting side filter
                 const sideMatch =
+                    !showBattingSide ||
                     battingSide === OVERALL ||
                     hit.battingSide?.toUpperCase() === battingSide;
 
@@ -146,33 +168,72 @@ export default function ContactSprayChart({ hits = [] }) {
 
                 return true;
             });
-    }, [hits, battingSide, categoryFilter, locationFilter]);
+    }, [
+        hits,
+        battingSide,
+        categoryFilter,
+        locationFilter,
+        playerFilter,
+        showBattingSide,
+    ]);
+
+    const filteredStats = useMemo(() => {
+        const total = filteredHits.length;
+        const hitsCount = filteredHits.filter((h) =>
+            HITS.includes(h.normalizedKey),
+        ).length;
+        const gameIds = new Set(
+            filteredHits.map((h) => h.gameId).filter(Boolean),
+        );
+        const totalGameIds = new Set(hits.map((h) => h.gameId).filter(Boolean));
+        const avg = total > 0 ? (hitsCount / total).toFixed(3) : ".000";
+        return {
+            total,
+            hitsCount,
+            avg: avg.startsWith("0") ? avg.substring(1) : avg, // format .333 instead of 0.333
+            gameCount: gameIds.size,
+            totalGames: totalGameIds.size,
+        };
+    }, [filteredHits, hits]);
 
     return (
         <Box>
             <Stack gap="xs" mb="md">
                 <Group justify="space-between" align="center">
-                    <Chip.Group value={battingSide} onChange={setBattingSide}>
-                        <Group gap="5px">
-                            <Chip value={OVERALL} variant="light" color="green">
-                                All
-                            </Chip>
-                            <Chip
-                                value={BATS_LEFT}
-                                variant="light"
-                                color="green"
-                            >
-                                Left
-                            </Chip>
-                            <Chip
-                                value={BATS_RIGHT}
-                                variant="light"
-                                color="green"
-                            >
-                                Right
-                            </Chip>
-                        </Group>
-                    </Chip.Group>
+                    {showBattingSide ? (
+                        <Chip.Group
+                            value={battingSide}
+                            onChange={setBattingSide}
+                        >
+                            <Group gap="5px">
+                                <Chip
+                                    value={OVERALL}
+                                    variant="light"
+                                    color="green"
+                                >
+                                    All
+                                </Chip>
+                                <Chip
+                                    value={BATS_RIGHT}
+                                    variant="light"
+                                    color="green"
+                                >
+                                    Right
+                                </Chip>
+                                <Chip
+                                    value={BATS_LEFT}
+                                    variant="light"
+                                    color="green"
+                                >
+                                    Left
+                                </Chip>
+                            </Group>
+                        </Chip.Group>
+                    ) : (
+                        <Text fw={700} size="sm">
+                            Spray Chart
+                        </Text>
+                    )}
 
                     <Button
                         variant="subtle"
@@ -194,46 +255,64 @@ export default function ContactSprayChart({ hits = [] }) {
 
                 <Collapse in={opened}>
                     <Card withBorder p="xs" radius="lg">
-                        <Group grow>
-                            <Select
-                                label="Result"
-                                placeholder="All"
-                                data={CATEGORIES_DATA}
-                                value={categoryFilter}
-                                onChange={setCategoryFilter}
+                        <Stack gap="xs">
+                            <Group grow>
+                                {batters.length > 0 && (
+                                    <Select
+                                        label="Batter"
+                                        placeholder="All Batters"
+                                        data={[
+                                            {
+                                                label: "All",
+                                                value: "ALL",
+                                            },
+                                            ...batters,
+                                        ]}
+                                        value={playerFilter}
+                                        onChange={setPlayerFilter}
+                                        size="sm"
+                                        comboboxProps={{ zIndex: 6000 }}
+                                    />
+                                )}
+                                <Select
+                                    label="Result"
+                                    placeholder="All"
+                                    data={CATEGORIES_DATA}
+                                    value={categoryFilter}
+                                    onChange={setCategoryFilter}
+                                    size="sm"
+                                    comboboxProps={{ zIndex: 6000 }}
+                                />
+                                <Select
+                                    label="Location"
+                                    placeholder="Anywhere"
+                                    data={[
+                                        { label: "All", value: "ALL" },
+                                        { label: "Left Field", value: "LF" },
+                                        { label: "Center Field", value: "CF" },
+                                        { label: "Right Field", value: "RF" },
+                                        { label: "Infield", value: "IF" },
+                                    ]}
+                                    value={locationFilter}
+                                    onChange={setLocationFilter}
+                                    size="sm"
+                                    comboboxProps={{ zIndex: 6000 }}
+                                />
+                            </Group>
+                            <Button
+                                variant="subtle"
                                 size="sm"
-                                searchable
-                                comboboxProps={{ zIndex: 6000 }}
-                            />
-                            <Select
-                                label="Location"
-                                placeholder="Anywhere"
-                                data={[
-                                    { label: "All Field", value: "ALL" },
-                                    { label: "Left Field", value: "LF" },
-                                    { label: "Center Field", value: "CF" },
-                                    { label: "Right Field", value: "RF" },
-                                    { label: "Infield", value: "IF" },
-                                ]}
-                                value={locationFilter}
-                                onChange={setLocationFilter}
-                                size="sm"
-                                comboboxProps={{ zIndex: 6000 }}
-                            />
-                        </Group>
-                        <Button
-                            variant="subtle"
-                            size="sm"
-                            mt="xs"
-                            color="red"
-                            onClick={() => {
-                                setCategoryFilter("ALL");
-                                setLocationFilter("ALL");
-                                setBattingSide(OVERALL);
-                            }}
-                        >
-                            Reset Filters
-                        </Button>
+                                color="red"
+                                onClick={() => {
+                                    setCategoryFilter("ALL");
+                                    setLocationFilter("ALL");
+                                    setBattingSide(OVERALL);
+                                    setPlayerFilter("ALL");
+                                }}
+                            >
+                                Reset Filters
+                            </Button>
+                        </Stack>
                     </Card>
                 </Collapse>
             </Stack>
@@ -321,7 +400,34 @@ export default function ContactSprayChart({ hits = [] }) {
                 })}
             </Card>
 
-            {/* Legend could be added here if needed */}
+            <Card withBorder radius="lg" p="sm" mt="md">
+                <Group justify="space-between" mb="xs">
+                    <Text size="xs" fw={700} c="dimmed" tt="uppercase">
+                        Legend
+                    </Text>
+                    <Text size="xs" fw={500} c="dimmed">
+                        {filteredStats.total} events ({filteredStats.hitsCount}{" "}
+                        hits • {filteredStats.avg} AVG) in{" "}
+                        {filteredStats.totalGames}{" "}
+                        {filteredStats.totalGames === 1 ? "game" : "games"}
+                    </Text>
+                </Group>
+                <Group gap="md">
+                    {LEGEND_ITEMS.map((item) => (
+                        <Group key={item.label} gap="xs">
+                            <ColorSwatch
+                                color={item.color}
+                                size={12}
+                                withShadow={false}
+                            />
+                            <Text size="sm">{item.label}</Text>
+                        </Group>
+                    ))}
+                </Group>
+                <Text size="xs" c="dimmed" mt="sm" ta="center">
+                    Arcs represent the ball's flight path from home plate.
+                </Text>
+            </Card>
         </Box>
     );
 }
