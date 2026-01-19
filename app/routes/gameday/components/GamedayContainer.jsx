@@ -56,7 +56,7 @@ export default function GamedayContainer({
     team,
     initialLogs = [],
     gameFinal = false,
-    isManager = false,
+    canScore = false,
 }) {
     const fetcher = useFetcher();
     const location = useLocation();
@@ -422,7 +422,7 @@ export default function GamedayContainer({
                                     {logs.length > 0 && isOurBatting && (
                                         <LastPlayCard
                                             lastLog={logs[logs.length - 1]}
-                                            onUndo={isManager ? undoLast : null}
+                                            onUndo={canScore ? undoLast : null}
                                             isSubmitting={
                                                 fetcher.state === "submitting"
                                             }
@@ -433,7 +433,7 @@ export default function GamedayContainer({
 
                                 {/* Right Column: Actions */}
                                 <Stack style={{ flex: 1 }}>
-                                    {isManager && !gameFinal && (
+                                    {canScore && !gameFinal && (
                                         <>
                                             {isOurBatting ? (
                                                 <ActionPad

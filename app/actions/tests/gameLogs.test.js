@@ -78,7 +78,11 @@ describe("gameLogs actions", () => {
                         permissions: expect.arrayContaining([
                             'read("any")',
                             'update("team:team789/manager")',
+                            'update("team:team789/owner")',
+                            'update("team:team789/scorekeeper")',
+                            'delete("team:team789/manager")',
                             'delete("team:team789/owner")',
+                            'delete("team:team789/scorekeeper")',
                         ]),
                     }),
                     expect.objectContaining({

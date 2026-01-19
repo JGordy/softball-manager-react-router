@@ -162,21 +162,36 @@ async function loadGameBase(eventId) {
 
         let userIds = [];
         let managerIds = [];
+        let scorekeeperIds = [];
 
         try {
             const memberships = await teamsApi.listMemberships(teamId);
 
-            userIds = memberships.memberships.map((m) => ({
-                userId: m.userId,
-                role:
-                    m.roles.includes("manager") || m.roles.includes("owner")
-                        ? "manager"
-                        : "player",
-            }));
+            userIds = memberships.memberships.map((m) => {
+                let role = "player";
+                if (m.roles.includes("owner") || m.roles.includes("manager")) {
+                    role = "manager";
+                } else if (m.roles.includes("scorekeeper")) {
+                    role = "scorekeeper";
+                }
+                return {
+                    userId: m.userId,
+                    role,
+                };
+            });
 
             managerIds = memberships.memberships
                 .filter(
                     (m) =>
+                        m.roles.includes("manager") ||
+                        m.roles.includes("owner"),
+                )
+                .map((m) => m.userId);
+
+            scorekeeperIds = memberships.memberships
+                .filter(
+                    (m) =>
+                        m.roles.includes("scorekeeper") ||
                         m.roles.includes("manager") ||
                         m.roles.includes("owner"),
                 )
@@ -192,6 +207,7 @@ async function loadGameBase(eventId) {
             parkId,
             userIds,
             managerIds,
+            scorekeeperIds,
             playerChart,
         };
     } catch (error) {
@@ -288,14 +304,23 @@ export async function getEventById({ eventId, ...options }) {
             game: null,
             deferredData: null,
             managerIds: [],
+            scorekeeperIds: [],
             season: null,
             teams: [],
             weatherPromise: Promise.resolve(null),
         };
     }
 
-    const { game, season, teams, parkId, userIds, managerIds, playerChart } =
-        baseData;
+    const {
+        game,
+        season,
+        teams,
+        parkId,
+        userIds,
+        managerIds,
+        scorekeeperIds,
+        playerChart,
+    } = baseData;
 
     // Build deferred data object (promises for lazy loading in the UI)
     const deferredData = makeDeferredData({
@@ -313,7 +338,9 @@ export async function getEventById({ eventId, ...options }) {
             // NOTE: We need to parse the string from the database twice before passing to the front end
             playerChart: JSON.parse(JSON.parse(playerChart)),
         },
+        userIds,
         managerIds,
+        scorekeeperIds,
         season,
         teams,
         // Deferred data for weather, but is conditional so we didn't add it to the deferredData
@@ -325,7 +352,7 @@ export async function getEventById({ eventId, ...options }) {
 
 export async function getEventWithPlayerCharts({ request, eventId }) {
     // Use shared loader helper to get base data for the event
-    const { game, teams, userIds, managerIds, playerChart } =
+    const { game, teams, userIds, managerIds, scorekeeperIds, playerChart } =
         await loadGameBase(eventId);
 
     // Fully resolve the players for the non-deferred path
@@ -336,7 +363,9 @@ export async function getEventWithPlayerCharts({ request, eventId }) {
     return {
         attendance,
         game,
+        userIds,
         managerIds,
+        scorekeeperIds,
         teams,
         // NOTE: We need to parse the string from the database twice before passing to the front end
         playerChart: playerChart ? JSON.parse(JSON.parse(playerChart)) : null,

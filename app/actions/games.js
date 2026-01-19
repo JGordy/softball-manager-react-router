@@ -46,6 +46,7 @@ export async function createSingleGame({ values }) {
                   Permission.read(Role.team(teamId)), // Team members can read
                   Permission.update(Role.team(teamId, "manager")), // Managers can update
                   Permission.update(Role.team(teamId, "owner")), // Owners can update
+                  Permission.update(Role.team(teamId, "scorekeeper")), // Scorekeepers can update
                   Permission.delete(Role.team(teamId, "manager")), // Managers can delete
                   Permission.delete(Role.team(teamId, "owner")), // Owners can delete
               ]
@@ -106,6 +107,7 @@ export async function createGames({ values }) {
                   Permission.read(Role.team(teamId)), // Team members can read
                   Permission.update(Role.team(teamId, "manager")), // Managers can update
                   Permission.update(Role.team(teamId, "owner")), // Owners can update
+                  Permission.update(Role.team(teamId, "scorekeeper")), // Scorekeepers can update
                   Permission.delete(Role.team(teamId, "manager")), // Managers can delete
                   Permission.delete(Role.team(teamId, "owner")), // Owners can delete
               ]

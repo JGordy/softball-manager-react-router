@@ -43,7 +43,7 @@ export const logGameEvent = async ({
             if (!teamId) teamId = game?.teamId;
         }
 
-        const teamRoles = ["manager", "owner"];
+        const teamRoles = ["manager", "owner", "scorekeeper"];
 
         const permissions = [
             Permission.read(Role.any()),

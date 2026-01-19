@@ -57,21 +57,25 @@ export async function action({ request, params }) {
 }
 
 export default function Gameday() {
-    const { game, deferredData, teams, managerIds } = useLoaderData();
+    const { game, deferredData, teams, scorekeeperIds } = useLoaderData();
     const { user } = useOutletContext();
     const actionData = useActionData();
 
     useResponseNotification(actionData);
 
     const team = teams?.[0];
-    const isManager = !!(user && managerIds && managerIds.includes(user.$id));
+    const canScore = !!(
+        user &&
+        scorekeeperIds &&
+        scorekeeperIds.includes(user.$id)
+    );
 
     return (
         <Container size="md" py="xl">
             <Group justify="space-between" align="center" mb="xl">
                 <BackButton to={`/events/${game.$id}`} />
                 <Title order={3}>Scoring & Stats</Title>
-                {isManager && <GamedayMenu {...game} />}
+                {canScore && <GamedayMenu {...game} />}
             </Group>
 
             <DeferredLoader
@@ -85,7 +89,7 @@ export default function Gameday() {
                         team={team}
                         initialLogs={logs}
                         gameFinal={game.gameFinal}
-                        isManager={isManager}
+                        canScore={canScore}
                     />
                 )}
             </DeferredLoader>

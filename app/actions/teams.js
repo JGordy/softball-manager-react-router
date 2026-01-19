@@ -142,7 +142,7 @@ export async function updateMemberRole({ values, teamId, request }) {
     const { playerId: userId, role } = values;
 
     // Validate role input
-    const validRoles = ["owner", "manager", "player"];
+    const validRoles = ["owner", "manager", "scorekeeper", "player"];
     if (!validRoles.includes(role)) {
         return {
             success: false,
@@ -201,9 +201,11 @@ export async function updateMemberRole({ values, teamId, request }) {
         // 5. Determine new roles
         let newRoles = [];
         if (role === "owner") {
-            newRoles = ["owner", "manager", "player"];
+            newRoles = ["owner", "manager", "scorekeeper", "player"];
         } else if (role === "manager") {
-            newRoles = ["manager", "player"];
+            newRoles = ["manager", "scorekeeper", "player"];
+        } else if (role === "scorekeeper") {
+            newRoles = ["scorekeeper", "player"];
         } else {
             newRoles = ["player"];
         }

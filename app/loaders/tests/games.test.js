@@ -80,10 +80,64 @@ describe("Games Loader", () => {
             expect(result.gameDeleted).toBe(false);
             expect(result.game.$id).toBe("game1");
             expect(result.managerIds).toContain("user1");
+            expect(result.scorekeeperIds).toContain("user1");
             expect(result.deferredData).toBeDefined();
             expect(result.deferredData.players).toBeInstanceOf(Promise);
             expect(result.deferredData.park).toBeInstanceOf(Promise);
             expect(result.deferredData.logs).toBeInstanceOf(Promise);
+        });
+
+        it("should correctly identify scorekeepers", async () => {
+            const mockGame = {
+                $id: "game1",
+                gameDate: "2023-10-27T10:00:00Z",
+                playerChart: JSON.stringify(JSON.stringify({ lineup: [] })),
+                seasons: "season1",
+            };
+            const mockSeason = {
+                $id: "season1",
+                teams: ["team1"],
+                parkId: "park1",
+            };
+            const mockTeams = [{ $id: "team1", name: "Team 1" }];
+
+            // Mock Teams API for memberships
+            const mockListMemberships = jest.fn().mockResolvedValue({
+                memberships: [
+                    { userId: "user1", roles: ["owner"] },
+                    { userId: "user2", roles: ["manager"] },
+                    { userId: "user3", roles: ["scorekeeper"] },
+                    { userId: "user4", roles: ["player"] },
+                ],
+            });
+            createAdminClient.mockReturnValue({
+                teams: { listMemberships: mockListMemberships },
+            });
+
+            readDocument.mockResolvedValueOnce(mockGame);
+            readDocument.mockResolvedValueOnce(mockSeason);
+            listDocuments.mockResolvedValue({ rows: mockTeams });
+            readDocument.mockResolvedValue({ latitude: 0, longitude: 0 });
+
+            const result = await getEventById({ eventId: "game1" });
+
+            expect(result.managerIds).toContain("user1");
+            expect(result.managerIds).toContain("user2");
+            expect(result.managerIds).not.toContain("user3");
+            expect(result.managerIds).not.toContain("user4");
+
+            expect(result.scorekeeperIds).toContain("user1");
+            expect(result.scorekeeperIds).toContain("user2");
+            expect(result.scorekeeperIds).toContain("user3");
+            expect(result.scorekeeperIds).not.toContain("user4");
+
+            const user1 = result.userIds.find((u) => u.userId === "user1");
+            const user3 = result.userIds.find((u) => u.userId === "user3");
+            const user4 = result.userIds.find((u) => u.userId === "user4");
+
+            expect(user1.role).toBe("manager");
+            expect(user3.role).toBe("scorekeeper");
+            expect(user4.role).toBe("player");
         });
     });
 

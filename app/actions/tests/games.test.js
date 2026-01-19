@@ -91,6 +91,38 @@ describe("Games Actions", () => {
             expect(result.status).toBe(201);
         });
 
+        it("should set correct permissions including scorekeeper", async () => {
+            const mockValues = {
+                gameDate: "2024-01-01",
+                gameTime: "10:00",
+                opponent: "Team A",
+                teamId: "team1",
+            };
+
+            createDocument.mockResolvedValue({ $id: "game1" });
+
+            await createSingleGame({ values: mockValues });
+
+            expect(createDocument).toHaveBeenCalledWith(
+                "games",
+                "unique-id",
+                expect.any(Object),
+                expect.arrayContaining([
+                    'update("team:team1/manager")',
+                    'update("team:team1/owner")',
+                    'update("team:team1/scorekeeper")',
+                    'delete("team:team1/manager")',
+                    'delete("team:team1/owner")',
+                ]),
+            );
+
+            // Double check that delete(scorekeeper) is NOT present
+            const permissionsCall = createDocument.mock.calls[0][3];
+            expect(permissionsCall).not.toContain(
+                'delete("team:team1/scorekeeper")',
+            );
+        });
+
         it("should reject games with bad words in opponent name", async () => {
             hasBadWords.mockResolvedValue(true);
 
