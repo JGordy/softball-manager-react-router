@@ -79,6 +79,10 @@ export function formatNotificationPayload({
         icon,
         badge,
         data: {
+            title,
+            body,
+            icon,
+            badge,
             type,
             url,
             timestamp: new Date().toISOString(),
