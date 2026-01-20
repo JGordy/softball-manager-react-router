@@ -7,6 +7,7 @@ import {
     Link,
     Links,
     Meta,
+    useNavigate,
     Outlet,
     Scripts,
     ScrollRestoration,
@@ -149,17 +150,56 @@ function Layout({ children, context }) {
 
 export default function App({ loaderData }) {
     const { darkMode } = loaderData;
+    const navigate = useNavigate();
 
     useEffect(() => {
         let unsubscribe;
         getMessagingIfSupported().then((messaging) => {
             if (messaging) {
                 unsubscribe = onMessage(messaging, (payload) => {
+                    let data = payload.data || {};
+
+                    // Handle potential stringified data
+                    if (typeof data === "string") {
+                        try {
+                            data = JSON.parse(data);
+                        } catch (e) {
+                            console.error(
+                                "Failed to parse notification data:",
+                                e,
+                            );
+                        }
+                    }
+
+                    const url = data.url || (data.data && data.data.url);
+
                     showNotification({
-                        title: payload.notification?.title || "Notification",
-                        message: payload.notification?.body || "",
+                        title:
+                            payload.notification?.title ||
+                            data.title ||
+                            "Notification",
+                        message: payload.notification?.body || data.body || "",
                         variant: "info",
                         autoClose: 5000,
+                        onClick: () => {
+                            if (url) {
+                                // If it's an absolute URL for the same origin, or relative
+                                if (
+                                    url.startsWith("/") ||
+                                    url.includes(window.location.origin)
+                                ) {
+                                    const path = url.startsWith("/")
+                                        ? url
+                                        : url.replace(
+                                              window.location.origin,
+                                              "",
+                                          );
+                                    navigate(path);
+                                } else {
+                                    window.open(url, "_blank");
+                                }
+                            }
+                        },
                     });
                 });
             }
