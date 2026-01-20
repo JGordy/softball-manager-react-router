@@ -27,7 +27,7 @@ import {
     Code,
 } from "@mantine/core";
 import { ModalsProvider } from "@mantine/modals";
-import { Notifications } from "@mantine/notifications";
+import { Notifications, notifications } from "@mantine/notifications";
 
 import "@mantine/core/styles.css";
 import "@mantine/core/styles/baseline.css";
@@ -172,8 +172,10 @@ export default function App({ loaderData }) {
                     }
 
                     const url = data.url || (data.data && data.data.url);
+                    const notificationId = `push-${Date.now()}`;
 
                     showNotification({
+                        id: notificationId,
                         title:
                             payload.notification?.title ||
                             data.title ||
@@ -182,6 +184,7 @@ export default function App({ loaderData }) {
                         variant: "info",
                         autoClose: 5000,
                         onClick: () => {
+                            notifications.hide(notificationId);
                             if (url) {
                                 // If it's an absolute URL for the same origin, or relative
                                 if (
