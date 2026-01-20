@@ -21,14 +21,18 @@ self.addEventListener("push", (event) => {
     if (event.data) {
         try {
             const payload = event.data.json();
+
+            // Extract from top-level or data sub-object
+            const payloadData = payload.data || {};
+
             data = {
-                title: payload.title || data.title,
-                body: payload.body || data.body,
-                icon: payload.icon || data.icon,
-                badge: payload.badge || data.badge,
+                title: payload.title || payloadData.title || data.title,
+                body: payload.body || payloadData.body || data.body,
+                icon: payload.icon || payloadData.icon || data.icon,
+                badge: payload.badge || payloadData.badge || data.badge,
                 data: {
                     ...data.data,
-                    ...payload.data,
+                    ...payloadData,
                 },
             };
         } catch (error) {
@@ -48,6 +52,8 @@ self.addEventListener("push", (event) => {
         data: data.data,
         vibrate: [100, 50, 100],
         requireInteraction: false,
+        tag: data.data.tag || data.data.type || "softball-manager-notification",
+        renotify: true,
         actions: [
             {
                 action: "open",
@@ -69,7 +75,19 @@ self.addEventListener("notificationclick", (event) => {
 
     const notification = event.notification;
     const action = event.action;
-    const data = notification.data || {};
+    let data = notification.data || {};
+
+    // Appwrite/FCM sometimes stringifies the data object
+    if (typeof data === "string") {
+        try {
+            data = JSON.parse(data);
+        } catch (e) {
+            console.error(
+                "[Service Worker] Failed to parse notification data:",
+                e,
+            );
+        }
+    }
 
     notification.close();
 
@@ -79,7 +97,8 @@ self.addEventListener("notificationclick", (event) => {
     }
 
     // Get the URL to open (from notification data or default)
-    let urlToOpen = data.url || "/";
+    // Support either url directly in data or nested in data.data (common with some push providers)
+    let urlToOpen = data.url || (data.data && data.data.url) || "/";
 
     // Ensure the URL is absolute for clients.openWindow
     if (urlToOpen.startsWith("/")) {
@@ -92,7 +111,14 @@ self.addEventListener("notificationclick", (event) => {
         clients
             .matchAll({ type: "window", includeUncontrolled: true })
             .then((clientList) => {
-                // Check if there's already an open window we can focus
+                // 1. Try to find a window that is already at the target URL
+                for (const client of clientList) {
+                    if (client.url === urlToOpen && "focus" in client) {
+                        return client.focus();
+                    }
+                }
+
+                // 2. If not found, try to find any window on the same origin and navigate it
                 for (const client of clientList) {
                     if (
                         client.url.includes(self.location.origin) &&
@@ -101,12 +127,13 @@ self.addEventListener("notificationclick", (event) => {
                         console.log(
                             "[Service Worker] Found existing window, navigating...",
                         );
-                        // Navigate the existing window to the notification URL
-                        client.navigate(urlToOpen);
-                        return client.focus();
+                        return client
+                            .navigate(urlToOpen)
+                            .then((c) => c?.focus());
                     }
                 }
-                // No existing window, open a new one
+
+                // 3. Fallback: open a new window
                 if (clients.openWindow) {
                     console.log(
                         "[Service Worker] No existing window, opening new one...",
