@@ -20,6 +20,7 @@ function normalizeNotificationData(data, logPrefix = "[Service Worker]") {
         } catch (error) {
             console.error(`${logPrefix} Failed to parse data JSON:`, error);
         }
+        // If JSON.parse fails or isn't an object, return empty object to ensure consistency
         return {};
     }
     return data;
@@ -37,7 +38,29 @@ function extractNotificationUrl(data) {
     // - When sending notifications via Appwrite's FCM integration, the custom
     //   data payload is nested under a second `data` key, so the URL arrives as
     //   `data.data.url`.
+    // We support both shapes here for compatibility with both providers.
     return data?.url || (data?.data && data.data.url) || "/";
+}
+
+/**
+ * Normalizes and validates a URL to ensure it is absolute and valid.
+ * @param {string} url - The URL to normalize
+ * @param {string} base - The base origin
+ * @returns {string} Absolute URL
+ */
+function normalizeUrl(url, base) {
+    if (!url || typeof url !== "string") {
+        return base;
+    }
+
+    try {
+        // If it's relative (starts with / or has no scheme), resolve it against base.
+        // If it's already absolute (http://...), the URL constructor handles it.
+        return new URL(url, base).href;
+    } catch (e) {
+        console.error("[Service Worker] Invalid URL in notification:", url, e);
+        return base;
+    }
 }
 
 /**
@@ -69,7 +92,18 @@ async function handleNotificationClick(
 
     // 2. If not found, try to find any window on the same origin and navigate it
     for (const client of clientList) {
-        if (client.url.includes(self.location.origin) && "focus" in client) {
+        let sameOrigin = false;
+        try {
+            const clientUrl = new URL(client.url);
+            sameOrigin = clientUrl.origin === self.location.origin;
+        } catch (error) {
+            console.error(
+                `${logPrefix} Failed to parse client URL for origin check:`,
+                error,
+            );
+        }
+
+        if (sameOrigin && "focus" in client) {
             try {
                 console.log(
                     `${logPrefix} Found existing window on same origin, navigating...`,
@@ -81,6 +115,12 @@ async function handleNotificationClick(
                     typeof navigatedClient.focus === "function"
                 ) {
                     return await navigatedClient.focus();
+                } else {
+                    console.error(
+                        `${logPrefix} Navigation completed but resulting client cannot be focused or is null:`,
+                        navigatedClient,
+                    );
+                    // Continue to next client or fallback (Step 3)
                 }
             } catch (error) {
                 console.error(
@@ -98,5 +138,10 @@ async function handleNotificationClick(
             `${logPrefix} No suitable window found, opening new one...`,
         );
         return await clients.openWindow(urlToOpen);
+    } else {
+        console.warn(
+            `${logPrefix} clients.openWindow is not available; cannot open window for URL: ${urlToOpen}`,
+        );
+        return null;
     }
 }

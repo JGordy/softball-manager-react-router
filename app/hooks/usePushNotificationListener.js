@@ -29,10 +29,7 @@ const handleNotificationNavigation = (url, navigate) => {
             navigate(path);
         } else {
             // Otherwise open in a new tab
-            const newWindow = window.open(url, "_blank", "noopener,noreferrer");
-            if (newWindow) {
-                newWindow.opener = null;
-            }
+            window.open(url, "_blank", "noopener,noreferrer");
         }
     } catch (e) {
         console.error(
@@ -40,10 +37,7 @@ const handleNotificationNavigation = (url, navigate) => {
             e,
         );
         // If the URL is invalid or parsing fails, attempt to open as-is in a new tab
-        const newWindow = window.open(url, "_blank", "noopener,noreferrer");
-        if (newWindow) {
-            newWindow.opener = null;
-        }
+        window.open(url, "_blank", "noopener,noreferrer");
     }
 };
 
@@ -66,12 +60,17 @@ export function usePushNotificationListener() {
                         // Handle potential stringified data block from Appwrite/FCM
                         if (typeof data === "string") {
                             try {
-                                data = JSON.parse(data);
+                                const parsed = JSON.parse(data);
+                                data =
+                                    parsed && typeof parsed === "object"
+                                        ? parsed
+                                        : {};
                             } catch (e) {
                                 console.error(
                                     "[Foreground Message] Failed to parse notification data:",
                                     e,
                                 );
+                                data = {};
                             }
                         }
 

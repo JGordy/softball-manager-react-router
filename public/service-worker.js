@@ -74,19 +74,10 @@ self.addEventListener("notificationclick", (event) => {
 
     const notification = event.notification;
     const action = event.action;
-    let data = notification.data || {};
-
-    // Appwrite/FCM sometimes stringifies the data object
-    if (typeof data === "string") {
-        try {
-            data = JSON.parse(data);
-        } catch (e) {
-            console.error(
-                "[Service Worker] Failed to parse notification data:",
-                e,
-            );
-        }
-    }
+    const data = normalizeNotificationData(
+        notification.data,
+        "[Service Worker]",
+    );
 
     notification.close();
 
@@ -98,10 +89,8 @@ self.addEventListener("notificationclick", (event) => {
     // Get the URL to open (from notification data or default)
     let urlToOpen = extractNotificationUrl(data);
 
-    // Ensure the URL is absolute for clients.openWindow
-    if (urlToOpen.startsWith("/")) {
-        urlToOpen = new URL(urlToOpen, self.location.origin).href;
-    }
+    // Ensure the URL is absolute and valid
+    urlToOpen = normalizeUrl(urlToOpen, self.location.origin);
 
     event.waitUntil(handleNotificationClick(urlToOpen, "[Service Worker]"));
 });
