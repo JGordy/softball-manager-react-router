@@ -1,13 +1,9 @@
-import { useEffect } from "react";
-import { onMessage } from "firebase/messaging";
-import { getMessagingIfSupported } from "@/utils/firebase";
-import { showNotification } from "@/utils/showNotification";
+import { usePushNotificationListener } from "@/hooks/usePushNotificationListener";
 import {
     isRouteErrorResponse,
     Link,
     Links,
     Meta,
-    useNavigate,
     Outlet,
     Scripts,
     ScrollRestoration,
@@ -27,7 +23,7 @@ import {
     Code,
 } from "@mantine/core";
 import { ModalsProvider } from "@mantine/modals";
-import { Notifications, notifications } from "@mantine/notifications";
+import { Notifications } from "@mantine/notifications";
 
 import "@mantine/core/styles.css";
 import "@mantine/core/styles/baseline.css";
@@ -150,92 +146,8 @@ function Layout({ children, context }) {
 
 export default function App({ loaderData }) {
     const { darkMode } = loaderData;
-    const navigate = useNavigate();
 
-    useEffect(() => {
-        let unsubscribe;
-        getMessagingIfSupported().then((messaging) => {
-            if (messaging) {
-                unsubscribe = onMessage(messaging, (payload) => {
-                    let data = payload.data || {};
-
-                    // Handle potential stringified data
-                    if (typeof data === "string") {
-                        try {
-                            data = JSON.parse(data);
-                        } catch (e) {
-                            console.error(
-                                "Failed to parse notification data:",
-                                e,
-                            );
-                        }
-                    }
-
-                    const url = data.url || (data.data && data.data.url);
-                    const notificationId = `push-${Date.now()}`;
-
-                    showNotification({
-                        id: notificationId,
-                        title:
-                            payload.notification?.title ||
-                            data.title ||
-                            "Notification",
-                        message: payload.notification?.body || data.body || "",
-                        variant: "info",
-                        autoClose: 5000,
-                        onClick: () => {
-                            notifications.hide(notificationId);
-                            if (url) {
-                                // If it's a relative URL or an absolute URL for the same origin
-                                if (url.startsWith("/")) {
-                                    navigate(url);
-                                } else {
-                                    let targetUrl;
-                                    try {
-                                        targetUrl = new URL(url);
-                                    } catch (e) {
-                                        // If the URL is invalid, fall back to opening in a new tab with security best practices
-                                        const newWindow = window.open(
-                                            url,
-                                            "_blank",
-                                            "noopener,noreferrer",
-                                        );
-                                        if (newWindow) {
-                                            newWindow.opener = null;
-                                        }
-                                        return;
-                                    }
-
-                                    if (
-                                        targetUrl.origin ===
-                                        window.location.origin
-                                    ) {
-                                        const path =
-                                            targetUrl.pathname +
-                                            targetUrl.search +
-                                            targetUrl.hash;
-                                        navigate(path);
-                                    } else {
-                                        const newWindow = window.open(
-                                            url,
-                                            "_blank",
-                                            "noopener,noreferrer",
-                                        );
-                                        if (newWindow) {
-                                            newWindow.opener = null;
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                    });
-                });
-            }
-        });
-        return () => {
-            if (unsubscribe) unsubscribe();
-        };
-    }, []);
+    usePushNotificationListener();
 
     return (
         <Layout context={{ darkMode }}>
