@@ -10,4 +10,7 @@
 .navLinks {
     width: 95%;
     margin-bottom: 10px;
+    box-shadow: var(--mantine-shadow-md);
+    border: 1px solid
+        light-dark(var(--mantine-color-gray-5), var(--mantine-color-gray-7));
 }
