@@ -94,7 +94,13 @@ self.addEventListener("notificationclick", (event) => {
     }
 
     // Get the URL to open (from notification data or default)
-    // Support either url directly in data or nested in data.data (common with some push providers)
+    // NOTE:
+    // - When sending notifications via Firebase directly (console / client SDK),
+    //   the target URL is typically provided as `data.url`.
+    // - When sending notifications via Appwrite's FCM integration, the custom
+    //   data payload is nested under a second `data` key, so the URL arrives as
+    //   `data.data.url`.
+    // We support both shapes here for compatibility with both providers.
     let urlToOpen = data.url || (data.data && data.data.url) || "/";
 
     // Ensure the URL is absolute for clients.openWindow
@@ -123,7 +129,34 @@ self.addEventListener("notificationclick", (event) => {
                     ) {
                         return client
                             .navigate(urlToOpen)
-                            .then((c) => c?.focus());
+                            .then((c) => {
+                                if (!c) {
+                                    console.error(
+                                        "[Firebase SW] Navigation did not return a client for URL:",
+                                        urlToOpen,
+                                    );
+                                    return;
+                                }
+
+                                if (
+                                    "focus" in c &&
+                                    typeof c.focus === "function"
+                                ) {
+                                    return c.focus();
+                                }
+
+                                console.error(
+                                    "[Firebase SW] Navigated client does not support focus for URL:",
+                                    urlToOpen,
+                                );
+                            })
+                            .catch((error) => {
+                                console.error(
+                                    "[Firebase SW] Error navigating client to URL:",
+                                    urlToOpen,
+                                    error,
+                                );
+                            });
                     }
                 }
 

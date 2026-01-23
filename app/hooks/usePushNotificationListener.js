@@ -53,44 +53,56 @@ export function usePushNotificationListener() {
     useEffect(() => {
         let unsubscribe;
 
-        getMessagingIfSupported().then((messaging) => {
-            if (messaging) {
-                unsubscribe = onMessage(messaging, (payload) => {
-                    let data = payload.data || {};
+        getMessagingIfSupported()
+            .then((messaging) => {
+                if (messaging) {
+                    unsubscribe = onMessage(messaging, (payload) => {
+                        let data = payload.data || {};
 
-                    // Handle potential stringified data block from Appwrite/FCM
-                    if (typeof data === "string") {
-                        try {
-                            data = JSON.parse(data);
-                        } catch (e) {
-                            console.error(
-                                "[Foreground Message] Failed to parse notification data:",
-                                e,
-                            );
+                        // Handle potential stringified data block from Appwrite/FCM
+                        if (typeof data === "string") {
+                            try {
+                                data = JSON.parse(data);
+                            } catch (e) {
+                                console.error(
+                                    "[Foreground Message] Failed to parse notification data:",
+                                    e,
+                                );
+                            }
                         }
-                    }
 
-                    const url = data.url || (data.data && data.data.url);
-                    const notificationId = `push-${Date.now()}`;
+                        // Some providers (e.g. Appwrite via FCM) send a flat `data.url`,
+                        // while others (e.g. raw Firebase/FCM console) wrap custom data
+                        // inside a nested `data` object (`data.data.url`). We intentionally
+                        // support both shapes here for backward- and cross-provider compatibility.
+                        const url = data.url || (data.data && data.data.url);
+                        const notificationId = `push-${Date.now()}`;
 
-                    showNotification({
-                        id: notificationId,
-                        title:
-                            payload.notification?.title ||
-                            data.title ||
-                            "Notification",
-                        message: payload.notification?.body || data.body || "",
-                        variant: "info",
-                        autoClose: 5000,
-                        onClick: () => {
-                            // Immediately hide the notification and navigate
-                            notifications.hide(notificationId);
-                            handleNotificationNavigation(url, navigate);
-                        },
+                        showNotification({
+                            id: notificationId,
+                            title:
+                                payload.notification?.title ||
+                                data.title ||
+                                "Notification",
+                            message:
+                                payload.notification?.body || data.body || "",
+                            variant: "info",
+                            autoClose: 5000,
+                            onClick: () => {
+                                // Immediately hide the notification and navigate
+                                notifications.hide(notificationId);
+                                handleNotificationNavigation(url, navigate);
+                            },
+                        });
                     });
-                });
-            }
-        });
+                }
+            })
+            .catch((error) => {
+                console.error(
+                    "[Push Notification] Failed to initialize Firebase messaging:",
+                    error,
+                );
+            });
 
         return () => {
             if (unsubscribe) {

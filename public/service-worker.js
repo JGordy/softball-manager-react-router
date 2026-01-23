@@ -104,7 +104,13 @@ self.addEventListener("notificationclick", (event) => {
     }
 
     // Get the URL to open (from notification data or default)
-    // Support either url directly in data or nested in data.data (common with some push providers)
+    // NOTE:
+    // - When sending notifications via Firebase directly (console / client SDK),
+    //   the target URL is typically provided as `data.url`.
+    // - When sending notifications via Appwrite's FCM integration, the custom
+    //   data payload is nested under a second `data` key, so the URL arrives as
+    //   `data.data.url`.
+    // We support both shapes here for compatibility with both providers.
     let urlToOpen = data.url || (data.data && data.data.url) || "/";
 
     // Ensure the URL is absolute for clients.openWindow
@@ -136,7 +142,22 @@ self.addEventListener("notificationclick", (event) => {
                         );
                         return client
                             .navigate(urlToOpen)
-                            .then((c) => c?.focus());
+                            .then((c) => {
+                                if (!c || typeof c.focus !== "function") {
+                                    console.error(
+                                        "[Service Worker] Navigation completed but resulting client cannot be focused:",
+                                        c,
+                                    );
+                                    return;
+                                }
+                                return c.focus();
+                            })
+                            .catch((error) => {
+                                console.error(
+                                    "[Service Worker] Failed to navigate existing window:",
+                                    error,
+                                );
+                            });
                     }
                 }
 
