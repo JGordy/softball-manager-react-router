@@ -143,18 +143,30 @@ self.addEventListener("notificationclick", (event) => {
                         return client
                             .navigate(urlToOpen)
                             .then((c) => {
-                                if (!c || typeof c.focus !== "function") {
+                                if (!c) {
                                     console.error(
-                                        "[Service Worker] Navigation completed but resulting client cannot be focused:",
-                                        c,
+                                        "[Service Worker] Navigation did not return a client for URL:",
+                                        urlToOpen,
                                     );
                                     return;
                                 }
-                                return c.focus();
+
+                                if (
+                                    "focus" in c &&
+                                    typeof c.focus === "function"
+                                ) {
+                                    return c.focus();
+                                }
+
+                                console.error(
+                                    "[Service Worker] Navigated client does not support focus for URL:",
+                                    urlToOpen,
+                                );
                             })
                             .catch((error) => {
                                 console.error(
-                                    "[Service Worker] Failed to navigate existing window:",
+                                    "[Service Worker] Error navigating client to URL:",
+                                    urlToOpen,
                                     error,
                                 );
                             });

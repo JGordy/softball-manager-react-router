@@ -88,11 +88,16 @@ export function usePushNotificationListener() {
                                 payload.notification?.body || data.body || "",
                             variant: "info",
                             autoClose: 5000,
-                            onClick: () => {
-                                // Immediately hide the notification and navigate
-                                notifications.hide(notificationId);
-                                handleNotificationNavigation(url, navigate);
-                            },
+                            onClick: url
+                                ? () => {
+                                      // Immediately hide the notification and navigate
+                                      notifications.hide(notificationId);
+                                      handleNotificationNavigation(
+                                          url,
+                                          navigate,
+                                      );
+                                  }
+                                : undefined,
                         });
                     });
                 }
