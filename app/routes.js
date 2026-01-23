@@ -9,6 +9,9 @@ export default [
     route("/auth/oauth", "routes/auth/oauth.jsx"),
     route("/auth/callback", "routes/auth/callback.jsx"),
 
+    // Landing Page
+    route("/landing", "routes/landing.jsx"),
+
     // Team invitation acceptance (public - users may not be logged in yet)
     route("/team/:teamId/accept-invite", "routes/team/accept-invite.jsx"),
     route("/auth/setup", "routes/auth/setup.jsx"),
