@@ -143,6 +143,44 @@ describe("usePushNotificationListener", () => {
         expect(mockNavigate).toHaveBeenCalledWith("/spa-route");
     });
 
+    it("should handle malformed stringified data by defaulting to empty object", async () => {
+        const consoleSpy = jest.spyOn(console, "error").mockImplementation();
+        renderHook(() => usePushNotificationListener());
+
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        const callback = onMessage.mock.calls[0][1];
+        callback({
+            data: "{ invalid json }",
+        });
+
+        expect(showNotification).toHaveBeenCalledWith(
+            expect.objectContaining({
+                title: "Notification", // Default title
+            }),
+        );
+        consoleSpy.mockRestore();
+    });
+
+    it("should not provide onClick if no URL is present in payload", async () => {
+        renderHook(() => usePushNotificationListener());
+
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        const callback = onMessage.mock.calls[0][1];
+        callback({
+            notification: { title: "No URL", body: "No URL Body" },
+            data: {},
+        });
+
+        const notificationOptions = showNotification.mock.calls[0][0];
+        expect(notificationOptions.onClick).toBeUndefined();
+    });
+
     it("should log error if initialization fails", async () => {
         const consoleSpy = jest.spyOn(console, "error").mockImplementation();
         getMessagingIfSupported.mockRejectedValue(new Error("Init failed"));

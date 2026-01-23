@@ -56,21 +56,23 @@ function normalizeUrl(url, base) {
     try {
         // If it's relative (starts with / or has no scheme), resolve it against base.
         // If it's already absolute (http://...), the URL constructor handles it.
-        return new URL(url, base).href;
+        const parsed = new URL(url, base);
+
+        // Security check: only allow http:, https:
+        if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+            console.warn(
+                `[Service Worker] Blocked potentially unsafe URL protocol: ${parsed.protocol}`,
+            );
+            return base;
+        }
+
+        return parsed.href;
     } catch (e) {
         console.error("[Service Worker] Invalid URL in notification:", url, e);
         return base;
     }
 }
 
-/**
- * Handles notification click navigation logic.
- * 1. Tries to find an existing window with the exact URL and focus it.
- * 2. Tries to find any window on the same origin, navigate it, and focus it.
- * 3. Falls back to opening a new window.
- * @param {string} urlToOpen - The absolute URL to open
- * @param {string} logPrefix - Prefix for logging
- */
 async function handleNotificationClick(
     urlToOpen,
     logPrefix = "[Service Worker]",
@@ -144,4 +146,13 @@ async function handleNotificationClick(
         );
         return null;
     }
+}
+
+// Explicitly expose utilities on the global scope for service worker usage.
+// This makes their intent clear when imported via `importScripts`.
+if (typeof self !== "undefined") {
+    self.normalizeNotificationData = normalizeNotificationData;
+    self.extractNotificationUrl = extractNotificationUrl;
+    self.normalizeUrl = normalizeUrl;
+    self.handleNotificationClick = handleNotificationClick;
 }
