@@ -13,6 +13,18 @@ export async function loader({ request }) {
         const { account } = await createSessionClient(request);
         const user = await account.get();
 
+        // Check Device
+        const userAgent = request.headers.get("User-Agent") || "";
+        const isMobile = Boolean(
+            userAgent.match(
+                /Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i,
+            ),
+        );
+
+        if (!isMobile) {
+            throw redirect("/landing?platform=desktop");
+        }
+
         // Check for "Generic" names (Profile Incomplete)
         const isProfileIncomplete =
             !user.name || user.name.trim() === "" || user.name === "User";
@@ -38,12 +50,12 @@ export async function loader({ request }) {
             error.message?.includes('missing scopes (["account"])');
 
         if (isUnauthorized) {
-            throw redirect("/login");
+            throw redirect("/landing");
         }
 
         console.error("Layout loader - Auth failure:", error.message);
         // For other errors, use a generic error code to avoid leaking details in the URL
-        throw redirect(`/login?error=auth_failure`);
+        throw redirect(`/landing?error=auth_failure`);
     }
 }
 
