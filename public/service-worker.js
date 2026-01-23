@@ -23,7 +23,21 @@ self.addEventListener("push", (event) => {
             const payload = event.data.json();
 
             // Extract from top-level or data sub-object
-            const payloadData = payload.data || {};
+            // Normalize data to object if it's a JSON string
+            const rawPayloadData = payload.data;
+            let payloadData = {};
+            if (typeof rawPayloadData === "string") {
+                try {
+                    const parsed = JSON.parse(rawPayloadData);
+                    if (parsed && typeof parsed === "object") {
+                        payloadData = parsed;
+                    }
+                } catch (parseError) {
+                    // Ignore parse error and fall back to empty object
+                }
+            } else if (rawPayloadData && typeof rawPayloadData === "object") {
+                payloadData = rawPayloadData;
+            }
 
             data = {
                 title: payload.title || payloadData.title || data.title,
@@ -50,20 +64,13 @@ self.addEventListener("push", (event) => {
         icon: data.icon,
         badge: data.badge,
         data: data.data,
-        vibrate: [100, 50, 100],
-        requireInteraction: false,
-        tag: data.data.tag || data.data.type || "softball-manager-notification",
+        // The tag ensures that if multiple notifications are sent, they merge/replace.
+        // Use a more specific tag if possible, otherwise use a default.
+        tag:
+            data.data?.tag ||
+            data.data?.type ||
+            "softball-manager-notification",
         renotify: true,
-        actions: [
-            {
-                action: "open",
-                title: "Open",
-            },
-            {
-                action: "dismiss",
-                title: "Dismiss",
-            },
-        ],
     };
 
     event.waitUntil(self.registration.showNotification(data.title, options));

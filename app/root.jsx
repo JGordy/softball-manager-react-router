@@ -186,20 +186,45 @@ export default function App({ loaderData }) {
                         onClick: () => {
                             notifications.hide(notificationId);
                             if (url) {
-                                // If it's an absolute URL for the same origin, or relative
-                                if (
-                                    url.startsWith("/") ||
-                                    url.includes(window.location.origin)
-                                ) {
-                                    const path = url.startsWith("/")
-                                        ? url
-                                        : url.replace(
-                                              window.location.origin,
-                                              "",
-                                          );
-                                    navigate(path);
+                                // If it's a relative URL or an absolute URL for the same origin
+                                if (url.startsWith("/")) {
+                                    navigate(url);
                                 } else {
-                                    window.open(url, "_blank");
+                                    let targetUrl;
+                                    try {
+                                        targetUrl = new URL(url);
+                                    } catch (e) {
+                                        // If the URL is invalid, fall back to opening in a new tab with security best practices
+                                        const newWindow = window.open(
+                                            url,
+                                            "_blank",
+                                            "noopener,noreferrer",
+                                        );
+                                        if (newWindow) {
+                                            newWindow.opener = null;
+                                        }
+                                        return;
+                                    }
+
+                                    if (
+                                        targetUrl.origin ===
+                                        window.location.origin
+                                    ) {
+                                        const path =
+                                            targetUrl.pathname +
+                                            targetUrl.search +
+                                            targetUrl.hash;
+                                        navigate(path);
+                                    } else {
+                                        const newWindow = window.open(
+                                            url,
+                                            "_blank",
+                                            "noopener,noreferrer",
+                                        );
+                                        if (newWindow) {
+                                            newWindow.opener = null;
+                                        }
+                                    }
                                 }
                             }
                         },

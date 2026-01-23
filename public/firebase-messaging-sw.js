@@ -28,7 +28,18 @@ messaging.onBackgroundMessage(function (payload) {
     // or if the automatic one is missing.
     // To avoid double notifications, we use a unique tag.
 
-    const data = payload.data || {};
+    let data = payload.data || {};
+    if (typeof data === "string") {
+        try {
+            data = JSON.parse(data);
+        } catch (error) {
+            console.error(
+                "[Firebase SW] Failed to parse payload.data JSON in background message:",
+                error,
+            );
+            data = {};
+        }
+    }
 
     // Customize notification content
     const notificationTitle =
@@ -44,6 +55,7 @@ messaging.onBackgroundMessage(function (payload) {
         data: data,
         // The tag ensures that if the browser automatically shows a notification
         // AND this manual one triggers, they will merge/replace rather than duplicate.
+        // Use a more specific tag if possible, otherwise use a default.
         tag: data.tag || data.type || "softball-manager-notification",
         renotify: true,
     };
