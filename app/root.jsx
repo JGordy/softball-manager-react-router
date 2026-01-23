@@ -1,7 +1,4 @@
-import { useEffect } from "react";
-import { onMessage } from "firebase/messaging";
-import { getMessagingIfSupported } from "@/utils/firebase";
-import { showNotification } from "@/utils/showNotification";
+import { usePushNotificationListener } from "@/hooks/usePushNotificationListener";
 import {
     isRouteErrorResponse,
     Link,
@@ -150,24 +147,7 @@ function Layout({ children, context }) {
 export default function App({ loaderData }) {
     const { darkMode } = loaderData;
 
-    useEffect(() => {
-        let unsubscribe;
-        getMessagingIfSupported().then((messaging) => {
-            if (messaging) {
-                unsubscribe = onMessage(messaging, (payload) => {
-                    showNotification({
-                        title: payload.notification?.title || "Notification",
-                        message: payload.notification?.body || "",
-                        variant: "info",
-                        autoClose: 5000,
-                    });
-                });
-            }
-        });
-        return () => {
-            if (unsubscribe) unsubscribe();
-        };
-    }, []);
+    usePushNotificationListener();
 
     return (
         <Layout context={{ darkMode }}>

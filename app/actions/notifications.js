@@ -223,6 +223,7 @@ export async function sendPushNotification({
         const { messaging } = createAdminClient();
 
         // Create and send a push notification message
+        // Using real title/body to ensure visibility
         const message = await messaging.createPush({
             messageId: ID.unique(),
             title,
@@ -288,6 +289,7 @@ export async function sendTeamNotification({
         const { messaging } = createAdminClient();
 
         // Create and send a push notification to a topic
+        // Using real title/body to ensure visibility
         const message = await messaging.createPush({
             messageId: ID.unique(),
             title,

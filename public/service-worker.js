@@ -3,6 +3,8 @@
  * Handles push events and notification clicks for deep linking
  */
 
+importScripts("/sw-utils.js");
+
 // Handle push events from the server
 self.addEventListener("push", (event) => {
     console.log("[Service Worker] Push received:", event);
@@ -21,14 +23,22 @@ self.addEventListener("push", (event) => {
     if (event.data) {
         try {
             const payload = event.data.json();
+
+            // Extract from top-level or data sub-object
+            // Normalize data to object if it's a JSON string
+            const payloadData = normalizeNotificationData(
+                payload.data,
+                "[Service Worker]",
+            );
+
             data = {
-                title: payload.title || data.title,
-                body: payload.body || data.body,
-                icon: payload.icon || data.icon,
-                badge: payload.badge || data.badge,
+                title: payload.title || payloadData.title || data.title,
+                body: payload.body || payloadData.body || data.body,
+                icon: payload.icon || payloadData.icon || data.icon,
+                badge: payload.badge || payloadData.badge || data.badge,
                 data: {
                     ...data.data,
-                    ...payload.data,
+                    ...payloadData,
                 },
             };
         } catch (error) {
@@ -46,18 +56,13 @@ self.addEventListener("push", (event) => {
         icon: data.icon,
         badge: data.badge,
         data: data.data,
-        vibrate: [100, 50, 100],
-        requireInteraction: false,
-        actions: [
-            {
-                action: "open",
-                title: "Open",
-            },
-            {
-                action: "dismiss",
-                title: "Dismiss",
-            },
-        ],
+        // The tag ensures that if multiple notifications are sent, they merge/replace.
+        // Use a more specific tag if possible, otherwise use a default.
+        tag:
+            data.data?.tag ||
+            data.data?.type ||
+            "softball-manager-notification",
+        renotify: true,
     };
 
     event.waitUntil(self.registration.showNotification(data.title, options));
@@ -69,7 +74,10 @@ self.addEventListener("notificationclick", (event) => {
 
     const notification = event.notification;
     const action = event.action;
-    const data = notification.data || {};
+    const data = normalizeNotificationData(
+        notification.data,
+        "[Service Worker]",
+    );
 
     notification.close();
 
@@ -79,42 +87,12 @@ self.addEventListener("notificationclick", (event) => {
     }
 
     // Get the URL to open (from notification data or default)
-    let urlToOpen = data.url || "/";
+    let urlToOpen = extractNotificationUrl(data);
 
-    // Ensure the URL is absolute for clients.openWindow
-    if (urlToOpen.startsWith("/")) {
-        urlToOpen = new URL(urlToOpen, self.location.origin).href;
-    }
+    // Ensure the URL is absolute and valid
+    urlToOpen = normalizeUrl(urlToOpen, self.location.origin);
 
-    console.log("[Service Worker] Opening URL:", urlToOpen);
-
-    event.waitUntil(
-        clients
-            .matchAll({ type: "window", includeUncontrolled: true })
-            .then((clientList) => {
-                // Check if there's already an open window we can focus
-                for (const client of clientList) {
-                    if (
-                        client.url.includes(self.location.origin) &&
-                        "focus" in client
-                    ) {
-                        console.log(
-                            "[Service Worker] Found existing window, navigating...",
-                        );
-                        // Navigate the existing window to the notification URL
-                        client.navigate(urlToOpen);
-                        return client.focus();
-                    }
-                }
-                // No existing window, open a new one
-                if (clients.openWindow) {
-                    console.log(
-                        "[Service Worker] No existing window, opening new one...",
-                    );
-                    return clients.openWindow(urlToOpen);
-                }
-            }),
-    );
+    event.waitUntil(handleNotificationClick(urlToOpen, "[Service Worker]"));
 });
 
 // Handle notification close (for analytics or cleanup)

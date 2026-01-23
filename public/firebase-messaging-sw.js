@@ -5,6 +5,7 @@ importScripts(
 importScripts(
     "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js",
 );
+importScripts("/sw-utils.js");
 
 firebase.initializeApp({
     // For project identification not authorization, so this is safe to be public
@@ -19,32 +20,49 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// Handle background messages
 messaging.onBackgroundMessage(function (payload) {
     console.log("[Firebase SW] Background message received:", payload);
 
-    // Customize notification here
+    // If there's a notification block, the browser might show it automatically.
+    // We only want to show a manual notification if we need to customize it
+    // or if the automatic one is missing.
+    // To avoid double notifications, we use a unique tag.
+
+    const data = normalizeNotificationData(payload.data, "[Firebase SW]");
+
+    // Customize notification content
     const notificationTitle =
-        payload.notification?.title ||
-        payload.data?.title ||
-        "Softball Manager";
+        payload.notification?.title || data.title || "Softball Manager";
+
     const notificationOptions = {
         body:
             payload.notification?.body ||
-            payload.data?.body ||
+            data.body ||
             "You have a new notification",
-        icon: "/android-chrome-192x192.png",
-        badge: "/favicon-32x32.png",
-        data: payload.data || {},
+        icon: data.icon || "/android-chrome-192x192.png",
+        badge: data.badge || "/favicon-32x32.png",
+        data: data,
+        // The tag ensures that if the browser automatically shows a notification
+        // AND this manual one triggers, they will merge/replace rather than duplicate.
+        // Use a more specific tag if possible, otherwise use a default.
+        tag: data.tag || data.type || "softball-manager-notification",
+        renotify: true,
     };
 
-    self.registration.showNotification(notificationTitle, notificationOptions);
+    return self.registration.showNotification(
+        notificationTitle,
+        notificationOptions,
+    );
 });
 
 // Handle notification clicks for deep linking
 self.addEventListener("notificationclick", (event) => {
+    console.log("[Firebase SW] Notification clicked:", event);
+
     const notification = event.notification;
     const action = event.action;
-    const data = notification.data || {};
+    const data = normalizeNotificationData(notification.data, "[Firebase SW]");
 
     notification.close();
 
@@ -54,32 +72,10 @@ self.addEventListener("notificationclick", (event) => {
     }
 
     // Get the URL to open (from notification data or default)
-    let urlToOpen = data.url || "/";
+    let urlToOpen = extractNotificationUrl(data);
 
-    // Ensure the URL is absolute for clients.openWindow
-    if (urlToOpen.startsWith("/")) {
-        urlToOpen = new URL(urlToOpen, self.location.origin).href;
-    }
+    // Ensure the URL is absolute and valid
+    urlToOpen = normalizeUrl(urlToOpen, self.location.origin);
 
-    event.waitUntil(
-        clients
-            .matchAll({ type: "window", includeUncontrolled: true })
-            .then((clientList) => {
-                // Check if there's already an open window we can focus
-                for (const client of clientList) {
-                    if (
-                        client.url.includes(self.location.origin) &&
-                        "focus" in client
-                    ) {
-                        // Navigate the existing window to the notification URL
-                        client.navigate(urlToOpen);
-                        return client.focus();
-                    }
-                }
-                // No existing window, open a new one
-                if (clients.openWindow) {
-                    return clients.openWindow(urlToOpen);
-                }
-            }),
-    );
+    event.waitUntil(handleNotificationClick(urlToOpen, "[Firebase SW]"));
 });

@@ -92,6 +92,10 @@ describe("notifications utility", () => {
             expect(payload.data.type).toBe(NOTIFICATION_TYPES.GAME_REMINDER);
             expect(payload.data.url).toBe("/game/123");
             expect(payload.data.gameId).toBe("123");
+            expect(payload.data.title).toBe("Test Title");
+            expect(payload.data.body).toBe("Test body message");
+            expect(payload.data.icon).toBe("/custom-icon.png");
+            expect(payload.data.badge).toBe("/custom-badge.png");
             expect(payload.data.timestamp).toBeDefined();
         });
 
@@ -107,6 +111,10 @@ describe("notifications utility", () => {
                 NOTIFICATION_TYPES.TEAM_ANNOUNCEMENT,
             );
             expect(payload.data.url).toBe("/");
+            expect(payload.data.title).toBe("Test");
+            expect(payload.data.body).toBe("Body");
+            expect(payload.data.icon).toBe("/android-chrome-192x192.png");
+            expect(payload.data.badge).toBe("/favicon-32x32.png");
         });
 
         it("should throw error if title is missing", () => {

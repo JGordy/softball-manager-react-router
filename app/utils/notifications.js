@@ -78,7 +78,15 @@ export function formatNotificationPayload({
         body,
         icon,
         badge,
+        // Duplicating these values into the data object is necessary because Appwrite/FCM
+        // may nest these values differently depending on how the notification is sent.
+        // This ensures the service worker and foreground listeners can always find
+        // display content even if the top-level notification block is missing or limited.
         data: {
+            title,
+            body,
+            icon,
+            badge,
             type,
             url,
             timestamp: new Date().toISOString(),
