@@ -35,6 +35,10 @@ const handleNotificationNavigation = (url, navigate) => {
             }
         }
     } catch (e) {
+        console.error(
+            "[Foreground Message] URL parsing failed, falling back to window.open:",
+            e,
+        );
         // If the URL is invalid or parsing fails, attempt to open as-is in a new tab
         const newWindow = window.open(url, "_blank", "noopener,noreferrer");
         if (newWindow) {
