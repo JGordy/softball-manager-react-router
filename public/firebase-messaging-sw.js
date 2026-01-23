@@ -5,6 +5,7 @@ importScripts(
 importScripts(
     "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js",
 );
+importScripts("/sw-utils.js");
 
 firebase.initializeApp({
     // For project identification not authorization, so this is safe to be public
@@ -28,18 +29,7 @@ messaging.onBackgroundMessage(function (payload) {
     // or if the automatic one is missing.
     // To avoid double notifications, we use a unique tag.
 
-    let data = payload.data || {};
-    if (typeof data === "string") {
-        try {
-            data = JSON.parse(data);
-        } catch (error) {
-            console.error(
-                "[Firebase SW] Failed to parse payload.data JSON in background message:",
-                error,
-            );
-            data = {};
-        }
-    }
+    const data = normalizeNotificationData(payload.data, "[Firebase SW]");
 
     // Customize notification content
     const notificationTitle =
@@ -72,19 +62,7 @@ self.addEventListener("notificationclick", (event) => {
 
     const notification = event.notification;
     const action = event.action;
-    let data = notification.data || {};
-
-    // Appwrite/FCM sometimes stringifies the data object
-    if (typeof data === "string") {
-        try {
-            data = JSON.parse(data);
-        } catch (e) {
-            console.error(
-                "[Firebase SW] Failed to parse notification data:",
-                e,
-            );
-        }
-    }
+    const data = normalizeNotificationData(notification.data, "[Firebase SW]");
 
     notification.close();
 
@@ -94,76 +72,12 @@ self.addEventListener("notificationclick", (event) => {
     }
 
     // Get the URL to open (from notification data or default)
-    // NOTE:
-    // - When sending notifications via Firebase directly (console / client SDK),
-    //   the target URL is typically provided as `data.url`.
-    // - When sending notifications via Appwrite's FCM integration, the custom
-    //   data payload is nested under a second `data` key, so the URL arrives as
-    //   `data.data.url`.
-    // We support both shapes here for compatibility with both providers.
-    let urlToOpen = data.url || (data.data && data.data.url) || "/";
+    let urlToOpen = extractNotificationUrl(data);
 
     // Ensure the URL is absolute for clients.openWindow
     if (urlToOpen.startsWith("/")) {
         urlToOpen = new URL(urlToOpen, self.location.origin).href;
     }
 
-    console.log("[Firebase SW] Opening URL:", urlToOpen);
-
-    event.waitUntil(
-        clients
-            .matchAll({ type: "window", includeUncontrolled: true })
-            .then((clientList) => {
-                // 1. Try to find a window that is already at the target URL
-                for (const client of clientList) {
-                    if (client.url === urlToOpen && "focus" in client) {
-                        return client.focus();
-                    }
-                }
-
-                // 2. If not found, try to find any window on the same origin and navigate it
-                for (const client of clientList) {
-                    if (
-                        client.url.includes(self.location.origin) &&
-                        "focus" in client
-                    ) {
-                        return client
-                            .navigate(urlToOpen)
-                            .then((c) => {
-                                if (!c) {
-                                    console.error(
-                                        "[Firebase SW] Navigation did not return a client for URL:",
-                                        urlToOpen,
-                                    );
-                                    return;
-                                }
-
-                                if (
-                                    "focus" in c &&
-                                    typeof c.focus === "function"
-                                ) {
-                                    return c.focus();
-                                }
-
-                                console.error(
-                                    "[Firebase SW] Navigated client does not support focus for URL:",
-                                    urlToOpen,
-                                );
-                            })
-                            .catch((error) => {
-                                console.error(
-                                    "[Firebase SW] Error navigating client to URL:",
-                                    urlToOpen,
-                                    error,
-                                );
-                            });
-                    }
-                }
-
-                // 3. Fallback: open a new window
-                if (clients.openWindow) {
-                    return clients.openWindow(urlToOpen);
-                }
-            }),
-    );
+    event.waitUntil(handleNotificationClick(urlToOpen, "[Firebase SW]"));
 });

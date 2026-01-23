@@ -3,6 +3,8 @@
  * Handles push events and notification clicks for deep linking
  */
 
+importScripts("/sw-utils.js");
+
 // Handle push events from the server
 self.addEventListener("push", (event) => {
     console.log("[Service Worker] Push received:", event);
@@ -24,20 +26,10 @@ self.addEventListener("push", (event) => {
 
             // Extract from top-level or data sub-object
             // Normalize data to object if it's a JSON string
-            const rawPayloadData = payload.data;
-            let payloadData = {};
-            if (typeof rawPayloadData === "string") {
-                try {
-                    const parsed = JSON.parse(rawPayloadData);
-                    if (parsed && typeof parsed === "object") {
-                        payloadData = parsed;
-                    }
-                } catch (parseError) {
-                    // Ignore parse error and fall back to empty object
-                }
-            } else if (rawPayloadData && typeof rawPayloadData === "object") {
-                payloadData = rawPayloadData;
-            }
+            const payloadData = normalizeNotificationData(
+                payload.data,
+                "[Service Worker]",
+            );
 
             data = {
                 title: payload.title || payloadData.title || data.title,
@@ -104,84 +96,14 @@ self.addEventListener("notificationclick", (event) => {
     }
 
     // Get the URL to open (from notification data or default)
-    // NOTE:
-    // - When sending notifications via Firebase directly (console / client SDK),
-    //   the target URL is typically provided as `data.url`.
-    // - When sending notifications via Appwrite's FCM integration, the custom
-    //   data payload is nested under a second `data` key, so the URL arrives as
-    //   `data.data.url`.
-    // We support both shapes here for compatibility with both providers.
-    let urlToOpen = data.url || (data.data && data.data.url) || "/";
+    let urlToOpen = extractNotificationUrl(data);
 
     // Ensure the URL is absolute for clients.openWindow
     if (urlToOpen.startsWith("/")) {
         urlToOpen = new URL(urlToOpen, self.location.origin).href;
     }
 
-    console.log("[Service Worker] Opening URL:", urlToOpen);
-
-    event.waitUntil(
-        clients
-            .matchAll({ type: "window", includeUncontrolled: true })
-            .then((clientList) => {
-                // 1. Try to find a window that is already at the target URL
-                for (const client of clientList) {
-                    if (client.url === urlToOpen && "focus" in client) {
-                        return client.focus();
-                    }
-                }
-
-                // 2. If not found, try to find any window on the same origin and navigate it
-                for (const client of clientList) {
-                    if (
-                        client.url.includes(self.location.origin) &&
-                        "focus" in client
-                    ) {
-                        console.log(
-                            "[Service Worker] Found existing window, navigating...",
-                        );
-                        return client
-                            .navigate(urlToOpen)
-                            .then((c) => {
-                                if (!c) {
-                                    console.error(
-                                        "[Service Worker] Navigation did not return a client for URL:",
-                                        urlToOpen,
-                                    );
-                                    return;
-                                }
-
-                                if (
-                                    "focus" in c &&
-                                    typeof c.focus === "function"
-                                ) {
-                                    return c.focus();
-                                }
-
-                                console.error(
-                                    "[Service Worker] Navigated client does not support focus for URL:",
-                                    urlToOpen,
-                                );
-                            })
-                            .catch((error) => {
-                                console.error(
-                                    "[Service Worker] Error navigating client to URL:",
-                                    urlToOpen,
-                                    error,
-                                );
-                            });
-                    }
-                }
-
-                // 3. Fallback: open a new window
-                if (clients.openWindow) {
-                    console.log(
-                        "[Service Worker] No existing window, opening new one...",
-                    );
-                    return clients.openWindow(urlToOpen);
-                }
-            }),
-    );
+    event.waitUntil(handleNotificationClick(urlToOpen, "[Service Worker]"));
 });
 
 // Handle notification close (for analytics or cleanup)
