@@ -8,10 +8,10 @@
 
 :root {
     /* Semantic Backgrounds */
-    --bg-body: light-dark(#e0ebe8, #101720);
-    --bg-card: light-dark(#f2f4f6, #1a242f);
+    --bg-body: light-dark(#f4f8f7, #101720);
+    --bg-card: light-dark(#e7f0ea, #1a242f);
     --bg-modal: light-dark(var(--mantine-color-body), #1a242f);
-    --bg-input: light-dark(#f2f4f6, #101720);
+    --bg-input: light-dark(#ffffff, #101720);
 
     /* Semantic Borders */
     --border-subtle: light-dark(transparent, #101720);
@@ -26,7 +26,7 @@
 
 :root[data-mantine-color-scheme="light"] {
     color-scheme: light;
-    --mantine-color-body: #e0ebe8;
+    --mantine-color-body: #f4f8f7;
     background-color: var(--bg-body);
 }
 
