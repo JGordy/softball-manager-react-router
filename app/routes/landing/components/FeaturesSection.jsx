@@ -30,16 +30,16 @@ export function FeaturesSection() {
                 "Intuitive scoring interface that updates player stats and team analytics in real-time.",
         },
         {
-            icon: IconCalendarStats,
-            color: "green",
-            title: "Season Schedules",
-            description: "Keep track of games and locations easily.",
-        },
-        {
             icon: IconUsers,
             color: "grape",
             title: "Team Management",
             description: "Centralize your roster and player details.",
+        },
+        {
+            icon: IconCalendarStats,
+            color: "green",
+            title: "Season Schedules",
+            description: "Keep track of games and locations easily.",
         },
         {
             icon: IconDeviceMobileMessage,
@@ -48,18 +48,18 @@ export function FeaturesSection() {
             description: "Know who is showing up before game day.",
         },
         {
-            icon: IconTrophy,
-            color: "yellow",
-            title: "Game Awards & Voting",
-            description:
-                "Keep the friendly rivalry alive with peer-voted MVPs and superlatives.",
-        },
-        {
             icon: IconChartBar,
             color: "red",
             title: "Player Analytics",
             description:
                 "Visualize player performance with deep statistical insights.",
+        },
+        {
+            icon: IconTrophy,
+            color: "yellow",
+            title: "Game Awards & Voting",
+            description:
+                "Keep the friendly rivalry alive with peer-voted MVPs and superlatives.",
         },
     ];
 
