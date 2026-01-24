@@ -14,7 +14,10 @@ import Footer from "./components/Footer";
 import { isMobileUserAgent } from "@/utils/device";
 
 export async function action({ request }) {
-    return logoutAction({ request });
+    const url = new URL(request.url);
+    const redirectTo = url.searchParams.get("redirect") || "/landing";
+
+    return logoutAction({ request, redirectTo });
 }
 
 export async function loader({ request }) {
@@ -25,7 +28,8 @@ export async function loader({ request }) {
         await account.get();
 
         return { isAuthenticated: true, isDesktop: !isMobile };
-    } catch {
+    } catch (error) {
+        console.error("Landing loader authentication check failed:", error);
         return { isAuthenticated: false, isDesktop: !isMobile };
     }
 }
