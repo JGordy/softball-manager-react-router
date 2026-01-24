@@ -4,7 +4,7 @@ import { createSessionClient } from "@/utils/appwrite/server";
 /**
  * Server-side logout action
  */
-export async function logoutAction({ request }) {
+export async function logoutAction({ request, redirectTo = "/login" }) {
     const { account } = await createSessionClient(request);
 
     try {
@@ -18,7 +18,7 @@ export async function logoutAction({ request }) {
     // Clear server-side session cookie and redirect to login
     // Note: Client-side Appwrite cookies (a_session_*) are on .appwrite.io domains
     // and will expire naturally. They don't interfere with server-side auth.
-    return redirect("/login", {
+    return redirect(redirectTo, {
         headers: {
             "Set-Cookie":
                 "appwrite-session=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax",
