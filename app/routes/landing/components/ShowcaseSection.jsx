@@ -106,7 +106,7 @@ function ImageCarousel({ images, delay = 4000 }) {
     );
 }
 
-export function ShowcaseSection() {
+export default function ShowcaseSection() {
     return (
         <Container size="lg" py={100} style={{ overflow: "hidden" }}>
             <Flex

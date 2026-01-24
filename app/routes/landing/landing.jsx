@@ -5,11 +5,11 @@ import { createSessionClient } from "@/utils/appwrite/server";
 
 import { logoutAction } from "@/actions/logout";
 
-import { FeaturesSection } from "./components/FeaturesSection";
-import { ShowcaseSection } from "./components/ShowcaseSection";
-import { HeroSection } from "./components/HeroSection";
-import { CTASection } from "./components/CTASection";
-import { Footer } from "./components/Footer";
+import FeaturesSection from "./components/FeaturesSection";
+import ShowcaseSection from "./components/ShowcaseSection";
+import HeroSection from "./components/HeroSection";
+import CTASection from "./components/CTASection";
+import Footer from "./components/Footer";
 
 import { isMobileUserAgent } from "@/utils/device";
 

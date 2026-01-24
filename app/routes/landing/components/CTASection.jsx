@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import { Button, Container, Paper, Text, Title, rem } from "@mantine/core";
 
-export function CTASection({ isAuthenticated, isMobileUI }) {
+export default function CTASection({ isAuthenticated, isMobileUI }) {
     return (
         <Container size="lg" pb={100}>
             <Paper

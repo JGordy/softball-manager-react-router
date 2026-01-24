@@ -12,7 +12,11 @@ import {
 import { IconArrowRight } from "@tabler/icons-react";
 import branding from "@/constants/branding";
 
-export function HeroSection({ isAuthenticated, isMobileUI, isDesktop }) {
+export default function HeroSection({
+    isAuthenticated,
+    isMobileUI,
+    isDesktop,
+}) {
     return (
         <div
             style={{

@@ -1,7 +1,7 @@
 import { Anchor, Container, Text } from "@mantine/core";
 import branding from "@/constants/branding";
 
-export function Footer() {
+export default function Footer() {
     return (
         <Container py="xl" ta="center">
             <Text c="dimmed" size="sm">
