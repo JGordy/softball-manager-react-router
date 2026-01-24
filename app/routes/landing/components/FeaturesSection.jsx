@@ -125,7 +125,7 @@ export default function FeaturesSection() {
             <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing={30}>
                 {features.map((feature, index) => (
                     <Card
-                        key={index}
+                        key={feature.title}
                         shadow="sm"
                         padding="xl"
                         radius="md"

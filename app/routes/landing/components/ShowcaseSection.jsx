@@ -26,6 +26,9 @@ import awardVoteImg from "@/assets/award-vote.png";
 import gameAwardImg from "@/assets/game-award.png";
 import playerAwardsImg from "@/assets/player-awards.png";
 
+const AUTOPLAY_DELAY_DEFAULT = 4000;
+const AUTOPLAY_DELAY_AWARDS = 5000;
+
 function ShowcaseText({ badge, color, title, description, features }) {
     return (
         <Stack flex={1} gap="md">
@@ -59,15 +62,15 @@ function ShowcaseText({ badge, color, title, description, features }) {
                     </ThemeIcon>
                 }
             >
-                {features.map((feature, index) => (
-                    <List.Item key={index}>{feature}</List.Item>
+                {features.map((feature) => (
+                    <List.Item key={feature}>{feature}</List.Item>
                 ))}
             </List>
         </Stack>
     );
 }
 
-function ImageCarousel({ images, delay = 4000 }) {
+function ImageCarousel({ images, delay = AUTOPLAY_DELAY_DEFAULT }) {
     const autoplay = useRef(Autoplay({ delay }));
 
     return (
@@ -80,6 +83,8 @@ function ImageCarousel({ images, delay = 4000 }) {
                 plugins={[autoplay.current]}
                 onMouseEnter={autoplay.current.stop}
                 onMouseLeave={autoplay.current.reset}
+                nextControlProps={{ "aria-label": "Next slide" }}
+                previousControlProps={{ "aria-label": "Previous slide" }}
                 styles={{
                     control: {
                         backgroundColor: "var(--mantine-color-white)",
@@ -90,7 +95,8 @@ function ImageCarousel({ images, delay = 4000 }) {
                 {images.map((img, index) => (
                     <Carousel.Slide key={index}>
                         <Image
-                            src={img}
+                            src={img.src}
+                            alt={img.alt}
                             radius="md"
                             shadow="xl"
                             h={{ base: 400, md: 500 }}
@@ -127,7 +133,13 @@ export default function ShowcaseSection() {
                     ]}
                 />
 
-                <ImageCarousel images={[dashboardImg, fieldImg, scoringImg]} />
+                <ImageCarousel
+                    images={[
+                        { src: dashboardImg, alt: "Scoring Dashboard" },
+                        { src: fieldImg, alt: "Field Input Interface" },
+                        { src: scoringImg, alt: "Runner Advancement" },
+                    ]}
+                />
             </Flex>
 
             <Flex
@@ -139,6 +151,7 @@ export default function ShowcaseSection() {
                     <Card padding="lg" bg="gray.0">
                         <Image
                             src={sprayChartImg}
+                            alt="Hit Distribution Spray Chart"
                             radius="md"
                             h={{ base: 400, md: 500 }}
                             w="auto"
@@ -180,8 +193,12 @@ export default function ShowcaseSection() {
                 />
 
                 <ImageCarousel
-                    images={[awardVoteImg, gameAwardImg, playerAwardsImg]}
-                    delay={5000}
+                    images={[
+                        { src: awardVoteImg, alt: "Award Voting Screen" },
+                        { src: gameAwardImg, alt: "Game Award Screen" },
+                        { src: playerAwardsImg, alt: "Player Awards Screen" },
+                    ]}
+                    delay={AUTOPLAY_DELAY_AWARDS}
                 />
             </Flex>
         </Container>
