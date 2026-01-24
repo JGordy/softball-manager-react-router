@@ -1,4 +1,8 @@
+import { useRef } from "react";
 import { Form, Link, useLoaderData, useSearchParams } from "react-router";
+
+import { Carousel } from "@mantine/carousel";
+import Autoplay from "embla-carousel-autoplay";
 import { useMediaQuery } from "@mantine/hooks";
 
 import {
@@ -31,6 +35,7 @@ import {
     IconClipboardList,
     IconDeviceMobileMessage,
     IconSparkles,
+    IconTrophy,
     IconUsers,
 } from "@tabler/icons-react";
 
@@ -63,14 +68,9 @@ export default function Landing() {
     const isDesktop = searchParams.get("platform") === "desktop";
     const isMobileUI = useMediaQuery("(max-width: 48em)");
 
+    const autoplay = useRef(Autoplay({ delay: 4000 }));
+
     const features = [
-        {
-            icon: IconSparkles,
-            color: "yellow",
-            title: "AI Powered Lineups",
-            description:
-                "Generate the best lineup available using in-depth game and individual player history.",
-        },
         {
             icon: IconClipboardList,
             color: "blue",
@@ -95,6 +95,13 @@ export default function Landing() {
             color: "orange",
             title: "Attendance Tracking",
             description: "Know who is showing up before game day.",
+        },
+        {
+            icon: IconTrophy,
+            color: "yellow",
+            title: "Game Awards & Voting",
+            description:
+                "Keep the friendly rivalry alive with peer-voted MVPs and superlatives.",
         },
         {
             icon: IconChartBar,
@@ -283,6 +290,50 @@ export default function Landing() {
                     </Text>
                 </Stack>
 
+                <Card
+                    shadow="sm"
+                    padding="xl"
+                    radius="md"
+                    mb={30}
+                    style={{
+                        border: "2px solid transparent",
+                        backgroundImage:
+                            "linear-gradient(white, white), linear-gradient(135deg, var(--mantine-color-grape-6) 0%, var(--mantine-color-cyan-6) 100%)",
+                        backgroundOrigin: "border-box",
+                        backgroundClip: "padding-box, border-box",
+                    }}
+                >
+                    <Flex
+                        direction={{ base: "column", md: "row" }}
+                        align={{ base: "flex-start", md: "center" }}
+                        gap="xl"
+                    >
+                        <ThemeIcon
+                            size={60}
+                            radius="md"
+                            variant="gradient"
+                            gradient={{ from: "grape", to: "cyan", deg: 135 }}
+                        >
+                            <IconSparkles
+                                style={{
+                                    width: rem(32),
+                                    height: rem(32),
+                                    color: "white",
+                                }}
+                            />
+                        </ThemeIcon>
+                        <Stack gap={4}>
+                            <Text fw={700} size="xl">
+                                AI Powered Lineups
+                            </Text>
+                            <Text size="md" c="dimmed" lh="1.6">
+                                Generate the best lineup available using
+                                in-depth game and individual player history.
+                            </Text>
+                        </Stack>
+                    </Flex>
+                </Card>
+
                 <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing={30}>
                     {features.map((feature, index) => (
                         <Card
@@ -309,17 +360,6 @@ export default function Landing() {
                             <Text size="sm" c="dimmed" lh="1.6">
                                 {feature.description}
                             </Text>
-                            {feature.imgSrc && (
-                                <Image
-                                    src={feature.imgSrc}
-                                    alt={feature.title}
-                                    mt="md"
-                                    radius="md"
-                                    withPlaceholder
-                                    height={160}
-                                    fit="cover"
-                                />
-                            )}
                         </Card>
                     ))}
                 </SimpleGrid>
@@ -369,28 +409,65 @@ export default function Landing() {
                             <List.Item>Live play-by-play tracking</List.Item>
                             <List.Item>Precise field location input</List.Item>
                             <List.Item>
-                                Intelligent runner advancement updates
+                                Intelligent runner advancement
                             </List.Item>
                         </List>
                     </Stack>
 
-                    <Box flex={1}>
-                        <SimpleGrid cols={2} spacing="md">
-                            <Image
-                                src={dashboardImg}
-                                radius="md"
-                                shadow="xl"
-                                style={{ transform: "translateY(24px)" }}
-                            />
-                            <Stack>
-                                <Image src={fieldImg} radius="md" shadow="xl" />
+                    <Box flex={1} w="100%">
+                        <Carousel
+                            withIndicators
+                            loop
+                            align="center"
+                            slideGap="md"
+                            plugins={[autoplay.current]}
+                            onMouseEnter={autoplay.current.stop}
+                            onMouseLeave={autoplay.current.reset}
+                            styles={{
+                                control: {
+                                    backgroundColor:
+                                        "var(--mantine-color-white)",
+                                    color: "var(--mantine-color-dark-filled)",
+                                },
+                            }}
+                        >
+                            <Carousel.Slide>
+                                <Image
+                                    src={dashboardImg}
+                                    radius="md"
+                                    shadow="xl"
+                                    h={{ base: 400, md: 500 }}
+                                    fit="contain"
+                                />
+                            </Carousel.Slide>
+                            <Carousel.Slide>
+                                <Image
+                                    src={fieldImg}
+                                    radius="md"
+                                    shadow="xl"
+                                    h={{ base: 400, md: 500 }}
+                                    fit="contain"
+                                />
+                            </Carousel.Slide>
+                            <Carousel.Slide>
                                 <Image
                                     src={scoringImg}
                                     radius="md"
                                     shadow="xl"
+                                    h={{ base: 400, md: 500 }}
+                                    fit="contain"
                                 />
-                            </Stack>
-                        </SimpleGrid>
+                            </Carousel.Slide>
+                        </Carousel>
+                        <Text
+                            ta="center"
+                            size="sm"
+                            c="dimmed"
+                            mt="sm"
+                            visibleFrom="sm"
+                        >
+                            Screenshots from actual gameplay
+                        </Text>
                     </Box>
                 </Flex>
 
