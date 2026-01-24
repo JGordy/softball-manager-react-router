@@ -11,15 +11,12 @@ import {
     Box,
     Button,
     Card,
-    Center,
     Container,
     Flex,
     Group,
     Image,
     List,
     Paper,
-    RingProgress,
-    SimpleGrid,
     Stack,
     Text,
     ThemeIcon,
@@ -27,17 +24,7 @@ import {
     rem,
 } from "@mantine/core";
 
-import {
-    IconArrowRight,
-    IconCalendarStats,
-    IconChartBar,
-    IconCheck,
-    IconClipboardList,
-    IconDeviceMobileMessage,
-    IconSparkles,
-    IconTrophy,
-    IconUsers,
-} from "@tabler/icons-react";
+import { IconArrowRight, IconCheck } from "@tabler/icons-react";
 
 import dashboardImg from "@/assets/scoring-dashboard.png";
 import fieldImg from "@/assets/touch-to-score.png";
@@ -47,6 +34,7 @@ import sprayChartImg from "@/assets/spray-chart.png";
 import branding from "@/constants/branding";
 import { createSessionClient } from "@/utils/appwrite/server";
 import { logoutAction } from "@/actions/logout";
+import { FeaturesSection } from "./components/FeaturesSection";
 
 export async function action({ request }) {
     return logoutAction({ request });
@@ -69,48 +57,6 @@ export default function Landing() {
     const isMobileUI = useMediaQuery("(max-width: 48em)");
 
     const autoplay = useRef(Autoplay({ delay: 4000 }));
-
-    const features = [
-        {
-            icon: IconClipboardList,
-            color: "blue",
-            title: "Dynamic Game Scoring",
-            description:
-                "Intuitive scoring interface that updates player stats and team analytics in real-time.",
-        },
-        {
-            icon: IconCalendarStats,
-            color: "green",
-            title: "Season Schedules",
-            description: "Keep track of games and locations easily.",
-        },
-        {
-            icon: IconUsers,
-            color: "grape",
-            title: "Team Management",
-            description: "Centralize your roster and player details.",
-        },
-        {
-            icon: IconDeviceMobileMessage,
-            color: "orange",
-            title: "Attendance Tracking",
-            description: "Know who is showing up before game day.",
-        },
-        {
-            icon: IconTrophy,
-            color: "yellow",
-            title: "Game Awards & Voting",
-            description:
-                "Keep the friendly rivalry alive with peer-voted MVPs and superlatives.",
-        },
-        {
-            icon: IconChartBar,
-            color: "red",
-            title: "Player Analytics",
-            description:
-                "Visualize player performance with deep statistical insights.",
-        },
-    ];
 
     return (
         <div
@@ -271,99 +217,7 @@ export default function Landing() {
             </div>
 
             {/* Features Section */}
-            <Container size="lg" py={100} pos="relative">
-                <Stack
-                    align="center"
-                    mb={60}
-                    pos="relative"
-                    style={{ zIndex: 1 }}
-                >
-                    <Badge variant="filled" color="green" size="lg" radius="sm">
-                        Features
-                    </Badge>
-                    <Title order={2} ta="center" fz={rem(48)} fw={900}>
-                        Everything you need to manage your team
-                    </Title>
-                    <Text c="dimmed" ta="center" maw={600} fz="lg">
-                        Ditch the spreadsheets and group chats. RostrHQ brings
-                        professional-grade tools to your recreational league.
-                    </Text>
-                </Stack>
-
-                <Card
-                    shadow="sm"
-                    padding="xl"
-                    radius="md"
-                    mb={30}
-                    style={{
-                        border: "2px solid transparent",
-                        backgroundImage:
-                            "linear-gradient(white, white), linear-gradient(135deg, var(--mantine-color-grape-6) 0%, var(--mantine-color-cyan-6) 100%)",
-                        backgroundOrigin: "border-box",
-                        backgroundClip: "padding-box, border-box",
-                    }}
-                >
-                    <Flex
-                        direction={{ base: "column", md: "row" }}
-                        align={{ base: "flex-start", md: "center" }}
-                        gap="xl"
-                    >
-                        <ThemeIcon
-                            size={60}
-                            radius="md"
-                            variant="gradient"
-                            gradient={{ from: "grape", to: "cyan", deg: 135 }}
-                        >
-                            <IconSparkles
-                                style={{
-                                    width: rem(32),
-                                    height: rem(32),
-                                    color: "white",
-                                }}
-                            />
-                        </ThemeIcon>
-                        <Stack gap={4}>
-                            <Text fw={700} size="xl">
-                                AI Powered Lineups
-                            </Text>
-                            <Text size="md" c="dimmed" lh="1.6">
-                                Generate the best lineup available using
-                                in-depth game and individual player history.
-                            </Text>
-                        </Stack>
-                    </Flex>
-                </Card>
-
-                <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing={30}>
-                    {features.map((feature, index) => (
-                        <Card
-                            key={index}
-                            shadow="sm"
-                            padding="xl"
-                            radius="md"
-                            withBorder
-                        >
-                            <ThemeIcon
-                                size={50}
-                                radius="md"
-                                variant="light"
-                                color={feature.color || "green"}
-                                mb="md"
-                            >
-                                <feature.icon
-                                    style={{ width: rem(28), height: rem(28) }}
-                                />
-                            </ThemeIcon>
-                            <Text fw={700} size="xl" mb="xs">
-                                {feature.title}
-                            </Text>
-                            <Text size="sm" c="dimmed" lh="1.6">
-                                {feature.description}
-                            </Text>
-                        </Card>
-                    ))}
-                </SimpleGrid>
-            </Container>
+            <FeaturesSection />
 
             {/* Feature Showcase Section */}
             <Container size="lg" py={100} style={{ overflow: "hidden" }}>
