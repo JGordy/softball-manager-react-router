@@ -162,7 +162,7 @@ export default function HeroSection({
                                                     "rgba(255,255,255,0.4)",
                                             }}
                                         >
-                                            Logout
+                                            Log out
                                         </Button>
                                     )}
                                 </Form>
