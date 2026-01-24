@@ -9,10 +9,7 @@ export default function Footer() {
                 reserved.
             </Text>
             <Text c="dimmed" size="sm" mt={4}>
-                <Anchor
-                    href="https://github.com/JGordy/softball-manager-react-router"
-                    target="_blank"
-                >
+                <Anchor href={branding.githubUrl} target="_blank">
                     View on GitHub
                 </Anchor>
             </Text>
