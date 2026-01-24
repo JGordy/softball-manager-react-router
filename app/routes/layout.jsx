@@ -8,21 +8,18 @@ import NavLinks from "@/components/NavLinks";
 
 import { createSessionClient } from "@/utils/appwrite/server";
 
+import { isMobileUserAgent } from "@/utils/device";
+
 export async function loader({ request }) {
     try {
         const { account } = await createSessionClient(request);
         const user = await account.get();
 
         // Check Device
-        const userAgent = request.headers.get("User-Agent") || "";
-        const isMobile = Boolean(
-            userAgent.match(
-                /Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i,
-            ),
-        );
+        const isMobile = isMobileUserAgent(request);
 
         if (!isMobile) {
-            throw redirect("/landing?platform=desktop");
+            throw redirect("/landing");
         }
 
         // Check for "Generic" names (Profile Incomplete)

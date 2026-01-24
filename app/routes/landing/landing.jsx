@@ -1,4 +1,4 @@
-import { useLoaderData, useSearchParams } from "react-router";
+import { useLoaderData } from "react-router";
 import { useMediaQuery } from "@mantine/hooks";
 
 import { createSessionClient } from "@/utils/appwrite/server";
@@ -11,26 +11,27 @@ import { HeroSection } from "./components/HeroSection";
 import { CTASection } from "./components/CTASection";
 import { Footer } from "./components/Footer";
 
+import { isMobileUserAgent } from "@/utils/device";
+
 export async function action({ request }) {
     return logoutAction({ request });
 }
 
 export async function loader({ request }) {
+    const isMobile = isMobileUserAgent(request);
+
     try {
         const { account } = await createSessionClient(request);
         await account.get();
-        return { isAuthenticated: true };
+
+        return { isAuthenticated: true, isDesktop: !isMobile };
     } catch {
-        return { isAuthenticated: false };
+        return { isAuthenticated: false, isDesktop: !isMobile };
     }
 }
 
 export default function Landing() {
-    const { isAuthenticated } = useLoaderData();
-
-    const [searchParams] = useSearchParams();
-
-    const isDesktop = searchParams.get("platform") === "desktop";
+    const { isAuthenticated, isDesktop } = useLoaderData();
     const isMobileUI = useMediaQuery("(max-width: 48em)");
 
     return (
