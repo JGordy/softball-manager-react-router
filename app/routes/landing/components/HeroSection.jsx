@@ -95,7 +95,7 @@ export function HeroSection({ isAuthenticated, isMobileUI, isDesktop }) {
                                 style={{ borderRadius: 20 }}
                             >
                                 {isDesktop
-                                    ? "This app is designed for Mobile. Please use your phone."
+                                    ? "You are logged in. Please switch to your phone to access the dashboard."
                                     : "You are currently logged in."}
                             </Text>
                             <Flex
@@ -122,24 +122,45 @@ export function HeroSection({ isAuthenticated, isMobileUI, isDesktop }) {
                                 <Form
                                     method="post"
                                     style={{
-                                        width: isMobileUI ? "100%" : "auto",
+                                        width:
+                                            isMobileUI || isDesktop
+                                                ? "100%"
+                                                : "auto",
+                                        display: "flex",
+                                        justifyContent: "center",
                                     }}
                                 >
-                                    <Button
-                                        type="submit"
-                                        size="xl"
-                                        variant="outline"
-                                        color="white"
-                                        radius="xl"
-                                        fullWidth={isMobileUI}
-                                        style={{
-                                            color: "white",
-                                            borderColor:
-                                                "rgba(255,255,255,0.4)",
-                                        }}
-                                    >
-                                        Logout
-                                    </Button>
+                                    {isDesktop ? (
+                                        <Button
+                                            type="submit"
+                                            variant="subtle"
+                                            color="gray.0"
+                                            size="sm"
+                                            compact
+                                            style={{
+                                                textDecoration: "underline",
+                                                opacity: 0.8,
+                                            }}
+                                        >
+                                            Log out
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            type="submit"
+                                            size="xl"
+                                            variant="outline"
+                                            color="white"
+                                            radius="xl"
+                                            fullWidth={isMobileUI}
+                                            style={{
+                                                color: "white",
+                                                borderColor:
+                                                    "rgba(255,255,255,0.4)",
+                                            }}
+                                        >
+                                            Logout
+                                        </Button>
+                                    )}
                                 </Form>
                             </Flex>
                         </Stack>
