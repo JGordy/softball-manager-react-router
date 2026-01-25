@@ -101,6 +101,7 @@ function ImageCarousel({ images, delay = AUTOPLAY_DELAY_DEFAULT }) {
                             shadow="xl"
                             h={{ base: 400, md: 500 }}
                             fit="contain"
+                            loading="lazy"
                         />
                     </Carousel.Slide>
                 ))}
@@ -135,9 +136,18 @@ export default function ShowcaseSection() {
 
                 <ImageCarousel
                     images={[
-                        { src: dashboardImg, alt: "Scoring Dashboard" },
-                        { src: fieldImg, alt: "Field Input Interface" },
-                        { src: scoringImg, alt: "Runner Advancement" },
+                        {
+                            src: dashboardImg,
+                            alt: "Screenshot showing the live game scoring dashboard with real-time player statistics and scoring controls",
+                        },
+                        {
+                            src: fieldImg,
+                            alt: "Screenshot of the field input interface for recording hit locations",
+                        },
+                        {
+                            src: scoringImg,
+                            alt: "Screenshot demonstrating how to advance runners on the base paths",
+                        },
                     ]}
                 />
             </Flex>
@@ -151,12 +161,13 @@ export default function ShowcaseSection() {
                     <Card padding="lg" bg="gray.0">
                         <Image
                             src={sprayChartImg}
-                            alt="Hit Distribution Spray Chart"
+                            alt="Visual spray chart showing a player's hit distribution across the field"
                             radius="md"
                             h={{ base: 400, md: 500 }}
                             w="auto"
                             fit="contain"
                             mx="auto"
+                            loading="lazy"
                         />
                     </Card>
                 </Box>
@@ -194,9 +205,18 @@ export default function ShowcaseSection() {
 
                 <ImageCarousel
                     images={[
-                        { src: awardVoteImg, alt: "Award Voting Screen" },
-                        { src: gameAwardImg, alt: "Game Award Screen" },
-                        { src: playerAwardsImg, alt: "Player Awards Screen" },
+                        {
+                            src: awardVoteImg,
+                            alt: "Interface for voting on post-game awards and MVPs",
+                        },
+                        {
+                            src: gameAwardImg,
+                            alt: "Display of the 'Game Ball' award given to the MVP",
+                        },
+                        {
+                            src: playerAwardsImg,
+                            alt: "Profile view showing a collection of player awards and badges",
+                        },
                     ]}
                     delay={AUTOPLAY_DELAY_AWARDS}
                 />
