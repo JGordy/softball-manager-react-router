@@ -123,7 +123,7 @@ export default function FeaturesSection() {
             </Card>
 
             <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing={30}>
-                {features.map((feature, index) => (
+                {features.map((feature) => (
                     <Card
                         key={feature.title}
                         shadow="sm"

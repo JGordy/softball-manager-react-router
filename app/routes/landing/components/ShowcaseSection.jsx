@@ -92,8 +92,8 @@ function ImageCarousel({ images, delay = AUTOPLAY_DELAY_DEFAULT }) {
                     },
                 }}
             >
-                {images.map((img, index) => (
-                    <Carousel.Slide key={index}>
+                {images.map((img) => (
+                    <Carousel.Slide key={img.src || img.alt}>
                         <Image
                             src={img.src}
                             alt={img.alt}
