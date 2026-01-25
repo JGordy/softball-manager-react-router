@@ -11,16 +11,16 @@ import { createSessionClient } from "@/utils/appwrite/server";
 import { isMobileUserAgent } from "@/utils/device";
 
 export async function loader({ request }) {
+    // Check Device - Redirect desktop users immediately
+    const isMobile = isMobileUserAgent(request);
+
+    if (!isMobile) {
+        throw redirect("/landing");
+    }
+
     try {
         const { account } = await createSessionClient(request);
         const user = await account.get();
-
-        // Check Device
-        const isMobile = isMobileUserAgent(request);
-
-        if (!isMobile) {
-            throw redirect("/landing");
-        }
 
         // Check for "Generic" names (Profile Incomplete)
         const isProfileIncomplete =
@@ -47,12 +47,12 @@ export async function loader({ request }) {
             error.message?.includes('missing scopes (["account"])');
 
         if (isUnauthorized) {
-            throw redirect("/landing");
+            throw redirect("/login");
         }
 
         console.error("Layout loader - Auth failure:", error.message);
         // For other errors, use a generic error code to avoid leaking details in the URL
-        throw redirect(`/landing?error=auth_failure`);
+        throw redirect(`/login?error=auth_failure`);
     }
 }
 
