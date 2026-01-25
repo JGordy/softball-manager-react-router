@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import { Button, Container, Paper, Text, Title, rem } from "@mantine/core";
 
-export default function CTASection({ isAuthenticated, isMobileUI }) {
+export default function CTASection({ isAuthenticated, isDesktop }) {
     return (
         <Container size="lg" pb={100}>
             <Paper
@@ -30,7 +30,7 @@ export default function CTASection({ isAuthenticated, isMobileUI }) {
                         variant="white"
                         color="dark"
                         radius="xl"
-                        fullWidth={isMobileUI}
+                        fullWidth={!isDesktop}
                     >
                         Get Started Now
                     </Button>

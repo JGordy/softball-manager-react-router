@@ -12,11 +12,9 @@ import {
 import { IconArrowRight } from "@tabler/icons-react";
 import branding from "@/constants/branding";
 
-export default function HeroSection({
-    isAuthenticated,
-    isMobileUI,
-    isDesktop,
-}) {
+export default function HeroSection({ isAuthenticated, isDesktop }) {
+    const isMobile = !isDesktop;
+
     return (
         <div
             style={{
@@ -86,7 +84,7 @@ export default function HeroSection({
                     {isAuthenticated ? (
                         <Stack
                             gap="sm"
-                            w={isMobileUI ? "100%" : "auto"}
+                            w={isMobile ? "100%" : "auto"}
                             maw={400}
                             mx="auto"
                         >
@@ -103,7 +101,7 @@ export default function HeroSection({
                                     : "You are currently logged in."}
                             </Text>
                             <Flex
-                                direction={isMobileUI ? "column" : "row"}
+                                direction={isMobile ? "column" : "row"}
                                 gap="sm"
                                 w="100%"
                             >
@@ -115,7 +113,7 @@ export default function HeroSection({
                                         variant="white"
                                         color="dark"
                                         radius="xl"
-                                        fullWidth={isMobileUI}
+                                        fullWidth={isMobile}
                                         rightSection={
                                             <IconArrowRight size={20} />
                                         }
@@ -126,10 +124,7 @@ export default function HeroSection({
                                 <Form
                                     method="post"
                                     style={{
-                                        width:
-                                            isMobileUI || isDesktop
-                                                ? "100%"
-                                                : "auto",
+                                        width: "100%",
                                         display: "flex",
                                         justifyContent: "center",
                                     }}
@@ -154,7 +149,7 @@ export default function HeroSection({
                                             variant="outline"
                                             color="white"
                                             radius="xl"
-                                            fullWidth={isMobileUI}
+                                            fullWidth
                                             style={{
                                                 color: "white",
                                                 borderColor:
@@ -175,7 +170,7 @@ export default function HeroSection({
                             variant="white"
                             color="dark"
                             radius="xl"
-                            fullWidth={isMobileUI}
+                            fullWidth={isMobile}
                             rightSection={<IconArrowRight size={20} />}
                         >
                             Get Started

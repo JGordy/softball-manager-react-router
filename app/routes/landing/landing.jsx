@@ -1,5 +1,4 @@
 import { useLoaderData } from "react-router";
-import { useMediaQuery } from "@mantine/hooks";
 
 import { createSessionClient } from "@/utils/appwrite/server";
 
@@ -29,14 +28,13 @@ export async function loader({ request }) {
 
         return { isAuthenticated: true, isDesktop: !isMobile };
     } catch (error) {
-        console.error("Landing loader authentication check failed:", error);
+        console.error("Landing loader authentication check failed");
         return { isAuthenticated: false, isDesktop: !isMobile };
     }
 }
 
 export default function Landing() {
     const { isAuthenticated, isDesktop } = useLoaderData();
-    const isMobileUI = useMediaQuery("(max-width: 48em)");
 
     return (
         <div
@@ -47,7 +45,6 @@ export default function Landing() {
         >
             <HeroSection
                 isAuthenticated={isAuthenticated}
-                isMobileUI={isMobileUI}
                 isDesktop={isDesktop}
             />
 
@@ -57,9 +54,8 @@ export default function Landing() {
 
             <CTASection
                 isAuthenticated={isAuthenticated}
-                isMobileUI={isMobileUI}
+                isDesktop={isDesktop}
             />
-
             <Footer />
         </div>
     );
