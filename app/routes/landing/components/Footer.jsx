@@ -9,7 +9,11 @@ export default function Footer() {
                 reserved.
             </Text>
             <Text c="dimmed" size="sm" mt={4}>
-                <Anchor href={branding.githubUrl} target="_blank">
+                <Anchor
+                    href={branding.githubUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
                     View on GitHub
                 </Anchor>
             </Text>
