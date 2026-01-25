@@ -163,18 +163,34 @@ export default function HeroSection({ isAuthenticated, isDesktop }) {
                             </Flex>
                         </Stack>
                     ) : (
-                        <Button
-                            component={Link}
-                            to="/login"
-                            size="xl"
-                            variant="white"
-                            color="dark"
-                            radius="xl"
-                            fullWidth={isMobile}
-                            rightSection={<IconArrowRight size={20} />}
-                        >
-                            Get Started
-                        </Button>
+                        <>
+                            {isDesktop && (
+                                <Text
+                                    c="white"
+                                    fw={500}
+                                    bg="rgba(0,0,0,0.2)"
+                                    px="lg"
+                                    py={4}
+                                    style={{ borderRadius: 20 }}
+                                >
+                                    Please switch to your phone to get started.
+                                </Text>
+                            )}
+                            {!isDesktop && (
+                                <Button
+                                    component={Link}
+                                    to="/login"
+                                    size="xl"
+                                    variant="white"
+                                    color="dark"
+                                    radius="xl"
+                                    fullWidth={isMobile}
+                                    rightSection={<IconArrowRight size={20} />}
+                                >
+                                    Get Started
+                                </Button>
+                            )}
+                        </>
                     )}
                 </Group>
             </Container>
