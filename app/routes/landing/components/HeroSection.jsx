@@ -139,8 +139,7 @@ export default function HeroSection({
                                             type="submit"
                                             variant="subtle"
                                             color="gray.0"
-                                            size="sm"
-                                            compact
+                                            size="compact-sm"
                                             style={{
                                                 textDecoration: "underline",
                                                 opacity: 0.8,
