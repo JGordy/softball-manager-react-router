@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useMemo } from "react";
 
 import { Carousel } from "@mantine/carousel";
 import Autoplay from "embla-carousel-autoplay";
@@ -71,7 +71,7 @@ function ShowcaseText({ badge, color, title, description, features }) {
 }
 
 function ImageCarousel({ images, delay = AUTOPLAY_DELAY_DEFAULT }) {
-    const autoplay = useRef(Autoplay({ delay }));
+    const autoplay = useMemo(() => Autoplay({ delay }), [delay]);
 
     return (
         <Box flex={1} w="100%">
@@ -80,9 +80,9 @@ function ImageCarousel({ images, delay = AUTOPLAY_DELAY_DEFAULT }) {
                 loop
                 align="center"
                 slideGap="md"
-                plugins={[autoplay.current]}
-                onMouseEnter={autoplay.current.stop}
-                onMouseLeave={autoplay.current.reset}
+                plugins={[autoplay]}
+                onMouseEnter={autoplay.stop}
+                onMouseLeave={autoplay.reset}
                 nextControlProps={{ "aria-label": "Next slide" }}
                 previousControlProps={{ "aria-label": "Previous slide" }}
                 styles={{
