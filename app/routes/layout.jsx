@@ -8,7 +8,16 @@ import NavLinks from "@/components/NavLinks";
 
 import { createSessionClient } from "@/utils/appwrite/server";
 
+import { isMobileUserAgent } from "@/utils/device";
+
 export async function loader({ request }) {
+    // Check Device - Redirect desktop users immediately
+    const isMobile = isMobileUserAgent(request);
+
+    if (!isMobile) {
+        throw redirect("/landing");
+    }
+
     try {
         const { account } = await createSessionClient(request);
         const user = await account.get();

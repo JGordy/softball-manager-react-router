@@ -47,5 +47,19 @@ describe("Logout Actions", () => {
             expect(result.redirect).toBe("/login");
             expect(console.log).toHaveBeenCalled();
         });
+
+        it("should redirect to custom path if provided", async () => {
+            const mockDeleteSession = jest.fn().mockResolvedValue({});
+            createSessionClient.mockResolvedValue({
+                account: { deleteSession: mockDeleteSession },
+            });
+
+            const result = await logoutAction({
+                request: {},
+                redirectTo: "/landing",
+            });
+
+            expect(result.redirect).toBe("/landing");
+        });
     });
 });
