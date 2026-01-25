@@ -8,6 +8,13 @@ import { createAdminClient } from "@/utils/appwrite/server";
 export async function loader({ request }) {
     const url = new URL(request.url);
     const provider = url.searchParams.get("provider");
+
+    // Ensure we use HTTPS in production (non-localhost)
+    // This handles cases where the app is behind a proxy (like Render) that terminates SSL
+    if (url.hostname !== "localhost" && url.protocol === "http:") {
+        url.protocol = "https:";
+    }
+
     const origin = url.origin;
 
     if (!provider) {
@@ -22,6 +29,10 @@ export async function loader({ request }) {
 
     try {
         const { account } = createAdminClient();
+
+        console.log(
+            `Initializing OAuth for ${provider} with origin: ${origin}`,
+        );
 
         // Use the official Node SDK method to get the redirect URL
         // Note: In the Node SDK, this is createOAuth2Token, whereas in the Web SDK it is createOAuth2Session.
