@@ -9,7 +9,11 @@ import {
     Title,
     rem,
 } from "@mantine/core";
+
 import { IconArrowRight } from "@tabler/icons-react";
+
+import { trackEvent } from "@/utils/analytics";
+
 import branding from "@/constants/branding";
 
 export default function HeroSection({ isAuthenticated, isDesktop }) {
@@ -109,6 +113,9 @@ export default function HeroSection({ isAuthenticated, isDesktop }) {
                                     <Button
                                         component={Link}
                                         to="/"
+                                        onClick={() =>
+                                            trackEvent("go-to-dashboard")
+                                        }
                                         size="xl"
                                         variant="white"
                                         color="dark"
@@ -180,6 +187,7 @@ export default function HeroSection({ isAuthenticated, isDesktop }) {
                                 <Button
                                     component={Link}
                                     to="/login"
+                                    onClick={() => trackEvent("get-started")}
                                     size="xl"
                                     variant="white"
                                     color="dark"

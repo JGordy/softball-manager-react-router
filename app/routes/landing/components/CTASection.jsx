@@ -1,5 +1,8 @@
 import { Link } from "react-router";
+
 import { Button, Container, Paper, Text, Title, rem } from "@mantine/core";
+
+import { trackEvent } from "@/utils/analytics";
 
 export default function CTASection({ isAuthenticated, isDesktop }) {
     return (
@@ -26,6 +29,7 @@ export default function CTASection({ isAuthenticated, isDesktop }) {
                     <Button
                         component={Link}
                         to="/login"
+                        onClick={() => trackEvent("get-started")}
                         size="xl"
                         variant="white"
                         color="dark"
