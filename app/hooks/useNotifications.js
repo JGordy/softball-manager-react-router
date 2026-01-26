@@ -5,6 +5,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { getToken } from "firebase/messaging";
+
+import { useOs } from "@mantine/hooks";
+
 import { trackEvent } from "@/utils/analytics";
 
 import {
@@ -25,6 +28,8 @@ const PUSH_TARGET_KEY = "appwrite_push_target_id";
  * @returns {Object} Notification state and control functions
  */
 export function useNotifications() {
+    const os = useOs();
+
     const [isSupported, setIsSupported] = useState(false);
     const [permission, setPermission] = useState("default");
     const [isSubscribed, setIsSubscribed] = useState(false);
@@ -136,94 +141,101 @@ export function useNotifications() {
      * Subscribe to push notifications
      * This registers the service worker, gets permission, and creates a push target in Appwrite
      * @returns {Promise<Object>} The subscription result
+     * @param {Object} [metadata={}] Optional metadata describing the client or subscription
      */
-    const subscribe = useCallback(async () => {
-        if (!isSupported) {
-            throw new Error(
-                "Push notifications are not supported in this browser",
-            );
-        }
-
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            // Step 1: Register service worker
-            const registration = await registerServiceWorker();
-            if (!registration) {
-                throw new Error("Failed to register service worker");
-            }
-
-            // Step 2: Request permission if not already granted
-            if (permission !== "granted") {
-                await requestPermission();
-            }
-
-            // Step 3: Get FCM token using Firebase SDK (browser only)
-            const vapidKey = import.meta.env.VITE_FCM_VAPID_KEY;
-            if (!vapidKey) {
-                console.warn(
-                    "VITE_FCM_VAPID_KEY not set - push subscription may not work",
-                );
-            }
-            const messaging = await getMessagingIfSupported();
-            if (!messaging) {
+    const subscribe = useCallback(
+        async (metadata = {}) => {
+            if (!isSupported) {
                 throw new Error(
-                    "Firebase Messaging is only supported in the browser",
-                );
-            }
-            const fcmToken = await getToken(messaging, {
-                vapidKey,
-                serviceWorkerRegistration: registration,
-            });
-            if (!fcmToken) {
-                throw new Error("Failed to get FCM token from Firebase");
-            }
-
-            // Step 4: Register push target with Appwrite via server API
-            const providerId = import.meta.env.VITE_FCM_PROVIDER_ID;
-            if (!providerId) {
-                throw new Error("FCM Provider ID not configured");
-            }
-
-            const response = await fetch("/api/push-target", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify({
-                    fcmToken,
-                    providerId,
-                }),
-            });
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    result.error || "Failed to register push target",
+                    "Push notifications are not supported in this browser",
                 );
             }
 
-            // Store the target ID for later use (unsubscribe)
-            localStorage.setItem(PUSH_TARGET_KEY, result.targetId);
-            setPushTargetId(result.targetId);
-            setIsSubscribed(true);
-            trackEvent("notifications-subscribe");
+            setIsLoading(true);
+            setError(null);
 
-            return {
-                success: true,
-                targetId: result.targetId,
-            };
-        } catch (err) {
-            console.error("Subscription error:", err);
-            setError(err.message);
-            throw err;
-        } finally {
-            setIsLoading(false);
-        }
-    }, [isSupported, permission, registerServiceWorker, requestPermission]);
+            try {
+                // Step 1: Register service worker
+                const registration = await registerServiceWorker();
+                if (!registration) {
+                    throw new Error("Failed to register service worker");
+                }
+
+                // Step 2: Request permission if not already granted
+                if (permission !== "granted") {
+                    await requestPermission();
+                }
+
+                // Step 3: Get FCM token using Firebase SDK (browser only)
+                const vapidKey = import.meta.env.VITE_FCM_VAPID_KEY;
+                if (!vapidKey) {
+                    console.warn(
+                        "VITE_FCM_VAPID_KEY not set - push subscription may not work",
+                    );
+                }
+                const messaging = await getMessagingIfSupported();
+                if (!messaging) {
+                    throw new Error(
+                        "Firebase Messaging is only supported in the browser",
+                    );
+                }
+                const fcmToken = await getToken(messaging, {
+                    vapidKey,
+                    serviceWorkerRegistration: registration,
+                });
+                if (!fcmToken) {
+                    throw new Error("Failed to get FCM token from Firebase");
+                }
+
+                // Step 4: Register push target with Appwrite via server API
+                const providerId = import.meta.env.VITE_FCM_PROVIDER_ID;
+                if (!providerId) {
+                    throw new Error("FCM Provider ID not configured");
+                }
+
+                const response = await fetch("/api/push-target", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        fcmToken,
+                        providerId,
+                    }),
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        result.error || "Failed to register push target",
+                    );
+                }
+
+                // Store the target ID for later use (unsubscribe)
+                localStorage.setItem(PUSH_TARGET_KEY, result.targetId);
+                setPushTargetId(result.targetId);
+                setIsSubscribed(true);
+                trackEvent("notifications-subscribe", {
+                    os,
+                    ...metadata,
+                });
+
+                return {
+                    success: true,
+                    targetId: result.targetId,
+                };
+            } catch (err) {
+                console.error("Subscription error:", err);
+                setError(err.message);
+                throw err;
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [isSupported, permission, registerServiceWorker, requestPermission, os],
+    );
 
     /**
      * Unsubscribe from push notifications
@@ -270,7 +282,9 @@ export function useNotifications() {
             localStorage.removeItem(PUSH_TARGET_KEY);
             setPushTargetId(null);
             setIsSubscribed(false);
-            trackEvent("notifications-unsubscribe");
+            trackEvent("notifications-unsubscribe", {
+                os,
+            });
 
             return { success: true };
         } catch (err) {
@@ -280,7 +294,7 @@ export function useNotifications() {
         } finally {
             setIsLoading(false);
         }
-    }, [pushTargetId]);
+    }, [pushTargetId, os]);
 
     /**
      * Toggle subscription state

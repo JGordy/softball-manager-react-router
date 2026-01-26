@@ -5,6 +5,7 @@ import { Outlet, redirect, useNavigation } from "react-router";
 import { Container, LoadingOverlay } from "@mantine/core";
 
 import NavLinks from "@/components/NavLinks";
+import NotificationPromptDrawer from "@/components/NotificationPromptDrawer";
 
 import { createSessionClient } from "@/utils/appwrite/server";
 
@@ -82,6 +83,7 @@ function Layout({ loaderData }) {
                 </Container>
 
                 <NavLinks user={loaderData.user} />
+                <NotificationPromptDrawer />
             </main>
         </div>
     );
