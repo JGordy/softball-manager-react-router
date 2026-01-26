@@ -160,7 +160,7 @@ export default function UserProfile({ loaderData }) {
                     <Tabs.Tab value="player">
                         <Group gap="xs" align="center" justify="center">
                             <IconUserSquareRounded size={16} />
-                            Player
+                            Details
                         </Group>
                     </Tabs.Tab>
                     {/* <Tabs.Tab value="personal">
