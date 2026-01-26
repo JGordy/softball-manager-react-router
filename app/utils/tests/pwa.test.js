@@ -72,4 +72,15 @@ describe("isStandalone", () => {
         });
         expect(isStandalone()).toBe(false);
     });
+
+    it("returns false during SSR (window is undefined)", () => {
+        const originalWindow = global.window;
+        delete global.window;
+
+        try {
+            expect(isStandalone()).toBe(false);
+        } finally {
+            global.window = originalWindow;
+        }
+    });
 });
