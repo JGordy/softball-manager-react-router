@@ -1,4 +1,4 @@
-import { useOutletContext } from "react-router";
+import { useOutletContext, useLoaderData } from "react-router";
 
 import { Accordion, Container } from "@mantine/core";
 
@@ -15,6 +15,18 @@ import UserHeader from "@/components/UserHeader";
 import AccountPanel from "./components/AccountPanel";
 import AuthPanel from "./components/AuthPanel";
 import NotificationsPanel from "./components/NotificationsPanel";
+import { createSessionClient } from "@/utils/appwrite/server";
+
+export async function loader({ request }) {
+    try {
+        const { teams } = await createSessionClient(request);
+        const teamList = await teams.list();
+        return { teams: teamList.teams };
+    } catch (error) {
+        console.error("Settings loader error:", error);
+        return { teams: [] };
+    }
+}
 
 export async function action({ request }) {
     const formData = await request.formData();
@@ -45,6 +57,7 @@ export async function action({ request }) {
 
 export default function Settings({ actionData }) {
     const { user } = useOutletContext();
+    const { teams } = useLoaderData();
 
     return (
         <Container className="settings-container">
@@ -73,7 +86,7 @@ export default function Settings({ actionData }) {
                 <Accordion.Item value="notifications">
                     <Accordion.Control>Notifications</Accordion.Control>
                     <Accordion.Panel>
-                        <NotificationsPanel />
+                        <NotificationsPanel teams={teams} />
                     </Accordion.Panel>
                 </Accordion.Item>
 

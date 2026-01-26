@@ -3,13 +3,96 @@
  * Settings panel for managing push notification preferences
  */
 
-import { Stack, Text, Divider, Button } from "@mantine/core";
+import { useState, useEffect } from "react";
+import {
+    Stack,
+    Text,
+    Divider,
+    Button,
+    Switch,
+    Group,
+    Loader,
+} from "@mantine/core";
 import { showNotification } from "@/utils/showNotification";
 import NotificationToggle from "@/components/NotificationToggle";
 import { useNotifications } from "@/hooks/useNotifications";
 
-export default function NotificationsPanel() {
-    const { isSubscribed } = useNotifications();
+function TeamNotificationRow({
+    team,
+    checkTeamSubscription,
+    subscribeToTeam,
+    unsubscribeFromTeam,
+    isSubscribed,
+}) {
+    const [checked, setChecked] = useState(false);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        let mounted = true;
+        // Add a small delay to ensure backend propagation if this mounts immediately after global toggle
+        const check = async () => {
+            if (isSubscribed) {
+                // Small delay to allow backend consistency if we just enabled global
+                await new Promise((r) => setTimeout(r, 500));
+            }
+            checkTeamSubscription(team.$id).then((isSubscribed) => {
+                if (mounted) {
+                    setChecked(isSubscribed);
+                    setLoading(false);
+                }
+            });
+        };
+        check();
+        return () => {
+            mounted = false;
+        };
+    }, [team.$id, checkTeamSubscription, isSubscribed]);
+
+    const handleChange = async (event) => {
+        const isChecking = event.currentTarget.checked;
+        setChecked(isChecking); // Optimistic update
+
+        let success = false;
+        if (isChecking) {
+            success = await subscribeToTeam(team.$id);
+        } else {
+            success = await unsubscribeFromTeam(team.$id);
+        }
+
+        if (!success) {
+            setChecked(!isChecking); // Revert on failure
+            showNotification({
+                variant: "error",
+                title: "Error",
+                message: `Failed to update settings for ${team.name}`,
+            });
+        }
+    };
+
+    if (loading) {
+        return (
+            <Group justify="space-between">
+                <Text size="sm">{team.name}</Text>
+                <Loader size="xs" />
+            </Group>
+        );
+    }
+
+    return (
+        <Group justify="space-between">
+            <Text size="sm">{team.name}</Text>
+            <Switch checked={checked} onChange={handleChange} size="sm" />
+        </Group>
+    );
+}
+
+export default function NotificationsPanel({ teams = [] }) {
+    const {
+        isSubscribed,
+        checkTeamSubscription,
+        subscribeToTeam,
+        unsubscribeFromTeam,
+    } = useNotifications();
 
     // Handler for sending a test notification
     const handleSendTestNotification = async () => {
@@ -47,6 +130,27 @@ export default function NotificationsPanel() {
             <Divider />
 
             <NotificationToggle />
+
+            {isSubscribed && teams.length > 0 && (
+                <>
+                    <Divider
+                        label="Team Notifications"
+                        labelPosition="center"
+                    />
+                    <Stack gap="xs">
+                        {teams.map((team) => (
+                            <TeamNotificationRow
+                                key={team.$id}
+                                team={team}
+                                checkTeamSubscription={checkTeamSubscription}
+                                subscribeToTeam={subscribeToTeam}
+                                unsubscribeFromTeam={unsubscribeFromTeam}
+                                isSubscribed={isSubscribed}
+                            />
+                        ))}
+                    </Stack>
+                </>
+            )}
 
             <Button
                 onClick={handleSendTestNotification}
