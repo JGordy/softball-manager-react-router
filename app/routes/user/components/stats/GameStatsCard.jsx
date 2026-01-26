@@ -22,7 +22,7 @@ export default function GameStatsCard({ game, logs, onClick }) {
             <Card withBorder radius="md" py="xs">
                 <Group justify="space-between" mb="xs">
                     <Text fw={700} size="md">
-                        vs {game.opponent || "Opponent"}
+                        {game.team.name} vs {game.opponent || "Opponent"}
                     </Text>
                     <Text size="sm" c="dimmed">
                         {date}

@@ -34,7 +34,7 @@ export default function PlayerStats({ statsPromise }) {
     return (
         <DeferredLoader resolve={statsPromise}>
             {(data) => {
-                const { logs = [], games = [] } = data || {};
+                const { logs = [], games = [], teams = [] } = data || {};
 
                 if (!logs.length) {
                     return (
@@ -55,6 +55,7 @@ export default function PlayerStats({ statsPromise }) {
 
                 // Create a map of games for easy lookup
                 const gamesMap = games.reduce((acc, game) => {
+                    game.team = teams.find((team) => team.$id === game.teamId);
                     acc[game.$id] = game;
                     return acc;
                 }, {});

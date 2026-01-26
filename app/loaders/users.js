@@ -1,5 +1,5 @@
 import { Query } from "node-appwrite";
-import { listDocuments, readDocument } from "@/utils/databases";
+import { readDocument, listDocuments, readDocument } from "@/utils/databases";
 
 export async function getUserById({ userId }) {
     return await readDocument("users", userId);
@@ -33,7 +33,7 @@ export async function getStatsByUserId({ userId }) {
     const logs = logsResponse.rows;
 
     if (logs.length === 0) {
-        return { logs: [], games: [] };
+        return { logs: [], games: [], teams: [] };
     }
 
     // 2. Extract unique game IDs
@@ -42,10 +42,26 @@ export async function getStatsByUserId({ userId }) {
     // 3. Fetch game details for these games
     const gamesResponse = await listDocuments("games", [
         Query.equal("$id", gameIds),
+        Query.select(["gameDate", "opponent", "teamId"]),
     ]);
+
+    const games = gamesResponse.rows;
+
+    // 4. Extract unique team IDs
+    const teamIds = [...new Set(games.map((game) => game.teamId))];
+
+    let teamsResponse;
+    // 5. Fetch team details for these games
+    if (teamIds?.length > 0) {
+        teamsResponse = await listDocuments("teams", [
+            Query.equal("$id", teamIds),
+            Query.select(["name"]),
+        ]);
+    }
 
     return {
         logs,
         games: gamesResponse.rows,
+        teams: teamsResponse?.rows || [],
     };
 }
