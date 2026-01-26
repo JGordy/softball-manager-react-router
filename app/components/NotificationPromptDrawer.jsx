@@ -38,22 +38,28 @@ export default function NotificationPromptDrawer() {
     }, [isSubscribed, isSupported]);
 
     const handleDismiss = () => {
+        if (view === "instruction") {
+            trackEvent("notifications-instruction-dismiss", {
+                os,
+                location: "drawer",
+            });
+        }
         setOpened(false);
         localStorage.setItem(STORAGE_KEY, "true");
     };
 
     const handleEnable = async () => {
-        trackEvent("notifications-subscribe", {
-            os,
-            location: "drawer",
-        });
         // Special flow for iOS not in standalone mode
         if (os === "ios" && !isStandalone()) {
+            trackEvent("notifications-instruction-impression", {
+                os,
+                location: "drawer",
+            });
             setView("instruction");
         } else {
             // Standard flow
             try {
-                await subscribe();
+                await subscribe({ location: "drawer" });
                 handleDismiss();
             } catch (error) {
                 console.error("Failed to subscribe:", error);
