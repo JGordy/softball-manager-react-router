@@ -141,6 +141,7 @@ export function useNotifications() {
      * Subscribe to push notifications
      * This registers the service worker, gets permission, and creates a push target in Appwrite
      * @returns {Promise<Object>} The subscription result
+     * @param {Object} [metadata={}] Optional metadata describing the client or subscription
      */
     const subscribe = useCallback(
         async (metadata = {}) => {
