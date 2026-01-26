@@ -14,9 +14,20 @@ jest.mock("@/utils/databases", () => ({
     readDocument: jest.fn(),
 }));
 
+jest.mock("node-appwrite", () => ({
+    Query: {
+        equal: jest.fn((attr, value) => `equal("${attr}", "${value}")`),
+        orderDesc: jest.fn((attr) => `orderDesc("${attr}")`),
+        limit: jest.fn((limit) => `limit(${limit})`),
+        select: jest.fn(
+            (attrs) => `select([${attrs.map((a) => `"${a}"`).join(", ")}])`,
+        ),
+    },
+}));
+
 describe("Users Loader", () => {
     beforeEach(() => {
-        jest.clearAllMocks();
+        jest.resetAllMocks();
     });
 
     describe("getStatsByUserId", () => {
@@ -27,8 +38,12 @@ describe("Users Loader", () => {
                 { $id: "log3", gameId: "game2", eventType: "double" },
             ];
             const mockGames = [
-                { $id: "game1", opponent: "Opponent A" },
-                { $id: "game2", opponent: "Opponent B" },
+                { $id: "game1", opponent: "Opponent A", teamId: "team1" },
+                { $id: "game2", opponent: "Opponent B", teamId: "team2" },
+            ];
+            const mockTeams = [
+                { $id: "team1", name: "Team A" },
+                { $id: "team2", name: "Team B" },
             ];
 
             // Mock first call (logs)
@@ -38,6 +53,10 @@ describe("Users Loader", () => {
             // Mock second call (games)
             listDocuments.mockImplementationOnce(() =>
                 Promise.resolve({ rows: mockGames }),
+            );
+            // Mock third call (teams)
+            listDocuments.mockImplementationOnce(() =>
+                Promise.resolve({ rows: mockTeams }),
             );
 
             const result = await getStatsByUserId({ userId: "user1" });
@@ -60,9 +79,19 @@ describe("Users Loader", () => {
                 ]),
             );
 
+            // Check that we requested the correct team IDs
+            expect(listDocuments).toHaveBeenNthCalledWith(
+                3,
+                "teams",
+                expect.arrayContaining([
+                    Query.equal("$id", ["team1", "team2"]),
+                ]),
+            );
+
             expect(result).toEqual({
                 logs: mockLogs,
                 games: mockGames,
+                teams: mockTeams,
             });
         });
 
@@ -72,7 +101,7 @@ describe("Users Loader", () => {
             const result = await getStatsByUserId({ userId: "user1" });
 
             expect(listDocuments).toHaveBeenCalledTimes(1);
-            expect(result).toEqual({ logs: [], games: [] });
+            expect(result).toEqual({ logs: [], games: [], teams: [] });
         });
     });
 
