@@ -112,14 +112,13 @@ export default function AcceptInvite({ loaderData, actionData, params }) {
     }, [actionData, params.teamId, navigate]);
 
     // Auto-subscribe to team notifications if global notifications are enabled
-    const { targetId, subscribeToTeam } = useNotifications();
+    const { pushTargetId, subscribeToTeam } = useNotifications();
     useEffect(() => {
         if (
             (inviteAccepted || actionData?.alreadyConfirmed) &&
-            targetId &&
+            pushTargetId &&
             params.teamId
         ) {
-            console.log("Auto-subscribing to team notifications...");
             subscribeToTeam(params.teamId).catch((err) =>
                 console.error("Auto-subscribe failed:", err),
             );
@@ -127,7 +126,7 @@ export default function AcceptInvite({ loaderData, actionData, params }) {
     }, [
         inviteAccepted,
         actionData?.alreadyConfirmed,
-        targetId,
+        pushTargetId,
         params.teamId,
         subscribeToTeam,
     ]);

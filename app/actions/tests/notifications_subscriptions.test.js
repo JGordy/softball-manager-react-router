@@ -43,6 +43,9 @@ jest.mock("node-appwrite", () => ({
     MessagingProviderType: {
         Push: "push",
     },
+    Query: {
+        limit: jest.fn((val) => `limit(${val})`),
+    },
 }));
 
 const originalEnv = process.env;
@@ -151,7 +154,10 @@ describe("notification subscription actions", () => {
             });
 
             expect(result.success).toBe(true);
-            expect(mockListSubscribers).toHaveBeenCalledWith("team_team-123");
+            expect(mockListSubscribers).toHaveBeenCalledWith(
+                "team_team-123",
+                expect.any(Array),
+            );
             expect(mockDeleteSubscriber).toHaveBeenCalledWith(
                 "team_team-123",
                 "sub-2",

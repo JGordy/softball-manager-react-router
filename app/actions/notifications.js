@@ -3,7 +3,7 @@
  * Server-side actions for sending push notifications via Appwrite Messaging
  */
 
-import { ID, MessagingProviderType } from "node-appwrite";
+import { ID, MessagingProviderType, Query } from "node-appwrite";
 
 import {
     createAdminClient,
@@ -579,7 +579,9 @@ export async function unsubscribeFromTeam({ teamId, targetId }) {
         // If a team has > 25 subscribers, we might miss it.
         // For now, increasing limit to 100 which covers reasonable team sizes.
         // A robust solution would paginate until found.
-        const response = await messaging.listSubscribers(topic);
+        const response = await messaging.listSubscribers(topic, [
+            Query.limit(100),
+        ]);
 
         const subscriber = response.subscribers.find(
             (s) => s.targetId === targetId,
@@ -622,7 +624,7 @@ export async function subscribeToAllTeams({ request, targetId }) {
         const { teams } = await createSessionClient(request);
 
         // List teams the user is a member of
-        const userTeams = await teams.list();
+        const userTeams = await teams.list([Query.limit(100)]);
 
         let subscribedCount = 0;
         const errors = [];
@@ -684,7 +686,9 @@ export async function getTeamSubscriptionStatus({ teamId, targetId }) {
 
     try {
         // Same pagination caveat as unsubscribe
-        const response = await messaging.listSubscribers(topic);
+        const response = await messaging.listSubscribers(topic, [
+            Query.limit(100),
+        ]);
         const isSubscribed = response.subscribers.some(
             (s) => s.targetId === targetId,
         );

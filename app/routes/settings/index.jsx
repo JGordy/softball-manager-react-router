@@ -20,8 +20,34 @@ import { createSessionClient } from "@/utils/appwrite/server";
 export async function loader({ request }) {
     try {
         const { teams } = await createSessionClient(request);
-        const teamList = await teams.list();
-        return { teams: teamList.teams };
+        // Fetch all teams with pagination to avoid only loading the first page.
+        const pageSize = 100;
+        const allTeams = [];
+        let cursor = null;
+        let hasMore = true;
+
+        while (hasMore) {
+            const queries = [`limit(${pageSize})`];
+            if (cursor) {
+                queries.push(`cursor(${cursor})`);
+            }
+
+            const page = await teams.list(queries);
+            const pageTeams = page?.teams ?? [];
+            allTeams.push(...pageTeams);
+
+            if (pageTeams.length < pageSize) {
+                hasMore = false;
+            } else {
+                const lastTeam = pageTeams[pageTeams.length - 1];
+                cursor = lastTeam?.$id ?? null;
+                if (!cursor) {
+                    hasMore = false;
+                }
+            }
+        }
+
+        return { teams: allTeams };
     } catch (error) {
         console.error("Settings loader error:", error);
         return { teams: [] };
