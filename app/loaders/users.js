@@ -1,5 +1,5 @@
 import { Query } from "node-appwrite";
-import { readDocument, listDocuments, readDocument } from "@/utils/databases";
+import { readDocument, listDocuments } from "@/utils/databases";
 
 export async function getUserById({ userId }) {
     return await readDocument("users", userId);
