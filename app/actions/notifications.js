@@ -10,6 +10,8 @@ import {
     createSessionClient,
 } from "@/utils/appwrite/server.js";
 
+import { getAppwriteTeam } from "@/utils/teams.js";
+
 import {
     NOTIFICATION_TYPES,
     formatNotificationPayload,
@@ -487,4 +489,215 @@ export async function sendAwardVoteNotification({
             opponent,
         },
     });
+}
+
+/**
+ * Subscribe a target to a team's notification topic
+ * @param {Object} options
+ * @param {string} options.teamId - Team ID
+ * @param {string} options.targetId - The push target ID
+ * @returns {Promise<Object>} Success status
+ */
+export async function subscribeToTeam({ teamId, targetId }) {
+    if (!teamId || !targetId) {
+        throw new Error("Team ID and Target ID are required");
+    }
+
+    const topic = buildTeamTopic(teamId);
+    const { messaging } = createAdminClient();
+
+    try {
+        // Appwrite Messaging: Create a subscriber
+        // Correct Signature: createSubscriber(topicId, subscriberId, targetId)
+        await messaging.createSubscriber(topic, ID.unique(), targetId);
+
+        return { success: true };
+    } catch (error) {
+        // If error is "subscriber already exists" (code 409), that's fine
+        if (error.code === 409) {
+            return { success: true, alreadySubscribed: true };
+        }
+
+        // If error is "topic not found" (code 404), create it and retry
+        if (error.code === 404) {
+            try {
+                // Fetch team details to get the name for the topic
+                const team = await getAppwriteTeam({ teamId });
+
+                // Try to create the topic, but ignore if it already exists (409)
+                try {
+                    await messaging.createTopic(
+                        topic,
+                        team.name || `Team ${teamId}`,
+                    );
+                } catch (topicError) {
+                    if (topicError.code !== 409) {
+                        throw topicError;
+                    }
+                }
+
+                // Retry subscription
+                await messaging.createSubscriber(topic, ID.unique(), targetId);
+                return { success: true, createdTopic: true };
+            } catch (createError) {
+                console.error(
+                    `[subscribeToTeam] Error creating topic/subscribing ${topic}:`,
+                    createError,
+                );
+                throw createError;
+            }
+        }
+
+        console.error(
+            `[subscribeToTeam] Error subscribing to topic ${topic}:`,
+            error,
+        );
+        throw error;
+    }
+}
+
+/**
+ * Unsubscribe a target from a team's notification topic
+ * @param {Object} options
+ * @param {string} options.teamId - Team ID
+ * @param {string} options.targetId - The push target ID
+ * @returns {Promise<Object>} Success status
+ */
+export async function unsubscribeFromTeam({ teamId, targetId }) {
+    if (!teamId || !targetId) {
+        throw new Error("Team ID and Target ID are required");
+    }
+
+    const topic = buildTeamTopic(teamId);
+    const { messaging } = createAdminClient();
+
+    try {
+        // To delete, we need the subscriber ID, not just the target ID.
+        // So we must list subscribers for this topic and find the one with our targetId.
+
+        // !! WARNING: This listSubscribers call might be paginated.
+        // If a team has > 25 subscribers, we might miss it.
+        // For now, increasing limit to 100 which covers reasonable team sizes.
+        // A robust solution would paginate until found.
+        const response = await messaging.listSubscribers(topic);
+
+        const subscriber = response.subscribers.find(
+            (s) => s.targetId === targetId,
+        );
+
+        if (subscriber) {
+            await messaging.deleteSubscriber(topic, subscriber.$id);
+        }
+
+        return { success: true };
+    } catch (error) {
+        // If topic or subscriber doesn't exist, consider it "unsubscribed"
+        if (error.code === 404) {
+            return { success: true };
+        }
+
+        console.error(
+            `[unsubscribeFromTeam] Error unsubscribing from topic ${topic}:`,
+            error,
+        );
+        throw error;
+    }
+}
+
+/**
+ * Subscribe a target to all teams the user is a member of
+ * Used when a user globally enables notifications
+ * @param {Object} options
+ * @param {Request} options.request - Request object (for session)
+ * @param {string} options.targetId - Push Target ID
+ * @returns {Promise<Object>} Success status and count
+ */
+export async function subscribeToAllTeams({ request, targetId }) {
+    if (!request || !targetId) {
+        return { success: false, error: "Request and Target ID are required" };
+    }
+
+    try {
+        // Use session client to get the user's teams
+        const { teams } = await createSessionClient(request);
+
+        // List teams the user is a member of
+        const userTeams = await teams.list();
+
+        let subscribedCount = 0;
+        const errors = [];
+
+        console.log(
+            `[subscribeToAllTeams] Found ${userTeams.total} teams for user. Subscribing...`,
+        );
+
+        // Subscribe to each team
+        await Promise.all(
+            userTeams.teams.map(async (team) => {
+                try {
+                    await subscribeToTeam({
+                        teamId: team.$id,
+                        targetId,
+                    });
+                    subscribedCount++;
+                } catch (err) {
+                    console.error(
+                        `[subscribeToAllTeams] Failed to subscribe to team ${team.$id}:`,
+                        err,
+                    );
+                    errors.push({ teamId: team.$id, error: err.message });
+                }
+            }),
+        );
+
+        console.log(
+            `[subscribeToAllTeams] Successfully subscribed to ${subscribedCount} teams.`,
+        );
+
+        return {
+            success: true,
+            subscribedCount,
+            totalTeams: userTeams.total,
+            errors: errors.length > 0 ? errors : undefined,
+        };
+    } catch (error) {
+        console.error("[subscribeToAllTeams] Error:", error);
+        // Don't throw, just return failure, so we don't block the main flow
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Check if a target is subscribed to a team's notification topic
+ * @param {Object} options
+ * @param {string} options.teamId - Team ID
+ * @param {string} options.targetId - The push target ID
+ * @returns {Promise<boolean>} params
+ */
+export async function getTeamSubscriptionStatus({ teamId, targetId }) {
+    if (!teamId || !targetId) {
+        return false;
+    }
+
+    const topic = buildTeamTopic(teamId);
+    const { messaging } = createAdminClient();
+
+    try {
+        // Same pagination caveat as unsubscribe
+        const response = await messaging.listSubscribers(topic);
+        const isSubscribed = response.subscribers.some(
+            (s) => s.targetId === targetId,
+        );
+        return isSubscribed;
+    } catch (error) {
+        // If topic doesn't exist, no one is subscribed
+        if (error.code === 404) {
+            return false;
+        }
+        console.error(
+            `[getTeamSubscriptionStatus] Error checking status for ${topic}:`,
+            error,
+        );
+        return false;
+    }
 }
