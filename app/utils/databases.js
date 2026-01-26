@@ -58,13 +58,14 @@ export const listDocuments = async (collectionType, queries) => {
 };
 
 // Helper function to read a document
-export const readDocument = async (collectionType, documentId) => {
+export const readDocument = async (collectionType, documentId, queries) => {
     const { tablesDB } = createAdminClient();
     try {
         const response = await tablesDB.getRow({
             databaseId,
             tableId: collections[collectionType],
             rowId: documentId,
+            queries,
         });
         return response;
     } catch (error) {
