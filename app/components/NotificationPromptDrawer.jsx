@@ -7,6 +7,7 @@ import { IconBell, IconShare, IconSquarePlus } from "@tabler/icons-react";
 
 import useNotifications from "@/hooks/useNotifications";
 import { isStandalone } from "@/utils/pwa";
+import { trackEvent } from "@/utils/analytics";
 
 import DrawerContainer from "./DrawerContainer";
 
@@ -42,6 +43,10 @@ export default function NotificationPromptDrawer() {
     };
 
     const handleEnable = async () => {
+        trackEvent("notifications-subscribe", {
+            os,
+            location: "drawer",
+        });
         // Special flow for iOS not in standalone mode
         if (os === "ios" && !isStandalone()) {
             setView("instruction");

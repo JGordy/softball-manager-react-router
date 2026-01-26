@@ -5,6 +5,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { getToken } from "firebase/messaging";
+
+import { useOs } from "@mantine/hooks";
+
 import { trackEvent } from "@/utils/analytics";
 
 import {
@@ -25,6 +28,8 @@ const PUSH_TARGET_KEY = "appwrite_push_target_id";
  * @returns {Object} Notification state and control functions
  */
 export function useNotifications() {
+    const os = useOs();
+
     const [isSupported, setIsSupported] = useState(false);
     const [permission, setPermission] = useState("default");
     const [isSubscribed, setIsSubscribed] = useState(false);
@@ -210,7 +215,9 @@ export function useNotifications() {
             localStorage.setItem(PUSH_TARGET_KEY, result.targetId);
             setPushTargetId(result.targetId);
             setIsSubscribed(true);
-            trackEvent("notifications-subscribe");
+            trackEvent("notifications-subscribe", {
+                os,
+            });
 
             return {
                 success: true,
@@ -270,7 +277,9 @@ export function useNotifications() {
             localStorage.removeItem(PUSH_TARGET_KEY);
             setPushTargetId(null);
             setIsSubscribed(false);
-            trackEvent("notifications-unsubscribe");
+            trackEvent("notifications-unsubscribe", {
+                os,
+            });
 
             return { success: true };
         } catch (err) {
