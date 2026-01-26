@@ -21,6 +21,42 @@ import {
 } from "@/utils/notifications.js";
 
 /**
+ * Helper to find a specific subscriber in a topic with pagination
+ * @param {Object} messaging - Appwrite Messaging client
+ * @param {string} topic - Topic ID
+ * @param {string} targetId - Target ID to look for
+ * @returns {Promise<Object|null>} The subscriber object if found, else null
+ */
+async function findSubscriber(messaging, topic, targetId) {
+    let cursor = null;
+    let foundSubscriber = null;
+
+    do {
+        const queries = [Query.limit(100)];
+        if (cursor) {
+            queries.push(Query.cursorAfter(cursor));
+        }
+
+        const response = await messaging.listSubscribers(topic, queries);
+        foundSubscriber = response.subscribers.find(
+            (s) => s.targetId === targetId,
+        );
+
+        if (foundSubscriber) {
+            return foundSubscriber;
+        }
+
+        if (response.subscribers.length < 100) {
+            break;
+        }
+
+        cursor = response.subscribers[response.subscribers.length - 1].$id;
+    } while (true);
+
+    return null;
+}
+
+/**
  * Get a push target for the current user by targetId
  * @param {Request} request - The incoming request (for session)
  * @param {string} targetId - The push target ID to look up
@@ -574,18 +610,7 @@ export async function unsubscribeFromTeam({ teamId, targetId }) {
     try {
         // To delete, we need the subscriber ID, not just the target ID.
         // So we must list subscribers for this topic and find the one with our targetId.
-
-        // !! WARNING: This listSubscribers call might be paginated.
-        // If a team has > 25 subscribers, we might miss it.
-        // For now, increasing limit to 100 which covers reasonable team sizes.
-        // A robust solution would paginate until found.
-        const response = await messaging.listSubscribers(topic, [
-            Query.limit(100),
-        ]);
-
-        const subscriber = response.subscribers.find(
-            (s) => s.targetId === targetId,
-        );
+        const subscriber = await findSubscriber(messaging, topic, targetId);
 
         if (subscriber) {
             await messaging.deleteSubscriber(topic, subscriber.$id);
@@ -685,14 +710,8 @@ export async function getTeamSubscriptionStatus({ teamId, targetId }) {
     const { messaging } = createAdminClient();
 
     try {
-        // Same pagination caveat as unsubscribe
-        const response = await messaging.listSubscribers(topic, [
-            Query.limit(100),
-        ]);
-        const isSubscribed = response.subscribers.some(
-            (s) => s.targetId === targetId,
-        );
-        return isSubscribed;
+        const subscriber = await findSubscriber(messaging, topic, targetId);
+        return !!subscriber;
     } catch (error) {
         // If topic doesn't exist, no one is subscribed
         if (error.code === 404) {

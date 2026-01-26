@@ -16,6 +16,7 @@ import AccountPanel from "./components/AccountPanel";
 import AuthPanel from "./components/AuthPanel";
 import NotificationsPanel from "./components/NotificationsPanel";
 import { createSessionClient } from "@/utils/appwrite/server";
+import { Query } from "node-appwrite";
 
 export async function loader({ request }) {
     try {
@@ -27,9 +28,9 @@ export async function loader({ request }) {
         let hasMore = true;
 
         while (hasMore) {
-            const queries = [`limit(${pageSize})`];
+            const queries = [Query.limit(pageSize)];
             if (cursor) {
-                queries.push(`cursor(${cursor})`);
+                queries.push(Query.cursorAfter(cursor));
             }
 
             const page = await teams.list(queries);

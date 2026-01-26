@@ -64,12 +64,7 @@ describe("teams utility", () => {
                 "Test Team",
                 ["manager", "player"],
             );
-            // Verify topic creation
-            // Assuming buildTeamTopic returns `team_${teamId}` or similar.
-            // Since we didn't mock buildTeamTopic explicitly, it runs the real one?
-            // Wait, buildTeamTopic is imported at top. Jest doesn't automatically mock utils unless told.
-            // If real implementation runs, it might be fine if it's pure logic.
-            // But let's check expectation.
+
             expect(mockMessaging.createTopic).toHaveBeenCalledWith(
                 expect.stringContaining("team123"),
                 "Test Team",

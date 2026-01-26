@@ -27,7 +27,13 @@ if (typeof globalThis.Response === "undefined") {
                 : this.body;
         }
         static json(data, init = {}) {
-            return new Response(data, init);
+            return new Response(JSON.stringify(data), {
+                ...init,
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(init.headers || {}),
+                },
+            });
         }
     };
 }
@@ -60,10 +66,21 @@ if (typeof globalThis.FormData === "undefined") {
             this.map = new Map();
         }
         append(key, value) {
-            this.map.set(key, value);
+            const existing = this.map.get(key);
+            if (existing === undefined) {
+                this.map.set(key, [value]);
+            } else if (Array.isArray(existing)) {
+                existing.push(value);
+            } else {
+                this.map.set(key, [existing, value]);
+            }
         }
         get(key) {
-            return this.map.get(key);
+            const values = this.map.get(key);
+            if (Array.isArray(values)) {
+                return values[0];
+            }
+            return values;
         }
     };
 }

@@ -29,20 +29,43 @@ function TeamNotificationRow({
 
     useEffect(() => {
         let mounted = true;
-        // Add a small delay to ensure backend propagation if this mounts immediately after global toggle
-        const check = async () => {
-            if (isSubscribed) {
-                // Small delay to allow backend consistency if we just enabled global
-                await new Promise((r) => setTimeout(r, 500));
-            }
-            checkTeamSubscription(team.$id).then((isSubscribed) => {
-                if (mounted) {
-                    setChecked(isSubscribed);
-                    setLoading(false);
+
+        const checkWithRetry = async () => {
+            const maxAttempts = 5;
+            const baseDelayMs = 200;
+
+            for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+                const currentSubscribed = await checkTeamSubscription(team.$id);
+
+                if (!mounted) {
+                    return;
                 }
-            });
+
+                // If global is not enabled or the team subscription is already consistent with our expectation, stop retrying
+                // Or if this is the first check and we're just loading initial state
+                if (!isSubscribed || currentSubscribed) {
+                    setChecked(currentSubscribed);
+                    setLoading(false);
+                    return;
+                }
+
+                if (attempt === maxAttempts) {
+                    // Give up after maxAttempts; use the last known value
+                    setChecked(currentSubscribed);
+                    setLoading(false);
+                    return;
+                }
+
+                const delayMs = baseDelayMs * attempt;
+                await new Promise((resolve) => setTimeout(resolve, delayMs));
+
+                if (!mounted) {
+                    return;
+                }
+            }
         };
-        check();
+
+        checkWithRetry();
         return () => {
             mounted = false;
         };
