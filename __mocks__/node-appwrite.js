@@ -16,6 +16,9 @@ module.exports = {
         limit: jest.fn((value) => `Query.limit(${value})`),
         orderDesc: jest.fn((field) => `Query.orderDesc("${field}")`),
         orderAsc: jest.fn((field) => `Query.orderAsc("${field}")`),
+        select: jest.fn(
+            (attrs) => `select([${attrs.map((a) => `"${a}"`).join(", ")}])`,
+        ),
     },
     Permission: {
         read: jest.fn((role) => `read("${role}")`),
