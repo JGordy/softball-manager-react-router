@@ -7,6 +7,7 @@ import {
     createPushTarget,
     deletePushTarget,
     getPushTarget,
+    subscribeToAllTeams,
 } from "@/actions/notifications";
 
 /**
@@ -48,6 +49,20 @@ export async function action({ request }) {
                 fcmToken,
                 providerId,
             });
+
+            // Auto-subscribe to all teams
+            // We do this in the background (fire and forget) or await it?
+            // Awaiting it ensures consistency but slows down the UI.
+            // Since "Enable Notifications" is a heavy action, awaiting is fine.
+            try {
+                await subscribeToAllTeams({
+                    request,
+                    targetId: target.$id,
+                });
+            } catch (subError) {
+                console.error("Auto-subscribe failed:", subError);
+                // Don't fail the request, just log it
+            }
 
             return Response.json({
                 success: true,

@@ -50,6 +50,10 @@ export default [
         route("/api/resend-verification", "routes/api/resend-verification.js"),
         route("/api/session", "routes/api/session.js"),
         route("/api/test-notification", "routes/api/test-notification.js"),
+        route(
+            "/api/notifications/preferences",
+            "routes/api/notifications/preferences.js",
+        ),
 
         // Catch all route, 404
         route("*", "routes/notfound/404.jsx"),
