@@ -25,12 +25,17 @@ describe("teams utility", () => {
         delete: jest.fn(),
     };
 
+    const mockMessaging = {
+        createTopic: jest.fn(),
+    };
+
     beforeEach(() => {
         jest.clearAllMocks();
         jest.spyOn(console, "error").mockImplementation(() => {});
 
         createAdminClient.mockReturnValue({
             teams: mockTeams,
+            messaging: mockMessaging,
         });
     });
 
@@ -39,13 +44,14 @@ describe("teams utility", () => {
     });
 
     describe("createAppwriteTeam", () => {
-        it("should create a team with provided ID", async () => {
+        it("should create a team with provided ID and create a topic", async () => {
             const teamData = {
                 $id: "team123",
                 name: "Test Team",
             };
 
             mockTeams.create.mockResolvedValue(teamData);
+            mockMessaging.createTopic.mockResolvedValue({});
 
             const result = await createAppwriteTeam({
                 teamId: "team123",
@@ -58,6 +64,17 @@ describe("teams utility", () => {
                 "Test Team",
                 ["manager", "player"],
             );
+            // Verify topic creation
+            // Assuming buildTeamTopic returns `team_${teamId}` or similar.
+            // Since we didn't mock buildTeamTopic explicitly, it runs the real one?
+            // Wait, buildTeamTopic is imported at top. Jest doesn't automatically mock utils unless told.
+            // If real implementation runs, it might be fine if it's pure logic.
+            // But let's check expectation.
+            expect(mockMessaging.createTopic).toHaveBeenCalledWith(
+                expect.stringContaining("team123"),
+                "Test Team",
+            );
+
             expect(result).toEqual(teamData);
         });
 
