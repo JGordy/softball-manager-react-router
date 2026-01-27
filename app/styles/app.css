@@ -8,8 +8,8 @@
 
 :root {
     /* Semantic Backgrounds */
-    --bg-body: light-dark(#f4f8f7, #101720);
-    --bg-card: light-dark(#e7f0ea, #1a242f);
+    --bg-body: light-dark(#f0f5f7, #101720);
+    --bg-card: light-dark(#ffffff, #1a242f);
     --bg-modal: light-dark(var(--mantine-color-body), #1a242f);
     --bg-input: light-dark(#ffffff, #101720);
 
@@ -26,7 +26,7 @@
 
 :root[data-mantine-color-scheme="light"] {
     color-scheme: light;
-    --mantine-color-body: #f4f8f7;
+    --mantine-color-body: #f0f5f7;
     background-color: var(--bg-body);
 }
 
@@ -71,7 +71,7 @@
 }
 
 .inner-card {
-    background-color: light-dark(#cee2d6, transparent) !important;
+    background-color: light-dark(#e2f6f7, transparent) !important;
 }
 
 .other-receiving-card.mantine-Card-root {
@@ -82,8 +82,8 @@
 .event-details-hero {
     background-image:
         linear-gradient(
-            light-dark(rgba(182, 203, 188, 0.85), rgb(26, 36, 47, 0.9)),
-            light-dark(rgb(182, 203, 188, 0.85), rgb(26, 36, 47, 0.9))
+            light-dark(rgba(223, 245, 247, 0.85), rgb(26, 36, 47, 0.9)),
+            light-dark(rgb(223, 245, 247, 0.85), rgb(26, 36, 47, 0.9))
         ),
         url("https://fra.cloud.appwrite.io/v1/storage/buckets/67af948b00375c741493/files/68793d820012b4a23cb3/view?project=679b95f10030c4821c90&mode=admin");
 
