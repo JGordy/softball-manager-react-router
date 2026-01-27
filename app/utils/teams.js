@@ -1,5 +1,6 @@
 import { ID } from "node-appwrite";
 import { createAdminClient } from "@/utils/appwrite/server";
+import { buildTeamTopic } from "@/utils/notifications";
 
 /**
  * Create an Appwrite Team
@@ -10,10 +11,24 @@ export async function createAppwriteTeam({
     name,
     roles = ["manager", "player"],
 }) {
-    const { teams } = createAdminClient();
+    const { teams, messaging } = createAdminClient();
+    const finalTeamId = teamId || ID.unique();
 
     try {
-        const team = await teams.create(teamId || ID.unique(), name, roles);
+        const team = await teams.create(finalTeamId, name, roles);
+
+        // Proactively create notification topic
+        try {
+            const topicId = buildTeamTopic(team.$id);
+            await messaging.createTopic(topicId, name);
+        } catch (topicError) {
+            console.error(
+                `[createAppwriteTeam] Failed to create topic for team ${team.$id}:`,
+                topicError,
+            );
+            // Non-blocking error - returning team is more important
+        }
+
         return team;
     } catch (error) {
         console.error("Error creating Appwrite team:", error);

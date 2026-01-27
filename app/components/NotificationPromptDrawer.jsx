@@ -5,7 +5,7 @@ import { useOs } from "@mantine/hooks";
 
 import { IconBell, IconShare, IconSquarePlus } from "@tabler/icons-react";
 
-import useNotifications from "@/hooks/useNotifications";
+import { useNotifications } from "@/hooks/useNotifications";
 import { isStandalone } from "@/utils/pwa";
 import { trackEvent } from "@/utils/analytics";
 

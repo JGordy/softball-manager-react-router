@@ -3,12 +3,14 @@
  * Server-side actions for sending push notifications via Appwrite Messaging
  */
 
-import { ID, MessagingProviderType } from "node-appwrite";
+import { ID, MessagingProviderType, Query } from "node-appwrite";
 
 import {
     createAdminClient,
     createSessionClient,
 } from "@/utils/appwrite/server.js";
+
+import { getAppwriteTeam } from "@/utils/teams.js";
 
 import {
     NOTIFICATION_TYPES,
@@ -17,6 +19,42 @@ import {
     validateNotificationPayload,
     buildTeamTopic,
 } from "@/utils/notifications.js";
+
+/**
+ * Helper to find a specific subscriber in a topic with pagination
+ * @param {Object} messaging - Appwrite Messaging client
+ * @param {string} topic - Topic ID
+ * @param {string} targetId - Target ID to look for
+ * @returns {Promise<Object|null>} The subscriber object if found, else null
+ */
+async function findSubscriber(messaging, topic, targetId) {
+    let cursor = null;
+    let foundSubscriber = null;
+
+    do {
+        const queries = [Query.limit(100)];
+        if (cursor) {
+            queries.push(Query.cursorAfter(cursor));
+        }
+
+        const response = await messaging.listSubscribers(topic, queries);
+        foundSubscriber = response.subscribers.find(
+            (s) => s.targetId === targetId,
+        );
+
+        if (foundSubscriber) {
+            return foundSubscriber;
+        }
+
+        if (response.subscribers.length < 100) {
+            break;
+        }
+
+        cursor = response.subscribers[response.subscribers.length - 1].$id;
+    } while (true);
+
+    return null;
+}
 
 /**
  * Get a push target for the current user by targetId
@@ -487,4 +525,225 @@ export async function sendAwardVoteNotification({
             opponent,
         },
     });
+}
+
+/**
+ * Subscribe a target to a team's notification topic
+ * @param {Object} options
+ * @param {string} options.teamId - Team ID
+ * @param {string} options.targetId - The push target ID
+ * @returns {Promise<Object>} Success status
+ */
+export async function subscribeToTeam({ teamId, targetId }) {
+    if (!teamId || !targetId) {
+        throw new Error("Team ID and Target ID are required");
+    }
+
+    const topic = buildTeamTopic(teamId);
+    const { messaging } = createAdminClient();
+
+    try {
+        // Appwrite Messaging: Create a subscriber
+        // Correct Signature: createSubscriber(topicId, subscriberId, targetId)
+        await messaging.createSubscriber(topic, ID.unique(), targetId);
+
+        return { success: true };
+    } catch (error) {
+        // If error is "subscriber already exists" (code 409), that's fine
+        if (error.code === 409) {
+            return { success: true, alreadySubscribed: true };
+        }
+
+        // If error is "topic not found" (code 404), create it and retry
+        if (error.code === 404) {
+            try {
+                // Fetch team details to get the name for the topic
+                const team = await getAppwriteTeam({ teamId });
+
+                // Try to create the topic, but ignore if it already exists (409)
+                try {
+                    await messaging.createTopic(
+                        topic,
+                        team.name || `Team ${teamId}`,
+                    );
+                } catch (topicError) {
+                    if (topicError.code !== 409) {
+                        throw topicError;
+                    }
+                }
+
+                // Retry subscription
+                await messaging.createSubscriber(topic, ID.unique(), targetId);
+                return { success: true, createdTopic: true };
+            } catch (createError) {
+                console.error(
+                    `[subscribeToTeam] Error creating topic/subscribing ${topic}:`,
+                    createError,
+                );
+                throw createError;
+            }
+        }
+
+        console.error(
+            `[subscribeToTeam] Error subscribing to topic ${topic}:`,
+            error,
+        );
+        throw error;
+    }
+}
+
+/**
+ * Unsubscribe a target from a team's notification topic
+ * @param {Object} options
+ * @param {string} options.teamId - Team ID
+ * @param {string} options.targetId - The push target ID
+ * @returns {Promise<Object>} Success status
+ */
+export async function unsubscribeFromTeam({ teamId, targetId }) {
+    if (!teamId || !targetId) {
+        throw new Error("Team ID and Target ID are required");
+    }
+
+    const topic = buildTeamTopic(teamId);
+    const { messaging } = createAdminClient();
+
+    try {
+        // To delete, we need the subscriber ID, not just the target ID.
+        // So we must list subscribers for this topic and find the one with our targetId.
+        const subscriber = await findSubscriber(messaging, topic, targetId);
+
+        if (subscriber) {
+            await messaging.deleteSubscriber(topic, subscriber.$id);
+        }
+
+        return { success: true };
+    } catch (error) {
+        // If topic or subscriber doesn't exist, consider it "unsubscribed"
+        if (error.code === 404) {
+            return { success: true };
+        }
+
+        console.error(
+            `[unsubscribeFromTeam] Error unsubscribing from topic ${topic}:`,
+            error,
+        );
+        throw error;
+    }
+}
+
+/**
+ * Subscribe a target to all teams the user is a member of
+ * Used when a user globally enables notifications
+ * @param {Object} options
+ * @param {Request} options.request - Request object (for session)
+ * @param {string} options.targetId - Push Target ID
+ * @returns {Promise<Object>} Success status and count
+ */
+export async function subscribeToAllTeams({ request, targetId }) {
+    if (!request || !targetId) {
+        return { success: false, error: "Request and Target ID are required" };
+    }
+
+    try {
+        // Use session client to get the user's teams
+        const { teams } = await createSessionClient(request);
+
+        let subscribedCount = 0;
+        const errors = [];
+        const allTeams = [];
+        let cursor = null;
+        let hasMore = true;
+        const pageSize = 100;
+
+        // Fetch all teams using pagination
+        while (hasMore) {
+            const queries = [Query.limit(pageSize)];
+            if (cursor) {
+                queries.push(Query.cursorAfter(cursor));
+            }
+
+            const page = await teams.list(queries);
+            const pageTeams = page?.teams || [];
+
+            if (pageTeams.length > 0) {
+                allTeams.push(...pageTeams);
+                cursor = pageTeams[pageTeams.length - 1].$id;
+            } else {
+                hasMore = false;
+            }
+
+            if (pageTeams.length < pageSize) {
+                hasMore = false;
+            }
+        }
+
+        console.log(
+            `[subscribeToAllTeams] Found ${allTeams.length} teams for user. Subscribing...`,
+        );
+
+        // Subscribe to each team
+        await Promise.all(
+            allTeams.map(async (team) => {
+                try {
+                    await subscribeToTeam({
+                        teamId: team.$id,
+                        targetId,
+                    });
+                    subscribedCount++;
+                } catch (err) {
+                    console.error(
+                        `[subscribeToAllTeams] Failed to subscribe to team ${team.$id}:`,
+                        err,
+                    );
+                    errors.push({ teamId: team.$id, error: err.message });
+                }
+            }),
+        );
+
+        console.log(
+            `[subscribeToAllTeams] Successfully subscribed to ${subscribedCount} teams.`,
+        );
+
+        return {
+            success: true,
+            subscribedCount,
+            totalTeams: allTeams.length,
+            errors: errors.length > 0 ? errors : undefined,
+        };
+    } catch (error) {
+        console.error("[subscribeToAllTeams] Error:", error);
+        // Don't throw, just return failure, so we don't block the main flow
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Check if a target is subscribed to a team's notification topic
+ * @param {Object} options
+ * @param {string} options.teamId - Team ID
+ * @param {string} options.targetId - The push target ID
+ * @returns {Promise<boolean>} params
+ */
+export async function getTeamSubscriptionStatus({ teamId, targetId }) {
+    if (!teamId || !targetId) {
+        return false;
+    }
+
+    const topic = buildTeamTopic(teamId);
+    const { messaging } = createAdminClient();
+
+    try {
+        const subscriber = await findSubscriber(messaging, topic, targetId);
+        return !!subscriber;
+    } catch (error) {
+        // If topic doesn't exist, no one is subscribed
+        if (error.code === 404) {
+            return false;
+        }
+        console.error(
+            `[getTeamSubscriptionStatus] Error checking status for ${topic}:`,
+            error,
+        );
+        return false;
+    }
 }

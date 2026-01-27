@@ -1,4 +1,5 @@
-import { redirect, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
+import { useNotifications } from "@/hooks/useNotifications";
 import {
     Container,
     Title,
@@ -109,6 +110,26 @@ export default function AcceptInvite({ loaderData, actionData, params }) {
             navigate(`/team/${params.teamId}`);
         }
     }, [actionData, params.teamId, navigate]);
+
+    // Auto-subscribe to team notifications if global notifications are enabled
+    const { pushTargetId, subscribeToTeam } = useNotifications();
+    useEffect(() => {
+        if (
+            (inviteAccepted || actionData?.alreadyConfirmed) &&
+            pushTargetId &&
+            params.teamId
+        ) {
+            subscribeToTeam(params.teamId).catch((err) =>
+                console.error("Auto-subscribe failed:", err),
+            );
+        }
+    }, [
+        inviteAccepted,
+        actionData?.alreadyConfirmed,
+        pushTargetId,
+        params.teamId,
+        subscribeToTeam,
+    ]);
 
     // Update state when invitation is accepted
     useEffect(() => {

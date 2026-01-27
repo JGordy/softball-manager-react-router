@@ -1,4 +1,5 @@
 import { usePushNotificationListener } from "@/hooks/usePushNotificationListener";
+import { NotificationsProvider } from "@/context/NotificationsContext";
 import {
     isRouteErrorResponse,
     Link,
@@ -150,9 +151,11 @@ export default function App({ loaderData }) {
     usePushNotificationListener();
 
     return (
-        <Layout context={{ darkMode }}>
-            <Outlet />
-        </Layout>
+        <NotificationsProvider>
+            <Layout context={{ darkMode }}>
+                <Outlet />
+            </Layout>
+        </NotificationsProvider>
     );
 }
 
