@@ -7,7 +7,6 @@ import {
     Menu,
     SegmentedControl,
     Tabs,
-    Title,
     useComputedColorScheme,
 } from "@mantine/core";
 
@@ -121,9 +120,6 @@ export default function EventsDetails({ loaderData }) {
                 {teamFilter}
             </UserHeader>
 
-            <Title order={5} mt="lg" align="center">
-                See detailed information for your upcoming and past games
-            </Title>
             <TabsWrapper
                 defaultValue={futureGames?.length > 0 ? "upcoming" : "past"}
             >
@@ -141,11 +137,11 @@ export default function EventsDetails({ loaderData }) {
                 </Tabs.Tab>
 
                 <Tabs.Panel value="upcoming" pt="md">
-                    <GamesList games={filterGames(futureGames)} height="60vh" />
+                    <GamesList games={filterGames(futureGames)} height="65vh" />
                 </Tabs.Panel>
 
                 <Tabs.Panel value="past" pt="md">
-                    <GamesList games={filterGames(pastGames)} height="60vh" />
+                    <GamesList games={filterGames(pastGames)} height="65vh" />
                 </Tabs.Panel>
             </TabsWrapper>
         </Container>
