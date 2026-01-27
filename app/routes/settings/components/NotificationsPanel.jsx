@@ -43,6 +43,11 @@ function TeamNotificationRow({
 
                 // If global is not enabled or the team subscription is already consistent with our expectation, stop retrying
                 // Or if this is the first check and we're just loading initial state
+                //
+                // Note on Race Condition: We only retry if we EXPECT it to be subscribed (isSubscribed=true)
+                // but the backend says it isn't yet (currentSubscribed=false).
+                // This handles the race condition where the auto-subscribe process (triggered by enabling global notifications)
+                // hasn't fully propagated to the Appwrite backing database by the time this component mounts/updates.
                 if (!isSubscribed || currentSubscribed) {
                     setChecked(currentSubscribed);
                     setLoading(false);

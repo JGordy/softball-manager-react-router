@@ -648,19 +648,42 @@ export async function subscribeToAllTeams({ request, targetId }) {
         // Use session client to get the user's teams
         const { teams } = await createSessionClient(request);
 
-        // List teams the user is a member of
-        const userTeams = await teams.list([Query.limit(100)]);
-
         let subscribedCount = 0;
         const errors = [];
+        const allTeams = [];
+        let cursor = null;
+        let hasMore = true;
+        const pageSize = 100;
+
+        // Fetch all teams using pagination
+        while (hasMore) {
+            const queries = [Query.limit(pageSize)];
+            if (cursor) {
+                queries.push(Query.cursorAfter(cursor));
+            }
+
+            const page = await teams.list(queries);
+            const pageTeams = page?.teams || [];
+
+            if (pageTeams.length > 0) {
+                allTeams.push(...pageTeams);
+                cursor = pageTeams[pageTeams.length - 1].$id;
+            } else {
+                hasMore = false;
+            }
+
+            if (pageTeams.length < pageSize) {
+                hasMore = false;
+            }
+        }
 
         console.log(
-            `[subscribeToAllTeams] Found ${userTeams.total} teams for user. Subscribing...`,
+            `[subscribeToAllTeams] Found ${allTeams.length} teams for user. Subscribing...`,
         );
 
         // Subscribe to each team
         await Promise.all(
-            userTeams.teams.map(async (team) => {
+            allTeams.map(async (team) => {
                 try {
                     await subscribeToTeam({
                         teamId: team.$id,
@@ -684,7 +707,7 @@ export async function subscribeToAllTeams({ request, targetId }) {
         return {
             success: true,
             subscribedCount,
-            totalTeams: userTeams.total,
+            totalTeams: allTeams.length,
             errors: errors.length > 0 ? errors : undefined,
         };
     } catch (error) {

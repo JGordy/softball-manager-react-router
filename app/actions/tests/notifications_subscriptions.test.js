@@ -9,22 +9,28 @@ import {
     subscribeToTeam,
     unsubscribeFromTeam,
     getTeamSubscriptionStatus,
+    subscribeToAllTeams,
 } from "../notifications";
 
 // Mock the server utility
 jest.mock("@/utils/appwrite/server.js", () => {
     return {
         createAdminClient: jest.fn(),
+        createSessionClient: jest.fn(),
     };
 });
 
-import { createAdminClient } from "@/utils/appwrite/server.js";
+import {
+    createAdminClient,
+    createSessionClient,
+} from "@/utils/appwrite/server.js";
 
 // Mock implementation
 const mockCreateSubscriber = jest.fn();
 const mockDeleteSubscriber = jest.fn();
 const mockListSubscribers = jest.fn();
 const mockCreateTopic = jest.fn();
+const mockTeamsList = jest.fn();
 
 createAdminClient.mockImplementation(() => ({
     messaging: {
@@ -32,6 +38,12 @@ createAdminClient.mockImplementation(() => ({
         deleteSubscriber: mockDeleteSubscriber,
         listSubscribers: mockListSubscribers,
         createTopic: mockCreateTopic,
+    },
+}));
+
+createSessionClient.mockImplementation(() => ({
+    teams: {
+        list: mockTeamsList,
     },
 }));
 
@@ -45,6 +57,7 @@ jest.mock("node-appwrite", () => ({
     },
     Query: {
         limit: jest.fn((val) => `limit(${val})`),
+        cursorAfter: jest.fn((val) => `cursorAfter(${val})`),
     },
 }));
 
@@ -219,6 +232,105 @@ describe("notification subscription actions", () => {
             });
 
             expect(result).toBe(false);
+        });
+    });
+
+    describe("subscribeToAllTeams", () => {
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        it("should subscribe to all user teams", async () => {
+            const teams = [{ $id: "team-1" }, { $id: "team-2" }];
+            mockTeamsList.mockResolvedValueOnce({
+                teams,
+                total: 2,
+            });
+            mockCreateSubscriber.mockResolvedValue({});
+
+            const result = await subscribeToAllTeams({
+                request: {},
+                targetId: "target-123",
+            });
+
+            expect(result.success).toBe(true);
+            expect(result.subscribedCount).toBe(2);
+            expect(mockCreateSubscriber).toHaveBeenCalledTimes(2);
+            expect(mockCreateSubscriber).toHaveBeenCalledWith(
+                "team_team-1",
+                "unique-id",
+                "target-123",
+            );
+            expect(mockCreateSubscriber).toHaveBeenCalledWith(
+                "team_team-2",
+                "unique-id",
+                "target-123",
+            );
+        });
+
+        it("should handle pagination when subscribing to all teams", async () => {
+            // First page (100 teams)
+            const page1Teams = Array.from({ length: 100 }, (_, i) => ({
+                $id: `team-${i}`,
+            }));
+            // Second page (1 team)
+            const page2Teams = [{ $id: "team-100" }];
+
+            mockTeamsList
+                .mockResolvedValueOnce({
+                    teams: page1Teams,
+                    total: 101,
+                })
+                .mockResolvedValueOnce({
+                    teams: page2Teams,
+                    total: 101,
+                });
+
+            mockCreateSubscriber.mockResolvedValue({});
+
+            const result = await subscribeToAllTeams({
+                request: {},
+                targetId: "target-123",
+            });
+
+            expect(result.success).toBe(true);
+            expect(result.subscribedCount).toBe(101);
+            expect(mockTeamsList).toHaveBeenCalledTimes(2);
+            expect(mockCreateSubscriber).toHaveBeenCalledTimes(101);
+        });
+
+        it("should report partial failures but continue subscribing", async () => {
+            const teams = [{ $id: "team-1" }, { $id: "team-2" }];
+            mockTeamsList.mockResolvedValueOnce({
+                teams,
+                total: 2,
+            });
+
+            mockCreateSubscriber
+                .mockResolvedValueOnce({}) // Success for first
+                .mockRejectedValueOnce(new Error("Failed")); // Fail for second
+
+            const result = await subscribeToAllTeams({
+                request: {},
+                targetId: "target-123",
+            });
+
+            expect(result.success).toBe(true);
+            expect(result.subscribedCount).toBe(1);
+            expect(result.errors).toHaveLength(1);
+            expect(result.errors[0].teamId).toBe("team-2");
+        });
+
+        it("should return error if request fails", async () => {
+            mockTeamsList.mockRejectedValue(new Error("Network error"));
+
+            const result = await subscribeToAllTeams({
+                request: {},
+                targetId: "target-123",
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.error).toBe("Network error");
         });
     });
 });
