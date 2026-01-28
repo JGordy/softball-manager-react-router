@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 
 import { Container, Text, Title } from "@mantine/core";
 
-import { createAdminClient } from "@/utils/appwrite/server";
+import { createSessionClient } from "@/utils/appwrite/server";
 
 export async function loader({ request }) {
     const url = new URL(request.url);
@@ -18,7 +18,7 @@ export async function loader({ request }) {
     }
 
     try {
-        const { account } = createAdminClient();
+        const { account } = await createSessionClient(request);
         await account.updateVerification(userId, secret);
 
         return {
