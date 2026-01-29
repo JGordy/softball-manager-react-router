@@ -18,7 +18,13 @@ import { useDisclosure } from "@mantine/hooks";
 
 import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 
-import { IconPlus, IconTrash, IconGripVertical } from "@tabler/icons-react";
+import {
+    IconPlus,
+    IconTrash,
+    IconGripVertical,
+    IconLock,
+    IconLockOpen,
+} from "@tabler/icons-react";
 
 import fieldingPositions from "@/constants/positions";
 import DrawerContainer from "@/components/DrawerContainer";
@@ -70,6 +76,9 @@ const DraggablePlayerItem = ({
     snapshot,
     managerView,
     onRemove,
+    onToggleNeverSub,
+    neverSub,
+    canToggleLock,
     showDivider,
     theme,
 }) => (
@@ -83,7 +92,7 @@ const DraggablePlayerItem = ({
             borderColor: snapshot.isDragging ? theme.colors.blue[6] : undefined,
         }}
     >
-        <Group justify="space-between">
+        <Group justify="space-between" wrap="nowrap">
             <Group gap="sm">
                 {managerView && (
                     <div
@@ -107,16 +116,42 @@ const DraggablePlayerItem = ({
                     {player.firstName} {player.lastName}
                 </Text>
             </Group>
-            {managerView && (
-                <ActionIcon
-                    color="red"
-                    variant="subtle"
-                    onClick={onRemove}
-                    aria-label="Remove player from position"
-                >
-                    <IconTrash size={16} />
-                </ActionIcon>
-            )}
+
+            <Group gap={4}>
+                {managerView
+                    ? (neverSub || canToggleLock) && (
+                          <ActionIcon
+                              variant={neverSub ? "light" : "subtle"}
+                              color={neverSub ? "blue" : "gray"}
+                              onClick={() => onToggleNeverSub(!neverSub)}
+                              size="md"
+                          >
+                              {neverSub ? (
+                                  <IconLock size={18} />
+                              ) : (
+                                  <IconLockOpen size={18} />
+                              )}
+                          </ActionIcon>
+                      )
+                    : neverSub && (
+                          <IconLock
+                              size={16}
+                              color="var(--mantine-color-blue-6)"
+                          />
+                      )}
+
+                {managerView && (
+                    <ActionIcon
+                        color="red"
+                        variant="subtle"
+                        onClick={onRemove}
+                        aria-label="Remove player from position"
+                        size="md"
+                    >
+                        <IconTrash size={18} />
+                    </ActionIcon>
+                )}
+            </Group>
         </Group>
         {showDivider && <Divider mt="xs" />}
     </Card>
@@ -139,21 +174,43 @@ export default function FieldingDepthChart({
     const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
         useDisclosure(false);
 
+    // Helper to normalize data structure (handles migration from array of strings to array of objects)
+    const getNormalizedList = (position) => {
+        const list = positioning[position] || [];
+        return list.map((item) => {
+            if (typeof item === "string") {
+                return { id: item, neverSub: false };
+            }
+            return item;
+        });
+    };
+
     const handleAddPlayers = (playerIds) => {
         if (!activePosition) return;
 
-        const currentList = positioning[activePosition] || [];
+        const currentList = getNormalizedList(activePosition);
+        const currentIds = currentList.map((i) => i.id);
+
         // Avoid duplicates
-        const newIds = playerIds.filter((id) => !currentList.includes(id));
+        const newIds = playerIds.filter((id) => !currentIds.includes(id));
 
         if (newIds.length > 0) {
-            handlePositionUpdate(activePosition, [...currentList, ...newIds]);
+            const newItems = newIds.map((id) => ({ id, neverSub: false }));
+            handlePositionUpdate(activePosition, [...currentList, ...newItems]);
         }
     };
 
     const handleRemovePlayer = (position, playerId) => {
-        const currentList = positioning[position] || [];
-        const newList = currentList.filter((id) => id !== playerId);
+        const currentList = getNormalizedList(position);
+        const newList = currentList.filter((item) => item.id !== playerId);
+        handlePositionUpdate(position, newList);
+    };
+
+    const handleToggleNeverSub = (position, playerId, value) => {
+        const currentList = getNormalizedList(position);
+        const newList = currentList.map((item) =>
+            item.id === playerId ? { ...item, neverSub: value } : item,
+        );
         handlePositionUpdate(position, newList);
     };
 
@@ -162,7 +219,7 @@ export default function FieldingDepthChart({
         if (!destination) return;
         if (source.index === destination.index) return;
 
-        const currentList = [...(positioning[activePosition] || [])];
+        const currentList = [...getNormalizedList(activePosition)];
         const [moved] = currentList.splice(source.index, 1);
         currentList.splice(destination.index, 0, moved);
 
@@ -173,7 +230,12 @@ export default function FieldingDepthChart({
     const getPlayer = (id) => players.find((p) => p.$id === id);
 
     // Get active position details
-    const activeAssignedPlayerIds = positioning[activePosition] || [];
+    const activeAssignedPlayerObjects = getNormalizedList(activePosition);
+
+    // Check if any player is locked in this position
+    const lockedPlayerId = activeAssignedPlayerObjects.find(
+        (p) => p.neverSub,
+    )?.id;
 
     return (
         <Stack>
@@ -232,7 +294,7 @@ export default function FieldingDepthChart({
                     Depth Chart
                 </Title>
 
-                {activeAssignedPlayerIds.length === 0 ? (
+                {activeAssignedPlayerObjects.length === 0 ? (
                     <Text c="dimmed" ta="center" py="xl">
                         No players assigned to this position.
                     </Text>
@@ -246,16 +308,21 @@ export default function FieldingDepthChart({
                                         ref={provided.innerRef}
                                         gap={0}
                                     >
-                                        {activeAssignedPlayerIds.map(
-                                            (playerId, index) => {
-                                                const player =
-                                                    getPlayer(playerId);
+                                        {activeAssignedPlayerObjects.map(
+                                            (item, index) => {
+                                                const player = getPlayer(
+                                                    item.id,
+                                                );
                                                 if (!player) return null;
+
+                                                const canToggleLock =
+                                                    !lockedPlayerId ||
+                                                    lockedPlayerId === item.id;
 
                                                 return (
                                                     <Draggable
-                                                        key={playerId}
-                                                        draggableId={playerId}
+                                                        key={item.id}
+                                                        draggableId={item.id}
                                                         index={index}
                                                         isDragDisabled={
                                                             !managerView
@@ -279,12 +346,27 @@ export default function FieldingDepthChart({
                                                                 onRemove={() =>
                                                                     handleRemovePlayer(
                                                                         activePosition,
-                                                                        playerId,
+                                                                        item.id,
+                                                                    )
+                                                                }
+                                                                neverSub={
+                                                                    item.neverSub
+                                                                }
+                                                                canToggleLock={
+                                                                    canToggleLock
+                                                                }
+                                                                onToggleNeverSub={(
+                                                                    val,
+                                                                ) =>
+                                                                    handleToggleNeverSub(
+                                                                        activePosition,
+                                                                        item.id,
+                                                                        val,
                                                                     )
                                                                 }
                                                                 showDivider={
                                                                     index <
-                                                                    activeAssignedPlayerIds.length -
+                                                                    activeAssignedPlayerObjects.length -
                                                                         1
                                                                 }
                                                                 theme={theme}
