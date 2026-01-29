@@ -109,13 +109,13 @@ describe("createBattingOrder utility", () => {
     });
 
     describe("with idealLineup", () => {
-        it("should order players according to idealLineup when provided as array", () => {
+        it("should order players according to idealLineup when provided as object", () => {
             const players = [
                 createPlayer("1", "Male"),
                 createPlayer("2", "Female"),
                 createPlayer("3", "Male"),
             ];
-            const idealLineup = ["3", "1", "2"];
+            const idealLineup = { lineup: ["3", "1", "2"], reserves: [] };
 
             const result = createBattingOrder(players, { idealLineup });
 
@@ -128,7 +128,26 @@ describe("createBattingOrder utility", () => {
                 createPlayer("2", "Female"),
                 createPlayer("3", "Male"),
             ];
-            const idealLineup = JSON.stringify(["2", "3", "1"]);
+            const idealLineup = JSON.stringify({
+                lineup: ["2", "3", "1"],
+                reserves: [],
+            });
+
+            const result = createBattingOrder(players, { idealLineup });
+
+            expect(result.map((p) => p.$id)).toEqual(["2", "3", "1"]);
+        });
+
+        it("should include reserves in the order", () => {
+            const players = [
+                createPlayer("1", "Male"),
+                createPlayer("2", "Female"),
+                createPlayer("3", "Male"),
+            ];
+            const idealLineup = {
+                lineup: ["2", "3"],
+                reserves: ["1"],
+            };
 
             const result = createBattingOrder(players, { idealLineup });
 
@@ -141,7 +160,7 @@ describe("createBattingOrder utility", () => {
                 createPlayer("3", "Male"),
             ];
             // Player "2" is in ideal lineup but not available
-            const idealLineup = ["2", "1", "3"];
+            const idealLineup = { lineup: ["2", "1", "3"], reserves: [] };
 
             const result = createBattingOrder(players, { idealLineup });
 
@@ -157,7 +176,7 @@ describe("createBattingOrder utility", () => {
                 createPlayer("4", "Female"),
             ];
             // Only players 1 and 2 are in ideal lineup
-            const idealLineup = ["2", "1"];
+            const idealLineup = { lineup: ["2", "1"], reserves: [] };
 
             const result = createBattingOrder(players, { idealLineup });
 
@@ -183,12 +202,12 @@ describe("createBattingOrder utility", () => {
             expect(result).toHaveLength(2);
         });
 
-        it("should handle empty idealLineup array", () => {
+        it("should handle empty idealLineup array or object", () => {
             const players = [
                 createPlayer("1", "Male"),
                 createPlayer("2", "Female"),
             ];
-            const idealLineup = [];
+            const idealLineup = { lineup: [], reserves: [] };
 
             const result = createBattingOrder(players, { idealLineup });
 
@@ -201,7 +220,10 @@ describe("createBattingOrder utility", () => {
                 createPlayer("1", "Male"),
                 createPlayer("2", "Female"),
             ];
-            const idealLineup = ["1", "1", "2", "1"];
+            const idealLineup = {
+                lineup: ["1", "1", "2", "1"],
+                reserves: [],
+            };
 
             const result = createBattingOrder(players, { idealLineup });
 
@@ -241,7 +263,7 @@ describe("createBattingOrder utility", () => {
             ];
 
             const result = createBattingOrder(players, {
-                idealLineup: ["3", "2", "1"],
+                idealLineup: { lineup: ["3", "2", "1"], reserves: [] },
                 maxConsecutiveMales: 2,
             });
 
