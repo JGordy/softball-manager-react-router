@@ -17,7 +17,7 @@ import { createSingleGame } from "@/actions/games";
 import { createPlayer } from "@/actions/users";
 import { createSeason } from "@/actions/seasons";
 import { updateTeam, updateMemberRole } from "@/actions/teams";
-import { invitePlayerByEmail } from "@/actions/invitations";
+import { invitePlayers } from "@/actions/invitations";
 
 import { getTeamById } from "@/loaders/teams";
 
@@ -74,12 +74,20 @@ export async function clientAction({ request, params, serverAction }) {
 
     // Only handle invite-player on client, pass everything else to server
     if (_action === "invite-player") {
-        const email = formData.get("email");
-        const name = formData.get("name");
+        const emails = formData.getAll("email");
+        const names = formData.getAll("name");
+
+        const players = emails
+            .map((email, index) => ({
+                email: (email || "").trim(),
+                name: (names[index] || "").trim(),
+            }))
+            .filter((player) => player.email !== "");
+
         // Build the invitation URL from the request
         const url = new URL(request.url);
         const inviteUrl = `${url.origin}/team/${teamId}/accept-invite`;
-        return invitePlayerByEmail({ email, teamId, name, url: inviteUrl });
+        return invitePlayers({ players, teamId, url: inviteUrl });
     }
 
     // For all other actions (like update-role), pass through to server action

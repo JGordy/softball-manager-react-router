@@ -6,14 +6,25 @@
  * This bypasses the SDK's cookie handling which conflicts with our SSR session management.
  * Appwrite automatically handles user lookup, account creation, and email sending.
  */
-export async function invitePlayerByEmail({ email, teamId, name, url }) {
+export async function invitePlayerByEmail({
+    email,
+    teamId,
+    name,
+    url,
+    sessionProp,
+}) {
     try {
-        // Fetch the session from our server API
-        const sessionResponse = await fetch("/api/session");
-        if (!sessionResponse.ok) {
-            throw new Error("Failed to retrieve session");
+        let session = sessionProp;
+
+        // Fetch the session from our server API if not provided
+        if (!session) {
+            const sessionResponse = await fetch("/api/session");
+            if (!sessionResponse.ok) {
+                throw new Error("Failed to retrieve session");
+            }
+            const data = await sessionResponse.json();
+            session = data.session;
         }
-        const { session } = await sessionResponse.json();
 
         if (!session) {
             throw new Error("No active session found. Please log in.");
@@ -64,6 +75,117 @@ export async function invitePlayerByEmail({ email, teamId, name, url }) {
             message: error.message || "Failed to send invitation",
         };
     }
+}
+
+/**
+ * CLIENT-SIDE ACTION
+ * Bulk invite players by email
+ * Wrapper around invitePlayerByEmail to handle multiple invites
+ */
+export async function invitePlayers({ players, teamId, url }) {
+    // Fetch session once to reuse across all requests (with retry)
+    let session = null;
+
+    const sleep = (ms) =>
+        new Promise((resolve) => {
+            setTimeout(resolve, ms);
+        });
+
+    const fetchSessionWithRetry = async ({
+        maxAttempts = 3,
+        initialDelayMs = 200,
+    } = {}) => {
+        let delayMs = initialDelayMs;
+
+        for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+            try {
+                const sessionResponse = await fetch("/api/session");
+                if (!sessionResponse.ok) {
+                    throw new Error(
+                        `Failed to retrieve session (status ${sessionResponse.status})`,
+                    );
+                }
+
+                const data = await sessionResponse.json();
+
+                if (!data || !data.session) {
+                    throw new Error("Session data missing in response");
+                }
+
+                return data.session;
+            } catch (error) {
+                if (attempt === maxAttempts - 1) {
+                    throw error;
+                }
+
+                // Exponential backoff before next attempt
+                await sleep(delayMs);
+                delayMs *= 2;
+            }
+        }
+
+        throw new Error("Unable to retrieve session after retries");
+    };
+
+    try {
+        session = await fetchSessionWithRetry();
+    } catch (error) {
+        console.error(
+            "Failed to pre-fetch session for bulk invite after retries:",
+            error,
+        );
+        return {
+            success: false,
+            message:
+                "Failed to retrieve session. No invitations were sent. Please try again.",
+        };
+    }
+
+    const results = await Promise.allSettled(
+        players.map((player) =>
+            invitePlayerByEmail({
+                email: player.email,
+                name: player.name,
+                teamId,
+                url,
+                sessionProp: session,
+            }),
+        ),
+    );
+
+    const successful = results.filter(
+        (r) => r.status === "fulfilled" && r.value.success,
+    );
+    const failed = results.filter(
+        (r) => r.status === "rejected" || (r.value && !r.value.success),
+    );
+
+    if (failed.length === 0) {
+        return {
+            success: true,
+            message: `Successfully invited ${successful.length} player${successful.length !== 1 ? "s" : ""}`,
+        };
+    }
+
+    if (successful.length === 0) {
+        return {
+            success: false,
+            message: "Failed to send any invitations",
+            errors: failed.map(
+                (f) =>
+                    f.reason?.message ||
+                    f.value?.message ||
+                    "Unknown error occurred",
+            ),
+        };
+    }
+
+    // Partial success
+    return {
+        success: true, // We return true so we can close the modal, but show a warning
+        message: `Invited ${successful.length} player${successful.length !== 1 ? "s" : ""}. Failed to invite ${failed.length}.`,
+        warning: true,
+    };
 }
 
 /**
