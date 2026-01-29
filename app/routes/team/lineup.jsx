@@ -45,11 +45,11 @@ export default function TeamLineup({ loaderData }) {
     if (team.idealLineup) {
         try {
             const parsed = JSON.parse(team.idealLineup);
-            if (Array.isArray(parsed)) {
-                // Old format
-                initialLineup = parsed;
-            } else if (parsed && typeof parsed === "object") {
-                // New format
+            if (
+                parsed &&
+                typeof parsed === "object" &&
+                !Array.isArray(parsed)
+            ) {
                 initialLineup = Array.isArray(parsed.lineup)
                     ? parsed.lineup
                     : [];

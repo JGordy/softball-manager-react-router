@@ -19,9 +19,11 @@ function createBattingOrder(players, options = {}) {
                     ? JSON.parse(idealLineup)
                     : idealLineup;
 
-            if (Array.isArray(parsed)) {
-                idealOrder = parsed;
-            } else if (parsed && typeof parsed === "object") {
+            if (
+                parsed &&
+                typeof parsed === "object" &&
+                !Array.isArray(parsed)
+            ) {
                 const l = Array.isArray(parsed.lineup) ? parsed.lineup : [];
                 const r = Array.isArray(parsed.reserves) ? parsed.reserves : [];
                 idealOrder = [...l, ...r];
