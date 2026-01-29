@@ -83,17 +83,62 @@ export async function invitePlayerByEmail({
  * Wrapper around invitePlayerByEmail to handle multiple invites
  */
 export async function invitePlayers({ players, teamId, url }) {
-    // Fetch session once to reuse across all requests
+    // Fetch session once to reuse across all requests (with retry)
     let session = null;
-    try {
-        const sessionResponse = await fetch("/api/session");
-        if (sessionResponse.ok) {
-            const data = await sessionResponse.json();
-            session = data.session;
+
+    const sleep = (ms) =>
+        new Promise((resolve) => {
+            setTimeout(resolve, ms);
+        });
+
+    const fetchSessionWithRetry = async ({
+        maxAttempts = 3,
+        initialDelayMs = 200,
+    } = {}) => {
+        let delayMs = initialDelayMs;
+
+        for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+            try {
+                const sessionResponse = await fetch("/api/session");
+                if (!sessionResponse.ok) {
+                    throw new Error(
+                        `Failed to retrieve session (status ${sessionResponse.status})`,
+                    );
+                }
+
+                const data = await sessionResponse.json();
+
+                if (!data || !data.session) {
+                    throw new Error("Session data missing in response");
+                }
+
+                return data.session;
+            } catch (error) {
+                if (attempt === maxAttempts - 1) {
+                    throw error;
+                }
+
+                // Exponential backoff before next attempt
+                await sleep(delayMs);
+                delayMs *= 2;
+            }
         }
+
+        throw new Error("Unable to retrieve session after retries");
+    };
+
+    try {
+        session = await fetchSessionWithRetry();
     } catch (error) {
-        console.error("Failed to pre-fetch session for bulk invite:", error);
-        // We'll continue and let each invite try to fetch its own session if this fails
+        console.error(
+            "Failed to pre-fetch session for bulk invite after retries:",
+            error,
+        );
+        return {
+            success: false,
+            message:
+                "Failed to retrieve session. No invitations were sent. Please try again.",
+        };
     }
 
     const results = await Promise.allSettled(
