@@ -271,16 +271,15 @@ describe("Invitations Actions", () => {
 
         it("should handle empty player list gracefully", async () => {
             const result = await invitePlayers({ players: [], teamId, url });
-            // Based on implementation, Promise.allSettled([]) is empty.
-            // successful = 0, failed = 0.
-            // It hits 'failed.length === 0' check first?
-            // result: successful=[], failed=[].
-            // Implementation:
-            // if (failed.length === 0) return { success: true, message: ... 0 players }
+            // An empty list should result in success with 0 invitations sent
+            // Promise.allSettled([]) resolves safely to []
 
             expect(result.success).toBe(true);
             expect(result.message).toContain("Successfully invited 0 players");
         });
+    });
+
+    describe("acceptTeamInvitation", () => {
         it("should accept invitation successfully", async () => {
             const { Teams } = require("appwrite");
             const mockUpdateMembershipStatus = jest.fn().mockResolvedValue({
