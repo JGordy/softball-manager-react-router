@@ -77,10 +77,12 @@ export async function clientAction({ request, params, serverAction }) {
         const emails = formData.getAll("email");
         const names = formData.getAll("name");
 
-        const players = emails.map((email, index) => ({
-            email,
-            name: names[index] || "",
-        }));
+        const players = emails
+            .map((email, index) => ({
+                email: (email || "").trim(),
+                name: (names[index] || "").trim(),
+            }))
+            .filter((player) => player.email !== "");
 
         // Build the invitation URL from the request
         const url = new URL(request.url);
