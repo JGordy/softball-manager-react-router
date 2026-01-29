@@ -38,32 +38,51 @@ export default function TeamLineup({ loaderData }) {
     const currentUserId = user.$id;
     const managerView = managerIds.includes(currentUserId);
 
-    // Parse the idealLineup (array of IDs)
-    let initialIdealLineup = [];
+    // Parse the idealLineup
+    let initialLineup = [];
+    let initialReserves = [];
+
     if (team.idealLineup) {
         try {
-            initialIdealLineup = JSON.parse(team.idealLineup);
+            const parsed = JSON.parse(team.idealLineup);
+            if (Array.isArray(parsed)) {
+                // Old format
+                initialLineup = parsed;
+            } else if (parsed && typeof parsed === "object") {
+                // New format
+                initialLineup = Array.isArray(parsed.lineup)
+                    ? parsed.lineup
+                    : [];
+                initialReserves = Array.isArray(parsed.reserves)
+                    ? parsed.reserves
+                    : [];
+            }
         } catch (e) {
             console.error("Error parsing idealLineup", e);
         }
     }
 
-    // Let's seed it with all players if empty so they have something to drag.
-    if (!initialIdealLineup || initialIdealLineup.length === 0) {
-        initialIdealLineup = players.map((p) => p.$id);
-    }
-
-    // Filter out IDs that no longer exist in players array (deleted players) FIRST
-    initialIdealLineup = initialIdealLineup.filter((id) =>
+    // Filter out deleted players
+    initialLineup = initialLineup.filter((id) =>
+        players.some((p) => p.$id === id),
+    );
+    initialReserves = initialReserves.filter((id) =>
         players.some((p) => p.$id === id),
     );
 
-    // THEN ensure all current players are in the list (in case of new players added after lineup set)
+    // Find players missing from both lists
+    const trackedIds = new Set([...initialLineup, ...initialReserves]);
     const missingPlayers = players
-        .filter((p) => !initialIdealLineup.includes(p.$id))
+        .filter((p) => !trackedIds.has(p.$id))
         .map((p) => p.$id);
-    if (missingPlayers.length > 0) {
-        initialIdealLineup = [...initialIdealLineup, ...missingPlayers];
+
+    // Add missing players
+    if (initialLineup.length === 0 && initialReserves.length === 0) {
+        // If everything is empty (new team), put everyone in lineup
+        initialLineup = players.map((p) => p.$id);
+    } else {
+        // Otherwise append missing to reserves
+        initialReserves = [...initialReserves, ...missingPlayers];
     }
 
     // Parse the idealPositioning
@@ -76,7 +95,9 @@ export default function TeamLineup({ loaderData }) {
         }
     }
 
-    const [idealLineup, lineupHandlers] = useListState(initialIdealLineup);
+    const [lineup, setLineup] = useState(initialLineup);
+    const [reserves, setReserves] = useState(initialReserves);
+
     const [idealPositioning, setIdealPositioning] = useState(
         initialIdealPositioning,
     );
@@ -94,8 +115,10 @@ export default function TeamLineup({ loaderData }) {
                 team={team}
                 managerView={managerView}
                 players={players}
-                idealLineup={idealLineup}
-                lineupHandlers={lineupHandlers}
+                lineup={lineup}
+                reserves={reserves}
+                setLineup={setLineup}
+                setReserves={setReserves}
                 idealPositioning={idealPositioning}
                 setIdealPositioning={setIdealPositioning}
             />
