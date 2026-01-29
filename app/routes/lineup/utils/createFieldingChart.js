@@ -28,7 +28,7 @@ const getPreferredPositions = (
     // Find positions where this player is listed in the team's ideal positioning
     const teamPreferredPositions = [];
     for (const [position, playerItems] of Object.entries(idealPositioning)) {
-        // Handle both simple ID arrays and key-value arrays
+        // Handle both legacy format (array of player ID strings) and new format (array of objects with id and neverSub properties)
         const playerIndex = playerItems.findIndex((item) => {
             const id = typeof item === "string" ? item : item.id;
             return id === playerId;

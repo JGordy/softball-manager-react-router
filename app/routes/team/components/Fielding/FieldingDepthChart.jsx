@@ -125,6 +125,11 @@ const DraggablePlayerItem = ({
                               color={neverSub ? "blue" : "gray"}
                               onClick={() => onToggleNeverSub(!neverSub)}
                               size="md"
+                              aria-label={
+                                  neverSub
+                                      ? "Unlock player from position"
+                                      : "Lock player in position (Never Sub)"
+                              }
                           >
                               {neverSub ? (
                                   <IconLock size={18} />
