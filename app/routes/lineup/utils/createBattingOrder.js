@@ -14,10 +14,20 @@ function createBattingOrder(players, options = {}) {
     let idealOrder = [];
     if (idealLineup) {
         try {
-            idealOrder =
+            const parsed =
                 typeof idealLineup === "string"
                     ? JSON.parse(idealLineup)
                     : idealLineup;
+
+            if (
+                parsed &&
+                typeof parsed === "object" &&
+                !Array.isArray(parsed)
+            ) {
+                const l = Array.isArray(parsed.lineup) ? parsed.lineup : [];
+                const r = Array.isArray(parsed.reserves) ? parsed.reserves : [];
+                idealOrder = [...l, ...r];
+            }
         } catch (e) {
             console.error("Error parsing idealLineup:", e);
         }
