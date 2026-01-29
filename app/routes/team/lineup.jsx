@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useOutletContext } from "react-router";
 
 import { Container, Group } from "@mantine/core";
-import { useListState } from "@mantine/hooks";
 
 import { getTeamById } from "@/loaders/teams";
 import { saveBattingOrder, saveFieldingPositions } from "@/actions/lineups";

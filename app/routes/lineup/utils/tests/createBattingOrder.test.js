@@ -202,7 +202,7 @@ describe("createBattingOrder utility", () => {
             expect(result).toHaveLength(2);
         });
 
-        it("should handle empty idealLineup array or object", () => {
+        it("should handle empty idealLineup object", () => {
             const players = [
                 createPlayer("1", "Male"),
                 createPlayer("2", "Female"),
