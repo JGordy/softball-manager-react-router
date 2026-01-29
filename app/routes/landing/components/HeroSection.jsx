@@ -22,8 +22,7 @@ export default function HeroSection({ isAuthenticated, isDesktop }) {
     return (
         <div
             style={{
-                background:
-                    "linear-gradient(135deg, var(--mantine-color-green-9) 0%, var(--mantine-color-green-7) 100%)",
+                // background: removed, moved to overlay
                 color: "white",
                 padding: `${rem(120)} 0 ${rem(160)}`,
                 textAlign: "center",
@@ -33,6 +32,34 @@ export default function HeroSection({ isAuthenticated, isDesktop }) {
                 overflow: "hidden",
             }}
         >
+            {/* Background Image */}
+            <img
+                src="/hero-desktop.png"
+                srcSet="/hero-mobile.png 480w, /hero-tablet.png 800w, /hero-desktop.png 1920w"
+                alt=""
+                sizes="100vw"
+                style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    zIndex: 0,
+                }}
+            />
+
+            {/* Gradient Overlay */}
+            <div
+                style={{
+                    position: "absolute",
+                    inset: 0,
+                    background:
+                        "linear-gradient(135deg, var(--mantine-color-green-9) 0%, var(--mantine-color-green-7) 100%)",
+                    opacity: 0.85,
+                    zIndex: 1,
+                }}
+            />
+
             {/* Abstract Background Shapes */}
             <div
                 style={{
@@ -44,6 +71,7 @@ export default function HeroSection({ isAuthenticated, isDesktop }) {
                     background:
                         "radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%)",
                     borderRadius: "50%",
+                    zIndex: 1,
                 }}
             />
             <div
@@ -56,10 +84,11 @@ export default function HeroSection({ isAuthenticated, isDesktop }) {
                     background:
                         "radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%)",
                     borderRadius: "50%",
+                    zIndex: 1,
                 }}
             />
 
-            <Container size="md" style={{ position: "relative", zIndex: 1 }}>
+            <Container size="md" style={{ position: "relative", zIndex: 2 }}>
                 <Title
                     order={1}
                     style={{
