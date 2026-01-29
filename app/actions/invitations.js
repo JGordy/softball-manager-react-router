@@ -6,14 +6,25 @@
  * This bypasses the SDK's cookie handling which conflicts with our SSR session management.
  * Appwrite automatically handles user lookup, account creation, and email sending.
  */
-export async function invitePlayerByEmail({ email, teamId, name, url }) {
+export async function invitePlayerByEmail({
+    email,
+    teamId,
+    name,
+    url,
+    sessionProp,
+}) {
     try {
-        // Fetch the session from our server API
-        const sessionResponse = await fetch("/api/session");
-        if (!sessionResponse.ok) {
-            throw new Error("Failed to retrieve session");
+        let session = sessionProp;
+
+        // Fetch the session from our server API if not provided
+        if (!session) {
+            const sessionResponse = await fetch("/api/session");
+            if (!sessionResponse.ok) {
+                throw new Error("Failed to retrieve session");
+            }
+            const data = await sessionResponse.json();
+            session = data.session;
         }
-        const { session } = await sessionResponse.json();
 
         if (!session) {
             throw new Error("No active session found. Please log in.");
@@ -72,6 +83,19 @@ export async function invitePlayerByEmail({ email, teamId, name, url }) {
  * Wrapper around invitePlayerByEmail to handle multiple invites
  */
 export async function invitePlayers({ players, teamId, url }) {
+    // Fetch session once to reuse across all requests
+    let session = null;
+    try {
+        const sessionResponse = await fetch("/api/session");
+        if (sessionResponse.ok) {
+            const data = await sessionResponse.json();
+            session = data.session;
+        }
+    } catch (error) {
+        console.error("Failed to pre-fetch session for bulk invite:", error);
+        // We'll continue and let each invite try to fetch its own session if this fails
+    }
+
     const results = await Promise.allSettled(
         players.map((player) =>
             invitePlayerByEmail({
@@ -79,6 +103,7 @@ export async function invitePlayers({ players, teamId, url }) {
                 name: player.name,
                 teamId,
                 url,
+                sessionProp: session,
             }),
         ),
     );
