@@ -137,7 +137,7 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                     key: "invite-player",
                     onClick: openInvitePlayerModal,
                     leftSection: <IconMailFast size={18} />,
-                    content: <Text>Invite Player</Text>,
+                    content: <Text>Invite Players</Text>,
                 },
             ],
         },
