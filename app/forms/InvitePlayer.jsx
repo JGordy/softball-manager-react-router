@@ -13,6 +13,8 @@ import classes from "@/styles/inputs.module.css";
 
 import FormWrapper from "./FormWrapper";
 
+const MAX_INVITES = 20;
+
 export default function InvitePlayer({
     actionRoute,
     buttonColor,
@@ -24,6 +26,10 @@ export default function InvitePlayer({
     ]);
 
     const handleAddRow = () => {
+        if (invites.length >= MAX_INVITES) {
+            return;
+        }
+
         setInvites((current) => [
             ...current,
             { email: "", name: "", key: Date.now() + Math.random() },
@@ -56,10 +62,14 @@ export default function InvitePlayer({
                 // Update current row with first email
                 newInvites[index].email = emails[0];
 
+                // Calculate how many more we can add
+                const remainingSlots = MAX_INVITES - newInvites.length;
+                const emailsToAdd = emails.slice(1, 1 + remainingSlots);
+
                 // Add rows for rest
-                for (let i = 1; i < emails.length; i++) {
+                for (let i = 0; i < emailsToAdd.length; i++) {
                     newInvites.push({
-                        email: emails[i],
+                        email: emailsToAdd[i],
                         name: "",
                         key: Date.now() + Math.random() + i,
                     });
@@ -107,13 +117,12 @@ export default function InvitePlayer({
 
                         <TextInput
                             className={classes.inputs}
-                            label={index === 0 ? "Name" : null}
+                            label={index === 0 ? "Name (Optional)" : null}
                             name="name"
                             placeholder="John Doe"
                             radius="md"
                             size="md"
                             value={invite.name}
-                            required
                             onChange={(e) =>
                                 handleChange(
                                     index,
@@ -144,6 +153,7 @@ export default function InvitePlayer({
                     onClick={handleAddRow}
                     fullWidth
                     mt="xs"
+                    disabled={invites.length >= MAX_INVITES}
                 >
                     Add Another Player
                 </Button>
