@@ -43,17 +43,16 @@ export default function PlayActionDrawer({
     currentBatter,
     outs,
 }) {
+    const isSwitchHitter = currentBatter?.bats?.toLowerCase() === "switch";
+    const bats = isSwitchHitter
+        ? "left"
+        : currentBatter?.bats?.toLowerCase() || "right";
+
     const [selectedPosition, setSelectedPosition] = useState(null);
-    const [battingSide, setBattingSide] = useState("right");
+    const [battingSide, setBattingSide] = useState(bats || "right");
     const [hitCoordinates, setHitCoordinates] = useState({ x: null, y: null });
     const [isDragging, setIsDragging] = useState(false);
     const containerRef = useRef(null);
-
-    useEffect(() => {
-        if (currentBatter?.battingSide) {
-            setBattingSide(currentBatter.battingSide.toLowerCase());
-        }
-    }, [currentBatter, opened]);
 
     const hitLocation = getFieldZone(
         hitCoordinates.x,
@@ -82,7 +81,7 @@ export default function PlayActionDrawer({
         if (!opened) {
             setSelectedPosition(null);
             setHitCoordinates({ x: null, y: null });
-            setBattingSide("right"); // Or default from batter profile if available
+            setBattingSide(bats || "right"); // Or default from batter profile if available
         }
     }, [opened]);
 
