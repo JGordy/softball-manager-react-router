@@ -27,10 +27,16 @@ const getPreferredPositions = (
 
     // Find positions where this player is listed in the team's ideal positioning
     const teamPreferredPositions = [];
-    for (const [position, playerIds] of Object.entries(idealPositioning)) {
-        if (playerIds.includes(playerId)) {
+    for (const [position, playerItems] of Object.entries(idealPositioning)) {
+        // Handle both legacy format (array of player ID strings) and new format (array of objects with id and neverSub properties)
+        const playerIndex = playerItems.findIndex((item) => {
+            const id = typeof item === "string" ? item : item.id;
+            return id === playerId;
+        });
+
+        if (playerIndex !== -1) {
             // Add with priority based on position in the array (lower index = higher priority)
-            const priority = playerIds.indexOf(playerId);
+            const priority = playerIndex;
             teamPreferredPositions.push({ position, priority });
         }
     }
@@ -113,6 +119,24 @@ export default function createFieldingChart(players, options = {}) {
         }
     }
 
+    // Normalize positioningMap to store objects and extract locked players
+    const lockedPlayerPositions = {};
+    for (const pos in positioningMap) {
+        if (Array.isArray(positioningMap[pos])) {
+            positioningMap[pos] = positioningMap[pos].map((item) => {
+                const normalized =
+                    typeof item === "string"
+                        ? { id: item, neverSub: false }
+                        : item;
+
+                if (normalized.neverSub) {
+                    lockedPlayerPositions[normalized.id] = pos;
+                }
+                return normalized;
+            });
+        }
+    }
+
     const numPlayers = players.length;
     const numPositions = positions.length;
     let MAX_OUTS;
@@ -143,6 +167,23 @@ export default function createFieldingChart(players, options = {}) {
     for (let inning = 0; inning < innings; inning++) {
         let assignedPlayers = [];
         let availablePositions = [...positions];
+
+        // 0. Assign Locked ("Never Sub") Players First
+        for (const [playerId, position] of Object.entries(
+            lockedPlayerPositions,
+        )) {
+            if (availablePositions.includes(position)) {
+                const player = playersCopy.find((p) => p.$id === playerId);
+                if (player && !assignedPlayers.includes(player.lastName)) {
+                    player.positions.push(position);
+                    assignedPlayers.push(player.lastName);
+                    availablePositions = availablePositions.filter(
+                        (p) => p !== position,
+                    );
+                }
+            }
+        }
+
         let outPreviousInning;
 
         // Do this only if it's not the first inning
@@ -150,8 +191,9 @@ export default function createFieldingChart(players, options = {}) {
             // Find players out in the previous inning or who have met the max number of outs
             outPreviousInning = playersCopy.filter(
                 (player) =>
-                    player.positions[inning - 1] === "Out" ||
-                    countOutPositions(player) >= MAX_OUTS,
+                    !assignedPlayers.includes(player.lastName) &&
+                    (player.positions[inning - 1] === "Out" ||
+                        countOutPositions(player) >= MAX_OUTS),
             );
         }
 
@@ -181,10 +223,10 @@ export default function createFieldingChart(players, options = {}) {
             ) {
                 // Use team's preferred pitchers (in priority order)
                 eligiblePitchers = positioningMap[pitcherPosition]
-                    .map((id) =>
+                    .map((item) =>
                         playersCopy.find(
                             (p) =>
-                                p.$id === id &&
+                                p.$id === item.id &&
                                 !assignedPlayers.includes(p.lastName),
                         ),
                     )
@@ -223,7 +265,8 @@ export default function createFieldingChart(players, options = {}) {
                 positioningMap[position] &&
                 positioningMap[position].length > 0
             ) {
-                for (const playerId of positioningMap[position]) {
+                for (const item of positioningMap[position]) {
+                    const playerId = item.id;
                     const player = playersCopy.find(
                         (p) =>
                             p.$id === playerId &&

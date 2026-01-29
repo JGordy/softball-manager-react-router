@@ -270,6 +270,33 @@ Generate a balanced lineup based on player positions and gender balance rules.
 ## TEAM FIELDING PREFERENCES
 The team has preferred fielding positions for specific players. You MUST prioritize these assignments.
 
+${(() => {
+    // Helper to extract locked players for emphasis
+    const lockedDescriptions = [];
+    Object.entries(idealPositioning).forEach(([pos, items]) => {
+        if (Array.isArray(items)) {
+            items.forEach((item) => {
+                if (typeof item === "object" && item.neverSub) {
+                    const player = playerData.find((p) => p.$id === item.id);
+                    if (player) {
+                        // Only if player is playing today
+                        lockedDescriptions.push(
+                            `- ${player.firstName} ${player.lastName} (ID: ${player.$id}) MUST play ${pos} for ALL INNINGS.`,
+                        );
+                    }
+                }
+            });
+        }
+    });
+
+    if (lockedDescriptions.length > 0) {
+        return `**CRITICAL - NEVER SUB (LOCKED) PLAYERS:**
+The following players MUST NOT ROTATE. Assign them to their locked position for EVERY inning:
+${lockedDescriptions.join("\n")}
+\n`;
+    }
+    return "";
+})()}
 Preferred fielding assignments (position -> player IDs):
 ${JSON.stringify(idealPositioning, null, 2)}
 

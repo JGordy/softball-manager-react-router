@@ -438,4 +438,138 @@ describe("createFieldingChart utility", () => {
             expect(assignedPositions).not.toContain("Out");
         });
     });
+
+    describe("locked players (Never Sub)", () => {
+        it("should keep locked players in their position for all innings", () => {
+            const players = Array.from({ length: 12 }, (_, i) =>
+                createPlayer(`${i + 1}`),
+            );
+
+            // Lock Player 1 to Pitcher
+            const idealPositioning = {
+                Pitcher: [{ id: "1", neverSub: true }],
+            };
+
+            const result = createFieldingChart(players, {
+                innings: 5,
+                idealPositioning,
+            });
+
+            const player1 = result.find((p) => p.$id === "1");
+
+            // Check every inning
+            player1.positions.forEach((pos) => {
+                expect(pos).toBe("Pitcher");
+            });
+        });
+
+        it("should not rotate locked players out even if they exceed max innings", () => {
+            // 15 players for 10 spots = everyone should sit 1-2 times in 3 innings
+            const players = Array.from({ length: 15 }, (_, i) =>
+                createPlayer(`${i + 1}`),
+            );
+
+            // Lock Player 1 to Catcher
+            const idealPositioning = {
+                Catcher: [{ id: "1", neverSub: true }],
+            };
+
+            const result = createFieldingChart(players, {
+                innings: 7,
+                idealPositioning,
+            });
+
+            const player1 = result.find((p) => p.$id === "1");
+
+            // Should be Catcher every time, never "Out"
+            expect(player1.positions).not.toContain("Out");
+            expect(player1.positions.every((p) => p === "Catcher")).toBe(true);
+
+            // Other players should have "Out" positions
+            const otherPlayer = result.find((p) => p.$id === "2");
+            expect(otherPlayer.positions).toContain("Out");
+        });
+
+        it("should handle multiple locked players correctly", () => {
+            const players = Array.from({ length: 12 }, (_, i) =>
+                createPlayer(`${i + 1}`),
+            );
+
+            const idealPositioning = {
+                Pitcher: [{ id: "1", neverSub: true }],
+                Catcher: [{ id: "2", neverSub: true }],
+                Shortstop: [{ id: "3", neverSub: true }],
+            };
+
+            const result = createFieldingChart(players, {
+                innings: 3,
+                idealPositioning,
+            });
+
+            const p1 = result.find((p) => p.$id === "1");
+            const p2 = result.find((p) => p.$id === "2");
+            const p3 = result.find((p) => p.$id === "3");
+
+            expect(p1.positions.every((p) => p === "Pitcher")).toBe(true);
+            expect(p2.positions.every((p) => p === "Catcher")).toBe(true);
+            expect(p3.positions.every((p) => p === "Shortstop")).toBe(true);
+        });
+
+        it("should support mixed legacy (string) and new (object) formats in idealPositioning", () => {
+            const players = Array.from({ length: 12 }, (_, i) =>
+                createPlayer(`${i + 1}`),
+            );
+
+            const idealPositioning = {
+                Pitcher: [{ id: "1", neverSub: true }], // New format
+                Catcher: ["2"], // Legacy format
+                FirstBase: [{ id: "3", neverSub: false }, "4"], // Mixed
+            };
+
+            const result = createFieldingChart(players, {
+                innings: 3,
+                idealPositioning,
+            });
+
+            // Locked player works
+            const p1 = result.find((p) => p.$id === "1");
+            expect(p1.positions.every((p) => p === "Pitcher")).toBe(true);
+
+            // Legacy format player gets priority assign ( inning 1)
+            const p2 = result.find((p) => p.$id === "2");
+            expect(p2.positions[0]).toBe("Catcher");
+
+            // Mixed format works
+            const p3 = result.find((p) => p.$id === "3");
+            const p4 = result.find((p) => p.$id === "4");
+
+            // Both should likely get assigned to First Base at some point or consistently if no conflict
+            // Just verifying no crash and they exist in output
+            expect(p3).toBeDefined();
+            expect(p4).toBeDefined();
+        });
+
+        it("should ignore locked players not present in player list", () => {
+            const players = Array.from({ length: 10 }, (_, i) =>
+                createPlayer(`${i + 1}`),
+            );
+
+            // Lock ID "99" which doesn't exist
+            const idealPositioning = {
+                Pitcher: [{ id: "99", neverSub: true }],
+            };
+
+            // Should run without error
+            const result = createFieldingChart(players, {
+                innings: 3,
+                idealPositioning,
+            });
+
+            expect(result).toHaveLength(10);
+
+            // Pitcher should still be assigned to someone else
+            const p1Assignment = result[0].positions[0];
+            expect(p1Assignment).toBeDefined();
+        });
+    });
 });
