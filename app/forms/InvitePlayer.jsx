@@ -22,7 +22,7 @@ export default function InvitePlayer({
     teamName,
 }) {
     const [invites, setInvites] = useState([
-        { email: "", name: "", key: Date.now() },
+        { email: "", name: "", key: crypto.randomUUID() },
     ]);
 
     const handleAddRow = () => {
@@ -32,7 +32,7 @@ export default function InvitePlayer({
 
         setInvites((current) => [
             ...current,
-            { email: "", name: "", key: Date.now() + Math.random() },
+            { email: "", name: "", key: crypto.randomUUID() },
         ]);
     };
 
@@ -71,7 +71,7 @@ export default function InvitePlayer({
                     newInvites.push({
                         email: emailsToAdd[i],
                         name: "",
-                        key: Date.now() + Math.random() + i,
+                        key: crypto.randomUUID(),
                     });
                 }
                 setInvites(newInvites);
