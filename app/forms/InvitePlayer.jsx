@@ -43,9 +43,14 @@ export default function InvitePlayer({
     };
 
     const handleChange = (index, field, value) => {
-        const newInvites = [...invites];
-        newInvites[index][field] = value;
-        setInvites(newInvites);
+        setInvites((current) => {
+            const newInvites = [...current];
+            newInvites[index] = {
+                ...newInvites[index],
+                [field]: value,
+            };
+            return newInvites;
+        });
     };
 
     const handlePaste = (e, index) => {
