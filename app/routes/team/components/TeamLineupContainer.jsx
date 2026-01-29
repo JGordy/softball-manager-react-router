@@ -9,18 +9,23 @@ export default function TeamLineupContainer({
     team,
     managerView,
     players,
-    idealLineup, // Array of player IDs
-    lineupHandlers, // useListState handlers for idealLineup
-    idealPositioning, // Object of position -> Array of player IDs
+    lineup,
+    reserves,
+    setLineup,
+    setReserves,
+    idealPositioning,
     setIdealPositioning,
 }) {
     const fetcher = useFetcher();
 
-    const submitBattingOrder = (newLineup) => {
+    const submitBattingOrder = (newLineup, newReserves) => {
         try {
             const formData = new FormData();
             formData.append("_action", "save-batting-order");
-            formData.append("idealLineup", JSON.stringify(newLineup));
+            formData.append(
+                "idealLineup",
+                JSON.stringify({ lineup: newLineup, reserves: newReserves }),
+            );
 
             fetcher.submit(formData, {
                 method: "post",
@@ -46,16 +51,24 @@ export default function TeamLineupContainer({
         }
     };
 
-    const handleBattingReorder = ({ from, to }) => {
-        if (from === to) return;
+    const handleBattingReorder = ({ source, destination }) => {
+        // Clone arrays
+        const newLineup = [...lineup];
+        const newReserves = [...reserves];
 
-        lineupHandlers.reorder({ from, to });
+        // Determine which arrays to modify
+        const sourceArray =
+            source.droppableId === "lineup" ? newLineup : newReserves;
+        const destArray =
+            destination.droppableId === "lineup" ? newLineup : newReserves;
 
-        // Calculate new lineup for database save
-        const newLineup = [...idealLineup];
-        const [moved] = newLineup.splice(from, 1);
-        newLineup.splice(to, 0, moved);
-        submitBattingOrder(newLineup);
+        // Move logic
+        const [movedId] = sourceArray.splice(source.index, 1);
+        destArray.splice(destination.index, 0, movedId);
+
+        setLineup(newLineup);
+        setReserves(newReserves);
+        submitBattingOrder(newLineup, newReserves);
     };
 
     const handlePositionUpdate = (position, playerIds) => {
@@ -75,7 +88,8 @@ export default function TeamLineupContainer({
 
             <Tabs.Panel value="batting" pt="xs">
                 <BattingOrderEditor
-                    lineup={idealLineup}
+                    lineup={lineup}
+                    reserves={reserves}
                     players={players}
                     handleReorder={handleBattingReorder}
                     managerView={managerView}
