@@ -132,6 +132,7 @@ export default function createFieldingChart(players, options = {}) {
             firstName: player.firstName,
             lastName: player.lastName,
             gender: player.gender,
+            bats: player.bats,
             preferredPositions: player.preferredPositions || [],
             dislikedPositions: player.dislikedPositions || [],
             positions: [...(player?.positions || [])], // Create a new array to avoid mutating original
