@@ -1,5 +1,6 @@
 import {
     invitePlayerByEmail,
+    invitePlayers,
     acceptTeamInvitation,
     setPasswordForInvitedUser,
 } from "../invitations";
@@ -182,7 +183,104 @@ describe("Invitations Actions", () => {
         });
     });
 
-    describe("acceptTeamInvitation", () => {
+    describe("invitePlayers", () => {
+        const teamId = "team-123";
+        const url = "http://localhost/accept";
+        const players = [
+            { email: "p1@example.com", name: "P1" },
+            { email: "p2@example.com", name: "P2" },
+        ];
+
+        it("should invite all players successfully", async () => {
+            global.fetch.mockImplementation(async (url, options) => {
+                if (url.toString().includes("/api/session")) {
+                    return {
+                        ok: true,
+                        json: async () => ({ session: "test-session" }),
+                    };
+                }
+                // Appwrite Invite API
+                return {
+                    ok: true,
+                    json: async () => ({
+                        $id: "membership-123",
+                        userId: "user-456",
+                    }),
+                };
+            });
+
+            const result = await invitePlayers({ players, teamId, url });
+
+            expect(result.success).toBe(true);
+            expect(result.message).toContain("Successfully invited 2 players");
+            expect(result.warning).toBeUndefined();
+        });
+
+        it("should handle mixed success (partial failure)", async () => {
+            global.fetch.mockImplementation(async (url, options) => {
+                if (url.toString().includes("/api/session")) {
+                    return {
+                        ok: true,
+                        json: async () => ({ session: "test-session" }),
+                    };
+                }
+
+                // Parse body to identify player
+                const body = JSON.parse(options.body);
+                if (body.email === "p1@example.com") {
+                    return {
+                        ok: true,
+                        json: async () => ({ $id: "m1", userId: "u1" }),
+                    };
+                } else {
+                    return {
+                        ok: false,
+                        json: async () => ({ message: "Already invited" }),
+                    };
+                }
+            });
+
+            const result = await invitePlayers({ players, teamId, url });
+
+            expect(result.success).toBe(true);
+            expect(result.warning).toBe(true);
+            expect(result.message).toContain("Invited 1 player");
+            expect(result.message).toContain("Failed to invite 1");
+        });
+
+        it("should return false if all invites fail", async () => {
+            global.fetch.mockImplementation(async (url, options) => {
+                if (url.toString().includes("/api/session")) {
+                    return {
+                        ok: true,
+                        json: async () => ({ session: "test-session" }),
+                    };
+                }
+                return {
+                    ok: false,
+                    json: async () => ({ message: "Simulated Error" }),
+                };
+            });
+
+            const result = await invitePlayers({ players, teamId, url });
+
+            expect(result.success).toBe(false);
+            expect(result.message).toBe("Failed to send any invitations");
+            expect(result.errors).toHaveLength(2);
+        });
+
+        it("should handle empty player list gracefully", async () => {
+            const result = await invitePlayers({ players: [], teamId, url });
+            // Based on implementation, Promise.allSettled([]) is empty.
+            // successful = 0, failed = 0.
+            // It hits 'failed.length === 0' check first?
+            // result: successful=[], failed=[].
+            // Implementation:
+            // if (failed.length === 0) return { success: true, message: ... 0 players }
+
+            expect(result.success).toBe(true);
+            expect(result.message).toContain("Successfully invited 0 players");
+        });
         it("should accept invitation successfully", async () => {
             const { Teams } = require("appwrite");
             const mockUpdateMembershipStatus = jest.fn().mockResolvedValue({

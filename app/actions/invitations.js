@@ -68,6 +68,58 @@ export async function invitePlayerByEmail({ email, teamId, name, url }) {
 
 /**
  * CLIENT-SIDE ACTION
+ * Bulk invite players by email
+ * Wrapper around invitePlayerByEmail to handle multiple invites
+ */
+export async function invitePlayers({ players, teamId, url }) {
+    const results = await Promise.allSettled(
+        players.map((player) =>
+            invitePlayerByEmail({
+                email: player.email,
+                name: player.name,
+                teamId,
+                url,
+            }),
+        ),
+    );
+
+    const successful = results.filter(
+        (r) => r.status === "fulfilled" && r.value.success,
+    );
+    const failed = results.filter(
+        (r) => r.status === "rejected" || (r.value && !r.value.success),
+    );
+
+    if (failed.length === 0) {
+        return {
+            success: true,
+            message: `Successfully invited ${successful.length} player${successful.length !== 1 ? "s" : ""}`,
+        };
+    }
+
+    if (successful.length === 0) {
+        return {
+            success: false,
+            message: "Failed to send any invitations",
+            errors: failed.map(
+                (f) =>
+                    f.reason?.message ||
+                    f.value?.message ||
+                    "Unknown error occurred",
+            ),
+        };
+    }
+
+    // Partial success
+    return {
+        success: true, // We return true so we can close the modal, but show a warning
+        message: `Invited ${successful.length} player${successful.length !== 1 ? "s" : ""}. Failed to invite ${failed.length}.`,
+        warning: true,
+    };
+}
+
+/**
+ * CLIENT-SIDE ACTION
  * Accept a team invitation using the Client SDK
  * This must use Client SDK because updateMembershipStatus requires public scope
  */
