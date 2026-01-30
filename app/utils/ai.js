@@ -21,11 +21,13 @@ function initializeAI() {
 export function createModel({
     modelName = "gemini-3-flash-preview",
     generationConfig = {},
+    systemInstruction,
 } = {}) {
     const genAI = initializeAI();
     return genAI.getGenerativeModel({
         model: modelName,
         generationConfig,
+        systemInstruction,
     });
 }
 
