@@ -26,7 +26,7 @@ ${JSON.stringify(Object.keys(positions))}
 ## DATA INTERPRETATION
 -   You will receive structured JSON input containing: 'team', 'lineup' (history), and 'availablePlayers'.
 -   **Input Legend (Minified Keys)**:
-    -   **Players**: n=Name, g=Gender, p=Preferred Positions, d=Disliked Positions.
+    -   **Players**: f=First Name, l=Last Name, g=Gender, p=Preferred Positions, d=Disliked Positions.
     -   **History**: d=Date, s=Runs Scored, o=Opponent Runs, l=Lineup (List of Player IDs).
 -   **History Analysis**: Analyze 'l' arrays in proven high-scoring ('s' > 'o') games.
 -   **Output**: STRICTLY follow the JSON schema. 'reasoning' MUST be valid HTML (use <h3>, <p>, <ul>, <li>, <strong>). No Markdown. Preserve exact $id values in lineup.`;
