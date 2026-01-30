@@ -1,5 +1,9 @@
+import { useEffect, useState } from "react";
+import dompurify from "dompurify";
+
 import { Alert, Card, Stack, Text, Group, Tabs, Button } from "@mantine/core";
 import { IconCheck } from "@tabler/icons-react";
+
 import TabsWrapper from "@/components/TabsWrapper";
 import markdownStyles from "@/styles/markdown.module.css";
 
@@ -9,6 +13,14 @@ export default function ResultsView({
     onRegenerate,
     onApply,
 }) {
+    const [sanitizedReasoning, setSanitizedReasoning] = useState("");
+
+    useEffect(() => {
+        if (typeof window !== "undefined" && aiReasoning) {
+            setSanitizedReasoning(dompurify.sanitize(aiReasoning));
+        }
+    }, [aiReasoning]);
+
     return (
         <>
             <TabsWrapper defaultValue="lineup" mt="0">
@@ -73,7 +85,7 @@ export default function ResultsView({
                             <div
                                 className={markdownStyles.markdown}
                                 dangerouslySetInnerHTML={{
-                                    __html: aiReasoning,
+                                    __html: sanitizedReasoning,
                                 }}
                             />
                         </Card>
