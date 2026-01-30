@@ -39,32 +39,34 @@ export default function AILineupDrawer({
     const [generatedLineup, setGeneratedLineup] = useState(null);
     const [loadingText, setLoadingText] = useState(null);
     const [aiReasoning, setAiReasoning] = useState(null);
-    const [loadingInterval, setLoadingInterval] = useState(null);
 
     // Manage loading text based on fetcher state
     useEffect(() => {
         if (isLoading) {
             setLoadingText("Putting the finishing touches on your roster...");
-        } else if (isSubmitting) {
+            return;
+        }
+
+        if (isSubmitting) {
             // Cycle through loading messages every 5 seconds
             let messageIndex = 0;
             setLoadingText(LOADING_MESSAGES[0]);
 
-            const interval = setInterval(() => {
+            const intervalId = setInterval(() => {
                 messageIndex = (messageIndex + 1) % LOADING_MESSAGES.length;
                 setLoadingText(LOADING_MESSAGES[messageIndex]);
             }, 5000);
 
-            setLoadingInterval(interval);
-            return () => clearInterval(interval);
-        } else {
-            setLoadingText(null);
-            if (loadingInterval) {
-                clearInterval(loadingInterval);
-                setLoadingInterval(null);
-            }
+            return () => {
+                clearInterval(intervalId);
+            };
         }
-    }, [aiFetcher.state]);
+
+        // Not submitting or loading: reset loading text
+        setLoadingText(null);
+
+        return undefined;
+    }, [isLoading, isSubmitting]);
 
     const handleGenerateAILineup = async () => {
         setAiError(null);
