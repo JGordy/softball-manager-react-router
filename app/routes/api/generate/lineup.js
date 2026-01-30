@@ -5,6 +5,22 @@ import { Query } from "node-appwrite";
 import lineupSchema from "./utils/lineupSchema";
 import { getLineupSystemInstruction } from "./utils/systemInstructions";
 
+const DB_TO_MINIFIED_EVENT = {
+    single: "1B",
+    double: "2B",
+    triple: "3B",
+    homerun: "HR",
+    walk: "BB",
+    strikeout: "K",
+    fly_out: "OUT",
+    ground_out: "OUT",
+    line_out: "OUT",
+    pop_out: "OUT",
+    error: "E",
+    fielders_choice: "FC",
+    sac_fly: "SF",
+};
+
 /**
  * Sanitize reasoning text to remove any database IDs that might have been included by the AI
  * @param {string} reasoning - The reasoning text from the AI
@@ -84,6 +100,45 @@ export async function action({ request }) {
             Query.isNotNull("result"),
         ]);
 
+        // Prioritize latest games for stats
+        // Sort by date (descending) and take top 10
+        const sortedGames = [...seasonGames.rows].sort((a, b) => {
+            const dateA = new Date(a.gameDate || a.dateTime);
+            const dateB = new Date(b.gameDate || b.dateTime);
+            return dateB - dateA;
+        });
+
+        const recentGameIds = sortedGames.slice(0, 10).map((g) => g.$id);
+
+        // Fetch logs for these games
+        const gameStats = {};
+        if (recentGameIds.length > 0) {
+            const logs = await listDocuments("game_logs", [
+                Query.equal("gameId", recentGameIds),
+                Query.limit(2000), // Ensure we get enough logs
+            ]);
+
+            logs.rows.forEach((log) => {
+                const eventCode = DB_TO_MINIFIED_EVENT[log.eventType];
+                if (eventCode) {
+                    if (!gameStats[log.gameId]) {
+                        gameStats[log.gameId] = {};
+                    }
+                    if (!gameStats[log.gameId][log.playerId]) {
+                        gameStats[log.gameId][log.playerId] = [];
+                    }
+
+                    // Append description if available for context (e.g., location, power)
+                    let statEntry = eventCode;
+                    if (log.description) {
+                        statEntry += `(${log.description})`;
+                    }
+
+                    gameStats[log.gameId][log.playerId].push(statEntry);
+                }
+            });
+        }
+
         // Step 3: Gather lineup and result data for each game
         // Filter and validate games with proper error handling
         const historicalData = seasonGames.rows.reduce((acc, g) => {
@@ -141,14 +196,26 @@ export async function action({ request }) {
             const opponentRuns = parseInt(g.opponentScore) || 0;
             const gameResult = g.result || "unknown";
 
-            acc.push({
+            const entry = {
                 gameId: g.$id,
                 gameDate: g.gameDate || g.dateTime,
                 lineup: playerChart, // Still has full objects here
                 runsScored,
                 opponentRuns,
                 gameResult,
-            });
+            };
+
+            // Add stats if available for this game
+            if (gameStats[g.$id]) {
+                entry.stats = {};
+                Object.entries(gameStats[g.$id]).forEach(
+                    ([playerId, events]) => {
+                        entry.stats[playerId] = events.join(" ");
+                    },
+                );
+            }
+
+            acc.push(entry);
 
             return acc;
         }, []);
@@ -159,13 +226,21 @@ export async function action({ request }) {
 
         // Step 4: Prepare Data for AI (Minification)
 
-        // Minify History: Date, Score, OpponentScore, Lineup (IDs only)
-        const minifiedHistory = historicalData.map((g) => ({
-            d: g.gameDate,
-            s: g.runsScored,
-            o: g.opponentRuns,
-            l: g.lineup.map((p) => p.$id),
-        }));
+        // Minify History: Date, Score, OpponentScore, Lineup (IDs only), Stats (if avail)
+        const minifiedHistory = historicalData.map((g) => {
+            const entry = {
+                d: g.gameDate,
+                s: g.runsScored,
+                o: g.opponentRuns,
+                l: g.lineup.map((p) => p.$id),
+            };
+
+            if (g.stats) {
+                entry.stats = g.stats;
+            }
+
+            return entry;
+        });
 
         // Minify Available Players
         const minifiedPlayers = players.map((p) => ({
