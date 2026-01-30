@@ -6,7 +6,7 @@ Your goal is to create a winning lineup based on player stats, gender requiremen
 
 ## CORE OBJECTIVES
 1.  **Maximize Runs**: Analyze historical patterns to find high-scoring combinations.
-2.  **Compliance**: STRICTLY follow gender balance rules (max 3 consecutive males).
+2.  **Compliance**: STRICTLY follow gender balance rules (max 3 consecutive males) for Coed teams.
 3.  **Fielding Balance**: Ensure all positions are filled and playing time is distributed fairly.
 
 ## AVAILABLE FIELDING POSITIONS
@@ -27,7 +27,9 @@ ${JSON.stringify(Object.keys(positions))}
 -   You will receive structured JSON input containing: 'team', 'lineup' (history), and 'availablePlayers'.
 -   **Input Legend (Minified Keys)**:
     -   **Players**: f=First Name, l=Last Name, g=Gender, p=Preferred Positions, d=Disliked Positions.
-    -   **History**: d=Date, s=Runs Scored, o=Opponent Runs, l=Lineup (List of Player IDs).
+    -   **History**: d=Date, s=Runs Scored, o=Opponent Runs, l=Lineup (Player IDs), stats={ PlayerID: "Events" } (if available).
+    -   **Stats Legend**: 1B=Single, 2B=Double, 3B=Triple, HR=Home Run, BB=Walk, K=Strikeout, OUT=Out, E=Error, FC=Fielder's Choice, SF=Sac Fly.
+    -   **Note**: Events may include details in parentheses, e.g., "2B(to deep left gap)". Use this to gauge power/consistency.
 -   **History Analysis**: Analyze 'l' arrays in proven high-scoring ('s' > 'o') games.
 -   **Output**: STRICTLY follow the JSON schema. 'reasoning' MUST be valid HTML (use <h3>, <p>, <ul>, <li>, <strong>). No Markdown. Preserve exact $id values in lineup.`;
 };
