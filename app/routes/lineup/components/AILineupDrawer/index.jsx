@@ -172,11 +172,6 @@ export default function AILineupDrawer({
 
     // Close drawer and reset state (clear any generated lineup to avoid stale data)
     const handleClose = () => {
-        // Clear any active loading interval to prevent memory leaks
-        if (loadingInterval) {
-            clearInterval(loadingInterval);
-            setLoadingInterval(null);
-        }
         onClose();
         setAiError(null);
         setGeneratedLineup(null);
