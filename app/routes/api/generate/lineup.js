@@ -108,8 +108,27 @@ export async function action({ request }) {
 
                 playerChart = Array.isArray(parsed) ? parsed : [];
             } catch (e) {
-                // Log error
-                console.error(`Error parsing playerChart for game ${g.$id}`, e);
+                const isDev =
+                    process.env && process.env.NODE_ENV === "development";
+                const rawMessage =
+                    e && typeof e.message === "string" ? e.message : String(e);
+                const safeMessage =
+                    typeof rawMessage === "string" && rawMessage.length > 200
+                        ? rawMessage.slice(0, 200) + "..."
+                        : rawMessage;
+
+                if (isDev) {
+                    // In development, log full error object for easier debugging
+                    console.error(
+                        `Error parsing playerChart for game ${g.$id}: ${safeMessage}`,
+                        e,
+                    );
+                } else {
+                    // In non-development environments, avoid logging full error objects
+                    console.error(
+                        `Error parsing playerChart for game ${g.$id}: ${safeMessage}`,
+                    );
+                }
                 return acc;
             }
 
@@ -151,7 +170,8 @@ export async function action({ request }) {
         // Minify Available Players
         const minifiedPlayers = players.map((p) => ({
             $id: p.$id,
-            n: `${p.firstName} ${p.lastName}`,
+            f: p.firstName,
+            l: p.lastName,
             g: p.gender,
             p: p.preferredPositions || [],
             d: p.dislikedPositions || [],
