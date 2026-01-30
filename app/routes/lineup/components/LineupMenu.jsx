@@ -42,37 +42,17 @@ export default function LineupMenu({
         lineupItems.push({
             key: "generate-ai-lineup",
             onClick: aiGenerateHandlers.open,
-            leftSection: (
-                <IconSparkles
-                    size={20}
-                    style={{
-                        stroke: "url(#ai-gradient)",
-                    }}
-                />
-            ),
+            style: {
+                backgroundImage: "linear-gradient(90deg, #228be6, #15aabf)",
+                borderRadius: "var(--mantine-radius-md)",
+                color: "white",
+                margin: "5px 0 10px",
+            },
+            leftSection: <IconSparkles size={20} />,
             content: (
-                <>
-                    <svg width="0" height="0" style={{ position: "absolute" }}>
-                        <defs>
-                            <linearGradient
-                                id="ai-gradient"
-                                x1="0%"
-                                y1="0%"
-                                x2="100%"
-                                y2="0%"
-                            >
-                                <stop offset="0%" stopColor="#228be6" />
-                                <stop offset="100%" stopColor="#15aabf" />
-                            </linearGradient>
-                        </defs>
-                    </svg>
-                    <Text
-                        variant="gradient"
-                        gradient={{ from: "blue", to: "cyan", deg: 90 }}
-                    >
-                        Generate AI Lineup
-                    </Text>
-                </>
+                <Text fw={500} c="white">
+                    Generate AI Lineup
+                </Text>
             ),
         });
     }

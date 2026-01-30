@@ -21,6 +21,7 @@ export default function MenuContainer({
             leftSection={item.leftSection}
             color={item.color}
             disabled={item.disabled}
+            style={item.style}
         >
             {item.content ?? (item.text ? <Text>{item.text}</Text> : null)}
         </Menu.Item>

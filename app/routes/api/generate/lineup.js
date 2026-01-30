@@ -1,43 +1,9 @@
-import { createModel, generateContent, parseAIResponse } from "@/utils/ai";
+import { createModel, parseAIResponse } from "@/utils/ai";
 import { listDocuments } from "@/utils/databases";
 import { Query } from "node-appwrite";
 
 import lineupSchema from "./utils/lineupSchema";
-import lineupPrompt from "./utils/lineupPrompt";
-
-/**
- * Build the complete prompt for the AI lineup generation
- * @param {Object} params - Parameters for building the prompt
- * @returns {string} The complete prompt
- */
-function buildFullPrompt({
-    lineupPrompt,
-    teamContext,
-    historicalContext,
-    fieldingContext,
-    playerData,
-}) {
-    return `${lineupPrompt}${teamContext}${historicalContext}${fieldingContext}
-
-## AVAILABLE PLAYERS FOR THIS GAME
-${JSON.stringify(playerData, null, 2)}
-
-## YOUR TASK
-Analyze the historical data above and generate the "HOTTEST" lineup - the batting order most likely to produce HIGH OFFENSIVE OUTPUT based on the patterns you observe in successful games. Remember to maintain gender balance rules for coed teams.
-
-For fielding positions, prioritize the team's idealPositioning preferences, then distribute remaining positions fairly.
-
-**IMPORTANT**: You must provide detailed reasoning explaining:
-1. What patterns you identified in the historical data
-2. Why you chose this specific batting order
-3. Which players or combinations showed strong performance
-4. How you balanced performance data with league rules
-5. Any specific insights from high-scoring games
-6. Do NOT send reasoning for field positioning
-7. Do NOT include player $id's in your reasoning response as this will get rendered to the user
-
-Generate the optimal lineup now with your detailed reasoning.`;
-}
+import { getLineupSystemInstruction } from "./utils/systemInstructions";
 
 /**
  * Sanitize reasoning text to remove any database IDs that might have been included by the AI
@@ -118,7 +84,7 @@ export async function action({ request }) {
             Query.isNotNull("result"),
         ]);
 
-        // Step 3 & 4: Gather lineup and result data for each game
+        // Step 3: Gather lineup and result data for each game
         // Filter and validate games with proper error handling
         const historicalData = seasonGames.rows.reduce((acc, g) => {
             // Skip games without required data early
@@ -142,18 +108,27 @@ export async function action({ request }) {
 
                 playerChart = Array.isArray(parsed) ? parsed : [];
             } catch (e) {
-                // Log error without exposing potentially sensitive player data
-                const errorMessage =
-                    e instanceof Error && e.message ? e.message : String(e);
-                const safeErrorMessage =
-                    errorMessage.length > 200
-                        ? `${errorMessage.slice(0, 200)}...`
-                        : errorMessage;
+                const isDev =
+                    process.env && process.env.NODE_ENV === "development";
+                const rawMessage =
+                    e && typeof e.message === "string" ? e.message : String(e);
+                const safeMessage =
+                    typeof rawMessage === "string" && rawMessage.length > 200
+                        ? rawMessage.slice(0, 200) + "..."
+                        : rawMessage;
 
-                console.error(
-                    `Error parsing playerChart for game ${g.$id}: ${safeErrorMessage}`,
-                );
-                // Skip this game's data instead of including empty lineup
+                if (isDev) {
+                    // In development, log full error object for easier debugging
+                    console.error(
+                        `Error parsing playerChart for game ${g.$id}: ${safeMessage}`,
+                        e,
+                    );
+                } else {
+                    // In non-development environments, avoid logging full error objects
+                    console.error(
+                        `Error parsing playerChart for game ${g.$id}: ${safeMessage}`,
+                    );
+                }
                 return acc;
             }
 
@@ -162,7 +137,6 @@ export async function action({ request }) {
                 return acc;
             }
 
-            // The result data (score, opponentScore, result) is stored directly on the game object, not in a nested result object
             const runsScored = parseInt(g.score) || 0;
             const opponentRuns = parseInt(g.opponentScore) || 0;
             const gameResult = g.result || "unknown";
@@ -170,7 +144,7 @@ export async function action({ request }) {
             acc.push({
                 gameId: g.$id,
                 gameDate: g.gameDate || g.dateTime,
-                lineup: playerChart,
+                lineup: playerChart, // Still has full objects here
                 runsScored,
                 opponentRuns,
                 gameResult,
@@ -183,74 +157,29 @@ export async function action({ request }) {
             `Found ${historicalData.length} games with lineup and result data`,
         );
 
-        // Initialize the AI model with JSON schema for structured output
-        const model = createModel({
-            generationConfig: {
-                responseMimeType: "application/json",
-                responseSchema: lineupSchema,
-            },
-        });
+        // Step 4: Prepare Data for AI (Minification)
 
-        // Prepare player data for the AI (only include relevant fields)
-        const playerData = players.map((p) => ({
-            $id: p.$id,
-            firstName: p.firstName,
-            lastName: p.lastName,
-            gender: p.gender,
-            preferredPositions: p.preferredPositions || [],
-            dislikedPositions: p.dislikedPositions || [],
+        // Minify History: Date, Score, OpponentScore, Lineup (IDs only)
+        const minifiedHistory = historicalData.map((g) => ({
+            d: g.gameDate,
+            s: g.runsScored,
+            o: g.opponentRuns,
+            l: g.lineup.map((p) => p.$id),
         }));
 
-        // Build historical performance context
-        const historicalContext =
-            historicalData.length > 0
-                ? `
+        // Minify Available Players
+        const minifiedPlayers = players.map((p) => ({
+            $id: p.$id,
+            f: p.firstName,
+            l: p.lastName,
+            g: p.gender,
+            p: p.preferredPositions || [],
+            d: p.dislikedPositions || [],
+        }));
 
-## HISTORICAL PERFORMANCE DATA
-You have access to ${historicalData.length} previous games from this season with lineup and scoring data.
-Your task is to analyze these lineups and identify patterns that correlate with HIGH OFFENSIVE OUTPUT (runs scored).
-
-**ANALYSIS INSTRUCTIONS:**
-1. Look for patterns: Which players batting together produced more runs?
-2. Identify 'hot' batting positions: Which spots in the order tend to produce runs?
-3. Notice successful sequences: Did certain player combinations work well?
-4. Consider overall team performance: Games with higher run totals
-5. Generate a lineup that replicates these successful patterns
-
-**PREVIOUS GAMES:**
-${historicalData
-    .map((game, index) => {
-        const lineupList = game.lineup
-            .map((player, pos) => {
-                const matchingPlayer = playerData.find(
-                    (p) => p.$id === player.$id,
-                );
-                const playerInfo = matchingPlayer
-                    ? `${matchingPlayer.firstName} ${matchingPlayer.lastName} (${matchingPlayer.gender})`
-                    : `${player.firstName || "Unknown"} ${player.lastName || "Player"}`;
-                return `  ${pos + 1}. ${playerInfo} [ID: ${player.$id}]`;
-            })
-            .join("\n");
-
-        return `
-### Game ${index + 1} (${game.gameDate})
-- Runs Scored: ${game.runsScored}
-- Opponent Runs: ${game.opponentRuns}
-- Result: ${game.gameResult}
-- Batting Order:
-${lineupList}`;
-    })
-    .join("\n")}
-`
-                : `
-
-## NO HISTORICAL DATA AVAILABLE
-This is the first game of the season or no previous games have results recorded.
-Generate a balanced lineup based on player positions and gender balance rules.
-`;
-
-        // Parse team settings for fielding positioning
+        // Team Logic
         let idealPositioning = {};
+        const lockedPlayers = []; // Extract locked players for explicit context
 
         if (team?.idealPositioning) {
             try {
@@ -258,75 +187,60 @@ Generate a balanced lineup based on player positions and gender balance rules.
                     typeof team.idealPositioning === "string"
                         ? JSON.parse(team.idealPositioning)
                         : team.idealPositioning;
+
+                // Extract neverSub (locked) players
+                Object.entries(idealPositioning).forEach(([pos, items]) => {
+                    if (Array.isArray(items)) {
+                        items.forEach((item) => {
+                            if (typeof item === "object" && item.neverSub) {
+                                lockedPlayers.push({ id: item.id, pos });
+                            }
+                        });
+                    }
+                });
             } catch (e) {
                 console.error("Error parsing idealPositioning:", e);
             }
         }
 
-        const fieldingContext =
-            Object.keys(idealPositioning).length > 0
-                ? `
+        const inputData = {
+            team: {
+                name: team.name, // Keep descriptive
+                genderMix: team.genderMix,
+                preferences: idealPositioning,
+                locked: lockedPlayers,
+            },
+            history: minifiedHistory,
+            availablePlayers: minifiedPlayers,
+        };
 
-## TEAM FIELDING PREFERENCES
-The team has preferred fielding positions for specific players. You MUST prioritize these assignments.
-
-${(() => {
-    // Helper to extract locked players for emphasis
-    const lockedDescriptions = [];
-    Object.entries(idealPositioning).forEach(([pos, items]) => {
-        if (Array.isArray(items)) {
-            items.forEach((item) => {
-                if (typeof item === "object" && item.neverSub) {
-                    const player = playerData.find((p) => p.$id === item.id);
-                    if (player) {
-                        // Only if player is playing today
-                        lockedDescriptions.push(
-                            `- ${player.firstName} ${player.lastName} (ID: ${player.$id}) MUST play ${pos} for ALL INNINGS.`,
-                        );
-                    }
-                }
-            });
-        }
-    });
-
-    if (lockedDescriptions.length > 0) {
-        return `**CRITICAL - NEVER SUB (LOCKED) PLAYERS:**
-The following players MUST NOT ROTATE. Assign them to their locked position for EVERY inning:
-${lockedDescriptions.join("\n")}
-\n`;
-    }
-    return "";
-})()}
-Preferred fielding assignments (position -> player IDs):
-${JSON.stringify(idealPositioning, null, 2)}
-
-For positions without team preferences, distribute players fairly based on their preferredPositions.
-`
-                : "";
-
-        // Build team context for gender rules
-        const teamContext =
-            team?.genderMix === "Coed"
-                ? `
-
-**CRITICAL LEAGUE RULE**: This is a COED team. You MUST enforce the gender balance rule: no more than 3 consecutive male batters.
-`
-                : `
-
-This is a same-gender team. Gender balance rules do not apply to batting order.
-`;
-
-        // Build the complete prompt
-        const fullPrompt = buildFullPrompt({
-            lineupPrompt,
-            teamContext,
-            historicalContext,
-            fieldingContext,
-            playerData,
+        // Initialize the AI model with System Instructions
+        const model = createModel({
+            generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: lineupSchema,
+            },
+            systemInstruction: getLineupSystemInstruction(),
         });
 
+        // Use "Data-as-a-Part" structure
+        const prompts = [
+            {
+                text: "Analyze the following team data, historical performance, and available roster to generate an optimal lineup.",
+            },
+            {
+                text: JSON.stringify(inputData),
+            },
+            {
+                text: "Generate the JSON response following the schema, providing the best possible batting order and fielding rotation.",
+            },
+        ];
+
         // Generate the lineup using AI
-        const responseText = await generateContent(model, fullPrompt);
+        // Note: generateContent accepts array of parts
+        const result = await model.generateContent(prompts);
+        const response = await result.response;
+        const responseText = response.text();
 
         // Parse the AI response
         const aiResponse = parseAIResponse(responseText);
@@ -358,7 +272,11 @@ This is a same-gender team. Gender balance rules do not apply to batting order.
             );
         }
 
-        // Ensure each player has exactly 7 positions
+        // Output Validation & Enrichment
+        // The AI output needs to be mapped back to the required frontend structure if keys were missing,
+        // but schema already enforces firstName, lastName, etc.
+        // We ensure consistent data types.
+
         const validatedLineup = generatedLineup.map((player) => {
             if (!player.positions || player.positions.length !== 7) {
                 throw new Error(

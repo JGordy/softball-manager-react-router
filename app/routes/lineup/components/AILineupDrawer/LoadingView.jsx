@@ -1,0 +1,72 @@
+import { Stack, Box, Text, Card, Skeleton, Group, Button } from "@mantine/core";
+import { IconSparkles } from "@tabler/icons-react";
+
+export default function LoadingView({ loadingText, onClose }) {
+    return (
+        <Stack gap="xl" py="lg">
+            <Stack align="center" gap="xs">
+                <Box
+                    style={{
+                        animation: "pulse 2s ease-in-out infinite",
+                    }}
+                >
+                    <IconSparkles
+                        size={48}
+                        style={{
+                            color: "var(--mantine-color-blue-500)",
+                        }}
+                    />
+                </Box>
+                <Text
+                    size="lg"
+                    fw={500}
+                    variant="gradient"
+                    gradient={{ from: "blue", to: "cyan", deg: 90 }}
+                    ta="center"
+                >
+                    {loadingText}
+                </Text>
+            </Stack>
+
+            <Card withBorder p="md" radius="md">
+                <Stack gap="md">
+                    <Skeleton height={24} width="60%" radius="xl" />
+                    <Stack gap="sm">
+                        {Array(8)
+                            .fill(0)
+                            .map((_, i) => (
+                                <Group key={i} gap="sm">
+                                    <Skeleton
+                                        height={20}
+                                        width={20}
+                                        radius="xl"
+                                    />
+                                    <Skeleton
+                                        height={20}
+                                        radius="xl"
+                                        style={{ flex: 1 }}
+                                    />
+                                    <Skeleton
+                                        height={20}
+                                        width={40}
+                                        radius="xl"
+                                    />
+                                </Group>
+                            ))}
+                    </Stack>
+                </Stack>
+            </Card>
+
+            <Button variant="subtle" color="red" onClick={onClose} mx="auto">
+                Cancel Generation
+            </Button>
+            <style>{`
+            @keyframes pulse {
+                0% { opacity: 0.6; transform: scale(0.95); }
+                50% { opacity: 1; transform: scale(1.05); }
+                100% { opacity: 0.6; transform: scale(0.95); }
+            }
+        `}</style>
+        </Stack>
+    );
+}
