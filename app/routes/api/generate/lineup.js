@@ -1,4 +1,4 @@
-import { createModel, generateContent, parseAIResponse } from "@/utils/ai";
+import { createModel, parseAIResponse } from "@/utils/ai";
 import { listDocuments } from "@/utils/databases";
 import { Query } from "node-appwrite";
 
