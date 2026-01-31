@@ -24,7 +24,7 @@ ${JSON.stringify(Object.keys(positions))}
 4.  **Coverage**: All 10 positions must be filled each inning (if 10+ players).
 
 ## DATA INTERPRETATION
--   You will receive structured JSON input containing: 'team', 'lineup' (history), and 'availablePlayers'.
+-   You will receive structured JSON input containing: 'team', 'history', and 'availablePlayers'.
 -   **Input Legend (Minified Keys)**:
     -   **Players**: f=First Name, l=Last Name, g=Gender, p=Preferred Positions, d=Disliked Positions.
     -   **History**: d=Date, s=Runs Scored, o=Opponent Runs, l=Lineup (Player IDs), stats={ PlayerID: "Events" } (if available).
