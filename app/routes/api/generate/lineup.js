@@ -89,15 +89,15 @@ export async function action({ request }) {
             );
         }
 
-        // Step 1: Get the game to find its season
+        // Step 1: Get the game to find the teamId
         const game = await listDocuments("games", [
             Query.equal("$id", gameId),
         ]).then((response) => response.rows[0]);
 
-        if (!game || !game.seasonId) {
+        if (!game || !game.teamId) {
             return new Response(
                 JSON.stringify({
-                    error: "Game not found or not associated with a season",
+                    error: "Game not found or missing teamId",
                 }),
                 {
                     status: 404,
@@ -106,23 +106,31 @@ export async function action({ request }) {
             );
         }
 
-        const seasonId = game.seasonId;
+        const teamId = game.teamId;
 
-        // Step 2: Get all games from this season that have results
-        const seasonGames = await listDocuments("games", [
-            Query.equal("seasonId", seasonId),
+        // Step 2: Get recent games for this team (rolling history)
+        // Fetch up to 20 to ensure we find 10 valid ones with lineups
+        const teamGames = await listDocuments("games", [
+            Query.equal("teamId", teamId),
             Query.isNotNull("result"),
+            Query.orderDesc("gameDate"),
+            Query.limit(20),
         ]);
 
-        // Prioritize latest games for stats
-        // Sort by date (descending) and take top 10
-        const sortedGames = [...seasonGames.rows].sort((a, b) => {
+        // Client-side sort to be safe on date format
+        const sortedGames = [...teamGames.rows].sort((a, b) => {
             const dateA = new Date(a.gameDate || a.dateTime);
             const dateB = new Date(b.gameDate || b.dateTime);
             return dateB - dateA;
         });
 
-        const recentGameIds = sortedGames.slice(0, 10).map((g) => g.$id);
+        // Use ONLY the top 10 valid games for both stats AND history context
+        // This ensures the AI prompt doesn't grow indefinitely across seasons
+        const potentialGames = sortedGames.filter(
+            (g) => g.result && g.playerChart,
+        );
+        const recentGames = potentialGames.slice(0, 10);
+        const recentGameIds = recentGames.map((g) => g.$id);
 
         // Fetch logs for these games
         const gameStats = {};
@@ -166,9 +174,11 @@ export async function action({ request }) {
                     }
                 });
             } catch (error) {
+                const isDevelopment = process.env.NODE_ENV === "development";
+
                 console.error(
                     "Failed to fetch/process game logs for stats:",
-                    error,
+                    isDevelopment ? error : "",
                 );
                 // Fail silently, gameStats remains empty/partial
             }
@@ -176,7 +186,7 @@ export async function action({ request }) {
 
         // Step 3: Gather lineup and result data for each game
         // Filter and validate games with proper error handling
-        const historicalData = seasonGames.rows.reduce((acc, g) => {
+        const historicalData = recentGames.reduce((acc, g) => {
             // Skip games without required data early
             if (!g.result || !g.playerChart) {
                 return acc;

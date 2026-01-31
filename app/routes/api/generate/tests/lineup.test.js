@@ -13,6 +13,7 @@ jest.mock("node-appwrite", () => ({
         isNotNull: jest.fn((attr) => ({ method: "isNotNull", attr })),
         limit: jest.fn((limit) => ({ method: "limit", limit })),
         select: jest.fn((attrs) => ({ method: "select", attrs })),
+        orderDesc: jest.fn((attr) => ({ method: "orderDesc", attr })),
     },
     ID: { unique: jest.fn() },
 }));
@@ -90,9 +91,9 @@ describe("lineup generation action", () => {
             expect(response.status).toBe(404);
         });
 
-        it("should return 404 if game has no seasonId", async () => {
+        it("should return 404 if game missing teamId", async () => {
             listDocuments.mockResolvedValueOnce({
-                rows: [{ $id: "g1", seasonId: null }],
+                rows: [{ $id: "g1", teamId: null }],
             });
 
             const response = await action({ request: createMockRequest() });
@@ -101,11 +102,11 @@ describe("lineup generation action", () => {
     });
 
     describe("Historical Data Processing", () => {
-        it("should filtering and parsing of previous games", async () => {
+        it("should filter and parse previous games", async () => {
             const req = createMockRequest();
             listDocuments
                 .mockResolvedValueOnce({
-                    rows: [{ $id: "curr", seasonId: "s1" }],
+                    rows: [{ $id: "curr", teamId: "t1" }],
                 }) // Current Game
                 .mockResolvedValueOnce({
                     rows: [
@@ -115,8 +116,8 @@ describe("lineup generation action", () => {
                             $id: "g3",
                             result: "L",
                             playerChart: JSON.stringify([{ $id: "p1" }]),
-                            runsScored: 10,
-                            opponentRuns: 12,
+                            score: 10,
+                            opponentScore: 12,
                         }, // Valid
                     ],
                 }) // History
@@ -141,7 +142,7 @@ describe("lineup generation action", () => {
             const req = createMockRequest();
             listDocuments
                 .mockResolvedValueOnce({
-                    rows: [{ $id: "curr", seasonId: "s1" }],
+                    rows: [{ $id: "curr", teamId: "t1" }],
                 })
                 .mockResolvedValueOnce({
                     rows: [
@@ -192,6 +193,11 @@ describe("lineup generation action", () => {
                 "unknown_event_type",
             );
 
+            // Verify History Query
+            expect(Query.equal).toHaveBeenCalledWith("teamId", "t1");
+            expect(Query.limit).toHaveBeenCalledWith(20);
+            expect(Query.orderDesc).toHaveBeenCalledWith("gameDate");
+
             // Verify Query.select usage
             expect(Query.select).toHaveBeenCalledWith([
                 "gameId",
@@ -209,7 +215,7 @@ describe("lineup generation action", () => {
             const req = createMockRequest();
             listDocuments
                 .mockResolvedValueOnce({
-                    rows: [{ $id: "curr", seasonId: "s1" }],
+                    rows: [{ $id: "curr", teamId: "t1" }],
                 })
                 .mockResolvedValueOnce({
                     rows: [
@@ -244,12 +250,27 @@ describe("lineup generation action", () => {
             // consuming exactly 2 mocks per test.
             listDocuments
                 .mockResolvedValueOnce({
-                    rows: [{ $id: "curr", seasonId: "s1" }],
+                    rows: [{ $id: "curr", teamId: "t1" }],
                 })
                 .mockResolvedValueOnce({ rows: [] });
 
             mockGenerateContent.mockResolvedValue({
                 response: { text: () => "{}" },
+            });
+
+            // Update parser mock to include bats
+            parseAIResponse.mockReturnValue({
+                lineup: [
+                    {
+                        $id: "p1",
+                        firstName: "John",
+                        lastName: "Doe",
+                        gender: "M",
+                        bats: "R",
+                        positions: ["LF", "LF", "LF", "LF", "LF", "LF", "LF"],
+                    },
+                ],
+                reasoning: "Test reasoning",
             });
         });
 
@@ -306,7 +327,7 @@ describe("lineup generation action", () => {
             expect(response.status).toBe(200);
             expect(data.success).toBe(true);
             expect(data.lineup[0].$id).toBe("p1");
-            expect(data.lineup[0].bats).toBe("Right");
+            expect(data.lineup[0].bats).toBe("R");
         });
     });
 });
