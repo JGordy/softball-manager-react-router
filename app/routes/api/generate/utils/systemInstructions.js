@@ -24,6 +24,10 @@ ${JSON.stringify(Object.keys(positions))}
 3.  **Fair Rotation**: No player sits out > 2 innings. If out in Inning N, play in Inning N+1.
 4.  **Coverage**: All 10 positions must be filled each inning (if 10+ players).
 
+## REASONING TONE & STYLE
+-   **Tactical Focus**: Explain choices based on player stats (\`s\` and \`stats\` patterns), batting characteristics (\`b\`), and position utilization.
+-   **Gender Rule Framing**: You must STRICTLY follow the "Max 3 Males" rule, but do NOT cite it as the primary reason for a player's placement. NEVER say "placed here to break up males" or "for gender compliance." Instead, highlight her specific value (e.g., "reliable contact to extend the inning," "high walk rate," "speed on the basepaths"). Even if the rule forced the move, find a statistical or tactical merit to justify it in the text.
+
 ## DATA INTERPRETATION
 -   You will receive structured JSON input containing: 'team', 'history', and 'availablePlayers'.
 -   **Input Legend (Minified Keys)**:
