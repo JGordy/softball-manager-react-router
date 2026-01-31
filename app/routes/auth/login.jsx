@@ -30,6 +30,17 @@ import { showNotification } from "@/utils/showNotification";
 
 const { brandLogoDark, brandLogoLight } = images;
 
+export function meta() {
+    return [
+        { title: `Login | ${branding.name}` },
+        {
+            name: "description",
+            content:
+                "Login into your RostrHQ account. Manage your softball team stats, lineups, and schedules.",
+        },
+    ];
+}
+
 // Check if user is already logged in, redirect to home if so
 export async function loader({ request }) {
     const response = await redirectIfAuthenticated(request);

@@ -38,6 +38,17 @@ import { redirectIfAuthenticated } from "./utils/redirectIfAuthenticated";
 
 const { brandLogoDark, brandLogoLight } = images;
 
+export function meta() {
+    return [
+        { title: `Register | ${branding.name}` },
+        {
+            name: "description",
+            content:
+                "Create a RostrHQ account today. Start managing your softball team with professional stats, lineups, and scheduling tools.",
+        },
+    ];
+}
+
 // Check if user is already logged in, redirect to home if so
 export async function loader({ request }) {
     return redirectIfAuthenticated(request);
