@@ -30,6 +30,30 @@ import TabsWrapper from "@/components/TabsWrapper";
 
 import positions from "@/constants/positions";
 
+const PlayerPositions = ({ preferredPositions, playerId }) => {
+    const positionCount = preferredPositions?.length || 0;
+    const maxVisible = 4;
+    const hasOverflow = positionCount > maxVisible;
+    const displayCount = hasOverflow ? maxVisible - 1 : maxVisible;
+    const visiblePositions = preferredPositions?.slice(0, displayCount) || [];
+    const overflowCount = positionCount - displayCount;
+
+    return (
+        <Avatar.Group>
+            {visiblePositions.map((position) => (
+                <Tooltip key={playerId + position} label={position} withArrow>
+                    <Avatar
+                        name={positions[position].initials}
+                        alt={position}
+                        color="initials"
+                    />
+                </Tooltip>
+            ))}
+            {hasOverflow && <Avatar>+{overflowCount}</Avatar>}
+        </Avatar.Group>
+    );
+};
+
 export default function PlayerList({
     players,
     managerIds,
@@ -88,30 +112,12 @@ export default function PlayerList({
                                         )}
                                     </Group>
                                     <Group>
-                                        <Avatar.Group>
-                                            {player?.preferredPositions?.map(
-                                                (position) => (
-                                                    <Tooltip
-                                                        key={
-                                                            player.$id +
-                                                            position
-                                                        }
-                                                        label={position}
-                                                        withArrow
-                                                    >
-                                                        <Avatar
-                                                            name={
-                                                                positions[
-                                                                    position
-                                                                ].initials
-                                                            }
-                                                            alt={position}
-                                                            color="initials"
-                                                        />
-                                                    </Tooltip>
-                                                ),
-                                            )}
-                                        </Avatar.Group>
+                                        <PlayerPositions
+                                            preferredPositions={
+                                                player.preferredPositions
+                                            }
+                                            playerId={player.$id}
+                                        />
                                         <IconChevronRight size={20} />
                                     </Group>
                                 </Flex>
