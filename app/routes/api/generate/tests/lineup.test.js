@@ -266,7 +266,7 @@ describe("lineup generation action", () => {
                         firstName: "John",
                         lastName: "Doe",
                         gender: "M",
-                        bats: "R",
+                        bats: "Right",
                         positions: ["LF", "LF", "LF", "LF", "LF", "LF", "LF"],
                     },
                 ],
@@ -327,7 +327,7 @@ describe("lineup generation action", () => {
             expect(response.status).toBe(200);
             expect(data.success).toBe(true);
             expect(data.lineup[0].$id).toBe("p1");
-            expect(data.lineup[0].bats).toBe("R");
+            expect(data.lineup[0].bats).toBe("Right");
         });
     });
 });

@@ -1,39 +1,27 @@
 import { createModel, parseAIResponse } from "@/utils/ai";
 import { listDocuments } from "@/utils/databases";
+import { EVENT_TYPE_MAP, UI_KEYS } from "@/constants/scoring";
 import { Query } from "node-appwrite";
 
 import lineupSchema from "./utils/lineupSchema";
 import { getLineupSystemInstruction } from "./utils/systemInstructions";
 
-const DB_TO_MINIFIED_EVENT = {
-    // Database Values
-    single: "1B",
-    double: "2B",
-    triple: "3B",
-    homerun: "HR",
-    walk: "BB",
-    strikeout: "K",
-    fly_out: "OUT",
-    ground_out: "OUT",
-    line_out: "OUT",
-    pop_out: "OUT",
-    error: "E",
-    fielders_choice: "FC",
-    sacrifice_fly: "SF",
-    out: "OUT",
+// Derive minified event codes from the shared scoring constants
+const DB_TO_MINIFIED_EVENT = Object.entries(EVENT_TYPE_MAP).reduce(
+    (acc, [uiKey, dbValue]) => {
+        // Map verbose batted out descriptions to "OUT" for AI context
+        const isVerboseOut = [
+            UI_KEYS.GROUND_OUT,
+            UI_KEYS.FLY_OUT,
+            UI_KEYS.LINE_OUT,
+            UI_KEYS.POP_OUT,
+        ].includes(uiKey);
 
-    // Existing UI Keys (Pass-through)
-    "1B": "1B",
-    "2B": "2B",
-    "3B": "3B",
-    HR: "HR",
-    BB: "BB",
-    K: "K",
-    OUT: "OUT",
-    E: "E",
-    FC: "FC",
-    SF: "SF",
-};
+        acc[dbValue] = isVerboseOut ? "OUT" : uiKey;
+        return acc;
+    },
+    {},
+);
 
 /**
  * Sanitize reasoning text to remove any database IDs that might have been included by the AI
