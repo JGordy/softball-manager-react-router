@@ -39,6 +39,12 @@ const lineupSchema = {
                         description: "Player's gender (male or female)",
                         nullable: false,
                     },
+                    bats: {
+                        type: SchemaType.STRING,
+                        description:
+                            "Player's batting side (Right, Left, or Switch)",
+                        nullable: true,
+                    },
                     positions: {
                         type: SchemaType.ARRAY,
                         description:

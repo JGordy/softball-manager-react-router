@@ -1,9 +1,27 @@
 import { createModel, parseAIResponse } from "@/utils/ai";
 import { listDocuments } from "@/utils/databases";
+import { EVENT_TYPE_MAP, UI_KEYS } from "@/constants/scoring";
 import { Query } from "node-appwrite";
 
 import lineupSchema from "./utils/lineupSchema";
 import { getLineupSystemInstruction } from "./utils/systemInstructions";
+
+// Derive minified event codes from the shared scoring constants
+const DB_TO_MINIFIED_EVENT = Object.entries(EVENT_TYPE_MAP).reduce(
+    (acc, [uiKey, dbValue]) => {
+        // Map verbose batted out descriptions to "OUT" for AI context
+        const isVerboseOut = [
+            UI_KEYS.GROUND_OUT,
+            UI_KEYS.FLY_OUT,
+            UI_KEYS.LINE_OUT,
+            UI_KEYS.POP_OUT,
+        ].includes(uiKey);
+
+        acc[dbValue] = isVerboseOut ? "OUT" : uiKey;
+        return acc;
+    },
+    {},
+);
 
 /**
  * Sanitize reasoning text to remove any database IDs that might have been included by the AI
@@ -59,15 +77,15 @@ export async function action({ request }) {
             );
         }
 
-        // Step 1: Get the game to find its season
+        // Step 1: Get the game to find the teamId
         const game = await listDocuments("games", [
             Query.equal("$id", gameId),
         ]).then((response) => response.rows[0]);
 
-        if (!game || !game.seasonId) {
+        if (!game || !game.teamId) {
             return new Response(
                 JSON.stringify({
-                    error: "Game not found or not associated with a season",
+                    error: "Game not found or missing teamId",
                 }),
                 {
                     status: 404,
@@ -76,17 +94,87 @@ export async function action({ request }) {
             );
         }
 
-        const seasonId = game.seasonId;
+        const teamId = game.teamId;
 
-        // Step 2: Get all games from this season that have results
-        const seasonGames = await listDocuments("games", [
-            Query.equal("seasonId", seasonId),
+        // Step 2: Get recent games for this team (rolling history)
+        // Fetch up to 20 to ensure we find 10 valid ones with lineups
+        const teamGames = await listDocuments("games", [
+            Query.equal("teamId", teamId),
             Query.isNotNull("result"),
+            Query.orderDesc("gameDate"),
+            Query.limit(20),
         ]);
+
+        // Client-side sort to be safe on date format
+        const sortedGames = [...teamGames.rows].sort((a, b) => {
+            const dateA = new Date(a.gameDate || a.dateTime);
+            const dateB = new Date(b.gameDate || b.dateTime);
+            return dateB - dateA;
+        });
+
+        // Use ONLY the top 10 valid games for both stats AND history context
+        // This ensures the AI prompt doesn't grow indefinitely across seasons
+        const potentialGames = sortedGames.filter(
+            (g) => g.result && g.playerChart,
+        );
+        const recentGames = potentialGames.slice(0, 10);
+        const recentGameIds = recentGames.map((g) => g.$id);
+
+        // Fetch logs for these games
+        const gameStats = {};
+        if (recentGameIds.length > 0) {
+            try {
+                const logs = await listDocuments("game_logs", [
+                    Query.equal("gameId", recentGameIds),
+                    Query.limit(2000), // Ensure we get enough logs
+                    Query.select([
+                        "gameId",
+                        "playerId",
+                        "eventType",
+                        "description",
+                        "rbi",
+                    ]),
+                ]);
+
+                logs.rows.forEach((log) => {
+                    const eventCode = DB_TO_MINIFIED_EVENT[log.eventType];
+                    if (eventCode) {
+                        if (!gameStats[log.gameId]) {
+                            gameStats[log.gameId] = {};
+                        }
+                        if (!gameStats[log.gameId][log.playerId]) {
+                            gameStats[log.gameId][log.playerId] = [];
+                        }
+
+                        // Append description if available for context (e.g., location, power)
+                        let statEntry = eventCode;
+
+                        // Collect extra details
+                        const details = [];
+                        if (log.description) details.push(log.description);
+                        if (log.rbi) details.push(`RBI:${log.rbi}`);
+
+                        if (details.length > 0) {
+                            statEntry += `(${details.join(", ")})`;
+                        }
+
+                        gameStats[log.gameId][log.playerId].push(statEntry);
+                    }
+                });
+            } catch (error) {
+                const isDevelopment = process.env.NODE_ENV === "development";
+
+                console.error(
+                    "Failed to fetch/process game logs for stats:",
+                    isDevelopment ? error : "",
+                );
+                // Fail silently, gameStats remains empty/partial
+            }
+        }
 
         // Step 3: Gather lineup and result data for each game
         // Filter and validate games with proper error handling
-        const historicalData = seasonGames.rows.reduce((acc, g) => {
+        const historicalData = recentGames.reduce((acc, g) => {
             // Skip games without required data early
             if (!g.result || !g.playerChart) {
                 return acc;
@@ -141,14 +229,26 @@ export async function action({ request }) {
             const opponentRuns = parseInt(g.opponentScore) || 0;
             const gameResult = g.result || "unknown";
 
-            acc.push({
+            const entry = {
                 gameId: g.$id,
                 gameDate: g.gameDate || g.dateTime,
                 lineup: playerChart, // Still has full objects here
                 runsScored,
                 opponentRuns,
                 gameResult,
-            });
+            };
+
+            // Add stats if available for this game
+            if (gameStats[g.$id]) {
+                entry.stats = {};
+                Object.entries(gameStats[g.$id]).forEach(
+                    ([playerId, events]) => {
+                        entry.stats[playerId] = events.join(" ");
+                    },
+                );
+            }
+
+            acc.push(entry);
 
             return acc;
         }, []);
@@ -159,13 +259,21 @@ export async function action({ request }) {
 
         // Step 4: Prepare Data for AI (Minification)
 
-        // Minify History: Date, Score, OpponentScore, Lineup (IDs only)
-        const minifiedHistory = historicalData.map((g) => ({
-            d: g.gameDate,
-            s: g.runsScored,
-            o: g.opponentRuns,
-            l: g.lineup.map((p) => p.$id),
-        }));
+        // Minify History: Date, Score, OpponentScore, Lineup (IDs only), Stats (if avail)
+        const minifiedHistory = historicalData.map((g) => {
+            const entry = {
+                d: g.gameDate,
+                s: g.runsScored,
+                o: g.opponentRuns,
+                l: g.lineup.map((p) => p.$id),
+            };
+
+            if (g.stats) {
+                entry.stats = g.stats;
+            }
+
+            return entry;
+        });
 
         // Minify Available Players
         const minifiedPlayers = players.map((p) => ({
@@ -175,6 +283,7 @@ export async function action({ request }) {
             g: p.gender,
             p: p.preferredPositions || [],
             d: p.dislikedPositions || [],
+            b: p.bats,
         }));
 
         // Team Logic
@@ -288,6 +397,7 @@ export async function action({ request }) {
                 firstName: player.firstName,
                 lastName: player.lastName,
                 gender: player.gender,
+                bats: player.bats,
                 positions: player.positions,
             };
         });

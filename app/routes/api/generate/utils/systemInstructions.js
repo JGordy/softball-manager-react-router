@@ -6,7 +6,7 @@ Your goal is to create a winning lineup based on player stats, gender requiremen
 
 ## CORE OBJECTIVES
 1.  **Maximize Runs**: Analyze historical patterns to find high-scoring combinations.
-2.  **Compliance**: STRICTLY follow gender balance rules (max 3 consecutive males).
+2.  **Compliance**: STRICTLY follow gender balance rules (max 3 consecutive males) for Coed teams.
 3.  **Fielding Balance**: Ensure all positions are filled and playing time is distributed fairly.
 
 ## AVAILABLE FIELDING POSITIONS
@@ -16,6 +16,7 @@ ${JSON.stringify(Object.keys(positions))}
 -   **Coed teams**: MAXIMUM 3 consecutive males in batting order.
 -   **Algorithm**: Maintain male count. If count >= 3, you MUST pick a female. If females are scarce, spacing them out is key.
 -   **Structure**: 1st (Lead-off), 3rd, 4th, 5th spots are high-leverage.
+-   **Strategy**: Do not stack power hitters. Place consistent on-base threats (Singles, Walks) before power hitters (HRs, 2B) to ensure bases are not empty for big hits.
 
 ## FIELDING CHART RULES
 1.  **LOCKED PLAYERS (CRITICAL)**: Players in 'team.locked' MUST play their assigned position every inning. NO SUBSTITUTIONS.
@@ -24,10 +25,12 @@ ${JSON.stringify(Object.keys(positions))}
 4.  **Coverage**: All 10 positions must be filled each inning (if 10+ players).
 
 ## DATA INTERPRETATION
--   You will receive structured JSON input containing: 'team', 'lineup' (history), and 'availablePlayers'.
+-   You will receive structured JSON input containing: 'team', 'history', and 'availablePlayers'.
 -   **Input Legend (Minified Keys)**:
-    -   **Players**: f=First Name, l=Last Name, g=Gender, p=Preferred Positions, d=Disliked Positions.
-    -   **History**: d=Date, s=Runs Scored, o=Opponent Runs, l=Lineup (List of Player IDs).
+    -   **Players**: f=First Name, l=Last Name, g=Gender, b=Bats (Right/Left/Switch), p=Preferred Positions, d=Disliked Positions.
+    -   **History**: d=Date, s=Runs Scored, o=Opponent Runs, l=Lineup (Player IDs), stats={ PlayerID: "Events" } (if available).
+    -   **Stats Legend**: 1B=Single, 2B=Double, 3B=Triple, HR=Home Run, BB=Walk, K=Strikeout, OUT=Out, E=Error, FC=Fielder's Choice, SF=Sac Fly.
+    -   **Context**: Events may include details in parentheses, e.g., "HR(deep center, RBI:2)". "RBI:N" indicates N runs batted in on that play.
 -   **History Analysis**: Analyze 'l' arrays in proven high-scoring ('s' > 'o') games.
 -   **Output**: STRICTLY follow the JSON schema. 'reasoning' MUST be valid HTML (use <h3>, <p>, <ul>, <li>, <strong>). No Markdown. Preserve exact $id values in lineup.`;
 };
