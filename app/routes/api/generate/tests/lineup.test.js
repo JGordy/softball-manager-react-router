@@ -36,6 +36,7 @@ describe("lineup generation action", () => {
                     firstName: "John",
                     lastName: "Doe",
                     gender: "M",
+                    bats: "Right",
                     positions: ["LF", "LF", "LF", "LF", "LF", "LF", "LF"],
                 },
             ],
@@ -52,6 +53,7 @@ describe("lineup generation action", () => {
                     firstName: "John",
                     lastName: "Doe",
                     gender: "M",
+                    bats: "Right",
                 },
             ],
             team: { name: "Test Team", genderMix: "coed" },
@@ -198,6 +200,9 @@ describe("lineup generation action", () => {
                 "description",
                 "rbi",
             ]);
+
+            // Verify 'bats' is included in available players
+            expect(inputData.availablePlayers[0].b).toBeDefined();
         });
 
         it("should gracefully handle log fetch failure", async () => {
@@ -301,6 +306,7 @@ describe("lineup generation action", () => {
             expect(response.status).toBe(200);
             expect(data.success).toBe(true);
             expect(data.lineup[0].$id).toBe("p1");
+            expect(data.lineup[0].bats).toBe("Right");
         });
     });
 });

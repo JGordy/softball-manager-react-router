@@ -285,6 +285,7 @@ export async function action({ request }) {
             g: p.gender,
             p: p.preferredPositions || [],
             d: p.dislikedPositions || [],
+            b: p.bats,
         }));
 
         // Team Logic
@@ -398,6 +399,7 @@ export async function action({ request }) {
                 firstName: player.firstName,
                 lastName: player.lastName,
                 gender: player.gender,
+                bats: player.bats,
                 positions: player.positions,
             };
         });
