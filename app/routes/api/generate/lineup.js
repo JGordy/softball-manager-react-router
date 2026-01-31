@@ -6,6 +6,7 @@ import lineupSchema from "./utils/lineupSchema";
 import { getLineupSystemInstruction } from "./utils/systemInstructions";
 
 const DB_TO_MINIFIED_EVENT = {
+    // Database Values
     single: "1B",
     double: "2B",
     triple: "3B",
@@ -18,7 +19,20 @@ const DB_TO_MINIFIED_EVENT = {
     pop_out: "OUT",
     error: "E",
     fielders_choice: "FC",
-    sac_fly: "SF",
+    sacrifice_fly: "SF",
+    out: "OUT",
+
+    // Existing UI Keys (Pass-through)
+    "1B": "1B",
+    "2B": "2B",
+    "3B": "3B",
+    HR: "HR",
+    BB: "BB",
+    K: "K",
+    OUT: "OUT",
+    E: "E",
+    FC: "FC",
+    SF: "SF",
 };
 
 /**
@@ -113,30 +127,51 @@ export async function action({ request }) {
         // Fetch logs for these games
         const gameStats = {};
         if (recentGameIds.length > 0) {
-            const logs = await listDocuments("game_logs", [
-                Query.equal("gameId", recentGameIds),
-                Query.limit(2000), // Ensure we get enough logs
-            ]);
+            try {
+                const logs = await listDocuments("game_logs", [
+                    Query.equal("gameId", recentGameIds),
+                    Query.limit(2000), // Ensure we get enough logs
+                    Query.select([
+                        "gameId",
+                        "playerId",
+                        "eventType",
+                        "description",
+                        "rbi",
+                    ]),
+                ]);
 
-            logs.rows.forEach((log) => {
-                const eventCode = DB_TO_MINIFIED_EVENT[log.eventType];
-                if (eventCode) {
-                    if (!gameStats[log.gameId]) {
-                        gameStats[log.gameId] = {};
-                    }
-                    if (!gameStats[log.gameId][log.playerId]) {
-                        gameStats[log.gameId][log.playerId] = [];
-                    }
+                logs.rows.forEach((log) => {
+                    const eventCode = DB_TO_MINIFIED_EVENT[log.eventType];
+                    if (eventCode) {
+                        if (!gameStats[log.gameId]) {
+                            gameStats[log.gameId] = {};
+                        }
+                        if (!gameStats[log.gameId][log.playerId]) {
+                            gameStats[log.gameId][log.playerId] = [];
+                        }
 
-                    // Append description if available for context (e.g., location, power)
-                    let statEntry = eventCode;
-                    if (log.description) {
-                        statEntry += `(${log.description})`;
-                    }
+                        // Append description if available for context (e.g., location, power)
+                        let statEntry = eventCode;
 
-                    gameStats[log.gameId][log.playerId].push(statEntry);
-                }
-            });
+                        // Collect extra details
+                        const details = [];
+                        if (log.description) details.push(log.description);
+                        if (log.rbi) details.push(`RBI:${log.rbi}`);
+
+                        if (details.length > 0) {
+                            statEntry += `(${details.join(", ")})`;
+                        }
+
+                        gameStats[log.gameId][log.playerId].push(statEntry);
+                    }
+                });
+            } catch (error) {
+                console.error(
+                    "Failed to fetch/process game logs for stats:",
+                    error,
+                );
+                // Fail silently, gameStats remains empty/partial
+            }
         }
 
         // Step 3: Gather lineup and result data for each game
