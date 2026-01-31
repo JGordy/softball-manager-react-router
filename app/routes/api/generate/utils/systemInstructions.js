@@ -16,6 +16,7 @@ ${JSON.stringify(Object.keys(positions))}
 -   **Coed teams**: MAXIMUM 3 consecutive males in batting order.
 -   **Algorithm**: Maintain male count. If count >= 3, you MUST pick a female. If females are scarce, spacing them out is key.
 -   **Structure**: 1st (Lead-off), 3rd, 4th, 5th spots are high-leverage.
+-   **Strategy**: Do not stack power hitters. Place consistent on-base threats (Singles, Walks) before power hitters (HRs, 2B) to ensure bases are not empty for big hits.
 
 ## FIELDING CHART RULES
 1.  **LOCKED PLAYERS (CRITICAL)**: Players in 'team.locked' MUST play their assigned position every inning. NO SUBSTITUTIONS.
