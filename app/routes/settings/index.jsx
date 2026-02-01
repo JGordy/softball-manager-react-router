@@ -15,6 +15,7 @@ import UserHeader from "@/components/UserHeader";
 import AccountPanel from "./components/AccountPanel";
 import AuthPanel from "./components/AuthPanel";
 import NotificationsPanel from "./components/NotificationsPanel";
+import SupportPanel from "./components/SupportPanel";
 import { createSessionClient } from "@/utils/appwrite/server";
 import { Query } from "node-appwrite";
 
@@ -114,6 +115,13 @@ export default function Settings({ actionData }) {
                     <Accordion.Control>Notifications</Accordion.Control>
                     <Accordion.Panel>
                         <NotificationsPanel teams={teams} />
+                    </Accordion.Panel>
+                </Accordion.Item>
+
+                <Accordion.Item value="support">
+                    <Accordion.Control>Support</Accordion.Control>
+                    <Accordion.Panel>
+                        <SupportPanel />
                     </Accordion.Panel>
                 </Accordion.Item>
 
