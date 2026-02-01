@@ -4,6 +4,8 @@ import { createSessionClient } from "@/utils/appwrite/server";
 
 import { logoutAction } from "@/actions/logout";
 
+import branding from "@/constants/branding";
+
 import FeaturesSection from "./components/FeaturesSection";
 import ShowcaseSection from "./components/ShowcaseSection";
 import HeroSection from "./components/HeroSection";
@@ -17,7 +19,7 @@ export const links = () => [
 ];
 
 export const meta = () => {
-    const title = "Softball Manager - Manage Your Team Like a Pro";
+    const title = `${branding.name} - ${branding.tagline}`;
     const description =
         "The ultimate app for softball team management. Track stats, manage lineups, handle RSVPs, and score games in real-time.";
     const image = "/hero-desktop.jpg"; // Ensure this matches your deployment domain for best results
