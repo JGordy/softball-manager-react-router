@@ -6,6 +6,7 @@ export default [
     route("/register", "routes/auth/register.jsx"),
     route("/verify", "routes/auth/verify.jsx"),
     route("/recovery", "routes/auth/recover.jsx"),
+    route("/forgot-password", "routes/auth/forgot-password.jsx"),
     route("/auth/oauth", "routes/auth/oauth.jsx"),
     route("/auth/callback", "routes/auth/callback.jsx"),
 

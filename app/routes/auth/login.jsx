@@ -152,6 +152,16 @@ export default function Login({ loaderData }) {
                             mt="md"
                             size="md"
                         />
+                        <Group justify="flex-end" mt="xs">
+                            <Text
+                                component={Link}
+                                to="/forgot-password"
+                                size="xs"
+                                c="dimmed"
+                            >
+                                Forgot password?
+                            </Text>
+                        </Group>
                         <Button fullWidth mt="xl" size="md" type="submit">
                             Login
                         </Button>
