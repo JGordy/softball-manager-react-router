@@ -4,7 +4,7 @@ import { createSessionClient } from "@/utils/appwrite/server";
 
 import { logoutAction } from "@/actions/logout";
 
-import branding from "@constants";
+import branding from "@/constants/branding";
 
 import FeaturesSection from "./components/FeaturesSection";
 import ShowcaseSection from "./components/ShowcaseSection";
