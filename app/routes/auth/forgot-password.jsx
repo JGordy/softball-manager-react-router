@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Link, useActionData, Form } from "react-router";
 import { Alert, Button, Container, Paper, Text, Title } from "@mantine/core";
 import {
