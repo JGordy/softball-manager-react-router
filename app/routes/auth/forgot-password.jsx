@@ -85,11 +85,7 @@ export default function ForgotPassword() {
                 )}
 
                 <Form method="post">
-                    <AutocompleteEmail
-                        label="Email"
-                        placeholder="you@example.com"
-                        required
-                    />
+                    <AutocompleteEmail required />
                     <Button fullWidth mt="xl" type="submit" color="green">
                         Send Reset Link
                     </Button>
