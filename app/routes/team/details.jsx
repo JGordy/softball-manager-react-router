@@ -16,7 +16,11 @@ import TabsWrapper from "@/components/TabsWrapper";
 import { createSingleGame } from "@/actions/games";
 import { createPlayer } from "@/actions/users";
 import { createSeason } from "@/actions/seasons";
-import { updateTeam, updateMemberRole } from "@/actions/teams";
+import {
+    updateTeam,
+    updateMemberRole,
+    updatePreferences,
+} from "@/actions/teams";
 import { invitePlayersServer } from "@/actions/invitations";
 
 import { getTeamById } from "@/loaders/teams";
@@ -45,6 +49,13 @@ export async function action({ request, params }) {
 
     if (_action === "add-player") {
         return createPlayer({ values, teamId });
+    }
+
+    if (_action === "update-preferences") {
+        return updatePreferences({
+            teamId,
+            prefs: { maxMaleBatters: values.maxMaleBatters },
+        });
     }
 
     if (_action === "invite-player") {
