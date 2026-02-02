@@ -41,7 +41,8 @@ describe("validateLineup", () => {
 
     it("should detect batting order errors (max 3 consecutive males)", () => {
         const lineup = [...mockPlayers]; // 4 males then 1 female
-        const team = { genderMix: "Coed" };
+        // Preference explicitly set to 3
+        const team = { prefs: { maxMaleBatters: 3 } };
         const { battingErrors } = validateLineup(lineup, team);
 
         expect(battingErrors).toHaveLength(1);
@@ -49,6 +50,14 @@ describe("validateLineup", () => {
         expect(battingErrors[0].message).toContain(
             "More than 3 consecutive male batters (4 in a row)",
         );
+    });
+
+    it("should not detect batting order errors if rule is disabled (default)", () => {
+        const lineup = [...mockPlayers]; // 4 males then 1 female
+        // No prefs set
+        const team = { genderMix: "Coed" }; // Legacy mix shouldn't matter anymore
+        const { battingErrors } = validateLineup(lineup, team);
+        expect(battingErrors).toHaveLength(0);
     });
 
     it("should not detect batting order errors if rule is followed", () => {
@@ -59,7 +68,10 @@ describe("validateLineup", () => {
             mockPlayers[4], // Female
             mockPlayers[3], // Male
         ];
-        const { battingErrors } = validateLineup(lineup);
+        // Enforce rule so we know it's checking
+        const team = { prefs: { maxMaleBatters: 3 } };
+
+        const { battingErrors } = validateLineup(lineup, team);
         expect(battingErrors).toHaveLength(0);
     });
 
@@ -91,7 +103,7 @@ describe("validateLineup", () => {
 
     it("should generate summary messages", () => {
         const lineup = [...mockPlayers]; // 4 males
-        const team = { genderMix: "Coed" };
+        const team = { prefs: { maxMaleBatters: 3 } };
         const { summary } = validateLineup(lineup, team);
 
         expect(

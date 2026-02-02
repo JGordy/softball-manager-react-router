@@ -1,7 +1,9 @@
+import { Query } from "node-appwrite";
+
 import { createModel, parseAIResponse } from "@/utils/ai";
 import { listDocuments } from "@/utils/databases";
+import { createAdminClient } from "@/utils/appwrite/server";
 import { EVENT_TYPE_MAP, UI_KEYS } from "@/constants/scoring";
-import { Query } from "node-appwrite";
 
 import lineupSchema from "./utils/lineupSchema";
 import { getLineupSystemInstruction } from "./utils/systemInstructions";
@@ -95,6 +97,15 @@ export async function action({ request }) {
         }
 
         const teamId = game.teamId;
+
+        const { teams } = createAdminClient();
+        let maxMaleBatters = 0;
+        try {
+            const prefs = await teams.getPrefs(teamId);
+            maxMaleBatters = parseInt(prefs.maxMaleBatters, 10) || 0;
+        } catch (e) {
+            // failed to load prefs or no prefs set, stick to defaults
+        }
 
         // Step 2: Get recent games for this team (rolling history)
         // Fetch up to 20 to ensure we find 10 valid ones with lineups
@@ -329,7 +340,7 @@ export async function action({ request }) {
                 responseMimeType: "application/json",
                 responseSchema: lineupSchema,
             },
-            systemInstruction: getLineupSystemInstruction(),
+            systemInstruction: getLineupSystemInstruction(maxMaleBatters),
         });
 
         // Use "Data-as-a-Part" structure

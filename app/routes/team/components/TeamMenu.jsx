@@ -5,9 +5,9 @@ import {
     IconCalendar,
     IconEdit,
     IconMailFast,
-    IconUserFilled,
     IconShieldLock,
     IconClipboardList,
+    IconSettings,
 } from "@tabler/icons-react";
 
 import AddTeam from "@/forms/AddTeam";
@@ -21,12 +21,17 @@ import useModal from "@/hooks/useModal";
 
 import MenuContainer from "@/components/MenuContainer";
 import ManageRolesDrawer from "./ManageRolesDrawer";
+import PreferencesDrawer from "./PreferencesDrawer";
 
 export default function TeamMenu({ userId, team, ownerView, players }) {
     const navigate = useNavigate();
     const { openModal } = useModal();
     const [rolesOpened, { open: openRoles, close: closeRoles }] =
         useDisclosure(false);
+    const [
+        preferencesOpened,
+        { open: openPreferences, close: closePreferences },
+    ] = useDisclosure(false);
 
     const { $id: teamId, name: teamName, seasons, primaryColor } = team;
 
@@ -153,6 +158,12 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                     leftSection: <IconShieldLock size={18} />,
                     content: <Text>Manage Roles</Text>,
                 },
+                {
+                    key: "preferences",
+                    onClick: openPreferences,
+                    leftSection: <IconSettings size={18} />,
+                    content: <Text>Preferences</Text>,
+                },
             ],
         });
     }
@@ -166,6 +177,11 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                 players={players}
                 teamId={teamId}
                 userId={userId}
+            />
+            <PreferencesDrawer
+                opened={preferencesOpened}
+                onClose={closePreferences}
+                team={team}
             />
         </>
     );
