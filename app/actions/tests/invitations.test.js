@@ -1,6 +1,7 @@
 import {
     invitePlayerByEmail,
     invitePlayers,
+    invitePlayersServer,
     acceptTeamInvitation,
     setPasswordForInvitedUser,
 } from "../invitations";
@@ -19,6 +20,7 @@ const mockCreateSession = jest.fn().mockResolvedValue({
     secret: "test-session-secret",
 });
 jest.mock("node-appwrite", () => ({
+    Query: { equal: jest.fn((k, v) => ({ key: k, value: v })) },
     Users: jest.fn().mockImplementation(() => ({
         updatePassword: mockUpdatePassword,
         createSession: mockCreateSession,
@@ -37,12 +39,14 @@ jest.mock("appwrite", () => ({
 }));
 
 // Mock server utilities
+const mockCreateSessionClient = jest.fn();
+const mockCreateAdminClient = jest.fn();
+const mockParseSessionCookie = jest.fn();
+
 jest.mock("@/utils/appwrite/server", () => ({
-    createAdminClient: jest.fn(() => ({
-        account: {
-            client: {},
-        },
-    })),
+    createSessionClient: (...args) => mockCreateSessionClient(...args),
+    createAdminClient: (...args) => mockCreateAdminClient(...args),
+    parseSessionCookie: (...args) => mockParseSessionCookie(...args),
 }));
 
 // Mock databases
@@ -352,6 +356,11 @@ describe("Invitations Actions", () => {
             mockCreateSession.mockResolvedValue({
                 secret: "test-session-secret",
             });
+            mockCreateAdminClient.mockReturnValue({
+                account: {
+                    client: {},
+                },
+            });
         });
 
         it("should set password and return redirect response", async () => {
@@ -406,6 +415,171 @@ describe("Invitations Actions", () => {
 
             expect(result.success).toBe(false);
             expect(result.message).toBe("User not found");
+        });
+    });
+
+    describe("invitePlayersServer", () => {
+        const teamId = "team-123";
+        const url = "http://localhost/accept";
+        const players = [{ email: "test@example.com", name: "Test User" }];
+        const request = {
+            headers: {
+                get: jest.fn().mockReturnValue("appwrite-session=s1"),
+            },
+        };
+
+        let mockSessionTeams, mockSessionAccount;
+        let mockAdminTeams, mockAdminUsers;
+
+        beforeEach(() => {
+            // Setup Mocks by resetting the global mocks and providing new return values
+            mockCreateSessionClient.mockReset();
+            mockCreateAdminClient.mockReset();
+            mockParseSessionCookie.mockReset();
+
+            mockSessionTeams = {
+                listMemberships: jest.fn().mockResolvedValue({
+                    total: 1,
+                    memberships: [{ roles: ["owner"] }],
+                }),
+            };
+            mockSessionAccount = {
+                get: jest.fn().mockResolvedValue({ $id: "user-123" }),
+            };
+            mockCreateSessionClient.mockResolvedValue({
+                teams: mockSessionTeams,
+                account: mockSessionAccount,
+            });
+
+            mockAdminUsers = {
+                list: jest.fn(),
+            };
+            mockAdminTeams = {
+                listMemberships: jest.fn(),
+                createMembership: jest.fn(),
+            };
+            mockCreateAdminClient.mockReturnValue({
+                users: mockAdminUsers,
+                teams: mockAdminTeams,
+            });
+
+            mockParseSessionCookie.mockReturnValue("s1");
+        });
+
+        it("should fail if permission check returns no membership", async () => {
+            mockSessionTeams.listMemberships.mockResolvedValue({
+                total: 0,
+                memberships: [],
+            });
+
+            const result = await invitePlayersServer({
+                players,
+                teamId,
+                url,
+                request,
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.message).toContain("You do not have permission");
+        });
+
+        it("should fail if permission check returns non-owner role", async () => {
+            mockSessionTeams.listMemberships.mockResolvedValue({
+                total: 1,
+                memberships: [{ roles: ["player"] }],
+            });
+
+            const result = await invitePlayersServer({
+                players,
+                teamId,
+                url,
+                request,
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.message).toContain("You do not have permission");
+        });
+
+        it("should auto-add existing users via Admin Client", async () => {
+            // User exists
+            mockAdminUsers.list.mockResolvedValue({
+                total: 1,
+                users: [{ $id: "existing-u1", email: "test@example.com" }],
+            });
+            // User not in team yet
+            mockAdminTeams.listMemberships.mockResolvedValue({
+                total: 0,
+                memberships: [],
+            });
+            // Add success
+            mockAdminTeams.createMembership.mockResolvedValue({});
+
+            const result = await invitePlayersServer({
+                players,
+                teamId,
+                url,
+                request,
+            });
+
+            expect(mockAdminUsers.list).toHaveBeenCalled();
+            expect(mockAdminTeams.createMembership).toHaveBeenCalledWith(
+                teamId,
+                ["player"],
+                undefined,
+                "existing-u1",
+            );
+            expect(result.success).toBe(true);
+            expect(result.message).toContain(
+                "Successfully invited/added 1 player",
+            );
+        });
+
+        it("should handle error if user already in team", async () => {
+            // User exists
+            mockAdminUsers.list.mockResolvedValue({
+                total: 1,
+                users: [{ $id: "existing-u1", email: "test@example.com" }],
+            });
+            // User matches confirm true
+            mockAdminTeams.listMemberships.mockResolvedValue({
+                total: 1,
+                memberships: [{ confirm: true }],
+            });
+
+            const result = await invitePlayersServer({
+                players,
+                teamId,
+                url,
+                request,
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.errors).toContain("Player is already a member");
+        });
+
+        it("should send email invite for new users (via invitePlayerByEmail/fetch)", async () => {
+            // User does not exist
+            mockAdminUsers.list.mockResolvedValue({ total: 0, users: [] });
+
+            // Mock fetch to simulate successful client invite
+            global.fetch.mockResolvedValue({
+                ok: true,
+                json: async () => ({ $id: "m1", userId: "u1" }),
+            });
+
+            const result = await invitePlayersServer({
+                players,
+                teamId,
+                url,
+                request,
+            });
+
+            // Should call fetch (via invitePlayerByEmail)
+            expect(global.fetch).toHaveBeenCalled();
+            const [fetchUrl] = global.fetch.mock.calls[0];
+            expect(fetchUrl).toContain(`/teams/${teamId}/memberships`);
+
+            expect(result.success).toBe(true);
         });
     });
 });
