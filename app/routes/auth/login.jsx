@@ -88,8 +88,8 @@ export async function action({ request }) {
         // Serialize the session secret into a cookie
         const cookieHeader = serializeSessionCookie(session.secret);
 
-        // Redirect to home with session cookie
-        return redirect("/", {
+        // Redirect to home dashboard with session cookie
+        return redirect("/dashboard", {
             headers: {
                 "Set-Cookie": cookieHeader,
             },

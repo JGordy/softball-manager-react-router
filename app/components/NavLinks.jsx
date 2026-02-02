@@ -39,7 +39,7 @@ function NavLinks({ user }) {
             return "settings";
         }
 
-        return "home";
+        return "dashboard";
     };
 
     const [value, setValue] = useState(getInitialValue());
@@ -49,10 +49,10 @@ function NavLinks({ user }) {
             label: (
                 <Label
                     Icon={IconBallBaseball}
-                    text={value === "home" && "Home"}
+                    text={value === "dashboard" && "Home"}
                 />
             ),
-            value: "home",
+            value: "dashboard",
         },
         // {
         //     label: (
@@ -101,8 +101,8 @@ function NavLinks({ user }) {
 
         if (newValue === "user") {
             navigate(`/user/${user?.$id}`);
-        } else if (newValue === "home") {
-            navigate("/");
+        } else if (newValue === "dashboard") {
+            navigate("/dashboard");
         } else {
             navigate(`/${newValue}`);
         }

@@ -8,13 +8,13 @@ import useModal from "@/hooks/useModal";
 
 import MenuContainer from "@/components/MenuContainer";
 
-export default function HomeMenu({ userId }) {
+export default function DashboardMenu({ userId }) {
     const { openModal } = useModal();
 
     const openAddTeamModal = () =>
         openModal({
             title: "Add a New Team",
-            children: <AddTeam actionRoute={"/"} userId={userId} />,
+            children: <AddTeam actionRoute={"/dashboard"} userId={userId} />,
         });
 
     const sections = [

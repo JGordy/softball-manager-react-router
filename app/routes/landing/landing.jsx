@@ -15,7 +15,7 @@ import Footer from "./components/Footer";
 import { isMobileUserAgent } from "@/utils/device";
 
 export const links = () => [
-    { rel: "canonical", href: "https://www.rostrhq.app/landing" },
+    { rel: "canonical", href: "https://www.rostrhq.app/" },
 ];
 
 export const meta = () => {
@@ -35,7 +35,7 @@ export const meta = () => {
 
         // Open Graph / Facebook
         { property: "og:type", content: "website" },
-        { property: "og:url", content: "https://www.rostrhq.app/landing" },
+        { property: "og:url", content: "https://www.rostrhq.app/" },
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:image", content: image },
@@ -50,7 +50,7 @@ export const meta = () => {
 
 export async function action({ request }) {
     const url = new URL(request.url);
-    const redirectTo = url.searchParams.get("redirect") || "/landing";
+    const redirectTo = url.searchParams.get("redirect");
 
     return logoutAction({ request, redirectTo });
 }

@@ -140,7 +140,7 @@ export default function HeroSection({ isAuthenticated, isDesktop }) {
                                 {!isDesktop && (
                                     <Button
                                         component={Link}
-                                        to="/"
+                                        to="/dashboard"
                                         onClick={() =>
                                             trackEvent("go-to-dashboard")
                                         }

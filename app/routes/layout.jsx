@@ -16,7 +16,7 @@ export async function loader({ request }) {
     const isMobile = isMobileUserAgent(request);
 
     if (!isMobile) {
-        throw redirect("/landing");
+        throw redirect("/");
     }
 
     try {

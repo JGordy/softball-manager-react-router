@@ -5,6 +5,8 @@ import {
     IconExclamationCircleFilled,
 } from "@tabler/icons-react";
 
+import { trackEvent } from "@/utils/analytics";
+
 import branding from "@/constants/branding";
 import AutocompleteEmail from "@/components/AutocompleteEmail";
 import { createAdminClient } from "@/utils/appwrite/server";
@@ -85,7 +87,13 @@ export default function ForgotPassword() {
 
                 <Form method="post">
                     <AutocompleteEmail required />
-                    <Button fullWidth mt="xl" type="submit" color="green">
+                    <Button
+                        fullWidth
+                        mt="xl"
+                        type="submit"
+                        color="green"
+                        onClick={() => trackEvent("forgot-password-submit")}
+                    >
                         Send Reset Link
                     </Button>
                 </Form>

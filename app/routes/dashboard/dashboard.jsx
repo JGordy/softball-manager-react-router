@@ -23,7 +23,7 @@ import { createTeam } from "@/actions/teams";
 
 import { getUserTeams } from "@/loaders/teams";
 
-import HomeMenu from "./components/HomeMenu";
+import DashboardMenu from "./components/DashboardMenu";
 
 export function meta() {
     return [
@@ -49,14 +49,14 @@ export async function action({ request }) {
     }
 }
 
-export default function HomePage({ loaderData, actionData }) {
+export default function Dashboard({ loaderData, actionData }) {
     const { openModal } = useModal();
 
     // Get user from parent layout via outlet context
     const { user } = useOutletContext();
     const userId = user?.$id;
 
-    // console.log("/home ", { loaderData });
+    // console.log("/dashboard ", { loaderData });
     const teams = loaderData?.teams;
 
     const teamList = [...teams?.managing, ...teams?.playing];
@@ -102,7 +102,7 @@ export default function HomePage({ loaderData, actionData }) {
     const openAddTeamModal = () =>
         openModal({
             title: "Add a New Team",
-            children: <AddTeam actionRoute={"/"} userId={userId} />,
+            children: <AddTeam actionRoute={"/dashboard"} userId={userId} />,
         });
 
     // reset/initialize active index if team list changes
@@ -123,7 +123,7 @@ export default function HomePage({ loaderData, actionData }) {
     return (
         <Container>
             <UserHeader subText="Team and events summary">
-                <HomeMenu userId={userId} />
+                <DashboardMenu userId={userId} />
             </UserHeader>
 
             <Group justify="space-between" align="center" mt="xl">

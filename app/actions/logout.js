@@ -4,7 +4,7 @@ import { createSessionClient } from "@/utils/appwrite/server";
 /**
  * Server-side logout action
  */
-export async function logoutAction({ request, redirectTo = "/login" }) {
+export async function logoutAction({ request, redirectTo = "/" }) {
     const { account } = await createSessionClient(request);
 
     try {
