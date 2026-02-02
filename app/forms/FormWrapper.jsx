@@ -13,6 +13,7 @@ export default function FormWrapper({
     cancelText = "Cancel",
     onCancelClick,
     hideButtons,
+    onSubmit,
     ...rest
 }) {
     const { closeAllModals } = useModal();
@@ -21,6 +22,11 @@ export default function FormWrapper({
 
     const handleSubmit = (event) => {
         event.preventDefault();
+
+        if (onSubmit) {
+            onSubmit(event);
+        }
+
         const formData = new FormData(event.currentTarget);
         formData.append("_action", action);
 

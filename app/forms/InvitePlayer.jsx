@@ -10,6 +10,7 @@ import {
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 
 import classes from "@/styles/inputs.module.css";
+import { trackEvent } from "@/utils/analytics";
 
 import FormWrapper from "./FormWrapper";
 
@@ -90,6 +91,12 @@ export default function InvitePlayer({
             actionRoute={actionRoute}
             buttonColor={buttonColor}
             confirmText="Send Invitations"
+            onSubmit={() =>
+                trackEvent("invite-player", {
+                    teamId,
+                    count: invites.length,
+                })
+            }
         >
             <Stack gap="md">
                 <Text size="sm" c="dimmed">
