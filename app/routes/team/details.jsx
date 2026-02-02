@@ -17,7 +17,7 @@ import { createSingleGame } from "@/actions/games";
 import { createPlayer } from "@/actions/users";
 import { createSeason } from "@/actions/seasons";
 import { updateTeam, updateMemberRole } from "@/actions/teams";
-import { invitePlayers } from "@/actions/invitations";
+import { invitePlayersServer } from "@/actions/invitations";
 
 import { getTeamById } from "@/loaders/teams";
 
@@ -47,6 +47,29 @@ export async function action({ request, params }) {
         return createPlayer({ values, teamId });
     }
 
+    if (_action === "invite-player") {
+        const emails = formData.getAll("email");
+        const names = formData.getAll("name");
+
+        const players = emails
+            .map((email, index) => ({
+                email: (email || "").trim(),
+                name: (names[index] || "").trim(),
+            }))
+            .filter((player) => player.email !== "");
+
+        // Build the invitation URL from the request
+        const url = new URL(request.url);
+        const inviteUrl = `${url.origin}/team/${teamId}/accept-invite`;
+
+        return invitePlayersServer({
+            players,
+            teamId,
+            url: inviteUrl,
+            request,
+        });
+    }
+
     if (_action === "add-season") {
         return createSeason({ values, teamId });
     }
@@ -62,36 +85,6 @@ export async function action({ request, params }) {
     if (_action === "update-role") {
         return updateMemberRole({ values, teamId, request });
     }
-}
-
-export async function clientAction({ request, params, serverAction }) {
-    const { teamId } = params;
-
-    // Clone the request so we can read formData without consuming the original
-    const clonedRequest = request.clone();
-    const formData = await clonedRequest.formData();
-    const _action = formData.get("_action");
-
-    // Only handle invite-player on client, pass everything else to server
-    if (_action === "invite-player") {
-        const emails = formData.getAll("email");
-        const names = formData.getAll("name");
-
-        const players = emails
-            .map((email, index) => ({
-                email: (email || "").trim(),
-                name: (names[index] || "").trim(),
-            }))
-            .filter((player) => player.email !== "");
-
-        // Build the invitation URL from the request
-        const url = new URL(request.url);
-        const inviteUrl = `${url.origin}/team/${teamId}/accept-invite`;
-        return invitePlayers({ players, teamId, url: inviteUrl });
-    }
-
-    // For all other actions (like update-role), pass through to server action
-    return serverAction();
 }
 
 export default function TeamDetails({ actionData, loaderData }) {

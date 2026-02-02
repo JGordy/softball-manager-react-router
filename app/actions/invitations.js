@@ -12,9 +12,14 @@ export async function invitePlayerByEmail({
     name,
     url,
     sessionProp,
+    config = {},
 }) {
     try {
         let session = sessionProp;
+        const hostUrl =
+            config.endpoint || import.meta.env.VITE_APPWRITE_HOST_URL;
+        const projectId =
+            config.projectId || import.meta.env.VITE_APPWRITE_PROJECT_ID;
 
         // Fetch the session from our server API if not provided
         if (!session) {
@@ -31,24 +36,20 @@ export async function invitePlayerByEmail({
         }
 
         // Make direct API call to Appwrite - this bypasses SDK cookie conflicts
-        const response = await fetch(
-            `${import.meta.env.VITE_APPWRITE_HOST_URL}/teams/${teamId}/memberships`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-Appwrite-Project": import.meta.env
-                        .VITE_APPWRITE_PROJECT_ID,
-                    "X-Appwrite-Session": session,
-                },
-                body: JSON.stringify({
-                    roles: ["player"],
-                    email,
-                    url,
-                    name,
-                }),
+        const response = await fetch(`${hostUrl}/teams/${teamId}/memberships`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-Appwrite-Project": projectId,
+                "X-Appwrite-Session": session,
             },
-        );
+            body: JSON.stringify({
+                roles: ["player"],
+                email,
+                url,
+                name,
+            }),
+        });
 
         if (!response.ok) {
             const errorData = await response.json();
@@ -335,4 +336,172 @@ export async function setPasswordForInvitedUser({
                 error.message || "Failed to set password. Please try again.",
         };
     }
+}
+
+/**
+ * SERVER-SIDE ACTION
+ * Invite players to a team.
+ * Hybrid approach:
+ * - If user exists in project: Automatically add them to team (Admin Client)
+ * - If user is new: Send invitation email (Session Client)
+ */
+export async function invitePlayersServer({ players, teamId, url, request }) {
+    const { Query } = await import("node-appwrite");
+    const { createSessionClient, createAdminClient, parseSessionCookie } =
+        await import("@/utils/appwrite/server");
+    const { appwriteConfig } = await import("@/utils/appwrite/config");
+
+    // 1. Verify permissions
+    const { teams: sessionTeams, account: sessionAccount } =
+        await createSessionClient(request);
+
+    try {
+        // Get current user details
+        const user = await sessionAccount.get();
+
+        // Check user's membership in the target team
+        // We use listMemberships with a query to find the specific user's membership
+        const membershipList = await sessionTeams.listMemberships(teamId, [
+            Query.equal("userId", user.$id),
+        ]);
+
+        const membership =
+            membershipList.total > 0 ? membershipList.memberships[0] : null;
+        const isOwner = membership?.roles?.includes("owner") || false;
+
+        if (!membership || !isOwner) {
+            return {
+                success: false,
+                message:
+                    "You do not have permission to invite players to this team.",
+            };
+        }
+    } catch (error) {
+        console.error("Permission check failed:", error);
+        return {
+            success: false,
+            message: "Failed to verify permissions. Please try again.",
+        };
+    }
+
+    const { teams: adminTeams, users: adminUsers } = createAdminClient();
+    const session = parseSessionCookie(request.headers.get("Cookie"));
+
+    const processPlayer = async (player) => {
+        const { email, name } = player;
+
+        try {
+            // Check if user exists in the project
+            // We use Admin Client to search all users
+            const userList = await adminUsers.list([
+                Query.equal("email", email),
+            ]);
+
+            const existingUser = userList.total > 0 ? userList.users[0] : null;
+
+            if (existingUser) {
+                // User exists - Add them directly (Auto-join)
+                // First check if they are already in the team to avoid 409
+                try {
+                    const membershipList = await adminTeams.listMemberships(
+                        teamId,
+                        [Query.equal("userId", existingUser.$id)],
+                    );
+
+                    if (membershipList.total > 0) {
+                        const membership = membershipList.memberships[0];
+                        if (membership.confirm) {
+                            return {
+                                success: false,
+                                reason: "Player is already a member",
+                            };
+                        } else {
+                            return {
+                                success: false,
+                                reason: "Player has already been invited",
+                            };
+                        }
+                    }
+
+                    // Add to team
+                    await adminTeams.createMembership(
+                        teamId,
+                        ["player"],
+                        undefined, // email (not needed if userId provided)
+                        existingUser.$id,
+                    );
+
+                    return { success: true, message: "Added to team" };
+                } catch (addError) {
+                    throw new Error(
+                        addError.message || "Failed to add existing user",
+                    );
+                }
+            } else {
+                // User does not exist - Send invite via Client API (simulated)
+                // We use the raw fetch method to ensure Appwrite treats this as a
+                // client-side invite and sends the email.
+                // Using the Server SDK (even with user session) might be treated as
+                // a server operation which suppresses emails in some contexts.
+                const result = await invitePlayerByEmail({
+                    email,
+                    teamId,
+                    name,
+                    url,
+                    sessionProp: session,
+                    config: {
+                        endpoint: appwriteConfig.endpoint,
+                        projectId: appwriteConfig.projectId,
+                    },
+                });
+
+                if (result.success) {
+                    return { success: true, message: "Invitation sent" };
+                } else {
+                    return { success: false, reason: result.message };
+                }
+            }
+        } catch (error) {
+            // Return failure for this player
+            return { success: false, reason: error.message };
+        }
+    };
+
+    const results = await Promise.allSettled(players.map(processPlayer));
+
+    const successful = results.filter(
+        (r) => r.status === "fulfilled" && r.value.success,
+    );
+    const failed = results.filter(
+        (r) => r.status === "rejected" || (r.value && !r.value.success),
+    );
+
+    // Format response consistent with invitePlayers
+    if (failed.length === 0) {
+        return {
+            success: true,
+            message: `Successfully invited/added ${successful.length} player${successful.length !== 1 ? "s" : ""}`,
+        };
+    }
+
+    if (successful.length === 0) {
+        const firstError =
+            failed[0].value?.reason ||
+            failed[0].reason?.message ||
+            "Unknown error";
+        return {
+            success: false,
+            message: `Failed to invite players: ${firstError}`,
+            errors: failed.map(
+                (f) => f.value?.reason || f.reason?.message || "Unknown error",
+            ),
+        };
+    }
+
+    // Partial success
+    return {
+        success: true,
+        message: `Processed ${successful.length} player${successful.length !== 1 ? "s" : ""}. Failed: ${failed.length}.`,
+        warning: true,
+    };
 }
