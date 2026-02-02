@@ -10,8 +10,10 @@ export const validateLineup = (lineup, team) => {
         return { battingErrors, fieldingErrors, summary };
     }
 
-    // 1. Batting Order Validation (Max 3 males in a row) - Only for Coed teams
-    if (team?.genderMix === "Coed") {
+    // 1. Batting Order Validation
+    const maxConsecutiveMales = parseInt(team?.prefs?.maxMaleBatters, 10) || 0;
+
+    if (maxConsecutiveMales > 0) {
         let consecutiveMales = 0;
         lineup.forEach((player, index) => {
             if (player.gender === "Male") {
@@ -20,12 +22,12 @@ export const validateLineup = (lineup, team) => {
                 consecutiveMales = 0;
             }
 
-            if (consecutiveMales > 3) {
+            if (consecutiveMales > maxConsecutiveMales) {
                 const error = {
                     playerId: player.$id,
                     playerName: `${player.firstName} ${player.lastName}`,
                     count: consecutiveMales,
-                    message: `More than 3 consecutive male batters (${consecutiveMales} in a row)`,
+                    message: `More than ${maxConsecutiveMales} consecutive male batters (${consecutiveMales} in a row)`,
                 };
                 battingErrors.push(error);
                 summary.push(
