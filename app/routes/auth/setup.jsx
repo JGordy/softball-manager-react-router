@@ -23,10 +23,10 @@ export async function loader({ request, context }) {
     const user = await getCurrentUser(context);
     if (!user) return redirect("/login");
 
-    // If profile is already complete, redirect home
+    // If profile is already complete, redirect to dashboard
     const isProfileComplete = user.name && user.name !== "User";
     if (isProfileComplete) {
-        return redirect("/");
+        return redirect("/dashboard");
     }
 
     return { user };
@@ -49,7 +49,7 @@ export async function action({ request, context }) {
         // Update name
         await account.updateName(trimmedName);
 
-        return redirect("/");
+        return redirect("/dashboard");
     } catch (error) {
         console.error("Profile setup error:", error);
         return { error: error.message || "Failed to update profile." };

@@ -21,7 +21,7 @@ describe("Logout Actions", () => {
     });
 
     describe("logoutAction", () => {
-        it("should delete session and redirect to login", async () => {
+        it("should delete session and redirect to landing page", async () => {
             const mockDeleteSession = jest.fn().mockResolvedValue({});
             createSessionClient.mockResolvedValue({
                 account: { deleteSession: mockDeleteSession },
@@ -30,7 +30,7 @@ describe("Logout Actions", () => {
             const result = await logoutAction({ request: {} });
 
             expect(mockDeleteSession).toHaveBeenCalledWith("current");
-            expect(result.redirect).toBe("/login");
+            expect(result.redirect).toBe("/");
             expect(result.headers["Set-Cookie"]).toContain("Max-Age=0");
         });
 
@@ -44,7 +44,7 @@ describe("Logout Actions", () => {
 
             const result = await logoutAction({ request: {} });
 
-            expect(result.redirect).toBe("/login");
+            expect(result.redirect).toBe("/");
             expect(console.log).toHaveBeenCalled();
         });
 
