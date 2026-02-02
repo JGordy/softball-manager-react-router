@@ -3,6 +3,7 @@ import {
     updateTeam,
     addPlayerToTeam,
     updateMemberRole,
+    updatePreferences,
 } from "../teams";
 import { createDocument, updateDocument } from "@/utils/databases";
 import { hasBadWords } from "@/utils/badWordsApi";
@@ -12,6 +13,7 @@ import {
     inviteNewMemberByEmail,
     getTeamMembers,
     updateMembershipRoles,
+    updateTeamPreferences,
 } from "@/utils/teams";
 
 // Mock dependencies
@@ -30,6 +32,7 @@ jest.mock("@/utils/teams", () => ({
     inviteNewMemberByEmail: jest.fn(),
     getTeamMembers: jest.fn(),
     updateMembershipRoles: jest.fn(),
+    updateTeamPreferences: jest.fn(),
 }));
 
 describe("Teams Actions", () => {
@@ -435,6 +438,20 @@ describe("Teams Actions", () => {
             expect(result.success).toBe(false);
             expect(result.message).toContain("last owner");
             expect(updateMembershipRoles).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("updatePreferences", () => {
+        it("should call updateTeamPreferences with correct args", async () => {
+            updateTeamPreferences.mockResolvedValue({ success: true });
+
+            const teamId = "team1";
+            const prefs = { maxMaleBatters: 3 };
+
+            const result = await updatePreferences({ teamId, prefs });
+
+            expect(updateTeamPreferences).toHaveBeenCalledWith(teamId, prefs);
+            expect(result).toEqual({ success: true });
         });
     });
 });

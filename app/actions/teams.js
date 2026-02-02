@@ -6,6 +6,7 @@ import {
     inviteNewMemberByEmail,
     getTeamMembers,
     updateMembershipRoles,
+    updateTeamPreferences,
 } from "@/utils/teams.js";
 
 import { hasBadWords } from "@/utils/badWordsApi";
@@ -228,4 +229,8 @@ export async function updateMemberRole({ values, teamId, request }) {
             message: error.message || "Failed to update member role",
         };
     }
+}
+
+export async function updatePreferences({ teamId, prefs }) {
+    return await updateTeamPreferences(teamId, prefs);
 }

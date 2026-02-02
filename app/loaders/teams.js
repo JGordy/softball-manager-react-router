@@ -175,6 +175,14 @@ export async function getTeamById({ teamId, request }) {
 
         const teamData = await readDocument("teams", teamId);
 
+        try {
+            const { teams } = createAdminClient();
+            const prefs = await teams.getPrefs(teamId);
+            teamData.prefs = prefs;
+        } catch (e) {
+            teamData.prefs = {};
+        }
+
         // Manually fetch seasons since TablesDB doesn't auto-populate relationships
         const seasonsResponse = await listDocuments("seasons", [
             Query.equal("teamId", teamId),
