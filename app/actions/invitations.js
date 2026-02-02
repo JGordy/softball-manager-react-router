@@ -12,9 +12,14 @@ export async function invitePlayerByEmail({
     name,
     url,
     sessionProp,
+    config = {},
 }) {
     try {
         let session = sessionProp;
+        const hostUrl =
+            config.endpoint || import.meta.env.VITE_APPWRITE_HOST_URL;
+        const projectId =
+            config.projectId || import.meta.env.VITE_APPWRITE_PROJECT_ID;
 
         // Fetch the session from our server API if not provided
         if (!session) {
@@ -31,24 +36,20 @@ export async function invitePlayerByEmail({
         }
 
         // Make direct API call to Appwrite - this bypasses SDK cookie conflicts
-        const response = await fetch(
-            `${import.meta.env.VITE_APPWRITE_HOST_URL}/teams/${teamId}/memberships`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-Appwrite-Project": import.meta.env
-                        .VITE_APPWRITE_PROJECT_ID,
-                    "X-Appwrite-Session": session,
-                },
-                body: JSON.stringify({
-                    roles: ["player"],
-                    email,
-                    url,
-                    name,
-                }),
+        const response = await fetch(`${hostUrl}/teams/${teamId}/memberships`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-Appwrite-Project": projectId,
+                "X-Appwrite-Session": session,
             },
-        );
+            body: JSON.stringify({
+                roles: ["player"],
+                email,
+                url,
+                name,
+            }),
+        });
 
         if (!response.ok) {
             const errorData = await response.json();
@@ -342,28 +343,13 @@ export async function setPasswordForInvitedUser({
  * Invite players to a team.
  * Hybrid approach:
  * - If user exists in project: Automatically add them to team (Admin Client)
- * - If user is new: Send invitation email (Session Client -> simulated via fetch)
- *
- * Why this complexity?
- * 1. Appwrite Server SDK's `createMembership` behaves differently depending on the context.
- *    - With API Key (Admin): Adds user immediately to team (no invite email for existing users).
- *    - With Session Client: Sends an invite email.
- * 2. We want to AUTO-ADD existing users (better UX), but EMAIL new users.
- * 3. `invitePlayers` ran on client-side, but failed for existing users because they
- *    couldn't be auto-added without Admin privileges or specific flow.
- *
- * Solution:
- * - Run on Server.
- * - Verify permissions manually (since we elevate privileges later).
- * - Check if user exists using Admin Client.
- * - IF EXISTS: Add to team using Admin Client (bypasses invite, auto-joins).
- * - IF NEW: Call `invitePlayerByEmail` (simulated client fetch) to ensure Appwrite
- *   sends the standard invitation email.
+ * - If user is new: Send invitation email (Session Client)
  */
 export async function invitePlayersServer({ players, teamId, url, request }) {
     const { Query } = await import("node-appwrite");
     const { createSessionClient, createAdminClient, parseSessionCookie } =
         await import("@/utils/appwrite/server");
+    const { appwriteConfig } = await import("@/utils/appwrite/config");
 
     // 1. Verify permissions
     const { teams: sessionTeams, account: sessionAccount } =
@@ -463,6 +449,10 @@ export async function invitePlayersServer({ players, teamId, url, request }) {
                     name,
                     url,
                     sessionProp: session,
+                    config: {
+                        endpoint: appwriteConfig.endpoint,
+                        projectId: appwriteConfig.projectId,
+                    },
                 });
 
                 if (result.success) {
@@ -501,7 +491,7 @@ export async function invitePlayersServer({ players, teamId, url, request }) {
             "Unknown error";
         return {
             success: false,
-            message: "Failed to invite players",
+            message: `Failed to invite players: ${firstError}`,
             errors: failed.map(
                 (f) => f.value?.reason || f.reason?.message || "Unknown error",
             ),
