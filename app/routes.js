@@ -11,7 +11,7 @@ export default [
     route("/auth/callback", "routes/auth/callback.jsx"),
 
     // Landing Page
-    route("/landing", "routes/landing/landing.jsx"),
+    route("/", "routes/landing/landing.jsx"),
 
     // Team invitation acceptance (public - users may not be logged in yet)
     route("/team/:teamId/accept-invite", "routes/team/accept-invite.jsx"),
@@ -19,8 +19,8 @@ export default [
 
     // The App shell (NavBar) in layout.jsx - protected routes
     layout("routes/layout.jsx", [
-        // index('routes/home/home.jsx'),
-        route("/", "routes/home/home.jsx"),
+        // index('routes/dashboard/dashboard.jsx'),
+        route("dashboard", "routes/dashboard/dashboard.jsx"),
 
         // User routes
         route("/user/:userId", "routes/user/profile.jsx"),
