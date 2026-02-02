@@ -1,10 +1,20 @@
-import { action } from "../lineup";
+import { Query } from "node-appwrite";
+
 import { listDocuments } from "@/utils/databases";
 import { createModel, parseAIResponse } from "@/utils/ai";
-import { Query } from "node-appwrite";
+
+import { action } from "../lineup";
 
 jest.mock("@/utils/databases");
 jest.mock("@/utils/ai");
+
+jest.mock("@/utils/appwrite/server", () => ({
+    createAdminClient: jest.fn(() => ({
+        teams: {
+            getPrefs: jest.fn().mockResolvedValue({ maxMaleBatters: 0 }),
+        },
+    })),
+}));
 
 // Mock Query manually since it's used in the file
 jest.mock("node-appwrite", () => ({
