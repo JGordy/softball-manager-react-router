@@ -1,5 +1,7 @@
 import { Stack, Text, Anchor } from "@mantine/core";
 
+import { trackEvent } from "@/utils/analytics";
+
 export default function SupportPanel() {
     return (
         <Stack gap="md">
@@ -13,7 +15,10 @@ export default function SupportPanel() {
                 please include details and screenshots if available.
             </Text>
             <Text size="sm" fw={500}>
-                <Anchor href="mailto:support@rostrhq.app">
+                <Anchor
+                    href="mailto:support@rostrhq.app"
+                    onClick={() => trackEvent("email-support")}
+                >
                     support@rostrhq.app
                 </Anchor>
             </Text>
