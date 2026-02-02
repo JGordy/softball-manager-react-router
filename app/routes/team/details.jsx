@@ -120,7 +120,7 @@ export default function TeamDetails({ actionData, loaderData }) {
     return (
         <Container pt="md">
             <Group justify="space-between" mb="xl">
-                <BackButton to="/" />
+                <BackButton to="/dashboard" />
                 {managerView && (
                     <TeamMenu
                         team={team}
