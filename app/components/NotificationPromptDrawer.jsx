@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Stack, Text, Button, Group, ThemeIcon } from "@mantine/core";
 import { useOs } from "@mantine/hooks";
 
-import { IconBell, IconShare, IconSquarePlus } from "@tabler/icons-react";
+import { IconBell, IconShare2, IconSquarePlus } from "@tabler/icons-react";
 
 import { useNotifications } from "@/hooks/useNotifications";
 import { isStandalone } from "@/utils/pwa";
@@ -166,7 +166,7 @@ export default function NotificationPromptDrawer() {
                                     radius="md"
                                     size="lg"
                                 >
-                                    <IconShare size={20} />
+                                    <IconShare2 size={20} />
                                 </ThemeIcon>
                                 <Text size="sm">
                                     1. Tap the <b>Share</b> button in the menu
