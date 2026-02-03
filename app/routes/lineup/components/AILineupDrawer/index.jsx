@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
-import { useFetcher } from "react-router";
+import { useState, useEffect, useRef } from "react";
 
 import { trackEvent } from "@/utils/analytics";
+import { validateLineup, sanitizeReasoning } from "@/utils/lineupValidation";
+import { tryParsePartialLineup } from "@/utils/json";
+import { MAX_AI_GENERATIONS_PER_GAME } from "@/constants/ai";
 
 import DrawerContainer from "@/components/DrawerContainer";
 
@@ -30,24 +32,41 @@ export default function AILineupDrawer({
     lineupHandlers,
     setHasBeenEdited,
 }) {
-    const aiFetcher = useFetcher();
-    const isSubmitting = aiFetcher.state === "submitting";
-    const isLoading = aiFetcher.state === "loading";
-    const showLoading = isSubmitting || isLoading;
+    const [isStreaming, setIsStreaming] = useState(false);
+    const showLoading = isStreaming;
 
     const [aiError, setAiError] = useState(null);
     const [generatedLineup, setGeneratedLineup] = useState(null);
+    const [partialLineup, setPartialLineup] = useState([]);
     const [loadingText, setLoadingText] = useState(null);
     const [aiReasoning, setAiReasoning] = useState(null);
 
-    // Manage loading text based on fetcher state
-    useEffect(() => {
-        if (isLoading) {
-            setLoadingText("Putting the finishing touches on your roster...");
-            return;
-        }
+    // Track local successful generations to update UI immediately without revalidation
+    const [generationIncrements, setGenerationIncrements] = useState(0);
+    const generationsUsed =
+        (game?.aiGenerationCount || 0) + generationIncrements;
 
-        if (isSubmitting) {
+    const abortControllerRef = useRef(null);
+
+    useEffect(() => {
+        // Abort any in-flight request when the drawer unmounts
+        return () => {
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+        };
+    }, []);
+
+    // Filter for available players (accepted or tentative) to determine expected lineup size
+    const availablePlayers =
+        players?.filter(
+            (p) =>
+                p.availability === "accepted" || p.availability === "tentative",
+        ) || [];
+
+    // Manage loading text
+    useEffect(() => {
+        if (isStreaming) {
             // Cycle through loading messages every 5 seconds
             let messageIndex = 0;
             setLoadingText(LOADING_MESSAGES[0]);
@@ -62,35 +81,49 @@ export default function AILineupDrawer({
             };
         }
 
-        // Not submitting or loading: reset loading text
+        // Not streaming: reset loading text
         setLoadingText(null);
-
         return undefined;
-    }, [isLoading, isSubmitting]);
+    }, [isStreaming]);
 
     const handleGenerateAILineup = async () => {
         setAiError(null);
+        setPartialLineup([]);
+
+        if (
+            !availablePlayers ||
+            availablePlayers.length < MIN_PLAYERS_FOR_AI_LINEUP
+        ) {
+            setAiError(
+                `Need at least ${MIN_PLAYERS_FOR_AI_LINEUP} available players to generate a lineup`,
+            );
+            return;
+        }
+
+        // Abort any previous request
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+        // Track that we attempted a generation to sync with server count on abort
+        let generationAttempted = false;
+
+        setIsStreaming(true);
+        trackEvent("ai-lineup-requested", {
+            teamId: team.$id,
+            gameId: game?.$id,
+        });
 
         try {
-            // Use players who have accepted or are tentative
-            const availablePlayers = players?.filter(
-                (p) =>
-                    p.availability === "accepted" ||
-                    p.availability === "tentative",
-            );
-
-            if (
-                !availablePlayers ||
-                availablePlayers.length < MIN_PLAYERS_FOR_AI_LINEUP
-            ) {
-                setAiError(
-                    `Need at least ${MIN_PLAYERS_FOR_AI_LINEUP} available players to generate a lineup`,
-                );
-                return;
-            }
-
-            aiFetcher.submit(
-                JSON.stringify({
+            generationAttempted = true;
+            const response = await fetch("/api/lineup", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
                     players: availablePlayers,
                     team: {
                         $id: team.$id,
@@ -101,17 +134,123 @@ export default function AILineupDrawer({
                     },
                     gameId: game?.$id,
                 }),
-                {
-                    method: "POST",
-                    action: "/api/lineup",
-                    encType: "application/json",
-                },
+                signal: controller.signal,
+            });
+
+            if (!response.ok) {
+                // Read error body as text first so we don't lose details if JSON parsing fails
+                const errorText = await response.text();
+                let errorMessage = "Failed to request lineup generation";
+
+                if (errorText) {
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        errorMessage =
+                            errorData?.error ||
+                            errorData?.message ||
+                            errorText ||
+                            errorMessage;
+                    } catch (_parseError) {
+                        // Not valid JSON; use raw text
+                        errorMessage = errorText;
+                    }
+                } else {
+                    errorMessage = `Error ${response.status}: ${response.statusText}`;
+                }
+
+                throw new Error(errorMessage);
+            }
+
+            // Stream reading logic
+            if (!response.body) {
+                throw new Error("Response body is empty");
+            }
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let resultText = "";
+            let aiResponse;
+
+            try {
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value, { stream: true });
+                    resultText += chunk;
+
+                    // Attempt to parse partially to show progress
+                    const partial = tryParsePartialLineup(resultText);
+                    if (partial && partial.length > 0) {
+                        setPartialLineup(partial);
+                    }
+                }
+
+                // Parse and Validate locally
+                try {
+                    aiResponse = JSON.parse(resultText);
+                } catch (e) {
+                    const maxLogLength = 200;
+                    const truncatedResultText =
+                        typeof resultText === "string" &&
+                        resultText.length > maxLogLength
+                            ? resultText.slice(0, maxLogLength) +
+                              `... [truncated ${resultText.length - maxLogLength} characters]`
+                            : resultText;
+
+                    console.error(
+                        "Failed to parse AI response JSON",
+                        truncatedResultText,
+                        e,
+                    );
+                    throw new Error("Received invalid JSON from AI stream.");
+                }
+            } catch (error) {
+                try {
+                    // Cancel the reader to abort the stream on error
+                    await reader.cancel(
+                        error instanceof Error ? error : undefined,
+                    );
+                } catch (_cancelError) {
+                    // Ignore cancellation errors to avoid masking the original error
+                }
+                throw error;
+            } finally {
+                // Ensure the reader lock is released; let any errors surface
+                reader.releaseLock();
+            }
+
+            if (aiResponse?.error) {
+                throw new Error(aiResponse.error);
+            }
+
+            if (!aiResponse || !aiResponse.lineup) {
+                throw new Error("AI response missing lineup data.");
+            }
+
+            const validLineup = validateLineup(
+                aiResponse.lineup,
+                availablePlayers,
             );
-            trackEvent("ai-lineup-requested", {
+            const validReasoning = sanitizeReasoning(
+                aiResponse.reasoning || "No reasoning provided",
+            );
+
+            setGeneratedLineup(validLineup);
+            setAiReasoning(validReasoning);
+            setGenerationIncrements((prev) => prev + 1);
+            trackEvent("ai-lineup-generated", {
                 teamId: team.$id,
                 gameId: game?.$id,
             });
         } catch (error) {
+            if (error.name === "AbortError") {
+                // User cancelled, do not set error state
+                // If we started a generation, the server likely counted it, so we should update our local count
+                if (generationAttempted) {
+                    setGenerationIncrements((prev) => prev + 1);
+                }
+                return;
+            }
+
             const message =
                 error instanceof Error ? error.message : String(error || "");
 
@@ -127,32 +266,11 @@ export default function AILineupDrawer({
                     : "Failed to generate lineup";
 
             setAiError(userMessage);
+        } finally {
+            abortControllerRef.current = null;
+            setIsStreaming(false);
         }
     };
-
-    // Handle AI fetcher response - store in local state instead of applying immediately
-    useEffect(() => {
-        if (aiFetcher.state !== "idle") {
-            return;
-        }
-
-        // Successful AI response
-        if (aiFetcher.data && !aiFetcher.data.error && !generatedLineup) {
-            if (aiFetcher.data.lineup) {
-                setGeneratedLineup(aiFetcher.data.lineup);
-                setAiReasoning(aiFetcher.data.reasoning || null);
-                trackEvent("ai-lineup-generated", {
-                    teamId: team.$id,
-                    gameId: game?.$id,
-                });
-            }
-        }
-
-        // AI error response
-        if (aiFetcher.data?.error && !aiError) {
-            setAiError(aiFetcher.data.error);
-        }
-    }, [aiFetcher.data, aiFetcher.state, generatedLineup, aiError]);
 
     // Apply the generated lineup to the actual lineup state
     const handleApplyGeneratedLineup = () => {
@@ -172,16 +290,22 @@ export default function AILineupDrawer({
 
     // Close drawer and reset state (clear any generated lineup to avoid stale data)
     const handleClose = () => {
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+            abortControllerRef.current = null;
+        }
         onClose();
         setAiError(null);
         setGeneratedLineup(null);
         setAiReasoning(null);
     };
 
-    const handleRegenerate = () => {
+    const handleRegenerate = async () => {
         setGeneratedLineup(null);
+        setPartialLineup([]);
         setAiReasoning(null);
         setAiError(null);
+        await handleGenerateAILineup();
     };
 
     return (
@@ -196,12 +320,16 @@ export default function AILineupDrawer({
                     <LoadingView
                         loadingText={loadingText}
                         onClose={handleClose}
+                        partialLineup={partialLineup}
+                        totalPlayers={availablePlayers.length || 10}
                     />
                 ) : (
                     <InitialView
                         aiError={aiError}
                         onClose={handleClose}
                         onGenerate={handleGenerateAILineup}
+                        generationsUsed={generationsUsed}
+                        maxGenerations={MAX_AI_GENERATIONS_PER_GAME}
                     />
                 )
             ) : (
@@ -210,6 +338,8 @@ export default function AILineupDrawer({
                     aiReasoning={aiReasoning}
                     onRegenerate={handleRegenerate}
                     onApply={handleApplyGeneratedLineup}
+                    generationsUsed={generationsUsed}
+                    maxGenerations={MAX_AI_GENERATIONS_PER_GAME}
                 />
             )}
         </DrawerContainer>

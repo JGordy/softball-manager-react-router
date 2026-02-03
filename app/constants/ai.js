@@ -1,0 +1,1 @@
+export const MAX_AI_GENERATIONS_PER_GAME = 3;

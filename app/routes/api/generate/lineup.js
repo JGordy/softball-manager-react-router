@@ -1,9 +1,10 @@
 import { Query } from "node-appwrite";
 
-import { createModel, parseAIResponse } from "@/utils/ai";
-import { listDocuments } from "@/utils/databases";
+import { createModel, generateContentStream } from "@/utils/ai";
+import { listDocuments, updateDocument } from "@/utils/databases";
 import { createAdminClient } from "@/utils/appwrite/server";
 import { EVENT_TYPE_MAP, UI_KEYS } from "@/constants/scoring";
+import { MAX_AI_GENERATIONS_PER_GAME } from "@/constants/ai";
 
 import lineupSchema from "./utils/lineupSchema";
 import { getLineupSystemInstruction } from "./utils/systemInstructions";
@@ -26,23 +27,6 @@ const DB_TO_MINIFIED_EVENT = Object.entries(EVENT_TYPE_MAP).reduce(
 );
 
 /**
- * Sanitize reasoning text to remove any database IDs that might have been included by the AI
- * @param {string} reasoning - The reasoning text from the AI
- * @returns {string} Sanitized reasoning text without database IDs
- */
-function sanitizeReasoning(reasoning) {
-    if (!reasoning) return reasoning;
-
-    // Remove patterns that look like Appwrite database IDs (fixed-length alphanumeric strings, ~20 chars)
-    // Pattern: [ID: <id>] or ID: <id> or just standalone IDs
-    return reasoning
-        .replace(/\[ID:\s*[a-zA-Z0-9_-]{20}\]/g, "")
-        .replace(/ID:\s*[a-zA-Z0-9_-]{20}\b/g, "")
-        .replace(/\$id[:\s]*['"]*[a-zA-Z0-9_-]{20}['"]*\b/g, "")
-        .trim();
-}
-
-/**
  * Generate an optimal softball lineup based on historical performance data
  * POST /api/generate/lineup
  *
@@ -50,6 +34,9 @@ function sanitizeReasoning(reasoning) {
  * @returns {Response} JSON response with the generated lineup or error
  */
 export async function action({ request }) {
+    let rollbackGameId = null;
+    let rollbackCount = null;
+
     try {
         // Parse the request body to get players, team info, and game details
         const body = await request.json();
@@ -95,6 +82,31 @@ export async function action({ request }) {
                 },
             );
         }
+
+        // Check validation limit
+        const currentCount = game.aiGenerationCount || 0;
+        if (currentCount >= MAX_AI_GENERATIONS_PER_GAME) {
+            return new Response(
+                JSON.stringify({
+                    error: `AI generation limit reached for this game (max ${MAX_AI_GENERATIONS_PER_GAME}).`,
+                }),
+                {
+                    status: 403,
+                    headers: { "Content-Type": "application/json" },
+                },
+            );
+        }
+
+        // Increment count
+        // Note: Appwrite doesn't support atomic increments natively via updateDocument API yet without functions.
+        // We accept a small race condition risk here for the generation limit behavior.
+        await updateDocument("games", game.$id, {
+            aiGenerationCount: currentCount + 1,
+        });
+
+        // Set rollback values in case of failure later in the process
+        rollbackGameId = game.$id;
+        rollbackCount = currentCount;
 
         const teamId = game.teamId;
 
@@ -356,109 +368,88 @@ export async function action({ request }) {
             },
         ];
 
-        // Generate the lineup using AI
-        // Note: generateContent accepts array of parts
-        const result = await model.generateContent(prompts);
-        const response = await result.response;
-        const responseText = response.text();
+        // Generate the lineup using AI with streaming
+        const streamIterator = await generateContentStream(model, prompts);
 
-        // Parse the AI response
-        const aiResponse = parseAIResponse(responseText);
+        // Convert async iterator to a standard ReadableStream
+        const stream = new ReadableStream({
+            async start(controller) {
+                const encoder = new TextEncoder();
+                let hasEnqueued = false;
+                try {
+                    for await (const chunk of streamIterator) {
+                        controller.enqueue(encoder.encode(chunk));
+                        hasEnqueued = true;
+                    }
+                    controller.close();
+                } catch (e) {
+                    console.error(
+                        "Error while streaming AI lineup response:",
+                        e,
+                    );
+                    if (!hasEnqueued) {
+                        // Rollback generation count if immediate failure
+                        if (rollbackGameId && rollbackCount !== null) {
+                            try {
+                                await updateDocument("games", rollbackGameId, {
+                                    aiGenerationCount: rollbackCount,
+                                });
+                            } catch (cleanupError) {
+                                console.error(
+                                    "Failed to rollback generation count:",
+                                    cleanupError,
+                                );
+                            }
+                        }
 
-        if (!aiResponse || !aiResponse.lineup) {
-            throw new Error("Failed to parse AI response");
-        }
-
-        const generatedLineup = aiResponse.lineup;
-        const reasoning = sanitizeReasoning(
-            aiResponse.reasoning || "No reasoning provided",
-        );
-
-        // Validate the response structure: must be a non-empty array
-        if (!Array.isArray(generatedLineup) || generatedLineup.length === 0) {
-            throw new Error(
-                "AI response does not match expected lineup format",
-            );
-        }
-
-        // Warn (but do not fail) if the lineup length differs from the input players length
-        if (generatedLineup.length !== players.length) {
-            console.warn(
-                "Generated lineup length differs from input players length",
-                {
-                    expectedPlayers: players.length,
-                    generatedLineupLength: generatedLineup.length,
-                },
-            );
-        }
-
-        // Output Validation & Enrichment
-        // The AI output needs to be mapped back to the required frontend structure if keys were missing,
-        // but schema already enforces firstName, lastName, etc.
-        // We ensure consistent data types.
-
-        const validatedLineup = generatedLineup.map((player) => {
-            if (!player.positions || player.positions.length !== 7) {
-                throw new Error(
-                    `Invalid positions array for player ${player.$id}`,
-                );
-            }
-            return {
-                $id: player.$id,
-                firstName: player.firstName,
-                lastName: player.lastName,
-                gender: player.gender,
-                bats: player.bats,
-                positions: player.positions,
-            };
+                        const isDevelopment =
+                            process.env.NODE_ENV === "development";
+                        const errorPayload = {
+                            error: "Failed to generate lineup",
+                            details:
+                                isDevelopment && e && e.message
+                                    ? e.message
+                                    : undefined,
+                        };
+                        controller.enqueue(
+                            encoder.encode(JSON.stringify(errorPayload)),
+                        );
+                        controller.close();
+                    } else {
+                        // If we've already sent data, we can't cleanly send a JSON error.
+                        // The client might see a broken JSON structure or a stream error.
+                        // Ideally, the client handles mid-stream errors gracefully.
+                        controller.error(e);
+                    }
+                }
+            },
         });
 
-        // Validate that the generated lineup player IDs match the input player IDs
-        const inputPlayerIdSet = new Set(players.map((p) => p.$id));
-        const lineupPlayerIds = validatedLineup.map((p) => p.$id);
-        const lineupPlayerIdSet = new Set(lineupPlayerIds);
-
-        // Ensure there are no duplicate player IDs in the generated lineup
-        if (lineupPlayerIds.length !== lineupPlayerIdSet.size) {
-            throw new Error("Generated lineup contains duplicate player IDs");
-        }
-
-        // Ensure the lineup contains exactly the same player IDs as the input
-        if (lineupPlayerIdSet.size !== inputPlayerIdSet.size) {
-            throw new Error(
-                "Generated lineup does not contain the same number of unique players as the input",
-            );
-        }
-
-        for (const id of inputPlayerIdSet) {
-            if (!lineupPlayerIdSet.has(id)) {
-                throw new Error(
-                    `Generated lineup is missing player with id ${id}`,
-                );
-            }
-        }
-
-        for (const id of lineupPlayerIdSet) {
-            if (!inputPlayerIdSet.has(id)) {
-                throw new Error(
-                    `Generated lineup contains unknown player with id ${id}`,
-                );
-            }
-        }
-
-        // Return the generated lineup with reasoning
-        return new Response(
-            JSON.stringify({
-                success: true,
-                lineup: validatedLineup,
-                reasoning,
-            }),
-            {
-                status: 200,
-                headers: { "Content-Type": "application/json" },
+        // Return the raw text stream immediately
+        // The client will handle accumulation, parsing, and validation
+        return new Response(stream, {
+            headers: {
+                "Content-Type": "text/plain; charset=utf-8",
+                "X-Content-Type-Options": "nosniff",
+                "Cache-Control": "no-cache",
+                Connection: "keep-alive",
             },
-        );
+        });
     } catch (error) {
+        // Rollback generation count if successfully incremented but failed later
+        if (rollbackGameId && rollbackCount !== null) {
+            try {
+                await updateDocument("games", rollbackGameId, {
+                    aiGenerationCount: rollbackCount,
+                });
+            } catch (cleanupError) {
+                console.error(
+                    "Failed to rollback generation count:",
+                    cleanupError,
+                );
+            }
+        }
+
         console.error("Error generating lineup:", error);
 
         const isDevelopment = process.env.NODE_ENV === "development";

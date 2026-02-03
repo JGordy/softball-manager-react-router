@@ -1,12 +1,29 @@
 import { Query } from "node-appwrite";
 
-import { listDocuments } from "@/utils/databases";
-import { createModel, parseAIResponse } from "@/utils/ai";
+import { listDocuments, updateDocument } from "@/utils/databases";
+import { createModel, generateContentStream } from "@/utils/ai";
 
 import { action } from "../lineup";
 
 jest.mock("@/utils/databases");
 jest.mock("@/utils/ai");
+
+// Polyfill TextEncoder/TextDecoder for Jest if missing
+if (typeof global.TextEncoder === "undefined") {
+    const { TextEncoder, TextDecoder } = require("util");
+    global.TextEncoder = TextEncoder;
+    global.TextDecoder = TextDecoder;
+}
+
+// Polyfill ReadableStream for Jest test environments lacking it
+if (typeof global.ReadableStream === "undefined") {
+    // A simplified mock of ReadableStream for the test environment
+    global.ReadableStream = class ReadableStream {
+        constructor(underlyingSource) {
+            this.underlyingSource = underlyingSource;
+        }
+    };
+}
 
 jest.mock("@/utils/appwrite/server", () => ({
     createAdminClient: jest.fn(() => ({
@@ -29,30 +46,34 @@ jest.mock("node-appwrite", () => ({
 }));
 
 describe("lineup generation action", () => {
-    let mockGenerateContent;
+    let mockGenerateContentStream;
 
     beforeEach(() => {
         jest.clearAllMocks();
         // Reset listDocuments to ensure no unconsumed mocks leak between tests
         listDocuments.mockReset();
+        updateDocument.mockReset(); // Reset update mock
 
-        mockGenerateContent = jest.fn();
-        createModel.mockReturnValue({
-            generateContent: mockGenerateContent,
+        mockGenerateContentStream = jest.fn();
+
+        // Mock generateContentStream to return an async iterator
+        generateContentStream.mockImplementation(async function* () {
+            yield JSON.stringify({
+                lineup: [
+                    {
+                        $id: "p1",
+                        firstName: "John",
+                        lastName: "Doe",
+                        gender: "M",
+                        bats: "Right",
+                        positions: ["LF", "LF", "LF", "LF", "LF", "LF", "LF"],
+                    },
+                ],
+                reasoning: "Test reasoning",
+            });
         });
-        parseAIResponse.mockReturnValue({
-            lineup: [
-                {
-                    $id: "p1",
-                    firstName: "John",
-                    lastName: "Doe",
-                    gender: "M",
-                    bats: "Right",
-                    positions: ["LF", "LF", "LF", "LF", "LF", "LF", "LF"],
-                },
-            ],
-            reasoning: "Test reasoning",
-        });
+
+        createModel.mockReturnValue({}); // No longer needs generateContent method
     });
 
     // Helper to create valid mock request
@@ -90,6 +111,73 @@ describe("lineup generation action", () => {
 
             expect(response.status).toBe(400);
             expect(data.error).toMatch(/gameId is required/);
+        });
+
+        it("should return 403 if generation limit reached", async () => {
+            listDocuments.mockResolvedValueOnce({
+                rows: [{ $id: "g1", teamId: "t1", aiGenerationCount: 3 }],
+            });
+
+            const req = createMockRequest();
+            const response = await action({ request: req });
+            const data = await response.json();
+
+            expect(response.status).toBe(403);
+            expect(data.error).toMatch(/limit reached/);
+        });
+
+        it("should increment generation count on success", async () => {
+            // Mock game fetch (count 0)
+            listDocuments.mockResolvedValueOnce({
+                rows: [{ $id: "g1", teamId: "t1", aiGenerationCount: 0 }],
+            });
+            // Mock games fetch for stats (empty is fine)
+            listDocuments.mockResolvedValueOnce({ rows: [] });
+
+            const req = createMockRequest();
+            await action({ request: req });
+
+            expect(updateDocument).toHaveBeenCalledWith("games", "g1", {
+                aiGenerationCount: 1,
+            });
+        });
+        it("should rollback generation count on failure after increment", async () => {
+            const req = createMockRequest();
+            const originalCount = 1;
+
+            // 1. Get Game (success)
+            listDocuments.mockResolvedValueOnce({
+                rows: [
+                    {
+                        $id: "curr",
+                        teamId: "t1",
+                        aiGenerationCount: originalCount,
+                    },
+                ],
+            });
+
+            // 2. History Fetch (Fail) to trigger rollback
+            listDocuments.mockRejectedValueOnce(
+                new Error("History Fetch Failed"),
+            );
+
+            // Mock updateDocument success for the increment
+            updateDocument.mockResolvedValue({});
+
+            const response = await action({ request: req });
+
+            // Expect failure response
+            expect(response.status).toBe(500);
+
+            // Verify increment was called
+            expect(updateDocument).toHaveBeenCalledWith("games", "curr", {
+                aiGenerationCount: originalCount + 1,
+            });
+
+            // Verify rollback was called
+            expect(updateDocument).toHaveBeenCalledWith("games", "curr", {
+                aiGenerationCount: originalCount,
+            });
         });
     });
 
@@ -133,13 +221,9 @@ describe("lineup generation action", () => {
                 }) // History
                 .mockResolvedValueOnce({ rows: [] }); // Stats
 
-            mockGenerateContent.mockResolvedValue({
-                response: { text: () => "{}" },
-            });
-
             await action({ request: req });
 
-            const callArgs = mockGenerateContent.mock.calls[0][0];
+            const callArgs = generateContentStream.mock.calls[0][1];
             const inputData = JSON.parse(callArgs[1].text);
 
             expect(inputData.history).toHaveLength(1);
@@ -186,13 +270,9 @@ describe("lineup generation action", () => {
                     ],
                 });
 
-            mockGenerateContent.mockResolvedValue({
-                response: { text: () => "{}" },
-            });
-
             await action({ request: req });
 
-            const callArgs = mockGenerateContent.mock.calls[0][0];
+            const callArgs = generateContentStream.mock.calls[0][1];
             const inputData = JSON.parse(callArgs[1].text);
 
             expect(inputData.history[0].stats.p1).toContain(
@@ -238,106 +318,128 @@ describe("lineup generation action", () => {
                 })
                 .mockRejectedValueOnce(new Error("Appwrite Error"));
 
-            mockGenerateContent.mockResolvedValue({
-                response: { text: () => "{}" },
-            });
-
             const response = await action({ request: req });
             expect(response.status).toBe(200); // Process output even if logs fail
+            expect(generateContentStream).toHaveBeenCalled();
         });
     });
 
-    describe("AI Response Validation", () => {
-        const originalEnv = process.env;
-
+    describe("Streaming Behavior", () => {
         beforeEach(() => {
-            // Force development env to get detailed error messages
-            jest.resetModules(); // reset cache to ensure env read is fresh if needed (though locally scoped variable is fine)
-            process.env = { ...originalEnv, NODE_ENV: "development" };
-
-            // Setup valid calls for DB
-            // We use history=[] so recentGameIds=[] and logs fetch is skipped,
-            // consuming exactly 2 mocks per test.
-            listDocuments
-                .mockResolvedValueOnce({
-                    rows: [{ $id: "curr", teamId: "t1" }],
-                })
-                .mockResolvedValueOnce({ rows: [] });
-
-            mockGenerateContent.mockResolvedValue({
-                response: { text: () => "{}" },
-            });
-
-            // Update parser mock to include bats
-            parseAIResponse.mockReturnValue({
-                lineup: [
+            // Setup default mocks for happy path to reach streaming phase
+            listDocuments.mockImplementation(async () => ({
+                rows: [
                     {
-                        $id: "p1",
-                        firstName: "John",
-                        lastName: "Doe",
-                        gender: "M",
-                        bats: "Right",
-                        positions: ["LF", "LF", "LF", "LF", "LF", "LF", "LF"],
+                        $id: "g1",
+                        teamId: "t1",
+                        result: "W",
+                        playerChart: "[]",
+                        score: "10",
+                        opponentScore: "5",
+                        gameDate: "2023-01-01",
                     },
                 ],
-                reasoning: "Test reasoning",
-            });
+                total: 1,
+            }));
         });
 
-        afterEach(() => {
-            process.env = originalEnv;
-        });
-
-        it("should throw/return 500 if AI parsing fails", async () => {
-            parseAIResponse.mockReturnValueOnce(null);
-
-            const response = await action({ request: createMockRequest() });
-            const data = await response.json();
-
-            expect(response.status).toBe(500);
-            expect(data.error).toBe("Failed to parse AI response");
-        });
-
-        it("should fail if duplicate IDs in generated lineup", async () => {
-            parseAIResponse.mockReturnValueOnce({
-                lineup: [
-                    { $id: "p1", positions: Array(7).fill("LF") },
-                    { $id: "p1", positions: Array(7).fill("RF") },
-                ],
-            });
-            // Input has 2 players for this test
-            const req = createMockRequest({
-                players: [{ $id: "p1" }, { $id: "p2" }],
-            });
-
+        it("should return a Responsive with a ReadableStream that iterates over content", async () => {
+            const req = createMockRequest();
             const response = await action({ request: req });
-            const data = await response.json();
 
-            expect(response.status).toBe(500);
-            expect(data.error).toContain("duplicate player IDs");
+            // Verify response headers
+            expect(response.status).toBe(200);
+            expect(response.headers.get("Content-Type")).toBe(
+                "text/plain; charset=utf-8",
+            );
+
+            // Verify stream construction
+            const body = response.body;
+            expect(body).toBeDefined();
+            expect(body.underlyingSource).toBeDefined();
+            expect(body.underlyingSource.start).toBeDefined();
+
+            // Verify streaming logic
+            const mockController = {
+                enqueue: jest.fn(),
+                close: jest.fn(),
+                error: jest.fn(),
+            };
+
+            await body.underlyingSource.start(mockController);
+
+            expect(generateContentStream).toHaveBeenCalled();
+            expect(mockController.enqueue).toHaveBeenCalled();
+            expect(mockController.close).toHaveBeenCalled();
         });
 
-        it("should fail if generated player IDs do not match input", async () => {
-            parseAIResponse.mockReturnValueOnce({
-                lineup: [{ $id: "p2", positions: Array(7).fill("LF") }], // p2 instead of p1
+        it("should handle streaming errors by enqueuing error JSON if nothing sent yet", async () => {
+            // Mock error
+            generateContentStream.mockImplementation(async function* () {
+                throw new Error("Stream failed");
             });
 
-            const response = await action({ request: createMockRequest() });
-            const data = await response.json();
+            const req = createMockRequest();
+            const response = await action({ request: req });
+            const body = response.body;
 
-            expect(response.status).toBe(500);
-            expect(data.error).toMatch(/missing player|unknown player/);
+            const mockController = {
+                enqueue: jest.fn(),
+                close: jest.fn(),
+                error: jest.fn(),
+            };
+
+            await body.underlyingSource.start(mockController);
+
+            expect(mockController.enqueue).toHaveBeenCalled();
+
+            // Verify error payload
+            const callArg = mockController.enqueue.mock.calls[0][0];
+            const text = new TextDecoder().decode(callArg);
+            expect(text).toContain("Failed to generate lineup");
+            expect(mockController.close).toHaveBeenCalled();
+
+            // Verify rollback happened
+            // 1. Increment call (g1 comes from beforeEach mock, aiGenerationCount default 0 -> 1)
+            expect(updateDocument).toHaveBeenCalledWith(
+                "games",
+                "g1",
+                expect.objectContaining({ aiGenerationCount: 1 }),
+            );
+            // 2. Rollback call (back to 0)
+            expect(updateDocument).toHaveBeenLastCalledWith("games", "g1", {
+                aiGenerationCount: 0,
+            });
         });
 
-        it("should return success for valid lineup", async () => {
-            // Default mocks in top beforeEach handle the happy path
-            const response = await action({ request: createMockRequest() });
-            const data = await response.json();
+        it("should handle streaming errors by calling error() if data already sent", async () => {
+            generateContentStream.mockImplementation(async function* () {
+                yield "some data";
+                // Yielding implicitly happens, then we throw
+                throw new Error("Stream failed mid-way");
+            });
 
-            expect(response.status).toBe(200);
-            expect(data.success).toBe(true);
-            expect(data.lineup[0].$id).toBe("p1");
-            expect(data.lineup[0].bats).toBe("Right");
+            const req = createMockRequest();
+            const response = await action({ request: req });
+            const body = response.body;
+
+            const mockController = {
+                enqueue: jest.fn(),
+                close: jest.fn(),
+                error: jest.fn(),
+            };
+
+            await body.underlyingSource.start(mockController);
+
+            // Expected: enqueue data, then error
+            expect(mockController.enqueue).toHaveBeenCalled();
+            const callArg = mockController.enqueue.mock.calls[0][0];
+            const text = new TextDecoder().decode(callArg);
+            expect(text).toBe("some data");
+
+            expect(mockController.error).toHaveBeenCalledWith(
+                expect.any(Error),
+            );
         });
     });
 });

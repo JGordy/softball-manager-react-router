@@ -12,6 +12,8 @@ export default function ResultsView({
     aiReasoning,
     onRegenerate,
     onApply,
+    generationsUsed = 0,
+    maxGenerations = 3,
 }) {
     const [sanitizedReasoning, setSanitizedReasoning] = useState("");
 
@@ -20,6 +22,8 @@ export default function ResultsView({
             setSanitizedReasoning(dompurify.sanitize(aiReasoning));
         }
     }, [aiReasoning]);
+
+    const isLimitReached = generationsUsed >= maxGenerations;
 
     return (
         <>
@@ -98,8 +102,12 @@ export default function ResultsView({
             </TabsWrapper>
 
             <Group justify="space-between" mt="xl">
-                <Button variant="subtle" onClick={onRegenerate}>
-                    Regenerate
+                <Button
+                    variant="subtle"
+                    onClick={onRegenerate}
+                    disabled={isLimitReached}
+                >
+                    {isLimitReached ? "Limit Reached" : "Regenerate"}
                 </Button>
                 <Button
                     style={{ flexGrow: 1 }}
