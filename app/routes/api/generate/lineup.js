@@ -4,6 +4,7 @@ import { createModel, generateContentStream } from "@/utils/ai";
 import { listDocuments, updateDocument } from "@/utils/databases";
 import { createAdminClient } from "@/utils/appwrite/server";
 import { EVENT_TYPE_MAP, UI_KEYS } from "@/constants/scoring";
+import { MAX_AI_GENERATIONS_PER_GAME } from "@/constants/ai";
 
 import lineupSchema from "./utils/lineupSchema";
 import { getLineupSystemInstruction } from "./utils/systemInstructions";
@@ -33,6 +34,9 @@ const DB_TO_MINIFIED_EVENT = Object.entries(EVENT_TYPE_MAP).reduce(
  * @returns {Response} JSON response with the generated lineup or error
  */
 export async function action({ request }) {
+    let rollbackGameId = null;
+    let rollbackCount = null;
+
     try {
         // Parse the request body to get players, team info, and game details
         const body = await request.json();
@@ -79,12 +83,12 @@ export async function action({ request }) {
             );
         }
 
-        // Check validation limit (max 3 per game)
+        // Check validation limit
         const currentCount = game.aiGenerationCount || 0;
-        if (currentCount >= 3) {
+        if (currentCount >= MAX_AI_GENERATIONS_PER_GAME) {
             return new Response(
                 JSON.stringify({
-                    error: "AI generation limit reached for this game (max 3).",
+                    error: `AI generation limit reached for this game (max ${MAX_AI_GENERATIONS_PER_GAME}).`,
                 }),
                 {
                     status: 403,
@@ -94,9 +98,15 @@ export async function action({ request }) {
         }
 
         // Increment count
+        // Note: Appwrite doesn't support atomic increments natively via updateDocument API yet without functions.
+        // We accept a small race condition risk here for the generation limit behavior.
         await updateDocument("games", game.$id, {
             aiGenerationCount: currentCount + 1,
         });
+
+        // Set rollback values in case of failure later in the process
+        rollbackGameId = game.$id;
+        rollbackCount = currentCount;
 
         const teamId = game.teamId;
 
@@ -378,6 +388,20 @@ export async function action({ request }) {
                         e,
                     );
                     if (!hasEnqueued) {
+                        // Rollback generation count if immediate failure
+                        if (rollbackGameId && rollbackCount !== null) {
+                            try {
+                                await updateDocument("games", rollbackGameId, {
+                                    aiGenerationCount: rollbackCount,
+                                });
+                            } catch (cleanupError) {
+                                console.error(
+                                    "Failed to rollback generation count:",
+                                    cleanupError,
+                                );
+                            }
+                        }
+
                         const isDevelopment =
                             process.env.NODE_ENV === "development";
                         const errorPayload = {
@@ -412,6 +436,20 @@ export async function action({ request }) {
             },
         });
     } catch (error) {
+        // Rollback generation count if successfully incremented but failed later
+        if (rollbackGameId && rollbackCount !== null) {
+            try {
+                await updateDocument("games", rollbackGameId, {
+                    aiGenerationCount: rollbackCount,
+                });
+            } catch (cleanupError) {
+                console.error(
+                    "Failed to rollback generation count:",
+                    cleanupError,
+                );
+            }
+        }
+
         console.error("Error generating lineup:", error);
 
         const isDevelopment = process.env.NODE_ENV === "development";

@@ -141,6 +141,44 @@ describe("lineup generation action", () => {
                 aiGenerationCount: 1,
             });
         });
+        it("should rollback generation count on failure after increment", async () => {
+            const req = createMockRequest();
+            const originalCount = 1;
+
+            // 1. Get Game (success)
+            listDocuments.mockResolvedValueOnce({
+                rows: [
+                    {
+                        $id: "curr",
+                        teamId: "t1",
+                        aiGenerationCount: originalCount,
+                    },
+                ],
+            });
+
+            // 2. History Fetch (Fail) to trigger rollback
+            listDocuments.mockRejectedValueOnce(
+                new Error("History Fetch Failed"),
+            );
+
+            // Mock updateDocument success for the increment
+            updateDocument.mockResolvedValue({});
+
+            const response = await action({ request: req });
+
+            // Expect failure response
+            expect(response.status).toBe(500);
+
+            // Verify increment was called
+            expect(updateDocument).toHaveBeenCalledWith("games", "curr", {
+                aiGenerationCount: originalCount + 1,
+            });
+
+            // Verify rollback was called
+            expect(updateDocument).toHaveBeenCalledWith("games", "curr", {
+                aiGenerationCount: originalCount,
+            });
+        });
     });
 
     describe("Game Context Validation", () => {
@@ -360,6 +398,18 @@ describe("lineup generation action", () => {
             const text = new TextDecoder().decode(callArg);
             expect(text).toContain("Failed to generate lineup");
             expect(mockController.close).toHaveBeenCalled();
+
+            // Verify rollback happened
+            // 1. Increment call (g1 comes from beforeEach mock, aiGenerationCount default 0 -> 1)
+            expect(updateDocument).toHaveBeenCalledWith(
+                "games",
+                "g1",
+                expect.objectContaining({ aiGenerationCount: 1 }),
+            );
+            // 2. Rollback call (back to 0)
+            expect(updateDocument).toHaveBeenLastCalledWith("games", "g1", {
+                aiGenerationCount: 0,
+            });
         });
 
         it("should handle streaming errors by calling error() if data already sent", async () => {

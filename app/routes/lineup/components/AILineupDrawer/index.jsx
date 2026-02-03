@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { trackEvent } from "@/utils/analytics";
 import { validateLineup, sanitizeReasoning } from "@/utils/lineupValidation";
 import { tryParsePartialLineup } from "@/utils/json";
+import { MAX_AI_GENERATIONS_PER_GAME } from "@/constants/ai";
 
 import DrawerContainer from "@/components/DrawerContainer";
 
@@ -97,6 +98,8 @@ export default function AILineupDrawer({
 
         const controller = new AbortController();
         abortControllerRef.current = controller;
+        // Track that we attempted a generation to sync with server count on abort
+        let generationAttempted = false;
 
         setIsStreaming(true);
         trackEvent("ai-lineup-requested", {
@@ -105,6 +108,7 @@ export default function AILineupDrawer({
         });
 
         try {
+            generationAttempted = true;
             const response = await fetch("/api/lineup", {
                 method: "POST",
                 headers: {
@@ -231,6 +235,10 @@ export default function AILineupDrawer({
         } catch (error) {
             if (error.name === "AbortError") {
                 // User cancelled, do not set error state
+                // If we started a generation, the server likely counted it, so we should update our local count
+                if (generationAttempted) {
+                    setGenerationIncrements((prev) => prev + 1);
+                }
                 return;
             }
 
@@ -312,7 +320,7 @@ export default function AILineupDrawer({
                         onClose={handleClose}
                         onGenerate={handleGenerateAILineup}
                         generationsUsed={generationsUsed}
-                        maxGenerations={3}
+                        maxGenerations={MAX_AI_GENERATIONS_PER_GAME}
                     />
                 )
             ) : (
@@ -322,7 +330,7 @@ export default function AILineupDrawer({
                     onRegenerate={handleRegenerate}
                     onApply={handleApplyGeneratedLineup}
                     generationsUsed={generationsUsed}
-                    maxGenerations={3}
+                    maxGenerations={MAX_AI_GENERATIONS_PER_GAME}
                 />
             )}
         </DrawerContainer>
