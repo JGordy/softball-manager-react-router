@@ -27,8 +27,6 @@ describe("json utils - tryParsePartialLineup", () => {
     });
 
     it("should handle nested objects and strings correctly", () => {
-        const input =
-            '{"lineup": [{"data": {"val": 1}}, {"data": "some string with } brace" ';
         // 2nd object is incomplete (missing closing brace for the object proper? No wait)
         // {"data": "..." is open. The string quote is closed? No. "brace" ' -> check quote
 

@@ -8,7 +8,7 @@ import { action } from "../lineup";
 jest.mock("@/utils/databases");
 jest.mock("@/utils/ai");
 
-// Polyfill ReadableStream for Node < 18 or Jest environments lacking it
+// Polyfill ReadableStream for Jest test environments lacking it
 if (typeof global.ReadableStream === "undefined") {
     // A simplified mock of ReadableStream for the test environment
     global.ReadableStream = class ReadableStream {

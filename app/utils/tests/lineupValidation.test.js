@@ -9,7 +9,6 @@ describe("lineupValidation utils", () => {
 
         it("should remove Appwrite-style IDs", () => {
             const input = "Player [ID: 64f1a2b3c4d5e6f7a8b9] is good at SS.";
-            const expected = "Player  is good at SS.";
             // Note: internal whitespace might remain depending on implementation, but ID is gone.
             expect(
                 sanitizeReasoning(input).includes("64f1a2b3c4d5e6f7a8b9"),

@@ -345,13 +345,36 @@ export async function action({ request }) {
         // Convert async iterator to a standard ReadableStream
         const stream = new ReadableStream({
             async start(controller) {
+                const encoder = new TextEncoder();
+                let hasEnqueued = false;
                 try {
                     for await (const chunk of streamIterator) {
-                        controller.enqueue(new TextEncoder().encode(chunk));
+                        controller.enqueue(encoder.encode(chunk));
+                        hasEnqueued = true;
                     }
                     controller.close();
                 } catch (e) {
-                    controller.error(e);
+                    console.error(
+                        "Error while streaming AI lineup response:",
+                        e,
+                    );
+                    if (!hasEnqueued) {
+                        const isDevelopment =
+                            process.env.NODE_ENV === "development";
+                        const errorPayload = {
+                            error: "Failed to generate lineup",
+                            details:
+                                isDevelopment && e && e.message
+                                    ? e.message
+                                    : undefined,
+                        };
+                        controller.enqueue(
+                            encoder.encode(JSON.stringify(errorPayload)),
+                        );
+                        controller.close();
+                    } else {
+                        controller.error(e);
+                    }
                 }
             },
         });

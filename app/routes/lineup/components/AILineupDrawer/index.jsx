@@ -109,19 +109,27 @@ export default function AILineupDrawer({
             });
 
             if (!response.ok) {
-                // Try to parse error details from JSON
-                try {
-                    const errorData = await response.json();
-                    throw new Error(
-                        errorData.error ||
-                            "Failed to request lineup generation",
-                    );
-                } catch (e) {
-                    // Fallback to text status if JSON parse fails
-                    throw new Error(
-                        `Error ${response.status}: ${response.statusText}`,
-                    );
+                // Read error body as text first so we don't lose details if JSON parsing fails
+                const errorText = await response.text();
+                let errorMessage = "Failed to request lineup generation";
+
+                if (errorText) {
+                    try {
+                        const errorData = JSON.parse(errorText);
+                        errorMessage =
+                            errorData?.error ||
+                            errorData?.message ||
+                            errorText ||
+                            errorMessage;
+                    } catch (_parseError) {
+                        // Not valid JSON; use raw text
+                        errorMessage = errorText;
+                    }
+                } else {
+                    errorMessage = `Error ${response.status}: ${response.statusText}`;
                 }
+
+                throw new Error(errorMessage);
             }
 
             // Stream reading logic
@@ -147,12 +155,24 @@ export default function AILineupDrawer({
             try {
                 aiResponse = JSON.parse(resultText);
             } catch (e) {
+                const maxLogLength = 200;
+                const truncatedResultText =
+                    typeof resultText === "string" &&
+                    resultText.length > maxLogLength
+                        ? resultText.slice(0, maxLogLength) +
+                          `... [truncated ${resultText.length - maxLogLength} characters]`
+                        : resultText;
+
                 console.error(
                     "Failed to parse AI response JSON",
-                    resultText,
+                    truncatedResultText,
                     e,
                 );
                 throw new Error("Received invalid JSON from AI stream.");
+            }
+
+            if (aiResponse?.error) {
+                throw new Error(aiResponse.error);
             }
 
             if (!aiResponse || !aiResponse.lineup) {
