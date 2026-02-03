@@ -48,6 +48,15 @@ export default function AILineupDrawer({
 
     const abortControllerRef = useRef(null);
 
+    useEffect(() => {
+        // Abort any in-flight request when the drawer unmounts
+        return () => {
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+        };
+    }, []);
+
     // Filter for available players (accepted or tentative) to determine expected lineup size
     const availablePlayers =
         players?.filter(
