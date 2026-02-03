@@ -133,6 +133,9 @@ export default function AILineupDrawer({
             }
 
             // Stream reading logic
+            if (!response.body) {
+                throw new Error("Response body is empty");
+            }
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let resultText = "";
@@ -182,11 +185,8 @@ export default function AILineupDrawer({
                 }
                 throw error;
             } finally {
-                try {
-                    reader.releaseLock();
-                } catch (_releaseError) {
-                    // Ignore release errors; cleanup best-effort only
-                }
+                // Ensure the reader lock is released; let any errors surface
+                reader.releaseLock();
             }
 
             if (aiResponse?.error) {

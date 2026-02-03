@@ -33,6 +33,7 @@ const mockRead = jest.fn();
 const mockGetReader = jest.fn(() => ({
     read: mockRead,
     releaseLock: jest.fn(),
+    cancel: jest.fn(),
 }));
 
 global.fetch = jest.fn();

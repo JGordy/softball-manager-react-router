@@ -39,9 +39,17 @@ export function validateLineup(generatedLineup, players) {
         );
     }
 
-    const validatedLineup = generatedLineup.map((player) => {
-        if (!player.positions || player.positions.length !== 7) {
-            throw new Error(`Invalid positions array for player ${player.$id}`);
+    const validatedLineup = generatedLineup.map((player, index) => {
+        if (
+            !player ||
+            !Array.isArray(player.positions) ||
+            player.positions.length !== 7
+        ) {
+            const idInfo =
+                player && player.$id
+                    ? ` with id ${player.$id}`
+                    : ` at index ${index}`;
+            throw new Error(`Invalid positions array for player${idInfo}`);
         }
         return {
             $id: player.$id,
@@ -73,14 +81,6 @@ export function validateLineup(generatedLineup, players) {
     for (const id of inputPlayerIdSet) {
         if (!lineupPlayerIdSet.has(id)) {
             throw new Error(`Generated lineup is missing player with id ${id}`);
-        }
-    }
-
-    for (const id of lineupPlayerIdSet) {
-        if (!inputPlayerIdSet.has(id)) {
-            throw new Error(
-                `Generated lineup contains unknown player with id ${id}`,
-            );
         }
     }
 
