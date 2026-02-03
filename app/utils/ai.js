@@ -62,3 +62,25 @@ export async function generateContent(model, prompt) {
     const response = await result.response;
     return response.text();
 }
+
+/**
+ * Generate content using the AI model with streaming
+ * @param {GenerativeModel} model - The generative model to use
+ * @param {string|Array} prompt - The prompt to send to the AI
+ * @returns {Promise<AsyncGenerator<string>>} An async generator yielding text chunks
+ */
+export async function generateContentStream(model, prompt) {
+    const result = await model.generateContentStream(prompt);
+
+    // Create a generator that yields text chunks as they arrive
+    async function* streamIterator() {
+        for await (const chunk of result.stream) {
+            const chunkText = chunk.text();
+            if (chunkText) {
+                yield chunkText;
+            }
+        }
+    }
+
+    return streamIterator();
+}

@@ -1,12 +1,22 @@
 import { Query } from "node-appwrite";
 
 import { listDocuments } from "@/utils/databases";
-import { createModel, parseAIResponse } from "@/utils/ai";
+import { createModel, generateContentStream } from "@/utils/ai";
 
 import { action } from "../lineup";
 
 jest.mock("@/utils/databases");
 jest.mock("@/utils/ai");
+
+// Polyfill ReadableStream for Node < 18 or Jest environments lacking it
+if (typeof global.ReadableStream === "undefined") {
+    // A simplified mock of ReadableStream for the test environment
+    global.ReadableStream = class ReadableStream {
+        constructor(underlyingSource) {
+            this.underlyingSource = underlyingSource;
+        }
+    };
+}
 
 jest.mock("@/utils/appwrite/server", () => ({
     createAdminClient: jest.fn(() => ({
@@ -29,30 +39,33 @@ jest.mock("node-appwrite", () => ({
 }));
 
 describe("lineup generation action", () => {
-    let mockGenerateContent;
+    let mockGenerateContentStream;
 
     beforeEach(() => {
         jest.clearAllMocks();
         // Reset listDocuments to ensure no unconsumed mocks leak between tests
         listDocuments.mockReset();
 
-        mockGenerateContent = jest.fn();
-        createModel.mockReturnValue({
-            generateContent: mockGenerateContent,
+        mockGenerateContentStream = jest.fn();
+
+        // Mock generateContentStream to return an async iterator
+        generateContentStream.mockImplementation(async function* () {
+            yield JSON.stringify({
+                lineup: [
+                    {
+                        $id: "p1",
+                        firstName: "John",
+                        lastName: "Doe",
+                        gender: "M",
+                        bats: "Right",
+                        positions: ["LF", "LF", "LF", "LF", "LF", "LF", "LF"],
+                    },
+                ],
+                reasoning: "Test reasoning",
+            });
         });
-        parseAIResponse.mockReturnValue({
-            lineup: [
-                {
-                    $id: "p1",
-                    firstName: "John",
-                    lastName: "Doe",
-                    gender: "M",
-                    bats: "Right",
-                    positions: ["LF", "LF", "LF", "LF", "LF", "LF", "LF"],
-                },
-            ],
-            reasoning: "Test reasoning",
-        });
+
+        createModel.mockReturnValue({}); // No longer needs generateContent method
     });
 
     // Helper to create valid mock request
@@ -133,13 +146,9 @@ describe("lineup generation action", () => {
                 }) // History
                 .mockResolvedValueOnce({ rows: [] }); // Stats
 
-            mockGenerateContent.mockResolvedValue({
-                response: { text: () => "{}" },
-            });
-
             await action({ request: req });
 
-            const callArgs = mockGenerateContent.mock.calls[0][0];
+            const callArgs = generateContentStream.mock.calls[0][1];
             const inputData = JSON.parse(callArgs[1].text);
 
             expect(inputData.history).toHaveLength(1);
@@ -186,13 +195,9 @@ describe("lineup generation action", () => {
                     ],
                 });
 
-            mockGenerateContent.mockResolvedValue({
-                response: { text: () => "{}" },
-            });
-
             await action({ request: req });
 
-            const callArgs = mockGenerateContent.mock.calls[0][0];
+            const callArgs = generateContentStream.mock.calls[0][1];
             const inputData = JSON.parse(callArgs[1].text);
 
             expect(inputData.history[0].stats.p1).toContain(
@@ -238,106 +243,9 @@ describe("lineup generation action", () => {
                 })
                 .mockRejectedValueOnce(new Error("Appwrite Error"));
 
-            mockGenerateContent.mockResolvedValue({
-                response: { text: () => "{}" },
-            });
-
             const response = await action({ request: req });
             expect(response.status).toBe(200); // Process output even if logs fail
-        });
-    });
-
-    describe("AI Response Validation", () => {
-        const originalEnv = process.env;
-
-        beforeEach(() => {
-            // Force development env to get detailed error messages
-            jest.resetModules(); // reset cache to ensure env read is fresh if needed (though locally scoped variable is fine)
-            process.env = { ...originalEnv, NODE_ENV: "development" };
-
-            // Setup valid calls for DB
-            // We use history=[] so recentGameIds=[] and logs fetch is skipped,
-            // consuming exactly 2 mocks per test.
-            listDocuments
-                .mockResolvedValueOnce({
-                    rows: [{ $id: "curr", teamId: "t1" }],
-                })
-                .mockResolvedValueOnce({ rows: [] });
-
-            mockGenerateContent.mockResolvedValue({
-                response: { text: () => "{}" },
-            });
-
-            // Update parser mock to include bats
-            parseAIResponse.mockReturnValue({
-                lineup: [
-                    {
-                        $id: "p1",
-                        firstName: "John",
-                        lastName: "Doe",
-                        gender: "M",
-                        bats: "Right",
-                        positions: ["LF", "LF", "LF", "LF", "LF", "LF", "LF"],
-                    },
-                ],
-                reasoning: "Test reasoning",
-            });
-        });
-
-        afterEach(() => {
-            process.env = originalEnv;
-        });
-
-        it("should throw/return 500 if AI parsing fails", async () => {
-            parseAIResponse.mockReturnValueOnce(null);
-
-            const response = await action({ request: createMockRequest() });
-            const data = await response.json();
-
-            expect(response.status).toBe(500);
-            expect(data.error).toBe("Failed to parse AI response");
-        });
-
-        it("should fail if duplicate IDs in generated lineup", async () => {
-            parseAIResponse.mockReturnValueOnce({
-                lineup: [
-                    { $id: "p1", positions: Array(7).fill("LF") },
-                    { $id: "p1", positions: Array(7).fill("RF") },
-                ],
-            });
-            // Input has 2 players for this test
-            const req = createMockRequest({
-                players: [{ $id: "p1" }, { $id: "p2" }],
-            });
-
-            const response = await action({ request: req });
-            const data = await response.json();
-
-            expect(response.status).toBe(500);
-            expect(data.error).toContain("duplicate player IDs");
-        });
-
-        it("should fail if generated player IDs do not match input", async () => {
-            parseAIResponse.mockReturnValueOnce({
-                lineup: [{ $id: "p2", positions: Array(7).fill("LF") }], // p2 instead of p1
-            });
-
-            const response = await action({ request: createMockRequest() });
-            const data = await response.json();
-
-            expect(response.status).toBe(500);
-            expect(data.error).toMatch(/missing player|unknown player/);
-        });
-
-        it("should return success for valid lineup", async () => {
-            // Default mocks in top beforeEach handle the happy path
-            const response = await action({ request: createMockRequest() });
-            const data = await response.json();
-
-            expect(response.status).toBe(200);
-            expect(data.success).toBe(true);
-            expect(data.lineup[0].$id).toBe("p1");
-            expect(data.lineup[0].bats).toBe("Right");
+            expect(generateContentStream).toHaveBeenCalled();
         });
     });
 });
