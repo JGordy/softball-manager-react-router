@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import { trackEvent } from "@/utils/analytics";
 import { validateLineup, sanitizeReasoning } from "@/utils/lineupValidation";
@@ -39,6 +39,13 @@ export default function AILineupDrawer({
     const [partialLineup, setPartialLineup] = useState([]);
     const [loadingText, setLoadingText] = useState(null);
     const [aiReasoning, setAiReasoning] = useState(null);
+
+    // Track local successful generations to update UI immediately without revalidation
+    const [generationIncrements, setGenerationIncrements] = useState(0);
+    const generationsUsed =
+        (game?.aiGenerationCount || 0) + generationIncrements;
+
+    const abortControllerRef = useRef(null);
 
     // Filter for available players (accepted or tentative) to determine expected lineup size
     const availablePlayers =
@@ -83,6 +90,14 @@ export default function AILineupDrawer({
             return;
         }
 
+        // Abort any previous request
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+
         setIsStreaming(true);
         trackEvent("ai-lineup-requested", {
             teamId: team.$id,
@@ -106,6 +121,7 @@ export default function AILineupDrawer({
                     },
                     gameId: game?.$id,
                 }),
+                signal: controller.signal,
             });
 
             if (!response.ok) {
@@ -207,11 +223,17 @@ export default function AILineupDrawer({
 
             setGeneratedLineup(validLineup);
             setAiReasoning(validReasoning);
+            setGenerationIncrements((prev) => prev + 1);
             trackEvent("ai-lineup-generated", {
                 teamId: team.$id,
                 gameId: game?.$id,
             });
         } catch (error) {
+            if (error.name === "AbortError") {
+                // User cancelled, do not set error state
+                return;
+            }
+
             const message =
                 error instanceof Error ? error.message : String(error || "");
 
@@ -228,6 +250,7 @@ export default function AILineupDrawer({
 
             setAiError(userMessage);
         } finally {
+            abortControllerRef.current = null;
             setIsStreaming(false);
         }
     };
@@ -250,17 +273,22 @@ export default function AILineupDrawer({
 
     // Close drawer and reset state (clear any generated lineup to avoid stale data)
     const handleClose = () => {
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+            abortControllerRef.current = null;
+        }
         onClose();
         setAiError(null);
         setGeneratedLineup(null);
         setAiReasoning(null);
     };
 
-    const handleRegenerate = () => {
+    const handleRegenerate = async () => {
         setGeneratedLineup(null);
         setPartialLineup([]);
         setAiReasoning(null);
         setAiError(null);
+        await handleGenerateAILineup();
     };
 
     return (
@@ -283,6 +311,8 @@ export default function AILineupDrawer({
                         aiError={aiError}
                         onClose={handleClose}
                         onGenerate={handleGenerateAILineup}
+                        generationsUsed={generationsUsed}
+                        maxGenerations={3}
                     />
                 )
             ) : (
@@ -291,6 +321,8 @@ export default function AILineupDrawer({
                     aiReasoning={aiReasoning}
                     onRegenerate={handleRegenerate}
                     onApply={handleApplyGeneratedLineup}
+                    generationsUsed={generationsUsed}
+                    maxGenerations={3}
                 />
             )}
         </DrawerContainer>

@@ -1,9 +1,33 @@
-import { Stack, Text, Alert, Group, Button } from "@mantine/core";
+import { Stack, Text, Alert, Group, Button, Badge } from "@mantine/core";
 import { IconInfoCircle, IconSparkles } from "@tabler/icons-react";
 
-export default function InitialView({ aiError, onClose, onGenerate }) {
+export default function InitialView({
+    aiError,
+    onClose,
+    onGenerate,
+    generationsUsed = 0,
+    maxGenerations = 3,
+}) {
+    const remaining = Math.max(0, maxGenerations - generationsUsed);
+    const isLimitReached = generationsUsed >= maxGenerations;
+
     return (
         <Stack>
+            <Group justify="space-between" align="center">
+                <Text fw={700}>AI Lineup Generation</Text>
+                <Badge
+                    color={
+                        isLimitReached
+                            ? "red"
+                            : remaining === 1
+                              ? "orange"
+                              : "blue"
+                    }
+                    variant="light"
+                >
+                    {remaining} remaining
+                </Badge>
+            </Group>
             <Text>
                 This will use AI to generate an optimal batting order and
                 fielding chart based on manager & player preferences and league
@@ -35,9 +59,10 @@ export default function InitialView({ aiError, onClose, onGenerate }) {
                         deg: 90,
                     }}
                     onClick={onGenerate}
+                    disabled={isLimitReached}
                     leftSection={<IconSparkles size={18} />}
                 >
-                    Generate Lineup
+                    {isLimitReached ? "Limit Reached" : "Generate Lineup"}
                 </Button>
             </Group>
         </Stack>

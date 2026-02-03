@@ -1,12 +1,19 @@
 import { Query } from "node-appwrite";
 
-import { listDocuments } from "@/utils/databases";
+import { listDocuments, updateDocument } from "@/utils/databases";
 import { createModel, generateContentStream } from "@/utils/ai";
 
 import { action } from "../lineup";
 
 jest.mock("@/utils/databases");
 jest.mock("@/utils/ai");
+
+// Polyfill TextEncoder/TextDecoder for Jest if missing
+if (typeof global.TextEncoder === "undefined") {
+    const { TextEncoder, TextDecoder } = require("util");
+    global.TextEncoder = TextEncoder;
+    global.TextDecoder = TextDecoder;
+}
 
 // Polyfill ReadableStream for Jest test environments lacking it
 if (typeof global.ReadableStream === "undefined") {
@@ -45,6 +52,7 @@ describe("lineup generation action", () => {
         jest.clearAllMocks();
         // Reset listDocuments to ensure no unconsumed mocks leak between tests
         listDocuments.mockReset();
+        updateDocument.mockReset(); // Reset update mock
 
         mockGenerateContentStream = jest.fn();
 
@@ -103,6 +111,35 @@ describe("lineup generation action", () => {
 
             expect(response.status).toBe(400);
             expect(data.error).toMatch(/gameId is required/);
+        });
+
+        it("should return 403 if generation limit reached", async () => {
+            listDocuments.mockResolvedValueOnce({
+                rows: [{ $id: "g1", teamId: "t1", aiGenerationCount: 3 }],
+            });
+
+            const req = createMockRequest();
+            const response = await action({ request: req });
+            const data = await response.json();
+
+            expect(response.status).toBe(403);
+            expect(data.error).toMatch(/limit reached/);
+        });
+
+        it("should increment generation count on success", async () => {
+            // Mock game fetch (count 0)
+            listDocuments.mockResolvedValueOnce({
+                rows: [{ $id: "g1", teamId: "t1", aiGenerationCount: 0 }],
+            });
+            // Mock games fetch for stats (empty is fine)
+            listDocuments.mockResolvedValueOnce({ rows: [] });
+
+            const req = createMockRequest();
+            await action({ request: req });
+
+            expect(updateDocument).toHaveBeenCalledWith("games", "g1", {
+                aiGenerationCount: 1,
+            });
         });
     });
 
@@ -246,6 +283,113 @@ describe("lineup generation action", () => {
             const response = await action({ request: req });
             expect(response.status).toBe(200); // Process output even if logs fail
             expect(generateContentStream).toHaveBeenCalled();
+        });
+    });
+
+    describe("Streaming Behavior", () => {
+        beforeEach(() => {
+            // Setup default mocks for happy path to reach streaming phase
+            listDocuments.mockImplementation(async () => ({
+                rows: [
+                    {
+                        $id: "g1",
+                        teamId: "t1",
+                        result: "W",
+                        playerChart: "[]",
+                        score: "10",
+                        opponentScore: "5",
+                        gameDate: "2023-01-01",
+                    },
+                ],
+                total: 1,
+            }));
+        });
+
+        it("should return a Responsive with a ReadableStream that iterates over content", async () => {
+            const req = createMockRequest();
+            const response = await action({ request: req });
+
+            // Verify response headers
+            expect(response.status).toBe(200);
+            expect(response.headers.get("Content-Type")).toBe(
+                "text/plain; charset=utf-8",
+            );
+
+            // Verify stream construction
+            const body = response.body;
+            expect(body).toBeDefined();
+            expect(body.underlyingSource).toBeDefined();
+            expect(body.underlyingSource.start).toBeDefined();
+
+            // Verify streaming logic
+            const mockController = {
+                enqueue: jest.fn(),
+                close: jest.fn(),
+                error: jest.fn(),
+            };
+
+            await body.underlyingSource.start(mockController);
+
+            expect(generateContentStream).toHaveBeenCalled();
+            expect(mockController.enqueue).toHaveBeenCalled();
+            expect(mockController.close).toHaveBeenCalled();
+        });
+
+        it("should handle streaming errors by enqueuing error JSON if nothing sent yet", async () => {
+            // Mock error
+            generateContentStream.mockImplementation(async function* () {
+                throw new Error("Stream failed");
+            });
+
+            const req = createMockRequest();
+            const response = await action({ request: req });
+            const body = response.body;
+
+            const mockController = {
+                enqueue: jest.fn(),
+                close: jest.fn(),
+                error: jest.fn(),
+            };
+
+            await body.underlyingSource.start(mockController);
+
+            expect(mockController.enqueue).toHaveBeenCalled();
+
+            // Verify error payload
+            const callArg = mockController.enqueue.mock.calls[0][0];
+            const text = new TextDecoder().decode(callArg);
+            expect(text).toContain("Failed to generate lineup");
+            expect(mockController.close).toHaveBeenCalled();
+        });
+
+        it("should handle streaming errors by calling error() if data already sent", async () => {
+            generateContentStream.mockImplementation(async function* () {
+                yield "some data";
+                // Yielding implicitly happens, then we throw
+                throw new Error("Stream failed mid-way");
+            });
+
+            const req = createMockRequest();
+            const response = await action({ request: req });
+            const body = response.body;
+
+            const mockController = {
+                enqueue: jest.fn(),
+                close: jest.fn(),
+                error: jest.fn(),
+            };
+
+            await body.underlyingSource.start(mockController);
+
+            // Expected: enqueue data, then error
+            expect(mockController.enqueue).toHaveBeenCalled();
+            const callArg = mockController.enqueue.mock.calls[0][0];
+            const text = new TextDecoder().decode(callArg);
+            expect(text).toBe("some data");
+
+            expect(mockController.error).toHaveBeenCalledWith(
+                expect.any(Error),
+            );
         });
     });
 });

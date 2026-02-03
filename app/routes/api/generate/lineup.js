@@ -1,7 +1,7 @@
 import { Query } from "node-appwrite";
 
 import { createModel, generateContentStream } from "@/utils/ai";
-import { listDocuments } from "@/utils/databases";
+import { listDocuments, updateDocument } from "@/utils/databases";
 import { createAdminClient } from "@/utils/appwrite/server";
 import { EVENT_TYPE_MAP, UI_KEYS } from "@/constants/scoring";
 
@@ -78,6 +78,25 @@ export async function action({ request }) {
                 },
             );
         }
+
+        // Check validation limit (max 3 per game)
+        const currentCount = game.aiGenerationCount || 0;
+        if (currentCount >= 3) {
+            return new Response(
+                JSON.stringify({
+                    error: "AI generation limit reached for this game (max 3).",
+                }),
+                {
+                    status: 403,
+                    headers: { "Content-Type": "application/json" },
+                },
+            );
+        }
+
+        // Increment count
+        await updateDocument("games", game.$id, {
+            aiGenerationCount: currentCount + 1,
+        });
 
         const teamId = game.teamId;
 
