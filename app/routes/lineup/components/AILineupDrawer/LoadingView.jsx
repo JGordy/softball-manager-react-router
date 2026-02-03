@@ -1,7 +1,15 @@
 import { Stack, Box, Text, Card, Skeleton, Group, Button } from "@mantine/core";
 import { IconSparkles } from "@tabler/icons-react";
 
-export default function LoadingView({ loadingText, onClose }) {
+export default function LoadingView({
+    loadingText,
+    onClose,
+    partialLineup = [],
+    totalPlayers = 10,
+}) {
+    // Show valid players first, then skeletons based on the total number of players expected
+    const remainingSkeletons = Math.max(1, totalPlayers - partialLineup.length);
+
     return (
         <Stack gap="xl" py="lg">
             <Stack align="center" gap="xs">
@@ -30,12 +38,38 @@ export default function LoadingView({ loadingText, onClose }) {
 
             <Card withBorder p="md" radius="md">
                 <Stack gap="md">
-                    <Skeleton height={24} width="60%" radius="xl" />
+                    <Text fw={700} size="sm" mb="xs">
+                        Batting Order Preview
+                    </Text>
                     <Stack gap="sm">
-                        {Array(8)
+                        {partialLineup.map((player, index) => (
+                            <Group
+                                key={player.$id || index}
+                                gap="xs"
+                                wrap="nowrap"
+                            >
+                                <Text
+                                    size="sm"
+                                    c="dimmed"
+                                    style={{
+                                        minWidth: "20px",
+                                    }}
+                                >
+                                    {index + 1}.
+                                </Text>
+                                <Text size="sm">
+                                    {player.firstName} {player.lastName}
+                                </Text>
+                                <Text size="xs" c="dimmed" ml="auto">
+                                    ({player.gender})
+                                </Text>
+                            </Group>
+                        ))}
+
+                        {Array(remainingSkeletons)
                             .fill(0)
                             .map((_, i) => (
-                                <Group key={i} gap="sm">
+                                <Group key={`skel-${i}`} gap="sm">
                                     <Skeleton
                                         height={20}
                                         width={20}

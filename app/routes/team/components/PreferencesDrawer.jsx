@@ -51,7 +51,9 @@ export default function PreferencesDrawer({ opened, onClose, team }) {
                         min={0}
                         max={10}
                         value={maxMaleBatters}
-                        onChange={(val) => setMaxMaleBatters(val === "" ? 0 : val)}
+                        onChange={(val) =>
+                            setMaxMaleBatters(val === "" ? 0 : val)
+                        }
                     />
 
                     <Button
