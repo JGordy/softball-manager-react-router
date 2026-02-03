@@ -136,39 +136,57 @@ export default function AILineupDrawer({
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let resultText = "";
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                const chunk = decoder.decode(value, { stream: true });
-                resultText += chunk;
-
-                // Attempt to parse partially to show progress
-                const partial = tryParsePartialLineup(resultText);
-                if (partial && partial.length > 0) {
-                    setPartialLineup(partial);
-                }
-            }
-
-            // Parse and Validate locally
             let aiResponse;
-            try {
-                aiResponse = JSON.parse(resultText);
-            } catch (e) {
-                const maxLogLength = 200;
-                const truncatedResultText =
-                    typeof resultText === "string" &&
-                    resultText.length > maxLogLength
-                        ? resultText.slice(0, maxLogLength) +
-                          `... [truncated ${resultText.length - maxLogLength} characters]`
-                        : resultText;
 
-                console.error(
-                    "Failed to parse AI response JSON",
-                    truncatedResultText,
-                    e,
-                );
-                throw new Error("Received invalid JSON from AI stream.");
+            try {
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value, { stream: true });
+                    resultText += chunk;
+
+                    // Attempt to parse partially to show progress
+                    const partial = tryParsePartialLineup(resultText);
+                    if (partial && partial.length > 0) {
+                        setPartialLineup(partial);
+                    }
+                }
+
+                // Parse and Validate locally
+                try {
+                    aiResponse = JSON.parse(resultText);
+                } catch (e) {
+                    const maxLogLength = 200;
+                    const truncatedResultText =
+                        typeof resultText === "string" &&
+                        resultText.length > maxLogLength
+                            ? resultText.slice(0, maxLogLength) +
+                              `... [truncated ${resultText.length - maxLogLength} characters]`
+                            : resultText;
+
+                    console.error(
+                        "Failed to parse AI response JSON",
+                        truncatedResultText,
+                        e,
+                    );
+                    throw new Error("Received invalid JSON from AI stream.");
+                }
+            } catch (error) {
+                try {
+                    // Cancel the reader to abort the stream on error
+                    await reader.cancel(
+                        error instanceof Error ? error : undefined,
+                    );
+                } catch (_cancelError) {
+                    // Ignore cancellation errors to avoid masking the original error
+                }
+                throw error;
+            } finally {
+                try {
+                    reader.releaseLock();
+                } catch (_releaseError) {
+                    // Ignore release errors; cleanup best-effort only
+                }
             }
 
             if (aiResponse?.error) {

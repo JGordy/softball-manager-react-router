@@ -155,39 +155,14 @@ describe("AILineupDrawer Client Integration", () => {
     });
 
     it("should display server side streaming error json", async () => {
-        // Simulate the server sending a JSON error in the stream (as per our fix in lineup.js)
+        // Simulate the AI endpoint returning a structured error payload
+        // (e.g. `{ error: "...", details: "..." }`) instead of a valid lineup
+        // and verify that the user sees the appropriate failure message.
         const encoder = new TextEncoder();
         const errorPayload = JSON.stringify({
             error: "Failed to generate lineup",
             details: "Server error details",
         });
-
-        // The component parses the valid JSON, but then checks if it has 'lineup'.
-        // If the JSON is { error: ... }, line 147 `if (!aiResponse || !aiResponse.lineup)` will match
-        // and throw "AI response missing lineup data.".
-        // Wait, if the response is valid JSON, it parses it.
-        // Our server fix sends `JSON.stringify(errorPayload)`.
-        // So `aiResponse` will be `{ error: "...", details: "..." }`.
-        // `aiResponse.lineup` is undefined.
-        // So it throws "AI response missing lineup data."
-
-        // This means the error message seen by user will be "AI response missing lineup data."
-        // UNLESS we update index.jsx to handle this case too?
-        // The reviewer's comment on lineup.js suggested:
-        /*
-           implementing a structured error format... or documenting that streaming failures result in generic error.
-           I implemented the structured error format.
-           But the client needs to check for it!
-        */
-
-        // Let's check `AILineupDrawer/index.jsx` again.
-        // It does: `aiResponse = JSON.parse(resultText);`
-        // Then `if (!aiResponse || !aiResponse.lineup) { throw new Error("AI response missing lineup data."); }`
-
-        // So currently my client change doesn't explicitly look for `aiResponse.error`.
-        // I should probably update `index.jsx` to look for `aiResponse.error` too.
-
-        // Let's write the test assuming I will fix that too.
 
         mockRead
             .mockResolvedValueOnce({

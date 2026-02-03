@@ -373,6 +373,9 @@ export async function action({ request }) {
                         );
                         controller.close();
                     } else {
+                        // If we've already sent data, we can't cleanly send a JSON error.
+                        // The client might see a broken JSON structure or a stream error.
+                        // Ideally, the client handles mid-stream errors gracefully.
                         controller.error(e);
                     }
                 }

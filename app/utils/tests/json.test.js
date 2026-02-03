@@ -27,8 +27,11 @@ describe("json utils - tryParsePartialLineup", () => {
     });
 
     it("should handle nested objects and strings correctly", () => {
-        // 2nd object is incomplete (missing closing brace for the object proper? No wait)
-        // {"data": "..." is open. The string quote is closed? No. "brace" ' -> check quote
+        // Test case details:
+        // Object 1: {"a": 1}        - complete
+        // Object 2: {"b": "val}"}   - complete (closing brace is inside the string)
+        // Object 3: {"c": ...       - incomplete (truncated after the key)
+        // The parser should return only the first two complete objects.
 
         // precise test case:
         // Object 1: {"a": 1} - Complete

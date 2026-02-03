@@ -84,6 +84,12 @@ describe("lineupValidation utils", () => {
             );
         });
 
+        it("should throw if generated lineup is an empty array", () => {
+            expect(() => validateLineup([], players)).toThrow(
+                "AI response does not match expected lineup format",
+            );
+        });
+
         it("should throw if duplicate player IDs exist", () => {
             const generated = [
                 { $id: "p1", positions: Array(7).fill("LF") },
