@@ -6,6 +6,7 @@ import { Container, LoadingOverlay } from "@mantine/core";
 
 import NavLinks from "@/components/NavLinks";
 import NotificationPromptDrawer from "@/components/NotificationPromptDrawer";
+import InstallAppDrawer from "@/components/InstallAppDrawer";
 
 import { createSessionClient } from "@/utils/appwrite/server";
 
@@ -84,6 +85,7 @@ function Layout({ loaderData }) {
 
                 <NavLinks user={loaderData.user} />
                 <NotificationPromptDrawer />
+                <InstallAppDrawer />
             </main>
         </div>
     );
