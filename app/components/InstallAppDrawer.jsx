@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigation } from "react-router";
+import { useNavigation, useFetchers } from "react-router";
 
 import {
     Stack,
@@ -33,27 +33,39 @@ const DISMISS_DURATION = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 export default function InstallAppDrawer() {
     const navigation = useNavigation();
+    const fetchers = useFetchers();
     const os = useOs();
     const { isInstallable, promptInstall } = usePWAInstall();
     const [opened, setOpened] = useState(false);
 
-    // Track previous navigation state
-    const prevNavState = useRef(navigation.state);
+    // Track if a submission occurred
+    const wasSubmitting = useRef(false);
+
+    // Check if any global navigation or fetcher is currently submitting
+    const isSubmitting =
+        navigation.state === "submitting" ||
+        fetchers.some((f) => f.state === "submitting");
+
+    // Check if everything is completely idle
+    const isIdle =
+        navigation.state === "idle" &&
+        fetchers.every((f) => f.state === "idle");
 
     useEffect(() => {
-        const isActionSequenceComplete =
-            navigation.state === "idle" &&
-            (prevNavState.current === "submitting" ||
-                prevNavState.current === "loading");
+        if (isSubmitting) {
+            wasSubmitting.current = true;
+        }
 
-        if (isActionSequenceComplete) {
+        if (isIdle && wasSubmitting.current) {
+            wasSubmitting.current = false;
             checkAndOpenDrawer();
         }
-        prevNavState.current = navigation.state;
-    }, [navigation.state]);
+    }, [isSubmitting, isIdle]);
 
     const checkAndOpenDrawer = () => {
-        if (isStandalone()) return;
+        if (isStandalone()) {
+            return;
+        }
 
         const dismissedTimestamp = localStorage.getItem(
             INSTALL_DRAWER_DISMISSED_KEY,
@@ -69,6 +81,7 @@ export default function InstallAppDrawer() {
         // On iOS, we can always show instructions.
         // For development/testing, we allow bypassing the install check
         const isDev = import.meta.env.DEV;
+
         if (os !== "ios" && !isInstallable && !isDev) {
             return;
         }
@@ -107,7 +120,6 @@ export default function InstallAppDrawer() {
             opened={opened}
             onClose={handleClose}
             title={null}
-            showCloseButton={true}
             size="lg"
         >
             <Stack align="center" gap="md">
