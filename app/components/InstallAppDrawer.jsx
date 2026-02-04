@@ -105,6 +105,8 @@ export default function InstallAppDrawer() {
         if (outcome === "accepted") {
             trackEvent("install_prompt_success", { os });
             handleClose();
+        } else if (outcome === "dismissed") {
+            handleClose();
         }
     };
 
