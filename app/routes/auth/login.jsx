@@ -22,6 +22,8 @@ import {
 import branding from "@/constants/branding";
 import images from "@/constants/images";
 
+import { trackEvent } from "@/utils/analytics";
+
 import AutocompleteEmail from "@/components/AutocompleteEmail";
 
 import { redirectIfAuthenticated } from "./utils/redirectIfAuthenticated";
@@ -133,6 +135,7 @@ export default function Login({ loaderData }) {
 
                     <GoogleButton
                         component={Link}
+                        onClick={() => trackEvent("google-signin-click")}
                         to="/auth/oauth?provider=google"
                     />
 

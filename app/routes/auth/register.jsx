@@ -163,6 +163,7 @@ export default function Register({ actionData }) {
 
                     <Group grow mb="md" mt="md">
                         <GoogleButton
+                            onClick={() => trackEvent("google-register-click")}
                             component={Link}
                             to="/auth/oauth?provider=google"
                         />
