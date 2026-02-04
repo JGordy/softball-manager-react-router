@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 
 /**
  * Hook to handle PWA installation.
- * captures the 'beforeinstallprompt' event and exposes a method to trigger the install prompt.
+ * Captures the 'beforeinstallprompt' event and exposes a method to trigger the install prompt.
  *
  * @returns {{ isInstallable: boolean, promptInstall: () => Promise<string | null> }}
  */
