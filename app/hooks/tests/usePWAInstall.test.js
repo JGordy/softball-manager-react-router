@@ -74,4 +74,44 @@ describe("usePWAInstall", () => {
         expect(result.current.isInstallable).toBe(false);
         expect(outcome).toBe("accepted");
     });
+
+    it("should return null if promptInstall is called without a deferred prompt", async () => {
+        const { result } = renderHook(() => usePWAInstall());
+
+        let outcome;
+        await act(async () => {
+            outcome = await result.current.promptInstall();
+        });
+
+        expect(outcome).toBeNull();
+    });
+
+    it("should handle the dismissed outcome correctly", async () => {
+        const { result } = renderHook(() => usePWAInstall());
+
+        const mockEvent = {
+            preventDefault: jest.fn(),
+            prompt: jest.fn(),
+            userChoice: Promise.resolve({ outcome: "dismissed" }),
+        };
+
+        // Trigger event
+        act(() => {
+            if (events.beforeinstallprompt) {
+                events.beforeinstallprompt(mockEvent);
+            }
+        });
+
+        expect(result.current.isInstallable).toBe(true);
+
+        // Install
+        let outcome;
+        await act(async () => {
+            outcome = await result.current.promptInstall();
+        });
+
+        expect(mockEvent.prompt).toHaveBeenCalled();
+        expect(result.current.isInstallable).toBe(false);
+        expect(outcome).toBe("dismissed");
+    });
 });

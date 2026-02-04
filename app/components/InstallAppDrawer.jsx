@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigation, useFetchers } from "react-router";
 
 import {
@@ -51,18 +51,7 @@ export default function InstallAppDrawer() {
         navigation.state === "idle" &&
         fetchers.every((f) => f.state === "idle");
 
-    useEffect(() => {
-        if (isSubmitting) {
-            wasSubmitting.current = true;
-        }
-
-        if (isIdle && wasSubmitting.current) {
-            wasSubmitting.current = false;
-            checkAndOpenDrawer();
-        }
-    }, [isSubmitting, isIdle]);
-
-    const checkAndOpenDrawer = () => {
+    const checkAndOpenDrawer = useCallback(() => {
         if (isStandalone()) {
             return;
         }
@@ -88,7 +77,18 @@ export default function InstallAppDrawer() {
 
         setOpened(true);
         trackEvent("install_prompt_view", { os });
-    };
+    }, [isInstallable, os]);
+
+    useEffect(() => {
+        if (isSubmitting) {
+            wasSubmitting.current = true;
+        }
+
+        if (isIdle && wasSubmitting.current) {
+            wasSubmitting.current = false;
+            checkAndOpenDrawer();
+        }
+    }, [isSubmitting, isIdle, checkAndOpenDrawer]);
 
     const handleClose = () => {
         setOpened(false);
@@ -96,14 +96,14 @@ export default function InstallAppDrawer() {
             INSTALL_DRAWER_DISMISSED_KEY,
             Date.now().toString(),
         );
-        trackEvent("install_prompt_dismissed");
+        trackEvent("install_prompt_dismissed", { os });
     };
 
     const handleInstall = async () => {
         trackEvent("install_prompt_click", { os });
         const outcome = await promptInstall();
         if (outcome === "accepted") {
-            trackEvent("install_prompt_success", { platform: "android" });
+            trackEvent("install_prompt_success", { os });
             handleClose();
         }
     };
@@ -111,7 +111,7 @@ export default function InstallAppDrawer() {
     // For iOS, viewing the instructions is the closest we get to "success"
     useEffect(() => {
         if (opened && os === "ios") {
-            trackEvent("install_instruction_view", { platform: "ios" });
+            trackEvent("install_instruction_view", { os });
         }
     }, [opened, os]);
 
