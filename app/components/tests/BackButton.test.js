@@ -1,8 +1,6 @@
-import React from "react";
-import { screen, fireEvent } from "@testing-library/react";
-import { render } from "../../utils/test-utils";
+import { screen, fireEvent, cleanup } from "@testing-library/react";
+import { render } from "@/utils/test-utils";
 import BackButton from "../BackButton";
-import { it } from "node:test";
 
 const mockNavigate = jest.fn();
 jest.mock("react-router", () => ({
@@ -11,6 +9,10 @@ jest.mock("react-router", () => ({
 }));
 
 describe("BackButton Component", () => {
+    afterEach(() => {
+        cleanup();
+    });
+
     beforeEach(() => {
         mockNavigate.mockClear();
     });
@@ -27,15 +29,15 @@ describe("BackButton Component", () => {
 
     it("calls navigate(-1) by default when clicked", () => {
         render(<BackButton />);
-        const button = screen.getByRole("button");
+        const button = screen.getByRole("button", { name: "Back" });
         fireEvent.click(button);
         expect(mockNavigate).toHaveBeenCalledWith(-1);
     });
 
-    test("calls navigate('/some-path') when to prop is provided", () => {
+    it("calls navigate('/some-path') when to prop is provided", () => {
         const path = "/some-path";
         render(<BackButton to={path} />);
-        const button = screen.getByRole("button");
+        const button = screen.getByRole("button", { name: "Back" });
         fireEvent.click(button);
         expect(mockNavigate).toHaveBeenCalledWith(path);
     });
