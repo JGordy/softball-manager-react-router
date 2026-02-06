@@ -89,38 +89,41 @@ describe("PersonalDetails Component", () => {
     it("shows phone link on touch devices", () => {
         // Override matchMedia to simulate touch
         const originalMatchMedia = window.matchMedia;
-        window.matchMedia = jest.fn().mockImplementation((query) => ({
-            matches:
-                query.includes("hover: none") ||
-                query.includes("pointer: coarse"),
-            media: query,
-            onchange: null,
-            addListener: jest.fn(),
-            removeListener: jest.fn(),
-            addEventListener: jest.fn(),
-            removeEventListener: jest.fn(),
-            dispatchEvent: jest.fn(),
-        }));
 
-        render(
-            <PersonalDetails
-                player={mockPlayer}
-                user={mockUser}
-                managerView={true}
-            />,
-        );
+        try {
+            window.matchMedia = jest.fn().mockImplementation((query) => ({
+                matches:
+                    query.includes("hover: none") ||
+                    query.includes("pointer: coarse"),
+                media: query,
+                onchange: null,
+                addListener: jest.fn(),
+                removeListener: jest.fn(),
+                addEventListener: jest.fn(),
+                removeEventListener: jest.fn(),
+                dispatchEvent: jest.fn(),
+            }));
 
-        const links = screen.getAllByRole("link");
-        expect(
-            links.some(
-                (link) =>
-                    link.getAttribute("href") ===
-                    `tel:${mockPlayer.phoneNumber}`,
-            ),
-        ).toBe(true);
+            render(
+                <PersonalDetails
+                    player={mockPlayer}
+                    user={mockUser}
+                    managerView={true}
+                />,
+            );
 
-        // Restore matchMedia
-        window.matchMedia = originalMatchMedia;
+            const links = screen.getAllByRole("link");
+            expect(
+                links.some(
+                    (link) =>
+                        link.getAttribute("href") ===
+                        `tel:${mockPlayer.phoneNumber}`,
+                ),
+            ).toBe(true);
+        } finally {
+            // Restore matchMedia
+            window.matchMedia = originalMatchMedia;
+        }
     });
 
     it("does NOT show action buttons for current user viewing their own profile", () => {

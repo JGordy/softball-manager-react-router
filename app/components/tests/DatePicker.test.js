@@ -22,22 +22,18 @@ describe("DatePicker Component", () => {
 
     it("sets input as required when prop is true", () => {
         render(<DatePicker required label="Required Date" />);
-        // Mantine adds an asterisk for required fields
-        const asterisk = document.querySelector(
-            ".mantine-InputWrapper-required",
-        );
-        expect(asterisk).toBeInTheDocument();
+        // Assert that the DatePicker control is marked as required
+        const input = screen.getByRole("button", { name: /Required Date/i });
+        // Although 'required' on a button isn't valid HTML5, Mantine applies passed props to the element.
+        expect(input).toHaveAttribute("required");
     });
 
     it("renders with default values", () => {
         const date = new Date(2023, 0, 1); // Jan 1 2023
         render(<DatePicker defaultValue={date} label="Default" />);
 
-        // Mantine DatePicker input value format depends on locale/settings
-        // Default is usually Month DD, YYYY or similar.
-        // We check value attribute of the hidden input or visible text
-        const input = screen.getByRole("button", { name: /Default/i }); // DatePicker is often a button trigger
-        // Just checking existence is good sanity check for now for controlled/uncontrolled
-        expect(input).toBeInTheDocument();
+        // Verify the formatted date text is visible
+        // Mantine default format is typically "MMMM D, YYYY" (e.g., January 1, 2023)
+        expect(screen.getByText(/January 1, 2023/i)).toBeInTheDocument();
     });
 });

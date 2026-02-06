@@ -38,6 +38,6 @@ describe("AutocompleteEmail Component", () => {
 
         await new Promise((r) => setTimeout(r, 100));
 
-        expect(screen.queryByText("joe@@gmail.com")).not.toBeInTheDocument();
+        expect(screen.queryByText("joe@gmail.com")).not.toBeInTheDocument();
     });
 });

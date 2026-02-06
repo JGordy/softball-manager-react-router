@@ -29,7 +29,7 @@ describe("DrawerContainer Component", () => {
         expect(screen.getByText("Drawer Content")).toBeInTheDocument();
     });
 
-    it("calls onClose when overlay is clicked", async () => {
+    it("calls onClose when escape key is pressed", async () => {
         const handleClose = jest.fn();
         render(
             <DrawerContainer opened={true} onClose={handleClose} title="Test">
@@ -37,10 +37,8 @@ describe("DrawerContainer Component", () => {
             </DrawerContainer>,
         );
 
-        // Mantine renders an overlay div. We can find it by class or role usually.
-        // The presentation role is often used for the overlay.
-        const overlay = document.querySelector(".mantine-Overlay-root");
-        fireEvent.click(overlay);
+        // Simulate pressing Escape (standard accessibility behavior for modals/drawers)
+        fireEvent.keyDown(document.body, { key: "Escape" });
 
         await waitFor(() => {
             expect(handleClose).toHaveBeenCalledTimes(1);
@@ -55,8 +53,10 @@ describe("DrawerContainer Component", () => {
             </DrawerContainer>,
         );
 
-        // Mantine Drawer close button typically doesn't have an accessible name by default
-        const closeButton = document.querySelector(".mantine-Drawer-close");
+        // Find close button by accessible name (added via closeButtonProps)
+        const closeButton = screen.getByRole("button", {
+            name: "Close drawer",
+        });
         fireEvent.click(closeButton);
 
         await waitFor(() => {

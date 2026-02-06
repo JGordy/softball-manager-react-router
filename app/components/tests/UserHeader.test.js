@@ -27,7 +27,7 @@ describe("UserHeader Component", () => {
             user: mockUser,
             isVerified: true,
         });
-        useFetcher.mockReturnValue({ submit: jest.fn() });
+        useFetcher.mockReturnValue({ submit: jest.fn(), state: "idle" });
 
         render(<UserHeader subText="Welcome back" />);
 
@@ -48,7 +48,7 @@ describe("UserHeader Component", () => {
             user: mockUser,
             isVerified: true,
         });
-        useFetcher.mockReturnValue({ submit: jest.fn() });
+        useFetcher.mockReturnValue({ submit: jest.fn(), state: "idle" });
 
         render(<UserHeader />);
 
