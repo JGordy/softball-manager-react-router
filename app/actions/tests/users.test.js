@@ -138,7 +138,6 @@ describe("Users Actions", () => {
                 bats: "R",
                 throws: "R",
                 preferredPositions: "1B",
-                dislikedPositions: "OF",
             };
             const userId = "user1";
 
@@ -148,7 +147,6 @@ describe("Users Actions", () => {
                 bats: "R",
                 throws: "R",
                 preferredPositions: ["1B"],
-                dislikedPositions: ["OF"],
             });
 
             const result = await updateUser({ values: mockValues, userId });

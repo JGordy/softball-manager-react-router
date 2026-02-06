@@ -68,20 +68,25 @@ export const UmamiTracker = () => {
         if (isUmamiAvailable()) {
             trackPageView();
         } else {
+            let timeoutId;
+
             // Fallback/Retry for initial load race condition
-            const interval = setInterval(() => {
+            const intervalId = setInterval(() => {
                 if (isUmamiAvailable()) {
                     trackPageView();
-                    clearInterval(interval);
+                    clearInterval(intervalId);
+                    clearTimeout(timeoutId);
                 }
             }, 500);
 
             // Timeout after 5s to avoid infinite interval
-            const timeout = setTimeout(() => clearInterval(interval), 5000);
+            timeoutId = setTimeout(() => {
+                clearInterval(intervalId);
+            }, 5000);
 
             return () => {
-                clearInterval(interval);
-                clearTimeout(timeout);
+                clearInterval(intervalId);
+                clearTimeout(timeoutId);
             };
         }
     }, [location.pathname, matches]); // Re-run when path or route matches change

@@ -64,7 +64,7 @@ const fieldsToValidate = {
     bats: { label: "bats" },
     throws: { label: "throws" },
     preferredPositions: { label: "preferred positions" },
-    dislikedPositions: { label: "disliked positions" },
+    // dislikedPositions: { label: "disliked positions" },
 };
 
 export function links() {

@@ -94,9 +94,7 @@ export async function updateUser({ values, userId }) {
             updatedUser.bats &&
             updatedUser.throws &&
             updatedUser.preferredPositions &&
-            updatedUser.preferredPositions.length > 0 &&
-            updatedUser.dislikedPositions &&
-            updatedUser.dislikedPositions.length > 0;
+            updatedUser.preferredPositions.length > 0;
 
         return {
             response: updatedUser,
