@@ -125,6 +125,11 @@ describe("dateTime utility", () => {
             expect(result).toBe("today");
         });
 
+        it("should return 'today' (not future) for same day future time with hourly precision", () => {
+            const result = getGameDayStatus("2023-10-27T15:00:00Z", true);
+            expect(result).toBe("today");
+        });
+
         it("should return 'in progress' with hourly precision", () => {
             // Game starts at 11:30 UTC (now is 12:00 UTC)
             // Duration 60 mins -> ends 12:30 UTC

@@ -7,6 +7,10 @@ import fieldingPositions from "@/constants/positions";
 import styles from "../styles/playerChart.module.css";
 
 const PlayerChart = ({ playerChart }) => {
+    if (!playerChart) {
+        return null;
+    }
+
     const columns = useMemo(
         () => [
             {
@@ -38,10 +42,6 @@ const PlayerChart = ({ playerChart }) => {
             return row;
         });
     }, [playerChart]);
-
-    if (!playerChart) {
-        return null;
-    }
 
     return (
         <div className={`${styles.tableContainer} printable`}>
