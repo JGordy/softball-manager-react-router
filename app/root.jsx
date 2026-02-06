@@ -154,7 +154,9 @@ export default function App({ loaderData }) {
 
     return (
         <NotificationsProvider>
-            <UmamiTracker />
+            {import.meta.env.PROD &&
+                import.meta.env.VITE_UMAMI_WEBSITE_ID &&
+                import.meta.env.VITE_UMAMI_SCRIPT_URL && <UmamiTracker />}
             <Layout context={{ darkMode }}>
                 <Outlet />
             </Layout>
