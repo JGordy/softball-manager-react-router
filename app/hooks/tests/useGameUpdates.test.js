@@ -147,7 +147,7 @@ describe("useGameUpdates", () => {
         });
 
         const gameDate = DateTime.now().toISO();
-        const { result } = renderHook(() =>
+        renderHook(() =>
             useGameUpdates("game-1", { ...mockHandlers, gameDate }),
         );
 
@@ -173,7 +173,7 @@ describe("useGameUpdates", () => {
         });
 
         const gameDate = DateTime.now().toISO();
-        const { result } = renderHook(() =>
+        renderHook(() =>
             useGameUpdates("game-1", { ...mockHandlers, gameDate }),
         );
 

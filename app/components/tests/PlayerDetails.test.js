@@ -44,8 +44,6 @@ describe("PlayerDetails Component", () => {
 
     it("displays position chart image", () => {
         render(<PlayerDetails player={mockPlayer} />);
-        const images = screen.getAllByRole("img");
-        // Expect at least the field background + avatars for positions
         // The main field image has alt "Preferred Positions Chart"
         expect(
             screen.getByAltText("Preferred Positions Chart"),
