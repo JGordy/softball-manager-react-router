@@ -138,7 +138,7 @@ export function getGameDayStatus(
 
             if (nowMs >= gameStart && nowMs < gameEnd) return "in progress";
             if (nowMs >= gameEnd) return "past";
-            return "future";
+            return "today";
         }
 
         return "today";
