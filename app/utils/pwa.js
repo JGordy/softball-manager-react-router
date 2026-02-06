@@ -18,3 +18,5 @@ export const isStandalone = () => {
 
     return false;
 };
+
+export const isDev = () => import.meta.env.DEV;

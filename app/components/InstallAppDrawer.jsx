@@ -23,7 +23,7 @@ import {
 
 import DrawerContainer from "@/components/DrawerContainer";
 import { usePWAInstall } from "@/hooks/usePWAInstall";
-import { isStandalone } from "@/utils/pwa";
+import { isStandalone, isDev } from "@/utils/pwa";
 import { trackEvent } from "@/utils/analytics";
 import images from "@/constants/images";
 import branding from "@/constants/branding";
@@ -31,10 +31,11 @@ import branding from "@/constants/branding";
 const INSTALL_DRAWER_DISMISSED_KEY = "install_drawer_dismissed";
 const DISMISS_DURATION = 30 * 24 * 60 * 60 * 1000; // 30 days
 
-export default function InstallAppDrawer() {
+export default function InstallAppDrawer({ os: osOverride } = {}) {
     const navigation = useNavigation();
     const fetchers = useFetchers();
-    const os = useOs();
+    const hookOs = useOs();
+    const os = osOverride || hookOs;
     const { isInstallable, promptInstall } = usePWAInstall();
     const [opened, setOpened] = useState(false);
 
@@ -69,9 +70,8 @@ export default function InstallAppDrawer() {
         // On Android/Chrome, we need the event to have fired (isInstallable).
         // On iOS, we can always show instructions.
         // For development/testing, we allow bypassing the install check
-        const isDev = import.meta.env.DEV;
 
-        if (os !== "ios" && !isInstallable && !isDev) {
+        if (os !== "ios" && !isInstallable && !isDev()) {
             return;
         }
 
