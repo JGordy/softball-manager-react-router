@@ -38,7 +38,11 @@ export default function TeamLineup({ loaderData }) {
     const actionData = useActionData();
 
     useEffect(() => {
-        if (actionData?.success && actionData?.event) {
+        if (
+            actionData?.success &&
+            actionData?.event &&
+            Object.keys(actionData.event).length > 0
+        ) {
             trackEvent(actionData.event.name, actionData.event.data);
         }
     }, [actionData]);
