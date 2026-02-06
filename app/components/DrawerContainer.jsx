@@ -17,6 +17,7 @@ export default function DrawerContainer({
             classNames={classes}
             opened={opened}
             onClose={onClose}
+            closeButtonProps={{ "aria-label": "Close drawer" }}
             overlayProps={{ backgroundOpacity: 0.55, blur: 3 }}
             position={position}
             padding={padding}
