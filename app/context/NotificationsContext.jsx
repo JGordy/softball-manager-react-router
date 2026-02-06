@@ -335,6 +335,8 @@ export function NotificationsProvider({ children }) {
 
                 if (!response.ok)
                     throw new Error("Failed to subscribe to team");
+
+                trackEvent("subscribe-team-notifications", { teamId });
                 return true;
             } catch (err) {
                 console.error("Error subscribing to team:", err);
@@ -364,6 +366,8 @@ export function NotificationsProvider({ children }) {
 
                 if (!response.ok)
                     throw new Error("Failed to unsubscribe from team");
+
+                trackEvent("unsubscribe-team-notifications", { teamId });
                 return true;
             } catch (err) {
                 console.error("Error unsubscribing from team:", err);
