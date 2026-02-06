@@ -43,8 +43,8 @@ export default function GamesList({
         }
 
         // Both are future, sort by sortOrder
-        if (sortOrder === "dsc") return dateB - dateA;
-        return dateA - dateB;
+        if (sortOrder === "dsc") return dateB.toMillis() - dateA.toMillis();
+        return dateA.toMillis() - dateB.toMillis();
     });
 
     return (

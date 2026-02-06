@@ -49,32 +49,7 @@ const getGameStatus = (dateIso, result, score, opponentScore, zone) => {
         };
     }
 
-    if (dayStatus === "today") {
-        // compute hours until using Luxon via formatForViewerTime usage for display
-        const dt = DateTime.fromISO(dateIso, { zone: "utc" }).setZone(
-            zone || undefined,
-        );
-        const now = DateTime.local().setZone(zone || undefined);
-        const hoursUntil = Math.ceil(
-            (dt.toMillis() - now.toMillis()) / (1000 * 3600),
-        );
-        if (hoursUntil > 0) {
-            return {
-                status: "today",
-                text: (
-                    <Text align={"right"} span fw={700} c="green">
-                        {hoursUntil === 1
-                            ? "1 hour away!"
-                            : `${hoursUntil} hours away!`}
-                    </Text>
-                ),
-            };
-        }
-        return { status: "today", text: null };
-    }
-
-    // future: determine days until
-    if (dayStatus === "future") {
+    if (dayStatus === "today" || dayStatus === "future") {
         const dt = DateTime.fromISO(dateIso, { zone: "utc" }).setZone(
             zone || undefined,
         );
@@ -83,6 +58,27 @@ const getGameStatus = (dateIso, result, score, opponentScore, zone) => {
             (dt.startOf("day").toMillis() - now.startOf("day").toMillis()) /
                 (1000 * 3600 * 24),
         );
+
+        if (daysUntil === 0) {
+            // compute hours until
+            const hoursUntil = Math.ceil(
+                (dt.toMillis() - now.toMillis()) / (1000 * 3600),
+            );
+            if (hoursUntil > 0) {
+                return {
+                    status: "today",
+                    text: (
+                        <Text align={"right"} span fw={700} c="green">
+                            {hoursUntil === 1
+                                ? "1 hour away!"
+                                : `${hoursUntil} hours away!`}
+                        </Text>
+                    ),
+                };
+            }
+            return { status: "today", text: null };
+        }
+
         return {
             status: "future",
             text: (
