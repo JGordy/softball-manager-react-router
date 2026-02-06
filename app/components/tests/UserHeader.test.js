@@ -36,11 +36,8 @@ describe("UserHeader Component", () => {
         expect(screen.getByText("Welcome back")).toBeInTheDocument();
 
         // Avatar check
-        const imgs = screen.getAllByRole("img");
-        // UserAvatar uses Appwrite logic fallback which we mocked or standard.
-        // But Mantine Avatar usually renders an image or placeholders.
-        // Assuming visual presence.
-        expect(imgs.length).toBeGreaterThan(0);
+        const avatar = screen.getByRole("img", { name: mockUser.name });
+        expect(avatar).toHaveAttribute("src", mockUser.prefs.avatarUrl);
     });
 
     it("does NOT show verification alert when verified", () => {
