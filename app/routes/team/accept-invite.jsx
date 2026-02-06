@@ -77,7 +77,17 @@ export async function clientAction({ request, params, serverAction }) {
             secret,
         });
 
-        return { ...result, event: "invite-accepted" };
+        return {
+            ...result,
+            event: {
+                name: "invite-accepted",
+                data: {
+                    teamId,
+                    membershipId,
+                    userId,
+                },
+            },
+        };
     }
 
     // For all other actions (like set-password), pass through to server action
