@@ -77,7 +77,12 @@ export const UmamiTracker = () => {
             }, 500);
 
             // Timeout after 5s to avoid infinite interval
-            setTimeout(() => clearInterval(interval), 5000);
+            const timeout = setTimeout(() => clearInterval(interval), 5000);
+
+            return () => {
+                clearInterval(interval);
+                clearTimeout(timeout);
+            };
         }
     }, [location.pathname, matches]); // Re-run when path or route matches change
 
