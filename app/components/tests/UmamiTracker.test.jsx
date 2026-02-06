@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { render, act } from "@testing-library/react";
 import { useLocation, useMatches } from "react-router";
 import { UmamiTracker } from "../UmamiTracker";
 
@@ -24,9 +24,13 @@ describe("UmamiTracker", () => {
     });
 
     afterEach(() => {
-        window.umami = originalUmami;
+        if (typeof originalUmami === "undefined") {
+            delete window.umami;
+        } else {
+            window.umami = originalUmami;
+        }
         jest.useRealTimers();
-        jest.clearAllMocks();
+        jest.restoreAllMocks(); // This likely covers mockRestores too, checking doc later
     });
 
     it("tracks page view on mount", () => {
@@ -83,7 +87,9 @@ describe("UmamiTracker", () => {
         window.umami = { track: mockTrack };
 
         // Fast-forward time
-        jest.advanceTimersByTime(500);
+        act(() => {
+            jest.advanceTimersByTime(500);
+        });
 
         expect(mockTrack).toHaveBeenCalledWith({ url: "/test" });
     });

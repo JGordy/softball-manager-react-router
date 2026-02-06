@@ -180,7 +180,7 @@ describe("Games Actions", () => {
                 opponentScore: "5",
             };
 
-            updateDocument.mockResolvedValue({ $id: "game1" });
+            updateDocument.mockResolvedValue({ $id: "game1", teamId: "team1" });
 
             const result = await updateGame({
                 values: mockValues,
@@ -195,6 +195,25 @@ describe("Games Actions", () => {
             });
             expect(result.success).toBe(true);
             expect(result.status).toBe(204);
+            expect(result.event).toEqual({
+                name: "game-scored",
+                data: { eventId: "game1", teamId: "team1" },
+            });
+        });
+
+        it("should not emit event when updates are not score related", async () => {
+            const mockValues = {
+                opponent: "New Name",
+            };
+
+            updateDocument.mockResolvedValue({ $id: "game1", teamId: "team1" });
+
+            const result = await updateGame({
+                values: mockValues,
+                eventId: "game1",
+            });
+
+            expect(result.event).toBeUndefined();
         });
 
         it("should compute result correctly", async () => {

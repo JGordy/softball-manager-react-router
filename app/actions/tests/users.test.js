@@ -112,7 +112,11 @@ describe("Users Actions", () => {
             };
             const userId = "user1";
 
-            updateDocument.mockResolvedValue({ $id: userId });
+            updateDocument.mockResolvedValue({
+                $id: userId,
+                firstName: "Jane",
+                preferredPositions: ["OF", "2B"],
+            });
 
             const result = await updateUser({ values: mockValues, userId });
 
@@ -122,6 +126,37 @@ describe("Users Actions", () => {
             });
             expect(result.success).toBe(true);
             expect(result.status).toBe(204);
+            expect(result.event).toEqual({
+                name: "player-profile-updated",
+                data: { userId: "user1" },
+            });
+        });
+
+        it("should emit player-profile-completed when profile is complete", async () => {
+            const mockValues = {
+                gender: "Female",
+                bats: "R",
+                throws: "R",
+                preferredPositions: "1B",
+                dislikedPositions: "OF",
+            };
+            const userId = "user1";
+
+            updateDocument.mockResolvedValue({
+                $id: userId,
+                gender: "Female",
+                bats: "R",
+                throws: "R",
+                preferredPositions: ["1B"],
+                dislikedPositions: ["OF"],
+            });
+
+            const result = await updateUser({ values: mockValues, userId });
+
+            expect(result.event).toEqual({
+                name: "player-profile-completed",
+                data: { userId: "user1" },
+            });
         });
 
         it("should reject update with bad words", async () => {
