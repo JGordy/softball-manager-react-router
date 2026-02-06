@@ -73,7 +73,15 @@ export async function saveBattingOrder({ values, teamId }) {
                     : JSON.stringify(idealLineup),
         });
 
-        return { response: { teamDetails }, status: 204, success: true };
+        return {
+            response: { teamDetails },
+            status: 204,
+            success: true,
+            event: {
+                name: "update-ideal-lineup",
+                data: { teamId },
+            },
+        };
     } catch (error) {
         console.error("Error updating team batting order:", error);
         throw error;
@@ -90,7 +98,15 @@ export async function saveFieldingPositions({ values, teamId }) {
                     : JSON.stringify(idealPositioning),
         });
 
-        return { response: { teamDetails }, status: 204, success: true };
+        return {
+            response: { teamDetails },
+            status: 204,
+            success: true,
+            event: {
+                name: "update-depth-chart",
+                data: { teamId },
+            },
+        };
     } catch (error) {
         console.error("Error updating team fielding positions:", error);
         throw error;

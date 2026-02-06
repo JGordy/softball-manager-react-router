@@ -1,7 +1,9 @@
-import { useState } from "react";
-import { useOutletContext } from "react-router";
+import { useState, useEffect } from "react";
+import { useOutletContext, useActionData } from "react-router";
 
 import { Container, Group } from "@mantine/core";
+
+import { trackEvent } from "@/utils/analytics";
 
 import { getTeamById } from "@/loaders/teams";
 import { saveBattingOrder, saveFieldingPositions } from "@/actions/lineups";
@@ -33,6 +35,13 @@ export default function TeamLineup({ loaderData }) {
     const { teamData: team, players, managerIds } = loaderData;
 
     const { user } = useOutletContext();
+    const actionData = useActionData();
+
+    useEffect(() => {
+        if (actionData?.success && actionData?.event) {
+            trackEvent(actionData.event.name, actionData.event.data);
+        }
+    }, [actionData]);
 
     const currentUserId = user.$id;
     const managerView = managerIds.includes(currentUserId);
