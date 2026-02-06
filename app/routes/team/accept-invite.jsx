@@ -1,5 +1,6 @@
-import { useNavigate } from "react-router";
-import { useNotifications } from "@/hooks/useNotifications";
+import { useEffect, useState } from "react";
+import { Form, useNavigate, useSearchParams } from "react-router";
+
 import {
     Container,
     Title,
@@ -8,13 +9,15 @@ import {
     PasswordInput,
     Button,
 } from "@mantine/core";
-import { Form, useSearchParams } from "react-router";
+
+import { useNotifications } from "@/hooks/useNotifications";
+
 import {
     acceptTeamInvitation,
     setPasswordForInvitedUser,
 } from "@/actions/invitations";
+
 import { useResponseNotification } from "@/utils/showNotification";
-import { useEffect, useState } from "react";
 
 /**
  * Handle team invitation acceptance
@@ -74,14 +77,14 @@ export async function clientAction({ request, params, serverAction }) {
             secret,
         });
 
-        return result;
+        return { ...result, event: "invite-accepted" };
     }
 
     // For all other actions (like set-password), pass through to server action
     return serverAction();
 }
 
-export default function AcceptInvite({ loaderData, actionData, params }) {
+export default function AcceptInvite({ actionData, params }) {
     const [searchParams] = useSearchParams();
     const [inviteAccepted, setInviteAccepted] = useState(false);
     const [userEmail, setUserEmail] = useState("");
