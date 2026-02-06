@@ -295,6 +295,13 @@ export async function updateGame({ values, eventId }) {
             status: 204,
             success: true,
             message: "Game updated successfully!",
+            event:
+                isSetFinal || scoresProvided
+                    ? {
+                          name: "game-scored",
+                          data: { eventId, teamId: gameDetails.teamId },
+                      }
+                    : undefined,
         };
     } catch (error) {
         console.error("Error updating game:", error);

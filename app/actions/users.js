@@ -86,11 +86,24 @@ export async function updateUser({ values, userId }) {
 
         const updatedUser = await updateDocument("users", userId, dataToUpdate);
 
+        // Check if the profile is now considered "complete"
+        // Defined as having gender, bats, throws, and at least one preferred position
+        // This logic mirrors the incompleteData check in UserProfile
+        const isProfileComplete =
+            updatedUser.gender &&
+            updatedUser.bats &&
+            updatedUser.throws &&
+            updatedUser.preferredPositions &&
+            updatedUser.preferredPositions.length > 0;
+
         return {
             response: updatedUser,
             status: 204,
             success: true,
             message: "User updated successfully.",
+            event: isProfileComplete
+                ? { name: "player-profile-completed", data: { userId } }
+                : { name: "player-profile-updated", data: { userId } },
         };
     } catch (error) {
         console.error("Error updating user:", error);
