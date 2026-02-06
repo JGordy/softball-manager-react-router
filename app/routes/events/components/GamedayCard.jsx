@@ -3,6 +3,7 @@ import { Card, Text, Badge, Group } from "@mantine/core";
 import {
     IconScoreboard,
     IconActivity,
+    IconArrowUpRight,
     IconClipboardData,
 } from "@tabler/icons-react";
 
@@ -72,6 +73,7 @@ export default function GamedayCard({ gameId, isLive, isPast, canScore }) {
                 onClick={() => navigate(`/events/${gameId}/gameday`)}
                 heading={heading}
                 leftSection={leftSection}
+                rightSection={<IconArrowUpRight size={18} />}
                 subHeading={
                     <Text size="xs" ml="28px" mt="2px" c="dimmed">
                         {subHeading}
