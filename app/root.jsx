@@ -1,6 +1,9 @@
 import { usePushNotificationListener } from "@/hooks/usePushNotificationListener";
 import { NotificationsProvider } from "@/context/NotificationsContext";
+import { useEffect } from "react";
 import {
+    useLocation,
+    useMatches,
     isRouteErrorResponse,
     Link,
     Links,
@@ -9,6 +12,7 @@ import {
     Scripts,
     ScrollRestoration,
 } from "react-router";
+import * as Sentry from "@sentry/react-router";
 
 import { parse } from "cookie";
 
@@ -40,6 +44,24 @@ import { createSessionClient } from "@/utils/appwrite/server";
 import { UmamiTracker } from "@/components/UmamiTracker";
 
 import theme from "./theme";
+
+if (!import.meta.env.SSR) {
+    Sentry.init({
+        dsn: import.meta.env.VITE_SENTRY_DSN,
+        enabled: process.env.NODE_ENV === "production",
+        integrations: [
+            Sentry.browserTracingIntegration({
+                useEffect,
+                useLocation,
+                useMatches,
+            }),
+            Sentry.replayIntegration(),
+        ],
+        tracesSampleRate: 1.0,
+        replaysSessionSampleRate: 0.1,
+        replaysOnErrorSampleRate: 1.0,
+    });
+}
 
 export const links = () => [
     { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -176,6 +198,7 @@ export function ErrorBoundary({ error }) {
                 ? "The requested page could not be found."
                 : error.statusText || details;
     } else if (import.meta.env.DEV && error && error instanceof Error) {
+        Sentry.captureException(error);
         details = error.message;
         stack = error.stack;
     }
