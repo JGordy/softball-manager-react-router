@@ -139,7 +139,6 @@ function Layout({ children, context }) {
                             data-website-id={
                                 import.meta.env.VITE_UMAMI_WEBSITE_ID
                             }
-                            data-auto-track="false"
                             src={import.meta.env.VITE_UMAMI_SCRIPT_URL}
                         ></script>
                     )}
