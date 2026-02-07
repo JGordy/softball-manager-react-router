@@ -33,6 +33,10 @@ import {
 } from "@/loaders/users";
 
 import { useResponseNotification } from "@/utils/showNotification";
+import {
+    getIncompleteProfileFields,
+    REQUIRED_PROFILE_FIELDS,
+} from "@/utils/users";
 
 import AlertIncomplete from "./components/AlertIncomplete";
 import PlayerAwards from "./components/PlayerAwards";
@@ -56,15 +60,6 @@ const fieldsToDisplay = {
         icon: <IconHeadphonesFilled size={20} />,
         label: "walk up song",
     },
-};
-
-const fieldsToValidate = {
-    ...fieldsToDisplay,
-    gender: { label: "gender" },
-    bats: { label: "bats" },
-    throws: { label: "throws" },
-    preferredPositions: { label: "preferred positions" },
-    // dislikedPositions: { label: "disliked positions" },
 };
 
 export function links() {
@@ -110,16 +105,10 @@ export default function UserProfile({ loaderData }) {
 
     const isCurrentUser = loggedInUser?.$id === player?.$id;
 
-    const incompleteData = Object.entries(fieldsToValidate)
-        .filter(([key]) => {
-            let value = player[key];
-            return (
-                value === null ||
-                value === undefined ||
-                (Array.isArray(value) && value.length === 0)
-            );
-        })
-        .map(([key, data]) => data);
+    const incompleteKeys = getIncompleteProfileFields(player);
+    const incompleteData = incompleteKeys.map(
+        (key) => REQUIRED_PROFILE_FIELDS[key],
+    );
 
     useResponseNotification(actionData);
 

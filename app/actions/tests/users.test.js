@@ -138,15 +138,18 @@ describe("Users Actions", () => {
                 bats: "R",
                 throws: "R",
                 preferredPositions: "1B",
+                phoneNumber: "123-456-7890",
             };
             const userId = "user1";
 
             updateDocument.mockResolvedValue({
                 $id: userId,
+                email: "test@example.com",
                 gender: "Female",
                 bats: "R",
                 throws: "R",
                 preferredPositions: ["1B"],
+                phoneNumber: "123-456-7890",
             });
 
             const result = await updateUser({ values: mockValues, userId });

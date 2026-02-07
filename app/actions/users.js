@@ -4,6 +4,7 @@ import { createDocument, updateDocument } from "@/utils/databases.js";
 import { createSessionClient } from "@/utils/appwrite/server";
 
 import { hasBadWords } from "@/utils/badWordsApi";
+import { isUserProfileComplete } from "@/utils/users";
 
 import { removeEmptyValues } from "./utils/formUtils";
 
@@ -87,21 +88,14 @@ export async function updateUser({ values, userId }) {
         const updatedUser = await updateDocument("users", userId, dataToUpdate);
 
         // Check if the profile is now considered "complete"
-        // Defined as having gender, bats, throws, and at least one preferred position
-        // This logic mirrors the incompleteData check in UserProfile
-        const isProfileComplete =
-            updatedUser.gender &&
-            updatedUser.bats &&
-            updatedUser.throws &&
-            updatedUser.preferredPositions &&
-            updatedUser.preferredPositions.length > 0;
+        const isComplete = isUserProfileComplete(updatedUser);
 
         return {
             response: updatedUser,
             status: 204,
             success: true,
             message: "User updated successfully.",
-            event: isProfileComplete
+            event: isComplete
                 ? { name: "player-profile-completed", data: { userId } }
                 : { name: "player-profile-updated", data: { userId } },
         };
