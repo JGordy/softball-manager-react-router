@@ -30,7 +30,7 @@ describe("UmamiTracker", () => {
             window.umami = originalUmami;
         }
         jest.useRealTimers();
-        jest.restoreAllMocks(); // This likely covers mockRestores too, checking doc later
+        jest.restoreAllMocks(); // Reset all Jest mocks between tests to avoid cross-test interference
     });
 
     it("tracks page view on mount", () => {

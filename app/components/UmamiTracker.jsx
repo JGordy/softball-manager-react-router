@@ -5,7 +5,11 @@ import { useLocation, useMatches } from "react-router";
  * Validates if the Umami instance is available on the window object
  */
 const isUmamiAvailable = () => {
-    return typeof window !== "undefined" && window.umami;
+    return (
+        typeof window !== "undefined" &&
+        window.umami &&
+        typeof window.umami.track === "function"
+    );
 };
 
 export const UmamiTracker = () => {
@@ -20,47 +24,55 @@ export const UmamiTracker = () => {
         const trackPageView = () => {
             if (!isUmamiAvailable()) return;
 
-            // Collect all params from active matches
-            const allParams = matches.reduce((acc, match) => {
-                return { ...acc, ...match.params };
-            }, {});
+            try {
+                // Collect all params from active matches
+                const allParams = matches.reduce((acc, match) => {
+                    return { ...acc, ...match.params };
+                }, {});
 
-            let url = location.pathname;
+                let url = location.pathname;
 
-            // Replace dynamic ID params with generic placeholders (e.g. /team/123 -> /team/:teamId)
-            // Sorting by length handles potential nested substring issues
-            const paramsToReplace = Object.entries(allParams)
-                .filter(([_, value]) => value) // Ensure value exists
-                .sort((a, b) => b[1].length - a[1].length);
+                // Replace dynamic ID params with generic placeholders (e.g. /team/123 -> /team/:teamId)
+                // Sorting by length handles potential nested substring issues
+                const paramsToReplace = Object.entries(allParams)
+                    .filter(([_, value]) => value) // Ensure value exists
+                    .sort((a, b) => b[1].length - a[1].length);
 
-            paramsToReplace.forEach(([key, value]) => {
-                // Global replacement to catch all instances in path
-                url = url.replaceAll(value, `:${key}`);
-            });
-
-            // Track with the sanitized URL and attach params as metadata
-            // This groups the page in "Pages" (e.g. /team/:teamId)
-            // but keeps the specific data in the properties
-            window.umami.track({ url, ...allParams });
-
-            // Fire specific events for high-value entities
-            // This creates "Top Teams" / "Top Users" lists in the Events tab
-            if (allParams.teamId) {
-                window.umami.track("view_team", { teamId: allParams.teamId });
-            }
-            if (allParams.userId) {
-                window.umami.track("view_user", { userId: allParams.userId });
-            }
-            if (allParams.seasonId) {
-                window.umami.track("view_season", {
-                    seasonId: allParams.seasonId,
+                paramsToReplace.forEach(([key, value]) => {
+                    // Global replacement to catch all instances in path
+                    url = url.replaceAll(value, `:${key}`);
                 });
-            }
-            if (allParams.eventId) {
-                // events can be games, practices, etc.
-                window.umami.track("view_event", {
-                    eventId: allParams.eventId,
-                });
+
+                // Track with the sanitized URL and attach params as metadata
+                // This groups the page in "Pages" (e.g. /team/:teamId)
+                // but keeps the specific data in the properties
+                window.umami.track({ url, ...allParams });
+
+                // Fire specific events for high-value entities
+                // This creates "Top Teams" / "Top Users" lists in the Events tab
+                if (allParams.teamId) {
+                    window.umami.track("view_team", {
+                        teamId: allParams.teamId,
+                    });
+                }
+                if (allParams.userId) {
+                    window.umami.track("view_user", {
+                        userId: allParams.userId,
+                    });
+                }
+                if (allParams.seasonId) {
+                    window.umami.track("view_season", {
+                        seasonId: allParams.seasonId,
+                    });
+                }
+                if (allParams.eventId) {
+                    // events can be games, practices, etc.
+                    window.umami.track("view_event", {
+                        eventId: allParams.eventId,
+                    });
+                }
+            } catch (error) {
+                console.error("Umami tracking failed:", error);
             }
         };
 
