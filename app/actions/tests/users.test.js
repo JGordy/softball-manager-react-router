@@ -5,7 +5,11 @@ import {
     updatePassword,
     resetPassword,
 } from "../users";
-import { createDocument, updateDocument } from "@/utils/databases";
+import {
+    createDocument,
+    updateDocument,
+    readDocument,
+} from "@/utils/databases";
 import { createSessionClient } from "@/utils/appwrite/server";
 import { hasBadWords } from "@/utils/badWordsApi";
 
@@ -13,6 +17,7 @@ import { hasBadWords } from "@/utils/badWordsApi";
 jest.mock("@/utils/databases", () => ({
     createDocument: jest.fn(),
     updateDocument: jest.fn(),
+    readDocument: jest.fn(),
 }));
 
 jest.mock("@/utils/appwrite/server", () => ({
@@ -112,6 +117,11 @@ describe("Users Actions", () => {
             };
             const userId = "user1";
 
+            readDocument.mockResolvedValue({
+                $id: userId,
+                firstName: "Old",
+            });
+
             updateDocument.mockResolvedValue({
                 $id: userId,
                 firstName: "Jane",
@@ -132,7 +142,7 @@ describe("Users Actions", () => {
             });
         });
 
-        it("should emit player-profile-completed when profile is complete", async () => {
+        it("should emit player-profile-completed when profile becomes complete", async () => {
             const mockValues = {
                 gender: "Female",
                 bats: "R",
@@ -142,6 +152,13 @@ describe("Users Actions", () => {
             };
             const userId = "user1";
 
+            // User was missing fields before
+            readDocument.mockResolvedValue({
+                $id: userId,
+                email: "test@example.com",
+            });
+
+            // User is now complete
             updateDocument.mockResolvedValue({
                 $id: userId,
                 email: "test@example.com",
@@ -156,6 +173,39 @@ describe("Users Actions", () => {
 
             expect(result.event).toEqual({
                 name: "player-profile-completed",
+                data: { userId: "user1" },
+            });
+        });
+
+        it("should emit player-profile-updated if profile was ALREADY complete", async () => {
+            const mockValues = {
+                firstName: "New Name",
+            };
+            const userId = "user1";
+
+            // User was already complete
+            const completeUser = {
+                $id: userId,
+                email: "test@example.com",
+                gender: "Female",
+                bats: "R",
+                throws: "R",
+                preferredPositions: ["1B"],
+                phoneNumber: "123-456-7890",
+            };
+
+            readDocument.mockResolvedValue(completeUser);
+
+            // User remains complete
+            updateDocument.mockResolvedValue({
+                ...completeUser,
+                firstName: "New Name",
+            });
+
+            const result = await updateUser({ values: mockValues, userId });
+
+            expect(result.event).toEqual({
+                name: "player-profile-updated",
                 data: { userId: "user1" },
             });
         });

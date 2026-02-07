@@ -77,16 +77,25 @@ export async function clientAction({ request, params, serverAction }) {
             secret,
         });
 
+        const isNewlyAccepted =
+            result &&
+            result.success === true &&
+            result.alreadyConfirmed !== true;
+
         return {
             ...result,
-            event: {
-                name: "invite-accepted",
-                data: {
-                    teamId,
-                    membershipId,
-                    userId,
-                },
-            },
+            ...(isNewlyAccepted
+                ? {
+                      event: {
+                          name: "invite-accepted",
+                          data: {
+                              teamId,
+                              membershipId,
+                              userId,
+                          },
+                      },
+                  }
+                : {}),
         };
     }
 

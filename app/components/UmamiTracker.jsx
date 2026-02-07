@@ -43,10 +43,24 @@ export const UmamiTracker = () => {
                     url = url.replaceAll(value, `:${key}`);
                 });
 
-                // Track with the sanitized URL and attach params as metadata
+                // Only include a whitelisted subset of params as properties to avoid
+                // accidentally sending sensitive or unnecessary identifiers
+                const whitelistedParams = [
+                    "teamId",
+                    "userId",
+                    "seasonId",
+                    "eventId",
+                ].reduce((acc, key) => {
+                    if (allParams[key] !== undefined) {
+                        acc[key] = allParams[key];
+                    }
+                    return acc;
+                }, {});
+
+                // Track with the sanitized URL and limited metadata
                 // This groups the page in "Pages" (e.g. /team/:teamId)
-                // but keeps the specific data in the properties
-                window.umami.track({ url, ...allParams });
+                // while avoiding over-collection of route params
+                window.umami.track({ url, ...whitelistedParams });
 
                 // Fire specific events for high-value entities
                 // This creates "Top Teams" / "Top Users" lists in the Events tab
