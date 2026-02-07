@@ -57,8 +57,9 @@ if (!import.meta.env.SSR && import.meta.env.VITE_SENTRY_DSN) {
             }),
             Sentry.replayIntegration(),
         ],
-        tracesSampleRate:
-            Number(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE) || 0.2, // Default to 20% if not set
+        tracesSampleRate: import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE
+            ? Number(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE)
+            : 0.2, // Default to 20% if not set
         replaysSessionSampleRate: 0.1,
         replaysOnErrorSampleRate: 1.0,
     });

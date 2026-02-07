@@ -7,7 +7,7 @@ import { sentryVitePlugin } from "@sentry/vite-plugin";
 
 export default defineConfig({
     build: {
-        sourcemap: true,
+        sourcemap: process.env.SENTRY_AUTH_TOKEN ? "hidden" : false,
         manifest: true,
         outDir: "build/client",
         ssr: "build/server/nodejs_eyJydW50aW1lIjoibm9kZWpzIn0/server.js",
