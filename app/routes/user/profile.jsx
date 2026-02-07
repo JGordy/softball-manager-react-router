@@ -12,10 +12,6 @@ import {
     IconAward,
     // IconBallBaseball,
     IconClipboardData,
-    IconFriends,
-    IconHeadphonesFilled,
-    IconMail,
-    IconPhone,
     IconUserSquareRounded,
 } from "@tabler/icons-react";
 
@@ -42,25 +38,6 @@ import AlertIncomplete from "./components/AlertIncomplete";
 import PlayerAwards from "./components/PlayerAwards";
 import PlayerStats from "./components/PlayerStats";
 import ProfileMenu from "./components/ProfileMenu";
-
-const fieldsToDisplay = {
-    email: {
-        icon: <IconMail size={20} />,
-        label: "email",
-    },
-    phoneNumber: {
-        icon: <IconPhone size={20} />,
-        label: "phone number",
-    },
-    gender: {
-        icon: <IconFriends size={20} />,
-        label: "gender",
-    },
-    walkUpSong: {
-        icon: <IconHeadphonesFilled size={20} />,
-        label: "walk up song",
-    },
-};
 
 export function links() {
     const fieldSrc = `${import.meta.env.VITE_APPWRITE_HOST_URL}/storage/buckets/67af948b00375c741493/files/67b00f90002a66960ba4/view?project=${import.meta.env.VITE_APPWRITE_PROJECT_ID}&mode=admin`;
