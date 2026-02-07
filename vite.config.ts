@@ -17,13 +17,15 @@ export default defineConfig({
         tailwindcss(),
         reactRouter(),
         tsconfigPaths(),
-        sentryVitePlugin({
-            org: process.env.SENTRY_ORG,
-            project: process.env.SENTRY_PROJECT,
-            authToken: process.env.SENTRY_AUTH_TOKEN,
-        }),
+        process.env.SENTRY_AUTH_TOKEN
+            ? sentryVitePlugin({
+                  org: process.env.SENTRY_ORG,
+                  project: process.env.SENTRY_PROJECT,
+                  authToken: process.env.SENTRY_AUTH_TOKEN,
+              })
+            : null,
         // netlifyPlugin(),
-    ],
+    ].filter(Boolean),
     resolve: {
         alias: {
             "@": "/app",

@@ -45,10 +45,10 @@ import { UmamiTracker } from "@/components/UmamiTracker";
 
 import theme from "./theme";
 
-if (!import.meta.env.SSR) {
+if (!import.meta.env.SSR && import.meta.env.VITE_SENTRY_DSN) {
     Sentry.init({
         dsn: import.meta.env.VITE_SENTRY_DSN,
-        enabled: process.env.NODE_ENV === "production",
+        enabled: import.meta.env.PROD,
         integrations: [
             Sentry.browserTracingIntegration({
                 useEffect,
@@ -57,7 +57,8 @@ if (!import.meta.env.SSR) {
             }),
             Sentry.replayIntegration(),
         ],
-        tracesSampleRate: 1.0,
+        tracesSampleRate:
+            Number(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE) || 0.2, // Default to 20% if not set
         replaysSessionSampleRate: 0.1,
         replaysOnErrorSampleRate: 1.0,
     });
@@ -196,10 +197,13 @@ export function ErrorBoundary({ error }) {
             error.status === 404
                 ? "The requested page could not be found."
                 : error.statusText || details;
-    } else if (import.meta.env.DEV && error && error instanceof Error) {
+    } else if (error && error instanceof Error) {
         Sentry.captureException(error);
-        details = error.message;
-        stack = error.stack;
+
+        if (import.meta.env.DEV) {
+            details = error.message;
+            stack = error.stack;
+        }
     }
 
     return (
