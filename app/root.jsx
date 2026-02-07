@@ -45,24 +45,41 @@ import { UmamiTracker } from "@/components/UmamiTracker";
 
 import theme from "./theme";
 
-if (!import.meta.env.SSR && import.meta.env.VITE_SENTRY_DSN) {
-    Sentry.init({
-        dsn: import.meta.env.VITE_SENTRY_DSN,
-        enabled: import.meta.env.PROD,
-        integrations: [
-            Sentry.browserTracingIntegration({
-                useEffect,
-                useLocation,
-                useMatches,
-            }),
-            Sentry.replayIntegration(),
-        ],
-        tracesSampleRate: import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE
-            ? Number(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE)
-            : 0.2, // Default to 20% if not set
-        replaysSessionSampleRate: 0.1,
-        replaysOnErrorSampleRate: 1.0,
-    });
+if (
+    !import.meta.env.SSR &&
+    import.meta.env.PROD &&
+    import.meta.env.VITE_SENTRY_DSN
+) {
+    const tracesSampleRate = import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE
+        ? parseFloat(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE)
+        : 0.2;
+
+    const validatedSampleRate =
+        Number.isFinite(tracesSampleRate) &&
+        tracesSampleRate >= 0 &&
+        tracesSampleRate <= 1
+            ? tracesSampleRate
+            : 0.2;
+
+    try {
+        Sentry.init({
+            dsn: import.meta.env.VITE_SENTRY_DSN,
+            enabled: true,
+            integrations: [
+                Sentry.browserTracingIntegration({
+                    useEffect,
+                    useLocation,
+                    useMatches,
+                }),
+                Sentry.replayIntegration(),
+            ],
+            tracesSampleRate: validatedSampleRate,
+            replaysSessionSampleRate: 0.1,
+            replaysOnErrorSampleRate: 1.0,
+        });
+    } catch (error) {
+        console.warn("Failed to initialize Sentry:", error);
+    }
 }
 
 export const links = () => [
