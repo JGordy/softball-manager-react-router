@@ -2,10 +2,12 @@ import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 // import netlifyPlugin from '@netlify/vite-plugin-react-router'
 
 export default defineConfig({
     build: {
+        sourcemap: true,
         manifest: true,
         outDir: "build/client",
         ssr: "build/server/nodejs_eyJydW50aW1lIjoibm9kZWpzIn0/server.js",
@@ -15,6 +17,11 @@ export default defineConfig({
         tailwindcss(),
         reactRouter(),
         tsconfigPaths(),
+        sentryVitePlugin({
+            org: process.env.SENTRY_ORG,
+            project: process.env.SENTRY_PROJECT,
+            authToken: process.env.SENTRY_AUTH_TOKEN,
+        }),
         // netlifyPlugin(),
     ],
     resolve: {
