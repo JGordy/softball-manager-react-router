@@ -1,9 +1,14 @@
 import { ID } from "node-appwrite";
-import { createDocument, updateDocument } from "@/utils/databases.js";
+import {
+    createDocument,
+    updateDocument,
+    readDocument,
+} from "@/utils/databases.js";
 
 import { createSessionClient } from "@/utils/appwrite/server";
 
 import { hasBadWords } from "@/utils/badWordsApi";
+import { isUserProfileComplete } from "@/utils/users";
 
 import { removeEmptyValues } from "./utils/formUtils";
 
@@ -84,13 +89,35 @@ export async function updateUser({ values, userId }) {
             };
         }
 
+        // Fetch the existing user to determine prior profile completion state
+        let wasComplete = false;
+        try {
+            const existingUser = await readDocument("users", userId);
+            wasComplete = isUserProfileComplete(existingUser);
+        } catch (fetchError) {
+            // If we can't fetch the existing user, assume it was not complete
+            console.warn(
+                "Unable to fetch existing user before update:",
+                fetchError,
+            );
+        }
+
         const updatedUser = await updateDocument("users", userId, dataToUpdate);
+
+        // Check if the profile is now considered "complete"
+        const isNowComplete = isUserProfileComplete(updatedUser);
+
+        const event =
+            !wasComplete && isNowComplete
+                ? { name: "player-profile-completed", data: { userId } }
+                : { name: "player-profile-updated", data: { userId } };
 
         return {
             response: updatedUser,
             status: 204,
             success: true,
             message: "User updated successfully.",
+            event,
         };
     } catch (error) {
         console.error("Error updating user:", error);

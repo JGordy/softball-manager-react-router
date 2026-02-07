@@ -180,6 +180,10 @@ describe("Lineups Actions", () => {
             });
             expect(result.success).toBe(true);
             expect(result.status).toBe(204);
+            expect(result.event).toEqual({
+                name: "update-ideal-lineup",
+                data: { teamId: "team1" },
+            });
         });
 
         it("should save batting order with pre-stringified value", async () => {
@@ -199,6 +203,10 @@ describe("Lineups Actions", () => {
                 idealLineup: '["player1","player2"]',
             });
             expect(result.success).toBe(true);
+            expect(result.event).toEqual({
+                name: "update-ideal-lineup",
+                data: { teamId: "team1" },
+            });
         });
 
         it("should handle errors", async () => {
@@ -239,6 +247,10 @@ describe("Lineups Actions", () => {
             });
             expect(result.success).toBe(true);
             expect(result.status).toBe(204);
+            expect(result.event).toEqual({
+                name: "update-depth-chart",
+                data: { teamId: "team1" },
+            });
         });
 
         it("should save fielding positions with pre-stringified value", async () => {
@@ -258,6 +270,10 @@ describe("Lineups Actions", () => {
                 idealPositioning: '{"Pitcher":["player1"]}',
             });
             expect(result.success).toBe(true);
+            expect(result.event).toEqual({
+                name: "update-depth-chart",
+                data: { teamId: "team1" },
+            });
         });
 
         it("should handle errors", async () => {

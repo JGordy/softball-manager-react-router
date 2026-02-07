@@ -37,6 +37,7 @@ import "@mantine/notifications/styles.css";
 import "@/styles/app.css";
 
 import { createSessionClient } from "@/utils/appwrite/server";
+import { UmamiTracker } from "@/components/UmamiTracker";
 
 import theme from "./theme";
 
@@ -116,6 +117,7 @@ function Layout({ children, context }) {
                             data-website-id={
                                 import.meta.env.VITE_UMAMI_WEBSITE_ID
                             }
+                            data-auto-track="false"
                             src={import.meta.env.VITE_UMAMI_SCRIPT_URL}
                         ></script>
                     )}
@@ -152,6 +154,9 @@ export default function App({ loaderData }) {
 
     return (
         <NotificationsProvider>
+            {import.meta.env.PROD &&
+                import.meta.env.VITE_UMAMI_WEBSITE_ID &&
+                import.meta.env.VITE_UMAMI_SCRIPT_URL && <UmamiTracker />}
             <Layout context={{ darkMode }}>
                 <Outlet />
             </Layout>
