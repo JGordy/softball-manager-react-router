@@ -17,18 +17,20 @@ export default defineConfig({
         tailwindcss(),
         reactRouter(),
         tsconfigPaths(),
-        process.env.SENTRY_AUTH_TOKEN
-            ? sentryVitePlugin({
-                  org: process.env.SENTRY_ORG,
-                  project: process.env.SENTRY_PROJECT,
-                  authToken: process.env.SENTRY_AUTH_TOKEN,
-                  sourcemaps: {
-                      filesToDeleteAfterUpload: ["./build/**/*.map"],
-                  },
-              })
-            : null,
+        ...(process.env.SENTRY_AUTH_TOKEN
+            ? [
+                  sentryVitePlugin({
+                      org: process.env.SENTRY_ORG,
+                      project: process.env.SENTRY_PROJECT,
+                      authToken: process.env.SENTRY_AUTH_TOKEN,
+                      sourcemaps: {
+                          filesToDeleteAfterUpload: ["./build/**/*.map"],
+                      },
+                  }),
+              ]
+            : []),
         // netlifyPlugin(),
-    ].filter(Boolean),
+    ],
     resolve: {
         alias: {
             "@": "/app",
