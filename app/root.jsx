@@ -1,6 +1,9 @@
 import { usePushNotificationListener } from "@/hooks/usePushNotificationListener";
 import { NotificationsProvider } from "@/context/NotificationsContext";
+import { useEffect } from "react";
 import {
+    useLocation,
+    useMatches,
     isRouteErrorResponse,
     Link,
     Links,
@@ -9,6 +12,7 @@ import {
     Scripts,
     ScrollRestoration,
 } from "react-router";
+import * as Sentry from "@sentry/react-router";
 
 import { parse } from "cookie";
 
@@ -40,6 +44,43 @@ import { createSessionClient } from "@/utils/appwrite/server";
 import { UmamiTracker } from "@/components/UmamiTracker";
 
 import theme from "./theme";
+
+if (
+    !import.meta.env.SSR &&
+    import.meta.env.PROD &&
+    import.meta.env.VITE_SENTRY_DSN
+) {
+    const tracesSampleRate = import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE
+        ? parseFloat(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE)
+        : 0.2;
+
+    const validatedSampleRate =
+        Number.isFinite(tracesSampleRate) &&
+        tracesSampleRate >= 0 &&
+        tracesSampleRate <= 1
+            ? tracesSampleRate
+            : 0.2;
+
+    try {
+        Sentry.init({
+            dsn: import.meta.env.VITE_SENTRY_DSN,
+            enabled: true,
+            integrations: [
+                Sentry.browserTracingIntegration({
+                    useEffect,
+                    useLocation,
+                    useMatches,
+                }),
+                Sentry.replayIntegration(),
+            ],
+            tracesSampleRate: validatedSampleRate,
+            replaysSessionSampleRate: 0.1,
+            replaysOnErrorSampleRate: 1.0,
+        });
+    } catch (error) {
+        console.warn("Failed to initialize Sentry:", error);
+    }
+}
 
 export const links = () => [
     { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -174,9 +215,13 @@ export function ErrorBoundary({ error }) {
             error.status === 404
                 ? "The requested page could not be found."
                 : error.statusText || details;
-    } else if (import.meta.env.DEV && error && error instanceof Error) {
-        details = error.message;
-        stack = error.stack;
+    } else if (error && error instanceof Error) {
+        Sentry.captureException(error);
+
+        if (import.meta.env.DEV) {
+            details = error.message;
+            stack = error.stack;
+        }
     }
 
     return (
