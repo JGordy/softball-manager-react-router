@@ -13,6 +13,7 @@ import timeZones from "@/constants/timeZones";
 import DatePicker from "@/components/DatePicker";
 
 import FormWrapper from "./FormWrapper";
+import LocationInput from "./components/LocationInput";
 
 import classes from "@/styles/inputs.module.css";
 
@@ -81,6 +82,19 @@ export default function AddSingleGame({
                     <Radio color="green" value="true" label="Home" />
                 </Group>
             </Radio.Group>
+            <LocationInput
+                classes={classes.inputs}
+                defaultValue={defaults.location || ""}
+            />
+            <TextInput
+                className={classes.inputs}
+                label="Location Notes"
+                name="locationNotes"
+                placeholder="Field #1, North Park, etc."
+                defaultValue={defaults.locationNotes || ""}
+                radius="md"
+                size="md"
+            />
             {seasons?.length > 0 && (
                 <Select
                     className={classes.inputs}
