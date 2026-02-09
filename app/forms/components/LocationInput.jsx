@@ -16,6 +16,12 @@ export default function LocationInput({
     const [inputValue, setInputValue] = useState(defaultValue);
     const [isLoading, setIsLoading] = useState(false);
 
+    useEffect(() => {
+        if (defaultValue !== inputValue) {
+            setInputValue(defaultValue);
+        }
+    }, [defaultValue]);
+
     const { isLoaded, loadError } = useLoadScript({
         googleMapsApiKey: import.meta.env.VITE_GOOGLE_SERVICES_API_KEY,
         libraries,
