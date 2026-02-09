@@ -96,6 +96,7 @@ export default function GameCard({
     $id,
     gameDate,
     teamName,
+    displayName,
     isHomeGame,
     result,
     score,
@@ -113,7 +114,12 @@ export default function GameCard({
         <Link key={$id} to={`/events/${$id}`}>
             <Card className="game-card" mb="md" radius="md" py="lg" withBorder>
                 <Text fw={400} size="lg" mb="md">
-                    {teamName && (
+                    {displayName && (
+                        <Text fw={700} span>
+                            {displayName + " "}
+                        </Text>
+                    )}
+                    {teamName && !displayName && (
                         <Text fw={700} span>
                             {teamName + " "}
                         </Text>

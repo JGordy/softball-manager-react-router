@@ -41,6 +41,20 @@ describe("GameCard Component", () => {
         expect(screen.getByText(/@ Rival Team/)).toBeInTheDocument();
     });
 
+    it("renders displayName when provided", () => {
+        renderWithRouter(<GameCard {...baseGame} displayName="My Team" />);
+        expect(screen.getByText(/My Team/)).toBeInTheDocument();
+        expect(screen.getByText(/@ Rival Team/)).toBeInTheDocument();
+    });
+
+    it("renders teamName when displayName is missing", () => {
+        renderWithRouter(
+            <GameCard {...baseGame} teamName="Original Team Name" />,
+        );
+        expect(screen.getByText(/Original Team Name/)).toBeInTheDocument();
+        expect(screen.getByText(/@ Rival Team/)).toBeInTheDocument();
+    });
+
     it("shows 'hours away' for same-day future games", () => {
         renderWithRouter(<GameCard {...baseGame} />);
         expect(screen.getByText(/6 hours away!/)).toBeInTheDocument();
