@@ -43,6 +43,7 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                     action="edit-team"
                     actionRoute={`/team/${teamId}`}
                     buttonColor={primaryColor}
+                    initialValues={team}
                 />
             ),
         });
