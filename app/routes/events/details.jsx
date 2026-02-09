@@ -153,6 +153,7 @@ export default function EventDetails({ loaderData, actionData }) {
                             gameIsPast={gameIsPast}
                             openDeleteDrawer={deleteDrawerHandlers.open}
                             result={result}
+                            season={season}
                             team={team}
                         />
                     )}

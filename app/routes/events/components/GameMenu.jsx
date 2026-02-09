@@ -51,6 +51,8 @@ export default function GameMenu({
                             { format: "HH:mm" },
                         ),
                         gameDate: game.gameDate,
+                        location: game.location || season.location,
+                        locationNotes: game.locationNotes,
                     }}
                     teamId={team.$id}
                     seasonId={season.$id}

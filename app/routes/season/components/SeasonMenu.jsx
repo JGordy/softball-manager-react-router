@@ -38,6 +38,9 @@ export default function SeasonMenu({ season }) {
                     actionRoute={`/season/${seasonId}`}
                     buttonColor={primaryColor}
                     seasonId={seasonId}
+                    defaults={{
+                        location: season.location || "",
+                    }}
                 />
             ),
         });

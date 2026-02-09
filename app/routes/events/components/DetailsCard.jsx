@@ -38,7 +38,11 @@ export default function DetailsCard({ game, deferredData, season, team }) {
 
                 <CardSection
                     onClick={locationDrawerHandlers.open}
-                    heading={season?.location || "Loading location..."}
+                    heading={
+                        game?.location ||
+                        season?.location ||
+                        "Loading location..."
+                    }
                     leftSection={<IconMapPin size={20} />}
                     subHeading={
                         <DeferredLoader
@@ -79,8 +83,20 @@ export default function DetailsCard({ game, deferredData, season, team }) {
                                             ml="28px"
                                             c="dimmed"
                                         >
-                                            {season?.location ||
+                                            {game?.location ||
+                                                season?.location ||
                                                 "Location not specified"}
+                                        </Text>
+                                    )}
+                                    {game?.locationNotes && (
+                                        <Text
+                                            size="xs"
+                                            mt="2px"
+                                            ml="28px"
+                                            fw={500}
+                                            c="blue"
+                                        >
+                                            {game.locationNotes}
                                         </Text>
                                     )}
                                 </>
