@@ -43,6 +43,14 @@ export default function PlayerStats({ playerId }) {
 
     const data = fetcher.data;
 
+    if (data?.error) {
+        return (
+            <Center p="xl">
+                <Text c="red">{data.error}</Text>
+            </Center>
+        );
+    }
+
     if (!data) {
         return (
             <Stack gap="md" mt="md">
@@ -119,7 +127,7 @@ export default function PlayerStats({ playerId }) {
         return new Date(gameB.gameDate) - new Date(gameA.gameDate);
     });
 
-    // Take last 10 games
+    // Take up to the last 10 games
     const last10GameIds = sortedGameIds.slice(0, 10);
 
     const overallStats = calculatePlayerStats(logs);

@@ -20,7 +20,7 @@ export default function LocationInput({
         if (defaultValue !== inputValue) {
             setInputValue(defaultValue);
         }
-    }, [defaultValue]);
+    }, [defaultValue, inputValue]);
 
     const { isLoaded, loadError } = useLoadScript({
         googleMapsApiKey: import.meta.env.VITE_GOOGLE_SERVICES_API_KEY,

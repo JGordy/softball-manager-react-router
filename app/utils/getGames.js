@@ -16,7 +16,7 @@ export default function getGames({ teams, teamId }) {
             // Add season reference to each game to extract location later.
             return season.games.map((game) => ({
                 ...game,
-                location: season.location,
+                location: game.location ?? season.location, // Use game location if available, otherwise use season location
             }));
         })
         // 4. Populate futureGames and pastGames

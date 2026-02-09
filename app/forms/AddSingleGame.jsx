@@ -82,10 +82,7 @@ export default function AddSingleGame({
                     <Radio color="green" value="true" label="Home" />
                 </Group>
             </Radio.Group>
-            <LocationInput
-                classes={classes.inputs}
-                defaultValue={defaults.location || ""}
-            />
+            <LocationInput defaultValue={defaults.location || ""} />
             <TextInput
                 className={classes.inputs}
                 label="Location Notes"
