@@ -134,7 +134,11 @@ async function loadGameBase(eventId) {
             return null;
         }
 
-        const { teams: teamIds = [], parkId } = season;
+        const { teams: teamIds = [] } = season;
+
+        // Check if game has a specific location override, otherwise fall back to season location
+        const parkId = game.parkId || season.parkId;
+        const location = game.location || season.location;
 
         // Fetch actual team objects (TablesDB only stores IDs in relationships)
         let teams = [];
@@ -205,6 +209,7 @@ async function loadGameBase(eventId) {
             season,
             teams,
             parkId,
+            location,
             userIds,
             managerIds,
             scorekeeperIds,
@@ -316,6 +321,7 @@ export async function getEventById({ eventId, ...options }) {
         season,
         teams,
         parkId,
+        location,
         userIds,
         managerIds,
         scorekeeperIds,
@@ -338,6 +344,7 @@ export async function getEventById({ eventId, ...options }) {
             // NOTE: We need to parse the string from the database twice before passing to the front end
             playerChart: JSON.parse(JSON.parse(playerChart)),
         },
+        location,
         userIds,
         managerIds,
         scorekeeperIds,

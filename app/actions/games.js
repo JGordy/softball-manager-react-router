@@ -9,6 +9,7 @@ import { hasBadWords } from "@/utils/badWordsApi";
 import { getNotifiableTeamMembers } from "@/utils/teams.js";
 
 import { removeEmptyValues } from "./utils/formUtils";
+import { findOrCreatePark } from "@/actions/parks";
 import {
     sendGameFinalNotification,
     sendAwardVoteNotification,
@@ -26,8 +27,24 @@ function computeResult(score, opponentScore) {
 }
 
 export async function createSingleGame({ values }) {
-    const { gameDate, gameTime, isHomeGame, opponent, teamId, ...gameData } =
-        values;
+    const {
+        gameDate,
+        gameTime,
+        isHomeGame,
+        opponent,
+        teamId,
+        locationDetails,
+        ...gameData
+    } = values;
+
+    let parsedLocationDetails = null;
+    try {
+        parsedLocationDetails = locationDetails
+            ? JSON.parse(locationDetails)
+            : null;
+    } catch (e) {
+        console.error("Error parsing locationDetails:", e);
+    }
 
     try {
         // Check opponent name for inappropriate language
@@ -38,6 +55,18 @@ export async function createSingleGame({ values }) {
                 message:
                     "Opponent name contains inappropriate language. Please choose a different name.",
             };
+        }
+
+        let parkId = null;
+        if (parsedLocationDetails?.placeId) {
+            const parkResponse = await findOrCreatePark({
+                values: parsedLocationDetails,
+                placeId: parsedLocationDetails.placeId,
+            });
+
+            if (parkResponse) {
+                parkId = parkResponse.$id;
+            }
         }
 
         // Build permissions array if we have teamId
@@ -64,6 +93,7 @@ export async function createSingleGame({ values }) {
             gameDate: updatedGameDate,
             opponent,
             teamId,
+            parkId,
             seasonId: values.seasonId,
             seasons: values.seasonId,
         };
@@ -151,9 +181,40 @@ export async function createGames({ values }) {
 }
 
 export async function updateGame({ values, eventId }) {
-    const { opponent } = values;
+    const { opponent, locationDetails } = values;
     // Removes undefined or empty string values from data to update
     let dataToUpdate = removeEmptyValues({ values });
+
+    // Handle location clearing or updating
+    if (Object.prototype.hasOwnProperty.call(values, "location")) {
+        if (values.location === "") {
+            dataToUpdate.location = null;
+            dataToUpdate.parkId = null;
+        } else if (locationDetails) {
+            try {
+                const parsedLocationDetails = JSON.parse(locationDetails);
+                if (parsedLocationDetails?.placeId) {
+                    const parkResponse = await findOrCreatePark({
+                        values: parsedLocationDetails,
+                        placeId: parsedLocationDetails.placeId,
+                    });
+
+                    if (parkResponse?.$id) {
+                        dataToUpdate.parkId = parkResponse.$id;
+                    }
+                }
+            } catch (e) {
+                console.error("Error parsing locationDetails:", e);
+            }
+        }
+    }
+
+    // Handle location notes clearing
+    if (Object.prototype.hasOwnProperty.call(values, "locationNotes")) {
+        if (values.locationNotes === "") {
+            dataToUpdate.locationNotes = null;
+        }
+    }
 
     if (values.gameDate && values.gameTime) {
         dataToUpdate.gameDate = combineDateTime(
@@ -216,6 +277,7 @@ export async function updateGame({ values, eventId }) {
     }
 
     delete dataToUpdate.gameTime;
+    delete dataToUpdate.locationDetails;
 
     try {
         // Check opponent name for inappropriate language

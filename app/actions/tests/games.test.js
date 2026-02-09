@@ -80,6 +80,7 @@ describe("Games Actions", () => {
                     isHomeGame: true,
                     gameDate: "2024-01-01T10:00",
                     opponent: "Team A",
+                    parkId: null,
                     teamId: "team1",
                     seasons: "season1",
                     seasonId: "season1",
