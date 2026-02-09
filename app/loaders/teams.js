@@ -224,6 +224,7 @@ export async function getTeamById({ teamId, request }) {
                 )
                 .map((game) => {
                     game.teamName = teamData.name;
+                    game.displayName = teamData.displayName || "";
                     return game;
                 });
         });
