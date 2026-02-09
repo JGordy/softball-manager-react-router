@@ -17,6 +17,7 @@ describe("getGames utility", () => {
         {
             $id: "team1",
             name: "Team 1",
+            displayName: "T1",
             seasons: [
                 {
                     location: "Park A",
@@ -38,6 +39,7 @@ describe("getGames utility", () => {
         {
             $id: "team2",
             name: "Team 2",
+            displayName: "T2",
             seasons: [
                 {
                     location: "Park B",
@@ -84,6 +86,7 @@ describe("getGames utility", () => {
         const game3 = futureGames.find((g) => g.$id === "game3");
 
         expect(game3.teamName).toBe("Team 2");
+        expect(game3.displayName).toBe("T2");
         expect(game3.location).toBe("Park B");
     });
 

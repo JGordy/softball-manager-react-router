@@ -34,6 +34,7 @@ export default function getGames({ teams, teamId }) {
                 const team = teams.find((t) => t.$id === game.teamId);
                 if (team) {
                     game.teamName = team.name; // Add the team name
+                    game.displayName = team.displayName || ""; // Add display name if available
                 }
 
                 if (gameDate > currentDate) {
