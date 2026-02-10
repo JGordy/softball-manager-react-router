@@ -59,7 +59,7 @@ export async function createSingleGame({ values }) {
         }
 
         let parkId = null;
-        let location = gameData.location;
+        let location = gameData.location || null;
 
         if (parsedLocationDetails?.placeId) {
             const parkResponse = await findOrCreatePark({

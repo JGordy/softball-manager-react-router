@@ -85,6 +85,7 @@ describe("Games Actions", () => {
                     isHomeGame: true,
                     gameDate: "2024-01-01T10:00",
                     opponent: "Team A",
+                    location: null,
                     parkId: null,
                     teamId: "team1",
                     seasons: "season1",
@@ -121,6 +122,28 @@ describe("Games Actions", () => {
                 expect.objectContaining({
                     location: null,
                     parkId: null,
+                }),
+                expect.any(Array),
+            );
+        });
+
+        it("should normalize empty string location to null", async () => {
+            const mockValues = {
+                gameDate: "2024-01-01",
+                gameTime: "10:00",
+                location: "",
+                teamId: "team1",
+            };
+
+            createDocument.mockResolvedValue({ $id: "game1" });
+
+            await createSingleGame({ values: mockValues });
+
+            expect(createDocument).toHaveBeenCalledWith(
+                "games",
+                "unique-id",
+                expect.objectContaining({
+                    location: null,
                 }),
                 expect.any(Array),
             );
