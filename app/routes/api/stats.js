@@ -1,11 +1,15 @@
 import { getStatsByUserId } from "@/loaders/users";
+import { createSessionClient } from "@/utils/appwrite/server";
 
 export async function loader({ request }) {
-    const url = new URL(request.url);
-    const userId = url.searchParams.get("userId");
+    const { account } = await createSessionClient(request);
+    let userId;
 
-    if (!userId) {
-        return Response.json({ error: "UserId is required" }, { status: 400 });
+    try {
+        const user = await account.get();
+        userId = user.$id;
+    } catch (error) {
+        return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     try {

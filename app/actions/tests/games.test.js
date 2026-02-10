@@ -21,6 +21,11 @@ jest.mock("@/utils/databases", () => ({
     createDocument: jest.fn(),
     updateDocument: jest.fn(),
     deleteDocument: jest.fn(),
+    readDocument: jest.fn(),
+}));
+
+jest.mock("@/actions/parks", () => ({
+    findOrCreatePark: jest.fn(),
 }));
 
 jest.mock("@/utils/badWordsApi", () => ({
@@ -90,6 +95,35 @@ describe("Games Actions", () => {
             );
             expect(result.success).toBe(true);
             expect(result.status).toBe(201);
+        });
+
+        it("should clear parkId and location when matching season location", async () => {
+            const { readDocument } = require("@/utils/databases");
+            const mockValues = {
+                gameDate: "2024-01-01",
+                gameTime: "10:00",
+                location: "Season Park",
+                seasonId: "season1",
+                teamId: "team1",
+            };
+
+            readDocument.mockResolvedValue({
+                $id: "season1",
+                location: "Season Park",
+            });
+            createDocument.mockResolvedValue({ $id: "game1" });
+
+            await createSingleGame({ values: mockValues });
+
+            expect(createDocument).toHaveBeenCalledWith(
+                "games",
+                "unique-id",
+                expect.objectContaining({
+                    location: null,
+                    parkId: null,
+                }),
+                expect.any(Array),
+            );
         });
 
         it("should set correct permissions including scorekeeper", async () => {
@@ -215,6 +249,56 @@ describe("Games Actions", () => {
             });
 
             expect(result.event).toBeUndefined();
+        });
+
+        it("should clear parkId for manual location edits", async () => {
+            const mockValues = {
+                location: "Manually Typed Park",
+            };
+
+            updateDocument.mockResolvedValue({ $id: "game1" });
+
+            await updateGame({
+                values: mockValues,
+                eventId: "game1",
+            });
+
+            expect(updateDocument).toHaveBeenCalledWith(
+                "games",
+                "game1",
+                expect.objectContaining({
+                    location: "Manually Typed Park",
+                    parkId: null,
+                }),
+            );
+        });
+
+        it("should clear location when matching season location in update", async () => {
+            const { readDocument } = require("@/utils/databases");
+            const mockValues = {
+                location: "Season Park",
+                seasonId: "season1",
+            };
+
+            readDocument.mockResolvedValue({
+                $id: "season1",
+                location: "Season Park",
+            });
+            updateDocument.mockResolvedValue({ $id: "game1" });
+
+            await updateGame({
+                values: mockValues,
+                eventId: "game1",
+            });
+
+            expect(updateDocument).toHaveBeenCalledWith(
+                "games",
+                "game1",
+                expect.objectContaining({
+                    location: null,
+                    parkId: null,
+                }),
+            );
         });
 
         it("should compute result correctly", async () => {

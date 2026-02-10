@@ -2,6 +2,7 @@ import { ID, Permission, Role } from "node-appwrite";
 import {
     createDocument,
     deleteDocument,
+    readDocument,
     updateDocument,
 } from "@/utils/databases.js";
 import { combineDateTime } from "@/utils/dateTime";
@@ -58,6 +59,8 @@ export async function createSingleGame({ values }) {
         }
 
         let parkId = null;
+        let location = gameData.location;
+
         if (parsedLocationDetails?.placeId) {
             const parkResponse = await findOrCreatePark({
                 values: parsedLocationDetails,
@@ -66,6 +69,19 @@ export async function createSingleGame({ values }) {
 
             if (parkResponse) {
                 parkId = parkResponse.$id;
+            }
+        }
+
+        // If location matches season location, don't persist it at the game level
+        if (values.seasonId && location) {
+            try {
+                const season = await readDocument("seasons", values.seasonId);
+                if (season?.location === location) {
+                    location = null;
+                    parkId = null;
+                }
+            } catch (e) {
+                console.error("Error fetching season for location check:", e);
             }
         }
 
@@ -89,6 +105,7 @@ export async function createSingleGame({ values }) {
 
         const updatedGameData = {
             ...gameData,
+            location,
             isHomeGame: isHomeGame === "true",
             gameDate: updatedGameDate,
             opponent,
@@ -190,21 +207,45 @@ export async function updateGame({ values, eventId }) {
         if (values.location === "") {
             dataToUpdate.location = null;
             dataToUpdate.parkId = null;
-        } else if (locationDetails) {
-            try {
-                const parsedLocationDetails = JSON.parse(locationDetails);
-                if (parsedLocationDetails?.placeId) {
-                    const parkResponse = await findOrCreatePark({
-                        values: parsedLocationDetails,
-                        placeId: parsedLocationDetails.placeId,
-                    });
+        } else {
+            // Clear parkId for manual edits; it will be re-set if locationDetails are valid
+            dataToUpdate.parkId = null;
 
-                    if (parkResponse?.$id) {
-                        dataToUpdate.parkId = parkResponse.$id;
+            if (locationDetails) {
+                try {
+                    const parsedLocationDetails = JSON.parse(locationDetails);
+                    if (parsedLocationDetails?.placeId) {
+                        const parkResponse = await findOrCreatePark({
+                            values: parsedLocationDetails,
+                            placeId: parsedLocationDetails.placeId,
+                        });
+
+                        if (parkResponse?.$id) {
+                            dataToUpdate.parkId = parkResponse.$id;
+                        }
                     }
+                } catch (e) {
+                    console.error("Error parsing locationDetails:", e);
                 }
-            } catch (e) {
-                console.error("Error parsing locationDetails:", e);
+            }
+
+            // If location matches season location, don't persist it at the game level
+            if (values.seasonId) {
+                try {
+                    const season = await readDocument(
+                        "seasons",
+                        values.seasonId,
+                    );
+                    if (season?.location === values.location) {
+                        dataToUpdate.location = null;
+                        dataToUpdate.parkId = null;
+                    }
+                } catch (e) {
+                    console.error(
+                        "Error fetching season for location check:",
+                        e,
+                    );
+                }
             }
         }
     }
