@@ -34,7 +34,7 @@ export default function PlayerStats({ playerId }) {
         if (playerId && fetcher.state === "idle" && !fetcher.data) {
             fetcher.load(`/api/stats?userId=${playerId}`);
         }
-    }, [playerId, fetcher]);
+    }, [playerId, fetcher.state, fetcher.data]);
 
     const handleGameClick = (game, logs) => {
         setSelectedGame({ game, logs });

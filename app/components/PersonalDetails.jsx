@@ -126,7 +126,7 @@ export default function PersonalDetails({ player, user, managerView }) {
     return (
         <Card radius="lg" mt="sm" withBorder>
             {items.map((item, index) => (
-                <Fragment key={item.key || index}>
+                <Fragment key={index}>
                     {item}
                     {index < items.length - 1 && <Divider />}
                 </Fragment>
