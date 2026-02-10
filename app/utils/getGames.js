@@ -16,7 +16,7 @@ export default function getGames({ teams, teamId }) {
             // Add season reference to each game to extract location later.
             return season.games.map((game) => ({
                 ...game,
-                location: season.location,
+                location: game.location || season.location, // Use game location if available (non-empty), otherwise use season location
             }));
         })
         // 4. Populate futureGames and pastGames
@@ -34,6 +34,7 @@ export default function getGames({ teams, teamId }) {
                 const team = teams.find((t) => t.$id === game.teamId);
                 if (team) {
                     game.teamName = team.name; // Add the team name
+                    game.displayName = team.displayName || ""; // Add display name if available
                 }
 
                 if (gameDate > currentDate) {

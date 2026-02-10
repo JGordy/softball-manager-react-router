@@ -110,6 +110,7 @@ describe("Teams Loader", () => {
             const mockTeamData = {
                 $id: "team1",
                 name: "Team 1",
+                displayName: "T1",
             };
             const mockSeasons = [{ $id: "season1", teamId: "team1" }];
             const mockGames = [{ $id: "game1", seasonId: "season1" }];
@@ -137,9 +138,11 @@ describe("Teams Loader", () => {
             });
 
             expect(result.teamData.$id).toBe("team1");
+            expect(result.teamData.displayName).toBe("T1");
             expect(result.teamData.prefs).toEqual({ maxMaleBatters: 3 });
             expect(result.managerIds).toContain("user1");
             expect(result.players).toHaveLength(2);
+            expect(result.teamData.seasons[0].games[0].displayName).toBe("T1");
         });
 
         it("should return empty object if teamId is missing", async () => {

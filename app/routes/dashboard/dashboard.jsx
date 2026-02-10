@@ -152,10 +152,12 @@ export default function Dashboard({ loaderData, actionData }) {
 
             {/* Single team: show a simple card and add button */}
             {teamList?.length === 1 && (
-                <Card radius="md" py="lg" mt="md" withBorder>
+                <Card radius="lg" p="0" mt="lg" withBorder>
                     <Link to={`/team/${teamList[0].$id}`}>
-                        <Card bg={teamList[0].primaryColor} p="md">
-                            <Text c="white">{teamList[0].name}</Text>
+                        <Card bg={teamList[0].primaryColor} p="lg">
+                            <Text c="white" ta="center">
+                                {teamList[0].name}
+                            </Text>
                         </Card>
                     </Link>
                 </Card>

@@ -22,11 +22,7 @@ import TabsWrapper from "@/components/TabsWrapper";
 
 import { updateUser } from "@/actions/users";
 
-import {
-    getAwardsByUserId,
-    getStatsByUserId,
-    getUserById,
-} from "@/loaders/users";
+import { getAwardsByUserId, getUserById } from "@/loaders/users";
 
 import { useResponseNotification } from "@/utils/showNotification";
 import {
@@ -65,14 +61,13 @@ export async function loader({ params, request }) {
     return {
         player: await getUserById({ userId }),
         awardsPromise: getAwardsByUserId({ userId }),
-        statsPromise: getStatsByUserId({ userId }),
         defaultTab,
     };
 }
 
 export default function UserProfile({ loaderData }) {
     // console.log("UserProfile: ", { ...loaderData });
-    const { awardsPromise, statsPromise, player, defaultTab } = loaderData;
+    const { awardsPromise, player, defaultTab } = loaderData;
 
     const { user: loggedInUser } = useOutletContext(); // The currently logged-in user from layout
     const location = useLocation();
@@ -157,7 +152,7 @@ export default function UserProfile({ loaderData }) {
                     </Tabs.Panel> */}
 
                     <Tabs.Panel value="stats">
-                        <PlayerStats statsPromise={statsPromise} />
+                        <PlayerStats playerId={player.$id} />
                     </Tabs.Panel>
 
                     <Tabs.Panel value="awards">

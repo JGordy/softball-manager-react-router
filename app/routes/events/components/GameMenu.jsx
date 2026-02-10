@@ -51,7 +51,10 @@ export default function GameMenu({
                             { format: "HH:mm" },
                         ),
                         gameDate: game.gameDate,
+                        location: game.location ?? "",
+                        locationNotes: game.locationNotes,
                     }}
+                    locationPlaceholder={season.location}
                     teamId={team.$id}
                     seasonId={season.$id}
                     confirmText="Update Game"
