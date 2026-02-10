@@ -136,7 +136,7 @@ export default function PlayerStats({ playerId }) {
         <Stack gap="md" mt="md">
             <Paper withBorder p="md" radius="md">
                 <Text fw={700} mb="xs">
-                    Last {sortedGameIds.length} Games
+                    Last {last10GameIds.length} Games
                 </Text>
                 <Group my="md" grow>
                     <Stack gap={0} align="center">
