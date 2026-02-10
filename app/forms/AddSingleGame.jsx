@@ -23,6 +23,7 @@ export default function AddSingleGame({
     buttonColor,
     confirmText = "Create Game",
     defaults = {},
+    locationPlaceholder,
     seasons,
     seasonId,
     teamId,
@@ -82,7 +83,10 @@ export default function AddSingleGame({
                     <Radio color="green" value="true" label="Home" />
                 </Group>
             </Radio.Group>
-            <LocationInput defaultValue={defaults.location || ""} />
+            <LocationInput
+                defaultValue={defaults.location || ""}
+                placeholder={locationPlaceholder}
+            />
             <TextInput
                 className={classes.inputs}
                 label="Location Notes"

@@ -39,8 +39,9 @@ export default function SeasonMenu({ season }) {
                     buttonColor={primaryColor}
                     seasonId={seasonId}
                     defaults={{
-                        location: season.location || "",
+                        location: "",
                     }}
+                    locationPlaceholder={season.location || ""}
                 />
             ),
         });
