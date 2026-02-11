@@ -4,7 +4,11 @@ import {
     createAdminClient,
     createSessionClientFromSecret,
 } from "@/utils/appwrite/server";
-import { updateDocument } from "@/utils/databases";
+import {
+    createDocument,
+    readDocument,
+    updateDocument,
+} from "@/utils/databases";
 
 /**
  * Loader to handle the callback from Appwrite OAuth2.
@@ -24,10 +28,42 @@ export async function loader({ request }) {
     }
 
     try {
-        const { account: adminAccount } = createAdminClient();
+        const { account: adminAccount, users: adminUsers } =
+            createAdminClient();
 
         // Exchange the temporary token for a persistent session
         const session = await adminAccount.createSession(userId, secret);
+
+        // --- Ensure User Document exists in Database ---
+        try {
+            await readDocument("users", userId);
+        } catch (readErr) {
+            // If document does not exist (404), create it
+            if (readErr.code === 404) {
+                try {
+                    const userAccount = await adminUsers.get(userId);
+                    await createDocument("users", userId, {
+                        userId: userId,
+                        firstName: userAccount.name?.split(" ")[0] || "User",
+                        lastName:
+                            userAccount.name?.split(" ").slice(1).join(" ") ||
+                            "",
+                        email: userAccount.email,
+                    });
+                } catch (createErr) {
+                    console.error(
+                        "Callback loader - Failed to create user document:",
+                        createErr.message,
+                    );
+                }
+            } else {
+                console.warn(
+                    "Callback loader - Error checking user document:",
+                    readErr.message,
+                );
+            }
+        }
+        // -----------------------------------------------
 
         // --- Fetch and Save Google Avatar while token is fresh ---
         try {
