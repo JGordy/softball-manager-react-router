@@ -12,27 +12,18 @@ jest.mock("firebase/app", () => ({
 }));
 
 describe("firebase utility", () => {
-    let originalNavigator;
-
-    beforeAll(() => {
-        originalNavigator = global.navigator;
-    });
+    const originalNavigator = global.navigator;
+    const originalWindow = global.window;
 
     beforeEach(() => {
         jest.clearAllMocks();
-
+        // Restore standard browser environment
         Object.defineProperty(global, "navigator", {
-            value: {
-                ...originalNavigator,
-                serviceWorker: {},
-            },
+            value: { ...originalNavigator, serviceWorker: {} },
             configurable: true,
             writable: true,
         });
-
-        if (typeof global.window === "undefined") {
-            global.window = {};
-        }
+        global.window = originalWindow;
     });
 
     afterAll(() => {
@@ -41,22 +32,38 @@ describe("firebase utility", () => {
             configurable: true,
             writable: true,
         });
+        global.window = originalWindow;
     });
 
-    it("should return null when navigator is undefined", async () => {
-        await jest.isolateModules(async () => {
-            Object.defineProperty(global, "navigator", {
-                value: undefined,
-                configurable: true,
-                writable: true,
+    /**
+     * Helper to test environment-related failures (SSR, no window, etc)
+     * Addressing PR comment: use isolateModulesAsync for async isolation
+     */
+    const testEnvFailure = (title, setup) => {
+        it(title, async () => {
+            await jest.isolateModulesAsync(async () => {
+                setup();
+                const {
+                    getMessagingIfSupported: isolatedFn,
+                } = require("../firebase");
+                expect(await isolatedFn()).toBeNull();
+                expect(isSupported).not.toHaveBeenCalled();
             });
+        });
+    };
 
-            const {
-                getMessagingIfSupported: isolatedGetMessagingIfSupported,
-            } = require("../firebase");
-            const result = await isolatedGetMessagingIfSupported();
-            expect(result).toBeNull();
-            expect(isSupported).not.toHaveBeenCalled();
+    testEnvFailure("should return null in SSR (navigator undefined)", () => {
+        Object.defineProperty(global, "navigator", {
+            value: undefined,
+            configurable: true,
+        });
+    });
+
+    testEnvFailure("should return null when window is undefined", () => {
+        delete global.window;
+        Object.defineProperty(global, "navigator", {
+            value: undefined,
+            configurable: true,
         });
     });
 
@@ -64,54 +71,29 @@ describe("firebase utility", () => {
         Object.defineProperty(global, "navigator", {
             value: {},
             configurable: true,
-            writable: true,
         });
-
-        const result = await getMessagingIfSupported();
-        expect(result).toBeNull();
+        expect(await getMessagingIfSupported()).toBeNull();
         expect(isSupported).not.toHaveBeenCalled();
     });
 
     it("should return null when isSupported() returns false", async () => {
         isSupported.mockResolvedValue(false);
-        const result = await getMessagingIfSupported();
-        expect(result).toBeNull();
+        expect(await getMessagingIfSupported()).toBeNull();
         expect(isSupported).toHaveBeenCalled();
     });
 
-    it("should return null and log warning when isSupported() throws", async () => {
+    it("should return null and log on error", async () => {
         const consoleSpy = jest.spyOn(console, "warn").mockImplementation();
-        isSupported.mockRejectedValue(new Error("Firebase breakdown"));
-        const result = await getMessagingIfSupported();
-        expect(result).toBeNull();
+        isSupported.mockRejectedValue(new Error("fail"));
+        expect(await getMessagingIfSupported()).toBeNull();
         expect(consoleSpy).toHaveBeenCalled();
         consoleSpy.mockRestore();
     });
 
     it("should return messaging instance when supported", async () => {
-        const mockMessaging = { dummy: "instance" };
+        const mock = { dummy: "instance" };
         isSupported.mockResolvedValue(true);
-        getMessaging.mockReturnValue(mockMessaging);
-        const result = await getMessagingIfSupported();
-        expect(result).toEqual(mockMessaging);
-        expect(getMessaging).toHaveBeenCalled();
-    });
-
-    it("should return null when window is undefined", async () => {
-        await jest.isolateModules(async () => {
-            // Mock navigator as undefined to simulate non-browser/SSR environment
-            Object.defineProperty(global, "navigator", {
-                value: undefined,
-                configurable: true,
-                writable: true,
-            });
-
-            const {
-                getMessagingIfSupported: isolatedGetMessagingIfSupported,
-            } = require("../firebase");
-            const result = await isolatedGetMessagingIfSupported();
-            expect(result).toBeNull();
-            expect(isSupported).not.toHaveBeenCalled();
-        });
+        getMessaging.mockReturnValue(mock);
+        expect(await getMessagingIfSupported()).toBe(mock);
     });
 });
