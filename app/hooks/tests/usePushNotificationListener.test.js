@@ -67,6 +67,18 @@ describe("usePushNotificationListener", () => {
         expect(mockUnsubscribe).toHaveBeenCalled();
     });
 
+    it("should not initialize if messaging is not supported", async () => {
+        getMessagingIfSupported.mockResolvedValue(null);
+        renderHook(() => usePushNotificationListener());
+
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+
+        expect(getMessagingIfSupported).toHaveBeenCalled();
+        expect(onMessage).not.toHaveBeenCalled();
+    });
+
     it("should handle nested url and navigate on click", async () => {
         renderHook(() => usePushNotificationListener());
 

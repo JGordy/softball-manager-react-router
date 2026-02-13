@@ -1,4 +1,3 @@
-// Firebase initialization for FCM push notifications
 import { initializeApp, getApps } from "firebase/app";
 
 const firebaseConfig = {
@@ -19,10 +18,25 @@ if (!getApps().length) {
 }
 
 export async function getMessagingIfSupported() {
-    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-        // Only import in browser using dynamic import
-        const { getMessaging } = await import("firebase/messaging");
-        return getMessaging(app);
+    if (
+        typeof window !== "undefined" &&
+        typeof navigator !== "undefined" &&
+        navigator &&
+        "serviceWorker" in navigator
+    ) {
+        try {
+            const { getMessaging, isSupported } = await import(
+                "firebase/messaging"
+            );
+            const supported = await isSupported();
+            if (supported) {
+                return getMessaging(app);
+            }
+            return null;
+        } catch (err) {
+            console.warn("Failed to check if messaging is supported:", err);
+            return null;
+        }
     }
     return null;
 }
