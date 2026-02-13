@@ -20,9 +20,19 @@ if (!getApps().length) {
 
 export async function getMessagingIfSupported() {
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-        // Only import in browser using dynamic import
-        const { getMessaging } = await import("firebase/messaging");
-        return getMessaging(app);
+        try {
+            // Only import in browser using dynamic import
+            const { getMessaging, isSupported } = await import(
+                "firebase/messaging"
+            );
+            const supported = await isSupported();
+            if (supported) {
+                return getMessaging(app);
+            }
+        } catch (err) {
+            console.warn("Failed to check if messaging is supported:", err);
+            return null;
+        }
     }
     return null;
 }
