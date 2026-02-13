@@ -32,6 +32,7 @@ export async function getMessagingIfSupported() {
             if (supported) {
                 return getMessaging(app);
             }
+            return null;
         } catch (err) {
             console.warn("Failed to check if messaging is supported:", err);
             return null;
