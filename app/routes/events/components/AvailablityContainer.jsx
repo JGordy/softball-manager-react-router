@@ -111,7 +111,8 @@ const AvailabilityOptionsContainer = ({
             <Group justify="space-between">
                 <Group gap="xs" justify="space-between">
                     <Text c="dimmed" size="sm" miw="1.1rem">
-                        {positions[player.preferredPositions?.[0]].initials}
+                        {positions[player.preferredPositions?.[0]]?.initials ||
+                            "-"}
                     </Text>
                     <Divider orientation="vertical" />
                     <Text fw={700}>
