@@ -23,7 +23,7 @@ jest.mock(
     () =>
         ({ children, opened, title }) =>
             opened ? (
-                <div role="dialog" title={title}>
+                <div role="dialog" aria-label={title}>
                     {children}
                 </div>
             ) : null,
