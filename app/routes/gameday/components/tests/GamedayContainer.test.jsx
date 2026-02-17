@@ -63,9 +63,7 @@ describe("GamedayContainer", () => {
             score: 0,
             opponentScore: 0,
             runners: { first: null, second: null, third: null },
-            currentBatter: mockPlayerChart[0],
-            onDeckBatter: mockPlayerChart[1],
-            isDefense: false,
+            battingOrderIndex: 0,
         });
     });
 
@@ -82,7 +80,7 @@ describe("GamedayContainer", () => {
 
         expect(screen.getByTestId("scoreboard-header")).toBeInTheDocument();
         expect(screen.getByTestId("diamond-view")).toBeInTheDocument();
-        // Since isDefense is mocked as false (batting), we expect ActionPad
+        // Since we are batting, we expect ActionPad
         expect(screen.getByTestId("action-pad")).toBeInTheDocument();
         expect(
             screen.queryByTestId("fielding-controls"),
@@ -97,9 +95,7 @@ describe("GamedayContainer", () => {
             score: 0,
             opponentScore: 0,
             runners: { first: null, second: null, third: null },
-            currentBatter: null,
-            onDeckBatter: null,
-            isDefense: true,
+            battingOrderIndex: 0,
         });
 
         render(
