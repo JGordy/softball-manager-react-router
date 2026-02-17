@@ -12,7 +12,8 @@ jest.mock(
         ({ children, opened, title, onClose }) =>
             opened ? (
                 <div role="dialog" aria-label={title}>
-                    <h1>{title}</h1>;<button onClick={onClose}>Close</button>
+                    <h1>{title}</h1>
+                    <button onClick={onClose}>Close</button>
                     {children}
                 </div>
             ) : null,
