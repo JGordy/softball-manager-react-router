@@ -34,6 +34,7 @@ export default function DiamondView({ runners, withTitle = true }) {
                 {/* Bases */}
                 <Base
                     active={runners.first}
+                    label="First Base"
                     style={{
                         top: "50%",
                         right: 10,
@@ -42,6 +43,7 @@ export default function DiamondView({ runners, withTitle = true }) {
                 />
                 <Base
                     active={runners.second}
+                    label="Second Base"
                     style={{
                         top: 10,
                         left: "50%",
@@ -50,6 +52,7 @@ export default function DiamondView({ runners, withTitle = true }) {
                 />
                 <Base
                     active={runners.third}
+                    label="Third Base"
                     style={{
                         top: "50%",
                         left: 10,
@@ -68,9 +71,10 @@ export default function DiamondView({ runners, withTitle = true }) {
     );
 }
 
-function Base({ active, style }) {
+function Base({ active, style, label }) {
     return (
         <Box
+            aria-label={label}
             style={{
                 width: 24,
                 height: 24,
