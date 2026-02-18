@@ -78,7 +78,7 @@ describe("PlayerStats Component", () => {
 
     it("renders skeleton while loading", () => {
         const { container } = render(<PlayerStats playerId="user-1" />);
-        // Mentine Skeletons are rendered as divs with mantine-Skeleton-root class
+        // Mantine Skeletons are rendered as divs with mantine-Skeleton-root class
         expect(
             container.querySelector(".mantine-Skeleton-root"),
         ).toBeInTheDocument();
