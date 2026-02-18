@@ -8,20 +8,17 @@ import { isMobileUserAgent } from "@/utils/device";
  * from accessing these pages.
  *
  * @param {Request} request - The incoming request object
- * @param {string} redirectTo - The path to redirect to if authenticated (default: "/dashboard")
+ * @param {string} redirectTo - The path to redirect to if authenticated
  * @returns {Promise<Response|null>} Redirect response if authenticated, null otherwise
  */
-export async function redirectIfAuthenticated(
-    request,
-    redirectTo = "/dashboard",
-) {
+export async function redirectIfAuthenticated(request, redirectTo = null) {
     try {
         const { account } = await createSessionClient(request);
         await account.get(); // Succeeds if valid session exists, throws if no session
 
         // User is already logged in, redirect
         const isMobile = isMobileUserAgent(request);
-        const destination = !isMobile ? "/" : redirectTo;
+        const destination = redirectTo || (!isMobile ? "/" : "/dashboard");
 
         return redirect(destination);
     } catch (error) {
