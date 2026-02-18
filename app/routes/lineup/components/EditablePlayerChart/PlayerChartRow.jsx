@@ -76,6 +76,7 @@ const PlayerChartRow = ({
                                                 color="red"
                                                 variant="light"
                                                 size="sm"
+                                                aria-label="Batting validation error"
                                             >
                                                 <IconAlertTriangle size={12} />
                                             </ThemeIcon>
