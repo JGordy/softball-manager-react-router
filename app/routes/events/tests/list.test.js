@@ -1,54 +1,19 @@
 import { useComputedColorScheme } from "@mantine/core";
 
-import { render, screen, fireEvent } from "@/utils/test-utils";
+import { render, screen, fireEvent, waitFor } from "@/utils/test-utils";
 
 import * as teamsLoaders from "@/loaders/teams";
 import * as getGamesUtils from "@/utils/getGames";
 
-import EventsList, { loader } from "../list"; // Renaming default export for clarity in test
+import EventsList, { loader } from "../list";
 
-// Mock dependencies
-jest.mock("@mantine/core", () => ({
-    ...jest.requireActual("@mantine/core"),
-    useComputedColorScheme: jest.fn(),
-    Menu: Object.assign(
-        ({ children, opened }) => (
-            <div data-testid="menu" data-opened={opened}>
-                {children}
-            </div>
-        ),
-        {
-            Target: ({ children }) => (
-                <div data-testid="menu-target">{children}</div>
-            ),
-            Dropdown: ({ children }) => (
-                <div data-testid="menu-dropdown">{children}</div>
-            ),
-            Label: ({ children }) => <div>{children}</div>,
-        },
-    ),
-    SegmentedControl: ({ data, onChange, value }) => (
-        <select
-            data-testid="team-filter"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-        >
-            {data.map((item) => (
-                <option key={item.value} value={item.value}>
-                    {item.label}
-                </option>
-            ))}
-        </select>
-    ),
-    Tabs: {
-        Tab: ({ children, value }) => (
-            <button data-testid={`tab-${value}`}>{children}</button>
-        ),
-        Panel: ({ children, value }) => (
-            <div data-testid={`panel-${value}`}>{children}</div>
-        ),
-    },
-}));
+jest.mock("@mantine/core", () => {
+    const actual = jest.requireActual("@mantine/core");
+    return {
+        ...actual,
+        useComputedColorScheme: jest.fn(),
+    };
+});
 
 jest.mock("@/components/UserHeader", () => ({ children, subText }) => (
     <div data-testid="user-header">
@@ -63,10 +28,6 @@ jest.mock("@/components/GamesList", () => ({ games }) => (
             <div key={g.id}>{g.name}</div>
         ))}
     </div>
-));
-
-jest.mock("@/components/TabsWrapper", () => ({ children, defaultValue }) => (
-    <div data-testid={`tabs-wrapper-${defaultValue}`}>{children}</div>
 ));
 
 jest.mock("@/loaders/teams");
@@ -117,9 +78,7 @@ describe("EventsList Route", () => {
             });
 
             render(<EventsList loaderData={mockLoaderData} />);
-            expect(
-                screen.getByTestId("tabs-wrapper-upcoming"),
-            ).toBeInTheDocument();
+            expect(screen.getByText("Game 1")).toBeInTheDocument();
         });
 
         it("renders with default 'past' tab if no future games", () => {
@@ -129,7 +88,7 @@ describe("EventsList Route", () => {
             });
 
             render(<EventsList loaderData={mockLoaderData} />);
-            expect(screen.getByTestId("tabs-wrapper-past")).toBeInTheDocument();
+            expect(screen.getByText("Game 2")).toBeInTheDocument();
         });
 
         it("renders filter menu trigger (ActionIcon via UserHeader children)", () => {
@@ -138,7 +97,7 @@ describe("EventsList Route", () => {
             expect(screen.getByLabelText("Filter Games")).toBeInTheDocument();
         });
 
-        it("filters games when a team is selected", () => {
+        it("filters games when a team is selected", async () => {
             const games = [
                 { id: "g1", name: "Game 1", teamId: "team1" },
                 { id: "g2", name: "Game 2", teamId: "team2" },
@@ -158,27 +117,31 @@ describe("EventsList Route", () => {
             // Open menu (click action icon)
             fireEvent.click(screen.getByLabelText("Filter Games"));
 
-            // Change filter to Team 1
-            const select = screen.getByTestId("team-filter");
-            fireEvent.change(select, { target: { value: "team1" } });
+            const teamOneOption = await screen.findByRole("radio", {
+                name: "Team 1",
+            });
+            fireEvent.click(teamOneOption);
 
             // Now only Game 1 should be visible
             expect(screen.getByText("Game 1")).toBeInTheDocument();
             expect(screen.queryByText("Game 2")).not.toBeInTheDocument();
         });
 
-        it("toggles filter menu visibility", () => {
+        it("toggles filter menu visibility", async () => {
             render(<EventsList loaderData={mockLoaderData} />);
 
             const trigger = screen.getByLabelText("Filter Games");
 
             fireEvent.click(trigger);
-
-            const menu = screen.getByTestId("menu");
-            expect(menu).toHaveAttribute("data-opened", "true");
+            await screen.findByText("Filter Games by Team");
 
             fireEvent.click(trigger);
-            expect(menu).toHaveAttribute("data-opened", "false");
+
+            await waitFor(() =>
+                expect(
+                    screen.queryByText("Filter Games by Team"),
+                ).not.toBeInTheDocument(),
+            );
         });
     });
 });
