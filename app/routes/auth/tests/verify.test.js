@@ -71,7 +71,9 @@ describe("Verify Route", () => {
             });
 
             jest.advanceTimersByTime(3000);
-            expect(mockNavigate).toHaveBeenCalledWith("/login");
+            await waitFor(() => {
+                expect(mockNavigate).toHaveBeenCalledWith("/login");
+            });
         });
 
         it("shows error if verification fails", async () => {

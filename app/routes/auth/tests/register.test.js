@@ -141,6 +141,29 @@ describe("Register Route", () => {
             expect(result.headers["Set-Cookie"]).toBe("cookie-string");
             expect(result.payload.success).toBe(true);
         });
+
+        it("returns error if registration fails", async () => {
+            const formData = new FormData();
+            formData.append("email", "test@test.com");
+            formData.append("password", "password123");
+            formData.append("name", "John Smith");
+            const request = new Request("http://localhost/register", {
+                method: "POST",
+                body: formData,
+            });
+
+            hasBadWords.mockResolvedValue(false);
+            const mockAccount = {
+                create: jest
+                    .fn()
+                    .mockRejectedValue(new Error("Registration failed")),
+            };
+            createAdminClient.mockReturnValue({ account: mockAccount });
+
+            const result = await action({ request });
+
+            expect(result.error).toBe("Registration failed");
+        });
     });
 
     describe("Component", () => {
@@ -167,16 +190,15 @@ describe("Register Route", () => {
             ).toBeInTheDocument();
         });
 
-        it("shows error notification and tracks event on success", () => {
-            // Test error notification
+        it("shows error notification on action error", () => {
             render(<Register actionData={{ error: "Reg Error" }} />);
             expect(showNotification).toHaveBeenCalledWith({
                 variant: "error",
                 message: "Reg Error",
             });
+        });
 
-            // Test success redirection
-            cleanup();
+        it("tracks event and redirects on registration success", () => {
             render(
                 <Register actionData={{ success: true, userId: "user1" }} />,
             );
