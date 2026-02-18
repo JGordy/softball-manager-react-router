@@ -61,7 +61,7 @@ describe("PreferencesDrawer Component", () => {
         const input = screen.getByLabelText("Max Consecutive Male Batters");
         fireEvent.change(input, { target: { value: "3" } });
 
-        fireEvent.submit(
+        fireEvent.click(
             screen.getByRole("button", { name: "Save Preferences" }),
         );
 

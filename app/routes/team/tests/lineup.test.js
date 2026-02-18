@@ -112,12 +112,21 @@ describe("TeamLineup Route", () => {
             });
         });
 
-        it("parses empty or invalid idealLineup correctly", () => {
+        it("parses empty or missing idealLineup correctly", () => {
             const emptyLoaderData = {
                 ...mockLoaderData,
                 teamData: { ...mockTeam, idealLineup: null },
             };
             render(<TeamLineup loaderData={emptyLoaderData} />);
+            expect(screen.getByTestId("lineup-container")).toBeInTheDocument();
+        });
+
+        it("parses invalid idealLineup JSON correctly", () => {
+            const invalidLoaderData = {
+                ...mockLoaderData,
+                teamData: { ...mockTeam, idealLineup: "invalid-json" },
+            };
+            render(<TeamLineup loaderData={invalidLoaderData} />);
             expect(screen.getByTestId("lineup-container")).toBeInTheDocument();
         });
     });
