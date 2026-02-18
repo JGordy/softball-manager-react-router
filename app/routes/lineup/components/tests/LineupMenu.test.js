@@ -64,7 +64,7 @@ describe("LineupMenu Component", () => {
         dateTimeUtils.getGameDayStatus.mockReturnValue("upcoming");
     });
 
-    it("renders verify basic menu items", () => {
+    it("renders basic menu items", () => {
         render(<LineupMenu {...defaultProps} />);
 
         expect(screen.getByTestId("menu-container")).toBeInTheDocument();
