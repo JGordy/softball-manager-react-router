@@ -1,5 +1,5 @@
 import { useActionData, useNavigate, useSearchParams } from "react-router";
-import { screen, cleanup } from "@testing-library/react";
+import { screen, cleanup, waitFor } from "@testing-library/react";
 
 import { render } from "@/utils/test-utils";
 import { createAdminClient } from "@/utils/appwrite/server";
@@ -107,8 +107,9 @@ describe("Recover Route", () => {
             render(<Recover />);
 
             jest.advanceTimersByTime(2500);
-
-            expect(mockNavigate).toHaveBeenCalledWith("/login");
+            await waitFor(() => {
+                expect(mockNavigate).toHaveBeenCalledWith("/login");
+            });
         });
     });
 });

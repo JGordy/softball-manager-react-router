@@ -84,6 +84,25 @@ describe("Setup Route", () => {
             expect(mockAccount.updateName).toHaveBeenCalledWith("John Smith");
             expect(result.url).toBe("/dashboard");
         });
+
+        it("returns error and does not redirect if updateName fails", async () => {
+            const formData = new FormData();
+            formData.append("name", "John Smith");
+            const mockAccount = {
+                updateName: jest
+                    .fn()
+                    .mockRejectedValue(new Error("Update failed")),
+            };
+            getAppwriteClient.mockReturnValue({ account: mockAccount });
+
+            const result = await action({
+                request: { formData: async () => formData },
+            });
+
+            expect(mockAccount.updateName).toHaveBeenCalledWith("John Smith");
+            expect(result.error).toBeDefined();
+            expect(result.url).toBeUndefined();
+        });
     });
 
     describe("Component", () => {
