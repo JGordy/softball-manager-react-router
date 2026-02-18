@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@/utils/test-utils";
+import { render, screen, act } from "@/utils/test-utils";
 
 import WinnerDisplay from "../WinnerDisplay";
 
@@ -38,8 +38,8 @@ describe("WinnerDisplay", () => {
         ],
     };
 
-    const renderComponent = (props = {}) => {
-        return render(
+    const renderComponent = (props = {}) =>
+        render(
             <WinnerDisplay
                 activeAward="mvp"
                 game={mockGame}
@@ -50,7 +50,16 @@ describe("WinnerDisplay", () => {
                 {...props}
             />,
         );
-    };
+
+    beforeEach(() => {
+        jest.useFakeTimers();
+        jest.clearAllTimers();
+    });
+
+    afterEach(() => {
+        jest.runOnlyPendingTimers();
+        jest.useRealTimers();
+    });
 
     it("displays the winner correctly", () => {
         renderComponent();
@@ -89,16 +98,12 @@ describe("WinnerDisplay", () => {
 
         renderComponent({ user: userIsWinner });
 
-        await waitFor(() => {
-            expect(screen.getByText("Alice A")).toBeInTheDocument();
+        await act(async () => {
+            jest.advanceTimersByTime(500);
+            // wait for the dynamic import microtask to resolve
+            await Promise.resolve();
         });
 
-        // The component has a 500ms debounce before triggering confetti
-        await waitFor(
-            () => {
-                expect(confetti.create).toHaveBeenCalled();
-            },
-            { timeout: 2000 },
-        );
+        expect(confetti.create).toHaveBeenCalled();
     });
 });
