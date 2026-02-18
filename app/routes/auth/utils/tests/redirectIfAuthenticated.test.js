@@ -57,9 +57,19 @@ describe("redirectIfAuthenticated", () => {
         expect(redirect).toHaveBeenCalledWith("/dashboard");
     });
 
-    it("redirects to custom path if provided", async () => {
+    it("redirects to custom path if provided on mobile", async () => {
         mockAccount.get.mockResolvedValue({ $id: "user1" });
         isMobileUserAgent.mockReturnValue(true);
+        const request = new Request("http://localhost/login");
+
+        await redirectIfAuthenticated(request, "/profile");
+
+        expect(redirect).toHaveBeenCalledWith("/profile");
+    });
+
+    it("redirects to custom path if provided on desktop", async () => {
+        mockAccount.get.mockResolvedValue({ $id: "user1" });
+        isMobileUserAgent.mockReturnValue(false);
         const request = new Request("http://localhost/login");
 
         await redirectIfAuthenticated(request, "/profile");
