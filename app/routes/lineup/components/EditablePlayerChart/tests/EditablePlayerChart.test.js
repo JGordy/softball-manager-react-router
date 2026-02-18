@@ -24,6 +24,52 @@ jest.mock("@hello-pangea/dnd", () => ({
         ),
 }));
 
+// Mantine's Select component pulls in heavy layout logic and ResizeObservers.
+// Swap it with a minimal stub so the suite runs faster while still behaving
+// like a standard controlled select element.
+jest.mock("@mantine/core", () => {
+    const actual = jest.requireActual("@mantine/core");
+
+    const flattenOptions = (data = []) => {
+        const options = [];
+        data.forEach((item) => {
+            if (typeof item === "string") {
+                options.push({ value: item, label: item });
+            } else if (item?.items) {
+                item.items.forEach((value) => {
+                    options.push({ value, label: value });
+                });
+            } else if (item?.value) {
+                options.push({
+                    value: item.value,
+                    label: item.label || item.value,
+                });
+            }
+        });
+        return options;
+    };
+
+    const Select = ({ data, value, onChange, error, ...rest }) => (
+        <select
+            data-testid={rest["data-testid"] || "position-select"}
+            aria-invalid={error ? "true" : "false"}
+            value={value}
+            onChange={(event) => onChange(event.target.value)}
+        >
+            {flattenOptions(data).map((option) => (
+                <option key={option.value} value={option.value}>
+                    {option.label}
+                </option>
+            ))}
+        </select>
+    );
+
+    return {
+        ...actual,
+        Select,
+    };
+});
+
 describe("EditablePlayerChart Component", () => {
     const defaultProps = {
         handleLineupReorder: jest.fn(),

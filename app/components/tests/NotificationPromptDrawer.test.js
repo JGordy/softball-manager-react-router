@@ -28,6 +28,7 @@ describe("NotificationPromptDrawer", () => {
     let useOsSpy;
 
     beforeEach(() => {
+        jest.useFakeTimers();
         jest.clearAllMocks();
         localStorage.clear();
         useOsSpy = jest.spyOn(mantineHooks, "useOs").mockReturnValue("ios");
@@ -39,6 +40,8 @@ describe("NotificationPromptDrawer", () => {
     });
 
     afterEach(() => {
+        jest.runOnlyPendingTimers();
+        jest.useRealTimers();
         useOsSpy.mockRestore();
     });
 
@@ -48,12 +51,10 @@ describe("NotificationPromptDrawer", () => {
             isSupported: true,
         });
         render(<NotificationPromptDrawer />);
-        jest.useFakeTimers();
         act(() => {
             jest.runAllTimers();
         });
         expect(screen.queryByTestId("drawer")).toBeNull();
-        jest.useRealTimers();
     });
 
     it("renders nothing if not supported", () => {
@@ -62,27 +63,22 @@ describe("NotificationPromptDrawer", () => {
             isSupported: false,
         });
         render(<NotificationPromptDrawer />);
-        jest.useFakeTimers();
         act(() => {
             jest.runAllTimers();
         });
         expect(screen.queryByTestId("drawer")).toBeNull();
-        jest.useRealTimers();
     });
 
     it("renders nothing if dismissed previously", () => {
         localStorage.setItem("notification_drawer_dismissed", "true");
         render(<NotificationPromptDrawer />);
-        jest.useFakeTimers();
         act(() => {
             jest.runAllTimers();
         });
         expect(screen.queryByTestId("drawer")).toBeNull();
-        jest.useRealTimers();
     });
 
     it("opens after delay", () => {
-        jest.useFakeTimers();
         render(<NotificationPromptDrawer />);
 
         expect(screen.queryByTestId("drawer")).toBeNull();
@@ -92,7 +88,6 @@ describe("NotificationPromptDrawer", () => {
         });
 
         expect(screen.getByTestId("drawer")).toBeInTheDocument();
-        jest.useRealTimers();
     });
 
     it("calls subscribe on button click", async () => {
@@ -103,32 +98,32 @@ describe("NotificationPromptDrawer", () => {
             subscribe: subscribeMock,
         });
 
-        jest.useFakeTimers();
         render(<NotificationPromptDrawer />);
         act(() => {
             jest.advanceTimersByTime(10000);
         });
 
         const btn = screen.getByText(/enable notifications/i);
-        fireEvent.click(btn);
+        await act(async () => {
+            fireEvent.click(btn);
+        });
 
         expect(subscribeMock).toHaveBeenCalled();
-        jest.useRealTimers();
     });
 
     it("dismisses and saves preference", () => {
-        jest.useFakeTimers();
         render(<NotificationPromptDrawer />);
         act(() => {
             jest.advanceTimersByTime(10000);
         });
 
-        fireEvent.click(screen.getByTestId("close-button"));
+        act(() => {
+            fireEvent.click(screen.getByTestId("close-button"));
+        });
 
         expect(screen.queryByTestId("drawer")).toBeNull();
         expect(localStorage.getItem("notification_drawer_dismissed")).toBe(
             "true",
         );
-        jest.useRealTimers();
     });
 });
