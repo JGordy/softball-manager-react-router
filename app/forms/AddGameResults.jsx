@@ -49,8 +49,8 @@ export default function AddGameResults({
                 name="countTowardsRecord"
                 label="Counts towards record"
                 defaultChecked={
-                    typeof defaults?.countTowardstRecord === "boolean"
-                        ? defaults.countsTowardsRecord
+                    typeof defaults?.countTowardsRecord === "boolean"
+                        ? defaults.countTowardsRecord
                         : true
                 }
             />
