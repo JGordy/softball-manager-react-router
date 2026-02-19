@@ -6,21 +6,16 @@ import LineupMenu from "../LineupMenu";
 // Mock dependencies
 jest.mock("@/utils/dateTime");
 
-// Mock child components
-jest.mock("@/components/MenuContainer", () => ({ sections }) => (
-    <div data-testid="menu-container">
-        {sections.map((section, idx) => (
-            <div key={idx} data-testid="menu-section">
-                {section.label}
-                {section.items.map((item) => (
-                    <button key={item.key} onClick={item.onClick}>
-                        {item.content}
-                    </button>
-                ))}
-            </div>
-        ))}
-    </div>
-));
+// Mock icons
+jest.mock("@tabler/icons-react", () => ({
+    IconDots: ({ "data-testid": testId, onClick }) => (
+        <div data-testid={testId || "icon-dots"} onClick={onClick} />
+    ),
+    IconUserPlus: () => <div data-testid="icon-user-plus" />,
+    IconUserMinus: () => <div data-testid="icon-user-minus" />,
+    IconTrashX: () => <div data-testid="icon-trash" />,
+    IconSparkles: () => <div data-testid="icon-sparkles" />,
+}));
 
 jest.mock(
     "../AILineupDrawer",
@@ -64,17 +59,23 @@ describe("LineupMenu Component", () => {
         dateTimeUtils.getGameDayStatus.mockReturnValue("upcoming");
     });
 
-    it("renders basic menu items", () => {
+    const openMenu = async () => {
+        const trigger = screen.getByTestId("icon-dots");
+        fireEvent.click(trigger);
+        return screen.findByText("Delete Chart");
+    };
+
+    it("renders basic menu items", async () => {
         render(<LineupMenu {...defaultProps} />);
 
-        expect(screen.getByTestId("menu-container")).toBeInTheDocument();
+        await openMenu();
         expect(screen.getByText("Add Players")).toBeInTheDocument();
         expect(screen.getByText("Remove Players")).toBeInTheDocument();
         expect(screen.getByText("Delete Chart")).toBeInTheDocument();
         expect(screen.getByText("Generate AI Lineup")).toBeInTheDocument();
     });
 
-    it("hides Add/Remove players if no lineup", () => {
+    it("hides Add/Remove players if no lineup", async () => {
         const props = {
             ...defaultProps,
             lineupState: [],
@@ -82,16 +83,18 @@ describe("LineupMenu Component", () => {
 
         render(<LineupMenu {...props} />);
 
+        await openMenu();
         expect(screen.queryByText("Add Players")).not.toBeInTheDocument();
         expect(screen.queryByText("Remove Players")).not.toBeInTheDocument();
         expect(screen.getByText("Delete Chart")).toBeInTheDocument();
     });
 
-    it("hides AI Generate if game is past", () => {
+    it("hides AI Generate if game is past", async () => {
         dateTimeUtils.getGameDayStatus.mockReturnValue("past");
 
         render(<LineupMenu {...defaultProps} />);
 
+        await openMenu();
         expect(
             screen.queryByText("Generate AI Lineup"),
         ).not.toBeInTheDocument();
@@ -114,33 +117,37 @@ describe("LineupMenu Component", () => {
         ).not.toBeInTheDocument();
     });
 
-    it("opens AI drawer when Generate AI Lineup clicked", () => {
+    it("opens AI drawer when Generate AI Lineup clicked", async () => {
         render(<LineupMenu {...defaultProps} />);
 
+        await openMenu();
         fireEvent.click(screen.getByText("Generate AI Lineup"));
 
         expect(screen.getByTestId("ai-generate-drawer")).toBeInTheDocument();
     });
 
-    it("opens Add Players drawer when clicked", () => {
+    it("opens Add Players drawer when clicked", async () => {
         render(<LineupMenu {...defaultProps} />);
 
+        await openMenu();
         fireEvent.click(screen.getByText("Add Players"));
 
         expect(screen.getByTestId("add-players-drawer")).toBeInTheDocument();
     });
 
-    it("opens Remove Players drawer when clicked", () => {
+    it("opens Remove Players drawer when clicked", async () => {
         render(<LineupMenu {...defaultProps} />);
 
+        await openMenu();
         fireEvent.click(screen.getByText("Remove Players"));
 
         expect(screen.getByTestId("remove-players-drawer")).toBeInTheDocument();
     });
 
-    it("opens Delete Lineup drawer when clicked", () => {
+    it("opens Delete Lineup drawer when clicked", async () => {
         render(<LineupMenu {...defaultProps} />);
 
+        await openMenu();
         fireEvent.click(screen.getByText("Delete Chart"));
 
         expect(screen.getByTestId("delete-lineup-drawer")).toBeInTheDocument();

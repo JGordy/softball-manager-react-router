@@ -9,24 +9,14 @@ jest.mock("@/utils/dateTime", () => ({
     formatForViewerTime: jest.fn(() => "20:00"),
 }));
 
-jest.mock("@/components/MenuContainer", () => ({ sections }) => (
-    <div data-testid="menu-container">
-        {sections.map((section, idx) => (
-            <div key={idx} data-testid={`section-${section.label}`}>
-                <h3>{section.label}</h3>
-                {section.items.map((item, i) => (
-                    <button
-                        key={item.key || i}
-                        onClick={item.onClick}
-                        data-testid={`menu-item-${item.key}`}
-                    >
-                        {item.content}
-                    </button>
-                ))}
-            </div>
-        ))}
-    </div>
-));
+// Mock icons
+jest.mock("@tabler/icons-react", () => ({
+    IconDots: () => <div data-testid="icon-dots" />,
+    IconEdit: () => <div data-testid="icon-edit" />,
+    IconTrashX: () => <div data-testid="icon-trash" />,
+    IconTrophy: () => <div data-testid="icon-trophy" />,
+    IconScoreboard: () => <div data-testid="icon-scoreboard" />,
+}));
 
 // Mock Forms to avoid complex rendering
 jest.mock("@/forms/AddGameResults", () => () => (
@@ -56,23 +46,34 @@ describe("GameMenu Component", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        modalHooks.default.mockReturnValue({ openModal: mockOpenModal });
+        modalHooks.default.mockReturnValue({
+            openModal: mockOpenModal,
+            closeAllModals: jest.fn(),
+        });
     });
 
-    it("renders Danger Zone with Delete option always", () => {
+    const openMenu = async () => {
+        const trigger = screen.getByTestId("icon-dots");
+        fireEvent.click(trigger);
+        return screen.findByText("Edit Game Details");
+    };
+
+    it("renders Danger Zone with Delete option always", async () => {
         render(<GameMenu {...defaultProps} />);
 
-        const deleteBtn = screen.getByTestId("menu-item-delete");
+        await openMenu();
+        const deleteBtn = screen.getByText("Delete Game");
         expect(deleteBtn).toBeInTheDocument();
 
         fireEvent.click(deleteBtn);
         expect(mockOpenDeleteDrawer).toHaveBeenCalled();
     });
 
-    it("renders Edit Game option always", () => {
+    it("renders Edit Game Details option always", async () => {
         render(<GameMenu {...defaultProps} />);
 
-        const editBtn = screen.getByTestId("menu-item-edit");
+        await openMenu();
+        const editBtn = screen.getByText("Edit Game Details");
         expect(editBtn).toBeInTheDocument();
 
         fireEvent.click(editBtn);
@@ -80,22 +81,24 @@ describe("GameMenu Component", () => {
         expect(mockOpenModal).toHaveBeenCalledWith(
             expect.objectContaining({
                 title: "Update Game Details",
-                children: expect.anything(), // React element
             }),
         );
     });
 
-    it("does NOT render Results option if game is future", () => {
+    it("does NOT render Results option if game is future", async () => {
         render(<GameMenu {...defaultProps} gameIsPast={false} />);
-        expect(
-            screen.queryByTestId("menu-item-results"),
-        ).not.toBeInTheDocument();
+
+        const trigger = screen.getByTestId("icon-dots");
+        fireEvent.click(trigger);
+
+        expect(screen.queryByText(/game results/i)).not.toBeInTheDocument();
     });
 
-    it("renders Results option if game is past", () => {
+    it("renders Results option if game is past and handles click", async () => {
         render(<GameMenu {...defaultProps} gameIsPast={true} />);
 
-        const resultsBtn = screen.getByTestId("menu-item-results");
+        await openMenu();
+        const resultsBtn = screen.getByText("Add game results");
         expect(resultsBtn).toBeInTheDocument();
 
         fireEvent.click(resultsBtn);
@@ -106,13 +109,9 @@ describe("GameMenu Component", () => {
         );
     });
 
-    it("shows 'Add game results' text when no result exists", () => {
-        render(<GameMenu {...defaultProps} gameIsPast={true} result={null} />);
-        expect(screen.getByText("Add game results")).toBeInTheDocument();
-    });
-
-    it("shows 'Update game results' text when result exists", () => {
+    it("shows 'Update game results' text when result exists", async () => {
         render(<GameMenu {...defaultProps} gameIsPast={true} result="won" />);
+        await openMenu();
         expect(screen.getByText("Update game results")).toBeInTheDocument();
     });
 });

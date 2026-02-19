@@ -1,7 +1,6 @@
 import { useActionData, useNavigation } from "react-router";
-import { screen, cleanup } from "@testing-library/react";
 
-import { render } from "@/utils/test-utils";
+import { render, screen, cleanup } from "@/utils/test-utils";
 import { getCurrentUser, getAppwriteClient } from "@/utils/appwrite/context";
 import { showNotification } from "@/utils/showNotification";
 

@@ -109,7 +109,12 @@ function TeamNotificationRow({
     return (
         <Group justify="space-between">
             <Text size="sm">{team.name}</Text>
-            <Switch checked={checked} onChange={handleChange} size="sm" />
+            <Switch
+                checked={checked}
+                onChange={handleChange}
+                size="sm"
+                aria-label={`Toggle notifications for ${team.name}`}
+            />
         </Group>
     );
 }

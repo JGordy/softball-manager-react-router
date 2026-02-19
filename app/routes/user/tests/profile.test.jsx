@@ -7,7 +7,10 @@ import {
 
 import { render, screen, fireEvent } from "@/utils/test-utils";
 
-import UserProfile from "../profile";
+import * as usersActions from "@/actions/users";
+import * as usersLoaders from "@/loaders/users";
+
+import UserProfile, { action, loader } from "../profile";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
@@ -16,6 +19,9 @@ jest.mock("react-router", () => ({
     useOutletContext: jest.fn(),
     useActionData: jest.fn(),
 }));
+
+jest.mock("@/actions/users");
+jest.mock("@/loaders/users");
 
 jest.mock("@/components/UserHeader", () => ({ children }) => (
     <div data-testid="user-header">{children}</div>
@@ -52,56 +58,117 @@ describe("UserProfile Route Component", () => {
     const mockNavigate = jest.fn();
 
     beforeEach(() => {
+        jest.clearAllMocks();
         useNavigate.mockReturnValue(mockNavigate);
         useLocation.mockReturnValue({ hash: "" });
         useOutletContext.mockReturnValue({ user: { $id: "user-1" } });
         useActionData.mockReturnValue(null);
     });
 
-    afterEach(() => {
-        jest.clearAllMocks();
+    describe("loader", () => {
+        it("returns player data, awards promise, and default tab", async () => {
+            usersLoaders.getUserById.mockResolvedValue(mockPlayer);
+            usersLoaders.getAwardsByUserId.mockResolvedValue([]);
+
+            const params = { userId: "user-1" };
+            const request = { url: "http://localhost/user/user-1#stats" };
+
+            const result = await loader({ params, request });
+
+            expect(usersLoaders.getUserById).toHaveBeenCalledWith({
+                userId: "user-1",
+            });
+            expect(usersLoaders.getAwardsByUserId).toHaveBeenCalledWith({
+                userId: "user-1",
+            });
+            expect(result.player).toEqual(mockPlayer);
+            expect(result.defaultTab).toBe("stats");
+        });
+
+        it("defaults to player tab if invalid hash provided", async () => {
+            usersLoaders.getUserById.mockResolvedValue(mockPlayer);
+            usersLoaders.getAwardsByUserId.mockResolvedValue([]);
+
+            const params = { userId: "user-1" };
+            const request = { url: "http://localhost/user/user-1#invalid" };
+
+            const result = await loader({ params, request });
+
+            expect(result.defaultTab).toBe("player");
+        });
     });
 
-    it("renders correctly with player tab", () => {
-        render(<UserProfile loaderData={mockLoaderData} />);
+    describe("action", () => {
+        it("calls updateUser for edit-player action", async () => {
+            const formData = new FormData();
+            formData.append("_action", "edit-player");
+            formData.append("name", "Updated Name");
+            const request = { formData: () => Promise.resolve(formData) };
+            const params = { userId: "user-1" };
 
-        expect(screen.getByTestId("user-header")).toBeInTheDocument();
-        expect(screen.getByTestId("personal-details")).toBeInTheDocument();
-        expect(screen.getByTestId("player-details")).toBeInTheDocument();
-        // The ProfileMenu is rendered within a conditional
-        expect(screen.getByTestId("profile-menu")).toBeInTheDocument();
+            await action({ request, params });
+
+            expect(usersActions.updateUser).toHaveBeenCalledWith({
+                values: { name: "Updated Name" },
+                userId: "user-1",
+            });
+        });
+
+        it("returns undefined for unknown action", async () => {
+            const formData = new FormData();
+            formData.append("_action", "unknown");
+            const request = { formData: () => Promise.resolve(formData) };
+            const params = { userId: "user-1" };
+
+            const result = await action({ request, params });
+            expect(result).toBeUndefined();
+        });
     });
 
-    it("switches tabs and updates URL hash", () => {
-        render(<UserProfile loaderData={mockLoaderData} />);
+    describe("Component", () => {
+        it("renders correctly with player tab", () => {
+            render(<UserProfile loaderData={mockLoaderData} />);
 
-        const statsTab = screen.getByText("Stats");
-        fireEvent.click(statsTab);
+            expect(screen.getByTestId("user-header")).toBeInTheDocument();
+            expect(screen.getByTestId("personal-details")).toBeInTheDocument();
+            expect(screen.getByTestId("player-details")).toBeInTheDocument();
+            // The ProfileMenu is rendered within a conditional
+            expect(screen.getByTestId("profile-menu")).toBeInTheDocument();
+        });
 
-        // It should update hash and change visible component
-        expect(mockNavigate).toHaveBeenCalled();
-        const lastCall =
-            mockNavigate.mock.calls[mockNavigate.mock.calls.length - 1];
-        expect(lastCall[0]).toContain("stats");
-    });
+        it("switches tabs and updates URL hash", () => {
+            render(<UserProfile loaderData={mockLoaderData} />);
 
-    it("displays incomplete profile alert if fields are missing", () => {
-        const incompletePlayer = { ...mockPlayer, name: "" }; // Assuming name is required
-        render(
-            <UserProfile
-                loaderData={{ ...mockLoaderData, player: incompletePlayer }}
-            />,
-        );
+            const statsTab = screen.getByText("Stats");
+            fireEvent.click(statsTab);
 
-        expect(
-            screen.getByText("Your profile is incomplete!"),
-        ).toBeInTheDocument();
-    });
+            // It should update hash and change visible component
+            expect(mockNavigate).toHaveBeenCalled();
+            const lastCall =
+                mockNavigate.mock.calls[mockNavigate.mock.calls.length - 1];
+            expect(lastCall[0]).toContain("stats");
+        });
 
-    it("hides ProfileMenu if not the current user", () => {
-        useOutletContext.mockReturnValue({ user: { $id: "user-other" } });
-        render(<UserProfile loaderData={mockLoaderData} />);
+        it("displays incomplete profile alert if fields are missing", () => {
+            const incompletePlayer = { ...mockPlayer, name: "" }; // Assuming name is required
+            render(
+                <UserProfile
+                    loaderData={{ ...mockLoaderData, player: incompletePlayer }}
+                />,
+            );
 
-        expect(screen.queryByTestId("profile-menu")).not.toBeInTheDocument();
+            expect(
+                screen.getByText("Your profile is incomplete!"),
+            ).toBeInTheDocument();
+        });
+
+        it("hides ProfileMenu if not the current user", () => {
+            useOutletContext.mockReturnValue({ user: { $id: "user-other" } });
+            render(<UserProfile loaderData={mockLoaderData} />);
+
+            expect(
+                screen.queryByTestId("profile-menu"),
+            ).not.toBeInTheDocument();
+        });
     });
 });

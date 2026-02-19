@@ -1,6 +1,5 @@
 import { useOutletContext, useFetcher } from "react-router";
-import { screen, cleanup } from "@testing-library/react";
-import { render } from "@/utils/test-utils";
+import { render, screen, cleanup } from "@/utils/test-utils";
 
 import UserHeader from "../UserHeader";
 
