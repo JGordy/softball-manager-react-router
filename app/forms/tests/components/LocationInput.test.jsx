@@ -1,5 +1,6 @@
-import { render, screen, waitFor, fireEvent, act } from "@/utils/test-utils";
 import { useLoadScript } from "@react-google-maps/api";
+
+import { render, screen, waitFor, fireEvent, act } from "@/utils/test-utils";
 
 import LocationInput from "../../components/LocationInput";
 
