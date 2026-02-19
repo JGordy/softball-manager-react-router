@@ -1,7 +1,6 @@
 import { useActionData, useNavigate, useSearchParams } from "react-router";
-import { screen, cleanup, waitFor } from "@testing-library/react";
 
-import { render } from "@/utils/test-utils";
+import { render, screen, cleanup, waitFor } from "@/utils/test-utils";
 import { createAdminClient } from "@/utils/appwrite/server";
 
 import Recover, { action } from "../recover";

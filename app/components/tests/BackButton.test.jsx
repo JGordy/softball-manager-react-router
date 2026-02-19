@@ -1,5 +1,5 @@
-import { screen, fireEvent, cleanup } from "@testing-library/react";
-import { render } from "@/utils/test-utils";
+import { render, screen, fireEvent, cleanup } from "@/utils/test-utils";
+
 import BackButton from "../BackButton";
 
 const mockNavigate = jest.fn();

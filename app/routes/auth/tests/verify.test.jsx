@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router";
-import { screen, cleanup, waitFor } from "@testing-library/react";
 
-import { render } from "@/utils/test-utils";
+import { render, screen, cleanup, waitFor } from "@/utils/test-utils";
 import { account } from "@/utils/appwrite/client";
 
 import Verify, { loader } from "../verify";

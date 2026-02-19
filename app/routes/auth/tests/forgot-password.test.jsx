@@ -1,7 +1,6 @@
 import { useActionData } from "react-router";
-import { screen, cleanup } from "@testing-library/react";
 
-import { render } from "@/utils/test-utils";
+import { render, screen, cleanup } from "@/utils/test-utils";
 import { createAdminClient } from "@/utils/appwrite/server";
 
 import { redirectIfAuthenticated } from "../utils/redirectIfAuthenticated";
