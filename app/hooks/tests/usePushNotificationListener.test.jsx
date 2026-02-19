@@ -42,11 +42,12 @@ describe("usePushNotificationListener", () => {
         getMessagingIfSupported.mockResolvedValue({ dummy: "messaging" });
 
         // Mock window.open
-        window.open = jest.fn();
+        jest.spyOn(window, "open").mockImplementation(() => ({}));
     });
 
     afterEach(() => {
         jest.clearAllMocks();
+        jest.restoreAllMocks();
     });
 
     it("should initialize FCM listener and return unsubscribe on unmount", async () => {

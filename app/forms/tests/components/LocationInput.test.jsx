@@ -11,9 +11,6 @@ describe("LocationInput", () => {
     const mockSearchByText = jest.fn();
 
     beforeEach(() => {
-        // Mock environment variable
-        process.env.VITE_GOOGLE_SERVICES_API_KEY = "test-key";
-
         useLoadScript.mockReturnValue({ isLoaded: true, loadError: null });
 
         // Mock window.google.maps.places
