@@ -16,6 +16,7 @@ module.exports = {
         limit: jest.fn((value) => `Query.limit(${value})`),
         orderDesc: jest.fn((field) => `Query.orderDesc("${field}")`),
         orderAsc: jest.fn((field) => `Query.orderAsc("${field}")`),
+        cursorAfter: jest.fn((value) => `Query.cursorAfter("${value}")`),
         select: jest.fn(
             (attrs) => `select([${attrs.map((a) => `"${a}"`).join(", ")}])`,
         ),
