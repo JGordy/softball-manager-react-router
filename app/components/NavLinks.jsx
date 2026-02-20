@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
 
 import { Center, SegmentedControl } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 
 import {
     IconBallBaseball,
@@ -26,6 +27,7 @@ function Label({ Icon, text }) {
 function NavLinks({ user }) {
     const navigate = useNavigate();
     const location = useLocation();
+    const isDesktop = useMediaQuery("(min-width: 48em)");
 
     const getInitialValue = () => {
         if (location.pathname.toLowerCase().includes("user")) {
@@ -56,7 +58,7 @@ function NavLinks({ user }) {
             label: (
                 <Label
                     Icon={IconBallBaseball}
-                    text={value === "dashboard" && "Home"}
+                    text={(isDesktop || value === "dashboard") && "Home"}
                 />
             ),
             value: "dashboard",
@@ -65,7 +67,7 @@ function NavLinks({ user }) {
             label: (
                 <Label
                     Icon={IconCalendar}
-                    text={value === "events" && "Events"}
+                    text={(isDesktop || value === "events") && "Events"}
                 />
             ),
             value: "events",
@@ -74,7 +76,7 @@ function NavLinks({ user }) {
             label: (
                 <Label
                     Icon={IconUserSquareRounded}
-                    text={value === "user" && "Profile"}
+                    text={(isDesktop || value === "user") && "Profile"}
                 />
             ),
             value: "user",
@@ -85,7 +87,7 @@ function NavLinks({ user }) {
                       label: (
                           <Label
                               Icon={IconShieldLock}
-                              text={value === "admin" && "Admin"}
+                              text={(isDesktop || value === "admin") && "Admin"}
                           />
                       ),
                       value: "admin",
@@ -96,7 +98,7 @@ function NavLinks({ user }) {
             label: (
                 <Label
                     Icon={IconSettings}
-                    text={value === "settings" && "Settings"}
+                    text={(isDesktop || value === "settings") && "Settings"}
                 />
             ),
             value: "settings",
@@ -125,7 +127,7 @@ function NavLinks({ user }) {
                 className={classes.navLinks}
                 color="green"
                 data={links}
-                fullWidth
+                fullWidth={!isDesktop}
                 onChange={handleNavLinkClick}
                 size="lg"
                 radius="xl"

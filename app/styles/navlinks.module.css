@@ -1,16 +1,35 @@
 .navLinksContainer {
-    width: 100vw;
+    width: 100%;
     position: fixed;
-    bottom: 10px;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    left: 0;
     display: flex;
     justify-content: center;
     z-index: 99;
+    pointer-events: none;
 }
 
 .navLinks {
+    pointer-events: auto;
     width: 95%;
-    margin-bottom: 10px;
-    box-shadow: var(--mantine-shadow-md);
+    box-shadow: var(--mantine-shadow-xl);
     border: 1px solid
-        light-dark(var(--mantine-color-gray-5), var(--mantine-color-gray-7));
+        light-dark(var(--mantine-color-gray-3), var(--mantine-color-gray-8));
+    transition: all 0.2s ease;
+}
+
+@media (min-width: 48em) {
+    .navLinksContainer {
+        bottom: 24px;
+    }
+
+    .navLinks {
+        width: auto;
+        border-radius: var(--mantine-radius-xl);
+    }
+
+    .navLinks:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--mantine-shadow-2xl);
+    }
 }
