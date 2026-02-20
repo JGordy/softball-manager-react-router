@@ -1,8 +1,14 @@
+import { appwriteConfig } from "./config";
+
 describe("AppwriteConfig", () => {
     const originalEnv = process.env;
 
     beforeEach(() => {
-        jest.resetModules();
+        // Reset singleton state
+        appwriteConfig._endpoint = null;
+        appwriteConfig._projectId = null;
+        appwriteConfig._apiKey = null;
+        appwriteConfig._validated = false;
         process.env = { ...originalEnv };
     });
 
@@ -15,8 +21,6 @@ describe("AppwriteConfig", () => {
         process.env.APPWRITE_PROJECT_ID = "test-project";
         process.env.APPWRITE_API_KEY = "test-key";
 
-        const { appwriteConfig } = await import("./config");
-
         expect(appwriteConfig.endpoint).toBe("https://test.appwrite.io/v1");
         expect(appwriteConfig.projectId).toBe("test-project");
         expect(appwriteConfig.apiKey).toBe("test-key");
@@ -25,9 +29,7 @@ describe("AppwriteConfig", () => {
     it("should validate required variables", async () => {
         process.env.APPWRITE_ENDPOINT = "https://test.appwrite.io/v1";
         process.env.APPWRITE_PROJECT_ID = "test-project";
-        // API Key missing
-
-        const { appwriteConfig } = await import("./config");
+        delete process.env.APPWRITE_API_KEY;
 
         // Should not throw if API key is not required
         expect(() => appwriteConfig.validate(false)).not.toThrow();
@@ -41,8 +43,6 @@ describe("AppwriteConfig", () => {
     it("should throw if endpoint or project ID is missing", async () => {
         delete process.env.APPWRITE_ENDPOINT;
         delete process.env.APPWRITE_PROJECT_ID;
-
-        const { appwriteConfig } = await import("./config");
 
         expect(() => appwriteConfig.validate(false)).toThrow(
             "Missing required Appwrite environment variables: APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID",

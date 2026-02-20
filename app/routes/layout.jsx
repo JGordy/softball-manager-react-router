@@ -13,16 +13,18 @@ import { createSessionClient } from "@/utils/appwrite/server";
 import { isMobileUserAgent } from "@/utils/device";
 
 export async function loader({ request }) {
-    // Check Device - Redirect desktop users immediately
-    const isMobile = isMobileUserAgent(request);
-
-    if (!isMobile) {
-        throw redirect("/");
-    }
-
     try {
         const { account } = await createSessionClient(request);
         const user = await account.get();
+
+        const isAdmin = user.labels?.includes("admin");
+
+        // Check Device - Redirect desktop users immediately, unless they are admin
+        const isMobile = isMobileUserAgent(request);
+
+        if (!isMobile && !isAdmin) {
+            throw redirect("/");
+        }
 
         // Check for "Generic" names (Profile Incomplete)
         const isProfileIncomplete =

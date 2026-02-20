@@ -45,6 +45,9 @@ export default [
         // User settings routes
         route("/settings", "routes/settings/index.jsx"),
 
+        // Admin routes
+        route("/admin", "routes/admin/dashboard.jsx"),
+
         // Api routes
         route("/api/lineup", "routes/api/generate/lineup.js"),
         route("/api/stats", "routes/api/stats.js"),

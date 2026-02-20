@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
 
 import { Center, SegmentedControl } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 
 import {
     IconBallBaseball,
@@ -9,6 +10,7 @@ import {
     // IconHome,
     IconSettings,
     IconUserSquareRounded,
+    IconShieldLock,
 } from "@tabler/icons-react";
 
 import classes from "@/styles/navlinks.module.css";
@@ -25,6 +27,7 @@ function Label({ Icon, text }) {
 function NavLinks({ user }) {
     const navigate = useNavigate();
     const location = useLocation();
+    const isDesktop = useMediaQuery("(min-width: 48em)");
 
     const getInitialValue = () => {
         if (location.pathname.toLowerCase().includes("user")) {
@@ -39,35 +42,32 @@ function NavLinks({ user }) {
             return "settings";
         }
 
+        if (location.pathname.toLowerCase().includes("admin")) {
+            return "admin";
+        }
+
         return "dashboard";
     };
 
     const [value, setValue] = useState(getInitialValue());
+
+    const isAdmin = user?.labels?.includes("admin");
 
     const links = [
         {
             label: (
                 <Label
                     Icon={IconBallBaseball}
-                    text={value === "dashboard" && "Home"}
+                    text={(isDesktop || value === "dashboard") && "Home"}
                 />
             ),
             value: "dashboard",
         },
-        // {
-        //     label: (
-        //         <Label
-        //             Icon={IconBallBaseball}
-        //             text={value === "teams" && "Teams"}
-        //         />
-        //     ),
-        //     value: "teams",
-        // },
         {
             label: (
                 <Label
                     Icon={IconCalendar}
-                    text={value === "events" && "Events"}
+                    text={(isDesktop || value === "events") && "Events"}
                 />
             ),
             value: "events",
@@ -76,16 +76,29 @@ function NavLinks({ user }) {
             label: (
                 <Label
                     Icon={IconUserSquareRounded}
-                    text={value === "user" && "Profile"}
+                    text={(isDesktop || value === "user") && "Profile"}
                 />
             ),
             value: "user",
         },
+        ...(isAdmin
+            ? [
+                  {
+                      label: (
+                          <Label
+                              Icon={IconShieldLock}
+                              text={(isDesktop || value === "admin") && "Admin"}
+                          />
+                      ),
+                      value: "admin",
+                  },
+              ]
+            : []),
         {
             label: (
                 <Label
                     Icon={IconSettings}
-                    text={value === "settings" && "Settings"}
+                    text={(isDesktop || value === "settings") && "Settings"}
                 />
             ),
             value: "settings",
@@ -114,7 +127,7 @@ function NavLinks({ user }) {
                 className={classes.navLinks}
                 color="green"
                 data={links}
-                fullWidth
+                fullWidth={!isDesktop}
                 onChange={handleNavLinkClick}
                 size="lg"
                 radius="xl"

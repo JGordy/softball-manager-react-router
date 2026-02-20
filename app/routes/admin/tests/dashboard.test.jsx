@@ -1,0 +1,178 @@
+import { MemoryRouter } from "react-router";
+
+import { render, screen } from "@/utils/test-utils";
+
+import {
+    createSessionClient,
+    createAdminClient,
+} from "@/utils/appwrite/server";
+import { umamiService } from "@/utils/umami/server";
+
+import AdminDashboard, { loader } from "../dashboard";
+
+// Mock Appwrite and Umami
+jest.mock("@/utils/appwrite/server", () => ({
+    createSessionClient: jest.fn(),
+    createAdminClient: jest.fn(),
+}));
+
+jest.mock("@/utils/umami/server", () => ({
+    umamiService: {
+        getStats: jest.fn(),
+        getActiveUsers: jest.fn(),
+        getMetrics: jest.fn(),
+    },
+}));
+
+// Mock react-router hooks
+jest.mock("react-router", () => ({
+    ...jest.requireActual("react-router"),
+    useLoaderData: jest.fn(),
+    useRevalidator: jest.fn(() => ({ state: "idle", revalidate: jest.fn() })),
+    redirect: jest.fn((url) => {
+        const err = new Error("redirect");
+        err.url = url;
+        throw err;
+    }),
+}));
+
+describe("AdminDashboard Route", () => {
+    const mockLoaderData = {
+        stats: {
+            totalUsers: 100,
+            totalTeams: 10,
+            totalGames: 50,
+            umami: {
+                pageviews: { value: 1000 },
+                visitors: { value: 200 },
+                bounces: { value: 50 },
+                totaltime: { value: 3600 },
+            },
+            activeUsers: 5,
+        },
+        recentUsers: [
+            {
+                $id: "1",
+                name: "User 1",
+                email: "user1@example.com",
+                registration: new Date().toISOString(),
+            },
+        ],
+        activeUsers: [
+            {
+                $id: "1",
+                name: "User 1",
+                email: "user1@example.com",
+                accessedAt: new Date().toISOString(),
+            },
+        ],
+        activeTeams: [{ id: "team-1", name: "Team 1", views: 100 }],
+    };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        require("react-router").useLoaderData.mockReturnValue(mockLoaderData);
+    });
+
+    describe("loader", () => {
+        it("redirects to login if user session is missing", async () => {
+            createSessionClient.mockResolvedValue({
+                account: { get: jest.fn().mockRejectedValue(new Error()) },
+            });
+
+            try {
+                await loader({ request: new Request("http://localhost/") });
+            } catch (error) {
+                expect(error.url).toBe("/login");
+            }
+        });
+
+        it("redirects to dashboard if user is not an admin", async () => {
+            createSessionClient.mockResolvedValue({
+                account: { get: jest.fn().mockResolvedValue({ labels: [] }) },
+            });
+
+            try {
+                await loader({ request: new Request("http://localhost/") });
+            } catch (error) {
+                expect(error.url).toBe("/dashboard");
+            }
+        });
+
+        it("fetches data if user is an admin", async () => {
+            createSessionClient.mockResolvedValue({
+                account: {
+                    get: jest.fn().mockResolvedValue({ labels: ["admin"] }),
+                },
+            });
+
+            const mockAdminClient = {
+                users: {
+                    list: jest.fn().mockResolvedValue({
+                        total: 1,
+                        users: [
+                            {
+                                $id: "1",
+                                name: "U1",
+                                email: "e1",
+                                registration: "2024-01-01",
+                                accessedAt: "2024-01-01",
+                            },
+                        ],
+                    }),
+                },
+                tablesDB: {
+                    listRows: jest
+                        .fn()
+                        .mockResolvedValue({ total: 10, rows: [] }),
+                },
+            };
+            createAdminClient.mockReturnValue(mockAdminClient);
+
+            umamiService.getStats.mockResolvedValue({});
+            umamiService.getActiveUsers.mockResolvedValue([]);
+
+            const result = await loader({
+                request: new Request("http://localhost/"),
+            });
+            expect(result.recentUsers.length).toBe(1);
+            expect(umamiService.getStats).toHaveBeenCalled();
+        });
+    });
+
+    describe("Component", () => {
+        it("renders statistics correctly", () => {
+            render(
+                <MemoryRouter>
+                    <AdminDashboard />
+                </MemoryRouter>,
+            );
+
+            expect(screen.getByText("Total Users")).toBeInTheDocument();
+            expect(screen.getByText("100")).toBeInTheDocument();
+            expect(screen.getByText("Live Visitors")).toBeInTheDocument();
+            expect(screen.getByText("5")).toBeInTheDocument();
+            expect(
+                screen.getByText("Umami Analytics (24h)"),
+            ).toBeInTheDocument();
+            expect(screen.getByText("Recently Active")).toBeInTheDocument();
+        });
+
+        it("handles missing Umami data gracefully", () => {
+            require("react-router").useLoaderData.mockReturnValue({
+                ...mockLoaderData,
+                stats: { ...mockLoaderData.stats, umami: null },
+            });
+
+            render(
+                <MemoryRouter>
+                    <AdminDashboard />
+                </MemoryRouter>,
+            );
+
+            expect(
+                screen.getByText("Failed to load Umami data"),
+            ).toBeInTheDocument();
+        });
+    });
+});
