@@ -1,10 +1,12 @@
+import { BaseConfig } from "../config/base.js";
+
 /**
  * Appwrite configuration module
  * Single source of truth for Appwrite environment variables
  */
-
-class AppwriteConfig {
+class AppwriteConfig extends BaseConfig {
     constructor() {
+        super();
         this._endpoint = null;
         this._projectId = null;
         this._apiKey = null;
@@ -12,24 +14,15 @@ class AppwriteConfig {
     }
 
     get endpoint() {
-        if (!this._endpoint) {
-            this._endpoint = process.env.APPWRITE_ENDPOINT;
-        }
-        return this._endpoint;
+        return this.getEnv("_endpoint", "APPWRITE_ENDPOINT");
     }
 
     get projectId() {
-        if (!this._projectId) {
-            this._projectId = process.env.APPWRITE_PROJECT_ID;
-        }
-        return this._projectId;
+        return this.getEnv("_projectId", "APPWRITE_PROJECT_ID");
     }
 
     get apiKey() {
-        if (!this._apiKey) {
-            this._apiKey = process.env.APPWRITE_API_KEY;
-        }
-        return this._apiKey;
+        return this.getEnv("_apiKey", "APPWRITE_API_KEY");
     }
 
     /**
@@ -38,18 +31,16 @@ class AppwriteConfig {
      * @throws {Error} If required variables are missing
      */
     validate(requireApiKey = false) {
-        const missing = [];
+        const checks = [
+            { label: "APPWRITE_ENDPOINT", value: this.endpoint },
+            { label: "APPWRITE_PROJECT_ID", value: this.projectId },
+        ];
 
-        if (!this.endpoint) missing.push("APPWRITE_ENDPOINT");
-        if (!this.projectId) missing.push("APPWRITE_PROJECT_ID");
-        if (requireApiKey && !this.apiKey) missing.push("APPWRITE_API_KEY");
-
-        if (missing.length > 0) {
-            throw new Error(
-                `Missing required Appwrite environment variables: ${missing.join(", ")}`,
-            );
+        if (requireApiKey) {
+            checks.push({ label: "APPWRITE_API_KEY", value: this.apiKey });
         }
 
+        this.throwIfMissing("Appwrite", checks);
         this._validated = true;
     }
 }
