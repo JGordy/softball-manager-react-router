@@ -9,6 +9,7 @@ import {
     // IconHome,
     IconSettings,
     IconUserSquareRounded,
+    IconShieldLock,
 } from "@tabler/icons-react";
 
 import classes from "@/styles/navlinks.module.css";
@@ -39,10 +40,16 @@ function NavLinks({ user }) {
             return "settings";
         }
 
+        if (location.pathname.toLowerCase().includes("admin")) {
+            return "admin";
+        }
+
         return "dashboard";
     };
 
     const [value, setValue] = useState(getInitialValue());
+
+    const isAdmin = user?.labels?.includes("admin");
 
     const links = [
         {
@@ -54,15 +61,6 @@ function NavLinks({ user }) {
             ),
             value: "dashboard",
         },
-        // {
-        //     label: (
-        //         <Label
-        //             Icon={IconBallBaseball}
-        //             text={value === "teams" && "Teams"}
-        //         />
-        //     ),
-        //     value: "teams",
-        // },
         {
             label: (
                 <Label
@@ -81,6 +79,19 @@ function NavLinks({ user }) {
             ),
             value: "user",
         },
+        ...(isAdmin
+            ? [
+                  {
+                      label: (
+                          <Label
+                              Icon={IconShieldLock}
+                              text={value === "admin" && "Admin"}
+                          />
+                      ),
+                      value: "admin",
+                  },
+              ]
+            : []),
         {
             label: (
                 <Label
