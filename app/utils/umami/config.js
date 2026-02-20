@@ -23,10 +23,13 @@ class UmamiConfig extends BaseConfig {
     }
 
     get clientUserId() {
-        return (
-            this.getEnv("_clientUserId", "UMAMI_API_CLIENT_USER_ID") ||
-            this.getEnv("_clientUserId", "UMAMI_API_CLIENT_ID")
-        );
+        if (!this._clientUserId) {
+            this._clientUserId =
+                process.env.UMAMI_API_CLIENT_USER_ID ||
+                process.env.UMAMI_API_CLIENT_ID ||
+                null;
+        }
+        return this._clientUserId;
     }
 
     get clientSecret() {

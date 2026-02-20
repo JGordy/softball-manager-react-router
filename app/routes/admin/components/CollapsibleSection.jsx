@@ -20,11 +20,17 @@ export const CollapsibleSection = ({ items, renderItem, initialLimit = 5 }) => {
                         </Stack>
                     </Collapse>
                     <Text
+                        component="button"
                         size="xs"
                         c="dimmed"
                         ta="center"
                         fw={700}
-                        style={{ cursor: "pointer" }}
+                        style={{
+                            cursor: "pointer",
+                            border: "none",
+                            background: "none",
+                            width: "100%",
+                        }}
                         onClick={(e) => {
                             e.preventDefault();
                             setExpanded(!expanded);
