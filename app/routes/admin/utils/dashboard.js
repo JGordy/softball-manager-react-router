@@ -3,18 +3,29 @@ import { listDocuments } from "@/utils/databases";
 import { umamiService } from "@/utils/umami/server";
 
 export async function getAdminDashboardData({ users }) {
-    // 2. Fetch Appwrite Stats & metrics in parallel
-    const [allUsers, allTeams, allGames, umamiStats, umamiActive, pageMetrics] =
-        await Promise.all([
-            users.list([Query.limit(1)]),
-            listDocuments("teams", [Query.limit(1)]),
-            listDocuments("games", [Query.limit(1)]),
+    // 1. Fetch Appwrite Stats & metrics in parallel
+    const [allUsers, allTeams, allGames] = await Promise.all([
+        users.list([Query.limit(1)]),
+        listDocuments("teams", [Query.limit(1)]),
+        listDocuments("games", [Query.limit(1)]),
+    ]);
+
+    let umamiStats = null;
+    let umamiActive = null;
+    let pageMetrics = [];
+
+    try {
+        [umamiStats, umamiActive, pageMetrics] = await Promise.all([
             umamiService.getStats(),
             umamiService.getActiveUsers(),
             umamiService.getMetrics("url"),
         ]);
+    } catch (error) {
+        // Umami is optional; if it is not configured or fails, continue without analytics.
+        console.warn("Umami service failed to fetch data:", error.message);
+    }
 
-    // 3. Process Activity Metrics for teams
+    // 2. Process Activity Metrics for teams
     const teamMetrics = (pageMetrics || [])
         .filter((record) => record.x.startsWith("/team/"))
         .map((record) => {
@@ -53,7 +64,7 @@ export async function getAdminDashboardData({ users }) {
             .filter((t) => t.name !== "Unknown Team");
     }
 
-    // 4. Get some recent and active users for the dashboard
+    // 3. Get some recent and active users for the dashboard
     // Fetch a combined list since Appwrite's Users service attributes for sorting
     // vary by version (e.g. accessedAt may not be queryable in older versions).
     const userList = await users.list([Query.limit(100)]);

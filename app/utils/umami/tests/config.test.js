@@ -37,6 +37,18 @@ describe("UmamiConfig", () => {
         expect(umamiConfig.apiEndpoint).toBe("https://my-umami.com/api");
     });
 
+    it("should fallback to UMAMI_API_CLIENT_ID if UMAMI_API_CLIENT_USER_ID is missing", () => {
+        delete process.env.UMAMI_API_CLIENT_USER_ID;
+        process.env.UMAMI_API_CLIENT_ID = "fallback-user-123";
+        expect(umamiConfig.clientUserId).toBe("fallback-user-123");
+    });
+
+    it("should prefer UMAMI_API_CLIENT_USER_ID over UMAMI_API_CLIENT_ID", () => {
+        process.env.UMAMI_API_CLIENT_USER_ID = "primary-user-123";
+        process.env.UMAMI_API_CLIENT_ID = "fallback-user-123";
+        expect(umamiConfig.clientUserId).toBe("primary-user-123");
+    });
+
     it("should validate when websiteId and apiKey are present", () => {
         process.env.UMAMI_WEBSITE_ID = "site-123";
         process.env.UMAMI_API_KEY = "key-123";

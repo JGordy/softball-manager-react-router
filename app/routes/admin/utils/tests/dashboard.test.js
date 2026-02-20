@@ -104,6 +104,30 @@ describe("Admin Dashboard Utils", () => {
             });
 
             expect(result.stats.umami).toBeNull();
+            expect(result.stats.activeUsers).toBe(0);
+            expect(result.activeTeams).toEqual([]);
+        });
+
+        it("handles Umami service errors gracefully", async () => {
+            mockUsersService.list.mockResolvedValue({ total: 10, users: [] });
+            listDocuments.mockResolvedValue({ total: 5, rows: [] });
+
+            // Umami service throws
+            umamiService.getStats.mockRejectedValue(new Error("Umami Down"));
+            umamiService.getActiveUsers.mockResolvedValue({ visitors: 5 });
+            umamiService.getMetrics.mockResolvedValue([]);
+
+            const result = await getAdminDashboardData({
+                users: mockUsersService,
+            });
+
+            // Appwrite data should still be there
+            expect(result.stats.totalUsers).toBe(10);
+            expect(result.stats.totalTeams).toBe(5);
+
+            // Umami data should be defaulted
+            expect(result.stats.umami).toBeNull();
+            expect(result.stats.activeUsers).toBe(0);
             expect(result.activeTeams).toEqual([]);
         });
     });
