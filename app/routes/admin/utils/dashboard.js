@@ -4,10 +4,31 @@ import { umamiService } from "@/utils/umami/server";
 
 export async function getAdminDashboardData({ users }) {
     // 1. Fetch Appwrite Stats & metrics in parallel
-    const [allUsers, allTeams, allGames] = await Promise.all([
+    const [
+        allUsers,
+        allTeams,
+        allGames,
+        acceptedAtt,
+        declinedAtt,
+        tentativeAtt,
+        recentGames,
+    ] = await Promise.all([
         users.list([Query.limit(1)]),
         listDocuments("teams", [Query.limit(1)]),
         listDocuments("games", [Query.limit(1)]),
+        listDocuments("attendance", [
+            Query.equal("status", "accepted"),
+            Query.limit(1),
+        ]),
+        listDocuments("attendance", [
+            Query.equal("status", "declined"),
+            Query.limit(1),
+        ]),
+        listDocuments("attendance", [
+            Query.equal("status", "tentative"),
+            Query.limit(1),
+        ]),
+        listDocuments("games", [Query.orderDesc("gameDate"), Query.limit(100)]),
     ]);
 
     let umamiStats = null;
@@ -25,7 +46,7 @@ export async function getAdminDashboardData({ users }) {
         console.warn("Umami service failed to fetch data:", error.message);
     }
 
-    // 2. Process Activity Metrics for teams
+    // 2. Process Activity Metrics for teams and features
     const teamMetrics = (pageMetrics || [])
         .filter((record) => record.x.startsWith("/team/"))
         .map((record) => {
@@ -34,13 +55,43 @@ export async function getAdminDashboardData({ users }) {
             return { teamId, views: record.y };
         });
 
-    // Aggregate views by teamId (in case of multiple URLs like /lineup)
+    // Aggregate views by teamId
     const aggregatedTeamViews = teamMetrics.reduce((acc, curr) => {
         acc[curr.teamId] = (acc[curr.teamId] || 0) + curr.views;
         return acc;
     }, {});
 
-    // Get top teams by views
+    // Feature Popularity mapping
+    const featureViews = (pageMetrics || []).reduce((acc, record) => {
+        const url = record.x;
+        let featureName = "Other";
+
+        if (url.includes("/gameday")) featureName = "Live Scoring";
+        else if (url.includes("/lineup")) featureName = "Lineup Generator";
+        else if (url.startsWith("/team/")) featureName = "Team Dashboard";
+        else if (url.startsWith("/events/")) featureName = "Game Details";
+        else if (url.startsWith("/user/")) featureName = "User Profile";
+        else if (url.includes("settings")) featureName = "User Settings";
+        else if (url.includes("dashboard")) featureName = "Home Dashboard";
+        else if (url === "/" || url === "/landing")
+            featureName = "Landing Page";
+        else if (
+            url.includes("login") ||
+            url.includes("register") ||
+            url.includes("forgot")
+        )
+            featureName = "Auth";
+
+        acc[featureName] = (acc[featureName] || 0) + record.y;
+        return acc;
+    }, {});
+
+    const topFeatures = Object.keys(featureViews)
+        .map((name) => ({ name, views: featureViews[name] }))
+        .sort((a, b) => b.views - a.views)
+        .slice(0, 5);
+
+    // 3. Process activity for teams and parks
     const topTeamIds = Object.keys(aggregatedTeamViews)
         .sort((a, b) => aggregatedTeamViews[b] - aggregatedTeamViews[a])
         .slice(0, 5);
@@ -64,7 +115,54 @@ export async function getAdminDashboardData({ users }) {
             .filter((t) => t.name !== "Unknown Team");
     }
 
-    // 3. Get some recent and active users for the dashboard
+    // Park Popularity - Fallback to Season parkId if game parkId is missing
+    const games = recentGames.rows || [];
+    const seasonIds = [
+        ...new Set(games.map((g) => g.seasonId).filter(Boolean)),
+    ];
+
+    let seasonMap = {};
+    if (seasonIds.length > 0) {
+        const resolvedSeasons = await listDocuments("seasons", [
+            Query.equal("$id", seasonIds),
+        ]);
+        seasonMap = (resolvedSeasons.rows || []).reduce((acc, s) => {
+            acc[s.$id] = s.parkId;
+            return acc;
+        }, {});
+    }
+
+    const parkCounts = games.reduce((acc, game) => {
+        const parkId = game.parkId || seasonMap[game.seasonId];
+        if (parkId) {
+            acc[parkId] = (acc[parkId] || 0) + 1;
+        }
+        return acc;
+    }, {});
+
+    const topParkIds = Object.keys(parkCounts)
+        .sort((a, b) => parkCounts[b] - parkCounts[a])
+        .slice(0, 5);
+
+    let activeParks = [];
+    if (topParkIds.length > 0) {
+        const resolvedParks = await listDocuments("parks", [
+            Query.equal("$id", topParkIds),
+        ]);
+
+        activeParks = topParkIds
+            .map((id) => {
+                const park = resolvedParks.rows.find((p) => p.$id === id);
+                return {
+                    id,
+                    name: park?.name || "Unknown Park",
+                    gameCount: parkCounts[id],
+                };
+            })
+            .filter((p) => p.name !== "Unknown Park");
+    }
+
+    // 4. Get some recent and active users for the dashboard
     // Fetch a combined list since Appwrite's Users service attributes for sorting
     // vary by version (e.g. accessedAt may not be queryable in older versions).
     const userList = await users.list([Query.limit(100)]);
@@ -84,11 +182,20 @@ export async function getAdminDashboardData({ users }) {
             totalUsers: allUsers.total,
             totalTeams: allTeams.total,
             totalGames: allGames.total,
+            attendance: {
+                accepted: acceptedAtt.total,
+                declined: declinedAtt.total,
+                tentative: tentativeAtt.total,
+                total:
+                    acceptedAtt.total + declinedAtt.total + tentativeAtt.total,
+            },
             umami: umamiStats,
             activeUsers: umamiActive?.visitors ?? umamiActive?.length ?? 0,
         },
         recentUsers,
         activeUsers: activeUsersList,
         activeTeams,
+        activeParks,
+        topFeatures,
     };
 }
