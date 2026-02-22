@@ -155,7 +155,7 @@ export async function getAdminDashboardData({ users }) {
                 const park = resolvedParks.rows.find((p) => p.$id === id);
                 return {
                     id,
-                    name: park?.name || "Unknown Park",
+                    name: park?.displayName || "Unknown Park",
                     gameCount: parkCounts[id],
                 };
             })

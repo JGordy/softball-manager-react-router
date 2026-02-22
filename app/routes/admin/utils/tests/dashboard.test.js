@@ -76,8 +76,8 @@ describe("Admin Dashboard Utils", () => {
             // Mock Park resolution (Sequential call 3)
             listDocuments.mockResolvedValueOnce({
                 rows: [
-                    { $id: "park-1", name: "Central Park" },
-                    { $id: "park-2", name: "West Park" },
+                    { $id: "park-1", displayName: "Central Park" },
+                    { $id: "park-2", displayName: "West Park" },
                 ],
             });
 
