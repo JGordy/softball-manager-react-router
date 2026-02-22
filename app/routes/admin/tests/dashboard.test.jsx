@@ -49,24 +49,34 @@ describe("AdminDashboard Route", () => {
                 totaltime: { value: 3600 },
             },
             activeUsers: 5,
+            attendance: {
+                accepted: 80,
+                declined: 10,
+                tentative: 10,
+                total: 100,
+            },
         },
         recentUsers: [
             {
-                $id: "1",
-                name: "User 1",
-                email: "user1@example.com",
+                $id: "signup-1",
+                name: "Newbie User",
+                email: "newbie@example.com",
                 registration: new Date().toISOString(),
             },
         ],
         activeUsers: [
             {
-                $id: "1",
-                name: "User 1",
-                email: "user1@example.com",
+                $id: "active-1",
+                name: "Active User",
+                email: "active@example.com",
                 accessedAt: new Date().toISOString(),
             },
         ],
-        activeTeams: [{ id: "team-1", name: "Team 1", views: 100 }],
+        activeTeams: [
+            { id: "team-1", name: "Team 1", views: 100, primaryColor: "blue" },
+        ],
+        activeParks: [{ id: "park-1", name: "Central Park", gameCount: 15 }],
+        topFeatures: [{ name: "Live Scoring", views: 200 }],
     };
 
     beforeEach(() => {
@@ -141,21 +151,46 @@ describe("AdminDashboard Route", () => {
     });
 
     describe("Component", () => {
-        it("renders statistics correctly", () => {
+        it("renders statistics and all sub-components correctly", () => {
             render(
                 <MemoryRouter>
                     <AdminDashboard />
                 </MemoryRouter>,
             );
 
-            expect(screen.getByText("Total Users")).toBeInTheDocument();
+            // KPIGrid checks
+            expect(screen.getAllByText("Users")[0]).toBeInTheDocument();
             expect(screen.getByText("100")).toBeInTheDocument();
-            expect(screen.getByText("Live Visitors")).toBeInTheDocument();
+            expect(screen.getAllByText("Online")[0]).toBeInTheDocument();
             expect(screen.getByText("5")).toBeInTheDocument();
+
+            // AnalyticsSummary checks
             expect(
                 screen.getByText("Umami Analytics (24h)"),
             ).toBeInTheDocument();
+
+            // AttendanceHealth checks
+            expect(screen.getByText("Show-up Rate")).toBeInTheDocument();
+            expect(screen.getByText("80%")).toBeInTheDocument();
+
+            // FeaturePopularity checks
+            expect(screen.getByText(/Feature Popularity/i)).toBeInTheDocument();
+            expect(screen.getByText("Live Scoring")).toBeInTheDocument();
+
+            // ParkLeaderboard checks
+            expect(screen.getByText("Park Activity")).toBeInTheDocument();
+            expect(screen.getByText("Central Park")).toBeInTheDocument();
+
+            // DashboardSection checks
+            expect(screen.getByText("Most Active Teams")).toBeInTheDocument();
+            expect(screen.getByText("Team 1")).toBeInTheDocument();
+            expect(screen.getByText("Recent Signups")).toBeInTheDocument();
+            expect(screen.getByText("Newbie User")).toBeInTheDocument();
             expect(screen.getByText("Recently Active")).toBeInTheDocument();
+            expect(screen.getByText("Active User")).toBeInTheDocument();
+
+            // Revalidator check
+            expect(screen.getByText("Live")).toBeInTheDocument();
         });
 
         it("handles missing Umami data gracefully", () => {
