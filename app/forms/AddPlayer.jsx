@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Group, MultiSelect, Radio, TextInput } from "@mantine/core";
 
 import AutocompleteEmail from "@/components/AutocompleteEmail";
@@ -18,6 +19,13 @@ export default function AddPlayer({
     defaults = {},
 }) {
     const shouldDisplay = (field) => inputsToDisplay.includes(field);
+
+    const [preferred, setPreferred] = useState(
+        defaults.preferredPositions || [],
+    );
+    const [disliked, setDisliked] = useState(defaults.dislikedPositions || []);
+
+    const allPositions = Object.keys(positions);
 
     return (
         <FormWrapper
@@ -115,11 +123,12 @@ export default function AddPlayer({
                         label="Preferred Positions"
                         name="preferredPositions"
                         description="What positions do you prefer?"
-                        data={Object.keys(positions)}
-                        defaultValue={defaults.preferredPositions}
+                        data={allPositions.filter((p) => !disliked.includes(p))}
+                        value={preferred}
+                        onChange={setPreferred}
                         mb="sm"
                         clearable
-                        searchable
+                        // searchable
                         hidePickedOptions
                         required={action === "add-player"}
                         radius="md"
@@ -130,11 +139,14 @@ export default function AddPlayer({
                         label="Disliked Positions"
                         name="dislikedPositions"
                         description="What positions are you NOT interested in?"
-                        data={Object.keys(positions)}
-                        defaultValue={defaults.dislikedPositions}
+                        data={allPositions.filter(
+                            (p) => !preferred.includes(p),
+                        )}
+                        value={disliked}
+                        onChange={setDisliked}
                         mb="sm"
                         clearable
-                        searchable
+                        // searchable
                         hidePickedOptions
                         radius="md"
                         size="md"

@@ -13,6 +13,40 @@ jest.mock("react-router", () => ({
     ),
 }));
 
+jest.mock("@mantine/core", () => {
+    const actual = jest.requireActual("@mantine/core");
+
+    // Minimal MultiSelect mock to test position filtering logic
+    const MultiSelect = ({ label, data, value, onChange, name }) => (
+        <div>
+            <label htmlFor={name}>{label}</label>
+            <select
+                id={name}
+                multiple
+                value={value}
+                onChange={(e) => {
+                    const values = Array.from(
+                        e.target.selectedOptions,
+                        (option) => option.value,
+                    );
+                    onChange(values);
+                }}
+            >
+                {data.map((item) => (
+                    <option key={item} value={item}>
+                        {item}
+                    </option>
+                ))}
+            </select>
+        </div>
+    );
+
+    return {
+        ...actual,
+        MultiSelect,
+    };
+});
+
 jest.mock("@/hooks/useModal", () => ({
     __esModule: true,
     default: () => ({
@@ -148,5 +182,40 @@ describe("AddPlayer", () => {
         expect(formData.get("lastName")).toBe("Doe");
         expect(formData.get("email")).toBe("john@example.com");
         expect(formData.get("_action")).toBe("add-player");
+    });
+
+    it("prevents selecting the same position as both preferred and disliked", () => {
+        render(<AddPlayer inputsToDisplay={["positions"]} />);
+
+        const preferredSelect = screen.getByLabelText(/Preferred Positions/i);
+        const dislikedSelect = screen.getByLabelText(/Disliked Positions/i);
+
+        // Initially both should have "Catcher" (assuming it's in allPositions)
+        expect(
+            Array.from(preferredSelect.options).map((o) => o.value),
+        ).toContain("Catcher");
+        expect(
+            Array.from(dislikedSelect.options).map((o) => o.value),
+        ).toContain("Catcher");
+
+        // Select Catcher as Preferred
+        // In our mock, value is an array
+        fireEvent.change(preferredSelect, { target: { value: ["Catcher"] } });
+
+        // Check if Catcher is removed from Disliked options
+        let dislikedOptions = Array.from(dislikedSelect.options).map(
+            (o) => o.value,
+        );
+        expect(dislikedOptions).not.toContain("Catcher");
+
+        // Clear Preferred and select Catcher as Disliked
+        fireEvent.change(preferredSelect, { target: { value: [] } });
+        fireEvent.change(dislikedSelect, { target: { value: ["Catcher"] } });
+
+        // Check if Catcher is removed from Preferred options
+        let preferredOptions = Array.from(preferredSelect.options).map(
+            (o) => o.value,
+        );
+        expect(preferredOptions).not.toContain("Catcher");
     });
 });
