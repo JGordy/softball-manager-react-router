@@ -35,10 +35,19 @@ export async function createPlayer({ values, teamId, userId }) {
 
         const _userId = userId || ID.unique(); // Create this now so it's easier to use later
 
+        const preferredPositions = values.preferredPositions
+            ? values.preferredPositions.split(",")
+            : [];
+        const dislikedPositions = values.dislikedPositions
+            ? values.dislikedPositions
+                  .split(",")
+                  .filter((pos) => !preferredPositions.includes(pos))
+            : [];
+
         const player = await createDocument("users", _userId, {
             ...values,
-            preferredPositions: values.preferredPositions.split(","), // Split into an array of positions
-            dislikedPositions: values.dislikedPositions.split(","), // Split into an array of positions
+            preferredPositions,
+            dislikedPositions,
             userId: _userId,
         });
 
@@ -61,6 +70,18 @@ export async function updateUser({ values, userId }) {
     if (dataToUpdate.dislikedPositions) {
         dataToUpdate.dislikedPositions =
             dataToUpdate.dislikedPositions.split(",");
+
+        // Remove overlaps if preferredPositions is also being updated or exists in state?
+        // Actually, if both are present in the update, we can clean them.
+        // If only disliked is being updated, we might need the existing preferred positions,
+        // but for simplicity and common usage (where both are usually sent or one is enough),
+        // we'll just clean against what's in this update.
+        if (dataToUpdate.preferredPositions) {
+            dataToUpdate.dislikedPositions =
+                dataToUpdate.dislikedPositions.filter(
+                    (pos) => !dataToUpdate.preferredPositions.includes(pos),
+                );
+        }
     }
 
     try {

@@ -68,6 +68,32 @@ describe("Users Actions", () => {
             expect(result.status).toBe(201);
         });
 
+        it("should remove overlaps between preferred and disliked positions", async () => {
+            const mockValues = {
+                firstName: "Overlap",
+                lastName: "Player",
+                preferredPositions: "P,C",
+                dislikedPositions: "C,OF",
+            };
+            const teamId = "team1";
+
+            createDocument.mockResolvedValue({ $id: "user1" });
+
+            await createPlayer({
+                values: mockValues,
+                teamId,
+                userId: "user123",
+            });
+
+            expect(createDocument).toHaveBeenCalledWith("users", "user123", {
+                firstName: "Overlap",
+                lastName: "Player",
+                preferredPositions: ["P", "C"],
+                dislikedPositions: ["OF"], // C was removed
+                userId: "user123",
+            });
+        });
+
         it("should reject player with bad words in first name", async () => {
             hasBadWords.mockResolvedValue(true);
 
@@ -139,6 +165,24 @@ describe("Users Actions", () => {
             expect(result.event).toEqual({
                 name: "player-profile-updated",
                 data: { userId: "user1" },
+            });
+        });
+
+        it("should remove overlaps when updating both preferred and disliked positions", async () => {
+            const mockValues = {
+                preferredPositions: "1B,SS",
+                dislikedPositions: "SS,P",
+            };
+            const userId = "user1";
+
+            readDocument.mockResolvedValue({ $id: userId });
+            updateDocument.mockResolvedValue({ $id: userId });
+
+            await updateUser({ values: mockValues, userId });
+
+            expect(updateDocument).toHaveBeenCalledWith("users", userId, {
+                preferredPositions: ["1B", "SS"],
+                dislikedPositions: ["P"], // SS was removed
             });
         });
 
