@@ -103,7 +103,7 @@ export default function AddSingleGame({
                     name="seasonId"
                     data={seasonOptions}
                     mb="sm"
-                    searchable
+                    // searchable
                     radius="md"
                     size="md"
                 />
@@ -143,7 +143,7 @@ export default function AddSingleGame({
                 data={timeZones}
                 defaultValue={currentTimeZone}
                 mb="sm"
-                searchable
+                // searchable
                 radius="md"
                 size="md"
             />

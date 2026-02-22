@@ -245,7 +245,7 @@ export default function GenerateSeasonGames({
                 data={timeZones}
                 defaultValue={currentTimeZone}
                 mb="sm"
-                searchable
+                // searchable
                 radius="md"
             />
             <input

@@ -50,7 +50,7 @@ export default function AddSeason({
                 ]}
                 mb="sm"
                 clearable
-                searchable
+                // searchable
                 radius="md"
                 size="md"
             />
@@ -61,7 +61,7 @@ export default function AddSeason({
                 placeholder="Select Gender"
                 data={["Men", "Women", "Coed"]}
                 mb="sm"
-                searchable
+                // searchable
                 required={action === "add-season"}
                 radius="md"
                 size="md"
