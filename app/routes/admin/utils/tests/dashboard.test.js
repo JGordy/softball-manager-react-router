@@ -111,8 +111,9 @@ describe("Admin Dashboard Utils", () => {
             expect(result.stats.attendance.accepted).toBe(200);
             expect(result.stats.attendance.declined).toBe(50);
             expect(result.stats.attendance.tentative).toBe(25);
-            // Rate logic: (accepted / (accepted + declined)) * 100 = (200 / 250) * 100 = 80
-            // Note: the rate is calculated in the component, not the utility, so we just check raw counts here
+            // Rate logic in AttendanceHealth: (accepted / total) * 100 where total includes tentative
+            // With this mock data: (200 / 275) * 100 ≈ 72.7. The rate is calculated in the component,
+            // so here we only verify the raw attendance counts.
 
             // Verify Team Aggregation
             expect(result.activeTeams).toHaveLength(2);

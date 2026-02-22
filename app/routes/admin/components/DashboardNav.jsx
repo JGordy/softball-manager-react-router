@@ -3,8 +3,6 @@ import { Button, Group, ScrollArea, Box } from "@mantine/core";
 import {
     IconActivity,
     IconChartBar,
-    // IconHistory,
-    // IconMapPin,
     IconTimeline,
     IconUsers,
 } from "@tabler/icons-react";
@@ -61,7 +59,7 @@ export function MobileDashboardNav() {
         });
 
         return () => observer.disconnect();
-    }, []);
+    }, [items]);
 
     return (
         <Box
@@ -100,8 +98,7 @@ function DashboardNavContent({ activeSection, items }) {
         if (el) {
             const offset = 60; // Approximate height of the sticky nav
             const elementPosition = el.getBoundingClientRect().top;
-            const offsetPosition =
-                elementPosition + window.pageYOffset - offset;
+            const offsetPosition = elementPosition + window.scrollY - offset;
 
             window.scrollTo({
                 top: offsetPosition,

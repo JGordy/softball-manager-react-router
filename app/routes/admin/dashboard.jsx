@@ -144,6 +144,7 @@ export default function AdminDashboard() {
                 />
 
                 <DashboardSection
+                    id="active-users-section"
                     title="Recently Active"
                     items={activeUsers}
                     renderItem={(u) => (
