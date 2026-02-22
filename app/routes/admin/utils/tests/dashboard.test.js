@@ -26,13 +26,25 @@ describe("Admin Dashboard Utils", () => {
 
     describe("getAdminDashboardData", () => {
         it("fetches and aggregates data correctly", async () => {
-            // Mock Appwrite initial stats
+            // Mock Appwrite initial stats (6 listDocuments calls in Promise.all)
             mockUsersService.list.mockResolvedValueOnce({
                 total: 100,
                 users: [],
             }); // stats users
-            listDocuments.mockResolvedValueOnce({ total: 20 }); // stats teams
-            listDocuments.mockResolvedValueOnce({ total: 50 }); // stats games
+
+            listDocuments
+                .mockResolvedValueOnce({ total: 20 }) // stats teams
+                .mockResolvedValueOnce({ total: 50 }) // stats games
+                .mockResolvedValueOnce({ total: 200 }) // accepted attendance
+                .mockResolvedValueOnce({ total: 50 }) // declined attendance
+                .mockResolvedValueOnce({ total: 25 }) // tentative attendance
+                .mockResolvedValueOnce({
+                    rows: [
+                        { $id: "g1", parkId: "park-1", seasonId: "s1" },
+                        { $id: "g2", parkId: null, seasonId: "s1" }, // fallback to park-1 from season s1
+                        { $id: "g3", parkId: "park-2", seasonId: "s2" },
+                    ],
+                }); // recent games
 
             // Mock Umami
             umamiService.getStats.mockResolvedValue({ views: 500 });
@@ -41,14 +53,31 @@ describe("Admin Dashboard Utils", () => {
                 { x: "/team/team-1", y: 100 },
                 { x: "/team/team-1/lineup", y: 50 },
                 { x: "/team/team-2", y: 30 },
+                { x: "/gameday/game-1", y: 200 }, // Live Scoring
                 { x: "/not-a-team", y: 10 },
             ]);
 
-            // Mock Team resolution
+            // Mock Team resolution (Sequential call 1)
             listDocuments.mockResolvedValueOnce({
                 rows: [
                     { $id: "team-1", name: "Team One", primaryColor: "blue" },
                     { $id: "team-2", name: "Team Two", primaryColor: "red" },
+                ],
+            });
+
+            // Mock Season resolution (Sequential call 2) - New
+            listDocuments.mockResolvedValueOnce({
+                rows: [
+                    { $id: "s1", parkId: "park-1" },
+                    { $id: "s2", parkId: "park-2" },
+                ],
+            });
+
+            // Mock Park resolution (Sequential call 3)
+            listDocuments.mockResolvedValueOnce({
+                rows: [
+                    { $id: "park-1", displayName: "Central Park" },
+                    { $id: "park-2", displayName: "West Park" },
                 ],
             });
 
@@ -78,6 +107,14 @@ describe("Admin Dashboard Utils", () => {
             expect(result.stats.totalGames).toBe(50);
             expect(result.stats.activeUsers).toBe(5);
 
+            // Verify Attendance Metrics
+            expect(result.stats.attendance.accepted).toBe(200);
+            expect(result.stats.attendance.declined).toBe(50);
+            expect(result.stats.attendance.tentative).toBe(25);
+            // Rate logic in AttendanceHealth: (accepted / total) * 100 where total includes tentative
+            // With this mock data: (200 / 275) * 100 ≈ 72.7. The rate is calculated in the component,
+            // so here we only verify the raw attendance counts.
+
             // Verify Team Aggregation
             expect(result.activeTeams).toHaveLength(2);
             expect(result.activeTeams[0]).toEqual({
@@ -86,6 +123,17 @@ describe("Admin Dashboard Utils", () => {
                 primaryColor: "blue",
                 views: 150, // 100 + 50
             });
+
+            // Verify Feature Popularity
+            const liveScoring = result.topFeatures.find(
+                (f) => f.name === "Live Scoring",
+            );
+            expect(liveScoring.views).toBe(200);
+
+            // Verify Park Leaderboard
+            expect(result.activeParks).toHaveLength(2);
+            expect(result.activeParks[0].name).toBe("Central Park");
+            expect(result.activeParks[0].gameCount).toBe(2);
 
             // Verify User lists
             expect(result.recentUsers[0].$id).toBe("u2"); // 2024-01-02 is more recent

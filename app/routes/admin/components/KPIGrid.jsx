@@ -2,45 +2,72 @@ import {
     Group,
     Indicator,
     Paper,
-    SimpleGrid,
+    Grid,
     Text,
     Title,
+    Stack,
 } from "@mantine/core";
 
 export const KPIGrid = ({ stats }) => {
     const kpis = [
-        { label: "Total Users", value: stats.totalUsers, color: "blue" },
-        { label: "Total Teams", value: stats.totalTeams, color: "green" },
-        { label: "Total Games", value: stats.totalGames, color: "orange" },
+        { label: "Users", value: stats.totalUsers },
+        { label: "Teams", value: stats.totalTeams },
+        { label: "Games", value: stats.totalGames },
         {
-            label: "Live Visitors",
+            label: "Online",
             value: stats.activeUsers,
-            color: "red",
             isLive: true,
         },
     ];
 
     return (
-        <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} mb="xl">
+        <Grid mb="xl" gutter="xs">
             {kpis.map((kpi) => (
-                <Paper key={kpi.label} withBorder p="md" radius="md">
-                    <Group justify="space-between">
-                        <Text size="xs" c="dimmed" fw={700} tt="uppercase">
-                            {kpi.label}
-                        </Text>
+                <Grid.Col key={kpi.label} span={3}>
+                    <Paper
+                        withBorder
+                        p="xs"
+                        radius="md"
+                        h="100%"
+                        pos="relative"
+                    >
                         {kpi.isLive && (
                             <Indicator
                                 color={kpi.value > 0 ? "red" : "gray"}
                                 processing={kpi.value > 0}
-                                size={10}
+                                size={6}
+                                pos="absolute"
+                                top={10}
+                                right={10}
                             />
                         )}
-                    </Group>
-                    <Group align="flex-end" gap="xs" mt={10}>
-                        <Title order={2}>{kpi.value.toLocaleString()}</Title>
-                    </Group>
-                </Paper>
+                        <Stack gap={2} align="center">
+                            <Text
+                                size="xs"
+                                c="dimmed"
+                                fw={700}
+                                tt="uppercase"
+                                ta="center"
+                                style={{
+                                    lineHeight: 1.1,
+                                    width: "100%",
+                                }}
+                            >
+                                {kpi.label}
+                            </Text>
+                            <Title
+                                order={3}
+                                ta="center"
+                                style={{
+                                    fontSize: "var(--mantine-font-size-lg)",
+                                }}
+                            >
+                                {kpi.value.toLocaleString()}
+                            </Title>
+                        </Stack>
+                    </Paper>
+                </Grid.Col>
             ))}
-        </SimpleGrid>
+        </Grid>
     );
 };

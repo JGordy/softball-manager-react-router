@@ -12,11 +12,11 @@ describe("KPIGrid", () => {
     it("renders all KPI values", () => {
         render(<KPIGrid stats={stats} />);
 
-        expect(screen.getByText("Total Users")).toBeInTheDocument();
+        expect(screen.getByText("Users")).toBeInTheDocument();
         expect(screen.getByText("1,500")).toBeInTheDocument();
-        expect(screen.getByText("Total Teams")).toBeInTheDocument();
+        expect(screen.getByText("Teams")).toBeInTheDocument();
         expect(screen.getByText("42")).toBeInTheDocument();
-        expect(screen.getByText("Live Visitors")).toBeInTheDocument();
+        expect(screen.getByText("Online")).toBeInTheDocument();
         expect(screen.getByText("7")).toBeInTheDocument();
     });
 
