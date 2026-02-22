@@ -160,4 +160,53 @@ describe("EditablePlayerChart Component", () => {
         expect(screen.getByText("P")).toBeInTheDocument();
         expect(screen.getByText("C")).toBeInTheDocument();
     });
+
+    it("deduplicates and prioritizes preferred positions in dropdown options", () => {
+        const props = {
+            ...defaultProps,
+            playerChart: [
+                {
+                    $id: "p1",
+                    firstName: "John",
+                    lastName: "Doe",
+                    positions: [
+                        "Out",
+                        "Out",
+                        "Out",
+                        "Out",
+                        "Out",
+                        "Out",
+                        "Out",
+                    ],
+                },
+            ],
+            players: [
+                {
+                    $id: "p1",
+                    firstName: "John",
+                    lastName: "Doe",
+                    preferredPositions: ["Catcher", "First Base"],
+                    dislikedPositions: ["Catcher", "Pitcher"], // Overlap: Catcher
+                },
+            ],
+        };
+
+        render(<EditablePlayerChart {...props} />);
+
+        // Get the first inning's select (inning1)
+        const select = screen.getAllByTestId("position-select")[0];
+        const options = Array.from(select.options).map((o) => o.value);
+
+        // "Catcher" should only appear once (it's in both Preferred and Disliked in mock data)
+        const catcherOccurrences = options.filter(
+            (v) => v === "Catcher",
+        ).length;
+        expect(catcherOccurrences).toBe(1);
+
+        // "Out" should appear at the top
+        expect(options[0]).toBe("Out");
+
+        // "Pitcher" should still be there (in disliked or other, but sanitized)
+        expect(options).toContain("Pitcher");
+    });
 });

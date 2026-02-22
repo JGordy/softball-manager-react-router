@@ -90,8 +90,26 @@ const EditablePlayerChart = ({
     );
 
     const getPositionOptions = useCallback(
-        (preferredPositions, dislikedPositions) => {
-            if (!preferredPositions && !dislikedPositions) {
+        (preferredPositionsArg, dislikedPositionsArg) => {
+            // Ensure we're working with unique arrays and handle potential null/undefined
+            const preferredPositions = Array.isArray(preferredPositionsArg)
+                ? [...new Set(preferredPositionsArg)].filter(
+                      (p) => p && p !== "Out",
+                  )
+                : [];
+
+            // A position cannot be both preferred and disliked; preferred takes precedence
+            const dislikedPositions = Array.isArray(dislikedPositionsArg)
+                ? [...new Set(dislikedPositionsArg)].filter(
+                      (p) =>
+                          p && p !== "Out" && !preferredPositions.includes(p),
+                  )
+                : [];
+
+            if (
+                preferredPositions.length === 0 &&
+                dislikedPositions.length === 0
+            ) {
                 return ["Out", ...Object.keys(fieldingPositions)];
             }
 
@@ -112,7 +130,7 @@ const EditablePlayerChart = ({
                 ),
             });
 
-            if (dislikedPositions?.length > 0) {
+            if (dislikedPositions.length > 0) {
                 positions.push({
                     group: "Disliked Positions",
                     items: dislikedPositions,
