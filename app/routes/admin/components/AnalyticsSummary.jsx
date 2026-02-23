@@ -1,7 +1,9 @@
 import { Paper, SimpleGrid, Text, Title } from "@mantine/core";
 
-export const AnalyticsSummary = ({ umami }) => {
+export const AnalyticsSummary = ({ umami, range = "24h" }) => {
     if (!umami) return <Text c="red">Failed to load Umami data</Text>;
+
+    const rangeLabel = range === "24h" ? "24h" : range === "7d" ? "7d" : "30d";
 
     const metrics = [
         {
@@ -35,9 +37,9 @@ export const AnalyticsSummary = ({ umami }) => {
     ];
 
     return (
-        <Paper withBorder p="md" radius="md" mb="xl">
+        <Paper withBorder p="md" radius="md">
             <Title order={3} mb="md">
-                Umami Analytics (24h)
+                Umami Analytics ({rangeLabel})
             </Title>
             <SimpleGrid cols={{ base: 2, md: 4 }}>
                 {metrics.map((m) => (

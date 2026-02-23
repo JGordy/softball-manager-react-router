@@ -1,5 +1,10 @@
 import { useEffect } from "react";
-import { useLoaderData, redirect, useRevalidator } from "react-router";
+import {
+    useLoaderData,
+    redirect,
+    useRevalidator,
+    useSearchParams,
+} from "react-router";
 
 import {
     Badge,
@@ -8,6 +13,8 @@ import {
     SimpleGrid,
     Title,
     Text,
+    SegmentedControl,
+    Stack,
 } from "@mantine/core";
 
 import {
@@ -22,10 +29,14 @@ import { KPIGrid } from "./components/KPIGrid";
 import { AnalyticsSummary } from "./components/AnalyticsSummary";
 import { AttendanceHealth } from "./components/AttendanceHealth";
 import { FeaturePopularity } from "./components/FeaturePopularity";
+import { AILineupMetrics } from "./components/AILineupMetrics";
 import { ParkLeaderboard } from "./components/ParkLeaderboard";
 import { MobileDashboardNav } from "./components/DashboardNav";
 
 export async function loader({ request }) {
+    const url = new URL(request.url);
+    const range = url.searchParams.get("range") || "24h";
+
     // 1. Double check auth & admin label
     const { account } = await createSessionClient(request);
     let user;
@@ -41,7 +52,7 @@ export async function loader({ request }) {
 
     const { users } = createAdminClient();
 
-    return await getAdminDashboardData({ users });
+    return await getAdminDashboardData({ users, range });
 }
 
 export default function AdminDashboard() {
@@ -52,8 +63,11 @@ export default function AdminDashboard() {
         activeTeams,
         activeParks,
         topFeatures,
+        aiLineupMetrics,
+        range,
     } = useLoaderData();
     const revalidator = useRevalidator();
+    const [, setSearchParams] = useSearchParams();
 
     // Auto-refresh the dashboard every 10 seconds for "live" updates
     useEffect(() => {
@@ -66,37 +80,80 @@ export default function AdminDashboard() {
         return () => clearInterval(interval);
     }, [revalidator]);
 
+    const handleRangeChange = (value) => {
+        setSearchParams((prev) => {
+            prev.set("range", value);
+            return prev;
+        });
+    };
+
     return (
         <Container size="lg" py="xl">
-            <Group justify="space-between" mb="xl">
-                <Title order={2}>Admin Dashboard</Title>
-                <Badge
-                    color={revalidator.state === "loading" ? "yellow" : "green"}
-                    size="lg"
-                    variant="light"
-                >
-                    {revalidator.state === "loading" ? "Updating..." : "Live"}
-                </Badge>
-            </Group>
+            <Stack gap="xs" mb="xl">
+                <Group justify="space-between" align="center">
+                    <Title order={2}>Admin Dashboard</Title>
+                    <Badge
+                        color={
+                            revalidator.state === "loading" ? "yellow" : "green"
+                        }
+                        size="lg"
+                        variant="light"
+                    >
+                        {revalidator.state === "loading"
+                            ? "Updating..."
+                            : "Live"}
+                    </Badge>
+                </Group>
+                <Group justify={{ base: "center", sm: "flex-start" }}>
+                    <SegmentedControl
+                        color="green"
+                        value={range}
+                        onChange={handleRangeChange}
+                        data={[
+                            { label: "24h", value: "24h" },
+                            { label: "7d", value: "7d" },
+                            { label: "30d", value: "30d" },
+                        ]}
+                        radius="md"
+                        size="sm"
+                        w={{ base: "100%", sm: "auto" }}
+                    />
+                </Group>
+            </Stack>
 
             <MobileDashboardNav />
 
-            <KPIGrid stats={stats} />
+            {/* Section 1: Platform Totals (Appwrite Data) */}
+            <Stack id="platform-totals" gap="sm" mb="xl">
+                <Text size="xs" c="dimmed" fw={700} tt="uppercase">
+                    Platform Totals
+                </Text>
+                <KPIGrid stats={stats} />
+                <SimpleGrid cols={{ base: 1, md: 2 }} gap="sm">
+                    <AttendanceHealth attendance={stats.attendance} />
+                    <ParkLeaderboard topParks={activeParks} />
+                </SimpleGrid>
+            </Stack>
 
-            <div id="analytics-summary">
-                <AnalyticsSummary umami={stats.umami} />
-            </div>
-
-            <SimpleGrid
-                id="insights"
-                cols={{ base: 1, md: 3 }}
-                gap="xl"
-                mb="xl"
-            >
-                <AttendanceHealth attendance={stats.attendance} />
-                <FeaturePopularity topFeatures={topFeatures} />
-                <ParkLeaderboard topParks={activeParks} />
-            </SimpleGrid>
+            {/* Section 2: Analytics & Performance (Umami Data - Respects Timeframe) */}
+            <Stack id="analytics-performance" gap="md" mb="xl">
+                <Text size="xs" c="dimmed" fw={700} tt="uppercase">
+                    Analytics & Performance
+                </Text>
+                <div id="analytics-summary">
+                    <AnalyticsSummary umami={stats.umami} range={range} />
+                </div>
+                <SimpleGrid cols={{ base: 1, md: 2 }} gap="xl">
+                    <AILineupMetrics
+                        aiLineupMetrics={aiLineupMetrics}
+                        range={range}
+                    />
+                    <FeaturePopularity
+                        topFeatures={topFeatures}
+                        range={range}
+                    />
+                </SimpleGrid>
+            </Stack>
 
             <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} gap="xl">
                 <DashboardSection

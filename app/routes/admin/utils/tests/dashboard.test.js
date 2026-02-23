@@ -49,13 +49,19 @@ describe("Admin Dashboard Utils", () => {
             // Mock Umami
             umamiService.getStats.mockResolvedValue({ views: 500 });
             umamiService.getActiveUsers.mockResolvedValue({ visitors: 5 });
-            umamiService.getMetrics.mockResolvedValue([
-                { x: "/team/team-1", y: 100 },
-                { x: "/team/team-1/lineup", y: 50 },
-                { x: "/team/team-2", y: 30 },
-                { x: "/gameday/game-1", y: 200 }, // Live Scoring
-                { x: "/not-a-team", y: 10 },
-            ]);
+            umamiService.getMetrics
+                .mockResolvedValueOnce([
+                    { x: "/team/team-1", y: 100 },
+                    { x: "/team/team-1/lineup", y: 50 },
+                    { x: "/team/team-2", y: 30 },
+                    { x: "/gameday/game-1", y: 200 }, // Live Scoring
+                    { x: "/not-a-team", y: 10 },
+                ])
+                .mockResolvedValueOnce([
+                    { x: "ai-lineup-requested", y: 10 },
+                    { x: "ai-lineup-generated", y: 8 },
+                    { x: "ai-lineup-applied", y: 4 },
+                ]);
 
             // Mock Team resolution (Sequential call 1)
             listDocuments.mockResolvedValueOnce({
@@ -138,6 +144,38 @@ describe("Admin Dashboard Utils", () => {
             // Verify User lists
             expect(result.recentUsers[0].$id).toBe("u2"); // 2024-01-02 is more recent
             expect(result.activeUsers[0].$id).toBe("u1"); // 2024-01-02 is more recent activity
+
+            // Verify AI Lineup Metrics
+            expect(result.aiLineupMetrics).toEqual({
+                requested: 10,
+                generated: 8,
+                applied: 4,
+                successRate: 40,
+                applicationRate: 50,
+            });
+            expect(result.range).toBe("24h");
+        });
+
+        it("normalizes and respects different time ranges", async () => {
+            mockUsersService.list.mockResolvedValue({ total: 0, users: [] });
+            listDocuments.mockResolvedValue({ total: 0, rows: [] });
+            umamiService.getStats.mockResolvedValue({});
+            umamiService.getMetrics.mockResolvedValue([]);
+
+            const result7d = await getAdminDashboardData({
+                users: mockUsersService,
+                range: "7d",
+            });
+            expect(result7d.range).toBe("7d");
+            expect(umamiService.getStats).toHaveBeenCalledWith(
+                expect.any(Number),
+            );
+
+            const resultInvalid = await getAdminDashboardData({
+                users: mockUsersService,
+                range: "invalid",
+            });
+            expect(resultInvalid.range).toBe("24h");
         });
 
         it("handles missing Umami data gracefully", async () => {
@@ -177,6 +215,31 @@ describe("Admin Dashboard Utils", () => {
             expect(result.stats.umami).toBeNull();
             expect(result.stats.activeUsers).toBe(0);
             expect(result.activeTeams).toEqual([]);
+        });
+
+        it("validates and normalizes ranges correctly", async () => {
+            mockUsersService.list.mockResolvedValue({ total: 10, users: [] });
+            listDocuments.mockResolvedValue({ total: 5, rows: [] });
+            umamiService.getStats.mockResolvedValue({});
+            umamiService.getActiveUsers.mockResolvedValue([]);
+            umamiService.getMetrics.mockResolvedValue([]);
+
+            // 1. Valid range (7d)
+            const result7d = await getAdminDashboardData({
+                users: mockUsersService,
+                range: "7d",
+            });
+            expect(result7d.range).toBe("7d");
+            expect(umamiService.getStats).toHaveBeenCalledWith(
+                expect.any(Number),
+            );
+
+            // 2. Invalid range (foo) -> defaults to 24h
+            const resultInvalid = await getAdminDashboardData({
+                users: mockUsersService,
+                range: "foo",
+            });
+            expect(resultInvalid.range).toBe("24h");
         });
     });
 });

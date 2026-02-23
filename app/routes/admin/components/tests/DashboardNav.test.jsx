@@ -17,10 +17,10 @@ describe("MobileDashboardNav", () => {
         render(<MobileDashboardNav />);
 
         expect(
-            screen.getByRole("button", { name: /Stats/i }),
+            screen.getByRole("button", { name: /Totals/i }),
         ).toBeInTheDocument();
         expect(
-            screen.getByRole("button", { name: /Health/i }),
+            screen.getByRole("button", { name: /Analytics/i }),
         ).toBeInTheDocument();
         expect(
             screen.getByRole("button", { name: /Teams/i }),
@@ -38,12 +38,10 @@ describe("MobileDashboardNav", () => {
         document.getElementById = jest.fn().mockReturnValue(mockElement);
 
         render(<MobileDashboardNav />);
-        const statsButton = screen.getByRole("button", { name: /Stats/i });
-        fireEvent.click(statsButton);
+        const totalsButton = screen.getByRole("button", { name: /Totals/i });
+        fireEvent.click(totalsButton);
 
         expect(window.scrollTo).toHaveBeenCalled();
-        expect(document.getElementById).toHaveBeenCalledWith(
-            "analytics-summary",
-        );
+        expect(document.getElementById).toHaveBeenCalledWith("platform-totals");
     });
 });

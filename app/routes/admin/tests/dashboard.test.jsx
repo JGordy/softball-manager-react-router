@@ -56,6 +56,11 @@ describe("AdminDashboard Route", () => {
                 total: 100,
             },
         },
+        aiLineupMetrics: {
+            requested: 10,
+            generated: 8,
+            applied: 4,
+        },
         recentUsers: [
             {
                 $id: "signup-1",
@@ -77,6 +82,7 @@ describe("AdminDashboard Route", () => {
         ],
         activeParks: [{ id: "park-1", name: "Central Park", gameCount: 15 }],
         topFeatures: [{ name: "Live Scoring", views: 200 }],
+        range: "24h",
     };
 
     beforeEach(() => {
@@ -165,9 +171,12 @@ describe("AdminDashboard Route", () => {
             expect(screen.getByText("5")).toBeInTheDocument();
 
             // AnalyticsSummary checks
-            expect(
-                screen.getByText("Umami Analytics (24h)"),
-            ).toBeInTheDocument();
+            expect(screen.getByText(/Umami Analytics/i)).toBeInTheDocument();
+            expect(screen.getAllByText(/24h/i).length).toBeGreaterThan(0);
+
+            // AI Lineup Activity checks
+            expect(screen.getByText(/AI Lineup Activity/i)).toBeInTheDocument();
+            expect(screen.getByText("40%")).toBeInTheDocument();
 
             // AttendanceHealth checks
             expect(screen.getByText("Show-up Rate")).toBeInTheDocument();
