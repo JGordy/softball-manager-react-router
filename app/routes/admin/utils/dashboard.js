@@ -2,8 +2,18 @@ import { Query } from "node-appwrite";
 import { listDocuments } from "@/utils/databases";
 import { umamiService } from "@/utils/umami/server";
 
-export async function getAdminDashboardData({ users }) {
-    // 1. Fetch Appwrite Stats & metrics in parallel
+export async function getAdminDashboardData({ users, range = "24h" }) {
+    // 1. Calculate timeframe for Umami
+    const now = Date.now();
+    let startAt = now - 24 * 60 * 60 * 1000; // Default 24h
+
+    if (range === "7d") {
+        startAt = now - 7 * 24 * 60 * 60 * 1000;
+    } else if (range === "30d") {
+        startAt = now - 30 * 24 * 60 * 60 * 1000;
+    }
+
+    // 2. Fetch Appwrite Stats & metrics in parallel
     const [
         allUsers,
         allTeams,
@@ -34,13 +44,16 @@ export async function getAdminDashboardData({ users }) {
     let umamiStats = null;
     let umamiActive = null;
     let pageMetrics = [];
+    let eventMetrics = [];
 
     try {
-        [umamiStats, umamiActive, pageMetrics] = await Promise.all([
-            umamiService.getStats(),
-            umamiService.getActiveUsers(),
-            umamiService.getMetrics("url"),
-        ]);
+        [umamiStats, umamiActive, pageMetrics, eventMetrics] =
+            await Promise.all([
+                umamiService.getStats(startAt),
+                umamiService.getActiveUsers(),
+                umamiService.getMetrics("url", startAt),
+                umamiService.getMetrics("event", startAt),
+            ]);
     } catch (error) {
         // Umami is optional; if it is not configured or fails, continue without analytics.
         console.warn("Umami service failed to fetch data:", error.message);
@@ -177,6 +190,22 @@ export async function getAdminDashboardData({ users }) {
         .sort((a, b) => new Date(b.accessedAt) - new Date(a.accessedAt))
         .slice(0, 25);
 
+    // 5. Process AI Lineup Metrics from Umami events
+    const requested =
+        eventMetrics?.find((e) => e.x === "ai-lineup-requested")?.y || 0;
+    const generated =
+        eventMetrics?.find((e) => e.x === "ai-lineup-generated")?.y || 0;
+    const applied =
+        eventMetrics?.find((e) => e.x === "ai-lineup-applied")?.y || 0;
+
+    const aiLineupMetrics = {
+        requested,
+        generated,
+        applied,
+        successRate:
+            generated > 0 ? Math.round((applied / generated) * 100) : 0,
+    };
+
     return {
         stats: {
             totalUsers: allUsers.total,
@@ -197,5 +226,7 @@ export async function getAdminDashboardData({ users }) {
         activeTeams,
         activeParks,
         topFeatures,
+        aiLineupMetrics,
+        range,
     };
 }

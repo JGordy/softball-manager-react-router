@@ -49,13 +49,19 @@ describe("Admin Dashboard Utils", () => {
             // Mock Umami
             umamiService.getStats.mockResolvedValue({ views: 500 });
             umamiService.getActiveUsers.mockResolvedValue({ visitors: 5 });
-            umamiService.getMetrics.mockResolvedValue([
-                { x: "/team/team-1", y: 100 },
-                { x: "/team/team-1/lineup", y: 50 },
-                { x: "/team/team-2", y: 30 },
-                { x: "/gameday/game-1", y: 200 }, // Live Scoring
-                { x: "/not-a-team", y: 10 },
-            ]);
+            umamiService.getMetrics
+                .mockResolvedValueOnce([
+                    { x: "/team/team-1", y: 100 },
+                    { x: "/team/team-1/lineup", y: 50 },
+                    { x: "/team/team-2", y: 30 },
+                    { x: "/gameday/game-1", y: 200 }, // Live Scoring
+                    { x: "/not-a-team", y: 10 },
+                ])
+                .mockResolvedValueOnce([
+                    { x: "ai-lineup-requested", y: 10 },
+                    { x: "ai-lineup-generated", y: 8 },
+                    { x: "ai-lineup-applied", y: 4 },
+                ]);
 
             // Mock Team resolution (Sequential call 1)
             listDocuments.mockResolvedValueOnce({
@@ -138,6 +144,14 @@ describe("Admin Dashboard Utils", () => {
             // Verify User lists
             expect(result.recentUsers[0].$id).toBe("u2"); // 2024-01-02 is more recent
             expect(result.activeUsers[0].$id).toBe("u1"); // 2024-01-02 is more recent activity
+
+            // Verify AI Lineup Metrics
+            expect(result.aiLineupMetrics).toEqual({
+                requested: 10,
+                generated: 8,
+                applied: 4,
+                successRate: 50,
+            });
         });
 
         it("handles missing Umami data gracefully", async () => {
