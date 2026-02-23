@@ -15,7 +15,8 @@ export const AILineupMetrics = ({ aiLineupMetrics, range = "24h" }) => {
     const { requested, generated, applied } = aiLineupMetrics;
 
     // Use the maximum value as the base for the ring to ensure segments sum to 100%
-    const totalBase = Math.max(requested, generated, applied, 1);
+    const totalBase = Math.max(requested, generated, applied, 0);
+    const hasActivity = totalBase > 0;
 
     const generationRate =
         requested > 0 ? Math.round((generated / requested) * 100) : 0;
@@ -26,23 +27,31 @@ export const AILineupMetrics = ({ aiLineupMetrics, range = "24h" }) => {
 
     const rangeLabel = range === "24h" ? "24h" : range === "7d" ? "7d" : "30d";
 
-    const ringSections = [
-        {
-            value: (applied / totalBase) * 100,
-            color: "cyan",
-            tooltip: `Applied: ${applied}`,
-        },
-        {
-            value: (Math.max(0, generated - applied) / totalBase) * 100,
-            color: "grape",
-            tooltip: `Generated (Unused): ${generated - applied}`,
-        },
-        {
-            value: (Math.max(0, totalBase - generated) / totalBase) * 100,
-            color: "indigo",
-            tooltip: `Pending/Failed: ${Math.max(0, totalBase - generated)}`,
-        },
-    ];
+    const ringSections = hasActivity
+        ? [
+              {
+                  value: (applied / totalBase) * 100,
+                  color: "cyan",
+                  tooltip: `Applied: ${applied}`,
+              },
+              {
+                  value: (Math.max(0, generated - applied) / totalBase) * 100,
+                  color: "grape",
+                  tooltip: `Generated (Unused): ${generated - applied}`,
+              },
+              {
+                  value: (Math.max(0, totalBase - generated) / totalBase) * 100,
+                  color: "indigo",
+                  tooltip: `Pending/Failed: ${Math.max(0, totalBase - generated)}`,
+              },
+          ]
+        : [
+              {
+                  value: 100,
+                  color: "gray.2",
+                  tooltip: "No activity in this period",
+              },
+          ];
 
     return (
         <Paper withBorder p="md" radius="md">
