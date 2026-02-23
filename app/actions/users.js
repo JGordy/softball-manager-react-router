@@ -35,10 +35,19 @@ export async function createPlayer({ values, teamId, userId }) {
 
         const _userId = userId || ID.unique(); // Create this now so it's easier to use later
 
+        const preferredPositions = values.preferredPositions
+            ? values.preferredPositions.split(",")
+            : [];
+        const dislikedPositions = values.dislikedPositions
+            ? values.dislikedPositions
+                  .split(",")
+                  .filter((pos) => !preferredPositions.includes(pos))
+            : [];
+
         const player = await createDocument("users", _userId, {
             ...values,
-            preferredPositions: values.preferredPositions.split(","), // Split into an array of positions
-            dislikedPositions: values.dislikedPositions.split(","), // Split into an array of positions
+            preferredPositions,
+            dislikedPositions,
             userId: _userId,
         });
 
@@ -91,8 +100,9 @@ export async function updateUser({ values, userId }) {
 
         // Fetch the existing user to determine prior profile completion state
         let wasComplete = false;
+        let existingUser = null;
         try {
-            const existingUser = await readDocument("users", userId);
+            existingUser = await readDocument("users", userId);
             wasComplete = isUserProfileComplete(existingUser);
         } catch (fetchError) {
             // If we can't fetch the existing user, assume it was not complete
@@ -100,6 +110,39 @@ export async function updateUser({ values, userId }) {
                 "Unable to fetch existing user before update:",
                 fetchError,
             );
+        }
+
+        // Apply cross-field validation against existing data to maintain invariant
+        // preferredPositions always takes precedence over dislikedPositions
+        if (dataToUpdate.preferredPositions || dataToUpdate.dislikedPositions) {
+            const currentPreferred =
+                dataToUpdate.preferredPositions ||
+                existingUser?.preferredPositions ||
+                [];
+
+            // If we are updating preferred, ensure they don't exist in existing/new disliked
+            if (dataToUpdate.preferredPositions) {
+                const targetDisliked =
+                    dataToUpdate.dislikedPositions ||
+                    existingUser?.dislikedPositions ||
+                    [];
+                const newDisliked = targetDisliked.filter(
+                    (pos) => !dataToUpdate.preferredPositions.includes(pos),
+                );
+
+                // If we cleaned the existing disliked list, we must include it in the update
+                if (newDisliked.length !== targetDisliked.length) {
+                    dataToUpdate.dislikedPositions = newDisliked;
+                }
+            }
+
+            // If we are updating disliked, explicitly remove any that are in currentPreferred
+            if (dataToUpdate.dislikedPositions) {
+                dataToUpdate.dislikedPositions =
+                    dataToUpdate.dislikedPositions.filter(
+                        (pos) => !currentPreferred.includes(pos),
+                    );
+            }
         }
 
         const updatedUser = await updateDocument("users", userId, dataToUpdate);

@@ -52,7 +52,7 @@ export default function SeasonForm({
                 ]}
                 mb="sm"
                 clearable
-                searchable
+                // searchable
             />
             <Select
                 className={classes.inputs}
@@ -61,7 +61,7 @@ export default function SeasonForm({
                 placeholder="Select Gender"
                 data={["Men", "Women", "Coed"]}
                 mb="sm"
-                searchable
+                // searchable
             />
             <NumberInput
                 className={classes.inputs}
