@@ -21,7 +21,7 @@ export const KPIGrid = ({ stats }) => {
     ];
 
     return (
-        <Grid mb="xl" gutter="xs">
+        <Grid gutter="xs">
             {kpis.map((kpi) => (
                 <Grid.Col key={kpi.label} span={3}>
                     <Paper
