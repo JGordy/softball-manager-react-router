@@ -8,18 +8,18 @@ import {
 } from "@tabler/icons-react";
 
 export function MobileDashboardNav() {
-    const [activeSection, setActiveSection] = useState("analytics-summary");
+    const [activeSection, setActiveSection] = useState("platform-totals");
 
     const items = [
         {
-            label: "Stats",
+            label: "Totals",
             icon: <IconTimeline size={16} />,
-            target: "analytics-summary",
+            target: "platform-totals",
         },
         {
-            label: "Health",
+            label: "Analytics",
             icon: <IconActivity size={16} />,
-            target: "insights",
+            target: "analytics-performance",
         },
         {
             label: "Teams",
