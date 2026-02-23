@@ -186,6 +186,47 @@ describe("Users Actions", () => {
             });
         });
 
+        it("should remove overlaps when only updating preferredPositions and they overlap with existing dislikedPositions", async () => {
+            const userId = "user1";
+            const mockValues = {
+                preferredPositions: "SS,3B",
+            };
+
+            // Existing user has SS in disliked
+            readDocument.mockResolvedValue({
+                $id: userId,
+                dislikedPositions: ["SS", "OF"],
+            });
+            updateDocument.mockResolvedValue({ $id: userId });
+
+            await updateUser({ values: mockValues, userId });
+
+            expect(updateDocument).toHaveBeenCalledWith("users", userId, {
+                preferredPositions: ["SS", "3B"],
+                dislikedPositions: ["OF"], // SS was removed
+            });
+        });
+
+        it("should remove overlaps when only updating dislikedPositions and they overlap with existing preferredPositions", async () => {
+            const userId = "user1";
+            const mockValues = {
+                dislikedPositions: "C,P",
+            };
+
+            // Existing user has C in preferred
+            readDocument.mockResolvedValue({
+                $id: userId,
+                preferredPositions: ["C", "1B"],
+            });
+            updateDocument.mockResolvedValue({ $id: userId });
+
+            await updateUser({ values: mockValues, userId });
+
+            expect(updateDocument).toHaveBeenCalledWith("users", userId, {
+                dislikedPositions: ["P"], // C was removed because it's in preferred
+            });
+        });
+
         it("should emit player-profile-completed when profile becomes complete", async () => {
             const mockValues = {
                 gender: "Female",
