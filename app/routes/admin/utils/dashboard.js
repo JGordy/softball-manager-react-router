@@ -3,13 +3,16 @@ import { listDocuments } from "@/utils/databases";
 import { umamiService } from "@/utils/umami/server";
 
 export async function getAdminDashboardData({ users, range = "24h" }) {
-    // 1. Calculate timeframe for Umami
+    // 1. Calculate timeframe for Umami and normalize range
     const now = Date.now();
+    const VALID_RANGES = ["24h", "7d", "30d"];
+    const normalizedRange = VALID_RANGES.includes(range) ? range : "24h";
+
     let startAt = now - 24 * 60 * 60 * 1000; // Default 24h
 
-    if (range === "7d") {
+    if (normalizedRange === "7d") {
         startAt = now - 7 * 24 * 60 * 60 * 1000;
-    } else if (range === "30d") {
+    } else if (normalizedRange === "30d") {
         startAt = now - 30 * 24 * 60 * 60 * 1000;
     }
 
@@ -202,7 +205,11 @@ export async function getAdminDashboardData({ users, range = "24h" }) {
         requested,
         generated,
         applied,
+        // Overall success: how many requested lineups were ultimately applied
         successRate:
+            requested > 0 ? Math.round((applied / requested) * 100) : 0,
+        // Application rate: of generated lineups, how many were applied
+        applicationRate:
             generated > 0 ? Math.round((applied / generated) * 100) : 0,
     };
 
@@ -227,6 +234,6 @@ export async function getAdminDashboardData({ users, range = "24h" }) {
         activeParks,
         topFeatures,
         aiLineupMetrics,
-        range,
+        range: normalizedRange,
     };
 }

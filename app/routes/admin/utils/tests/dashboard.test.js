@@ -150,7 +150,8 @@ describe("Admin Dashboard Utils", () => {
                 requested: 10,
                 generated: 8,
                 applied: 4,
-                successRate: 50,
+                successRate: 40,
+                applicationRate: 50,
             });
         });
 
