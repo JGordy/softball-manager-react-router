@@ -82,6 +82,7 @@ describe("AdminDashboard Route", () => {
         ],
         activeParks: [{ id: "park-1", name: "Central Park", gameCount: 15 }],
         topFeatures: [{ name: "Live Scoring", views: 200 }],
+        range: "24h",
     };
 
     beforeEach(() => {

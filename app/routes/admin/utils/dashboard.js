@@ -207,10 +207,20 @@ export async function getAdminDashboardData({ users, range = "24h" }) {
         applied,
         // Overall success: how many requested lineups were ultimately applied
         successRate:
-            requested > 0 ? Math.round((applied / requested) * 100) : 0,
+            requested > 0
+                ? Math.min(
+                      100,
+                      Math.max(0, Math.round((applied / requested) * 100)),
+                  )
+                : 0,
         // Application rate: of generated lineups, how many were applied
         applicationRate:
-            generated > 0 ? Math.round((applied / generated) * 100) : 0,
+            generated > 0
+                ? Math.min(
+                      100,
+                      Math.max(0, Math.round((applied / generated) * 100)),
+                  )
+                : 0,
     };
 
     return {

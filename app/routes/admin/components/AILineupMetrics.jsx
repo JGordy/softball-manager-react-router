@@ -18,31 +18,57 @@ export const AILineupMetrics = ({ aiLineupMetrics, range = "24h" }) => {
     const totalBase = Math.max(requested, generated, applied, 0);
     const hasActivity = totalBase > 0;
 
+    const clampRate = (value) => Math.max(0, Math.min(100, Math.round(value)));
+
     const generationRate =
-        requested > 0 ? Math.round((generated / requested) * 100) : 0;
+        requested > 0 ? clampRate((generated / requested) * 100) : 0;
     const applicationRate =
-        generated > 0 ? Math.round((applied / generated) * 100) : 0;
+        generated > 0 ? clampRate((applied / generated) * 100) : 0;
     const overallSuccessRate =
-        requested > 0 ? Math.round((applied / requested) * 100) : 0;
+        requested > 0 ? clampRate((applied / requested) * 100) : 0;
 
     const rangeLabel = range === "24h" ? "24h" : range === "7d" ? "7d" : "30d";
+
+    // Normalize metrics so ring sections never go negative or exceed 100% total.
+    const safeRequested = Math.max(0, requested);
+    const safeGenerated = Math.max(0, generated);
+    const safeApplied = Math.max(0, applied);
+
+    // Applied cannot exceed what was generated, requested, or the total base.
+    const appliedUsed = Math.max(
+        0,
+        Math.min(safeApplied, safeGenerated, safeRequested, totalBase),
+    );
+
+    // Unused generated is whatever remains from generated after applied, capped by remaining base.
+    const generatedUnusedRaw = Math.max(0, safeGenerated - appliedUsed);
+    const generatedUnused = Math.max(
+        0,
+        Math.min(generatedUnusedRaw, totalBase - appliedUsed),
+    );
+
+    // The rest of the base is pending/failed.
+    const pendingFailed = Math.max(
+        0,
+        totalBase - appliedUsed - generatedUnused,
+    );
 
     const ringSections = hasActivity
         ? [
               {
-                  value: (applied / totalBase) * 100,
+                  value: (appliedUsed / totalBase) * 100,
                   color: "cyan",
-                  tooltip: `Applied: ${applied}`,
+                  tooltip: `Applied: ${appliedUsed}`,
               },
               {
-                  value: (Math.max(0, generated - applied) / totalBase) * 100,
+                  value: (generatedUnused / totalBase) * 100,
                   color: "grape",
-                  tooltip: `Generated (Unused): ${generated - applied}`,
+                  tooltip: `Generated (Unused): ${generatedUnused}`,
               },
               {
-                  value: (Math.max(0, totalBase - generated) / totalBase) * 100,
+                  value: (pendingFailed / totalBase) * 100,
                   color: "indigo",
-                  tooltip: `Pending/Failed: ${Math.max(0, totalBase - generated)}`,
+                  tooltip: `Pending/Failed: ${pendingFailed}`,
               },
           ]
         : [

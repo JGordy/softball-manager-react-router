@@ -153,6 +153,29 @@ describe("Admin Dashboard Utils", () => {
                 successRate: 40,
                 applicationRate: 50,
             });
+            expect(result.range).toBe("24h");
+        });
+
+        it("normalizes and respects different time ranges", async () => {
+            mockUsersService.list.mockResolvedValue({ total: 0, users: [] });
+            listDocuments.mockResolvedValue({ total: 0, rows: [] });
+            umamiService.getStats.mockResolvedValue({});
+            umamiService.getMetrics.mockResolvedValue([]);
+
+            const result7d = await getAdminDashboardData({
+                users: mockUsersService,
+                range: "7d",
+            });
+            expect(result7d.range).toBe("7d");
+            expect(umamiService.getStats).toHaveBeenCalledWith(
+                expect.any(Number),
+            );
+
+            const resultInvalid = await getAdminDashboardData({
+                users: mockUsersService,
+                range: "invalid",
+            });
+            expect(resultInvalid.range).toBe("24h");
         });
 
         it("handles missing Umami data gracefully", async () => {
@@ -192,6 +215,31 @@ describe("Admin Dashboard Utils", () => {
             expect(result.stats.umami).toBeNull();
             expect(result.stats.activeUsers).toBe(0);
             expect(result.activeTeams).toEqual([]);
+        });
+
+        it("validates and normalizes ranges correctly", async () => {
+            mockUsersService.list.mockResolvedValue({ total: 10, users: [] });
+            listDocuments.mockResolvedValue({ total: 5, rows: [] });
+            umamiService.getStats.mockResolvedValue({});
+            umamiService.getActiveUsers.mockResolvedValue([]);
+            umamiService.getMetrics.mockResolvedValue([]);
+
+            // 1. Valid range (7d)
+            const result7d = await getAdminDashboardData({
+                users: mockUsersService,
+                range: "7d",
+            });
+            expect(result7d.range).toBe("7d");
+            expect(umamiService.getStats).toHaveBeenCalledWith(
+                expect.any(Number),
+            );
+
+            // 2. Invalid range (foo) -> defaults to 24h
+            const resultInvalid = await getAdminDashboardData({
+                users: mockUsersService,
+                range: "foo",
+            });
+            expect(resultInvalid.range).toBe("24h");
         });
     });
 });
