@@ -20,12 +20,42 @@ export default function AddPlayer({
 }) {
     const shouldDisplay = (field) => inputsToDisplay.includes(field);
 
-    const [preferred, setPreferred] = useState(
+    const allPositions = Object.keys(positions);
+
+    const normalizePreferredPositions = (values) => {
+        if (!Array.isArray(values)) {
+            return [];
+        }
+
+        const uniqueValues = Array.from(new Set(values));
+
+        return uniqueValues.filter((value) => allPositions.includes(value));
+    };
+
+    const normalizeDislikedPositions = (values, currentPreferred) => {
+        if (!Array.isArray(values)) {
+            return [];
+        }
+
+        const uniqueValues = Array.from(new Set(values));
+
+        return uniqueValues.filter(
+            (value) =>
+                allPositions.includes(value) &&
+                !currentPreferred.includes(value),
+        );
+    };
+
+    const initialPreferred = normalizePreferredPositions(
         defaults.preferredPositions || [],
     );
-    const [disliked, setDisliked] = useState(defaults.dislikedPositions || []);
+    const initialDisliked = normalizeDislikedPositions(
+        defaults.dislikedPositions || [],
+        initialPreferred,
+    );
 
-    const allPositions = Object.keys(positions);
+    const [preferred, setPreferred] = useState(initialPreferred);
+    const [disliked, setDisliked] = useState(initialDisliked);
 
     return (
         <FormWrapper

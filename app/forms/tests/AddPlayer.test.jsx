@@ -199,8 +199,11 @@ describe("AddPlayer", () => {
         ).toContain("Catcher");
 
         // Select Catcher as Preferred
-        // In our mock, value is an array
-        fireEvent.change(preferredSelect, { target: { value: ["Catcher"] } });
+        const catcherOption = Array.from(preferredSelect.options).find(
+            (o) => o.value === "Catcher",
+        );
+        catcherOption.selected = true;
+        fireEvent.change(preferredSelect);
 
         // Check if Catcher is removed from Disliked options
         let dislikedOptions = Array.from(dislikedSelect.options).map(
@@ -209,8 +212,14 @@ describe("AddPlayer", () => {
         expect(dislikedOptions).not.toContain("Catcher");
 
         // Clear Preferred and select Catcher as Disliked
-        fireEvent.change(preferredSelect, { target: { value: [] } });
-        fireEvent.change(dislikedSelect, { target: { value: ["Catcher"] } });
+        catcherOption.selected = false;
+        fireEvent.change(preferredSelect);
+
+        const dislikedCatcherOption = Array.from(dislikedSelect.options).find(
+            (o) => o.value === "Catcher",
+        );
+        dislikedCatcherOption.selected = true;
+        fireEvent.change(dislikedSelect);
 
         // Check if Catcher is removed from Preferred options
         let preferredOptions = Array.from(preferredSelect.options).map(
