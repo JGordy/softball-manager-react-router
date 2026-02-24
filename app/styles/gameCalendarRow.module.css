@@ -25,7 +25,7 @@
 }
 
 .cardActive {
-    border-color: #c1eb33 !important;
+    border-color: var(--brand-accent) !important;
     background-color: light-dark(
         rgba(193, 235, 51, 0.08),
         rgba(193, 235, 51, 0.05)
@@ -62,7 +62,7 @@
 }
 
 [data-mantine-color-scheme="dark"] .statusIndicatorActive {
-    text-shadow: 0 0 8px #c1eb33;
+    text-shadow: 0 0 8px var(--brand-accent);
 }
 
 .statusDot {
@@ -80,7 +80,7 @@
 }
 
 [data-mantine-color-scheme="dark"] .statusDotActive {
-    box-shadow: 0 0 8px #c1eb33;
+    box-shadow: 0 0 8px var(--brand-accent);
 }
 
 .weekday {
