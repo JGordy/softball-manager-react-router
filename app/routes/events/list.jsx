@@ -71,7 +71,7 @@ export default function EventsDetails({ loaderData }) {
             <Menu.Target>
                 <ActionIcon
                     variant="light"
-                    color="green"
+                    color="lime"
                     radius="xl"
                     aria-label="Filter Games"
                     size="lg"
@@ -90,7 +90,7 @@ export default function EventsDetails({ loaderData }) {
                 <SegmentedControl
                     styles={{ label: { marginBottom: "10px" } }}
                     fullWidth
-                    color="green"
+                    color="lime"
                     transitionDuration={0}
                     withItemsBorders={false}
                     orientation="vertical"
