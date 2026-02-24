@@ -1,0 +1,118 @@
+.container {
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    /* IE and Edge */
+}
+
+.container::-webkit-scrollbar {
+    display: none;
+    /* Chrome, Safari, Opera */
+}
+
+.card {
+    width: 55px;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    border-width: 1px;
+    background-color: light-dark(
+        rgba(0, 0, 0, 0.03),
+        rgba(255, 255, 255, 0.02)
+    );
+    border-color: light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.08));
+    color: light-dark(var(--mantine-color-gray-9), var(--mantine-color-gray-0));
+}
+
+.cardActive {
+    border-color: #c1eb33 !important;
+    background-color: light-dark(
+        rgba(193, 235, 51, 0.08),
+        rgba(193, 235, 51, 0.05)
+    ) !important;
+    border-width: 1px !important;
+}
+
+.statusText {
+    font-weight: 900;
+    font-size: 10px;
+    line-height: 1;
+}
+
+.statusWon {
+    color: light-dark(
+        var(--mantine-color-green-7),
+        var(--mantine-color-green-6)
+    );
+}
+
+.statusLost {
+    color: light-dark(var(--mantine-color-red-8), var(--mantine-color-red-7));
+}
+
+.statusTie {
+    color: light-dark(
+        var(--mantine-color-yellow-8),
+        var(--mantine-color-yellow-6)
+    );
+}
+
+.statusIndicatorActive {
+    color: light-dark(
+        var(--mantine-color-lime-9),
+        var(--mantine-color-lime-4)
+    ) !important;
+}
+
+[data-mantine-color-scheme="dark"] .statusIndicatorActive {
+    text-shadow: 0 0 8px #c1eb33;
+}
+
+.statusDot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: light-dark(
+        var(--mantine-color-gray-4),
+        var(--mantine-color-gray-6)
+    );
+}
+
+.statusDotActive {
+    background-color: light-dark(
+        var(--mantine-color-lime-9),
+        var(--mantine-color-lime-4)
+    ) !important;
+}
+
+[data-mantine-color-scheme="dark"] .statusDotActive {
+    box-shadow: 0 0 8px #c1eb33;
+}
+
+.weekday {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 9px;
+    color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-gray-5));
+}
+
+.weekdayActive {
+    color: light-dark(
+        var(--mantine-color-lime-9),
+        var(--mantine-color-lime-4)
+    ) !important;
+    opacity: 1 !important;
+}
+
+.dateText {
+    line-height: 1;
+    font-size: 17px;
+    letter-spacing: -0.5px;
+}
+
+.dateTextActive {
+    color: light-dark(
+        var(--mantine-color-black),
+        var(--mantine-color-white)
+    ) !important;
+}
