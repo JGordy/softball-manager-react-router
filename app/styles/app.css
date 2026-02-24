@@ -24,10 +24,7 @@
     --shadow-card: light-dark(0 10px 30px rgba(255, 170, 50, 0.06), none);
 
     /* Brand Accents */
-    --brand-accent: light-dark(
-        var(--mantine-color-lime-filled),
-        var(--mantine-color-lime-filled)
-    );
+    --brand-accent: var(--mantine-color-lime-filled);
     --brand-accent-bg: light-dark(
         rgba(0, 0, 0, 0.03),
         rgba(193, 235, 51, 0.08)

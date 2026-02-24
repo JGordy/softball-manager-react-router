@@ -118,19 +118,20 @@ export default function AuthPanel({ actionData }) {
 
             <Divider />
 
-            <Button
-                color="red"
-                onClick={openLogoutDrawer}
-                variant="subtle"
-                px="0px"
-                size="md"
-                justify="flex-start"
-            >
-                <Group gap="xs">
-                    <IconLogout2 size={16} mr="xs" />
-                    Log out
-                </Group>
-            </Button>
+            <div>
+                <Button
+                    color="red"
+                    onClick={openLogoutDrawer}
+                    variant="light"
+                    radius="md"
+                    justify="flex-start"
+                >
+                    <Group gap="xs">
+                        <IconLogout2 size={16} mr="xs" />
+                        Log out
+                    </Group>
+                </Button>
+            </div>
 
             <DrawerContainer
                 opened={passwordResetOpened}

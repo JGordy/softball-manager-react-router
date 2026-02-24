@@ -21,15 +21,15 @@ const theme = createTheme({
             "#d4f19b",
             "#bdea6d",
             "#c1eb33",
-            "#a8e446",
             "#9be02b",
+            "#c1eb33",
             "#7fbf0a",
-            "#629402",
+            "#c1eb33",
             "#416500",
         ],
     },
     primaryColor: "lime",
-    primaryShade: { light: 7, dark: 4 },
+    primaryShade: { light: 7 },
     autoContrast: true,
 });
 
