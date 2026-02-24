@@ -12,7 +12,6 @@ const RESULT_CONFIG = {
 
 export default function GameCalendarRow({ games = [] }) {
     const today = DateTime.local().startOf("day");
-    const containerRef = useRef(null);
     const itemRefs = useRef({});
 
     // 1. Group games by date and only show dates that HAVE games
@@ -62,12 +61,7 @@ export default function GameCalendarRow({ games = [] }) {
 
     return (
         <Box mt="md" mb="xl">
-            <Group
-                ref={containerRef}
-                wrap="nowrap"
-                gap="xs"
-                className={classes.container}
-            >
+            <Group wrap="nowrap" gap="xs" className={classes.container}>
                 {sortedDates.map(({ date, games: gamesOnDay }) => {
                     const isToday = date.hasSame(today, "day");
                     const dateStr = date.toISODate();
