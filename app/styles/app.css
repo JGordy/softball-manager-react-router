@@ -105,6 +105,23 @@
     border: 1px solid
         light-dark(rgba(255, 170, 50, 0.14), rgba(255, 223, 93, 0.25));
     box-shadow: var(--shadow-card);
+    color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
+}
+
+/* Custom Carousel Indicator Styling */
+.mantine-Carousel-indicator {
+    width: 12px;
+    height: 6px;
+    border-radius: 9999px;
+    background-color: light-dark(rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0.1));
+    transition:
+        width 0.25s ease,
+        background-color 0.25s ease;
+}
+
+.mantine-Carousel-indicator[data-active] {
+    width: 32px;
+    background-color: #c1eb33;
 }
 
 .game-card.mantine-Card-root,
