@@ -9,17 +9,22 @@ export default function getGames({ teams, teamId }) {
     teams
         // 1. Filter by teamId if provided, otherwise include all teams
         .filter((team) => teamId === undefined || team.$id === teamId)
-        // 2. FlatMap: Extract all seasons from the matched team(s), handle missing seasons
-        .flatMap((team) => team.seasons || [])
-        // 3. FlatMap: Extract all games from all seasons, handle missing games
-        .flatMap((season) => {
-            // Add season reference to each game to extract location later.
-            return season.games.map((game) => ({
-                ...game,
-                location: game.location || season.location, // Use game location if available (non-empty), otherwise use season location
-            }));
+        // 2. Extract games: Either from flattened games array (optimized) or nested seasons structure
+        .flatMap((team) => {
+            if (team.games) {
+                // Loader already handled mapping season locations
+                return team.games;
+            }
+
+            // Fallback for non-optimized structure (nested seasons)
+            return (team.seasons || []).flatMap((season) => {
+                return (season.games || []).map((game) => ({
+                    ...game,
+                    location: game.location || season.location,
+                }));
+            });
         })
-        // 4. Populate futureGames and pastGames
+        // 3. Populate futureGames and pastGames
         .forEach((game) => {
             try {
                 const gameDate = DateTime.fromISO(game.gameDate, {
