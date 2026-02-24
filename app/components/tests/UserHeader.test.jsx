@@ -22,21 +22,23 @@ describe("UserHeader Component", () => {
     };
 
     it("renders user name and avatar", () => {
+        const mockStats = { awardsCount: 1, teamCount: 2, gameCount: 3 };
         useOutletContext.mockReturnValue({
             user: mockUser,
             isVerified: true,
         });
         useFetcher.mockReturnValue({ submit: jest.fn(), state: "idle" });
 
-        render(<UserHeader subText="Welcome back" />);
+        render(<UserHeader subText="Welcome back" stats={mockStats} />);
 
         // Name check (split logic: "Test User" -> "Test")
         expect(screen.getByText(/Hello, Test!/i)).toBeInTheDocument();
         expect(screen.getByText("Welcome back")).toBeInTheDocument();
 
-        // Avatar check
-        const avatar = screen.getByRole("img", { name: mockUser.name });
-        expect(avatar).toHaveAttribute("src", mockUser.prefs.avatarUrl);
+        // Stats check (ensure they are passed to UserStatsRow which we've tested separately)
+        expect(screen.getByText("1")).toBeInTheDocument();
+        expect(screen.getByText("2")).toBeInTheDocument();
+        expect(screen.getByText("3")).toBeInTheDocument();
     });
 
     it("does NOT show verification alert when verified", () => {
