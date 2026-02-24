@@ -35,6 +35,10 @@ describe("UserHeader Component", () => {
         expect(screen.getByText(/Hello, Test!/i)).toBeInTheDocument();
         expect(screen.getByText("Welcome back")).toBeInTheDocument();
 
+        // Avatar check (Avatar uses data-testid="user-avatar" or alt containing name)
+        const avatar = screen.getByRole("img");
+        expect(avatar).toBeInTheDocument();
+
         // Stats check (ensure they are passed to UserStatsRow which we've tested separately)
         expect(screen.getByText("1")).toBeInTheDocument();
         expect(screen.getByText("2")).toBeInTheDocument();

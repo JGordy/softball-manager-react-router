@@ -132,6 +132,7 @@ export async function getUserTeams({ request, isDashboard = false }) {
                         opponentScore,
                         result,
                         isHomeGame,
+                        location,
                         timeZone,
                         seasons,
                     }) => ({
@@ -143,6 +144,7 @@ export async function getUserTeams({ request, isDashboard = false }) {
                         opponentScore,
                         result,
                         isHomeGame,
+                        location,
                         timeZone,
                         seasons,
                     });
