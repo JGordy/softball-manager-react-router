@@ -1,6 +1,7 @@
-import React from "react";
 import { ActionIcon, Menu, Text } from "@mantine/core";
 import { IconDots } from "@tabler/icons-react";
+
+import classes from "@/styles/menuContainer.module.css";
 
 /**
  * Generic MenuContainer
@@ -31,7 +32,12 @@ export default function MenuContainer({
         <Menu shadow="md" radius="lg" withArrow offset={0} {...menuProps}>
             <Menu.Target>
                 {target ?? (
-                    <ActionIcon variant="light" radius="xl" size="lg">
+                    <ActionIcon
+                        variant="light"
+                        className={classes.actionIcon}
+                        radius="xl"
+                        size="lg"
+                    >
                         <IconDots />
                     </ActionIcon>
                 )}
