@@ -65,7 +65,7 @@ export default function NotificationToggle() {
             <Group justify="space-between" align="center">
                 <Group gap="xs">
                     {isSubscribed ? (
-                        <IconBell size={20} color="green" />
+                        <IconBell size={20} color="lime" />
                     ) : (
                         <IconBellOff size={20} color="gray" />
                     )}

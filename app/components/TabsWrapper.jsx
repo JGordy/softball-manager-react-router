@@ -34,7 +34,7 @@ export default function TabsWrapper({
     defaultValue,
     value: controlledValue,
     onChange: controlledOnChange,
-    color = "var(--mantine-color-green-filled)",
+    color = "var(--mantine-color-lime-6)",
     children,
     mt = "xl",
 }) {
