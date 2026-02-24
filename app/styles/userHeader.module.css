@@ -12,7 +12,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    border: 2px dashed light-dark(var(--mantine-color-lime-8), #c1eb33);
+    border: 2px dashed var(--brand-accent);
     border-radius: 50%;
     opacity: 0.8;
     pointer-events: none;
@@ -23,6 +23,7 @@
     from {
         transform: rotate(0deg);
     }
+
     to {
         transform: rotate(360deg);
     }

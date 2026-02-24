@@ -58,10 +58,7 @@
 }
 
 .statusIndicatorActive {
-    color: light-dark(
-        var(--mantine-color-lime-9),
-        var(--mantine-color-lime-4)
-    ) !important;
+    color: var(--brand-accent) !important;
 }
 
 [data-mantine-color-scheme="dark"] .statusIndicatorActive {
@@ -79,10 +76,7 @@
 }
 
 .statusDotActive {
-    background-color: light-dark(
-        var(--mantine-color-lime-9),
-        var(--mantine-color-lime-4)
-    ) !important;
+    background-color: var(--brand-accent) !important;
 }
 
 [data-mantine-color-scheme="dark"] .statusDotActive {
@@ -97,10 +91,7 @@
 }
 
 .weekdayActive {
-    color: light-dark(
-        var(--mantine-color-lime-9),
-        var(--mantine-color-lime-4)
-    ) !important;
+    color: var(--brand-accent) !important;
     opacity: 1 !important;
 }
 
