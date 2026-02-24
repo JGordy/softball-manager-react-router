@@ -42,7 +42,7 @@ export default function GamedayCard({ gameId, isLive, isPast, canScore }) {
             mx="md"
             mt="md"
             py="5px"
-            bg={isLive ? "rgba(64, 192, 87, 0.05)" : undefined}
+            bg={isLive ? "var(--mantine-color-lime-light)" : undefined}
             style={
                 isLive
                     ? { borderColor: "var(--mantine-color-lime-outline)" }

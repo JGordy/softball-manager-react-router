@@ -218,7 +218,7 @@ export default function GenerateSeasonGames({
                 highlightStyles={{
                     // backgroundColor: 'lime',
                     backgroundImage:
-                        "linear-gradient(45deg, var(--mantine-color-cyan-5), var(--mantine-color-lime-6))",
+                        "linear-gradient(45deg, var(--mantine-color-cyan-5), var(--mantine-color-lime-4))",
                     fontWeight: 700,
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
