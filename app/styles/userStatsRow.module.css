@@ -29,3 +29,11 @@
     letter-spacing: 0.8px;
     color: light-dark(var(--mantine-color-gray-9), var(--mantine-color-gray-5));
 }
+
+.icon {
+    color: light-dark(var(--mantine-color-lime-8), #c1eb33);
+    background-color: light-dark(
+        rgba(0, 0, 0, 0.03),
+        rgba(193, 235, 51, 0.08)
+    ) !important;
+}

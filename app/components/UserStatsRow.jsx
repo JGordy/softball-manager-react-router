@@ -8,19 +8,16 @@ export default function UserStatsRow({ stats }) {
             label: "Teams",
             value: stats?.teamCount || 0,
             icon: <IconUsers size={20} stroke={2} />,
-            color: "lime",
         },
         {
             label: "Games",
             value: stats?.gameCount || 0,
             icon: <IconBallBaseball size={20} stroke={2} />,
-            color: "lime",
         },
         {
             label: "Awards",
             value: stats?.awardsCount || 0,
             icon: <IconTrophy size={20} stroke={2} />,
-            color: "lime",
         },
     ];
 
@@ -30,7 +27,7 @@ export default function UserStatsRow({ stats }) {
                 <Group key={index} gap="sm" className={classes.statItem}>
                     <ThemeIcon
                         variant="light"
-                        color={stat.color}
+                        className={classes.icon}
                         size="md"
                         radius="sm"
                     >
