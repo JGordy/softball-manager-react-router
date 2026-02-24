@@ -13,6 +13,12 @@ module.exports = {
             (field, value) =>
                 `Query.equal("${field}", ${JSON.stringify(value)})`,
         ),
+        lessThan: jest.fn(
+            (field, value) => `Query.lessThan("${field}", "${value}")`,
+        ),
+        greaterThanEqual: jest.fn(
+            (field, value) => `Query.greaterThanEqual("${field}", "${value}")`,
+        ),
         limit: jest.fn((value) => `Query.limit(${value})`),
         orderDesc: jest.fn((field) => `Query.orderDesc("${field}")`),
         orderAsc: jest.fn((field) => `Query.orderAsc("${field}")`),
