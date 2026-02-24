@@ -1,11 +1,12 @@
 import { Query } from "node-appwrite";
+import { DateTime } from "luxon";
 import { listDocuments, readDocument } from "@/utils/databases";
 import {
     createSessionClient,
     createAdminClient,
 } from "@/utils/appwrite/server";
 
-export async function getUserTeams({ request }) {
+export async function getUserTeams({ request, isDashboard = false }) {
     try {
         // Get authenticated user from session
         const { account, teams } = await createSessionClient(request);
@@ -76,30 +77,136 @@ export async function getUserTeams({ request }) {
                     Query.equal("teamId", allTeamIds),
                 ]);
                 allSeasons = seasonsResponse.rows || [];
+
+                if (isDashboard) {
+                    // Strip unnecessary fields from seasons for dashboard
+                    allSeasons = allSeasons.map(
+                        ({
+                            $id,
+                            teamId,
+                            location,
+                            startDate,
+                            endDate,
+                            seasonName,
+                        }) => ({
+                            $id,
+                            teamId,
+                            location,
+                            startDate,
+                            endDate,
+                            seasonName,
+                        }),
+                    );
+                }
             }
 
             // 2. Batch fetch games for all seasons
             const allSeasonIds = allSeasons.map((s) => s.$id);
             let allGames = [];
             if (allSeasonIds.length > 0) {
-                const gamesResponse = await listDocuments("games", [
-                    Query.equal("seasons", allSeasonIds),
-                    Query.limit(100), // Increase limit to get all games
-                ]);
-                allGames = gamesResponse.rows || [];
+                if (isDashboard) {
+                    const now = DateTime.utc().toISO();
+                    // Fetch 10 past games and 10 upcoming games
+                    const [pastGames, futureGames] = await Promise.all([
+                        listDocuments("games", [
+                            Query.equal("seasons", allSeasonIds),
+                            Query.lessThan("gameDate", now),
+                            Query.orderDesc("gameDate"),
+                            Query.limit(10),
+                        ]),
+                        listDocuments("games", [
+                            Query.equal("seasons", allSeasonIds),
+                            Query.greaterThanEqual("gameDate", now),
+                            Query.orderAsc("gameDate"),
+                            Query.limit(10),
+                        ]),
+                    ]);
+
+                    // Map and strip unnecessary fields from games
+                    const stripGame = ({
+                        $id,
+                        gameDate,
+                        teamId,
+                        opponent,
+                        score,
+                        opponentScore,
+                        result,
+                        isHomeGame,
+                        timeZone,
+                        seasons,
+                    }) => ({
+                        $id,
+                        gameDate,
+                        teamId,
+                        opponent,
+                        score,
+                        opponentScore,
+                        result,
+                        isHomeGame,
+                        timeZone,
+                        seasons,
+                    });
+
+                    allGames = [
+                        ...(pastGames.rows || []).map(stripGame),
+                        ...(futureGames.rows || []).map(stripGame),
+                    ];
+                } else {
+                    const gamesResponse = await listDocuments("games", [
+                        Query.equal("seasons", allSeasonIds),
+                        Query.limit(100), // Increase limit to get all games
+                    ]);
+                    allGames = gamesResponse.rows || [];
+                }
             }
 
             // 3. Map games to seasons
             allSeasons.forEach((season) => {
-                season.games = allGames.filter(
+                const seasonGames = allGames.filter(
                     (g) =>
                         g.seasons === season.$id || g.seasonId === season.$id,
                 );
+
+                // For dashboard, we want to flatten games and attach them directly to the team later
+                // we also need to carry over the season location if the game doesn't have one
+                season.games = seasonGames.map((game) => ({
+                    ...game,
+                    location: game.location || season.location,
+                }));
             });
 
-            // 4. Map seasons to teams
+            // 4. Map seasons or flattened games to teams
             teams.forEach((team) => {
-                team.seasons = allSeasons.filter((s) => s.teamId === team.$id);
+                const teamSeasons = allSeasons.filter(
+                    (s) => s.teamId === team.$id,
+                );
+
+                if (isDashboard) {
+                    // Flatten games from all seasons for this team
+                    team.games = teamSeasons.flatMap((s) => s.games || []);
+
+                    // Strip unnecessary fields from team for dashboard
+                    const {
+                        $id,
+                        name,
+                        displayName,
+                        primaryColor,
+                        games,
+                        leagueName,
+                    } = team;
+                    // Replace team object properties with only what's needed
+                    Object.keys(team).forEach((key) => delete team[key]);
+                    Object.assign(team, {
+                        $id,
+                        name,
+                        displayName,
+                        primaryColor,
+                        games,
+                        leagueName,
+                    });
+                } else {
+                    team.seasons = teamSeasons;
+                }
             });
 
             return teams;
@@ -107,6 +214,31 @@ export async function getUserTeams({ request }) {
 
         const managerTeams = await fetchTeams(managerTeamIds);
         const playerTeams = await fetchTeams(playerTeamIds);
+
+        if (isDashboard) {
+            // Fetch additional stats for the dashboard header
+            const [awardsResult, gameLogsResult] = await Promise.all([
+                listDocuments("awards", [
+                    Query.equal("winner_user_id", userId),
+                    Query.limit(1),
+                ]),
+                listDocuments("game_logs", [
+                    Query.equal("playerId", userId),
+                    Query.limit(1),
+                ]),
+            ]);
+
+            return {
+                managing: managerTeams,
+                playing: playerTeams,
+                userId,
+                stats: {
+                    awardsCount: awardsResult.total || 0,
+                    gameCount: gameLogsResult.total || 0,
+                    teamCount: managerTeams.length + playerTeams.length,
+                },
+            };
+        }
 
         return { managing: managerTeams, playing: playerTeams, userId };
     } catch (error) {
