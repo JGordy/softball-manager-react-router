@@ -31,7 +31,7 @@ import {
     OUTS,
 } from "@/constants/scoring";
 
-import styles from "./ContactSprayChart.module.css";
+import styles from "@/styles/contactSprayChart.module.css";
 
 const OVERALL = "OVERALL";
 const BATS_LEFT = "LEFT";

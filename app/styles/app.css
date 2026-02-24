@@ -22,6 +22,13 @@
 
     /* Semantic Shadows */
     --shadow-card: light-dark(0 10px 30px rgba(255, 170, 50, 0.06), none);
+
+    /* Brand Accents */
+    --brand-accent: light-dark(var(--mantine-color-lime-8), #c1eb33);
+    --brand-accent-bg: light-dark(
+        rgba(0, 0, 0, 0.03),
+        rgba(193, 235, 51, 0.08)
+    );
 }
 
 :root[data-mantine-color-scheme="light"] {
@@ -105,6 +112,23 @@
     border: 1px solid
         light-dark(rgba(255, 170, 50, 0.14), rgba(255, 223, 93, 0.25));
     box-shadow: var(--shadow-card);
+    color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
+}
+
+/* Custom Carousel Indicator Styling */
+.mantine-Carousel-indicator {
+    width: 12px;
+    height: 6px;
+    border-radius: 9999px;
+    background-color: light-dark(rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0.1));
+    transition:
+        width 0.25s ease,
+        background-color 0.25s ease;
+}
+
+.mantine-Carousel-indicator[data-active] {
+    width: 32px;
+    background-color: var(--brand-accent);
 }
 
 .game-card.mantine-Card-root,

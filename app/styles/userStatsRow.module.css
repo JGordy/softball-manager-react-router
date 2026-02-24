@@ -1,0 +1,36 @@
+.statItem {
+    padding: 8px 12px;
+    border-radius: var(--mantine-radius-md);
+    background-color: light-dark(
+        rgba(0, 0, 0, 0.03),
+        rgba(255, 255, 255, 0.03)
+    );
+    border: 1px solid light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.05));
+    transition: transform 0.2s ease;
+}
+
+.statItem:hover {
+    transform: translateY(-2px);
+    background-color: light-dark(
+        rgba(0, 0, 0, 0.05),
+        rgba(255, 255, 255, 0.05)
+    );
+}
+
+.value {
+    line-height: 1;
+    color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
+}
+
+.label {
+    text-transform: uppercase;
+    font-weight: 800;
+    font-size: 9px;
+    letter-spacing: 0.8px;
+    color: light-dark(var(--mantine-color-gray-9), var(--mantine-color-gray-5));
+}
+
+.icon {
+    color: var(--brand-accent);
+    background-color: var(--brand-accent-bg) !important;
+}

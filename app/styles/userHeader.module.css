@@ -1,0 +1,53 @@
+.avatarWrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px;
+}
+
+.ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 2px dashed var(--brand-accent);
+    border-radius: 50%;
+    opacity: 0.8;
+    pointer-events: none;
+    animation: rotate 15s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ring {
+        animation: none;
+    }
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+[data-mantine-color-scheme="dark"] .ring {
+    box-shadow: 0 0 15px rgba(193, 235, 51, 0.15);
+}
+
+.name {
+    letter-spacing: -0.5px;
+    color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
+}
+
+.subText {
+    color: light-dark(var(--mantine-color-gray-8), var(--mantine-color-gray-5));
+}
+
+.verifiedIcon {
+    margin-left: 2px;
+}

@@ -1,13 +1,26 @@
 import { useState } from "react";
 import { useOutletContext, useFetcher } from "react-router";
 
-import { Alert, Avatar, Button, Group, Text, Title } from "@mantine/core";
+import {
+    Alert,
+    Avatar,
+    Box,
+    Button,
+    Group,
+    Stack,
+    Text,
+    Title,
+    useMantineTheme,
+} from "@mantine/core";
 
 import { IconRosetteDiscountCheckFilled } from "@tabler/icons-react";
+import classes from "@/styles/userHeader.module.css";
+import UserStatsRow from "./UserStatsRow";
 
-export default function UserHeader({ children, subText }) {
+export default function UserHeader({ children, subText, stats }) {
     const context = useOutletContext();
     const { user, isVerified } = context;
+    const theme = useMantineTheme();
 
     const [emailSent, setEmailSent] = useState(false);
     const fetcher = useFetcher();
@@ -21,33 +34,48 @@ export default function UserHeader({ children, subText }) {
     };
 
     return (
-        <>
-            <Group justify="space-between">
-                <Group my="md">
+        <Box pos="relative" mt="md" mb="xl">
+            {children && (
+                <Box pos="absolute" top={0} right={0} style={{ zIndex: 10 }}>
+                    {children}
+                </Box>
+            )}
+
+            <Stack align="center" gap="xs">
+                <Box className={classes.avatarWrapper}>
+                    <div className={classes.ring} />
                     <Avatar
                         src={user?.prefs?.avatarUrl}
-                        color="green"
+                        color="lime"
                         name={user?.name}
                         alt={user?.name}
-                        size="lg"
+                        size={80}
+                        radius="100%"
                     />
-                    <div>
-                        <Title order={3}>
-                            <Group gap="0px">
-                                {`Hello, ${user?.name?.split(" ")?.[0]}!`}
-                                {isVerified && (
-                                    <IconRosetteDiscountCheckFilled
-                                        size={16}
-                                        color="green"
-                                    />
-                                )}
-                            </Group>
-                        </Title>
-                        {subText && <Text size="0.8rem">{subText}</Text>}
-                    </div>
-                </Group>
-                {children}
-            </Group>
+                </Box>
+
+                <Stack align="center" gap={2}>
+                    <Title order={2} className={classes.name}>
+                        <Group gap={4} justify="center">
+                            {`Hello, ${user?.name?.split(" ")?.[0]}!`}
+                            {isVerified && (
+                                <IconRosetteDiscountCheckFilled
+                                    size={20}
+                                    color={theme.colors.blue[6]}
+                                    className={classes.verifiedIcon}
+                                />
+                            )}
+                        </Group>
+                    </Title>
+                    {subText && (
+                        <Text size="sm" fw={500} className={classes.subText}>
+                            {subText}
+                        </Text>
+                    )}
+                </Stack>
+
+                {stats && <UserStatsRow stats={stats} />}
+            </Stack>
 
             {!isVerified && (
                 <Alert
@@ -55,6 +83,7 @@ export default function UserHeader({ children, subText }) {
                     variant="light"
                     color="red"
                     title="Email not yet verified"
+                    style={{ width: "100%" }}
                 >
                     Your email is not verified and certain features may not be
                     available until complete. Please check your inbox for a
@@ -75,6 +104,6 @@ export default function UserHeader({ children, subText }) {
                     </Button>
                 </Alert>
             )}
-        </>
+        </Box>
     );
 }

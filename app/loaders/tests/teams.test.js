@@ -73,8 +73,12 @@ describe("Teams Loader", () => {
                 },
             });
 
-            const mockManagerTeams = [{ $id: "team1", name: "Team 1" }];
-            const mockPlayerTeams = [{ $id: "team2", name: "Team 2" }];
+            const mockManagerTeams = [
+                { $id: "team1", name: "Team 1", seasons: [] },
+            ];
+            const mockPlayerTeams = [
+                { $id: "team2", name: "Team 2", seasons: [] },
+            ];
 
             // Mock the batch fetch calls for database teams
             listDocuments
@@ -88,6 +92,53 @@ describe("Teams Loader", () => {
             expect(result.userId).toBe("user1");
             expect(result.managing).toEqual(mockManagerTeams);
             expect(result.playing).toEqual(mockPlayerTeams);
+        });
+
+        it("should return stats when isDashboard is true", async () => {
+            const mockUser = { $id: "user1" };
+            const mockTeams = {
+                teams: [{ $id: "team1", name: "Team 1" }],
+            };
+
+            createSessionClient.mockResolvedValue({
+                account: { get: jest.fn().mockResolvedValue(mockUser) },
+                teams: {
+                    list: jest.fn().mockResolvedValue(mockTeams),
+                    listMemberships: jest.fn().mockResolvedValue({
+                        memberships: [{ userId: "user1", roles: ["owner"] }],
+                    }),
+                },
+            });
+
+            // Mock DB calls in order:
+            // 1. fetchTeams (manager): teams list
+            // 2. fetchTeams (manager): seasons list
+            // 3. fetchTeams (manager): past games
+            // 4. fetchTeams (manager): future games
+            // 5. stats: awards list
+            // 6. stats: game_logs list
+            listDocuments
+                .mockResolvedValueOnce({
+                    rows: [{ $id: "team1", name: "Team 1" }],
+                }) // manager teams
+                .mockResolvedValueOnce({
+                    rows: [{ $id: "season1", teamId: "team1" }],
+                }) // seasons
+                .mockResolvedValueOnce({ rows: [] }) // past games
+                .mockResolvedValueOnce({ rows: [] }) // future games
+                .mockResolvedValueOnce({ total: 5 }) // awards count
+                .mockResolvedValueOnce({ total: 10 }); // game logs count
+
+            const result = await getUserTeams({
+                request: {},
+                isDashboard: true,
+            });
+
+            expect(result.stats).toEqual({
+                awardsCount: 5,
+                gameCount: 10,
+                teamCount: 1, // 1 manager team + 0 player teams
+            });
         });
     });
 
