@@ -1,13 +1,5 @@
 import { useRef, useEffect } from "react";
-import {
-    Box,
-    Card,
-    Group,
-    Stack,
-    Text,
-    useMantineTheme,
-    useMantineColorScheme,
-} from "@mantine/core";
+import { Box, Card, Group, Stack, Text } from "@mantine/core";
 import { DateTime } from "luxon";
 
 import classes from "@/styles/gameCalendarRow.module.css";

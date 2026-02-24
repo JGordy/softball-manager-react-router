@@ -61,7 +61,7 @@ export default function UserHeader({ children, subText, stats }) {
                             {isVerified && (
                                 <IconRosetteDiscountCheckFilled
                                     size={20}
-                                    color={theme.colors.green[6]}
+                                    color={theme.colors.blue[6]}
                                     className={classes.verifiedIcon}
                                 />
                             )}
