@@ -6,7 +6,7 @@ jest.mock("../getRainoutLikelihood", () => ({
     __esModule: true,
     default: jest.fn(() => ({
         likelihood: 10,
-        color: "green",
+        color: "lime",
         reason: "Test",
     })),
 }));

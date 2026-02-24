@@ -94,7 +94,7 @@ export default function AdminDashboard() {
                     <Title order={2}>Admin Dashboard</Title>
                     <Badge
                         color={
-                            revalidator.state === "loading" ? "yellow" : "green"
+                            revalidator.state === "loading" ? "yellow" : "lime"
                         }
                         size="lg"
                         variant="light"
@@ -106,7 +106,7 @@ export default function AdminDashboard() {
                 </Group>
                 <Group justify={{ base: "center", sm: "flex-start" }}>
                     <SegmentedControl
-                        color="green"
+                        color="lime"
                         value={range}
                         onChange={handleRangeChange}
                         data={[
@@ -169,7 +169,7 @@ export default function AdminDashboard() {
                             bgColor={t.primaryColor}
                             rightSection={
                                 <Badge
-                                    color={t.primaryColor ? "white" : "green"}
+                                    color={t.primaryColor ? "white" : "lime"}
                                     variant={t.primaryColor ? "white" : "light"}
                                     c={t.primaryColor || undefined}
                                 >
@@ -216,7 +216,7 @@ export default function AdminDashboard() {
                                     color={
                                         new Date() - new Date(u.accessedAt) <
                                         10 * 60 * 1000
-                                            ? "green"
+                                            ? "lime"
                                             : "gray"
                                     }
                                 >

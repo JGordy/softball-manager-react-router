@@ -160,7 +160,7 @@ export default function InvitePlayer({
 
                 <Button
                     variant="subtle"
-                    color="green"
+                    color="lime"
                     leftSection={<IconPlus size={16} />}
                     onClick={handleAddRow}
                     fullWidth

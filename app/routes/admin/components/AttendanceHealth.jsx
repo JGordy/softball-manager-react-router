@@ -40,7 +40,7 @@ export const AttendanceHealth = ({ attendance }) => {
                             value: rate,
                             color:
                                 rate > 70
-                                    ? "green"
+                                    ? "lime"
                                     : rate > 40
                                       ? "orange"
                                       : "red",
@@ -55,7 +55,7 @@ export const AttendanceHealth = ({ attendance }) => {
             </Group>
 
             <Group mt="md" gap="xs">
-                <Badge color="green" variant="light">
+                <Badge color="lime" variant="light">
                     Accepted: {accepted}
                 </Badge>
                 <Badge color="orange" variant="light">

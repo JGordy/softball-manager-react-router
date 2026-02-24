@@ -73,7 +73,7 @@ export default function AuthPanel({ actionData }) {
             <Divider />
 
             {actionSuccess && (
-                <Alert variant="light" color="green" title="Success!">
+                <Alert variant="light" color="lime" title="Success!">
                     {actionSuccess}
                 </Alert>
             )}

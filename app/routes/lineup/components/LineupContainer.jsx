@@ -235,7 +235,7 @@ export default function LineupContainer({
                                 <Button
                                     {...publishButtonProps}
                                     fullWidth
-                                    color="green"
+                                    color="lime"
                                     leftSection={<IconBellRinging size={18} />}
                                     onClick={handleSaveAndPublish}
                                     variant="filled"

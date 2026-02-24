@@ -19,15 +19,15 @@ describe("getPrecipitationChanceRating utility", () => {
     it('should return "Light" with green color for 1-19% precipitation', () => {
         expect(getPrecipitationChanceRating(0.01)).toEqual({
             label: "Light",
-            color: "green",
+            color: "lime",
         });
         expect(getPrecipitationChanceRating(0.1)).toEqual({
             label: "Light",
-            color: "green",
+            color: "lime",
         });
         expect(getPrecipitationChanceRating(0.19)).toEqual({
             label: "Light",
-            color: "green",
+            color: "lime",
         });
     });
 

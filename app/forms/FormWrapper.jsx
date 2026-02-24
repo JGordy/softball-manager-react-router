@@ -40,7 +40,7 @@ export default function FormWrapper({
                 <Group position="right" mt="xl" mb="sm">
                     <Button
                         type="submit"
-                        color={buttonColor || "green"}
+                        color={buttonColor || "lime"}
                         autoContrast
                         size="md"
                     >

@@ -22,7 +22,7 @@
 }
 
 .tabActive {
-    color: var(--mantine-color-white);
+    color: var(--mantine-color-black);
 }
 
 .indicator {

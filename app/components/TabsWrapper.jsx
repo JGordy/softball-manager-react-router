@@ -9,7 +9,7 @@ import classes from "@/styles/tabsWrapper.module.css";
  * @param {string} [props.defaultValue] - The default active tab value (uncontrolled mode)
  * @param {string} [props.value] - The controlled active tab value (controlled mode)
  * @param {Function} [props.onChange] - Callback when tab changes (controlled mode)
- * @param {string} [props.color] - The color for the indicator and hover state (defaults to green)
+ * @param {string} [props.color] - The color for the indicator and hover state (defaults to lime)
  * @param {React.ReactNode} props.children - Should contain Tabs.Tab and Tabs.Panel components
  *
  * @example
@@ -34,7 +34,7 @@ export default function TabsWrapper({
     defaultValue,
     value: controlledValue,
     onChange: controlledOnChange,
-    color = "var(--mantine-color-green-filled)",
+    color = "var(--mantine-color-lime-4)",
     children,
     mt = "xl",
 }) {

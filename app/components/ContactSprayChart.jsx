@@ -209,21 +209,21 @@ export default function ContactSprayChart({
                                 <Chip
                                     value={OVERALL}
                                     variant="light"
-                                    color="green"
+                                    color="lime"
                                 >
                                     All
                                 </Chip>
                                 <Chip
                                     value={BATS_RIGHT}
                                     variant="light"
-                                    color="green"
+                                    color="lime"
                                 >
                                     Right
                                 </Chip>
                                 <Chip
                                     value={BATS_LEFT}
                                     variant="light"
-                                    color="green"
+                                    color="lime"
                                 >
                                     Left
                                 </Chip>

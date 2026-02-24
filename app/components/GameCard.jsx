@@ -6,7 +6,7 @@ import { DateTime } from "luxon";
 import { formatGameTime, getGameDayStatus } from "@/utils/dateTime";
 
 const getGameResultColor = (result) => {
-    if (result === "won") return "green";
+    if (result === "won") return "lime";
     if (result === "lost") return "red";
     return "yellow";
 };
@@ -42,7 +42,7 @@ const getGameStatus = (dateIso, result, score, opponentScore, zone) => {
         return {
             status: "today",
             text: (
-                <Text align={"right"} span fw={700} c="green">
+                <Text align={"right"} span fw={700} c="lime">
                     In progress
                 </Text>
             ),
@@ -68,7 +68,7 @@ const getGameStatus = (dateIso, result, score, opponentScore, zone) => {
                 return {
                     status: "today",
                     text: (
-                        <Text align={"right"} span fw={700} c="green">
+                        <Text align={"right"} span fw={700} c="lime">
                             {hoursUntil === 1
                                 ? "1 hour away!"
                                 : `${hoursUntil} hours away!`}
@@ -82,7 +82,7 @@ const getGameStatus = (dateIso, result, score, opponentScore, zone) => {
         return {
             status: "future",
             text: (
-                <Text align={"right"} span fw={700} c="green">
+                <Text align={"right"} span fw={700} c="lime">
                     {`${daysUntil} day${daysUntil !== 1 ? "s" : ""} away!`}
                 </Text>
             ),

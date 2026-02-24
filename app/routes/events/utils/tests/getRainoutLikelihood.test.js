@@ -51,14 +51,14 @@ describe("getRainoutLikelihood utility", () => {
             expect(result.color).toBe("blue");
         });
 
-        it('should return "green" for likelihood 6-15', () => {
+        it('should return "lime" for likelihood 6-15', () => {
             const weather = [
                 { precipitation: { probability: { percent: 15 } } },
             ];
 
             const result = getRainoutLikelihood(weather);
 
-            expect(result.color).toBe("green");
+            expect(result.color).toBe("lime");
         });
 
         it('should return "yellow" for likelihood 16-30', () => {

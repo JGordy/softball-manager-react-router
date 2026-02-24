@@ -125,7 +125,7 @@ function NavLinks({ user }) {
         <div className={classes.navLinksContainer}>
             <SegmentedControl
                 className={classes.navLinks}
-                color="green"
+                color="lime.4"
                 data={links}
                 fullWidth={!isDesktop}
                 onChange={handleNavLinkClick}

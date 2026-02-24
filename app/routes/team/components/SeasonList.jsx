@@ -46,7 +46,7 @@ export default function SeasonList({
                     const daysUntilText = `${daysUntilGame} day${daysUntilGame !== 1 ? "s" : ""}`;
 
                     return (
-                        <Text span fw={700} c="green">
+                        <Text span fw={700} c="lime">
                             Next game {upcomingGame.isHomeGame ? "vs" : "@"}{" "}
                             {upcomingGame.opponent} in {daysUntilText}!
                         </Text>

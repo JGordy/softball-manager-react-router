@@ -4,7 +4,7 @@ function getLikelihoodColor(likelihood) {
     if (likelihood <= 5) {
         return "blue";
     } else if (likelihood <= 15) {
-        return "green";
+        return "lime";
     } else if (likelihood <= 30) {
         return "yellow";
     } else if (likelihood <= 50) {

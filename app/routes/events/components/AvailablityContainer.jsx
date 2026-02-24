@@ -29,8 +29,8 @@ import { trackEvent } from "@/utils/analytics";
 
 const availabilityData = {
     accepted: {
-        icon: <IconCircleCheckFilled size={24} color="green" />,
-        color: "green",
+        icon: <IconCircleCheckFilled size={24} color="lime" />,
+        color: "lime",
         label: "Yes",
         value: "accepted",
     },
@@ -106,7 +106,7 @@ const AvailabilityOptionsContainer = ({
                 data-overlay={`availability-${player.$id}`}
                 visible={fetcher.state === "loading"}
                 overlayProps={{ blur: 2, radius: "md" }}
-                loaderProps={{ color: "green", type: "dots", size: "lg" }}
+                loaderProps={{ color: "lime", type: "dots", size: "lg" }}
             />
             <Group justify="space-between">
                 <Group gap="xs" justify="space-between">

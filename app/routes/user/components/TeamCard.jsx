@@ -69,7 +69,7 @@ export default function TeamCard({ team }) {
                 );
                 const daysUntilText = `${daysUntilStart} day${daysUntilStart !== 1 ? "s" : ""}`;
                 const daysUntil = (
-                    <Text span fw={700} c="green">
+                    <Text span fw={700} c="lime">
                         {daysUntilText}
                     </Text>
                 );

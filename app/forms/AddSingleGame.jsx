@@ -80,7 +80,7 @@ export default function AddSingleGame({
             >
                 <Group mt="xs">
                     <Radio color="red" value="false" label="Away" />
-                    <Radio color="green" value="true" label="Home" />
+                    <Radio color="lime" value="true" label="Home" />
                 </Group>
             </Radio.Group>
             <LocationInput

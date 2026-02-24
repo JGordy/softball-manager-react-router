@@ -115,7 +115,7 @@ function DashboardNavContent({ activeSection, items }) {
             leftSection={item.icon}
             onClick={() => scrollTo(item.target)}
             px="xs"
-            color={activeSection === item.target ? "green" : "gray"}
+            color={activeSection === item.target ? "lime" : "gray"}
             styles={{
                 root: {
                     height: 32,

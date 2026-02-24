@@ -42,10 +42,10 @@ export default function GamedayCard({ gameId, isLive, isPast, canScore }) {
             mx="md"
             mt="md"
             py="5px"
-            bg={isLive ? "rgba(64, 192, 87, 0.05)" : undefined}
+            bg={isLive ? "var(--mantine-color-lime-light)" : undefined}
             style={
                 isLive
-                    ? { borderColor: "var(--mantine-color-green-outline)" }
+                    ? { borderColor: "var(--mantine-color-lime-outline)" }
                     : {}
             }
         >
@@ -53,13 +53,13 @@ export default function GamedayCard({ gameId, isLive, isPast, canScore }) {
                 <Text
                     size="sm"
                     fw={isLive ? 700 : 400}
-                    c={isLive ? "green" : undefined}
+                    c={isLive ? "lime" : undefined}
                 >
                     {titleLabel}
                 </Text>
                 {isLive && (
                     <Badge
-                        color="green"
+                        color="lime"
                         variant="filled"
                         size="sm"
                         leftSection={<IconActivity size={12} />}

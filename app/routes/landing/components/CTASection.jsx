@@ -13,7 +13,7 @@ export default function CTASection({ isAuthenticated, isDesktop }) {
                 withBorder
                 style={{
                     background:
-                        "linear-gradient(135deg, var(--mantine-color-green-9) 0%, var(--mantine-color-green-8) 100%)",
+                        "linear-gradient(135deg, var(--mantine-color-lime-9) 0%, var(--mantine-color-lime-8) 100%)",
                     color: "white",
                     textAlign: "center",
                 }}

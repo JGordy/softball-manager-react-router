@@ -1,11 +1,11 @@
 import getUvIndexColor from "../getUvIndexColor";
 
 describe("getUvIndexColor utility", () => {
-    it('should return "green" for UV index 0-2 (Low)', () => {
-        expect(getUvIndexColor(0)).toBe("green");
-        expect(getUvIndexColor(1)).toBe("green");
-        expect(getUvIndexColor(2)).toBe("green");
-        expect(getUvIndexColor(2.4)).toBe("green"); // Rounds to 2
+    it('should return "lime" for UV index 0-2 (Low)', () => {
+        expect(getUvIndexColor(0)).toBe("lime");
+        expect(getUvIndexColor(1)).toBe("lime");
+        expect(getUvIndexColor(2)).toBe("lime");
+        expect(getUvIndexColor(2.4)).toBe("lime"); // Rounds to 2
     });
 
     it('should return "yellow" for UV index 3-5 (Moderate)', () => {
@@ -35,13 +35,13 @@ describe("getUvIndexColor utility", () => {
     });
 
     it("should handle decimal values by rounding", () => {
-        expect(getUvIndexColor(2.4)).toBe("green"); // Rounds to 2
+        expect(getUvIndexColor(2.4)).toBe("lime"); // Rounds to 2
         expect(getUvIndexColor(2.5)).toBe("yellow"); // Rounds to 3
         expect(getUvIndexColor(5.4)).toBe("yellow"); // Rounds to 5
         expect(getUvIndexColor(5.5)).toBe("orange"); // Rounds to 6
     });
 
     it("should handle edge case of 0", () => {
-        expect(getUvIndexColor(0)).toBe("green");
+        expect(getUvIndexColor(0)).toBe("lime");
     });
 });
