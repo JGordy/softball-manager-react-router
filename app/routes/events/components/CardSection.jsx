@@ -11,8 +11,8 @@ export default function CardSection({
 }) {
     return (
         <Card.Section my="xs" inheritPadding>
-            <Group justify="space-between" c="green" onClick={onClick}>
-                <Group gap="xs" c="green">
+            <Group justify="space-between" c="lime" onClick={onClick}>
+                <Group gap="xs" c="lime">
                     {leftSection}
                     <Text>{heading}</Text>
                 </Group>
