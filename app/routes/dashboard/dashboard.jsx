@@ -15,6 +15,7 @@ import { IconPlus } from "@tabler/icons-react";
 
 import branding from "@/constants/branding";
 
+import GameCalendarRow from "@/components/GameCalendarRow";
 import GameCard from "@/components/GameCard";
 import UserHeader from "@/components/UserHeader";
 
@@ -33,10 +34,14 @@ export function meta() {
 }
 
 export async function loader({ request }) {
-    const { managing, playing, userId } = await getUserTeams({ request });
+    const { managing, playing, userId, stats } = await getUserTeams({
+        request,
+        isDashboard: true,
+    });
     return {
         teams: { managing, playing },
         userId,
+        stats,
     };
 }
 
@@ -50,6 +55,7 @@ export async function action({ request }) {
 }
 
 export default function Dashboard({ loaderData, actionData }) {
+    // console.log("/dashboard: ", { ...loaderData });
     const { openModal } = useModal();
 
     // Get user from parent layout via outlet context
@@ -58,6 +64,7 @@ export default function Dashboard({ loaderData, actionData }) {
 
     // console.log("/dashboard ", { loaderData });
     const teams = loaderData?.teams;
+    const stats = loaderData?.stats;
 
     const teamList = [...teams?.managing, ...teams?.playing];
 
@@ -122,11 +129,11 @@ export default function Dashboard({ loaderData, actionData }) {
 
     return (
         <Container>
-            <UserHeader subText="Team and events summary">
+            <UserHeader subText="Team and events summary" stats={stats}>
                 <DashboardMenu userId={userId} />
             </UserHeader>
 
-            <Group justify="space-between" align="center" mt="xl">
+            <Group justify="space-between" align="center">
                 <Title order={4}>My Teams ({teamList?.length || "0"})</Title>
                 {teamList?.length && (
                     <Text component="div" size="sm" c="dimmed">
@@ -167,8 +174,8 @@ export default function Dashboard({ loaderData, actionData }) {
             {teamList?.length >= 2 && (
                 <Carousel
                     controlsOffset="xs"
-                    slideSize="85%"
-                    slideGap="lg"
+                    slideSize="80%"
+                    slideGap="md"
                     emblaOptions={{
                         loop: true,
                         align: "center",
@@ -198,7 +205,7 @@ export default function Dashboard({ loaderData, actionData }) {
                             <Carousel.Slide key={team.$id} my="lg">
                                 <Link to={`/team/${team.$id}`}>
                                     <Card
-                                        radius="lg"
+                                        radius="md"
                                         p="lg"
                                         style={{
                                             position: "relative",
@@ -206,17 +213,22 @@ export default function Dashboard({ loaderData, actionData }) {
                                                 ? "scale(1.04)"
                                                 : "scale(1)",
                                             transition:
-                                                "transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease",
+                                                "transform 250ms ease, box-shadow 250ms ease, border-color 250ms ease",
                                             border: isActive
                                                 ? `2px solid ${team.primaryColor}`
-                                                : "1px solid rgba(0,0,0,0.06)",
+                                                : "1.5px solid rgba(255,255,255,0.05)",
                                             backgroundColor: bgColor,
+                                            boxShadow: isActive
+                                                ? `0 10px 25px -10px ${team.primaryColor}33`
+                                                : "none",
                                             marginLeft: slideMarginLeft,
                                             marginRight: slideMarginRight,
                                         }}
                                     >
                                         <Text
                                             ta="center"
+                                            fw={700}
+                                            size="md"
                                             c={textColor}
                                             style={{
                                                 whiteSpace: "nowrap",
@@ -232,6 +244,10 @@ export default function Dashboard({ loaderData, actionData }) {
                         );
                     })}
                 </Carousel>
+            )}
+
+            {teamList?.length > 0 && (
+                <GameCalendarRow games={[...futureGames, ...pastGames]} />
             )}
 
             {/* Next Game (for active team) */}
