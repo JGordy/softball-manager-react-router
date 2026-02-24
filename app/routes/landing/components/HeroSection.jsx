@@ -53,7 +53,7 @@ export default function HeroSection({ isAuthenticated, isDesktop }) {
                     position: "absolute",
                     inset: 0,
                     background:
-                        "linear-gradient(135deg, var(--mantine-color-green-9) 0%, var(--mantine-color-green-7) 100%)",
+                        "linear-gradient(135deg, var(--mantine-color-lime-9) 0%, var(--mantine-color-lime-7) 100%)",
                     opacity: 0.85,
                     zIndex: 1,
                 }}
