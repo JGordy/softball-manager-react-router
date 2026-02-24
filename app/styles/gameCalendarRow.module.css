@@ -40,10 +40,7 @@
 }
 
 .statusWon {
-    color: light-dark(
-        var(--mantine-color-green-7),
-        var(--mantine-color-green-6)
-    );
+    color: light-dark(var(--mantine-color-lime-7), var(--mantine-color-lime-6));
 }
 
 .statusLost {
