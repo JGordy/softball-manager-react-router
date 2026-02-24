@@ -18,7 +18,7 @@ const PositionSelect = React.memo(
 
                 const preferredPositions = player?.preferredPositions;
                 if (preferredPositions?.includes(option.value)) {
-                    color = "green";
+                    color = "lime";
                 }
 
                 const dislikedPositions = player?.dislikedPositions;

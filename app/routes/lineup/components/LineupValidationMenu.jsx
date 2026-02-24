@@ -114,7 +114,7 @@ export default function LineupValidationMenu({ validationResults }) {
                     <ActionIcon
                         radius="xl"
                         variant="light"
-                        color={hasErrors ? "red" : "green"}
+                        color={hasErrors ? "red" : "lime"}
                         size="lg"
                         aria-label="Lineup Validation"
                     >
@@ -132,7 +132,7 @@ export default function LineupValidationMenu({ validationResults }) {
                     <>
                         <Menu.Label>Lineup Validation</Menu.Label>
                         <Menu.Item
-                            leftSection={<IconCheck size={14} color="green" />}
+                            leftSection={<IconCheck size={14} color="lime" />}
                         >
                             <Text size="sm">No issues found</Text>
                         </Menu.Item>

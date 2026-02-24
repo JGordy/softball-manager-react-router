@@ -54,7 +54,7 @@ export default function InitialView({
                     style={{ flexGrow: 1 }}
                     variant="gradient"
                     gradient={{
-                        from: "green",
+                        from: "lime",
                         to: "blue",
                         deg: 90,
                     }}

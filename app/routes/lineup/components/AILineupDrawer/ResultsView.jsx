@@ -35,7 +35,7 @@ export default function ResultsView({
                     <Alert
                         icon={<IconCheck size={16} />}
                         title="Lineup Generated!"
-                        color="green"
+                        color="lime"
                         mb="md"
                     >
                         AI has generated a lineup with {generatedLineup.length}{" "}
@@ -112,7 +112,7 @@ export default function ResultsView({
                 <Button
                     style={{ flexGrow: 1 }}
                     variant="filled"
-                    color="green"
+                    color="lime"
                     onClick={onApply}
                     leftSection={<IconCheck size={18} />}
                 >
