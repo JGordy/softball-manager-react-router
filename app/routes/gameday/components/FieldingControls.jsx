@@ -12,7 +12,7 @@ export default function FieldingControls({ onOut, onRun, onSkip }) {
                         OUT
                     </Text>
                 </Button>
-                <Button h={80} color="green" radius="md" onClick={onRun}>
+                <Button h={80} color="lime" radius="md" onClick={onRun}>
                     <Text size="md" fw={900}>
                         RUN
                     </Text>
