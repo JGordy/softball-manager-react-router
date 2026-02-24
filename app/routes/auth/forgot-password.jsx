@@ -70,7 +70,7 @@ export default function ForgotPassword() {
                 {actionData?.message && (
                     <Alert
                         variant="light"
-                        color={actionData.success ? "green" : "red"}
+                        color={actionData.success ? "lime" : "red"}
                         title={actionData.success ? "Email Sent" : "Error"}
                         icon={
                             actionData.success ? (
@@ -91,7 +91,7 @@ export default function ForgotPassword() {
                         fullWidth
                         mt="xl"
                         type="submit"
-                        color="green"
+                        color="lime"
                         onClick={() => trackEvent("forgot-password-submit")}
                     >
                         Send Reset Link

@@ -73,7 +73,7 @@ export default function Verify({ loaderData }) {
                 {status !== "verifying" && (
                     <Text
                         size="lg"
-                        c={status === "success" ? "green" : "red"}
+                        c={status === "success" ? "lime" : "red"}
                         fw={500}
                     >
                         {message}
