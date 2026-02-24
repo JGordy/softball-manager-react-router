@@ -80,7 +80,7 @@ export default function AccountPanel({ actionData }) {
             {actionSuccess && (
                 <Alert
                     variant="light"
-                    color="green"
+                    color="lime"
                     title="Success!"
                     radius="md"
                 >
