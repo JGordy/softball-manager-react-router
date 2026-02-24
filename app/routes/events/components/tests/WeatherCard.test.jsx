@@ -43,8 +43,8 @@ describe("WeatherCard Component", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         precipUtils.default.mockReturnValue({ color: "blue" });
-        uvUtils.default.mockReturnValue("green");
-        windUtils.default.mockReturnValue({ color: "green" });
+        uvUtils.default.mockReturnValue("lime");
+        windUtils.default.mockReturnValue({ color: "lime" });
     });
 
     it("renders fallback text when no weather data", () => {

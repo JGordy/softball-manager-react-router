@@ -37,22 +37,22 @@ describe("getWindSpeedRating utility", () => {
     it('should return "Gentle Breeze" for wind speed 8-12 mph', () => {
         expect(getWindSpeedRating(8)).toEqual({
             label: "Gentle Breeze",
-            color: "green",
+            color: "lime",
         });
         expect(getWindSpeedRating(12)).toEqual({
             label: "Gentle Breeze",
-            color: "green",
+            color: "lime",
         });
     });
 
     it('should return "Moderate Breeze" for wind speed 13-18 mph', () => {
         expect(getWindSpeedRating(13)).toEqual({
             label: "Moderate Breeze",
-            color: "green.3",
+            color: "lime.3",
         });
         expect(getWindSpeedRating(18)).toEqual({
             label: "Moderate Breeze",
-            color: "green.3",
+            color: "lime.3",
         });
     });
 
