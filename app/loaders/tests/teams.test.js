@@ -73,8 +73,12 @@ describe("Teams Loader", () => {
                 },
             });
 
-            const mockManagerTeams = [{ $id: "team1", name: "Team 1" }];
-            const mockPlayerTeams = [{ $id: "team2", name: "Team 2" }];
+            const mockManagerTeams = [
+                { $id: "team1", name: "Team 1", seasons: [] },
+            ];
+            const mockPlayerTeams = [
+                { $id: "team2", name: "Team 2", seasons: [] },
+            ];
 
             // Mock the batch fetch calls for database teams
             listDocuments

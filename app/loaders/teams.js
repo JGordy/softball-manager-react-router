@@ -178,40 +178,32 @@ export async function getUserTeams({ request, isDashboard = false }) {
             });
 
             // 4. Map seasons or flattened games to teams
-            teams.forEach((team) => {
+            return teams.map((team) => {
                 const teamSeasons = allSeasons.filter(
                     (s) => s.teamId === team.$id,
                 );
 
                 if (isDashboard) {
                     // Flatten games from all seasons for this team
-                    team.games = teamSeasons.flatMap((s) => s.games || []);
+                    const games = teamSeasons.flatMap((s) => s.games || []);
 
-                    // Strip unnecessary fields from team for dashboard
-                    const {
-                        $id,
-                        name,
-                        displayName,
-                        primaryColor,
+                    // Return optimized team object for dashboard
+                    return {
+                        $id: team.$id,
+                        name: team.name,
+                        displayName: team.displayName,
+                        primaryColor: team.primaryColor,
                         games,
-                        leagueName,
-                    } = team;
-                    // Replace team object properties with only what's needed
-                    Object.keys(team).forEach((key) => delete team[key]);
-                    Object.assign(team, {
-                        $id,
-                        name,
-                        displayName,
-                        primaryColor,
-                        games,
-                        leagueName,
-                    });
-                } else {
-                    team.seasons = teamSeasons;
+                        leagueName: team.leagueName,
+                    };
                 }
-            });
 
-            return teams;
+                // For non-dashboard views, attach seasons
+                return {
+                    ...team,
+                    seasons: teamSeasons,
+                };
+            });
         };
 
         const managerTeams = await fetchTeams(managerTeamIds);
