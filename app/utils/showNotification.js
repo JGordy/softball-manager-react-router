@@ -29,7 +29,7 @@ export function showNotification({
     // Map variant to color
     const variantColors = {
         info: "blue",
-        success: "green",
+        success: "lime",
         warning: "orange",
         error: "red.9",
     };
