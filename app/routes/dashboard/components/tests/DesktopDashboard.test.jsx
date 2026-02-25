@@ -1,4 +1,4 @@
-import { BrowserRouter } from "react-router";
+import { MemoryRouter } from "react-router";
 import { render, screen, fireEvent } from "@/utils/test-utils";
 
 import DesktopDashboard from "../DesktopDashboard";
@@ -39,12 +39,12 @@ describe("DesktopDashboard Component", () => {
 
     const renderDashboard = (teamList = mockTeamList) => {
         return render(
-            <BrowserRouter>
+            <MemoryRouter>
                 <DesktopDashboard
                     teamList={teamList}
                     openAddTeamModal={mockOpenAddTeamModal}
                 />
-            </BrowserRouter>,
+            </MemoryRouter>,
         );
     };
 

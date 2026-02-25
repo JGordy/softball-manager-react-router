@@ -1,4 +1,4 @@
-import { BrowserRouter } from "react-router";
+import { MemoryRouter } from "react-router";
 import { render, screen, fireEvent } from "@/utils/test-utils";
 
 import MobileDashboard from "../MobileDashboard";
@@ -28,12 +28,12 @@ describe("MobileDashboard Component", () => {
 
     const renderDashboard = (teamList = mockTeamList) => {
         return render(
-            <BrowserRouter>
+            <MemoryRouter>
                 <MobileDashboard
                     teamList={teamList}
                     openAddTeamModal={mockOpenAddTeamModal}
                 />
-            </BrowserRouter>,
+            </MemoryRouter>,
         );
     };
 

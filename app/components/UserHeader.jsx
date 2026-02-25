@@ -43,12 +43,7 @@ export default function UserHeader({ children, subText, stats }) {
             )}
 
             {isDesktop ? (
-                <Flex
-                    direction="row"
-                    align="center"
-                    justify="space-between"
-                    className={classes.headerContent}
-                >
+                <Flex direction="row" align="center" justify="space-between">
                     <Group gap="md" wrap="nowrap">
                         <Box className={classes.avatarWrapper}>
                             <div className={classes.ring} />
@@ -93,11 +88,7 @@ export default function UserHeader({ children, subText, stats }) {
                     </Group>
                 </Flex>
             ) : (
-                <Stack
-                    align="center"
-                    gap="md"
-                    className={classes.headerContent}
-                >
+                <Stack align="center" gap="md">
                     <Box className={classes.avatarWrapper}>
                         <div className={classes.ring} />
                         <Avatar
