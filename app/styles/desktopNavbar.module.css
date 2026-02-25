@@ -1,0 +1,25 @@
+.header {
+    height: 100%;
+    background-color: var(--bg-card);
+    border-bottom: 1px solid var(--border-card);
+    box-shadow: var(--mantine-shadow-sm);
+}
+
+.link {
+    border-radius: var(--mantine-radius-md);
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+    color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+    transition: all 150ms ease;
+}
+
+.link:hover {
+    background-color: light-dark(
+        var(--mantine-color-white),
+        var(--mantine-color-dark-7)
+    );
+}
+
+.link[data-active] {
+    background-color: var(--mantine-color-green-light);
+    color: var(--mantine-color-green-light-color);
+}
