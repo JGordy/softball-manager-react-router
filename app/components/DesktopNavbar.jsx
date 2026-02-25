@@ -84,7 +84,7 @@ export default function DesktopNavbar({ user }) {
                 <Group gap="xs">
                     <IconBallBaseball
                         size={28}
-                        color="var(--mantine-color-green-filled)"
+                        color="var(--mantine-color-lime-filled)"
                     />
                     <Title order={3}>{branding.name}</Title>
                 </Group>

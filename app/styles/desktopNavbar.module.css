@@ -20,6 +20,6 @@
 }
 
 .link[data-active] {
-    background-color: var(--mantine-color-green-light);
-    color: var(--mantine-color-green-light-color);
+    background-color: var(--mantine-color-lime-light);
+    color: var(--mantine-color-lime-light-color);
 }
