@@ -75,26 +75,21 @@ export default function DesktopDashboard({ teamList, openAddTeamModal }) {
                 <Tabs
                     value={activeTeamId}
                     onChange={setActiveTeamId}
-                    variant="outline"
-                    radius="md"
+                    variant="pills"
+                    radius="xl"
                     color={activeTeam?.primaryColor}
+                    keepMounted={false}
                 >
                     <Tabs.List>
                         {teamList.map((team) => (
                             <Tabs.Tab
                                 key={team.$id}
                                 value={team.$id}
-                                leftSection={
-                                    <Box
-                                        w={12}
-                                        h={12}
-                                        style={{
-                                            borderRadius: "50%",
-                                            backgroundColor:
-                                                team.primaryColor || "gray",
-                                        }}
-                                    />
-                                }
+                                style={{
+                                    border: `1px solid ${
+                                        team.primaryColor || "gray"
+                                    }`,
+                                }}
                             >
                                 <Text fw={500}>{team.name}</Text>
                             </Tabs.Tab>

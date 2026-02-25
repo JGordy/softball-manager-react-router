@@ -3,6 +3,7 @@ import { memo } from "react";
 import { Outlet, redirect, useNavigation } from "react-router";
 
 import { AppShell, Box, Container, LoadingOverlay } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 
 import NavLinks from "@/components/NavLinks";
 import DesktopNavbar from "@/components/DesktopNavbar";
@@ -17,8 +18,6 @@ export async function loader({ request }) {
     try {
         const { account } = await createSessionClient(request);
         const user = await account.get();
-
-        const isAdmin = user.labels?.includes("admin");
 
         // Check Device
         const isMobile = isMobileUserAgent(request);
@@ -57,7 +56,6 @@ export async function loader({ request }) {
         throw redirect(`/login?error=auth_failure`);
     }
 }
-import { useMediaQuery } from "@mantine/hooks";
 
 function Layout({ loaderData }) {
     const navigation = useNavigation();
