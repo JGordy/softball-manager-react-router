@@ -19,7 +19,7 @@ import DrawerContainer from "@/components/DrawerContainer";
 
 const availabilityData = {
     accepted: {
-        icon: <IconCircleCheckFilled size={18} color="green" />,
+        icon: <IconCircleCheckFilled size={18} color="lime" />,
         label: "Accepted",
         order: 0,
     },

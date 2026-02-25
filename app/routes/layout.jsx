@@ -85,7 +85,7 @@ function Layout({ loaderData }) {
                     visible={isNavigating}
                     zIndex={150}
                     loaderProps={{
-                        color: "green",
+                        color: "lime",
                         size: "xl",
                         type: "dots",
                         style: { display: isNavigating ? undefined : "none" },

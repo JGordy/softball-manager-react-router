@@ -37,7 +37,7 @@ export default function FeaturesSection() {
         },
         {
             icon: IconCalendarStats,
-            color: "green",
+            color: "lime",
             title: "Season Schedules",
             description: "Keep track of games and locations easily.",
         },
@@ -66,7 +66,7 @@ export default function FeaturesSection() {
     return (
         <Container size="lg" py={100} pos="relative">
             <Stack align="center" mb={60} pos="relative" style={{ zIndex: 1 }}>
-                <Badge variant="filled" color="green" size="lg" radius="sm">
+                <Badge variant="filled" color="lime" size="lg" radius="sm">
                     Features
                 </Badge>
                 <Title order={2} ta="center" fz={rem(48)} fw={900}>
@@ -135,7 +135,7 @@ export default function FeaturesSection() {
                             size={50}
                             radius="md"
                             variant="light"
-                            color={feature.color || "green"}
+                            color={feature.color || "lime"}
                             mb="md"
                         >
                             <feature.icon

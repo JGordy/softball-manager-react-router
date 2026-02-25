@@ -13,7 +13,9 @@ describe("SupportPanel Component", () => {
     it("renders support email link", () => {
         render(<SupportPanel />);
 
-        const link = screen.getByText("support@rostrhq.app");
+        const link = screen.getByRole("link", {
+            name: /support@rostrhq\.app/i,
+        });
         expect(link).toBeInTheDocument();
         expect(link.tagName).toBe("A");
         expect(link).toHaveAttribute("href", "mailto:support@rostrhq.app");
@@ -22,7 +24,9 @@ describe("SupportPanel Component", () => {
     it("tracks click on support link", () => {
         render(<SupportPanel />);
 
-        fireEvent.click(screen.getByText("support@rostrhq.app"));
+        fireEvent.click(
+            screen.getByRole("link", { name: /support@rostrhq\.app/i }),
+        );
         expect(trackEvent).toHaveBeenCalledWith("email-support");
     });
 });

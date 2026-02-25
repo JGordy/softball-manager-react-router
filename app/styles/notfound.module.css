@@ -11,10 +11,7 @@
     position: absolute;
     inset: 0;
     opacity: 0.75;
-    color: light-dark(
-        var(--mantine-color-green-6),
-        var(--mantine-color-gray-7)
-    );
+    color: light-dark(var(--mantine-color-lime-4), var(--mantine-color-gray-7));
 }
 
 .content {

@@ -6,7 +6,7 @@ import { IconGenderFemale, IconGripVertical } from "@tabler/icons-react";
 const getBatsColor = (bats) => {
     switch (bats) {
         case "Left":
-            return "green";
+            return "lime";
         case "Right":
             return "blue";
         case "Switch":

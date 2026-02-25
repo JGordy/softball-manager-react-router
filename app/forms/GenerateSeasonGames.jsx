@@ -216,9 +216,9 @@ export default function GenerateSeasonGames({
                     `${gameTimes ? gameTimes.toLocaleString(DateTime.TIME_SIMPLE) : ""}`,
                 ]}
                 highlightStyles={{
-                    // backgroundColor: 'green',
+                    // backgroundColor: 'lime',
                     backgroundImage:
-                        "linear-gradient(45deg, var(--mantine-color-cyan-5), var(--mantine-color-green-6))",
+                        "linear-gradient(45deg, var(--mantine-color-cyan-5), var(--mantine-color-lime-4))",
                     fontWeight: 700,
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
@@ -257,7 +257,7 @@ export default function GenerateSeasonGames({
             {generatedGames.length === 0 && (
                 <Group position="right" mt="lg">
                     <Button
-                        color={buttonColor || "green"}
+                        color={buttonColor || "lime"}
                         onClick={handleGenerateGamesClick}
                         autoContrast
                     >

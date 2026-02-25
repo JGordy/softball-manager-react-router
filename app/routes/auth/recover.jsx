@@ -78,7 +78,7 @@ export default function Recover() {
                     {actionData?.message && (
                         <Alert
                             variant="light"
-                            color={actionData.success ? "green" : "red"}
+                            color={actionData.success ? "lime" : "red"}
                             icon={
                                 actionData.success ? (
                                     <IconRosetteDiscountCheckFilled size={16} />
@@ -127,7 +127,7 @@ export default function Recover() {
                         <Button
                             mt="xl"
                             type="submit"
-                            color="green"
+                            color="lime"
                             autoContrast
                             fullWidth
                         >

@@ -51,13 +51,13 @@ function PlayerDetails({ player }) {
             <Group>
                 <Group gap="4px">
                     <Text>Throws</Text>
-                    <Text fw={700} c={throws ? "green" : "red"}>
+                    <Text fw={700} c={throws ? "lime" : "red"}>
                         {throws || "Not Listed"}
                     </Text>
                 </Group>
                 <Group gap="4px">
                     <Text>Bats</Text>
-                    <Text fw={700} c={bats ? "green" : "red"}>
+                    <Text fw={700} c={bats ? "lime" : "red"}>
                         {bats || "Not Listed"}
                     </Text>
                 </Group>

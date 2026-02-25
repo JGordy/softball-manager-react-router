@@ -146,7 +146,7 @@ export default function InstallAppDrawer({ os: osOverride } = {}) {
                         size="sm"
                         center
                         icon={
-                            <ThemeIcon color="green" size={20} radius="xl">
+                            <ThemeIcon color="lime" size={20} radius="xl">
                                 <IconCheck size={12} />
                             </ThemeIcon>
                         }

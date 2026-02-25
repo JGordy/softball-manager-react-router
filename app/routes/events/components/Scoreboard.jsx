@@ -25,7 +25,7 @@ export default function Scoreboard({
                 mx="auto"
             >
                 <Group justify="center" align="center">
-                    <Text size="xl" fw={700} c={isWin ? "green" : ""}>
+                    <Text size="xl" fw={700} c={isWin ? "lime" : ""}>
                         {score || "0"}
                     </Text>
                     <div>-</div>
@@ -37,7 +37,7 @@ export default function Scoreboard({
 
             {gameInProgress && (
                 <Center mt="md">
-                    <Text size="sm" c="green">
+                    <Text size="sm" c="lime">
                         Game is live!
                     </Text>
                 </Center>

@@ -24,7 +24,7 @@
     --shadow-card: light-dark(0 10px 30px rgba(255, 170, 50, 0.06), none);
 
     /* Brand Accents */
-    --brand-accent: light-dark(var(--mantine-color-lime-8), #c1eb33);
+    --brand-accent: var(--mantine-color-lime-filled);
     --brand-accent-bg: light-dark(
         rgba(0, 0, 0, 0.03),
         rgba(193, 235, 51, 0.08)
@@ -78,7 +78,7 @@
 }
 
 .inner-card {
-    background-color: light-dark(#e2f6f7, transparent) !important;
+    background-color: light-dark(#f5f8f4, transparent) !important;
 }
 
 .other-receiving-card.mantine-Card-root {
@@ -89,8 +89,8 @@
 .event-details-hero {
     background-image:
         linear-gradient(
-            light-dark(rgba(223, 245, 247, 0.85), rgb(26, 36, 47, 0.9)),
-            light-dark(rgb(223, 245, 247, 0.85), rgb(26, 36, 47, 0.9))
+            light-dark(rgba(240, 245, 247, 0.85), rgba(26, 36, 47, 0.9)),
+            light-dark(rgba(240, 245, 247, 0.85), rgba(26, 36, 47, 0.9))
         ),
         url("https://fra.cloud.appwrite.io/v1/storage/buckets/67af948b00375c741493/files/68793d820012b4a23cb3/view?project=679b95f10030c4821c90&mode=admin");
 
