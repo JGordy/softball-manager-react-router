@@ -96,8 +96,8 @@ export default function DesktopDashboard({ teamList, openAddTeamModal }) {
                         ))}
                     </Tabs.List>
 
-                    {teamList.map((team) => (
-                        <Tabs.Panel key={team.$id} value={team.$id} pt="xl">
+                    {activeTeam && (
+                        <Tabs.Panel value={activeTeam.$id} pt="xl">
                             <Box mb="xl">
                                 <Group justify="space-between" mb="md">
                                     <Title order={5}>
@@ -105,7 +105,7 @@ export default function DesktopDashboard({ teamList, openAddTeamModal }) {
                                     </Title>
                                     <Button
                                         component={Link}
-                                        to={`/team/${team.$id}`}
+                                        to={`/team/${activeTeam.$id}`}
                                         variant="light"
                                         size="xs"
                                     >
@@ -163,7 +163,7 @@ export default function DesktopDashboard({ teamList, openAddTeamModal }) {
                                 </Grid.Col>
                             </Grid>
                         </Tabs.Panel>
-                    ))}
+                    )}
                 </Tabs>
             )}
         </Box>
