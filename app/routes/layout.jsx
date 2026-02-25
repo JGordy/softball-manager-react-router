@@ -19,8 +19,14 @@ export async function loader({ request }) {
         const { account } = await createSessionClient(request);
         const user = await account.get();
 
+        const isAdmin = user.labels?.includes("admin");
+
         // Check Device
         const isMobile = isMobileUserAgent(request);
+
+        if (!isMobile && !isAdmin) {
+            throw redirect("/");
+        }
 
         // Check for "Generic" names (Profile Incomplete)
         const isProfileIncomplete =
