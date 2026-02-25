@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router";
-import { Group, UnstyledButton, Text, Title } from "@mantine/core";
+import { Group, Image, UnstyledButton, Text, Title } from "@mantine/core";
 import {
     IconBallBaseball,
     IconCalendar,
@@ -10,6 +10,9 @@ import {
 
 import classes from "@/styles/desktopNavbar.module.css";
 import branding from "@/constants/branding";
+import images from "@/constants/images";
+
+const { brandIcon192 } = images;
 
 function NavbarLink({ icon: Icon, label, active, onClick }) {
     return (
@@ -82,10 +85,9 @@ export default function DesktopNavbar({ user }) {
         <header className={classes.header}>
             <Group justify="space-between" h="100%" px="md">
                 <Group gap="xs">
-                    <IconBallBaseball
-                        size={28}
-                        color="var(--mantine-color-lime-filled)"
-                    />
+                    <div style={{ width: 32, height: 32 }}>
+                        <Image src={brandIcon192} alt={branding.name} />
+                    </div>
                     <Title order={3}>{branding.name}</Title>
                 </Group>
 
