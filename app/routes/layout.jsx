@@ -2,9 +2,10 @@ import { memo } from "react";
 
 import { Outlet, redirect, useNavigation } from "react-router";
 
-import { Container, LoadingOverlay } from "@mantine/core";
+import { AppShell, Box, Container, LoadingOverlay } from "@mantine/core";
 
 import NavLinks from "@/components/NavLinks";
+import DesktopNavbar from "@/components/DesktopNavbar";
 import NotificationPromptDrawer from "@/components/NotificationPromptDrawer";
 import InstallAppDrawer from "@/components/InstallAppDrawer";
 
@@ -19,12 +20,8 @@ export async function loader({ request }) {
 
         const isAdmin = user.labels?.includes("admin");
 
-        // Check Device - Redirect desktop users immediately, unless they are admin
+        // Check Device
         const isMobile = isMobileUserAgent(request);
-
-        if (!isMobile && !isAdmin) {
-            throw redirect("/");
-        }
 
         // Check for "Generic" names (Profile Incomplete)
         const isProfileIncomplete =
@@ -38,6 +35,7 @@ export async function loader({ request }) {
             user,
             isAuthenticated: true,
             isVerified: user.emailVerification,
+            isMobile,
         };
     } catch (error) {
         if (error instanceof Response) throw error; // Handle redirects
@@ -59,15 +57,29 @@ export async function loader({ request }) {
         throw redirect(`/login?error=auth_failure`);
     }
 }
+import { useMediaQuery } from "@mantine/hooks";
 
 function Layout({ loaderData }) {
     const navigation = useNavigation();
 
+    // Default the initial desktop query to the inverse of the server's user-agent Mobile check!
+    const isDesktop = useMediaQuery("(min-width: 48em)", !loaderData.isMobile, {
+        getInitialValueInEffect: false,
+    });
+
     const isNavigating = navigation.state !== "idle";
 
     return (
-        <div>
-            <main>
+        <AppShell
+            header={{
+                height: { base: 0, md: 60 },
+            }}
+        >
+            <AppShell.Header withBorder={false} visibleFrom="md">
+                <DesktopNavbar user={loaderData.user} />
+            </AppShell.Header>
+
+            <AppShell.Main>
                 <LoadingOverlay
                     data-overlay="layout"
                     visible={isNavigating}
@@ -81,15 +93,17 @@ function Layout({ loaderData }) {
                     overlayProps={{ radius: "sm", blur: 3 }}
                 />
 
-                <Container p="0" mih="90vh">
-                    <Outlet context={{ ...loaderData }} />
+                <Container p={0} mih="90vh" size="xl">
+                    <Outlet context={{ ...loaderData, isDesktop }} />
                 </Container>
 
-                <NavLinks user={loaderData.user} />
+                <Box hiddenFrom="md">
+                    <NavLinks user={loaderData.user} />
+                </Box>
                 <NotificationPromptDrawer />
                 <InstallAppDrawer />
-            </main>
-        </div>
+            </AppShell.Main>
+        </AppShell>
     );
 }
 
