@@ -38,6 +38,10 @@ jest.mock("@/components/NavLinks", () => ({
     __esModule: true,
     default: () => <div data-testid="nav-links" />,
 }));
+jest.mock("@/components/DesktopNavbar", () => ({
+    __esModule: true,
+    default: () => <div data-testid="desktop-navbar" />,
+}));
 jest.mock("@/components/NotificationPromptDrawer", () => ({
     __esModule: true,
     default: () => <div data-testid="notification-drawer" />,
@@ -138,6 +142,7 @@ describe("Layout Route", () => {
                 user: mockUser,
                 isAuthenticated: true,
                 isVerified: true,
+                isMobile: true,
             });
         });
     });
@@ -152,6 +157,7 @@ describe("Layout Route", () => {
 
             expect(screen.getByTestId("outlet")).toBeInTheDocument();
             expect(screen.getByTestId("nav-links")).toBeInTheDocument();
+            expect(screen.getByTestId("desktop-navbar")).toBeInTheDocument();
             expect(
                 screen.getByTestId("notification-drawer"),
             ).toBeInTheDocument();

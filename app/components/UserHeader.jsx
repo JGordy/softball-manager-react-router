@@ -6,6 +6,7 @@ import {
     Avatar,
     Box,
     Button,
+    Flex,
     Group,
     Stack,
     Text,
@@ -19,7 +20,7 @@ import UserStatsRow from "./UserStatsRow";
 
 export default function UserHeader({ children, subText, stats }) {
     const context = useOutletContext();
-    const { user, isVerified } = context;
+    const { user, isVerified, isDesktop = false } = context || {};
     const theme = useMantineTheme();
 
     const [emailSent, setEmailSent] = useState(false);
@@ -34,48 +35,108 @@ export default function UserHeader({ children, subText, stats }) {
     };
 
     return (
-        <Box pos="relative" mt="md" mb="xl">
-            {children && (
+        <Box pos="relative" mt="md" mb={isDesktop ? "xl" : "lg"}>
+            {!isDesktop && children && (
                 <Box pos="absolute" top={0} right={0} style={{ zIndex: 10 }}>
                     {children}
                 </Box>
             )}
 
-            <Stack align="center" gap="xs">
-                <Box className={classes.avatarWrapper}>
-                    <div className={classes.ring} />
-                    <Avatar
-                        src={user?.prefs?.avatarUrl}
-                        color="lime"
-                        name={user?.name}
-                        alt={user?.name}
-                        size={80}
-                        radius="100%"
-                    />
-                </Box>
+            {isDesktop ? (
+                <Flex direction="row" align="center" justify="space-between">
+                    <Group gap="md" wrap="nowrap" style={{ flex: 1 }}>
+                        <Box className={classes.avatarWrapper}>
+                            <div className={classes.ring} />
+                            <Avatar
+                                src={user?.prefs?.avatarUrl}
+                                color="lime"
+                                name={user?.name}
+                                alt={user?.name}
+                                size={80}
+                                radius="100%"
+                            />
+                        </Box>
 
-                <Stack align="center" gap={2}>
-                    <Title order={2} className={classes.name}>
-                        <Group gap={4} justify="center">
-                            {`Hello, ${user?.name?.split(" ")?.[0]}!`}
-                            {isVerified && (
-                                <IconRosetteDiscountCheckFilled
-                                    size={20}
-                                    color={theme.colors.blue[6]}
-                                    className={classes.verifiedIcon}
-                                />
+                        <Stack align="flex-start" gap={2}>
+                            <Title order={2} className={classes.name}>
+                                <Group gap={4} justify="flex-start">
+                                    {`Hello, ${user?.name?.split(" ")?.[0]}!`}
+                                    {isVerified && (
+                                        <IconRosetteDiscountCheckFilled
+                                            size={20}
+                                            color={theme.colors.blue[6]}
+                                            className={classes.verifiedIcon}
+                                        />
+                                    )}
+                                </Group>
+                            </Title>
+                            {subText && (
+                                <Text
+                                    size="sm"
+                                    fw={500}
+                                    className={classes.subText}
+                                >
+                                    {subText}
+                                </Text>
                             )}
-                        </Group>
-                    </Title>
-                    {subText && (
-                        <Text size="sm" fw={500} className={classes.subText}>
-                            {subText}
-                        </Text>
-                    )}
-                </Stack>
+                        </Stack>
+                    </Group>
 
-                {stats && <UserStatsRow stats={stats} />}
-            </Stack>
+                    <Box
+                        style={{
+                            flex: 1,
+                            display: "flex",
+                            justifyContent: "center",
+                        }}
+                    >
+                        {stats && <UserStatsRow stats={stats} />}
+                    </Box>
+
+                    <Group justify="flex-end" style={{ flex: 1 }}>
+                        {children}
+                    </Group>
+                </Flex>
+            ) : (
+                <Stack align="center" gap="md">
+                    <Box className={classes.avatarWrapper}>
+                        <div className={classes.ring} />
+                        <Avatar
+                            src={user?.prefs?.avatarUrl}
+                            color="lime"
+                            name={user?.name}
+                            alt={user?.name}
+                            size={80}
+                            radius="100%"
+                        />
+                    </Box>
+
+                    <Stack align="center" gap={2}>
+                        <Title order={2} className={classes.name}>
+                            <Group gap={4} justify="center">
+                                {`Hello, ${user?.name?.split(" ")?.[0]}!`}
+                                {isVerified && (
+                                    <IconRosetteDiscountCheckFilled
+                                        size={20}
+                                        color={theme.colors.blue[6]}
+                                        className={classes.verifiedIcon}
+                                    />
+                                )}
+                            </Group>
+                        </Title>
+                        {subText && (
+                            <Text
+                                size="sm"
+                                fw={500}
+                                className={classes.subText}
+                            >
+                                {subText}
+                            </Text>
+                        )}
+                    </Stack>
+
+                    {stats && <UserStatsRow stats={stats} />}
+                </Stack>
+            )}
 
             {!isVerified && (
                 <Alert

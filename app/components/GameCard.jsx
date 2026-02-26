@@ -42,7 +42,7 @@ const getGameStatus = (dateIso, result, score, opponentScore, zone) => {
         return {
             status: "today",
             text: (
-                <Text align={"right"} span fw={700} c="lime">
+                <Text align={"right"} span fw={700} c="lime" size="sm">
                     In progress
                 </Text>
             ),
@@ -68,7 +68,7 @@ const getGameStatus = (dateIso, result, score, opponentScore, zone) => {
                 return {
                     status: "today",
                     text: (
-                        <Text align={"right"} span fw={700} c="lime">
+                        <Text align={"right"} span fw={700} c="lime" size="sm">
                             {hoursUntil === 1
                                 ? "1 hour away!"
                                 : `${hoursUntil} hours away!`}
@@ -79,14 +79,18 @@ const getGameStatus = (dateIso, result, score, opponentScore, zone) => {
             return { status: "today", text: null };
         }
 
-        return {
-            status: "future",
-            text: (
-                <Text align={"right"} span fw={700} c="lime">
-                    {`${daysUntil} day${daysUntil !== 1 ? "s" : ""} away!`}
-                </Text>
-            ),
-        };
+        if (daysUntil <= 10) {
+            return {
+                status: "future",
+                text: (
+                    <Text align={"right"} span fw={700} c="lime" size="sm">
+                        {`${daysUntil} day${daysUntil !== 1 ? "s" : ""} away!`}
+                    </Text>
+                ),
+            };
+        }
+
+        return { status: "future", text: null };
     }
 
     return { status: "future", text: null };
@@ -112,8 +116,8 @@ export default function GameCard({
 
     return (
         <Link key={$id} to={`/events/${$id}`}>
-            <Card className="game-card" mb="md" radius="md" py="lg" withBorder>
-                <Text fw={400} size="lg" mb="md">
+            <Card className="game-card" mb="md" radius="md" py="md" withBorder>
+                <Text fw={400} size="md" mb="sm">
                     {displayName && (
                         <Text fw={700} span>
                             {displayName + " "}
@@ -126,8 +130,10 @@ export default function GameCard({
                     )}
                     {formattedHeader}
                 </Text>
-                <Group justify="space-between">
-                    <Text>{formattedGameTime}</Text>
+                <Group justify="space-between" align="flex-end">
+                    <Text size="sm" c="dimmed">
+                        {formattedGameTime}
+                    </Text>
                     {gameStatus.text}
                 </Group>
             </Card>
