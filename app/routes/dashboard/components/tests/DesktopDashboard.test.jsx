@@ -66,29 +66,22 @@ describe("DesktopDashboard Component", () => {
         );
     };
 
-    it("renders tabs for each team", () => {
+    it("displays content for the active team", () => {
         renderDashboard();
-        expect(
-            screen.getByRole("tab", { name: "Team One" }),
-        ).toBeInTheDocument();
-        expect(
-            screen.getByRole("tab", { name: "Team Two" }),
-        ).toBeInTheDocument();
-    });
 
-    it("displays content for the active team and switches tabs correctly", () => {
-        renderDashboard();
-        // Check for opponent text rendered by GameCard on active tab
+        // Check for title
+        expect(
+            screen.getByText("Season Schedule overview"),
+        ).toBeInTheDocument();
+
+        // Check for opponent text rendered by GameCard on active team
         expect(screen.getAllByText(/Opponent A/i).length).toBeGreaterThan(0);
 
-        // Opponent B should not be visible yet
+        // Opponent B should not be visible
         expect(screen.queryByText(/Opponent B/i)).not.toBeInTheDocument();
 
-        // Switch to the Team Two tab
-        fireEvent.click(screen.getByRole("tab", { name: "Team Two" }));
-
-        // Now Opponent B should be visible
-        expect(screen.getAllByText(/Opponent B/i).length).toBeGreaterThan(0);
+        // Check for details button
+        expect(screen.getByText("View Full Team Details")).toBeInTheDocument();
     });
 
     it("displays empty state when there are no teams", () => {

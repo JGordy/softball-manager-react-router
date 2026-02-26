@@ -9,7 +9,6 @@ import {
     Title,
     Grid,
     Stack,
-    Tabs,
     SimpleGrid,
 } from "@mantine/core";
 
@@ -48,95 +47,74 @@ export default function DesktopDashboard({
                         Create your first team
                     </Button>
                 </Card>
-            ) : (
-                <Tabs
-                    value={activeTeamId}
-                    onChange={setActiveTeamId}
-                    variant="pills"
-                    radius="xl"
-                    color={activeTeam?.primaryColor}
-                    keepMounted={false}
-                    orientation="vertical"
-                    placement="left"
-                >
-                    <Tabs.List mr="xl">
-                        {teamList.map((team) => (
-                            <Tabs.Tab
-                                key={team.$id}
-                                value={team.$id}
-                                style={{
-                                    border: `1px solid ${
-                                        team.primaryColor || "gray"
-                                    }`,
-                                }}
-                            >
-                                <Text fw={500}>{team.name}</Text>
-                            </Tabs.Tab>
-                        ))}
-                    </Tabs.List>
+            ) : activeTeam ? (
+                <Box>
+                    <Group justify="space-between" align="center" mb="md">
+                        <Title order={5}>Season Schedule overview</Title>
+                        <Button
+                            component={Link}
+                            to={`/team/${activeTeam.$id}`}
+                            variant="filled"
+                            size="sm"
+                            color={activeTeam.primaryColor}
+                        >
+                            View Full Team Details
+                        </Button>
+                    </Group>
 
-                    {activeTeam && (
-                        <Tabs.Panel value={activeTeam.$id} pl="md">
-                            <Box mb="xl">
-                                <Group justify="space-between" mb="md">
-                                    <Title order={5}>
-                                        Season Schedule overview
-                                    </Title>
-                                </Group>
-                                <GameCalendarRow
-                                    games={[...futureGames, ...pastGames]}
-                                />
-                            </Box>
+                    <Box mb="xl">
+                        {[...futureGames, ...pastGames].length > 0 ? (
+                            <GameCalendarRow
+                                games={[...futureGames, ...pastGames]}
+                            />
+                        ) : (
+                            <Card withBorder radius="md">
+                                <Text c="dimmed">
+                                    No season schedule found.
+                                </Text>
+                            </Card>
+                        )}
+                    </Box>
 
-                            <Grid gutter="xl">
-                                <Grid.Col span={{ base: 12, lg: 8 }}>
-                                    <Title order={5} mb="md">
-                                        Upcoming Games
-                                    </Title>
-                                    {upcomingGames.length > 0 ? (
-                                        <SimpleGrid cols={2} spacing="md">
-                                            {upcomingGames.map((game) => (
-                                                <GameCard
-                                                    key={game.$id}
-                                                    {...game}
-                                                />
-                                            ))}
-                                        </SimpleGrid>
-                                    ) : (
-                                        <Card withBorder radius="md">
-                                            <Text c="dimmed">
-                                                No upcoming games scheduled.
-                                            </Text>
-                                        </Card>
-                                    )}
-                                </Grid.Col>
+                    <Grid gutter="xl">
+                        <Grid.Col span={{ base: 12, lg: 7 }}>
+                            <Title order={5} mb="md">
+                                Upcoming Games
+                            </Title>
+                            {upcomingGames.length > 0 ? (
+                                <SimpleGrid cols={2} spacing="md">
+                                    {upcomingGames.map((game) => (
+                                        <GameCard key={game.$id} {...game} />
+                                    ))}
+                                </SimpleGrid>
+                            ) : (
+                                <Card withBorder radius="md">
+                                    <Text c="dimmed">
+                                        No upcoming games scheduled.
+                                    </Text>
+                                </Card>
+                            )}
+                        </Grid.Col>
 
-                                <Grid.Col span={{ base: 12, lg: 4 }}>
-                                    <Title order={5} mb="md">
-                                        Recent Results
-                                    </Title>
-                                    {recentGames.length > 0 ? (
-                                        <Stack gap="md">
-                                            {recentGames.map((game) => (
-                                                <GameCard
-                                                    key={game.$id}
-                                                    {...game}
-                                                />
-                                            ))}
-                                        </Stack>
-                                    ) : (
-                                        <Card withBorder radius="md">
-                                            <Text c="dimmed">
-                                                No past games found.
-                                            </Text>
-                                        </Card>
-                                    )}
-                                </Grid.Col>
-                            </Grid>
-                        </Tabs.Panel>
-                    )}
-                </Tabs>
-            )}
+                        <Grid.Col span={{ base: 12, lg: 5 }}>
+                            <Title order={5} mb="md">
+                                Recent Results
+                            </Title>
+                            {recentGames.length > 0 ? (
+                                <Stack gap="md">
+                                    {recentGames.map((game) => (
+                                        <GameCard key={game.$id} {...game} />
+                                    ))}
+                                </Stack>
+                            ) : (
+                                <Card withBorder radius="md">
+                                    <Text c="dimmed">No past games found.</Text>
+                                </Card>
+                            )}
+                        </Grid.Col>
+                    </Grid>
+                </Box>
+            ) : null}
         </Box>
     );
 }

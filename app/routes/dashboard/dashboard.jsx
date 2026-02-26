@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { Box, Button, Group } from "@mantine/core";
+import { Box, Button, Group, Select, ColorSwatch, Text } from "@mantine/core";
 import { IconPlus } from "@tabler/icons-react";
 
 import useModal from "@/hooks/useModal";
 import { useResponseNotification } from "@/utils/showNotification";
-import { useOutletContext, Link } from "react-router";
+import { useOutletContext } from "react-router";
 
 import branding from "@/constants/branding";
 import UserHeader from "@/components/UserHeader";
@@ -89,15 +89,39 @@ export default function Dashboard({ loaderData, actionData }) {
                         >
                             Add Team
                         </Button>
-                        {activeTeamId && (
-                            <Button
-                                component={Link}
-                                to={`/team/${activeTeamId}`}
-                                variant="light"
-                                size="sm"
-                            >
-                                View Full Team Details
-                            </Button>
+                        {teamList?.length > 0 && (
+                            <Select
+                                data={teamList.map((t) => ({
+                                    value: t.$id,
+                                    label: t.name,
+                                    color: t.primaryColor || "gray",
+                                }))}
+                                value={activeTeamId}
+                                onChange={setActiveTeamId}
+                                searchable
+                                allowDeselect={false}
+                                placeholder="Select a team"
+                                w={250}
+                                renderOption={({ option }) => (
+                                    <Group gap="sm">
+                                        <ColorSwatch
+                                            color={option.color}
+                                            size={14}
+                                        />
+                                        <Text size="sm">{option.label}</Text>
+                                    </Group>
+                                )}
+                                leftSection={
+                                    <ColorSwatch
+                                        color={
+                                            teamList.find(
+                                                (t) => t.$id === activeTeamId,
+                                            )?.primaryColor || "gray"
+                                        }
+                                        size={14}
+                                    />
+                                }
+                            />
                         )}
                     </Group>
                 )}
