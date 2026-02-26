@@ -1,6 +1,7 @@
 import { render, screen } from "@/utils/test-utils";
-import DesktopTeamDetails from "../DesktopTeamDetails";
 import getGames from "@/utils/getGames";
+
+import DesktopTeamDetails from "../DesktopTeamDetails";
 
 // Mock sub-components and utils
 jest.mock("@/components/GameCalendarRow", () => () => (
