@@ -1,5 +1,6 @@
 import { Form, Link } from "react-router";
 import {
+    ActionIcon,
     Button,
     Container,
     Flex,
@@ -10,13 +11,13 @@ import {
     rem,
 } from "@mantine/core";
 
-import { IconArrowRight } from "@tabler/icons-react";
+import { IconArrowRight, IconShieldLock } from "@tabler/icons-react";
 
 import { trackEvent } from "@/utils/analytics";
 
 import branding from "@/constants/branding";
 
-export default function HeroSection({ isAuthenticated, isDesktop }) {
+export default function HeroSection({ isAuthenticated, isDesktop, isAdmin }) {
     const isMobile = !isDesktop;
 
     return (
@@ -128,33 +129,51 @@ export default function HeroSection({ isAuthenticated, isDesktop }) {
                                 py={4}
                                 style={{ borderRadius: 20 }}
                             >
-                                {isDesktop
+                                {isDesktop && !isAdmin
                                     ? "You are logged in. Please switch to your phone to access the dashboard."
                                     : "You are currently logged in."}
                             </Text>
-                            <Flex
-                                direction={isMobile ? "column" : "row"}
-                                gap="sm"
-                                w="100%"
-                            >
-                                {!isDesktop && (
-                                    <Button
-                                        component={Link}
-                                        to="/dashboard"
-                                        onClick={() =>
-                                            trackEvent("go-to-dashboard")
-                                        }
-                                        size="xl"
-                                        variant="white"
-                                        color="dark"
-                                        radius="xl"
-                                        fullWidth={isMobile}
-                                        rightSection={
-                                            <IconArrowRight size={20} />
-                                        }
+                            <Flex direction="column" gap="sm" w="100%">
+                                {(!isDesktop || isAdmin) && (
+                                    <Flex
+                                        gap="sm"
+                                        w={isMobile ? "100%" : "auto"}
                                     >
-                                        Go to Dashboard
-                                    </Button>
+                                        <Button
+                                            component={Link}
+                                            to="/dashboard"
+                                            onClick={() =>
+                                                trackEvent("go-to-dashboard")
+                                            }
+                                            size="xl"
+                                            variant="white"
+                                            color="dark"
+                                            radius="xl"
+                                            fullWidth={isMobile}
+                                            style={{ flex: 1 }}
+                                            rightSection={
+                                                <IconArrowRight size={20} />
+                                            }
+                                        >
+                                            Go to Dashboard
+                                        </Button>
+                                        {isAdmin && (
+                                            <ActionIcon
+                                                component={Link}
+                                                to="/admin"
+                                                onClick={() =>
+                                                    trackEvent("go-to-admin")
+                                                }
+                                                size={rem(60)}
+                                                radius="xl"
+                                                variant="white"
+                                                color="dark"
+                                                style={{ flexShrink: 0 }}
+                                            >
+                                                <IconShieldLock size={32} />
+                                            </ActionIcon>
+                                        )}
+                                    </Flex>
                                 )}
                                 <Form
                                     method="post"
@@ -164,36 +183,21 @@ export default function HeroSection({ isAuthenticated, isDesktop }) {
                                         justifyContent: "center",
                                     }}
                                 >
-                                    {isDesktop ? (
-                                        <Button
-                                            type="submit"
-                                            variant="subtle"
-                                            color="gray.0"
-                                            size="compact-sm"
-                                            style={{
-                                                textDecoration: "underline",
-                                                opacity: 0.8,
-                                            }}
-                                        >
-                                            Log out
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            type="submit"
-                                            size="xl"
-                                            variant="outline"
-                                            color="white"
-                                            radius="xl"
-                                            fullWidth
-                                            style={{
-                                                color: "white",
-                                                borderColor:
-                                                    "rgba(255,255,255,0.4)",
-                                            }}
-                                        >
-                                            Log out
-                                        </Button>
-                                    )}
+                                    <Button
+                                        type="submit"
+                                        size="xl"
+                                        variant="outline"
+                                        color="white"
+                                        radius="xl"
+                                        fullWidth
+                                        style={{
+                                            color: "white",
+                                            borderColor:
+                                                "rgba(255,255,255,0.4)",
+                                        }}
+                                    >
+                                        Log out
+                                    </Button>
                                 </Form>
                             </Flex>
                         </Stack>

@@ -67,4 +67,26 @@ describe("HeroSection", () => {
             screen.getByText(/Please switch to your phone to get started/i),
         ).toBeInTheDocument();
     });
+
+    it("shows 'Go to Dashboard' and doesn't show phone message if authenticated admin on desktop", () => {
+        render(
+            <MemoryRouter>
+                <HeroSection
+                    isAuthenticated={true}
+                    isDesktop={true}
+                    isAdmin={true}
+                />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByText("Go to Dashboard")).toBeInTheDocument();
+        expect(
+            screen.queryByText(
+                /Please switch to your phone to access the dashboard/i,
+            ),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.getByText("You are currently logged in."),
+        ).toBeInTheDocument();
+    });
 });

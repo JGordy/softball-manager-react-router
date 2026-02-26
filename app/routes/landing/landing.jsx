@@ -60,9 +60,10 @@ export async function loader({ request }) {
 
     try {
         const { account } = await createSessionClient(request);
-        await account.get();
+        const user = await account.get();
+        const isAdmin = user.labels?.includes("admin");
 
-        return { isAuthenticated: true, isDesktop: !isMobile };
+        return { isAuthenticated: true, isDesktop: !isMobile, isAdmin };
     } catch (error) {
         console.error("Landing loader authentication check failed");
         return { isAuthenticated: false, isDesktop: !isMobile };
@@ -70,7 +71,7 @@ export async function loader({ request }) {
 }
 
 export default function Landing() {
-    const { isAuthenticated, isDesktop } = useLoaderData();
+    const { isAuthenticated, isDesktop, isAdmin } = useLoaderData();
 
     const schemaData = {
         "@context": "https://schema.org",
@@ -103,6 +104,7 @@ export default function Landing() {
             <HeroSection
                 isAuthenticated={isAuthenticated}
                 isDesktop={isDesktop}
+                isAdmin={isAdmin}
             />
 
             <FeaturesSection />
