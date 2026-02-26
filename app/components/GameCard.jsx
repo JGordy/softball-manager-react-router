@@ -79,14 +79,18 @@ const getGameStatus = (dateIso, result, score, opponentScore, zone) => {
             return { status: "today", text: null };
         }
 
-        return {
-            status: "future",
-            text: (
-                <Text align={"right"} span fw={700} c="lime" size="sm">
-                    {`${daysUntil} day${daysUntil !== 1 ? "s" : ""} away!`}
-                </Text>
-            ),
-        };
+        if (daysUntil <= 10) {
+            return {
+                status: "future",
+                text: (
+                    <Text align={"right"} span fw={700} c="lime" size="sm">
+                        {`${daysUntil} day${daysUntil !== 1 ? "s" : ""} away!`}
+                    </Text>
+                ),
+            };
+        }
+
+        return { status: "future", text: null };
     }
 
     return { status: "future", text: null };
