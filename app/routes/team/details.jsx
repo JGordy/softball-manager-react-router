@@ -137,7 +137,6 @@ export default function TeamDetails({ actionData, loaderData }) {
                     players={players}
                     managerIds={managerIds}
                     managerView={managerView}
-                    ownerView={ownerView}
                     user={user}
                     teamLogs={teamLogs}
                 />
