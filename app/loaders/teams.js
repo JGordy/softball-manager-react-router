@@ -174,6 +174,7 @@ export async function getUserTeams({ request, isDashboard = false }) {
                 season.games = seasonGames.map((game) => ({
                     ...game,
                     location: game.location || season.location,
+                    seasonName: season.seasonName || season.name || "",
                 }));
             });
 
@@ -351,6 +352,7 @@ export async function getTeamById({ teamId, request }) {
                 .map((game) => {
                     game.teamName = teamData.name;
                     game.displayName = teamData.displayName || "";
+                    game.seasonName = season.seasonName || season.name || "";
                     return game;
                 });
         });
