@@ -6,53 +6,16 @@ import {
     Flex,
     Group,
     ScrollArea,
-    Tabs,
     Text,
     Tooltip,
 } from "@mantine/core";
 
 import { useDisclosure } from "@mantine/hooks";
 
-import {
-    IconBallBaseball,
-    IconChevronRight,
-    IconClipboardCheck,
-    IconUserSquareRounded,
-    IconMap2,
-} from "@tabler/icons-react";
+import { IconChevronRight, IconClipboardCheck } from "@tabler/icons-react";
 
-import ContactSprayChart from "@/components/ContactSprayChart";
-
-import DrawerContainer from "@/components/DrawerContainer";
-import PlayerDetails from "@/components/PlayerDetails";
-import PersonalDetails from "@/components/PersonalDetails";
-import TabsWrapper from "@/components/TabsWrapper";
-
-import positions from "@/constants/positions";
-
-const PlayerPositions = ({ preferredPositions, playerId }) => {
-    const positionCount = preferredPositions?.length || 0;
-    const maxVisible = 4;
-    const hasOverflow = positionCount > maxVisible;
-    const displayCount = hasOverflow ? maxVisible - 1 : maxVisible;
-    const visiblePositions = preferredPositions?.slice(0, displayCount) || [];
-    const overflowCount = positionCount - displayCount;
-
-    return (
-        <Avatar.Group>
-            {visiblePositions.map((position) => (
-                <Tooltip key={playerId + position} label={position} withArrow>
-                    <Avatar
-                        name={positions[position].initials}
-                        alt={position}
-                        color="initials"
-                    />
-                </Tooltip>
-            ))}
-            {hasOverflow && <Avatar>+{overflowCount}</Avatar>}
-        </Avatar.Group>
-    );
-};
+import PlayerPositions from "./PlayerPositions";
+import PlayerDetailsDrawer from "./PlayerDetailsDrawer";
 
 export default function PlayerList({
     players,
@@ -126,51 +89,15 @@ export default function PlayerList({
                     })}
             </ScrollArea>
 
-            {selectedPlayerId && (
-                <DrawerContainer
-                    opened={opened}
-                    onClose={close}
-                    size="xl"
-                    title={`${selectedPlayer.firstName}'s Details`}
-                >
-                    <TabsWrapper defaultValue="player">
-                        <Tabs.Tab value="player">
-                            <Group gap="xs" align="center" justify="center">
-                                <IconBallBaseball size={16} />
-                                Player
-                            </Group>
-                        </Tabs.Tab>
-                        <Tabs.Tab value="personal">
-                            <Group gap="xs" align="center" justify="center">
-                                <IconUserSquareRounded size={16} />
-                                Personal
-                            </Group>
-                        </Tabs.Tab>
-                        <Tabs.Tab value="spray">
-                            <Group gap="xs" align="center" justify="center">
-                                <IconMap2 size={16} />
-                                Charts
-                            </Group>
-                        </Tabs.Tab>
-
-                        <Tabs.Panel value="player">
-                            <PlayerDetails player={selectedPlayer} />
-                        </Tabs.Panel>
-
-                        <Tabs.Panel value="personal">
-                            <PersonalDetails
-                                user={user}
-                                player={selectedPlayer}
-                                managerView={managerView}
-                            />
-                        </Tabs.Panel>
-
-                        <Tabs.Panel value="spray" pt="lg">
-                            <ContactSprayChart hits={playerHits} />
-                        </Tabs.Panel>
-                    </TabsWrapper>
-                </DrawerContainer>
-            )}
+            <PlayerDetailsDrawer
+                opened={opened}
+                close={close}
+                selectedPlayer={selectedPlayer}
+                user={user}
+                managerView={managerView}
+                playerHits={playerHits}
+                size="xl"
+            />
         </>
     );
 }

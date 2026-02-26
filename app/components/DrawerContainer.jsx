@@ -1,4 +1,5 @@
 import { Drawer } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 
 export default function DrawerContainer({
     children,
@@ -6,12 +7,17 @@ export default function DrawerContainer({
     opened = false,
     onClose = () => {},
     padding = "xl",
-    position = "bottom",
-    size = "md",
+    position,
+    size,
     title,
     zIndex = 5000,
     ...props
 }) {
+    const isDesktop = useMediaQuery("(min-width: 62em)");
+
+    const finalPosition = position || (isDesktop ? "right" : "bottom");
+    const finalSize = size || (isDesktop ? "md" : "100%");
+
     return (
         <Drawer
             classNames={classes}
@@ -19,14 +25,18 @@ export default function DrawerContainer({
             onClose={onClose}
             closeButtonProps={{ "aria-label": "Close drawer" }}
             overlayProps={{ backgroundOpacity: 0.55, blur: 3 }}
-            position={position}
+            position={finalPosition}
             padding={padding}
             radius="xl"
-            size={size}
+            size={finalSize}
             styles={{
                 content: {
                     borderBottomRightRadius: "0px",
                     borderBottomLeftRadius: "0px",
+                    borderTopLeftRadius:
+                        finalPosition === "right" ? "0px" : undefined,
+                    borderTopRightRadius:
+                        finalPosition === "right" ? "0px" : undefined,
                 },
             }}
             title={title}

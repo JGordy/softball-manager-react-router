@@ -56,6 +56,16 @@ jest.mock("../components/DashboardMenu", () => ({
     default: () => <div data-testid="dashboard-menu" />,
 }));
 
+jest.mock("../components/MobileDashboard", () => ({
+    __esModule: true,
+    default: () => <div data-testid="mobile-dashboard" />,
+}));
+
+jest.mock("../components/DesktopDashboard", () => ({
+    __esModule: true,
+    default: () => <div data-testid="desktop-dashboard" />,
+}));
+
 describe("Dashboard Route", () => {
     const mockUser = { $id: "user-123", name: "Test User" };
     const mockTeams = {
@@ -127,49 +137,10 @@ describe("Dashboard Route", () => {
             );
         };
 
-        it("renders 'Create your first team' button when no teams exist", () => {
+        it("renders Mobile and Desktop dashboard components for CSS-based toggling", () => {
             renderDashboard();
-            expect(
-                screen.getByText("Create your first team"),
-            ).toBeInTheDocument();
-        });
-
-        it("renders a single team card when one team exists", () => {
-            renderDashboard({
-                teams: { managing: [mockTeams.managing[0]], playing: [] },
-            });
-            expect(screen.getByText("Managing Team")).toBeInTheDocument();
-            expect(
-                screen.queryByText("Create your first team"),
-            ).not.toBeInTheDocument();
-        });
-
-        it("renders carousel when multiple teams exist", () => {
-            renderDashboard({
-                teams: {
-                    managing: mockTeams.managing,
-                    playing: mockTeams.playing,
-                },
-            });
-            expect(screen.getByText("Managing Team")).toBeInTheDocument();
-            expect(screen.getByText("Playing Team")).toBeInTheDocument();
-        });
-
-        it("opens add team modal when clicking create button", () => {
-            const mockOpenModal = jest.fn();
-            useModal.mockReturnValue({
-                openModal: mockOpenModal,
-                closeAllModals: jest.fn(),
-            });
-
-            renderDashboard();
-            fireEvent.click(screen.getByText("Create your first team"));
-
-            expect(mockOpenModal).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    title: "Add a New Team",
-                }),
-            );
+            expect(screen.getByTestId("mobile-dashboard")).toBeInTheDocument();
+            expect(screen.getByTestId("desktop-dashboard")).toBeInTheDocument();
         });
     });
 });

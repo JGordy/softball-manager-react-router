@@ -80,6 +80,16 @@ export default function TabsWrapper({
             child.props?.value
         ) {
             const isActive = child.props.value === value;
+
+            // Determine text color for active tab based on the background color
+            const isLime =
+                color === "var(--mantine-color-lime-6)" ||
+                color?.includes("lime") ||
+                !color;
+            const activeColor = isLime
+                ? "var(--mantine-color-black)"
+                : "var(--mantine-color-white)";
+
             // Clone the Tab and add necessary props
             tabs.push(
                 cloneElement(child, {
@@ -90,6 +100,7 @@ export default function TabsWrapper({
                     style: {
                         ...child.props.style,
                         "--hover-color": color,
+                        ...(isActive ? { color: activeColor } : {}),
                     },
                 }),
             );

@@ -44,9 +44,60 @@ export async function action({ request }) {
     }
 }
 
+function DesktopHeaderActions({
+    openAddTeamModal,
+    teamList,
+    activeTeamId,
+    setActiveTeamId,
+}) {
+    return (
+        <Group visibleFrom="md">
+            <Button
+                variant="light"
+                color="gray"
+                size="sm"
+                onClick={openAddTeamModal}
+                leftSection={<IconPlus size={16} />}
+            >
+                Add Team
+            </Button>
+            {teamList?.length > 0 && (
+                <Select
+                    data={teamList.map((t) => ({
+                        value: t.$id,
+                        label: t.name,
+                        color: t.primaryColor || "gray",
+                    }))}
+                    value={activeTeamId}
+                    onChange={setActiveTeamId}
+                    searchable
+                    allowDeselect={false}
+                    placeholder="Select a team"
+                    w={250}
+                    renderOption={({ option }) => (
+                        <Group gap="sm">
+                            <ColorSwatch color={option.color} size={14} />
+                            <Text size="sm">{option.label}</Text>
+                        </Group>
+                    )}
+                    leftSection={
+                        <ColorSwatch
+                            color={
+                                teamList.find((t) => t.$id === activeTeamId)
+                                    ?.primaryColor || "gray"
+                            }
+                            size={14}
+                        />
+                    }
+                />
+            )}
+        </Group>
+    );
+}
+
 export default function Dashboard({ loaderData, actionData }) {
     const { openModal } = useModal();
-    const { user, isDesktop } = useOutletContext();
+    const { user } = useOutletContext();
     const userId = user?.$id;
 
     const teams = loaderData?.teams;
@@ -76,70 +127,31 @@ export default function Dashboard({ loaderData, actionData }) {
     return (
         <Box px="md" py="md">
             <UserHeader subText="Team and events summary" stats={stats}>
-                {!isDesktop ? (
+                <Box hiddenFrom="md">
                     <DashboardMenu userId={userId} />
-                ) : (
-                    <Group>
-                        <Button
-                            variant="light"
-                            color="gray"
-                            size="sm"
-                            onClick={openAddTeamModal}
-                            leftSection={<IconPlus size={16} />}
-                        >
-                            Add Team
-                        </Button>
-                        {teamList?.length > 0 && (
-                            <Select
-                                data={teamList.map((t) => ({
-                                    value: t.$id,
-                                    label: t.name,
-                                    color: t.primaryColor || "gray",
-                                }))}
-                                value={activeTeamId}
-                                onChange={setActiveTeamId}
-                                searchable
-                                allowDeselect={false}
-                                placeholder="Select a team"
-                                w={250}
-                                renderOption={({ option }) => (
-                                    <Group gap="sm">
-                                        <ColorSwatch
-                                            color={option.color}
-                                            size={14}
-                                        />
-                                        <Text size="sm">{option.label}</Text>
-                                    </Group>
-                                )}
-                                leftSection={
-                                    <ColorSwatch
-                                        color={
-                                            teamList.find(
-                                                (t) => t.$id === activeTeamId,
-                                            )?.primaryColor || "gray"
-                                        }
-                                        size={14}
-                                    />
-                                }
-                            />
-                        )}
-                    </Group>
-                )}
+                </Box>
+                <DesktopHeaderActions
+                    openAddTeamModal={openAddTeamModal}
+                    teamList={teamList}
+                    activeTeamId={activeTeamId}
+                    setActiveTeamId={setActiveTeamId}
+                />
             </UserHeader>
 
-            {isDesktop ? (
+            <Box visibleFrom="md">
                 <DesktopDashboard
                     teamList={teamList}
                     activeTeamId={activeTeamId}
                     setActiveTeamId={setActiveTeamId}
                     openAddTeamModal={openAddTeamModal}
                 />
-            ) : (
+            </Box>
+            <Box hiddenFrom="md">
                 <MobileDashboard
                     teamList={teamList}
                     openAddTeamModal={openAddTeamModal}
                 />
-            )}
+            </Box>
         </Box>
     );
 }
