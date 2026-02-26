@@ -40,6 +40,12 @@ jest.mock("../components/TeamMenu", () => () => (
 jest.mock("@/components/BackButton", () => () => (
     <div data-testid="back-button" />
 ));
+jest.mock("../components/MobileTeamDetails", () => () => (
+    <div data-testid="mobile-team-details" />
+));
+jest.mock("../components/DesktopTeamDetails", () => () => (
+    <div data-testid="desktop-team-details" />
+));
 
 describe("TeamDetails Route", () => {
     const mockUser = { $id: "user1", firstName: "John", lastName: "Doe" };
@@ -218,12 +224,15 @@ describe("TeamDetails Route", () => {
             expect(screen.queryByTestId("team-menu")).not.toBeInTheDocument();
         });
 
-        it("renders Tabs for roster, seasons, and games", () => {
+        it("renders Mobile and Desktop details components", () => {
             render(<TeamDetails loaderData={mockLoaderData} />);
 
-            expect(screen.getByText("Roster")).toBeInTheDocument();
-            expect(screen.getByText("Seasons")).toBeInTheDocument();
-            expect(screen.getByText("Games")).toBeInTheDocument();
+            expect(
+                screen.getByTestId("mobile-team-details"),
+            ).toBeInTheDocument();
+            expect(
+                screen.getByTestId("desktop-team-details"),
+            ).toBeInTheDocument();
         });
     });
 });

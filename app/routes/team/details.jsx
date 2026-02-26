@@ -1,17 +1,10 @@
 import { useOutletContext } from "react-router";
 
-import { Container, Group, Tabs, Text, Title } from "@mantine/core";
-
-import {
-    IconCalendarMonth,
-    IconUsersGroup,
-    IconBallBaseball,
-} from "@tabler/icons-react";
+import { Box, Container, Group, Text, Title } from "@mantine/core";
 
 import images from "@/constants/images";
 
 import BackButton from "@/components/BackButton";
-import TabsWrapper from "@/components/TabsWrapper";
 
 import { createSingleGame } from "@/actions/games";
 import { createPlayer } from "@/actions/users";
@@ -27,10 +20,9 @@ import { getTeamById } from "@/loaders/teams";
 
 import { useResponseNotification } from "@/utils/showNotification";
 
-import PlayerList from "./components/PlayerList";
-import SeasonList from "./components/SeasonList";
-import GamesList from "./components/GamesList";
 import TeamMenu from "./components/TeamMenu";
+import MobileTeamDetails from "./components/MobileTeamDetails";
+import DesktopTeamDetails from "./components/DesktopTeamDetails";
 
 export function links() {
     const { fieldSrc } = images;
@@ -115,14 +107,12 @@ export default function TeamDetails({ actionData, loaderData }) {
 
     useResponseNotification(actionData);
 
-    const { primaryColor, seasons } = team;
-
     const textProps = {
         size: "md",
     };
 
     return (
-        <Container pt="md">
+        <Container pt="md" size="xl">
             <Group justify="space-between" mb="xl">
                 <BackButton to="/dashboard" />
                 {managerView && (
@@ -141,55 +131,27 @@ export default function TeamDetails({ actionData, loaderData }) {
                 {team.leagueName}
             </Text>
 
-            <TabsWrapper color={primaryColor} defaultValue="seasons">
-                <Tabs.Tab value="roster">
-                    <Group gap="xs" align="center" justify="center">
-                        <IconUsersGroup size={16} />
-                        Roster
-                    </Group>
-                </Tabs.Tab>
-                <Tabs.Tab value="seasons">
-                    <Group gap="xs" align="center" justify="center">
-                        <IconCalendarMonth size={16} />
-                        Seasons
-                    </Group>
-                </Tabs.Tab>
-                <Tabs.Tab value="games" disabled={seasons?.length === 0}>
-                    <Group gap="xs" align="center" justify="center">
-                        <IconBallBaseball size={16} />
-                        Games
-                    </Group>
-                </Tabs.Tab>
-
-                <Tabs.Panel value="roster">
-                    <PlayerList
-                        players={players}
-                        managerIds={managerIds}
-                        managerView={managerView}
-                        user={user}
-                        teamLogs={teamLogs}
-                    />
-                </Tabs.Panel>
-
-                <Tabs.Panel value="seasons">
-                    <SeasonList
-                        seasons={seasons}
-                        teamId={team.$id}
-                        managerView={managerView}
-                        primaryColor={primaryColor}
-                    />
-                </Tabs.Panel>
-
-                <Tabs.Panel value="games">
-                    <GamesList
-                        games={seasons?.[0]?.games}
-                        seasons={seasons}
-                        teamId={team.$id}
-                        managerView={managerView}
-                        primaryColor={primaryColor}
-                    />
-                </Tabs.Panel>
-            </TabsWrapper>
+            <Box visibleFrom="md">
+                <DesktopTeamDetails
+                    team={team}
+                    players={players}
+                    managerIds={managerIds}
+                    managerView={managerView}
+                    ownerView={ownerView}
+                    user={user}
+                    teamLogs={teamLogs}
+                />
+            </Box>
+            <Box hiddenFrom="md">
+                <MobileTeamDetails
+                    team={team}
+                    players={players}
+                    managerIds={managerIds}
+                    managerView={managerView}
+                    user={user}
+                    teamLogs={teamLogs}
+                />
+            </Box>
         </Container>
     );
 }
