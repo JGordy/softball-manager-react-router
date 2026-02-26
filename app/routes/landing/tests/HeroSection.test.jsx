@@ -89,7 +89,7 @@ describe("HeroSection", () => {
             screen.getByText("You are currently logged in."),
         ).toBeInTheDocument();
         expect(
-            screen.getByRole("button", { name: /admin/i }),
+            screen.getByRole("link", { name: /admin/i }),
         ).toBeInTheDocument();
     });
 
@@ -109,7 +109,7 @@ describe("HeroSection", () => {
             screen.getByText("You are currently logged in."),
         ).toBeInTheDocument();
         expect(
-            screen.getByRole("button", { name: /admin/i }),
+            screen.getByRole("link", { name: /admin/i }),
         ).toBeInTheDocument();
     });
 });

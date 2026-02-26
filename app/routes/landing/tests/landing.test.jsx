@@ -111,7 +111,11 @@ describe("Landing Route", () => {
             const result = await loader({
                 request: new Request("http://localhost/"),
             });
-            expect(result).toEqual({ isAuthenticated: false, isDesktop: true });
+            expect(result).toEqual({
+                isAuthenticated: false,
+                isDesktop: true,
+                isAdmin: false,
+            });
         });
     });
 
