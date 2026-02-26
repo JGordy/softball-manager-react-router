@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router";
-import { Group, Image, UnstyledButton, Text, Title } from "@mantine/core";
+import { Button, Group, Image, Text, Title } from "@mantine/core";
 import {
     IconBallBaseball,
     IconCalendar,
@@ -16,7 +16,8 @@ const { brandIcon192 } = images;
 
 function NavbarLink({ icon: Icon, label, active, onClick }) {
     return (
-        <UnstyledButton
+        <Button
+            variant="subtle"
             onClick={onClick}
             className={classes.link}
             data-active={active || undefined}
@@ -27,7 +28,7 @@ function NavbarLink({ icon: Icon, label, active, onClick }) {
                     {label}
                 </Text>
             </Group>
-        </UnstyledButton>
+        </Button>
     );
 }
 

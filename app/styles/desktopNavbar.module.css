@@ -7,7 +7,6 @@
 
 .link {
     border-radius: var(--mantine-radius-md);
-    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
     color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
     transition: all 150ms ease;
 }
@@ -15,11 +14,10 @@
 .link:hover {
     background-color: light-dark(
         var(--mantine-color-white),
-        var(--mantine-color-dark-7)
+        var(--mantine-color-lime-light)
     );
 }
 
 .link[data-active] {
-    background-color: var(--mantine-color-lime-light);
     color: var(--mantine-color-lime-light-color);
 }
