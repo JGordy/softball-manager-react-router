@@ -1,4 +1,6 @@
-import { useLoaderData } from "react-router";
+import { useLoaderData, useNavigation } from "react-router";
+
+import { LoadingOverlay } from "@mantine/core";
 
 import { createSessionClient } from "@/utils/appwrite/server";
 
@@ -72,6 +74,9 @@ export async function loader({ request }) {
 
 export default function Landing() {
     const { isAuthenticated, isDesktop, isAdmin } = useLoaderData();
+    const navigation = useNavigation();
+
+    const isNavigating = navigation.state !== "idle";
 
     const schemaData = {
         "@context": "https://schema.org",
@@ -94,8 +99,29 @@ export default function Landing() {
             style={{
                 backgroundColor: "var(--mantine-color-gray-0)",
                 minHeight: "100vh",
+                position: "relative",
             }}
         >
+            <div
+                style={{
+                    position: "fixed",
+                    inset: 0,
+                    zIndex: 150,
+                    pointerEvents: isNavigating ? "auto" : "none",
+                }}
+            >
+                <LoadingOverlay
+                    data-overlay="landing"
+                    visible={isNavigating}
+                    loaderProps={{
+                        color: "blue.9",
+                        size: "xl",
+                        type: "dots",
+                        style: { display: isNavigating ? undefined : "none" },
+                    }}
+                    overlayProps={{ radius: "sm", blur: 3 }}
+                />
+            </div>
             <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
