@@ -88,5 +88,28 @@ describe("HeroSection", () => {
         expect(
             screen.getByText("You are currently logged in."),
         ).toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: /admin/i }),
+        ).toBeInTheDocument();
+    });
+
+    it("shows 'Go to Dashboard' and admin button if authenticated admin on mobile", () => {
+        render(
+            <MemoryRouter>
+                <HeroSection
+                    isAuthenticated={true}
+                    isDesktop={false}
+                    isAdmin={true}
+                />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByText("Go to Dashboard")).toBeInTheDocument();
+        expect(
+            screen.getByText("You are currently logged in."),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: /admin/i }),
+        ).toBeInTheDocument();
     });
 });

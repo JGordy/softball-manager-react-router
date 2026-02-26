@@ -164,6 +164,7 @@ export default function HeroSection({ isAuthenticated, isDesktop, isAdmin }) {
                                                 onClick={() =>
                                                     trackEvent("go-to-admin")
                                                 }
+                                                aria-label="Admin Panel"
                                                 size={rem(60)}
                                                 radius="xl"
                                                 variant="white"

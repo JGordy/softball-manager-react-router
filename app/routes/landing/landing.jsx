@@ -68,7 +68,7 @@ export async function loader({ request }) {
         return { isAuthenticated: true, isDesktop: !isMobile, isAdmin };
     } catch (error) {
         console.error("Landing loader authentication check failed");
-        return { isAuthenticated: false, isDesktop: !isMobile };
+        return { isAuthenticated: false, isDesktop: !isMobile, isAdmin: false };
     }
 }
 
