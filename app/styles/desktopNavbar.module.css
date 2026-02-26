@@ -13,11 +13,19 @@
 
 .link:hover {
     background-color: light-dark(
-        var(--mantine-color-white),
+        var(--mantine-color-lime-7),
         var(--mantine-color-lime-light)
     );
+    color: light-dark(var(--mantine-color-white), var(--mantine-color-lime-7));
 }
 
 .link[data-active] {
-    color: var(--mantine-color-lime-light-color);
+    color: light-dark(
+        var(--mantine-color-lime-7),
+        var(--mantine-color-lime-light-color)
+    );
+}
+
+.link[data-active]:hover {
+    color: light-dark(var(--mantine-color-white), var(--mantine-color-lime-7));
 }
