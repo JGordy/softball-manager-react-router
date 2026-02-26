@@ -79,8 +79,10 @@ export default function DesktopDashboard({ teamList, openAddTeamModal }) {
                     radius="xl"
                     color={activeTeam?.primaryColor}
                     keepMounted={false}
+                    orientation="vertical"
+                    placement="left"
                 >
-                    <Tabs.List>
+                    <Tabs.List mr="xl">
                         {teamList.map((team) => (
                             <Tabs.Tab
                                 key={team.$id}
@@ -97,7 +99,7 @@ export default function DesktopDashboard({ teamList, openAddTeamModal }) {
                     </Tabs.List>
 
                     {activeTeam && (
-                        <Tabs.Panel value={activeTeam.$id} pt="xl">
+                        <Tabs.Panel value={activeTeam.$id} pl="md">
                             <Box mb="xl">
                                 <Group justify="space-between" mb="md">
                                     <Title order={5}>
