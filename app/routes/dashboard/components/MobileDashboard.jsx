@@ -69,7 +69,7 @@ export default function MobileDashboard({ teamList, openAddTeamModal }) {
     }, [teamList, activeTeamIndex]);
 
     return (
-        <Grid gutter="md" mt="md">
+        <Grid pb="xl">
             <Grid.Col span={12}>
                 <Group justify="space-between" align="center">
                     <Title order={4}>
@@ -191,8 +191,8 @@ export default function MobileDashboard({ teamList, openAddTeamModal }) {
                 )}
             </Grid.Col>
 
-            <Grid.Col span={12}>
-                <Stack gap="xl">
+            <Grid.Col span={12} pb="xl">
+                <Stack gap="md">
                     {/* Next Game (for active team) */}
                     {nextGame && Object.keys(nextGame).length > 0 && (
                         <Box>
