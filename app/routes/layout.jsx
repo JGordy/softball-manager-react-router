@@ -21,7 +21,7 @@ export async function loader({ request }) {
 
         const isAdmin = user.labels?.includes("admin");
 
-        // Check Device
+        // Check Device - Redirect desktop users immediately, unless they are admin
         const isMobile = isMobileUserAgent(request);
 
         if (!isMobile && !isAdmin) {
