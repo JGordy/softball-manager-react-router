@@ -77,7 +77,7 @@ export default function MobileDashboard({ teamList, openAddTeamModal }) {
                     </Title>
                     {teamList?.length > 0 && (
                         <Text component="div" size="sm" c="dimmed">
-                            Swipe team card for details
+                            Tap team card for details
                         </Text>
                     )}
                 </Group>

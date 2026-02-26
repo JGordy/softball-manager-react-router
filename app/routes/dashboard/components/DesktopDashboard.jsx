@@ -118,7 +118,7 @@ export default function DesktopDashboard({ teamList, openAddTeamModal }) {
                             </Box>
 
                             <Grid gutter="xl">
-                                <Grid.Col span={8}>
+                                <Grid.Col span={{ base: 12, lg: 8 }}>
                                     <Title order={5} mb="md">
                                         Upcoming Games
                                     </Title>
@@ -140,7 +140,7 @@ export default function DesktopDashboard({ teamList, openAddTeamModal }) {
                                     )}
                                 </Grid.Col>
 
-                                <Grid.Col span={4}>
+                                <Grid.Col span={{ base: 12, lg: 4 }}>
                                     <Title order={5} mb="md">
                                         Recent Results
                                     </Title>

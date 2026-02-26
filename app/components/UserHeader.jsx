@@ -20,7 +20,7 @@ import UserStatsRow from "./UserStatsRow";
 
 export default function UserHeader({ children, subText, stats }) {
     const context = useOutletContext();
-    const { user, isVerified, isDesktop } = context;
+    const { user, isVerified, isDesktop = false } = context || {};
     const theme = useMantineTheme();
 
     const [emailSent, setEmailSent] = useState(false);
