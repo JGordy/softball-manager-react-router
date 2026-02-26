@@ -4,15 +4,13 @@ import {
     Box,
     Button,
     Card,
+    Grid,
     Group,
     Text,
     Title,
-    Grid,
     Stack,
     SimpleGrid,
 } from "@mantine/core";
-
-import { IconPlus } from "@tabler/icons-react";
 
 import getGames from "@/utils/getGames";
 import GameCalendarRow from "@/components/GameCalendarRow";
@@ -21,7 +19,6 @@ import GameCard from "@/components/GameCard";
 export default function DesktopDashboard({
     teamList,
     activeTeamId,
-    setActiveTeamId,
     openAddTeamModal,
 }) {
     const activeTeam = teamList?.find((t) => t.$id === activeTeamId);
