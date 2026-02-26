@@ -1,3 +1,4 @@
+import React from "react";
 import { MemoryRouter } from "react-router";
 import { render, screen, fireEvent } from "@/utils/test-utils";
 
@@ -37,14 +38,31 @@ describe("DesktopDashboard Component", () => {
 
     const mockOpenAddTeamModal = jest.fn();
 
-    const renderDashboard = (teamList = mockTeamList) => {
-        return render(
+    const DashboardWrapper = ({
+        teamList,
+        initialTeamId,
+        openAddTeamModal,
+    }) => {
+        const [activeTeamId, setActiveTeamId] = React.useState(initialTeamId);
+        return (
             <MemoryRouter>
                 <DesktopDashboard
                     teamList={teamList}
-                    openAddTeamModal={mockOpenAddTeamModal}
+                    activeTeamId={activeTeamId}
+                    setActiveTeamId={setActiveTeamId}
+                    openAddTeamModal={openAddTeamModal}
                 />
-            </MemoryRouter>,
+            </MemoryRouter>
+        );
+    };
+
+    const renderDashboard = (teamList = mockTeamList) => {
+        return render(
+            <DashboardWrapper
+                teamList={teamList}
+                initialTeamId={teamList.length > 0 ? teamList[0].$id : null}
+                openAddTeamModal={mockOpenAddTeamModal}
+            />,
         );
     };
 
@@ -56,14 +74,6 @@ describe("DesktopDashboard Component", () => {
         expect(
             screen.getByRole("tab", { name: "Team Two" }),
         ).toBeInTheDocument();
-    });
-
-    it("renders 'Add Team' button and calls openAddTeamModal on click", () => {
-        renderDashboard();
-        const addButton = screen.getByText("Add Team");
-        expect(addButton).toBeInTheDocument();
-        fireEvent.click(addButton);
-        expect(mockOpenAddTeamModal).toHaveBeenCalledTimes(1);
     });
 
     it("displays content for the active team and switches tabs correctly", () => {
@@ -86,5 +96,9 @@ describe("DesktopDashboard Component", () => {
         expect(
             screen.getByText("You don't have any teams yet."),
         ).toBeInTheDocument();
+        const createButton = screen.getByText("Create your first team");
+        expect(createButton).toBeInTheDocument();
+        fireEvent.click(createButton);
+        expect(mockOpenAddTeamModal).toHaveBeenCalledTimes(1);
     });
 });

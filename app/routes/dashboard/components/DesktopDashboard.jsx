@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router";
 
 import {
@@ -20,21 +19,12 @@ import getGames from "@/utils/getGames";
 import GameCalendarRow from "@/components/GameCalendarRow";
 import GameCard from "@/components/GameCard";
 
-export default function DesktopDashboard({ teamList, openAddTeamModal }) {
-    // Determine initial active team ID
-    const initialTeamId =
-        teamList && teamList.length > 0 ? teamList[0].$id : null;
-    const [activeTeamId, setActiveTeamId] = useState(initialTeamId);
-
-    // If teamList changes and the activeTeamId is no longer in the list, reset it
-    useEffect(() => {
-        if (!teamList || teamList.length === 0) {
-            setActiveTeamId(null);
-        } else if (!teamList.find((t) => t.$id === activeTeamId)) {
-            setActiveTeamId(teamList[0].$id);
-        }
-    }, [teamList, activeTeamId]);
-
+export default function DesktopDashboard({
+    teamList,
+    activeTeamId,
+    setActiveTeamId,
+    openAddTeamModal,
+}) {
     const activeTeam = teamList?.find((t) => t.$id === activeTeamId);
 
     // Compute games only for the active team
@@ -49,19 +39,6 @@ export default function DesktopDashboard({ teamList, openAddTeamModal }) {
 
     return (
         <Box mt="xl">
-            <Group justify="space-between" align="center" mb="lg">
-                <Title order={4}>My Teams ({teamList?.length || "0"})</Title>
-                <Button
-                    variant="light"
-                    color="gray"
-                    size="sm"
-                    onClick={openAddTeamModal}
-                    leftSection={<IconPlus size={16} />}
-                >
-                    Add Team
-                </Button>
-            </Group>
-
             {!teamList?.length ? (
                 <Card withBorder radius="md" p="xl" ta="center">
                     <Text size="lg" mb="md">
@@ -105,14 +82,6 @@ export default function DesktopDashboard({ teamList, openAddTeamModal }) {
                                     <Title order={5}>
                                         Season Schedule overview
                                     </Title>
-                                    <Button
-                                        component={Link}
-                                        to={`/team/${activeTeam.$id}`}
-                                        variant="light"
-                                        size="xs"
-                                    >
-                                        View Full Team Details
-                                    </Button>
                                 </Group>
                                 <GameCalendarRow
                                     games={[...futureGames, ...pastGames]}
