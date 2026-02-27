@@ -51,6 +51,7 @@ export default [
         // Api routes
         route("/api/lineup", "routes/api/generate/lineup.js"),
         route("/api/stats", "routes/api/stats.js"),
+        route("/api/agreements", "routes/api/agreements.js"),
         route("/api/push-target", "routes/api/push-target.js"),
         route("/api/resend-verification", "routes/api/resend-verification.js"),
         route("/api/session", "routes/api/session.js"),
