@@ -90,14 +90,20 @@ describe("Landing Route", () => {
             isMobileUserAgent.mockReturnValue(false);
             createSessionClient.mockResolvedValue({
                 account: {
-                    get: jest.fn().mockResolvedValue({ $id: "user-123" }),
+                    get: jest
+                        .fn()
+                        .mockResolvedValue({ $id: "user-123", labels: [] }),
                 },
             });
 
             const result = await loader({
                 request: new Request("http://localhost/"),
             });
-            expect(result).toEqual({ isAuthenticated: true, isDesktop: true });
+            expect(result).toEqual({
+                isAuthenticated: true,
+                isDesktop: true,
+                isAdmin: false,
+            });
         });
 
         it("returns isAuthenticated false if session check fails", async () => {
@@ -133,6 +139,7 @@ describe("Landing Route", () => {
             useLoaderData.mockReturnValue({
                 isAuthenticated: false,
                 isDesktop: true,
+                isAdmin: false,
             });
 
             render(
