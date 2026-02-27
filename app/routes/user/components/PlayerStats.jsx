@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import {
+    Button,
     Center,
     Divider,
     Group,
+    Paper,
+    Skeleton,
     Stack,
     Text,
     Table,
-    Paper,
-    Button,
-    Skeleton,
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { useMediaQuery, useDisclosure } from "@mantine/hooks";
 import { IconMap2 } from "@tabler/icons-react";
 import { useFetcher } from "react-router";
 
@@ -24,6 +24,7 @@ import StatsDetailDrawer from "./stats/StatsDetailDrawer";
 
 export default function PlayerStats({ playerId }) {
     const fetcher = useFetcher();
+    const isDesktop = useMediaQuery("(min-width: 62em)");
 
     const [opened, { open, close }] = useDisclosure(false);
     const [sprayOpened, { open: openSpray, close: closeSpray }] =
@@ -234,7 +235,7 @@ export default function PlayerStats({ playerId }) {
                 opened={sprayOpened}
                 onClose={closeSpray}
                 title="Contact Spray Chart"
-                size="xl"
+                size={isDesktop ? "md" : "xl"}
             >
                 <ContactSprayChart hits={logs} />
             </DrawerContainer>

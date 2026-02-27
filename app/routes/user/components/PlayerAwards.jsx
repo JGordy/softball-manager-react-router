@@ -1,7 +1,8 @@
 import { useMemo, useState, useEffect } from "react";
-import { Link } from "react-router";
+import { useFetcher, useNavigate } from "react-router";
+import { useDisclosure } from "@mantine/hooks";
 
-import { Card, Center, Group, Image, Text, Stack } from "@mantine/core";
+import { Card, Center, Group, Image, Text } from "@mantine/core";
 import { Carousel } from "@mantine/carousel";
 
 import { IconChevronRight } from "@tabler/icons-react";
@@ -12,12 +13,25 @@ import images from "@/constants/images";
 import DeferredLoader from "@/components/DeferredLoader";
 import { formatForViewerDate } from "@/utils/dateTime";
 
-export default function PlayerAwards({ awardsPromise }) {
+import StatsDetailDrawer from "./stats/StatsDetailDrawer";
+
+export default function PlayerAwards({ awardsPromise, playerId }) {
+    const fetcher = useFetcher();
+    const navigate = useNavigate();
+
     const [activeAward, setActiveAward] = useState("mvp");
     const [initialSlide, setInitialSlide] = useState(0);
     const [initialSet, setInitialSet] = useState(false);
+    const [opened, { open, close }] = useDisclosure(false);
+    const [selectedGame, setSelectedGame] = useState(null);
 
     const awardsList = useMemo(() => Object.keys(awardsMap), []);
+
+    useEffect(() => {
+        if (playerId && fetcher.state === "idle" && !fetcher.data) {
+            fetcher.load(`/api/stats?userId=${playerId}`);
+        }
+    }, [playerId, fetcher.state, fetcher.data]);
 
     useEffect(() => {
         let mounted = true;
@@ -113,17 +127,38 @@ export default function PlayerAwards({ awardsPromise }) {
                         );
                     }
 
+                    const handleAwardClick = (gameId) => {
+                        const data = fetcher.data;
+                        if (!data) {
+                            navigate(`/events/${gameId}?open=awards`);
+                            return;
+                        }
+
+                        const { games = [], logs = [], teams = [] } = data;
+                        let game = games.find((g) => g.$id === gameId);
+                        if (!game) {
+                            navigate(`/events/${gameId}?open=awards`);
+                            return;
+                        }
+
+                        game.team = teams.find((t) => t.$id === game.teamId);
+                        const gameLogs = logs.filter(
+                            (l) => l.gameId === gameId,
+                        );
+
+                        setSelectedGame({ game, logs: gameLogs });
+                        open();
+                    };
+
                     return awardsForType.map((award) => (
-                        <Link
-                            to={`/events/${award.game_id}?open=awards`}
-                            key={award.$id}
-                        >
+                        <div key={award.$id}>
                             <Card
                                 radius="md"
                                 my="xs"
                                 withBorder
-                                component="div"
                                 className="winner-card"
+                                style={{ cursor: "pointer" }}
+                                onClick={() => handleAwardClick(award.game_id)}
                             >
                                 <Group justify="space-between">
                                     <Text size="md" ta="center">
@@ -132,10 +167,17 @@ export default function PlayerAwards({ awardsPromise }) {
                                     <IconChevronRight size={20} />
                                 </Group>
                             </Card>
-                        </Link>
+                        </div>
                     ));
                 }}
             </DeferredLoader>
+
+            <StatsDetailDrawer
+                opened={opened}
+                onClose={close}
+                game={selectedGame?.game}
+                logs={selectedGame?.logs}
+            />
         </>
     );
 }
