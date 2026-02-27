@@ -103,10 +103,11 @@ export default function PlayerStats({ statsPromise, isDesktop }) {
                     return acc;
                 }, {});
 
-                // Create a map of games for easy lookup
+                // Create a map of games for easy lookup without mutating original game objects
                 const gamesMap = games.reduce((acc, game) => {
-                    game.team = teams.find((team) => team.$id === game.teamId);
-                    acc[game.$id] = game;
+                    const team = teams.find((team) => team.$id === game.teamId);
+                    const gameWithTeam = { ...game, team };
+                    acc[game.$id] = gameWithTeam;
                     return acc;
                 }, {});
 

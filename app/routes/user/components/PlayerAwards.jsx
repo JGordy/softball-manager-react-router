@@ -141,12 +141,13 @@ export default function PlayerAwards({ awardsPromise, statsPromise }) {
                             return;
                         }
 
-                        game.team = teams.find((t) => t.$id === game.teamId);
+                        const team = teams.find((t) => t.$id === game.teamId);
+                        const gameWithTeam = { ...game, team };
                         const gameLogs = logs.filter(
                             (l) => l.gameId === gameId,
                         );
 
-                        setSelectedGame({ game, logs: gameLogs });
+                        setSelectedGame({ game: gameWithTeam, logs: gameLogs });
                         open();
                     };
 
@@ -154,6 +155,7 @@ export default function PlayerAwards({ awardsPromise, statsPromise }) {
                         <div key={award.$id}>
                             <Card
                                 component="button"
+                                type="button"
                                 radius="md"
                                 my="xs"
                                 withBorder

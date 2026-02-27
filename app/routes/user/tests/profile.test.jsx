@@ -71,6 +71,7 @@ describe("UserProfile Route Component", () => {
             usersLoaders.getAwardsByUserId.mockResolvedValue([]);
 
             usersLoaders.getAttendanceByUserId.mockResolvedValue([]);
+            usersLoaders.getStatsByUserId.mockResolvedValue({});
 
             const params = { userId: "user-1" };
             const request = { url: "http://localhost/user/user-1#stats" };
@@ -84,6 +85,9 @@ describe("UserProfile Route Component", () => {
                 userId: "user-1",
             });
             expect(usersLoaders.getAttendanceByUserId).toHaveBeenCalledWith({
+                userId: "user-1",
+            });
+            expect(usersLoaders.getStatsByUserId).toHaveBeenCalledWith({
                 userId: "user-1",
             });
             expect(result.player).toEqual(mockPlayer);
