@@ -18,9 +18,12 @@ export default function MobileProfileView({
     player,
     loggedInUser,
     awardsPromise,
+    statsPromise,
 }) {
+    const activeTab = tab === "attendance" ? "player" : tab;
+
     return (
-        <TabsWrapper value={tab} onChange={handleTabChange}>
+        <TabsWrapper value={activeTab} onChange={handleTabChange}>
             <Tabs.Tab value="player">
                 <Group gap="xs" align="center" justify="center">
                     <IconUserSquareRounded size={16} />
@@ -46,13 +49,13 @@ export default function MobileProfileView({
             </Tabs.Panel>
 
             <Tabs.Panel value="stats">
-                <PlayerStats playerId={player.$id} />
+                <PlayerStats statsPromise={statsPromise} isDesktop={false} />
             </Tabs.Panel>
 
             <Tabs.Panel value="awards">
                 <PlayerAwards
                     awardsPromise={awardsPromise}
-                    playerId={player.$id}
+                    statsPromise={statsPromise}
                 />
             </Tabs.Panel>
         </TabsWrapper>

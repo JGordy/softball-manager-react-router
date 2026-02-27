@@ -21,6 +21,7 @@ export default function DesktopProfileView({
     loggedInUser,
     awardsPromise,
     attendancePromise,
+    statsPromise,
 }) {
     return (
         <Grid gutter="xl" mt="xl">
@@ -60,14 +61,17 @@ export default function DesktopProfileView({
                     </Tabs.Tab>
 
                     <Tabs.Panel value="stats" pt="xl">
-                        <PlayerStats playerId={player.$id} />
+                        <PlayerStats
+                            statsPromise={statsPromise}
+                            isDesktop={true}
+                        />
                     </Tabs.Panel>
 
                     <Tabs.Panel value="awards" pt="xl">
                         <Card shadow="sm" padding="lg" radius="lg" withBorder>
                             <PlayerAwards
                                 awardsPromise={awardsPromise}
-                                playerId={player.$id}
+                                statsPromise={statsPromise}
                             />
                         </Card>
                     </Tabs.Panel>
