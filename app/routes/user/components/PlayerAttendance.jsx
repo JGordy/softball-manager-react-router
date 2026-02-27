@@ -47,7 +47,11 @@ export default function PlayerAttendance({ attendancePromise }) {
                     Math.round((declined / total) * 100) || 0;
                 const tentativePercent =
                     Math.round((tentative / total) * 100) || 0;
-                const otherPercent = Math.round((other / total) * 100) || 0;
+                const otherPercent = Math.max(
+                    0,
+                    100 -
+                        (acceptedPercent + declinedPercent + tentativePercent),
+                );
 
                 return (
                     <Stack gap="md">

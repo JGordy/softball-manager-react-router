@@ -5,11 +5,6 @@ jest.mock("react-router", () => {
     const actual = jest.requireActual("react-router");
     return {
         ...actual,
-        useFetcher: jest.fn(() => ({
-            state: "idle",
-            data: { logs: [], games: [], teams: [] },
-            load: jest.fn(),
-        })),
         useNavigate: jest.fn(() => jest.fn()),
         Link: ({ children, to }) => <a href={to}>{children}</a>,
     };
@@ -22,19 +17,6 @@ jest.mock("@/components/DeferredLoader", () => ({
         return children(Array.isArray(resolve) ? resolve : []);
     },
 }));
-
-// Mock observers typically needed by Mantine components like Carousel
-global.ResizeObserver = class ResizeObserver {
-    observe() {}
-    unobserve() {}
-    disconnect() {}
-};
-
-global.IntersectionObserver = class IntersectionObserver {
-    observe() {}
-    unobserve() {}
-    disconnect() {}
-};
 
 describe("MobileProfileView", () => {
     const mockProps = {
@@ -50,6 +32,7 @@ describe("MobileProfileView", () => {
         },
         loggedInUser: { $id: "player1" },
         awardsPromise: Promise.resolve([]),
+        statsPromise: Promise.resolve({ logs: [], games: [], teams: [] }),
     };
 
     it("renders PersonalDetails and PlayerDetails when tab is player", () => {

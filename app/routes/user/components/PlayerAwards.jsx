@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { useFetcher, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { useDisclosure } from "@mantine/hooks";
 
 import { Card, Center, Group, Image, Text } from "@mantine/core";
@@ -15,8 +15,7 @@ import { formatForViewerDate } from "@/utils/dateTime";
 
 import StatsDetailDrawer from "./stats/StatsDetailDrawer";
 
-export default function PlayerAwards({ awardsPromise, playerId }) {
-    const fetcher = useFetcher();
+export default function PlayerAwards({ awardsPromise, statsPromise }) {
     const navigate = useNavigate();
 
     const [activeAward, setActiveAward] = useState("mvp");
@@ -26,12 +25,6 @@ export default function PlayerAwards({ awardsPromise, playerId }) {
     const [selectedGame, setSelectedGame] = useState(null);
 
     const awardsList = useMemo(() => Object.keys(awardsMap), []);
-
-    useEffect(() => {
-        if (playerId && fetcher.state === "idle" && !fetcher.data) {
-            fetcher.load(`/api/stats?userId=${playerId}`);
-        }
-    }, [playerId, fetcher.state, fetcher.data]);
 
     useEffect(() => {
         let mounted = true;
@@ -127,8 +120,15 @@ export default function PlayerAwards({ awardsPromise, playerId }) {
                         );
                     }
 
-                    const handleAwardClick = (gameId) => {
-                        const data = fetcher.data;
+                    const handleAwardClick = async (gameId) => {
+                        let data;
+                        try {
+                            data = await statsPromise;
+                        } catch (e) {
+                            navigate(`/events/${gameId}?open=awards`);
+                            return;
+                        }
+
                         if (!data) {
                             navigate(`/events/${gameId}?open=awards`);
                             return;
@@ -153,11 +153,12 @@ export default function PlayerAwards({ awardsPromise, playerId }) {
                     return awardsForType.map((award) => (
                         <div key={award.$id}>
                             <Card
+                                component="button"
                                 radius="md"
                                 my="xs"
                                 withBorder
                                 className="winner-card"
-                                style={{ cursor: "pointer" }}
+                                style={{ cursor: "pointer", width: "100%" }}
                                 onClick={() => handleAwardClick(award.game_id)}
                             >
                                 <Group justify="space-between">

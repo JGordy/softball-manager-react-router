@@ -16,6 +16,7 @@ import {
     getAttendanceByUserId,
     getAwardsByUserId,
     getUserById,
+    getStatsByUserId,
 } from "@/loaders/users";
 
 import { useResponseNotification } from "@/utils/showNotification";
@@ -57,13 +58,20 @@ export async function loader({ params, request }) {
         player: await getUserById({ userId }),
         awardsPromise: getAwardsByUserId({ userId }),
         attendancePromise: getAttendanceByUserId({ userId }),
+        statsPromise: getStatsByUserId({ userId }),
         defaultTab,
     };
 }
 
 export default function UserProfile({ loaderData }) {
     // console.log("UserProfile: ", { ...loaderData });
-    const { awardsPromise, attendancePromise, player, defaultTab } = loaderData;
+    const {
+        awardsPromise,
+        attendancePromise,
+        statsPromise,
+        player,
+        defaultTab,
+    } = loaderData;
 
     const { user: loggedInUser } = useOutletContext(); // The currently logged-in user from layout
     const location = useLocation();
@@ -121,6 +129,7 @@ export default function UserProfile({ loaderData }) {
                             player={player}
                             loggedInUser={loggedInUser}
                             awardsPromise={awardsPromise}
+                            statsPromise={statsPromise}
                         />
                     </Box>
                     <Box visibleFrom="lg">
@@ -131,6 +140,7 @@ export default function UserProfile({ loaderData }) {
                             loggedInUser={loggedInUser}
                             awardsPromise={awardsPromise}
                             attendancePromise={attendancePromise}
+                            statsPromise={statsPromise}
                         />
                     </Box>
                 </Container>
