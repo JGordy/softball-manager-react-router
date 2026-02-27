@@ -69,11 +69,10 @@ export default function PoliciesPanel() {
                             updates.
                         </Text>
                         <Text size="sm">
-                            <strong>Third Parties:</strong> We use Google
-                            Firebase for data storage and the Google Gemini API
-                            for automated lineup suggestions and other AI
-                            features. Your data is processed securely through
-                            these providers.
+                            <strong>Third Parties:</strong> We use Appwrite for
+                            data storage and the Google Gemini API for automated
+                            lineup suggestions and other AI features. Your data
+                            is processed securely through these providers.
                         </Text>
                         <Text size="sm">
                             <strong>Your Rights:</strong> You can request to

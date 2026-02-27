@@ -43,4 +43,18 @@ describe("agreements API route", () => {
         });
         expect(response.status).toBe(200);
     });
+
+    it("returns 500 when updateUser fails", async () => {
+        createSessionClient.mockResolvedValue({
+            account: { get: jest.fn().mockResolvedValue({ $id: "user-123" }) },
+        });
+        updateUser.mockRejectedValue(new Error("Database error"));
+
+        const request = new Request("http://localhost", { method: "POST" });
+        const response = await action({ request });
+        const data = await response.json();
+
+        expect(response.status).toBe(500);
+        expect(data.error).toBe("Database error");
+    });
 });

@@ -27,6 +27,12 @@ function AgreementModalContent({ user }) {
 
     const isSubmitting = fetcher.state !== "idle";
 
+    useEffect(() => {
+        if (fetcher.data?.success && fetcher.state === "idle") {
+            modals.close("agreement-modal");
+        }
+    }, [fetcher.data, fetcher.state]);
+
     return (
         <Stack gap="md">
             <Text size="sm">
@@ -99,9 +105,9 @@ function AgreementModalContent({ user }) {
                         functionality of the app and to communicate beta
                         updates. <br />
                         <br />
-                        <strong>Third Parties:</strong> We use Google Firebase
-                        for data storage and the Google Gemini API for automated
-                        lineup suggestions and other AI features. Your data is
+                        <strong>Third Parties:</strong> We use Appwrite for data
+                        storage and the Google Gemini API for automated lineup
+                        suggestions and other AI features. Your data is
                         processed securely through these providers. <br />
                         <br />
                         <strong>Your Rights:</strong> You can request to have

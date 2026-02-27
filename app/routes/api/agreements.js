@@ -22,7 +22,7 @@ export async function action({ request }) {
             userId,
         });
 
-        return Response.json({ success: true, status: 200 });
+        return Response.json({ success: true });
     } catch (error) {
         console.error("Error accepting agreements:", error);
         return Response.json(
