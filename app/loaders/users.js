@@ -6,12 +6,17 @@ export async function getUserById({ userId }) {
 }
 
 export async function getAttendanceByUserId({ userId }) {
-    const attendance = await listDocuments("attendance", [
-        Query.equal("playerId", userId),
-        Query.equal("status", "accepted"),
-    ]);
+    try {
+        const attendance = await listDocuments("attendance", [
+            Query.equal("playerId", userId),
+            Query.limit(100),
+        ]);
 
-    return attendance.rows.length > 0 ? attendance.rows : [];
+        return attendance.rows || [];
+    } catch (e) {
+        console.error("Error fetching attendance:", e);
+        return [];
+    }
 }
 
 export async function getAwardsByUserId({ userId }) {
