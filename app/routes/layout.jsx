@@ -9,15 +9,31 @@ import NavLinks from "@/components/NavLinks";
 import DesktopNavbar from "@/components/DesktopNavbar";
 import NotificationPromptDrawer from "@/components/NotificationPromptDrawer";
 import InstallAppDrawer from "@/components/InstallAppDrawer";
+import AgreementModal from "@/components/AgreementModal";
 
 import { createSessionClient } from "@/utils/appwrite/server";
+import { getUserById } from "@/loaders/users";
 
 import { isMobileUserAgent } from "@/utils/device";
 
 export async function loader({ request }) {
     try {
         const { account } = await createSessionClient(request);
-        const user = await account.get();
+        const accountUser = await account.get();
+        let agreedToTerms = false;
+
+        try {
+            const userDoc = await getUserById({ userId: accountUser.$id });
+            agreedToTerms = userDoc?.agreedToTerms ?? false;
+        } catch (e) {
+            console.error(
+                "Layout loader - Failed to fetch user doc:",
+                e.message,
+            );
+            // new users might not have a doc yet, default to false
+        }
+
+        const user = { ...accountUser, agreedToTerms };
 
         const isAdmin = user.labels?.includes("admin");
 
@@ -106,6 +122,7 @@ function Layout({ loaderData }) {
                 </Box>
                 <NotificationPromptDrawer />
                 <InstallAppDrawer />
+                <AgreementModal user={loaderData.user} />
             </AppShell.Main>
         </AppShell>
     );

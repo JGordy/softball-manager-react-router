@@ -20,6 +20,7 @@ import AccountPanel from "./components/AccountPanel";
 import AuthPanel from "./components/AuthPanel";
 import NotificationsPanel from "./components/NotificationsPanel";
 import SupportPanel from "./components/SupportPanel";
+import PoliciesPanel from "./components/PoliciesPanel";
 
 export async function loader({ request }) {
     try {
@@ -127,13 +128,12 @@ export default function Settings({ actionData }) {
                     </Accordion.Panel>
                 </Accordion.Item>
 
-                {/* <Accordion.Item value="leagues">
-                    <Accordion.Control>Leagues</Accordion.Control>
+                <Accordion.Item value="policies">
+                    <Accordion.Control>Policies & Agreements</Accordion.Control>
                     <Accordion.Panel>
-                        This feature is under development. Please check back
-                        later for updates.
+                        <PoliciesPanel />
                     </Accordion.Panel>
-                </Accordion.Item> */}
+                </Accordion.Item>
             </Accordion>
         </Container>
     );

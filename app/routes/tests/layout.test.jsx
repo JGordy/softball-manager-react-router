@@ -33,6 +33,10 @@ jest.mock("@/utils/device", () => ({
     isMobileUserAgent: jest.fn(),
 }));
 
+jest.mock("@/loaders/users", () => ({
+    getUserById: jest.fn().mockResolvedValue({ agreedToTerms: true }),
+}));
+
 // Mock child components to simplify layout testing
 jest.mock("@/components/NavLinks", () => ({
     __esModule: true,
@@ -49,6 +53,11 @@ jest.mock("@/components/NotificationPromptDrawer", () => ({
 jest.mock("@/components/InstallAppDrawer", () => ({
     __esModule: true,
     default: () => <div data-testid="install-app-drawer" />,
+}));
+
+jest.mock("@/components/AgreementModal", () => ({
+    __esModule: true,
+    default: () => <div data-testid="agreement-modal" />,
 }));
 
 describe("Layout Route", () => {
@@ -82,7 +91,11 @@ describe("Layout Route", () => {
 
         it("allows access on non-mobile if user is admin", async () => {
             isMobileUserAgent.mockReturnValue(false);
-            const adminUser = { ...mockUser, labels: ["admin"] };
+            const adminUser = {
+                ...mockUser,
+                labels: ["admin"],
+                agreedToTerms: true,
+            };
             createSessionClient.mockResolvedValue({
                 account: {
                     get: jest.fn().mockResolvedValue(adminUser),
@@ -139,7 +152,7 @@ describe("Layout Route", () => {
                 request: new Request("http://localhost/"),
             });
             expect(result).toEqual({
-                user: mockUser,
+                user: { ...mockUser, agreedToTerms: true },
                 isAuthenticated: true,
                 isVerified: true,
                 isMobile: true,
@@ -164,6 +177,7 @@ describe("Layout Route", () => {
             expect(
                 screen.getByTestId("install-app-drawer"),
             ).toBeInTheDocument();
+            expect(screen.getByTestId("agreement-modal")).toBeInTheDocument();
         });
 
         it("shows loading overlay when navigating", () => {

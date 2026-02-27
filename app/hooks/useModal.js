@@ -1,7 +1,8 @@
+import { useCallback } from "react";
 import { modals } from "@mantine/modals";
 
 const useModal = () => {
-    const openModal = ({ title, children, ...rest }) => {
+    const openModal = useCallback(({ title, children, ...rest }) => {
         return modals.open({
             title,
             radius: "lg",
@@ -12,9 +13,9 @@ const useModal = () => {
             },
             ...rest,
         });
-    };
+    }, []);
 
-    const updateModal = (id, { title, children, ...rest }) => {
+    const updateModal = useCallback((id, { title, children, ...rest }) => {
         modals.updateModal(id, {
             title,
             children,
@@ -24,7 +25,7 @@ const useModal = () => {
             },
             ...rest,
         });
-    };
+    }, []);
 
     return { openModal, closeAllModals: modals.closeAll, updateModal };
 };
