@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useFetcher } from "react-router";
+import { useFetcher, useRevalidator } from "react-router";
 import {
     Button,
     Text,
@@ -17,7 +17,7 @@ import {
     PRIVACY_POLICY_CONTENT,
 } from "@/constants/agreements";
 
-function AgreementModalContent({ user }) {
+export function AgreementModalContent({ user }) {
     const fetcher = useFetcher();
     const { revalidate } = useRevalidator();
 
