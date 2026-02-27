@@ -46,6 +46,9 @@ jest.mock("../components/NotificationsPanel", () => () => (
 jest.mock("../components/SupportPanel", () => () => (
     <div data-testid="support-panel" />
 ));
+jest.mock("../components/PoliciesPanel", () => () => (
+    <div data-testid="policies-panel" />
+));
 
 describe("Settings Route", () => {
     const mockUser = {
@@ -124,6 +127,9 @@ describe("Settings Route", () => {
             expect(screen.getByText("Login Options")).toBeInTheDocument();
             expect(screen.getByText("Notifications")).toBeInTheDocument();
             expect(screen.getByText("Support")).toBeInTheDocument();
+            expect(
+                screen.getByText("Policies & Agreements"),
+            ).toBeInTheDocument();
         });
     });
 });
