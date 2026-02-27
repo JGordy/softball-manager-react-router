@@ -6,23 +6,18 @@ import {
     useNavigate,
 } from "react-router";
 
-import { Container, Group, Tabs } from "@mantine/core";
-
-import {
-    IconAward,
-    // IconBallBaseball,
-    IconClipboardData,
-    IconUserSquareRounded,
-} from "@tabler/icons-react";
+import { Container, Box } from "@mantine/core";
 
 import UserHeader from "@/components/UserHeader";
-import PersonalDetails from "@/components/PersonalDetails";
-import PlayerDetails from "@/components/PlayerDetails";
-import TabsWrapper from "@/components/TabsWrapper";
 
 import { updateUser } from "@/actions/users";
 
-import { getAwardsByUserId, getUserById } from "@/loaders/users";
+import {
+    getAttendanceByUserId,
+    getAwardsByUserId,
+    getUserById,
+    getStatsByUserId,
+} from "@/loaders/users";
 
 import { useResponseNotification } from "@/utils/showNotification";
 import {
@@ -31,9 +26,10 @@ import {
 } from "@/utils/users";
 
 import AlertIncomplete from "./components/AlertIncomplete";
-import PlayerAwards from "./components/PlayerAwards";
-import PlayerStats from "./components/PlayerStats";
 import ProfileMenu from "./components/ProfileMenu";
+
+import MobileProfileView from "./components/MobileProfileView";
+import DesktopProfileView from "./components/DesktopProfileView";
 
 export function links() {
     const fieldSrc = `${import.meta.env.VITE_APPWRITE_HOST_URL}/storage/buckets/67af948b00375c741493/files/67b00f90002a66960ba4/view?project=${import.meta.env.VITE_APPWRITE_PROJECT_ID}&mode=admin`;
@@ -55,19 +51,27 @@ export async function loader({ params, request }) {
     const url = new URL(request.url);
     const hash = url.hash.replace(/^#/, "") || null;
 
-    const validTabs = ["player", "stats", "awards"];
+    const validTabs = ["player", "stats", "awards", "attendance"];
     const defaultTab = validTabs.includes(hash) ? hash : "player";
 
     return {
         player: await getUserById({ userId }),
         awardsPromise: getAwardsByUserId({ userId }),
+        attendancePromise: getAttendanceByUserId({ userId }),
+        statsPromise: getStatsByUserId({ userId }),
         defaultTab,
     };
 }
 
 export default function UserProfile({ loaderData }) {
     // console.log("UserProfile: ", { ...loaderData });
-    const { awardsPromise, player, defaultTab } = loaderData;
+    const {
+        awardsPromise,
+        attendancePromise,
+        statsPromise,
+        player,
+        defaultTab,
+    } = loaderData;
 
     const { user: loggedInUser } = useOutletContext(); // The currently logged-in user from layout
     const location = useLocation();
@@ -84,7 +88,7 @@ export default function UserProfile({ loaderData }) {
 
     useResponseNotification(actionData);
 
-    const validTabs = ["player", "stats", "awards"];
+    const validTabs = ["player", "stats", "awards", "attendance"];
     const [tab, setTab] = useState(defaultTab);
 
     // Keep tab state in sync when location.hash changes (back/forward navigation)
@@ -108,58 +112,39 @@ export default function UserProfile({ loaderData }) {
 
     return (
         !!Object.keys(player).length && (
-            <Container>
+            <Box px="md" py="md">
                 <UserHeader subText="Here are your personal and player details">
                     {isCurrentUser && <ProfileMenu player={player} />}
                 </UserHeader>
 
-                {isCurrentUser && incompleteData.length > 0 && (
-                    <AlertIncomplete incompleteData={incompleteData} />
-                )}
+                <Container px={0}>
+                    {isCurrentUser && incompleteData.length > 0 && (
+                        <AlertIncomplete incompleteData={incompleteData} />
+                    )}
 
-                <TabsWrapper value={tab} onChange={handleTabChange}>
-                    <Tabs.Tab value="player">
-                        <Group gap="xs" align="center" justify="center">
-                            <IconUserSquareRounded size={16} />
-                            Details
-                        </Group>
-                    </Tabs.Tab>
-                    {/* <Tabs.Tab value="personal">
-                        <Group gap="xs" align="center" justify="center">
-                            <IconUserSquareRounded size={16} />
-                            Details
-                        </Group>
-                    </Tabs.Tab> */}
-                    <Tabs.Tab value="stats">
-                        <Group gap="xs" align="center" justify="center">
-                            <IconClipboardData size={16} />
-                            Stats
-                        </Group>
-                    </Tabs.Tab>
-                    <Tabs.Tab value="awards">
-                        <Group gap="xs" align="center" justify="center">
-                            <IconAward size={16} />
-                            Awards
-                        </Group>
-                    </Tabs.Tab>
-
-                    <Tabs.Panel value="player">
-                        <PersonalDetails player={player} user={loggedInUser} />
-                        <PlayerDetails user={loggedInUser} player={player} />
-                    </Tabs.Panel>
-
-                    {/* <Tabs.Panel value="personal">
-                    </Tabs.Panel> */}
-
-                    <Tabs.Panel value="stats">
-                        <PlayerStats playerId={player.$id} />
-                    </Tabs.Panel>
-
-                    <Tabs.Panel value="awards">
-                        <PlayerAwards awardsPromise={awardsPromise} />
-                    </Tabs.Panel>
-                </TabsWrapper>
-            </Container>
+                    <Box hiddenFrom="lg">
+                        <MobileProfileView
+                            tab={tab}
+                            handleTabChange={handleTabChange}
+                            player={player}
+                            loggedInUser={loggedInUser}
+                            awardsPromise={awardsPromise}
+                            statsPromise={statsPromise}
+                        />
+                    </Box>
+                    <Box visibleFrom="lg">
+                        <DesktopProfileView
+                            tab={tab}
+                            handleTabChange={handleTabChange}
+                            player={player}
+                            loggedInUser={loggedInUser}
+                            awardsPromise={awardsPromise}
+                            attendancePromise={attendancePromise}
+                            statsPromise={statsPromise}
+                        />
+                    </Box>
+                </Container>
+            </Box>
         )
     );
 }

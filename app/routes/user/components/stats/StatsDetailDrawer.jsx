@@ -1,10 +1,14 @@
-import { Group, Stack, Table, Text } from "@mantine/core";
+import { Button, Group, Stack, Table, Text } from "@mantine/core";
+import { Link } from "react-router";
+import { useMediaQuery } from "@mantine/hooks";
 import { DateTime } from "luxon";
 
 import DrawerContainer from "@/components/DrawerContainer";
 import { calculatePlayerStats } from "@/utils/stats";
 
 export default function StatsDetailDrawer({ opened, onClose, game, logs }) {
+    const isDesktop = useMediaQuery("(min-width: 62em)");
+
     if (!game) return null;
 
     const stats = calculatePlayerStats(logs || []);
@@ -32,9 +36,9 @@ export default function StatsDetailDrawer({ opened, onClose, game, logs }) {
         <DrawerContainer
             opened={opened}
             onClose={onClose}
-            title={`${game.team?.name} vs ${game.opponent || "Opponent"}`}
-            position="bottom"
-            size="xl"
+            title={`${game.team?.displayName || game.team?.name} vs ${game.opponent || "Opponent"}`}
+            position={isDesktop ? "right" : "bottom"}
+            size={isDesktop ? "md" : "xl"}
             padding="md"
         >
             <Stack gap="lg">
@@ -100,6 +104,16 @@ export default function StatsDetailDrawer({ opened, onClose, game, logs }) {
                         ))}
                     </Table.Tbody>
                 </Table>
+
+                <Button
+                    component={Link}
+                    to={`/events/${game.$id}?open=awards`}
+                    variant="light"
+                    fullWidth
+                    mt="md"
+                >
+                    See Game Details
+                </Button>
             </Stack>
         </DrawerContainer>
     );

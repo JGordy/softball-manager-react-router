@@ -15,6 +15,10 @@ jest.mock("@/components/DrawerContainer", () => ({
         ) : null,
 }));
 
+jest.mock("react-router", () => ({
+    Link: ({ children, to }) => <a href={to}>{children}</a>,
+}));
+
 describe("StatsDetailDrawer Component", () => {
     const mockGame = {
         $id: "game-1",
@@ -90,5 +94,20 @@ describe("StatsDetailDrawer Component", () => {
         expect(screen.getByText("OBP")).toBeInTheDocument();
         expect(screen.getByText("SLG")).toBeInTheDocument();
         expect(screen.getByText("OPS")).toBeInTheDocument();
+    });
+
+    it("renders See Game Details button", () => {
+        render(
+            <StatsDetailDrawer
+                opened={true}
+                onClose={() => {}}
+                game={mockGame}
+                logs={mockLogs}
+            />,
+        );
+
+        const linkBtn = screen.getByRole("link", { name: /see game details/i });
+        expect(linkBtn).toBeInTheDocument();
+        expect(linkBtn).toHaveAttribute("href", "/events/game-1?open=awards");
     });
 });

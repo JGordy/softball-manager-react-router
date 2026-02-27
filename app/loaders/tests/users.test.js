@@ -27,7 +27,7 @@ jest.mock("node-appwrite", () => ({
 
 describe("Users Loader", () => {
     beforeEach(() => {
-        jest.resetAllMocks();
+        jest.clearAllMocks();
     });
 
     describe("getStatsByUserId", () => {
@@ -124,6 +124,10 @@ describe("Users Loader", () => {
 
             const result = await getAttendanceByUserId({ userId: "user1" });
 
+            expect(listDocuments).toHaveBeenCalledWith("attendance", [
+                'equal("playerId", "user1")',
+                "limit(100)",
+            ]);
             expect(result).toEqual(mockAttendance);
         });
 

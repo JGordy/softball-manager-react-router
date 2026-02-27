@@ -1,5 +1,3 @@
-import { useFetcher } from "react-router";
-
 import { render, screen, fireEvent } from "@/utils/test-utils";
 
 import { UI_KEYS } from "@/constants/scoring";
@@ -8,7 +6,14 @@ import PlayerStats from "../PlayerStats";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
-    useFetcher: jest.fn(),
+}));
+
+jest.mock("@/components/DeferredLoader", () => ({
+    __esModule: true,
+    default: ({ resolve, children, fallback }) => {
+        if (resolve === "pending") return fallback;
+        return children(resolve);
+    },
 }));
 
 jest.mock("@/components/ContactSprayChart", () => () => (
@@ -61,23 +66,12 @@ describe("PlayerStats Component", () => {
         teams: [{ $id: "t1", name: "Thunder" }],
     };
 
-    beforeEach(() => {
-        useFetcher.mockReturnValue(mockFetcher);
-    });
-
     afterEach(() => {
         jest.clearAllMocks();
     });
 
-    it("calls fetcher.load on mount", () => {
-        render(<PlayerStats playerId="user-1" />);
-        expect(mockFetcher.load).toHaveBeenCalledWith(
-            "/api/stats?userId=user-1",
-        );
-    });
-
     it("renders skeleton while loading", () => {
-        const { container } = render(<PlayerStats playerId="user-1" />);
+        const { container } = render(<PlayerStats statsPromise="pending" />);
         // Mantine Skeletons are rendered as divs with mantine-Skeleton-root class
         expect(
             container.querySelector(".mantine-Skeleton-root"),
@@ -85,22 +79,13 @@ describe("PlayerStats Component", () => {
     });
 
     it("renders no stats message if logs are empty", () => {
-        useFetcher.mockReturnValue({
-            ...mockFetcher,
-            data: { logs: [], games: [], teams: [] },
-        });
-
-        render(<PlayerStats playerId="user-1" />);
+        const emptyData = { logs: [], games: [], teams: [] };
+        render(<PlayerStats statsPromise={emptyData} />);
         expect(screen.getByText("No stats available yet.")).toBeInTheDocument();
     });
 
     it("renders stats overview when data is available", () => {
-        useFetcher.mockReturnValue({
-            ...mockFetcher,
-            data: mockStatsData,
-        });
-
-        render(<PlayerStats playerId="user-1" />);
+        render(<PlayerStats statsPromise={mockStatsData} />);
 
         expect(screen.getByText(/Last 1 Games/i)).toBeInTheDocument();
         expect(screen.getByText("AVG")).toBeInTheDocument();
@@ -108,12 +93,7 @@ describe("PlayerStats Component", () => {
     });
 
     it("opens spray chart drawer when button is clicked", () => {
-        useFetcher.mockReturnValue({
-            ...mockFetcher,
-            data: mockStatsData,
-        });
-
-        render(<PlayerStats playerId="user-1" />);
+        render(<PlayerStats statsPromise={mockStatsData} />);
 
         const sprayButton = screen.getByText("View Spray Chart");
         fireEvent.click(sprayButton);

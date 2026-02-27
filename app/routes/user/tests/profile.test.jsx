@@ -70,6 +70,9 @@ describe("UserProfile Route Component", () => {
             usersLoaders.getUserById.mockResolvedValue(mockPlayer);
             usersLoaders.getAwardsByUserId.mockResolvedValue([]);
 
+            usersLoaders.getAttendanceByUserId.mockResolvedValue([]);
+            usersLoaders.getStatsByUserId.mockResolvedValue({});
+
             const params = { userId: "user-1" };
             const request = { url: "http://localhost/user/user-1#stats" };
 
@@ -79,6 +82,12 @@ describe("UserProfile Route Component", () => {
                 userId: "user-1",
             });
             expect(usersLoaders.getAwardsByUserId).toHaveBeenCalledWith({
+                userId: "user-1",
+            });
+            expect(usersLoaders.getAttendanceByUserId).toHaveBeenCalledWith({
+                userId: "user-1",
+            });
+            expect(usersLoaders.getStatsByUserId).toHaveBeenCalledWith({
                 userId: "user-1",
             });
             expect(result.player).toEqual(mockPlayer);
@@ -130,8 +139,8 @@ describe("UserProfile Route Component", () => {
             render(<UserProfile loaderData={mockLoaderData} />);
 
             expect(screen.getByTestId("user-header")).toBeInTheDocument();
-            expect(screen.getByTestId("personal-details")).toBeInTheDocument();
-            expect(screen.getByTestId("player-details")).toBeInTheDocument();
+            expect(screen.getAllByTestId("personal-details")).toHaveLength(2);
+            expect(screen.getAllByTestId("player-details")).toHaveLength(2);
             // The ProfileMenu is rendered within a conditional
             expect(screen.getByTestId("profile-menu")).toBeInTheDocument();
         });
@@ -139,8 +148,8 @@ describe("UserProfile Route Component", () => {
         it("switches tabs and updates URL hash", () => {
             render(<UserProfile loaderData={mockLoaderData} />);
 
-            const statsTab = screen.getByText("Stats");
-            fireEvent.click(statsTab);
+            const statsTabs = screen.getAllByText("Stats");
+            fireEvent.click(statsTabs[0]);
 
             // It should update hash and change visible component
             expect(mockNavigate).toHaveBeenCalled();
