@@ -19,6 +19,7 @@ import {
 
 function AgreementModalContent({ user }) {
     const fetcher = useFetcher();
+    const { revalidate } = useRevalidator();
 
     const handleAgree = () => {
         fetcher.submit(
@@ -34,9 +35,10 @@ function AgreementModalContent({ user }) {
 
     useEffect(() => {
         if (fetcher.data?.success && fetcher.state === "idle") {
+            revalidate();
             modals.close("agreement-modal");
         }
-    }, [fetcher.data, fetcher.state]);
+    }, [fetcher.data, fetcher.state, revalidate]);
 
     return (
         <Stack gap="md">

@@ -20,8 +20,20 @@ export async function loader({ request }) {
     try {
         const { account } = await createSessionClient(request);
         const accountUser = await account.get();
-        const userDoc = await getUserById({ userId: accountUser.$id });
-        const user = { ...accountUser, agreedToTerms: userDoc?.agreedToTerms };
+        let agreedToTerms = false;
+
+        try {
+            const userDoc = await getUserById({ userId: accountUser.$id });
+            agreedToTerms = userDoc?.agreedToTerms ?? false;
+        } catch (e) {
+            console.error(
+                "Layout loader - Failed to fetch user doc:",
+                e.message,
+            );
+            // new users might not have a doc yet, default to false
+        }
+
+        const user = { ...accountUser, agreedToTerms };
 
         const isAdmin = user.labels?.includes("admin");
 
