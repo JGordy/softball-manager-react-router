@@ -1,5 +1,5 @@
 import { cleanup } from "@testing-library/react";
-import { render, screen, act, fireEvent } from "@/utils/test-utils";
+import { render, screen, act, fireEvent, waitFor } from "@/utils/test-utils";
 import awardsMap from "@/constants/awards";
 import images from "@/constants/images";
 
@@ -9,7 +9,6 @@ jest.mock("react-router", () => {
     const actual = jest.requireActual("react-router");
     return {
         ...actual,
-        useFetcher: jest.fn(),
         useNavigate: jest.fn(),
         Link: ({ children, to, ...props }) => (
             <a href={to} {...props}>
@@ -22,17 +21,11 @@ jest.mock("react-router", () => {
 // Mock DeferredLoader to just call its children immediately with the data
 jest.mock("@/components/DeferredLoader", () => ({
     __esModule: true,
-    default: ({ resolve, children }) =>
-        children(Array.isArray(resolve) ? resolve : []),
+    default: ({ resolve, children, fallback }) => {
+        if (!resolve || resolve === "pending") return fallback;
+        return children(resolve);
+    },
 }));
-
-// Mock IntersectionObserver for Carousel
-global.IntersectionObserver = class IntersectionObserver {
-    constructor() {}
-    observe() {}
-    unobserve() {}
-    disconnect() {}
-};
 
 describe("PlayerAwards Component", () => {
     const awardTypes = Object.keys(awardsMap);
@@ -47,23 +40,25 @@ describe("PlayerAwards Component", () => {
         },
     ];
 
-    const { useFetcher, useNavigate } = require("react-router");
+    const { useNavigate } = require("react-router");
+
+    const mockStatsData = {
+        games: [{ $id: "game-1", opponent: "Rivals", teamId: "team-a" }],
+        teams: [{ $id: "team-a", name: "Team A" }],
+        logs: [],
+    };
 
     beforeEach(async () => {
-        useFetcher.mockReturnValue({
-            state: "idle",
-            data: {
-                games: [{ $id: "game-1", teamId: "team-a" }],
-                logs: [{ gameId: "game-1", playerId: "player1" }],
-                teams: [{ $id: "team-a", name: "Team A" }],
-            },
-            load: jest.fn(),
-        });
+        jest.clearAllMocks();
+
         useNavigate.mockReturnValue(jest.fn());
 
         await act(async () => {
             render(
-                <PlayerAwards awardsPromise={mockAwards} playerId="player1" />,
+                <PlayerAwards
+                    awardsPromise={mockAwards}
+                    statsPromise={mockStatsData}
+                />,
             );
         });
     });
@@ -95,24 +90,19 @@ describe("PlayerAwards Component", () => {
         fireEvent.click(awardDate);
 
         // StatsDetailDrawer should render with team name based on mocked fetcher data
-        expect(screen.getByText("Team A vs Opponent")).toBeInTheDocument();
+        expect(await screen.findByText("Team A vs Rivals")).toBeInTheDocument();
     });
 
     it("navigates to event directly if stats data is missing", async () => {
         cleanup(); // Remove the instance rendered in beforeEach
 
-        useFetcher.mockReturnValue({
-            state: "idle",
-            data: null,
-            load: jest.fn(),
-        });
         const navigateMock = jest.fn();
         useNavigate.mockReturnValue(navigateMock);
 
         // Render freshly with null data
         await act(async () => {
             render(
-                <PlayerAwards awardsPromise={mockAwards} playerId="player1" />,
+                <PlayerAwards awardsPromise={mockAwards} statsPromise={null} />,
             );
         });
 
@@ -120,6 +110,11 @@ describe("PlayerAwards Component", () => {
 
         fireEvent.click(awardDate);
 
-        expect(navigateMock).toHaveBeenCalledWith("/events/game-1?open=awards");
+        // wait for navigateMock to be called
+        await waitFor(() => {
+            expect(navigateMock).toHaveBeenCalledWith(
+                "/events/game-1?open=awards",
+            );
+        });
     });
 });
