@@ -60,7 +60,7 @@ export async function getStatsByUserId({ userId }) {
     if (teamIds?.length > 0) {
         teamsResponse = await listDocuments("teams", [
             Query.equal("$id", teamIds),
-            Query.select(["name"]),
+            Query.select(["name", "displayName"]),
         ]);
     }
 

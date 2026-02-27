@@ -36,7 +36,7 @@ export default function StatsDetailDrawer({ opened, onClose, game, logs }) {
         <DrawerContainer
             opened={opened}
             onClose={onClose}
-            title={`${game.team?.name} vs ${game.opponent || "Opponent"}`}
+            title={`${game.team?.displayName || game.team?.name} vs ${game.opponent || "Opponent"}`}
             position={isDesktop ? "right" : "bottom"}
             size={isDesktop ? "md" : "xl"}
             padding="md"
