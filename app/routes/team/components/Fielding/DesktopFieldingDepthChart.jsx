@@ -34,21 +34,6 @@ import DrawerContainer from "@/components/DrawerContainer";
 
 import styles from "../DesktopLineupContainer.module.css";
 
-// ─── Position coordinates on the field image (x%, y%) ───────────────
-// Home plate is at approximately (50%, 78%) in the field image.
-const POSITION_COORDS = {
-    Pitcher: { x: 50, y: 62 },
-    Catcher: { x: 50, y: 80 },
-    "First Base": { x: 67, y: 58 },
-    "Second Base": { x: 58, y: 48 },
-    "Third Base": { x: 33, y: 58 },
-    Shortstop: { x: 42, y: 48 },
-    "Left Field": { x: 25, y: 35 },
-    "Left Center Field": { x: 40, y: 25 },
-    "Right Center Field": { x: 60, y: 25 },
-    "Right Field": { x: 75, y: 35 },
-};
-
 // ─── Player selector (drawer content) ────────────────────────────────
 
 function PlayerSelector({ players, onSelect, onClose, activePosition }) {
@@ -160,7 +145,14 @@ function PositionHotspot({
                 role="button"
                 tabIndex={0}
                 aria-label={`Select ${position}`}
-                onKeyDown={(e) => e.key === "Enter" && onClick(position)}
+                onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                        onClick(position);
+                    } else if (e.key === " ") {
+                        e.preventDefault();
+                        onClick(position);
+                    }
+                }}
             >
                 <Text size="xs" fw={800} lh={1}>
                     {initials}
