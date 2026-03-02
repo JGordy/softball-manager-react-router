@@ -41,7 +41,7 @@ import "@mantine/notifications/styles.css";
 import "@/styles/app.css";
 
 import { createSessionClient } from "@/utils/appwrite/server";
-import { UmamiTracker } from "@/components/UmamiTracker";
+import UmamiTracker from "@/components/UmamiTracker";
 
 import theme from "./theme";
 
