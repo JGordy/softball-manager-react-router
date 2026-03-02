@@ -37,6 +37,7 @@ export default function TabsWrapper({
     color = "var(--mantine-color-lime-6)",
     children,
     mt = "xl",
+    align = "center",
 }) {
     const [rootRef, setRootRef] = useState(null);
     const [uncontrolledValue, setUncontrolledValue] = useState(
@@ -112,7 +113,11 @@ export default function TabsWrapper({
 
     return (
         <Tabs variant="none" value={value} onChange={setValue} mt={mt}>
-            <Tabs.List ref={setRootRef} className={classes.list}>
+            <Tabs.List
+                ref={setRootRef}
+                className={classes.list}
+                style={align === "left" ? { margin: "0" } : undefined}
+            >
                 {tabs}
                 <FloatingIndicator
                     target={value ? controlsRefs[value] : null}
