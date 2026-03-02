@@ -11,13 +11,14 @@ jest.mock("@hello-pangea/dnd", () => ({
                 draggableProps: {},
                 innerRef: jest.fn(),
                 placeholder: <div data-testid="placeholder" />,
+                droppableProps: {},
             },
             {},
         ),
     Draggable: ({ children }) =>
         children(
             {
-                draggableProps: {},
+                draggableProps: { style: {} },
                 dragHandleProps: {},
                 innerRef: jest.fn(),
             },
@@ -43,8 +44,27 @@ jest.mock(
 
 describe("FieldingDepthChart Component", () => {
     const mockPlayers = [
-        { $id: "p1", firstName: "John", lastName: "Doe" },
-        { $id: "p2", firstName: "Jane", lastName: "Smith" },
+        {
+            $id: "p1",
+            firstName: "John",
+            lastName: "Doe",
+            preferredPositions: ["Pitcher"],
+            dislikedPositions: [],
+        },
+        {
+            $id: "p2",
+            firstName: "Jane",
+            lastName: "Smith",
+            preferredPositions: [],
+            dislikedPositions: ["Pitcher"],
+        },
+        {
+            $id: "p3",
+            firstName: "Sam",
+            lastName: "Jones",
+            preferredPositions: [],
+            dislikedPositions: [],
+        },
     ];
     const mockPositioning = {
         Pitcher: ["p1"],
@@ -73,7 +93,6 @@ describe("FieldingDepthChart Component", () => {
     });
 
     it("shows add button for empty positions when managerView is true", () => {
-        // Multiple Add buttons for different positions
         const addButtons = screen
             .getAllByRole("button")
             .filter((b) => b.textContent === "Add Player");
@@ -85,5 +104,26 @@ describe("FieldingDepthChart Component", () => {
         fireEvent.click(addButtons[0]);
 
         expect(screen.getByTestId("drawer")).toBeInTheDocument();
+    });
+
+    describe("PlayerSelector preference badges", () => {
+        beforeEach(() => {
+            const addButtons = screen.getAllByText("Add Player");
+            fireEvent.click(addButtons[0]);
+        });
+
+        it("shows a Preferred badge for players who prefer the position", () => {
+            expect(screen.getByText("Preferred")).toBeInTheDocument();
+        });
+
+        it("shows a Dislikes badge for players who dislike the position", () => {
+            expect(screen.getByText("Dislikes")).toBeInTheDocument();
+        });
+
+        it("shows no badge for neutral players", () => {
+            // Sam Jones is neutral — no extra badge beyond Preferred/Dislikes
+            expect(screen.getAllByText("Preferred")).toHaveLength(1);
+            expect(screen.getAllByText("Dislikes")).toHaveLength(1);
+        });
     });
 });
