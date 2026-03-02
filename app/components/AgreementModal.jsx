@@ -16,6 +16,7 @@ import {
     BETA_AGREEMENT_CONTENT,
     PRIVACY_POLICY_CONTENT,
 } from "@/constants/agreements";
+import { trackEvent } from "@/utils/analytics";
 
 export function AgreementModalContent({ user }) {
     const fetcher = useFetcher();
@@ -35,6 +36,7 @@ export function AgreementModalContent({ user }) {
 
     useEffect(() => {
         if (fetcher.data?.success && fetcher.state === "idle") {
+            trackEvent("beta-agreement-accepted");
             revalidate();
             modals.close("agreement-modal");
         }

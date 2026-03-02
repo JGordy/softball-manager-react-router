@@ -7,6 +7,7 @@ import { render } from "@/utils/test-utils";
 import useModal from "@/hooks/useModal";
 
 import AgreementModal, { AgreementModalContent } from "../AgreementModal";
+import { trackEvent } from "@/utils/analytics";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
@@ -20,6 +21,10 @@ jest.mock("@mantine/modals", () => ({
     modals: {
         close: jest.fn(),
     },
+}));
+
+jest.mock("@/utils/analytics", () => ({
+    trackEvent: jest.fn(),
 }));
 
 describe("AgreementModal Component", () => {
@@ -109,6 +114,9 @@ describe("AgreementModal Component", () => {
             rerender(<AgreementModalContent user={user} />);
 
             await waitFor(() => {
+                expect(trackEvent).toHaveBeenCalledWith(
+                    "beta-agreement-accepted",
+                );
                 expect(mockRevalidate).toHaveBeenCalled();
                 expect(modals.close).toHaveBeenCalledWith("agreement-modal");
             });
