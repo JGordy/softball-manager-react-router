@@ -3,6 +3,7 @@ import { useState } from "react";
 import {
     Avatar,
     ActionIcon,
+    Badge,
     Button,
     Card,
     Checkbox,
@@ -27,12 +28,13 @@ import {
 } from "@tabler/icons-react";
 
 import fieldingPositions from "@/constants/positions";
+import { PREFERENCE_CONFIG } from "@/constants/positionPreferences";
 import DrawerContainer from "@/components/DrawerContainer";
 
 import classes from "./FieldingDepthChart.module.css";
 
 // Simple player selector specifically for this use case
-const PlayerSelector = ({ players, onSelect, onClose }) => {
+const PlayerSelector = ({ players, onSelect, onClose, activePosition }) => {
     const [selected, setSelected] = useState([]);
 
     const handleSubmit = () => {
@@ -40,26 +42,61 @@ const PlayerSelector = ({ players, onSelect, onClose }) => {
         onClose();
     };
 
-    // Sort players alphabetically
-    const sortedPlayers = [...players].sort((a, b) =>
-        `${a.lastName} ${a.firstName}`.localeCompare(
+    const getPreference = (player) => {
+        if (player.preferredPositions?.includes(activePosition))
+            return "preferred";
+        if (player.dislikedPositions?.includes(activePosition))
+            return "disliked";
+        return "neutral";
+    };
+
+    const preferenceOrder = { preferred: 0, neutral: 1, disliked: 2 };
+
+    const sortedPlayers = [...players].sort((a, b) => {
+        const prefDiff =
+            preferenceOrder[getPreference(a)] -
+            preferenceOrder[getPreference(b)];
+        if (prefDiff !== 0) return prefDiff;
+        return `${a.lastName} ${a.firstName}`.localeCompare(
             `${b.lastName} ${b.firstName}`,
-        ),
-    );
+        );
+    });
 
     return (
         <Stack>
             <Checkbox.Group value={selected} onChange={setSelected}>
                 <Stack>
-                    {sortedPlayers.map((p) => (
-                        <Card key={p.$id} p="xs" withBorder>
-                            <Checkbox
-                                value={p.$id}
-                                label={`${p.firstName} ${p.lastName}`}
-                                style={{ cursor: "pointer" }}
-                            />
-                        </Card>
-                    ))}
+                    {sortedPlayers.map((p) => {
+                        const pref = getPreference(p);
+                        const prefCfg = PREFERENCE_CONFIG[pref];
+                        return (
+                            <Card
+                                key={p.$id}
+                                p="xs"
+                                withBorder
+                                style={{
+                                    borderColor: prefCfg.cssVar,
+                                }}
+                            >
+                                <Group justify="space-between" wrap="nowrap">
+                                    <Checkbox
+                                        value={p.$id}
+                                        label={`${p.firstName} ${p.lastName}`}
+                                        style={{ cursor: "pointer" }}
+                                    />
+                                    {prefCfg.label && (
+                                        <Badge
+                                            color={prefCfg.color}
+                                            variant="light"
+                                            size="xs"
+                                        >
+                                            {prefCfg.label}
+                                        </Badge>
+                                    )}
+                                </Group>
+                            </Card>
+                        );
+                    })}
                 </Stack>
             </Checkbox.Group>
             <Button onClick={handleSubmit} disabled={selected.length === 0}>
@@ -412,6 +449,7 @@ export default function FieldingDepthChart({
                     players={players}
                     onSelect={handleAddPlayers}
                     onClose={closeDrawer}
+                    activePosition={activePosition}
                 />
             </DrawerContainer>
         </Stack>

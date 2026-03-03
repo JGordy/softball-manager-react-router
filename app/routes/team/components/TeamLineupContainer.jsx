@@ -4,6 +4,7 @@ import { Tabs } from "@mantine/core";
 import TabsWrapper from "@/components/TabsWrapper";
 import BattingOrderEditor from "./Batting/BattingOrderEditor";
 import FieldingDepthChart from "./Fielding/FieldingDepthChart";
+import DesktopLineupContainer from "./DesktopLineupContainer";
 
 export default function TeamLineupContainer({
     team,
@@ -15,6 +16,7 @@ export default function TeamLineupContainer({
     setReserves,
     idealPositioning,
     setIdealPositioning,
+    isDesktop,
 }) {
     const fetcher = useFetcher();
 
@@ -52,17 +54,14 @@ export default function TeamLineupContainer({
     };
 
     const handleBattingReorder = ({ source, destination }) => {
-        // Clone arrays
         const newLineup = [...lineup];
         const newReserves = [...reserves];
 
-        // Determine which arrays to modify
         const sourceArray =
             source.droppableId === "lineup" ? newLineup : newReserves;
         const destArray =
             destination.droppableId === "lineup" ? newLineup : newReserves;
 
-        // Move logic
         const [movedId] = sourceArray.splice(source.index, 1);
         destArray.splice(destination.index, 0, movedId);
 
@@ -81,6 +80,22 @@ export default function TeamLineupContainer({
         submitFieldingPositions(newPositioning);
     };
 
+    // ── Desktop view ────────────────────────────────────────────────
+    if (isDesktop) {
+        return (
+            <DesktopLineupContainer
+                managerView={managerView}
+                players={players}
+                lineup={lineup}
+                reserves={reserves}
+                idealPositioning={idealPositioning}
+                handleBattingReorder={handleBattingReorder}
+                handlePositionUpdate={handlePositionUpdate}
+            />
+        );
+    }
+
+    // ── Mobile view ─────────────────────────────────────────────────
     return (
         <TabsWrapper defaultValue="batting">
             <Tabs.Tab value="batting">Batting Order</Tabs.Tab>

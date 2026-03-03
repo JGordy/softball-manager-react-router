@@ -34,7 +34,7 @@ export async function action({ request, params }) {
 export default function TeamLineup({ loaderData }) {
     const { teamData: team, players, managerIds } = loaderData;
 
-    const { user } = useOutletContext();
+    const { user, isDesktop } = useOutletContext();
     const actionData = useActionData();
 
     useEffect(() => {
@@ -133,6 +133,7 @@ export default function TeamLineup({ loaderData }) {
                 setReserves={setReserves}
                 idealPositioning={idealPositioning}
                 setIdealPositioning={setIdealPositioning}
+                isDesktop={isDesktop}
             />
         </Container>
     );

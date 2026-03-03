@@ -22,7 +22,6 @@ import POSITIONS from "@/constants/positions";
 import DiamondView from "./DiamondView";
 import FieldHighlight from "./FieldHighlight";
 
-import { FIELD_CENTROIDS } from "../constants/fieldCentroids";
 import { useRunnerProjection } from "../hooks/useRunnerProjection";
 import { getDrawerTitle, getRunnerConfigs } from "../utils/drawerUtils";
 import { getFieldZone, getClampedCoordinates } from "../utils/fieldMapping";
@@ -73,7 +72,7 @@ export default function PlayActionDrawer({
         label: pos.initials,
         value: pos.initials,
         fullName: key,
-        centroid: FIELD_CENTROIDS[key] || { x: 0, y: 0 },
+        centroid: { x: pos.x ?? 0, y: pos.y ?? 0 },
     }));
 
     // Reset local state when drawer closes

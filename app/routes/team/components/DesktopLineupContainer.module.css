@@ -1,0 +1,93 @@
+/* Field image wrapper */
+.fieldContainer {
+    position: relative;
+    width: 100%;
+    border-radius: var(--mantine-radius-lg);
+    overflow: hidden;
+    background: #0a1a0a;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+.fieldImage {
+    display: block;
+    width: 100%;
+    height: auto;
+    user-select: none;
+}
+
+/* Position hotspot button */
+.hotspot {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(15, 25, 15, 0.82);
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease,
+        transform 0.15s ease;
+    z-index: 10;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.hotspot:hover {
+    border-color: var(--mantine-color-lime-5);
+    background: rgba(20, 35, 20, 0.92);
+    transform: translate(-50%, -50%) scale(1.1);
+    box-shadow: 0 0 12px rgba(163, 230, 53, 0.4);
+    color: var(--mantine-color-lime-4);
+}
+
+.hotspot:focus-visible {
+    outline: 2px solid var(--mantine-color-lime-5);
+    outline-offset: 2px;
+}
+
+/* Active/selected hotspot */
+.hotspotSelected {
+    background: var(--mantine-color-lime-5);
+    border-color: var(--mantine-color-lime-4);
+    box-shadow:
+        0 0 0 3px rgba(163, 230, 53, 0.3),
+        0 2px 8px rgba(0, 0, 0, 0.5);
+    color: #000;
+    font-weight: 900;
+    transform: translate(-50%, -50%) scale(1.05);
+}
+
+/* Keep lime background when hovering an already-selected button */
+.hotspotSelected:hover {
+    background: var(--mantine-color-lime-5);
+    border-color: var(--mantine-color-lime-4);
+    color: #000;
+    box-shadow:
+        0 0 0 3px rgba(163, 230, 53, 0.45),
+        0 4px 12px rgba(0, 0, 0, 0.5);
+    transform: translate(-50%, -50%) scale(1.18);
+}
+
+/* Player count badge on hotspot */
+.hotspotBadge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 16px;
+    height: 16px;
+    background: var(--mantine-color-lime-6);
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 3px;
+    line-height: 1;
+}
