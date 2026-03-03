@@ -60,7 +60,7 @@ describe("TabsWrapper", () => {
         expect(screen.getByText("Content 2")).toBeVisible();
     });
 
-    it('removes auto-margin on Tabs.List when align="left"', () => {
+    it("removes auto-margin on Tabs.List when align='left'", () => {
         render(
             <TabsWrapper defaultValue="tab1" align="left">
                 <Tabs.Tab value="tab1">Tab 1</Tabs.Tab>

@@ -84,7 +84,6 @@ export default function TeamLineupContainer({
     if (isDesktop) {
         return (
             <DesktopLineupContainer
-                team={team}
                 managerView={managerView}
                 players={players}
                 lineup={lineup}
