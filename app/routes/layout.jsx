@@ -113,7 +113,7 @@ function Layout({ loaderData }) {
                     overlayProps={{ radius: "sm", blur: 3 }}
                 />
 
-                <Container p={0} mih="90vh" size="xl">
+                <Container px={0} mih="90vh" size="xl" pb="5rem">
                     <Outlet context={{ ...loaderData, isDesktop }} />
                 </Container>
 

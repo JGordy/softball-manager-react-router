@@ -69,7 +69,7 @@ export default function MobileDashboard({ teamList, openAddTeamModal }) {
     }, [teamList, activeTeamIndex]);
 
     return (
-        <Grid pb="xl">
+        <Grid>
             <Grid.Col span={12}>
                 <Group justify="space-between" align="center">
                     <Title order={4}>
