@@ -110,7 +110,8 @@ describe("DesktopBattingEditor", () => {
             />,
         );
         const emptyMessages = screen.getAllByText("Drag players here");
-        expect(emptyMessages.length).toBe(2);
+        // Two lineup columns + one reserves column = 3 empty state messages
+        expect(emptyMessages.length).toBe(3);
     });
 
     it("does not show drag handles when managerView is false", () => {

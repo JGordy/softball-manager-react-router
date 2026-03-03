@@ -22,6 +22,7 @@ function DraggableBatterRow({
     managerView,
     isLast,
     showNumber,
+    numberOffset = 0,
 }) {
     return (
         <Draggable
@@ -61,7 +62,7 @@ function DraggableBatterRow({
                         )}
                         {showNumber && (
                             <Text fw={700} w={28} c="dimmed" size="sm">
-                                {index + 1}.
+                                {numberOffset + index + 1}.
                             </Text>
                         )}
                         <Text size="sm" style={{ flex: 1 }}>
@@ -108,10 +109,7 @@ function BattingList({
                     withBorder
                     radius="lg"
                     p="xs"
-                    h="100%"
                     style={{
-                        display: "flex",
-                        flexDirection: "column",
                         borderColor: snapshot.isDraggingOver
                             ? "var(--mantine-color-lime-5)"
                             : undefined,
@@ -155,6 +153,13 @@ function BattingList({
     );
 }
 
+// Helper: resolve a droppable ID to "lineup" or "reserves"
+const resolveListId = (droppableId) => {
+    if (droppableId === "lineup-col-1" || droppableId === "lineup-col-2")
+        return "lineup";
+    return droppableId; // "reserves"
+};
+
 export default function DesktopBattingEditor({
     lineup,
     reserves,
@@ -167,6 +172,11 @@ export default function DesktopBattingEditor({
         return acc;
     }, {});
 
+    // Split lineup into two visual columns
+    const half = Math.ceil(lineup.length / 2);
+    const col1 = lineup.slice(0, half);
+    const col2 = lineup.slice(half);
+
     const onDragEnd = ({ source, destination }) => {
         if (!destination) return;
         if (
@@ -174,29 +184,175 @@ export default function DesktopBattingEditor({
             source.index === destination.index
         )
             return;
-        handleReorder({ source, destination });
+
+        const srcList = resolveListId(source.droppableId);
+        const destList = resolveListId(destination.droppableId);
+
+        // Convert column-local index to a flat lineup index
+        const toFlatIndex = (droppableId, index) => {
+            if (droppableId === "lineup-col-2") return half + index;
+            return index; // col-1 or reserves (reserves index is irrelevant here)
+        };
+
+        handleReorder({
+            source: {
+                droppableId: srcList,
+                index:
+                    srcList === "lineup"
+                        ? toFlatIndex(source.droppableId, source.index)
+                        : source.index,
+            },
+            destination: {
+                droppableId: destList,
+                index:
+                    destList === "lineup"
+                        ? toFlatIndex(
+                              destination.droppableId,
+                              destination.index,
+                          )
+                        : destination.index,
+            },
+        });
     };
 
     return (
         <DragDropContext onDragEnd={onDragEnd}>
-            <Grid gutter="lg" style={{ alignItems: "stretch" }}>
-                <Grid.Col
-                    span={6}
-                    style={{ display: "flex", flexDirection: "column" }}
-                >
-                    <BattingList
-                        listId="lineup"
-                        items={lineup}
-                        title="Lineup"
-                        showNumber={true}
-                        playerMap={playerMap}
-                        managerView={managerView}
-                    />
+            <Grid gutter="lg">
+                {/* Lineup card — two internal droppable columns */}
+                <Grid.Col span={8}>
+                    <Card
+                        withBorder
+                        radius="lg"
+                        p="xs"
+                        style={{ display: "flex", flexDirection: "column" }}
+                    >
+                        <Title order={5} mb="xs" px="xs">
+                            Lineup
+                        </Title>
+                        <div
+                            style={{
+                                display: "flex",
+                                gap: 8,
+                                flex: 1,
+                                alignItems: "flex-start",
+                            }}
+                        >
+                            {/* Left column */}
+                            <Droppable droppableId="lineup-col-1">
+                                {(provided1, snapshot1) => (
+                                    <Stack
+                                        gap={0}
+                                        {...provided1.droppableProps}
+                                        ref={provided1.innerRef}
+                                        style={{
+                                            flex: 1,
+                                            minHeight: 60,
+                                            borderRadius: 8,
+                                            transition: "background 0.2s ease",
+                                            background: snapshot1.isDraggingOver
+                                                ? "rgba(163,230,53,0.06)"
+                                                : undefined,
+                                        }}
+                                    >
+                                        {col1.length === 0 && (
+                                            <Text
+                                                c="dimmed"
+                                                size="sm"
+                                                ta="center"
+                                                py="lg"
+                                            >
+                                                Drag players here
+                                            </Text>
+                                        )}
+                                        {col1.map((playerId, index) => {
+                                            const player = playerMap[playerId];
+                                            if (!player) return null;
+                                            return (
+                                                <DraggableBatterRow
+                                                    key={playerId}
+                                                    playerId={playerId}
+                                                    player={player}
+                                                    index={index}
+                                                    managerView={managerView}
+                                                    isLast={
+                                                        index ===
+                                                        col1.length - 1
+                                                    }
+                                                    showNumber={true}
+                                                />
+                                            );
+                                        })}
+                                        {provided1.placeholder}
+                                    </Stack>
+                                )}
+                            </Droppable>
+
+                            {/* Divider between columns */}
+                            <div
+                                style={{
+                                    width: 1,
+                                    alignSelf: "stretch",
+                                    background: "var(--mantine-color-dark-4)",
+                                    flexShrink: 0,
+                                }}
+                            />
+
+                            {/* Right column */}
+                            <Droppable droppableId="lineup-col-2">
+                                {(provided2, snapshot2) => (
+                                    <Stack
+                                        gap={0}
+                                        {...provided2.droppableProps}
+                                        ref={provided2.innerRef}
+                                        style={{
+                                            flex: 1,
+                                            minHeight: 60,
+                                            borderRadius: 8,
+                                            transition: "background 0.2s ease",
+                                            background: snapshot2.isDraggingOver
+                                                ? "rgba(163,230,53,0.06)"
+                                                : undefined,
+                                        }}
+                                    >
+                                        {col2.length === 0 && (
+                                            <Text
+                                                c="dimmed"
+                                                size="sm"
+                                                ta="center"
+                                                py="lg"
+                                            >
+                                                Drag players here
+                                            </Text>
+                                        )}
+                                        {col2.map((playerId, index) => {
+                                            const player = playerMap[playerId];
+                                            if (!player) return null;
+                                            return (
+                                                <DraggableBatterRow
+                                                    key={playerId}
+                                                    playerId={playerId}
+                                                    player={player}
+                                                    index={index}
+                                                    managerView={managerView}
+                                                    isLast={
+                                                        index ===
+                                                        col2.length - 1
+                                                    }
+                                                    showNumber={true}
+                                                    numberOffset={half}
+                                                />
+                                            );
+                                        })}
+                                        {provided2.placeholder}
+                                    </Stack>
+                                )}
+                            </Droppable>
+                        </div>
+                    </Card>
                 </Grid.Col>
-                <Grid.Col
-                    span={6}
-                    style={{ display: "flex", flexDirection: "column" }}
-                >
+
+                {/* Reserves column */}
+                <Grid.Col span={4}>
                     <BattingList
                         listId="reserves"
                         items={reserves}
