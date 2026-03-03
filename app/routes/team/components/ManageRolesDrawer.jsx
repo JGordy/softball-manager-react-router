@@ -1,5 +1,5 @@
 import { Fragment, useMemo } from "react";
-import { useFetcher } from "react-router";
+import { useFetcher, useOutletContext } from "react-router";
 import { Avatar, Divider, Group, Select, Stack, Text } from "@mantine/core";
 import DrawerContainer from "@/components/DrawerContainer";
 
@@ -18,6 +18,8 @@ export default function ManageRolesDrawer({
     userId,
 }) {
     const fetcher = useFetcher();
+
+    const { isDesktop } = useOutletContext();
 
     const roleOptions = [
         { value: "player", label: "Player" },
@@ -54,7 +56,7 @@ export default function ManageRolesDrawer({
             opened={opened}
             onClose={onClose}
             title="Manage Member Roles"
-            size="xl"
+            size={isDesktop ? "md" : "xl"}
         >
             <Stack gap="md">
                 {sortedPlayers.map((player, index) => {
