@@ -59,4 +59,32 @@ describe("TabsWrapper", () => {
         );
         expect(screen.getByText("Content 2")).toBeVisible();
     });
+
+    it('removes auto-margin on Tabs.List when align="left"', () => {
+        render(
+            <TabsWrapper defaultValue="tab1" align="left">
+                <Tabs.Tab value="tab1">Tab 1</Tabs.Tab>
+                <Tabs.Tab value="tab2">Tab 2</Tabs.Tab>
+                <Tabs.Panel value="tab1">Content 1</Tabs.Panel>
+                <Tabs.Panel value="tab2">Content 2</Tabs.Panel>
+            </TabsWrapper>,
+        );
+
+        // The Tabs.List role="tablist" should have margin: 0 applied
+        const tabList = screen.getByRole("tablist");
+        expect(tabList).toHaveStyle({ margin: "0" });
+    });
+
+    it("uses centered margin by default (no align prop)", () => {
+        render(
+            <TabsWrapper defaultValue="tab1">
+                <Tabs.Tab value="tab1">Tab 1</Tabs.Tab>
+                <Tabs.Panel value="tab1">Content 1</Tabs.Panel>
+            </TabsWrapper>,
+        );
+
+        // Default (center) — inline margin style should not be set
+        const tabList = screen.getByRole("tablist");
+        expect(tabList).not.toHaveStyle({ margin: "0" });
+    });
 });

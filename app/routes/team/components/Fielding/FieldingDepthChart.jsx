@@ -28,6 +28,7 @@ import {
 } from "@tabler/icons-react";
 
 import fieldingPositions from "@/constants/positions";
+import { PREFERENCE_CONFIG } from "@/constants/positionPreferences";
 import DrawerContainer from "@/components/DrawerContainer";
 
 import classes from "./FieldingDepthChart.module.css";
@@ -67,18 +68,14 @@ const PlayerSelector = ({ players, onSelect, onClose, activePosition }) => {
                 <Stack>
                     {sortedPlayers.map((p) => {
                         const pref = getPreference(p);
+                        const prefCfg = PREFERENCE_CONFIG[pref];
                         return (
                             <Card
                                 key={p.$id}
                                 p="xs"
                                 withBorder
                                 style={{
-                                    borderColor:
-                                        pref === "preferred"
-                                            ? "var(--mantine-color-lime-6)"
-                                            : pref === "disliked"
-                                              ? "var(--mantine-color-red-6)"
-                                              : undefined,
+                                    borderColor: prefCfg.cssVar,
                                 }}
                             >
                                 <Group justify="space-between" wrap="nowrap">
@@ -87,22 +84,13 @@ const PlayerSelector = ({ players, onSelect, onClose, activePosition }) => {
                                         label={`${p.firstName} ${p.lastName}`}
                                         style={{ cursor: "pointer" }}
                                     />
-                                    {pref === "preferred" && (
+                                    {prefCfg.label && (
                                         <Badge
-                                            color="lime"
+                                            color={prefCfg.color}
                                             variant="light"
                                             size="xs"
                                         >
-                                            Preferred
-                                        </Badge>
-                                    )}
-                                    {pref === "disliked" && (
-                                        <Badge
-                                            color="red"
-                                            variant="light"
-                                            size="xs"
-                                        >
-                                            Dislikes
+                                            {prefCfg.label}
                                         </Badge>
                                     )}
                                 </Group>
