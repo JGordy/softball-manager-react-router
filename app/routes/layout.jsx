@@ -95,24 +95,25 @@ function Layout({ loaderData }) {
                 height: { base: 0, md: 60 },
             }}
         >
+            <LoadingOverlay
+                data-overlay="layout"
+                visible={isNavigating}
+                zIndex={150}
+                loaderProps={{
+                    color: "lime",
+                    size: "xl",
+                    type: "dots",
+                    style: { display: isNavigating ? undefined : "none" },
+                }}
+                overlayProps={{ radius: "sm", blur: 3 }}
+                style={{ position: "fixed", inset: 0 }}
+            />
+
             <AppShell.Header withBorder={false} visibleFrom="md">
                 <DesktopNavbar user={loaderData.user} />
             </AppShell.Header>
 
             <AppShell.Main>
-                <LoadingOverlay
-                    data-overlay="layout"
-                    visible={isNavigating}
-                    zIndex={150}
-                    loaderProps={{
-                        color: "lime",
-                        size: "xl",
-                        type: "dots",
-                        style: { display: isNavigating ? undefined : "none" },
-                    }}
-                    overlayProps={{ radius: "sm", blur: 3 }}
-                />
-
                 <Container px={0} mih="90vh" size="xl" pb="5rem">
                     <Outlet context={{ ...loaderData, isDesktop }} />
                 </Container>
