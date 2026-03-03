@@ -115,7 +115,7 @@ export default function TeamLineup({ loaderData }) {
     );
 
     return (
-        <Container p="md">
+        <Container pt="md" size="xl">
             <Group justify="space-between" align="center" mt="lg" mb="xl">
                 <BackButton
                     text="Back to Team Details"
