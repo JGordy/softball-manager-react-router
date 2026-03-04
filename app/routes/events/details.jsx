@@ -23,13 +23,10 @@ import { getGameDayStatus } from "@/utils/dateTime";
 
 import useModal from "@/hooks/useModal";
 
-import AwardsContainer from "./components/AwardsContainer";
-import DetailsCard from "./components/DetailsCard";
 import GameMenu from "./components/GameMenu";
-import RosterDetails from "./components/RosterDetails";
 import Scoreboard from "./components/Scoreboard";
-import WeatherCard from "./components/WeatherCard";
-import GamedayCard from "./components/GamedayCard";
+import MobileEventDetailsView from "./components/MobileEventDetailsView";
+import DesktopEventDetailsView from "./components/DesktopEventDetailsView";
 
 export async function action({ request, params }) {
     const { eventId } = params;
@@ -84,6 +81,25 @@ export default function EventDetails({ loaderData, actionData }) {
 
     const { user } = useOutletContext();
     const currentUserId = user.$id;
+
+    // During @media print the browser treats the viewport as narrow, so Mantine's
+    // visibleFrom="lg" desktop container gets display:none. Force it visible for print.
+    useEffect(() => {
+        const show = () => {
+            const el = document.querySelector("[data-desktop-view]");
+            if (el) el.style.setProperty("display", "block", "important");
+        };
+        const restore = () => {
+            const el = document.querySelector("[data-desktop-view]");
+            if (el) el.style.removeProperty("display");
+        };
+        window.addEventListener("beforeprint", show);
+        window.addEventListener("afterprint", restore);
+        return () => {
+            window.removeEventListener("beforeprint", show);
+            window.removeEventListener("afterprint", restore);
+        };
+    }, []);
 
     const isDeleting =
         navigation.state === "submitting" &&
@@ -142,9 +158,32 @@ export default function EventDetails({ loaderData, actionData }) {
         }
     }, [actionData, closeAllModals, navigate]);
 
+    const sharedViewProps = {
+        game,
+        deferredData,
+        season,
+        team,
+        user,
+        weatherPromise,
+        gameInProgress,
+        gameIsPast,
+        canScore,
+        managerView,
+        playerChart,
+        // for the desktop header row
+        result,
+        openDeleteDrawer: deleteDrawerHandlers.open,
+    };
+
     return (
         <>
-            <Box className="event-details-hero" pt="xl" pb="100px">
+            {/* Hero with stadium background — mobile only */}
+            <Box
+                className="event-details-hero"
+                pt="xl"
+                pb="100px"
+                hiddenFrom="lg"
+            >
                 <Group justify="space-between" mx="md">
                     <BackButton />
                     {managerView && (
@@ -167,40 +206,12 @@ export default function EventDetails({ loaderData, actionData }) {
                 />
             </Box>
 
-            <DetailsCard
-                game={game}
-                deferredData={deferredData}
-                season={season}
-                team={team}
-            />
-
-            <GamedayCard
-                gameId={game.$id}
-                isLive={gameInProgress}
-                isPast={gameIsPast}
-                canScore={canScore}
-            />
-            {gameIsPast ? (
-                <AwardsContainer
-                    game={game}
-                    team={team}
-                    user={user}
-                    deferredData={deferredData}
-                />
-            ) : (
-                <WeatherCard
-                    gameDate={gameDate}
-                    weatherPromise={weatherPromise}
-                />
-            )}
-
-            <RosterDetails
-                deferredData={deferredData}
-                game={game}
-                managerView={managerView}
-                playerChart={playerChart}
-                team={team}
-            />
+            <Box hiddenFrom="lg">
+                <MobileEventDetailsView {...sharedViewProps} />
+            </Box>
+            <Box visibleFrom="lg" data-desktop-view="true">
+                <DesktopEventDetailsView {...sharedViewProps} />
+            </Box>
 
             {managerView && (
                 <DrawerContainer
