@@ -115,7 +115,11 @@ describe("DesktopLineupPanel", () => {
             />,
         );
         fireEvent.click(screen.getByText("Print"));
-        expect(window.open).toHaveBeenCalledWith("", "_blank");
+        expect(window.open).toHaveBeenCalledWith(
+            "",
+            "_blank",
+            "noopener,noreferrer",
+        );
         expect(analyticsUtils.trackEvent).toHaveBeenCalledWith("print-lineup", {
             eventId: "game1",
         });
