@@ -4,6 +4,7 @@ import {
     Button,
     Card,
     Divider,
+    Grid,
     Group,
     Skeleton,
     Stack,
@@ -15,7 +16,10 @@ import {
     IconArrowRight,
     IconClipboardData,
     IconCloudOff,
+    IconDropletHalf2Filled,
+    IconNavigationFilled,
     IconScoreboard,
+    IconSunFilled,
 } from "@tabler/icons-react";
 
 import DeferredLoader from "@/components/DeferredLoader";
@@ -25,18 +29,33 @@ import getGameDateWeather from "../utils/getGameDateWeather";
 import getPrecipitationChanceRating from "../utils/getPrecipitationRating";
 import getWindSpeedRating from "../utils/getWindSpeedRating";
 import getRainoutLikelihood from "../utils/getRainoutLikelihood";
+import getUvIndexColor from "../utils/getUvIndexColor";
 
-// Compact weather stat cell
-function WeatherStat({ value, label, color }) {
+// Compact weather stat row for the right column
+function WeatherStatRow({ value, label, color, icon }) {
     return (
-        <Stack align="center" gap={2} style={{ flex: 1 }}>
-            <Text size="lg" fw={700} c={color}>
-                {value}
-            </Text>
-            <Text size="xs" c="dimmed">
-                {label}
-            </Text>
-        </Stack>
+        <Group gap="md" wrap="nowrap">
+            {icon && (
+                <ThemeIcon
+                    variant="light"
+                    color={color || "gray"}
+                    size="md"
+                    radius="md"
+                >
+                    {icon}
+                </ThemeIcon>
+            )}
+            <div>
+                <Group gap={6} align="baseline">
+                    <Text size="lg" fw={700} c={color}>
+                        {value}
+                    </Text>
+                    <Text size="xs" c="dimmed" tt="uppercase" fw={600} ls={0.5}>
+                        {label}
+                    </Text>
+                </Group>
+            </div>
+        </Group>
     );
 }
 
@@ -106,6 +125,7 @@ function WeatherForecastCard({ weatherPromise, gameDate }) {
 
                     const precipColor = getPrecipitationChanceRating(pop).color;
                     const windColor = getWindSpeedRating(wind).color;
+                    const uvColor = getUvIndexColor(gameDayWeather.uvIndex);
 
                     const { hourly: allHourly } = weather || {};
                     const {
@@ -115,26 +135,31 @@ function WeatherForecastCard({ weatherPromise, gameDate }) {
                     } = getRainoutLikelihood(allHourly);
 
                     return (
-                        <>
-                            <Stack align="center" gap="xs" mb="xl">
-                                <img
-                                    src={`${weatherCondition.iconBaseUri}.svg`}
-                                    width="48px"
-                                    alt=""
-                                />
-                                <Stack align="center" gap={2}>
-                                    <Text size="md" fw={700}>
-                                        {weatherCondition.description.text}
-                                    </Text>
-                                    <Text size="sm" c="dimmed">
-                                        {temp}°F · Feels like {feelsLike}°F
-                                    </Text>
+                        <Grid gutter="xl" align="center">
+                            {/* LEFT COLUMN: Summary & Rainout */}
+                            <Grid.Col span={7}>
+                                <Stack align="center" gap="sm">
+                                    <img
+                                        src={`${weatherCondition.iconBaseUri}.svg`}
+                                        width="64px"
+                                        alt=""
+                                    />
+                                    <Stack align="center" gap={0}>
+                                        <Text size="xl" fw={800} lh={1.2}>
+                                            {weatherCondition.description.text}
+                                        </Text>
+                                        <Text size="md" c="dimmed" fw={500}>
+                                            {temp}°F · Feels like {feelsLike}°F
+                                        </Text>
+                                    </Stack>
+
                                     {likelihood > 5 && (
-                                        <Stack align="center" gap={4} mt="lg">
+                                        <Stack align="center" gap={6} mt="md">
                                             <Badge
-                                                variant="light"
+                                                variant="filled"
                                                 color={likelihoodColor}
-                                                size="sm"
+                                                size="md"
+                                                radius="sm"
                                             >
                                                 {likelihood}% Rainout Likelihood
                                             </Badge>
@@ -142,36 +167,49 @@ function WeatherForecastCard({ weatherPromise, gameDate }) {
                                                 size="xs"
                                                 c="dimmed"
                                                 ta="center"
-                                                maw={300}
+                                                maw={240}
+                                                lh={1.4}
                                             >
                                                 {likelihoodReason}
                                             </Text>
                                         </Stack>
                                     )}
                                 </Stack>
-                            </Stack>
+                            </Grid.Col>
 
-                            <Divider mb="md" />
-
-                            <Group justify="space-around" gap={0}>
-                                <WeatherStat
-                                    value={`${pop * 100}%`}
-                                    label="Precip"
-                                    color={precipColor}
-                                />
-                                <Divider orientation="vertical" />
-                                <WeatherStat
-                                    value={`${wind} mph`}
-                                    label="Wind"
-                                    color={windColor}
-                                />
-                                <Divider orientation="vertical" />
-                                <WeatherStat
-                                    value={`${Math.round(gameDayWeather.uvIndex)}`}
-                                    label="UV Index"
-                                />
-                            </Group>
-                        </>
+                            {/* RIGHT COLUMN: Stats Vertical Stack */}
+                            <Grid.Col span={5}>
+                                <Stack gap="xl">
+                                    <WeatherStatRow
+                                        value={`${pop * 100}%`}
+                                        label="Precip"
+                                        color={precipColor}
+                                        icon={
+                                            <IconDropletHalf2Filled size={20} />
+                                        }
+                                    />
+                                    <WeatherStatRow
+                                        value={`${wind} mph`}
+                                        label="Wind"
+                                        color={windColor}
+                                        icon={
+                                            <IconNavigationFilled
+                                                size={20}
+                                                style={{
+                                                    transform: `rotate(${gameDayWeather.wind.direction.degrees + 180}deg)`,
+                                                }}
+                                            />
+                                        }
+                                    />
+                                    <WeatherStatRow
+                                        value={`${Math.round(gameDayWeather.uvIndex)}`}
+                                        label="UV Index"
+                                        color={uvColor}
+                                        icon={<IconSunFilled size={20} />}
+                                    />
+                                </Stack>
+                            </Grid.Col>
+                        </Grid>
                     );
                 }}
             </DeferredLoader>

@@ -124,7 +124,10 @@ describe("DesktopGamedayPanel", () => {
                 temperature: { degrees: 75 },
                 feelsLikeTemperature: { degrees: 77 },
                 precipitation: { probability: { percent: 40 } },
-                wind: { speed: { value: 10 } },
+                wind: {
+                    speed: { value: 10 },
+                    direction: { degrees: 180 },
+                },
                 weatherCondition: {
                     iconBaseUri: "http://icon",
                     description: { text: "Cloudy" },
@@ -162,7 +165,10 @@ describe("DesktopGamedayPanel", () => {
                 temperature: { degrees: 75 },
                 feelsLikeTemperature: { degrees: 77 },
                 precipitation: { probability: { percent: 0 } },
-                wind: { speed: { value: 5 } },
+                wind: {
+                    speed: { value: 5 },
+                    direction: { degrees: 180 },
+                },
                 weatherCondition: {
                     iconBaseUri: "http://icon",
                     description: { text: "Clear" },
