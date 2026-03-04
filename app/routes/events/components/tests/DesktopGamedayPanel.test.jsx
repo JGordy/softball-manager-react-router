@@ -7,7 +7,7 @@ jest.mock("react-router", () => ({
 
 jest.mock("@/components/DeferredLoader", () => ({
     __esModule: true,
-    default: jest.fn(({ children }) => children({})),
+    default: jest.fn(({ children, resolve }) => children(resolve || {})),
 }));
 jest.mock("@/components/InlineError", () => ({ message }) => (
     <div data-testid="inline-error">{message}</div>
@@ -134,19 +134,12 @@ describe("DesktopGamedayPanel", () => {
                 },
                 uvIndex: 5,
             },
+            rainout: {
+                likelihood: 45,
+                color: "orange",
+                reason: "High chance of thunderstorms",
+            },
         });
-
-        getRainoutLikelihood.mockReturnValue({
-            likelihood: 45,
-            color: "orange",
-            reason: "High chance of thunderstorms",
-        });
-
-        // Use a mock resolver for DeferredLoader
-        const DeferredLoader = require("@/components/DeferredLoader").default;
-        DeferredLoader.mockImplementation(({ children }) =>
-            children({ hourly: [] }),
-        );
 
         render(<DesktopGamedayPanel {...defaultProps} />);
 
@@ -175,19 +168,12 @@ describe("DesktopGamedayPanel", () => {
                 },
                 uvIndex: 2,
             },
+            rainout: {
+                likelihood: 2,
+                color: "blue",
+                reason: "Clear conditions",
+            },
         });
-
-        getRainoutLikelihood.mockReturnValue({
-            likelihood: 2,
-            color: "blue",
-            reason: "Clear conditions",
-        });
-
-        // Use a mock resolver for DeferredLoader
-        const DeferredLoader = require("@/components/DeferredLoader").default;
-        DeferredLoader.mockImplementation(({ children }) =>
-            children({ hourly: [] }),
-        );
 
         render(<DesktopGamedayPanel {...defaultProps} />);
 

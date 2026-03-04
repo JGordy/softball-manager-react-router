@@ -3,7 +3,6 @@ import {
     Badge,
     Button,
     Card,
-    Divider,
     Grid,
     Group,
     Skeleton,
@@ -81,7 +80,7 @@ function WeatherForecastCard({ weatherPromise, gameDate }) {
                 }
             >
                 {(weather) => {
-                    const { hourly: gameDayWeather } =
+                    const { hourly: gameDayWeather, rainout } =
                         getGameDateWeather(gameDate, weather) || {};
 
                     if (!gameDayWeather) {
@@ -127,12 +126,11 @@ function WeatherForecastCard({ weatherPromise, gameDate }) {
                     const windColor = getWindSpeedRating(wind).color;
                     const uvColor = getUvIndexColor(gameDayWeather.uvIndex);
 
-                    const { hourly: allHourly } = weather || {};
                     const {
                         likelihood,
                         color: likelihoodColor,
                         reason: likelihoodReason,
-                    } = getRainoutLikelihood(allHourly);
+                    } = rainout || {};
 
                     return (
                         <Grid gutter="xl" align="center">
