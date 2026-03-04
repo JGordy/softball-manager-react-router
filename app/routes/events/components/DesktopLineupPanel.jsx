@@ -16,7 +16,6 @@ import {
     IconZoomQuestion,
 } from "@tabler/icons-react";
 
-import DrawerContainer from "@/components/DrawerContainer";
 import PlayerChart from "@/components/PlayerChart";
 
 import { trackEvent } from "@/utils/analytics";
