@@ -92,7 +92,14 @@ export default function AwardsContainer({ game, team, deferredData, user }) {
 
     return (
         <>
-            <Card withBorder radius="xl" mt="md" mx="md" py="5px">
+            <Card
+                withBorder
+                radius="xl"
+                mt="md"
+                mx="md"
+                py="5px"
+                data-testid="awards-container"
+            >
                 <CardSection
                     onClick={handleOpen}
                     heading="Awards & Recognition"
