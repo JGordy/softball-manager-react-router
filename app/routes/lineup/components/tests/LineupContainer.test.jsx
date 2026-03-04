@@ -119,9 +119,15 @@ describe("LineupContainer Component", () => {
 
         render(<LineupContainer {...props} />);
 
-        expect(screen.getByText("Save Changes")).toBeInTheDocument();
-        expect(screen.getByText("Reset")).toBeInTheDocument();
-        expect(screen.getByText("Save & Publish")).toBeInTheDocument();
+        const saveButtons = screen.getAllByRole("button", { name: "Save" });
+        const resetButtons = screen.getAllByRole("button", { name: "Reset" });
+        const savePublishButtons = screen.getAllByRole("button", {
+            name: "Save & Publish",
+        });
+
+        expect(saveButtons).toHaveLength(2);
+        expect(resetButtons).toHaveLength(2);
+        expect(savePublishButtons).toHaveLength(2);
     });
 
     it("calls handleCreateCharts when create button clicked", () => {

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useOutletContext } from "react-router";
 import { Button, Checkbox, Card, Group, Text } from "@mantine/core";
 
 import DrawerContainer from "@/components/DrawerContainer";
@@ -10,6 +11,7 @@ export default function RemovePlayersDrawer({
     lineupHandlers,
     setHasBeenEdited,
 }) {
+    const { isDesktop } = useOutletContext();
     const [selectedPlayers, setSelectedPlayers] = useState([]);
 
     const handleRemovePlayers = (playerIdsToRemove) => {
@@ -35,7 +37,7 @@ export default function RemovePlayersDrawer({
             title="Remove Players from Lineup"
             opened={opened}
             onClose={onClose}
-            size="xl"
+            size={isDesktop ? "md" : "xl"}
         >
             <Checkbox.Group
                 value={selectedPlayers}

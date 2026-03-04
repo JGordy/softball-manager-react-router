@@ -1,13 +1,12 @@
 import { Button, Group, Stack, Table, Text } from "@mantine/core";
-import { Link } from "react-router";
-import { useMediaQuery } from "@mantine/hooks";
+import { Link, useOutletContext } from "react-router";
 import { DateTime } from "luxon";
 
 import DrawerContainer from "@/components/DrawerContainer";
 import { calculatePlayerStats } from "@/utils/stats";
 
 export default function StatsDetailDrawer({ opened, onClose, game, logs }) {
-    const isDesktop = useMediaQuery("(min-width: 62em)");
+    const { isDesktop } = useOutletContext();
 
     if (!game) return null;
 

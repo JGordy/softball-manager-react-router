@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useOutletContext } from "react-router";
 import {
     Button,
     Checkbox,
@@ -48,6 +49,7 @@ export default function AddPlayersDrawer({
     lineupHandlers,
     setHasBeenEdited,
 }) {
+    const { isDesktop } = useOutletContext();
     const [selectedPlayers, setSelectedPlayers] = useState([]);
 
     const renderGroupedPlayers = () => {
@@ -139,7 +141,7 @@ export default function AddPlayersDrawer({
             title="Add Players to Lineup"
             opened={opened}
             onClose={onClose}
-            size="xl"
+            size={isDesktop ? "md" : "xl"}
         >
             <Checkbox.Group
                 value={selectedPlayers}

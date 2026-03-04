@@ -1,6 +1,6 @@
 import { useFetcher } from "react-router";
 
-import { Alert, Button, Card, Group, Text } from "@mantine/core";
+import { Alert, Box, Button, Card, Group, Text } from "@mantine/core";
 
 import {
     IconArrowBackUp,
@@ -195,10 +195,55 @@ export default function LineupContainer({
         ? getGameDayStatus(game.gameDate) === "past"
         : false;
 
+    const actionButtons = managerView && (
+        <Group align="flex-end" gap="sm">
+            <Button
+                {...buttonProps}
+                color="blue"
+                leftSection={<IconArrowBackUp size={18} />}
+                onClick={handleResetChart}
+                variant="light"
+            >
+                Reset
+            </Button>
+            <Button
+                {...buttonProps}
+                leftSection={<IconDeviceFloppy size={18} />}
+                onClick={() => handleOnSave(lineupState)}
+                variant="light"
+            >
+                Save
+            </Button>
+            {!isGameInPast && (
+                <Button
+                    {...publishButtonProps}
+                    color="lime"
+                    leftSection={<IconBellRinging size={18} />}
+                    onClick={handleSaveAndPublish}
+                    variant="filled"
+                >
+                    {hasBeenEdited ? "Save & Publish" : "Publish"}
+                </Button>
+            )}
+        </Group>
+    );
+
     return (
         <>
             {lineupState?.length > 0 && (
                 <>
+                    <Group
+                        justify="space-between"
+                        align="center"
+                        mb="md"
+                        visibleFrom="sm"
+                    >
+                        <Text size="sm" c="dimmed">
+                            {lineupState.length} players in lineup
+                        </Text>
+                        {actionButtons}
+                    </Group>
+
                     <Card p="sm" radius="lg">
                         <EditablePlayerChart
                             setPlayerChart={handleEditChart}
@@ -211,7 +256,7 @@ export default function LineupContainer({
                     </Card>
 
                     {managerView && (
-                        <>
+                        <Box hiddenFrom="sm">
                             <Group justify="space-between" my="lg" grow>
                                 <Button
                                     {...buttonProps}
@@ -228,7 +273,7 @@ export default function LineupContainer({
                                     onClick={() => handleOnSave(lineupState)}
                                     variant="light"
                                 >
-                                    Save Changes
+                                    Save
                                 </Button>
                             </Group>
                             {!isGameInPast && (
@@ -245,7 +290,7 @@ export default function LineupContainer({
                                         : "Publish"}
                                 </Button>
                             )}
-                        </>
+                        </Box>
                     )}
                 </>
             )}

@@ -17,6 +17,7 @@ jest.mock("@/components/DrawerContainer", () => ({
 
 jest.mock("react-router", () => ({
     Link: ({ children, to }) => <a href={to}>{children}</a>,
+    useOutletContext: jest.fn(() => ({ isDesktop: false })),
 }));
 
 describe("StatsDetailDrawer Component", () => {

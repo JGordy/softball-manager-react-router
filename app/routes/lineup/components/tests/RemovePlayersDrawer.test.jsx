@@ -1,6 +1,11 @@
 import { render, screen, fireEvent } from "@/utils/test-utils";
 import RemovePlayersDrawer from "../RemovePlayersDrawer";
 
+jest.mock("react-router", () => ({
+    ...jest.requireActual("react-router"),
+    useOutletContext: jest.fn(() => ({ isDesktop: false })),
+}));
+
 jest.mock(
     "@/components/DrawerContainer",
     () =>

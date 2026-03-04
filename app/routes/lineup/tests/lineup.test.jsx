@@ -121,10 +121,10 @@ describe("Lineup Route", () => {
             expect(screen.getByTestId("lineup-container")).toBeInTheDocument();
 
             // Manager view components
-            expect(screen.getByTestId("lineup-menu")).toBeInTheDocument();
+            expect(screen.getAllByTestId("lineup-menu")).toHaveLength(2);
             expect(
-                screen.getByTestId("lineup-validation-menu"),
-            ).toBeInTheDocument();
+                screen.getAllByTestId("lineup-validation-menu"),
+            ).toHaveLength(2);
         });
 
         it("does NOT render manager components for non-managers", () => {
