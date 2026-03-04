@@ -88,6 +88,6 @@ describe("DesktopEventDetailsView", () => {
         renderWithProviders(
             <DesktopEventDetailsView {...defaultProps} managerView={true} />,
         );
-        expect(screen.getByRole("button", { name: "" })).toBeInTheDocument();
+        expect(screen.getByTestId("menu-target-icon")).toBeInTheDocument();
     });
 });

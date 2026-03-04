@@ -37,6 +37,8 @@ export default function MenuContainer({
                         className={classes.actionIcon}
                         radius="xl"
                         size="lg"
+                        aria-label="Toggle menu"
+                        data-testid="menu-target-icon"
                     >
                         <IconDots />
                     </ActionIcon>
