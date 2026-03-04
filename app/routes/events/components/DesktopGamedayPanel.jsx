@@ -139,7 +139,6 @@ function WeatherForecastCard({ weatherPromise, gameDate }) {
                                                 {likelihood}% Rainout Likelihood
                                             </Badge>
                                             <Text
-                                                顺
                                                 size="xs"
                                                 c="dimmed"
                                                 ta="center"
