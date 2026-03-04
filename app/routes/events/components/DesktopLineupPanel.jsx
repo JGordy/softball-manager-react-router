@@ -28,8 +28,11 @@ export default function DesktopLineupPanel({ game, managerView, playerChart }) {
         const tableEl = document.querySelector(".printable table");
         if (!tableEl) return;
 
-        const printWindow = window.open("", "_blank");
+        const printWindow = window.open("", "_blank", "noopener,noreferrer");
         if (!printWindow) return;
+
+        // Explicitly sever the opener reference to prevent tabnabbing.
+        printWindow.opener = null;
 
         const doc = printWindow.document;
         doc.title = "Lineup Chart";
