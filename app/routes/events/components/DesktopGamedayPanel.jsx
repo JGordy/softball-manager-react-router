@@ -24,6 +24,7 @@ import InlineError from "@/components/InlineError";
 import getGameDateWeather from "../utils/getGameDateWeather";
 import getPrecipitationChanceRating from "../utils/getPrecipitationRating";
 import getWindSpeedRating from "../utils/getWindSpeedRating";
+import getRainoutLikelihood from "../utils/getRainoutLikelihood";
 
 // Compact weather stat cell
 function WeatherStat({ value, label, color }) {
@@ -106,23 +107,50 @@ function WeatherForecastCard({ weatherPromise, gameDate }) {
                     const precipColor = getPrecipitationChanceRating(pop).color;
                     const windColor = getWindSpeedRating(wind).color;
 
+                    const { hourly: allHourly } = weather || {};
+                    const {
+                        likelihood,
+                        color: likelihoodColor,
+                        reason: likelihoodReason,
+                    } = getRainoutLikelihood(allHourly);
+
                     return (
                         <>
-                            <Group align="center" gap="sm" mb="md">
+                            <Stack align="center" gap="xs" mb="xl">
                                 <img
                                     src={`${weatherCondition.iconBaseUri}.svg`}
-                                    width="36px"
+                                    width="48px"
                                     alt=""
                                 />
-                                <div>
-                                    <Text size="sm" fw={600}>
+                                <Stack align="center" gap={2}>
+                                    <Text size="md" fw={700}>
                                         {weatherCondition.description.text}
                                     </Text>
-                                    <Text size="xs" c="dimmed">
+                                    <Text size="sm" c="dimmed">
                                         {temp}°F · Feels like {feelsLike}°F
                                     </Text>
-                                </div>
-                            </Group>
+                                    {likelihood > 5 && (
+                                        <Stack align="center" gap={4} mt="lg">
+                                            <Badge
+                                                variant="light"
+                                                color={likelihoodColor}
+                                                size="sm"
+                                            >
+                                                {likelihood}% Rainout Likelihood
+                                            </Badge>
+                                            <Text
+                                                顺
+                                                size="xs"
+                                                c="dimmed"
+                                                ta="center"
+                                                maw={300}
+                                            >
+                                                {likelihoodReason}
+                                            </Text>
+                                        </Stack>
+                                    )}
+                                </Stack>
+                            </Stack>
 
                             <Divider mb="md" />
 

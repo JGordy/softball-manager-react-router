@@ -5,7 +5,10 @@ jest.mock("react-router", () => ({
     useNavigate: jest.fn(),
 }));
 
-jest.mock("@/components/DeferredLoader");
+jest.mock("@/components/DeferredLoader", () => ({
+    __esModule: true,
+    default: jest.fn(({ children }) => children({})),
+}));
 jest.mock("@/components/InlineError", () => ({ message }) => (
     <div data-testid="inline-error">{message}</div>
 ));
@@ -16,6 +19,13 @@ jest.mock("../../utils/getPrecipitationRating", () =>
 );
 jest.mock("../../utils/getWindSpeedRating", () =>
     jest.fn(() => ({ color: "blue" })),
+);
+jest.mock("../../utils/getRainoutLikelihood", () =>
+    jest.fn(() => ({
+        likelihood: 0,
+        color: "blue",
+        reason: "Clear conditions",
+    })),
 );
 
 describe("DesktopGamedayPanel", () => {
@@ -103,5 +113,80 @@ describe("DesktopGamedayPanel", () => {
         // Component returns null — neither hub tile nor weather card should appear
         expect(queryByText("Gameday Forecast")).not.toBeInTheDocument();
         expect(queryByText("Gameday Recap")).not.toBeInTheDocument();
+    });
+
+    it("renders rainout likelihood and reason when > 5%", () => {
+        const getGameDateWeather = require("../../utils/getGameDateWeather");
+        const getRainoutLikelihood = require("../../utils/getRainoutLikelihood");
+
+        getGameDateWeather.mockReturnValue({
+            hourly: {
+                temperature: { degrees: 75 },
+                feelsLikeTemperature: { degrees: 77 },
+                precipitation: { probability: { percent: 40 } },
+                wind: { speed: { value: 10 } },
+                weatherCondition: {
+                    iconBaseUri: "http://icon",
+                    description: { text: "Cloudy" },
+                },
+                uvIndex: 5,
+            },
+        });
+
+        getRainoutLikelihood.mockReturnValue({
+            likelihood: 45,
+            color: "orange",
+            reason: "High chance of thunderstorms",
+        });
+
+        // Use a mock resolver for DeferredLoader
+        const DeferredLoader = require("@/components/DeferredLoader").default;
+        DeferredLoader.mockImplementation(({ children }) =>
+            children({ hourly: [] }),
+        );
+
+        render(<DesktopGamedayPanel {...defaultProps} />);
+
+        expect(screen.getByText("45% Rainout Likelihood")).toBeInTheDocument();
+        expect(
+            screen.getByText("High chance of thunderstorms"),
+        ).toBeInTheDocument();
+    });
+
+    it("does not render rainout likelihood when <= 5%", () => {
+        const getGameDateWeather = require("../../utils/getGameDateWeather");
+        const getRainoutLikelihood = require("../../utils/getRainoutLikelihood");
+
+        getGameDateWeather.mockReturnValue({
+            hourly: {
+                temperature: { degrees: 75 },
+                feelsLikeTemperature: { degrees: 77 },
+                precipitation: { probability: { percent: 0 } },
+                wind: { speed: { value: 5 } },
+                weatherCondition: {
+                    iconBaseUri: "http://icon",
+                    description: { text: "Clear" },
+                },
+                uvIndex: 2,
+            },
+        });
+
+        getRainoutLikelihood.mockReturnValue({
+            likelihood: 2,
+            color: "blue",
+            reason: "Clear conditions",
+        });
+
+        // Use a mock resolver for DeferredLoader
+        const DeferredLoader = require("@/components/DeferredLoader").default;
+        DeferredLoader.mockImplementation(({ children }) =>
+            children({ hourly: [] }),
+        );
+
+        render(<DesktopGamedayPanel {...defaultProps} />);
+
+        expect(
+            screen.queryByText(/Rainout Likelihood/i),
+        ).not.toBeInTheDocument();
     });
 });
