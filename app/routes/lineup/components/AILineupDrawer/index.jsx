@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useOutletContext } from "react-router";
 
 import { trackEvent } from "@/utils/analytics";
 import { validateLineup, sanitizeReasoning } from "@/utils/lineupValidation";
@@ -32,6 +33,7 @@ export default function AILineupDrawer({
     lineupHandlers,
     setHasBeenEdited,
 }) {
+    const { isDesktop } = useOutletContext();
     const [isStreaming, setIsStreaming] = useState(false);
     const showLoading = isStreaming;
 
@@ -313,7 +315,7 @@ export default function AILineupDrawer({
             title="Generate AI Lineup"
             opened={opened}
             onClose={handleClose}
-            size="95%"
+            size={isDesktop ? "md" : "95%"}
         >
             {!generatedLineup ? (
                 showLoading ? (

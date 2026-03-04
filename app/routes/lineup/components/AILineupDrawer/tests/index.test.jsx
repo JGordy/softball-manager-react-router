@@ -7,6 +7,10 @@ import * as lineupValidation from "@/utils/lineupValidation";
 import AILineupDrawer from "../index";
 
 // Mocks
+jest.mock("react-router", () => ({
+    useOutletContext: jest.fn(() => ({ isDesktop: false })),
+}));
+
 jest.mock("@/utils/analytics", () => ({
     trackEvent: jest.fn(),
 }));
