@@ -1,5 +1,4 @@
-import { Tabs } from "@mantine/core";
-import { Grid, Group, Box } from "@mantine/core";
+import { Box, Grid, Group, Tabs } from "@mantine/core";
 
 import BackButton from "@/components/BackButton";
 import TabsWrapper from "@/components/TabsWrapper";
