@@ -37,26 +37,17 @@ jest.mock("@/utils/dateTime");
 jest.mock("@/hooks/useModal");
 
 // Mock child components
-jest.mock("../components/AwardsContainer", () => () => (
-    <div data-testid="awards-container" />
+jest.mock("../components/MobileEventDetailsView", () => () => (
+    <div data-testid="mobile-event-details-view" />
 ));
-jest.mock("../components/DetailsCard", () => () => (
-    <div data-testid="details-card" />
+jest.mock("../components/DesktopEventDetailsView", () => () => (
+    <div data-testid="desktop-event-details-view" />
 ));
 jest.mock("../components/GameMenu", () => ({ openDeleteDrawer }) => (
     <button onClick={openDeleteDrawer}>Open Delete Drawer</button>
 ));
-jest.mock("../components/RosterDetails", () => () => (
-    <div data-testid="roster-details" />
-));
 jest.mock("../components/Scoreboard", () => () => (
     <div data-testid="scoreboard" />
-));
-jest.mock("../components/WeatherCard", () => () => (
-    <div data-testid="weather-card" />
-));
-jest.mock("../components/GamedayCard", () => () => (
-    <div data-testid="gameday-card" />
 ));
 
 describe("EventDetails Route", () => {
@@ -182,24 +173,15 @@ describe("EventDetails Route", () => {
 
             expect(screen.getByText("Back")).toBeInTheDocument();
             expect(screen.getByTestId("scoreboard")).toBeInTheDocument();
-            expect(screen.getByTestId("details-card")).toBeInTheDocument();
-            expect(screen.getByTestId("gameday-card")).toBeInTheDocument();
-            expect(screen.getByTestId("roster-details")).toBeInTheDocument();
-            // Since game is upcoming (default mock), rendering WeatherCard
-            expect(screen.getByTestId("weather-card")).toBeInTheDocument();
-        });
-
-        it("renders AwardsContainer instead of WeatherCard if game is past", () => {
-            dateTimeUtils.getGameDayStatus.mockReturnValue("past");
-            render(<EventDetails loaderData={mockLoaderData} />);
-
-            expect(screen.getByTestId("awards-container")).toBeInTheDocument();
             expect(
-                screen.queryByTestId("weather-card"),
-            ).not.toBeInTheDocument();
+                screen.getByTestId("mobile-event-details-view"),
+            ).toBeInTheDocument();
+            expect(
+                screen.getByTestId("desktop-event-details-view"),
+            ).toBeInTheDocument();
         });
 
-        it("renders GameMenu and Delete Drawer only for managers", () => {
+        it("renders delete drawer for managers", () => {
             render(<EventDetails loaderData={mockLoaderData} />); // User is manager
             expect(screen.getByText("Open Delete Drawer")).toBeInTheDocument();
         });
