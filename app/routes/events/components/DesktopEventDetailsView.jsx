@@ -128,6 +128,7 @@ export default function DesktopEventDetailsView({
                         <DesktopAttendancePanel
                             deferredData={deferredData}
                             game={game}
+                            gameIsPast={gameIsPast}
                             managerView={managerView}
                             team={team}
                         />

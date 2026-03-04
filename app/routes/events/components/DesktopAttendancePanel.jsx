@@ -160,6 +160,7 @@ function StatusSummary({ players }) {
 export default function DesktopAttendancePanel({
     deferredData,
     game,
+    gameIsPast: propGameIsPast,
     managerView,
     team,
 }) {
@@ -167,14 +168,13 @@ export default function DesktopAttendancePanel({
     const currentUserId = user?.$id;
 
     const { gameDate, timeZone } = game;
-    const gameDt = DateTime.fromISO(gameDate, { zone: "utc" }).setZone(
-        timeZone || DateTime.local().zoneName,
-    );
-    const today = DateTime.local().setZone(
-        timeZone || DateTime.local().zoneName,
-    );
-    const isGameToday = gameDt.toISODate() === today.toISODate();
-    const isGamePast = gameDt < today && !isGameToday;
+    const zone = timeZone || DateTime.local().zoneName;
+    const gameDt = DateTime.fromISO(gameDate, { zone: "utc" }).setZone(zone);
+    const now = DateTime.local().setZone(zone);
+
+    // Prefer gameIsPast from props/loader if available, fallback to client-side calc
+    const isGamePast =
+        typeof propGameIsPast === "boolean" ? propGameIsPast : gameDt < now;
 
     return (
         <Card
