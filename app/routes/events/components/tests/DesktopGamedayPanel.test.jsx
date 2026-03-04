@@ -20,13 +20,6 @@ jest.mock("../../utils/getPrecipitationRating", () =>
 jest.mock("../../utils/getWindSpeedRating", () =>
     jest.fn(() => ({ color: "blue" })),
 );
-jest.mock("../../utils/getRainoutLikelihood", () =>
-    jest.fn(() => ({
-        likelihood: 0,
-        color: "blue",
-        reason: "Clear conditions",
-    })),
-);
 
 describe("DesktopGamedayPanel", () => {
     const mockNavigate = jest.fn();
@@ -117,7 +110,6 @@ describe("DesktopGamedayPanel", () => {
 
     it("renders rainout likelihood and reason when > 5%", () => {
         const getGameDateWeather = require("../../utils/getGameDateWeather");
-        const getRainoutLikelihood = require("../../utils/getRainoutLikelihood");
 
         getGameDateWeather.mockReturnValue({
             hourly: {
@@ -151,7 +143,6 @@ describe("DesktopGamedayPanel", () => {
 
     it("does not render rainout likelihood when <= 5%", () => {
         const getGameDateWeather = require("../../utils/getGameDateWeather");
-        const getRainoutLikelihood = require("../../utils/getRainoutLikelihood");
 
         getGameDateWeather.mockReturnValue({
             hourly: {

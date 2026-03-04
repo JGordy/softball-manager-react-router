@@ -27,7 +27,6 @@ import InlineError from "@/components/InlineError";
 import getGameDateWeather from "../utils/getGameDateWeather";
 import getPrecipitationChanceRating from "../utils/getPrecipitationRating";
 import getWindSpeedRating from "../utils/getWindSpeedRating";
-import getRainoutLikelihood from "../utils/getRainoutLikelihood";
 import getUvIndexColor from "../utils/getUvIndexColor";
 
 // Compact weather stat row for the right column
