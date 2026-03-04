@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-import { Container, Group } from "@mantine/core";
+import { Container, Group, Stack, Text, Title } from "@mantine/core";
 import { useListState } from "@mantine/hooks";
 
 import { useOutletContext, useParams } from "react-router";
@@ -17,6 +17,7 @@ import LineupValidationMenu from "./components/LineupValidationMenu";
 
 import addPlayerAvailability from "@/utils/addPlayerAvailability";
 import { validateLineup } from "./utils/validateLineup";
+import { formatForViewerDate } from "@/utils/dateTime";
 
 export async function loader({ params, request }) {
     const { eventId } = params;
@@ -47,7 +48,7 @@ function Lineup({ loaderData, actionData }) {
     const currentUserId = user.$id;
 
     const {
-        // game,
+        game,
         // deferredData,
         managerIds,
         players,
@@ -86,26 +87,53 @@ function Lineup({ loaderData, actionData }) {
 
     return (
         <Container size="xl" p="md">
-            <Group justify="space-between" align="center" mt="lg" mb="xl">
-                <BackButton text="Back to event details" />
-                {managerView && (
-                    <Group gap="lg">
-                        <LineupValidationMenu
-                            validationResults={validationResults}
-                        />
-                        <LineupMenu
-                            game={rest.game}
-                            team={team}
-                            actionUrl={`/events/${eventId}/lineup`}
-                            playersNotInLineup={playersNotInLineup}
-                            players={playersWithAvailability}
-                            lineupState={lineupState}
-                            lineupHandlers={lineupHandlers}
-                            setHasBeenEdited={setHasBeenEdited}
-                        />
-                    </Group>
-                )}
-            </Group>
+            <Stack gap="md" mt="lg" mb="xl">
+                <Group justify="space-between" align="center">
+                    <BackButton text="Back to event details" />
+                    {managerView && (
+                        <Group gap="lg" visibleFrom="sm">
+                            <LineupValidationMenu
+                                validationResults={validationResults}
+                            />
+                            <LineupMenu
+                                game={game}
+                                team={team}
+                                actionUrl={`/events/${eventId}/lineup`}
+                                playersNotInLineup={playersNotInLineup}
+                                players={playersWithAvailability}
+                                lineupState={lineupState}
+                                lineupHandlers={lineupHandlers}
+                                setHasBeenEdited={setHasBeenEdited}
+                            />
+                        </Group>
+                    )}
+                    {managerView && (
+                        <Group gap="xs" hiddenFrom="sm">
+                            <LineupValidationMenu
+                                validationResults={validationResults}
+                            />
+                            <LineupMenu
+                                game={game}
+                                team={team}
+                                actionUrl={`/events/${eventId}/lineup`}
+                                playersNotInLineup={playersNotInLineup}
+                                players={playersWithAvailability}
+                                lineupState={lineupState}
+                                lineupHandlers={lineupHandlers}
+                                setHasBeenEdited={setHasBeenEdited}
+                            />
+                        </Group>
+                    )}
+                </Group>
+
+                <Stack gap={0}>
+                    <Title order={4}>vs. {game?.opponent || "TBD"}</Title>
+                    <Text size="sm" c="dimmed">
+                        {formatForViewerDate(game?.gameDate)}
+                    </Text>
+                </Stack>
+            </Stack>
+
             <LineupContainer
                 managerView={managerView}
                 players={playersWithAvailability}
