@@ -112,7 +112,7 @@ function WeatherForecastCard({ weatherPromise, gameDate }) {
                                 <img
                                     src={`${weatherCondition.iconBaseUri}.svg`}
                                     width="36px"
-                                    alt="weather icon"
+                                    alt=""
                                 />
                                 <div>
                                     <Text size="sm" fw={600}>

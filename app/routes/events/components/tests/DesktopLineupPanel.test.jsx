@@ -10,17 +10,6 @@ jest.mock("react-router", () => ({
     ),
 }));
 
-jest.mock(
-    "@/components/DrawerContainer",
-    () =>
-        ({ children, opened, title }) =>
-            opened ? (
-                <div role="dialog" aria-label={title}>
-                    {children}
-                </div>
-            ) : null,
-);
-
 jest.mock("@/components/PlayerChart", () => () => (
     <div data-testid="player-chart">Player Chart</div>
 ));

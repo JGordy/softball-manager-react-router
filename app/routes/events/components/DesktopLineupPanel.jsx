@@ -8,7 +8,6 @@ import {
     Text,
     ThemeIcon,
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
 
 import {
     IconClipboardList,
@@ -23,8 +22,6 @@ import PlayerChart from "@/components/PlayerChart";
 import { trackEvent } from "@/utils/analytics";
 
 export default function DesktopLineupPanel({ game, managerView, playerChart }) {
-    const [lineupDrawerOpened, lineupDrawerHandlers] = useDisclosure(false);
-
     const handlePrintLineup = () => {
         // Extract the lineup table from the DOM and print it in a clean new window.
         // Using window.print() directly is unreliable on desktop because the PlayerChart
@@ -114,12 +111,7 @@ export default function DesktopLineupPanel({ game, managerView, playerChart }) {
 
                 {playerChart ? (
                     <Box>
-                        <Card
-                            p="sm"
-                            radius="lg"
-                            onClick={lineupDrawerHandlers.open}
-                            style={{ cursor: "pointer" }}
-                        >
+                        <Card p="sm" radius="lg">
                             <PlayerChart playerChart={playerChart} />
                         </Card>
                     </Box>
@@ -150,52 +142,6 @@ export default function DesktopLineupPanel({ game, managerView, playerChart }) {
                     </Stack>
                 )}
             </Card>
-
-            {/* Full chart detail drawer */}
-            <DrawerContainer
-                opened={lineupDrawerOpened}
-                onClose={lineupDrawerHandlers.close}
-                title="Lineup Details"
-                size={playerChart ? "xl" : "sm"}
-            >
-                {playerChart ? (
-                    <Card p="sm" radius="lg">
-                        <PlayerChart playerChart={playerChart} />
-                    </Card>
-                ) : (
-                    <Text c="dimmed">No chart available.</Text>
-                )}
-
-                <Group justify="space-between" mt="md" grow wrap="nowrap">
-                    {managerView && (
-                        <Button
-                            component={Link}
-                            to={`/events/${game.$id}/lineup`}
-                            onClick={lineupDrawerHandlers.close}
-                            size="md"
-                        >
-                            <Group justify="center" gap="xs" wrap="nowrap">
-                                <IconEdit size={18} />
-                                <Text>
-                                    {playerChart ? "Edit" : "Create"} Charts
-                                </Text>
-                            </Group>
-                        </Button>
-                    )}
-                    {playerChart && (
-                        <Button
-                            color="blue"
-                            onClick={handlePrintLineup}
-                            size="md"
-                        >
-                            <Group justify="center" gap="xs" wrap="nowrap">
-                                <IconPrinter size={18} />
-                                Print
-                            </Group>
-                        </Button>
-                    )}
-                </Group>
-            </DrawerContainer>
         </>
     );
 }
