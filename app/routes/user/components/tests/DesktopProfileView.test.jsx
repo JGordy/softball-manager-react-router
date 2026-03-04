@@ -6,6 +6,7 @@ jest.mock("react-router", () => {
     return {
         ...actual,
         useNavigate: jest.fn(() => jest.fn()),
+        useOutletContext: jest.fn(() => ({ isDesktop: true })),
         Link: ({ children, to }) => <a href={to}>{children}</a>,
     };
 });
