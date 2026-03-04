@@ -53,7 +53,7 @@ const PositionSelect = React.memo(
                 className={styles.positionSelect}
                 renderOption={renderSelectOption}
                 error={error}
-                comboboxProps={{ width: "max-content" }}
+                comboboxProps={{ width: "max-content", withinPortal: false }}
             />
         );
     },
