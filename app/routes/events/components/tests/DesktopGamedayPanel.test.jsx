@@ -5,7 +5,10 @@ jest.mock("react-router", () => ({
     useNavigate: jest.fn(),
 }));
 
-jest.mock("@/components/DeferredLoader");
+jest.mock("@/components/DeferredLoader", () => ({
+    __esModule: true,
+    default: jest.fn(({ children, resolve }) => children(resolve || {})),
+}));
 jest.mock("@/components/InlineError", () => ({ message }) => (
     <div data-testid="inline-error">{message}</div>
 ));
@@ -103,5 +106,70 @@ describe("DesktopGamedayPanel", () => {
         // Component returns null — neither hub tile nor weather card should appear
         expect(queryByText("Gameday Forecast")).not.toBeInTheDocument();
         expect(queryByText("Gameday Recap")).not.toBeInTheDocument();
+    });
+
+    it("renders rainout likelihood and reason when > 5%", () => {
+        const getGameDateWeather = require("../../utils/getGameDateWeather");
+
+        getGameDateWeather.mockReturnValue({
+            hourly: {
+                temperature: { degrees: 75 },
+                feelsLikeTemperature: { degrees: 77 },
+                precipitation: { probability: { percent: 40 } },
+                wind: {
+                    speed: { value: 10 },
+                    direction: { degrees: 180 },
+                },
+                weatherCondition: {
+                    iconBaseUri: "http://icon",
+                    description: { text: "Cloudy" },
+                },
+                uvIndex: 5,
+            },
+            rainout: {
+                likelihood: 45,
+                color: "orange",
+                reason: "High chance of thunderstorms",
+            },
+        });
+
+        render(<DesktopGamedayPanel {...defaultProps} />);
+
+        expect(screen.getByText("45% Rainout Likelihood")).toBeInTheDocument();
+        expect(
+            screen.getByText("High chance of thunderstorms"),
+        ).toBeInTheDocument();
+    });
+
+    it("does not render rainout likelihood when <= 5%", () => {
+        const getGameDateWeather = require("../../utils/getGameDateWeather");
+
+        getGameDateWeather.mockReturnValue({
+            hourly: {
+                temperature: { degrees: 75 },
+                feelsLikeTemperature: { degrees: 77 },
+                precipitation: { probability: { percent: 0 } },
+                wind: {
+                    speed: { value: 5 },
+                    direction: { degrees: 180 },
+                },
+                weatherCondition: {
+                    iconBaseUri: "http://icon",
+                    description: { text: "Clear" },
+                },
+                uvIndex: 2,
+            },
+            rainout: {
+                likelihood: 2,
+                color: "blue",
+                reason: "Clear conditions",
+            },
+        });
+
+        render(<DesktopGamedayPanel {...defaultProps} />);
+
+        expect(
+            screen.queryByText(/Rainout Likelihood/i),
+        ).not.toBeInTheDocument();
     });
 });
