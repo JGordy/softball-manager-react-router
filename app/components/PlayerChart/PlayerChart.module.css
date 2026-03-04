@@ -91,13 +91,13 @@
         padding: 4px 8px;
     }
 
-    .tableContainer table td,
-    .tableContainer table th {
+    .tableContainer:has(.positionSelect) table td,
+    .tableContainer:has(.positionSelect) table th {
         font-size: 11px;
         padding: 4px 6px;
     }
 
-    .tableContainer table tr {
+    .tableContainer:has(.positionSelect) table tr {
         height: 32px;
     }
 }
