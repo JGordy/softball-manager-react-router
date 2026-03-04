@@ -55,3 +55,49 @@
 .tableContainer table th:nth-child(3) {
     white-space: nowrap;
 }
+
+.positionSelect {
+    width: 160px;
+}
+
+@media (min-width: 48em) {
+    .positionSelect {
+        width: 100px;
+        min-width: unset;
+    }
+
+    .positionSelect :global(.mantine-Select-input) {
+        font-size: 11px;
+        padding-left: 6px;
+        padding-right: 6px;
+        height: 28px;
+        min-height: 28px;
+    }
+
+    .positionSelect :global(.mantine-Select-dropdown) {
+        min-width: 180px !important;
+    }
+
+    .positionSelect :global(.mantine-Select-option) {
+        font-size: 11px;
+        padding: 4px 8px;
+        min-height: unset;
+    }
+
+    .positionSelect :global(.mantine-Select-groupLabel) {
+        font-size: 9px;
+        text-transform: uppercase;
+        font-weight: 700;
+        padding: 4px 8px;
+    }
+
+    .tableContainer table td,
+    .tableContainer table th {
+        font-size: 11px;
+        padding: 4px 6px;
+    }
+
+    .tableContainer table tr {
+        height: 32px;
+    }
+}

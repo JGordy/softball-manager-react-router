@@ -1,6 +1,8 @@
 import React, { useCallback } from "react";
 import { Group, Select, Text } from "@mantine/core";
 
+import styles from "@/components/PlayerChart/PlayerChart.module.css";
+
 const PositionSelect = React.memo(
     ({
         row,
@@ -47,9 +49,11 @@ const PositionSelect = React.memo(
                     handlePositionChange(event, row.playerId, inning)
                 }
                 data={positionData}
-                style={{ minWidth: "160px" }}
+                style={{ minWidth: "inherit" }}
+                className={styles.positionSelect}
                 renderOption={renderSelectOption}
                 error={error}
+                comboboxProps={{ width: "max-content" }}
             />
         );
     },

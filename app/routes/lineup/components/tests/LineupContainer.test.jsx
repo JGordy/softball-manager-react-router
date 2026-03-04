@@ -119,9 +119,9 @@ describe("LineupContainer Component", () => {
 
         render(<LineupContainer {...props} />);
 
-        expect(screen.getByText("Save Changes")).toBeInTheDocument();
-        expect(screen.getByText("Reset")).toBeInTheDocument();
-        expect(screen.getByText("Save & Publish")).toBeInTheDocument();
+        expect(screen.getAllByText("Save")[0]).toBeInTheDocument();
+        expect(screen.getAllByText("Reset")[0]).toBeInTheDocument();
+        expect(screen.getAllByText("Save & Publish")[0]).toBeInTheDocument();
     });
 
     it("calls handleCreateCharts when create button clicked", () => {

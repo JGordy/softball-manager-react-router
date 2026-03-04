@@ -85,7 +85,7 @@ function Lineup({ loaderData, actionData }) {
     const validationResults = validateLineup(lineupState, team);
 
     return (
-        <Container p="md">
+        <Container size="xl" p="md">
             <Group justify="space-between" align="center" mt="lg" mb="xl">
                 <BackButton text="Back to event details" />
                 {managerView && (
