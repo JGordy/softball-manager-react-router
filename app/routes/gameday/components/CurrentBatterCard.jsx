@@ -1,7 +1,7 @@
 import { Card, Group, Stack, Text, Badge } from "@mantine/core";
 import { HITS, WALKS, getUILabel } from "@/constants/scoring";
 
-export default function CurrentBatterCard({ currentBatter, logs }) {
+export default function CurrentBatterCard({ currentBatter, logs, ...props }) {
     if (!currentBatter) return null;
 
     const batterLogs = logs.filter((l) => l.playerId === currentBatter.$id);
@@ -17,31 +17,31 @@ export default function CurrentBatterCard({ currentBatter, logs }) {
     const hitTypes = hits.map((h) => getUILabel(h.eventType)).join(", ");
 
     return (
-        <Card withBorder p="sm" radius="md">
+        <Card withBorder p="sm" radius="md" bg="blue" {...props}>
             <Group justify="space-between">
                 <Stack gap={0}>
-                    <Text size="xs" fw={700} c="dimmed">
+                    <Text size="xs" fw={700} c="white">
                         CURRENT BATTER
                     </Text>
-                    <Text size="lg" fw={800}>
+                    <Text size="lg" fw={800} c="white">
                         {currentBatter.firstName} {currentBatter.lastName}
                     </Text>
                 </Stack>
                 <Stack gap={2} align="flex-end">
-                    <Text size="xs" fw={700} c="dimmed">
+                    <Text size="xs" fw={700} c="white">
                         GAME STATS
                     </Text>
                     <Group gap="xs">
-                        <Text size="sm" fw={700}>
+                        <Text size="sm" fw={700} c="white">
                             {hits.length}/{ab}
                         </Text>
                         {hits.length > 0 && (
-                            <Text size="xs" c="dimmed">
+                            <Text size="xs" c="white">
                                 [{hitTypes}]
                             </Text>
                         )}
                         {rbis > 0 && (
-                            <Badge size="xs" color="blue" variant="light">
+                            <Badge size="xs" color="lime" variant="light">
                                 {rbis} RBI
                             </Badge>
                         )}
