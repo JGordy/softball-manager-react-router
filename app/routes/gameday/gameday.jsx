@@ -12,7 +12,7 @@ import { logGameEvent, undoGameEvent } from "@/actions/gameLogs";
 
 import { useResponseNotification } from "@/utils/showNotification";
 
-import GamedayContainer from "./components/GamedayContainer";
+import GamedayContainer from "./components/GamedayContainer.jsx";
 import GamedayLoadingSkeleton from "./components/GamedayLoadingSkeleton";
 import GamedayMenu from "./components/GamedayMenu";
 
@@ -58,7 +58,7 @@ export async function action({ request, params }) {
 
 export default function Gameday() {
     const { game, deferredData, teams, scorekeeperIds } = useLoaderData();
-    const { user } = useOutletContext();
+    const { user, isDesktop } = useOutletContext();
     const actionData = useActionData();
 
     useResponseNotification(actionData);
@@ -71,7 +71,7 @@ export default function Gameday() {
     );
 
     return (
-        <Container size="md" py="xl">
+        <Container size="xl" py="xl">
             <Group justify="space-between" align="center" mb="xl">
                 <BackButton to={`/events/${game.$id}`} />
                 <Title order={3}>Scoring & Stats</Title>
@@ -90,6 +90,7 @@ export default function Gameday() {
                         initialLogs={logs}
                         gameFinal={game.gameFinal}
                         canScore={canScore}
+                        isDesktop={isDesktop}
                     />
                 )}
             </DeferredLoader>
