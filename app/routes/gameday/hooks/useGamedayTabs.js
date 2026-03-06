@@ -58,7 +58,7 @@ export function useGamedayTabs({ gameFinal = false, isDesktop = false }) {
             setActiveTab(nextTab);
             const newHash = `#${nextTab}`;
             const url = `${location.pathname}${location.search}${newHash}`;
-            navigate(url, { replace: false });
+            navigate(url, { replace: true });
         }
     }, [gameFinal, activeTab, location.pathname, location.search, navigate]);
 
