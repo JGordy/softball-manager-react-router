@@ -85,7 +85,7 @@ export default function DesktopPlayActionDrawer({
             setIsLocked(false);
             setShowConfirmation(false);
         }
-    }, [opened]);
+    }, [opened, bats]);
 
     const handleConfirm = () => {
         onSelect({
@@ -371,8 +371,19 @@ export default function DesktopPlayActionDrawer({
                                         setIsLocked(true);
                                     }
                                 }}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" || e.key === " ") {
+                                        e.preventDefault();
+                                        if (!isLocked) {
+                                            setSelectedPosition(pos.value);
+                                            setHitCoordinates(pos.centroid);
+                                            setIsLocked(true);
+                                        }
+                                    }
+                                }}
                                 tabIndex={0}
                                 role="button"
+                                aria-label={pos.fullName}
                             >
                                 <Avatar
                                     size="sm"
@@ -399,7 +410,7 @@ export default function DesktopPlayActionDrawer({
                         );
                     })}
 
-                    {hitCoordinates.x && (
+                    {hitCoordinates.x !== null && (
                         <Tooltip
                             label={hitLocation || "Touch the field"}
                             opened={!!hitLocation && !isLocked}
@@ -455,12 +466,14 @@ export default function DesktopPlayActionDrawer({
                     />
                 </Group>
 
-                {!isLocked && !showConfirmation && (
-                    <Text size="sm" ta="center" c="dimmed" my="sm">
-                        Hover over the field to find the hit location, then
-                        click to lock it in
-                    </Text>
-                )}
+                {!isLocked &&
+                    !showConfirmation &&
+                    hitCoordinates.x === null && (
+                        <Text size="sm" ta="center" c="dimmed" my="sm">
+                            Hover over the field to find the hit location, then
+                            click to lock it in
+                        </Text>
+                    )}
 
                 {!showConfirmation ? (
                     <>

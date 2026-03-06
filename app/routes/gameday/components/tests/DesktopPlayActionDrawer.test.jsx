@@ -82,4 +82,33 @@ describe("DesktopPlayActionDrawer", () => {
         expect(screen.getByText(/Hover over the field/i)).toBeInTheDocument();
         expect(screen.queryByTestId("diamond-view")).not.toBeInTheDocument();
     });
+
+    it("allows locking a position, advancing runners, and confirming play", () => {
+        render(<DesktopPlayActionDrawer {...defaultProps} />);
+
+        // Mock positions have role="button". Let's say we click "P" for Pitcher
+        const pitcherButton = screen.getByRole("button", { name: "Pitcher" });
+        fireEvent.click(pitcherButton);
+
+        // Expect the confirmation prompt and proceed button
+        expect(screen.getByText(/Hit to P/i)).toBeInTheDocument();
+        const proceedButton = screen.getByRole("button", {
+            name: /Proceed to Runner Advancement/i,
+        });
+        fireEvent.click(proceedButton);
+
+        // After proceeding, it should show the Confirm Play button
+        const confirmButton = screen.getByRole("button", {
+            name: /Confirm Play/i,
+        });
+        fireEvent.click(confirmButton);
+
+        // Check if onSelect was actually called
+        expect(mockOnSelect).toHaveBeenCalledWith(
+            expect.objectContaining({
+                position: "P",
+                battingSide: "right",
+            }),
+        );
+    });
 });
