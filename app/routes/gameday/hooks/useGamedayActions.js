@@ -63,22 +63,26 @@ export function useGamedayActions({
     }, [halfInning, setHalfInning, setInning, setOuts, setRunners]);
 
     const handleOpponentRun = useCallback(() => {
-        const newOpponentScore = opponentScore + 1;
-        setOpponentScore(newOpponentScore);
-        fetcher.submit(
-            { _action: "update-game-score", opponentScore: newOpponentScore },
-            { method: "post" },
-        );
-    }, [fetcher, opponentScore, setOpponentScore]);
+        setOpponentScore((prev) => {
+            const next = prev + 1;
+            fetcher.submit(
+                { _action: "update-game-score", opponentScore: next },
+                { method: "post" },
+            );
+            return next;
+        });
+    }, [fetcher, setOpponentScore]);
 
     const handleOpponentOut = useCallback(() => {
-        const newOuts = outs + 1;
-        if (newOuts >= 3) {
-            advanceHalfInning();
-        } else {
-            setOuts(newOuts);
-        }
-    }, [advanceHalfInning, outs, setOuts]);
+        setOuts((prev) => {
+            const next = prev + 1;
+            if (next >= 3) {
+                advanceHalfInning();
+                return 0;
+            }
+            return next;
+        });
+    }, [advanceHalfInning, setOuts]);
 
     const completeAction = useCallback(
         (actionType, payload = null) => {
