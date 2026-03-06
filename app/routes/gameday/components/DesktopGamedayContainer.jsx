@@ -124,25 +124,28 @@ export default function DesktopGamedayContainer({
                     {/* COLUMN 2: Action Pad */}
                     <Grid.Col span={{ base: 12, lg: 4 }}>
                         <Stack gap="md">
-                            {isScorekeeper &&
-                                !gameFinal &&
+                            {!gameFinal &&
                                 (isOurBatting ? (
-                                    <ActionPad
-                                        onAction={initiateAction}
-                                        runners={runners}
-                                        outs={outs}
-                                    />
+                                    isScorekeeper && (
+                                        <ActionPad
+                                            onAction={initiateAction}
+                                            runners={runners}
+                                            outs={outs}
+                                        />
+                                    )
                                 ) : (
                                     <>
                                         <DefenseCard
                                             teamName={team.name}
                                             dueUpBatters={dueUpBatters}
                                         />
-                                        <FieldingControls
-                                            onOut={handleOpponentOut}
-                                            onRun={handleOpponentRun}
-                                            onSkip={advanceHalfInning}
-                                        />
+                                        {isScorekeeper && (
+                                            <FieldingControls
+                                                onOut={handleOpponentOut}
+                                                onRun={handleOpponentRun}
+                                                onSkip={advanceHalfInning}
+                                            />
+                                        )}
                                     </>
                                 ))}
                         </Stack>
