@@ -92,7 +92,7 @@ export default function DesktopGamedayContainer({
 
                 <Grid gutter="xl" mt="md" align="flex-start">
                     {/* COLUMN 1: Matchup */}
-                    <Grid.Col span={{ base: 12, lg: 4 }}>
+                    <Grid.Col span={{ base: 12, md: 4 }}>
                         <Stack gap="md">
                             <CompactMatchupCard
                                 score={score}
@@ -122,7 +122,7 @@ export default function DesktopGamedayContainer({
                     </Grid.Col>
 
                     {/* COLUMN 2: Action Pad */}
-                    <Grid.Col span={{ base: 12, lg: 4 }}>
+                    <Grid.Col span={{ base: 12, md: 4 }}>
                         <Stack gap="md">
                             {!gameFinal &&
                                 (isOurBatting ? (
@@ -154,7 +154,7 @@ export default function DesktopGamedayContainer({
                     </Grid.Col>
 
                     {/* COLUMN 3: Tabs */}
-                    <Grid.Col span={{ base: 12, lg: 4 }}>
+                    <Grid.Col span={{ base: 12, md: 4 }}>
                         <TabsWrapper
                             value={activeTab}
                             onChange={(val) => handleTabChange(val)}

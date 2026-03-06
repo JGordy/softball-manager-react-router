@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from "@/utils/test-utils";
+import { MantineProvider } from "@mantine/core";
 import RunnerControl from "../RunnerControl";
 
 describe("RunnerControl", () => {
