@@ -124,7 +124,7 @@ export default function EventDetails({ loaderData, actionData }) {
 
     const team = teams?.[0];
     const managerView = managerIds.includes(currentUserId);
-    const canScore = scorekeeperIds.includes(currentUserId);
+    const isScorekeeper = scorekeeperIds.includes(currentUserId);
 
     const { gameDate, playerChart, result } = game;
 
@@ -167,7 +167,7 @@ export default function EventDetails({ loaderData, actionData }) {
         weatherPromise,
         gameInProgress,
         gameIsPast,
-        canScore,
+        isScorekeeper,
         managerView,
         playerChart,
         // for the desktop header row

@@ -23,7 +23,7 @@ describe("GamedayCard Component", () => {
         gameId: "game123",
         isLive: false,
         isPast: false,
-        canScore: false,
+        isScorekeeper: false,
     };
 
     it("renders Future Game (Follow The Action) by default", () => {
@@ -33,8 +33,8 @@ describe("GamedayCard Component", () => {
         expect(screen.getByText("Follow The Action")).toBeInTheDocument();
     });
 
-    it("renders Future Game (Score the Game) if canScore is true", () => {
-        render(<GamedayCard {...defaultProps} canScore={true} />);
+    it("renders Future Game (Score the Game) if isScorekeeper is true", () => {
+        render(<GamedayCard {...defaultProps} isScorekeeper={true} />);
 
         expect(screen.getByText("Score the Game")).toBeInTheDocument();
     });
@@ -47,8 +47,14 @@ describe("GamedayCard Component", () => {
         expect(screen.getByText("LIVE NOW")).toBeInTheDocument();
     });
 
-    it("renders Live Game (Score) if isLive and canScore are true", () => {
-        render(<GamedayCard {...defaultProps} isLive={true} canScore={true} />);
+    it("renders Live Game (Score) if isLive and isScorekeeper are true", () => {
+        render(
+            <GamedayCard
+                {...defaultProps}
+                isLive={true}
+                isScorekeeper={true}
+            />,
+        );
 
         expect(screen.getByText("Score this Game")).toBeInTheDocument();
         expect(screen.getByText("LIVE NOW")).toBeInTheDocument();

@@ -33,7 +33,7 @@ describe("DesktopGamedayPanel", () => {
         gameId: "game1",
         gameInProgress: false,
         gameIsPast: false,
-        canScore: false,
+        isScorekeeper: false,
         weatherPromise: Promise.resolve({}),
         gameDate: "2026-03-08T18:30:00Z",
     };
@@ -59,7 +59,7 @@ describe("DesktopGamedayPanel", () => {
     });
 
     it("renders 'Score the Game' for upcoming scorer", () => {
-        render(<DesktopGamedayPanel {...defaultProps} canScore={true} />);
+        render(<DesktopGamedayPanel {...defaultProps} isScorekeeper={true} />);
         expect(screen.getByText("Score the Game")).toBeInTheDocument();
     });
 
