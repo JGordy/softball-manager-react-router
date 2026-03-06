@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
     Avatar,
-    Badge,
     Button,
-    Divider,
     Group,
     Image,
     Paper,
@@ -19,20 +17,14 @@ import styles from "@/styles/positionPicker.module.css";
 import DrawerContainer from "@/components/DrawerContainer";
 import POSITIONS from "@/constants/positions";
 
-import DiamondView from "./DiamondView";
 import FieldHighlight from "./FieldHighlight";
 
 import { useRunnerProjection } from "../hooks/useRunnerProjection";
-import { getDrawerTitle, getRunnerConfigs } from "../utils/drawerUtils";
+import { getDrawerTitle, getActionColor } from "../utils/drawerUtils";
 import { getFieldZone, getClampedCoordinates } from "../utils/fieldMapping";
+import ConfirmationPanel from "./ConfirmationPanel";
 
-const getActionColor = (actionType) => {
-    if (["1B", "2B", "3B", "HR"].includes(actionType)) return "lime";
-    if (actionType === "E" || actionType === "FC") return "orange";
-    return "red";
-};
-
-export default function PlayActionDrawer({
+export default function DesktopPlayActionDrawer({
     opened,
     onClose,
     onSelect,
@@ -50,7 +42,8 @@ export default function PlayActionDrawer({
     const [selectedPosition, setSelectedPosition] = useState(null);
     const [battingSide, setBattingSide] = useState(bats || "right");
     const [hitCoordinates, setHitCoordinates] = useState({ x: null, y: null });
-    const [isDragging, setIsDragging] = useState(false);
+    const [isLocked, setIsLocked] = useState(false);
+    const [showConfirmation, setShowConfirmation] = useState(false);
     const containerRef = useRef(null);
 
     const hitLocation = getFieldZone(
@@ -81,8 +74,10 @@ export default function PlayActionDrawer({
             setSelectedPosition(null);
             setHitCoordinates({ x: null, y: null });
             setBattingSide(bats || "right"); // Or default from batter profile if available
+            setIsLocked(false);
+            setShowConfirmation(false);
         }
-    }, [opened]);
+    }, [opened, bats]);
 
     const handleConfirm = () => {
         onSelect({
@@ -114,7 +109,7 @@ export default function PlayActionDrawer({
 
         // Only update if it's fair territory
         const location = getFieldZone(finalX, finalY, actionType);
-        if (location === "foul ball") return;
+        if (location === "foul ball") return false;
 
         setHitCoordinates({ x: finalX, y: finalY });
 
@@ -142,170 +137,32 @@ export default function PlayActionDrawer({
         });
 
         setSelectedPosition(nearestPos);
-    };
-
-    const renderRunners = () => {
-        // Home Runs: No controls needed, everyone scores automatically
-        if (actionType === "HR") return null;
-
-        // Inning Over: If the play results in the 3rd out, no runner advancement is possible
-        // Calculate outs from the play itself first
-        let newOuts = 0;
-        if (
-            ["Fly Out", "Ground Out", "Line Out", "Pop Out", "K"].includes(
-                actionType,
-            )
-        )
-            newOuts = 1;
-        // SF is technically an out but allows advancement. But if it's the 3rd out, it doesn't matter.
-        if (actionType === "SF") newOuts = 1;
-
-        if ((outs || 0) + newOuts >= 3) {
-            return (
-                <Text size="sm" c="dimmed" fs="italic" ta="center" mt="sm">
-                    Inning over. No runner advancement.
-                </Text>
-            );
-        }
-
-        const configs = getRunnerConfigs(actionType, runners);
-        const visibleConfigs = configs.filter((config) => config.shouldShow);
-
-        if (visibleConfigs.length === 0) return null;
-
-        return (
-            <Stack gap="sm" mt="sm">
-                {visibleConfigs.map((config) => (
-                    <RunnerControl
-                        key={config.base}
-                        label={config.label}
-                        value={runnerResults[config.base]}
-                        onChange={(val) =>
-                            setRunnerResults((prev) => ({
-                                ...prev,
-                                [config.base]: val,
-                            }))
-                        }
-                        intermediateOptions={config.options}
-                        hideStay={config.hideStay}
-                    />
-                ))}
-            </Stack>
-        );
-    };
-
-    const getPlayerName = (id) => {
-        if (!id) return "Empty";
-        if (id === "Batter") return "Batter";
-        const player = playerChart?.find((p) => p.$id === id);
-        return player ? `${player.firstName}` : "Unknown";
+        return true;
     };
 
     const renderConfirmation = () => {
         return (
-            <>
-                <Group justify="space-between" my="sm">
-                    <Stack gap={0}>
-                        <Text size="sm" fw={700}>
-                            Fielded by: {selectedPosition}
-                        </Text>
-                        {hitLocation && (
-                            <Text size="xs" c="dimmed">
-                                Location: {hitLocation}
-                            </Text>
-                        )}
-                    </Stack>
-                    <Button
-                        variant="subtle"
-                        size="xs"
-                        onClick={() => {
-                            setSelectedPosition(null);
-                            setHitCoordinates({ x: null, y: null });
-                        }}
-                    >
-                        Change
-                    </Button>
-                </Group>
-
-                <Divider label="Runner Advancement" labelPosition="center" />
-
-                <Group align="start" grow wrap="nowrap">
-                    {/* Left Column: Visual Diamond */}
-                    <Stack align="center" gap="xs">
-                        <DiamondView
-                            runners={occupiedBases}
-                            withTitle={false}
-                        />
-                    </Stack>
-
-                    {/* Right Column: Runners List & Stats */}
-                    <Stack gap="sm" pl="xs">
-                        {/* Badges First */}
-                        {(runsScored > 0 || outsRecorded > 0) && (
-                            <Group gap="xs">
-                                {runsScored > 0 && (
-                                    <Badge size="md" color="blue">
-                                        {runsScored} RBI
-                                        {runsScored > 1 ? "s" : ""}
-                                    </Badge>
-                                )}
-                                {outsRecorded > 0 && (
-                                    <Badge size="md" color="red">
-                                        {outsRecorded} OUT
-                                        {outsRecorded > 1 ? "S" : ""}
-                                    </Badge>
-                                )}
-                            </Group>
-                        )}
-
-                        {(runsScored > 0 || outsRecorded > 0) && <Divider />}
-
-                        <Stack gap="xs">
-                            <Text size="xs" fw={700} c="dimmed">
-                                PROJECTED RUNNERS
-                            </Text>
-                            {[
-                                { base: "third", label: "3rd" },
-                                { base: "second", label: "2nd" },
-                                { base: "first", label: "1st" },
-                            ].map((b) => (
-                                <Group
-                                    key={b.base}
-                                    justify="space-between"
-                                    wrap="nowrap"
-                                >
-                                    <Badge
-                                        variant="filled"
-                                        color="gray"
-                                        size="sm"
-                                        w={40}
-                                    >
-                                        {b.label}
-                                    </Badge>
-                                    <Text size="sm" fw={500} truncate>
-                                        {getPlayerName(
-                                            projectedRunners[b.base],
-                                        )}
-                                    </Text>
-                                </Group>
-                            ))}
-                        </Stack>
-                    </Stack>
-                </Group>
-
-                {renderRunners()}
-
-                <Button
-                    color={getActionColor(actionType)}
-                    fullWidth
-                    size="md"
-                    radius="md"
-                    onClick={handleConfirm}
-                    mt="md"
-                >
-                    Confirm Play
-                </Button>
-            </>
+            <ConfirmationPanel
+                selectedPosition={selectedPosition}
+                hitLocation={hitLocation}
+                runsScored={runsScored}
+                outsRecorded={outsRecorded}
+                occupiedBases={occupiedBases}
+                projectedRunners={projectedRunners}
+                playerChart={playerChart}
+                actionType={actionType}
+                runners={runners}
+                outs={outs}
+                runnerResults={runnerResults}
+                setRunnerResults={setRunnerResults}
+                handleConfirm={handleConfirm}
+                onChangeClick={() => {
+                    setShowConfirmation(false);
+                    setIsLocked(false);
+                    setHitCoordinates({ x: null, y: null });
+                    setSelectedPosition(null);
+                }}
+            />
         );
     };
 
@@ -318,16 +175,23 @@ export default function PlayActionDrawer({
                     style={{ touchAction: "none", margin: "10px auto" }}
                     onContextMenu={(e) => e.preventDefault()}
                     onPointerDown={(e) => {
-                        setIsDragging(true);
-                        handlePointerEvent(e);
+                        if (!isLocked) {
+                            if (handlePointerEvent(e)) {
+                                setIsLocked(true);
+                            }
+                        }
                     }}
                     onPointerMove={(e) => {
-                        if (isDragging) {
+                        if (!isLocked) {
                             handlePointerEvent(e);
                         }
                     }}
-                    onPointerUp={() => setIsDragging(false)}
-                    onPointerLeave={() => setIsDragging(false)}
+                    onPointerLeave={() => {
+                        if (!isLocked) {
+                            setHitCoordinates({ x: null, y: null });
+                            setSelectedPosition(null);
+                        }
+                    }}
                 >
                     <Image
                         src={images.fieldSrc}
@@ -353,12 +217,26 @@ export default function PlayActionDrawer({
                                 key={pos.value}
                                 className={`${styles.fieldingPosition} ${className}`}
                                 onClick={() => {
-                                    setSelectedPosition(pos.value);
-                                    // If just clicked, set coords to centroid
-                                    setHitCoordinates(pos.centroid);
+                                    if (!isLocked) {
+                                        setSelectedPosition(pos.value);
+                                        // If just clicked, set coords to centroid
+                                        setHitCoordinates(pos.centroid);
+                                        setIsLocked(true);
+                                    }
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter" || e.key === " ") {
+                                        e.preventDefault();
+                                        if (!isLocked) {
+                                            setSelectedPosition(pos.value);
+                                            setHitCoordinates(pos.centroid);
+                                            setIsLocked(true);
+                                        }
+                                    }
                                 }}
                                 tabIndex={0}
                                 role="button"
+                                aria-label={pos.fullName}
                             >
                                 <Avatar
                                     size="sm"
@@ -385,10 +263,10 @@ export default function PlayActionDrawer({
                         );
                     })}
 
-                    {hitCoordinates.x && (
+                    {hitCoordinates.x !== null && (
                         <Tooltip
                             label={hitLocation || "Touch the field"}
-                            opened={!!hitLocation && isDragging}
+                            opened={!!hitLocation && !isLocked}
                             position="top"
                             offset={40}
                             withinPortal={false}
@@ -420,8 +298,8 @@ export default function PlayActionDrawer({
             opened={opened}
             onClose={onClose}
             title={getDrawerTitle(actionType, currentBatter)}
-            position="bottom"
-            size="xl"
+            position="right"
+            size="md"
             keepMounted
         >
             <Stack gap="md" pb="xl">
@@ -441,16 +319,44 @@ export default function PlayActionDrawer({
                     />
                 </Group>
 
-                {(!hitCoordinates.x || isDragging) && (
+                {!isLocked && !showConfirmation && (
                     <Text size="sm" ta="center" c="dimmed" my="sm">
-                        Touch and drag to the appropriate field location where
-                        the ball was hit
+                        Hover over the field to find the hit location, then
+                        click to lock it in
                     </Text>
                 )}
 
-                {!hitCoordinates.x || isDragging
-                    ? renderFieldInteraction()
-                    : renderConfirmation()}
+                {!showConfirmation ? (
+                    <>
+                        {renderFieldInteraction()}
+                        {isLocked && (
+                            <Stack mt="md">
+                                <Group justify="center">
+                                    <Text size="sm" fw={500}>
+                                        Hit to {selectedPosition}
+                                        {hitLocation && ` (${hitLocation})`}
+                                    </Text>
+                                    <Button
+                                        variant="subtle"
+                                        size="xs"
+                                        onClick={() => setIsLocked(false)}
+                                    >
+                                        Unlock
+                                    </Button>
+                                </Group>
+                                <Button
+                                    fullWidth
+                                    color="blue"
+                                    onClick={() => setShowConfirmation(true)}
+                                >
+                                    Proceed to Runner Advancement
+                                </Button>
+                            </Stack>
+                        )}
+                    </>
+                ) : (
+                    renderConfirmation()
+                )}
 
                 <Button
                     variant="light"
@@ -463,39 +369,5 @@ export default function PlayActionDrawer({
                 </Button>
             </Stack>
         </DrawerContainer>
-    );
-}
-
-function RunnerControl({
-    label,
-    value,
-    onChange,
-    intermediateOptions = [],
-    hideStay = false,
-}) {
-    if (value === null || value === undefined) return null;
-
-    const data = [
-        ...(!hideStay ? [{ label: "Stay", value: "stay" }] : []),
-        ...intermediateOptions,
-        { label: "Score", value: "score" },
-        { label: "OUT", value: "out" },
-    ];
-
-    return (
-        <Group gap="xs" justify="space-between" wrap="nowrap">
-            <Text size="xs" fw={700} style={{ flexShrink: 0 }}>
-                {label}:
-            </Text>
-            <SegmentedControl
-                size="xs"
-                color="blue"
-                value={value}
-                onChange={onChange}
-                data={data}
-                transitionDuration={200}
-                style={{ flex: 1, maxWidth: 300 }}
-            />
-        </Group>
     );
 }

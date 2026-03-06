@@ -80,7 +80,7 @@ export default function Gameday() {
 
             <DeferredLoader
                 resolve={deferredData}
-                fallback={<GamedayLoadingSkeleton />}
+                fallback={<GamedayLoadingSkeleton isDesktop={isDesktop} />}
             >
                 {({ logs }) => (
                     <GamedayContainer

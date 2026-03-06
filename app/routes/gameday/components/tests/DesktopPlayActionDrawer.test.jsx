@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from "@/utils/test-utils";
 import * as runnerProjectionHook from "../../hooks/useRunnerProjection";
 import * as drawerUtils from "../../utils/drawerUtils";
 
-import PlayActionDrawer from "../PlayActionDrawer";
+import DesktopPlayActionDrawer from "../DesktopPlayActionDrawer";
 
 // Mock dependencies
 jest.mock(
@@ -31,7 +31,7 @@ jest.mock("../../utils/fieldMapping", () => ({
     getClampedCoordinates: jest.fn().mockImplementation((x, y) => ({ x, y })),
 }));
 
-describe("PlayActionDrawer", () => {
+describe("DesktopPlayActionDrawer", () => {
     const mockOnSelect = jest.fn();
     const mockOnClose = jest.fn();
     const defaultProps = {
@@ -60,26 +60,55 @@ describe("PlayActionDrawer", () => {
     });
 
     it("renders drawer when opened", () => {
-        render(<PlayActionDrawer {...defaultProps} />);
+        render(<DesktopPlayActionDrawer {...defaultProps} />);
         expect(screen.getByRole("dialog")).toBeInTheDocument();
         expect(screen.getByText("Batter singles to...")).toBeInTheDocument();
     });
 
     it("does not render when closed", () => {
-        render(<PlayActionDrawer {...defaultProps} opened={false} />);
+        render(<DesktopPlayActionDrawer {...defaultProps} opened={false} />);
         expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 
     it("calls onClose when close button clicked", () => {
-        render(<PlayActionDrawer {...defaultProps} />);
+        render(<DesktopPlayActionDrawer {...defaultProps} />);
         fireEvent.click(screen.getByText("Close"));
         expect(mockOnClose).toHaveBeenCalled();
     });
 
     it("renders field view initially", () => {
-        render(<PlayActionDrawer {...defaultProps} />);
+        render(<DesktopPlayActionDrawer {...defaultProps} />);
         // Initially shows instructions to interact with field
-        expect(screen.getByText(/Touch and drag/i)).toBeInTheDocument();
+        expect(screen.getByText(/Hover over the field/i)).toBeInTheDocument();
         expect(screen.queryByTestId("diamond-view")).not.toBeInTheDocument();
+    });
+
+    it("allows locking a position, advancing runners, and confirming play", () => {
+        render(<DesktopPlayActionDrawer {...defaultProps} />);
+
+        // Mock positions have role="button". Let's say we click "P" for Pitcher
+        const pitcherButton = screen.getByRole("button", { name: "Pitcher" });
+        fireEvent.click(pitcherButton);
+
+        // Expect the confirmation prompt and proceed button
+        expect(screen.getByText(/Hit to P/i)).toBeInTheDocument();
+        const proceedButton = screen.getByRole("button", {
+            name: /Proceed to Runner Advancement/i,
+        });
+        fireEvent.click(proceedButton);
+
+        // After proceeding, it should show the Confirm Play button
+        const confirmButton = screen.getByRole("button", {
+            name: /Confirm Play/i,
+        });
+        fireEvent.click(confirmButton);
+
+        // Check if onSelect was actually called
+        expect(mockOnSelect).toHaveBeenCalledWith(
+            expect.objectContaining({
+                position: "P",
+                battingSide: "right",
+            }),
+        );
     });
 });

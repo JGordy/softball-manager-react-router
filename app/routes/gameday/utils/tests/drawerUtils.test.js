@@ -1,4 +1,8 @@
-import { getDrawerTitle, getRunnerConfigs } from "../drawerUtils";
+import {
+    getDrawerTitle,
+    getRunnerConfigs,
+    getActionColor,
+} from "../drawerUtils";
 
 describe("getDrawerTitle", () => {
     const mockBatter = { firstName: "Joseph" };
@@ -96,5 +100,26 @@ describe("getRunnerConfigs", () => {
             (c) => c.base === "batter",
         );
         expect(config.hideStay).toBe(true);
+    });
+});
+
+describe("getActionColor", () => {
+    it("returns lime for hits (1B, 2B, 3B, HR)", () => {
+        expect(getActionColor("1B")).toBe("lime");
+        expect(getActionColor("2B")).toBe("lime");
+        expect(getActionColor("3B")).toBe("lime");
+        expect(getActionColor("HR")).toBe("lime");
+    });
+
+    it("returns orange for Errors and Fielder's Choice (E, FC)", () => {
+        expect(getActionColor("E")).toBe("orange");
+        expect(getActionColor("FC")).toBe("orange");
+    });
+
+    it("returns red for outs and defaults", () => {
+        expect(getActionColor("Fly Out")).toBe("red");
+        expect(getActionColor("Ground Out")).toBe("red");
+        expect(getActionColor("K")).toBe("red");
+        expect(getActionColor("Unknown")).toBe("red");
     });
 });

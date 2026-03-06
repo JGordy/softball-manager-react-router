@@ -1,6 +1,7 @@
 import { Stack, Card, Group, Skeleton } from "@mantine/core";
+import DesktopGamedayLoadingSkeleton from "./DesktopGamedayLoadingSkeleton";
 
-export default function GamedayLoadingSkeleton() {
+export function MobileGamedayLoadingSkeleton() {
     return (
         <Stack gap="md">
             {/* Scoreboard */}
@@ -67,4 +68,11 @@ export default function GamedayLoadingSkeleton() {
             </Group>
         </Stack>
     );
+}
+
+export default function GamedayLoadingSkeleton({ isDesktop }) {
+    if (isDesktop) {
+        return <DesktopGamedayLoadingSkeleton />;
+    }
+    return <MobileGamedayLoadingSkeleton />;
 }

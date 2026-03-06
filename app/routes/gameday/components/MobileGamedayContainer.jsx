@@ -16,7 +16,7 @@ import ScoreboardHeader from "./ScoreboardHeader";
 import DiamondView from "./DiamondView";
 import ActionPad from "./ActionPad";
 import PlayHistoryList from "./PlayHistoryList";
-import PlayActionDrawer from "./PlayActionDrawer";
+import MobilePlayActionDrawer from "./MobilePlayActionDrawer";
 import CurrentBatterCard from "./CurrentBatterCard";
 import DefenseCard from "./DefenseCard";
 import LastPlayCard from "./LastPlayCard";
@@ -224,7 +224,7 @@ export default function MobileGamedayContainer({
                 </TabsWrapper>
             </Box>
 
-            <PlayActionDrawer
+            <MobilePlayActionDrawer
                 opened={drawerOpened}
                 onClose={closeDrawer}
                 actionType={pendingAction}
