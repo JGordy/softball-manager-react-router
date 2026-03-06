@@ -78,7 +78,6 @@ export function useGamedayController({
         isSubmitting,
         fetcher,
     } = useGamedayActions({
-        game,
         playerChart,
         team,
         inning,

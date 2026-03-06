@@ -15,7 +15,6 @@ describe("useGamedayActions", () => {
     };
 
     const defaultProps = {
-        game: { $id: "game1", isHomeGame: false },
         playerChart: [
             { $id: "p1", firstName: "Alice", lastName: "Player" },
             { $id: "p2", firstName: "Bob", lastName: "Batter" },
@@ -57,11 +56,7 @@ describe("useGamedayActions", () => {
             result.current.handleOpponentRun();
         });
 
-        expect(defaultProps.setOpponentScore).toHaveBeenCalledWith(
-            expect.any(Function),
-        );
-        const updater = defaultProps.setOpponentScore.mock.calls[0][0];
-        expect(updater(0)).toBe(1);
+        expect(defaultProps.setOpponentScore).toHaveBeenCalledWith(1);
 
         expect(mockSubmit).toHaveBeenCalledWith(
             { _action: "update-game-score", opponentScore: 1 },
@@ -77,9 +72,7 @@ describe("useGamedayActions", () => {
             result.current.handleOpponentOut();
         });
 
-        expect(defaultProps.setOuts).toHaveBeenCalledWith(expect.any(Function));
-        const updater = defaultProps.setOuts.mock.calls[0][0];
-        expect(updater(2)).toBe(0);
+        expect(defaultProps.setOuts).toHaveBeenCalledWith(0);
 
         expect(defaultProps.setHalfInning).toHaveBeenCalledWith("bottom");
         expect(defaultProps.setRunners).toHaveBeenCalledWith({

@@ -24,7 +24,6 @@ function handleAutomaticOut(runners) {
  * Custom hook to handle game actions (scoring, outs, undo, etc.).
  */
 export function useGamedayActions({
-    game,
     playerChart,
     team,
     inning,
@@ -63,26 +62,22 @@ export function useGamedayActions({
     }, [halfInning, setHalfInning, setInning, setOuts, setRunners]);
 
     const handleOpponentRun = useCallback(() => {
-        setOpponentScore((prev) => {
-            const next = prev + 1;
-            fetcher.submit(
-                { _action: "update-game-score", opponentScore: next },
-                { method: "post" },
-            );
-            return next;
-        });
-    }, [fetcher, setOpponentScore]);
+        const nextScore = opponentScore + 1;
+        setOpponentScore(nextScore);
+        fetcher.submit(
+            { _action: "update-game-score", opponentScore: nextScore },
+            { method: "post" },
+        );
+    }, [fetcher, opponentScore, setOpponentScore]);
 
     const handleOpponentOut = useCallback(() => {
-        setOuts((prev) => {
-            const next = prev + 1;
-            if (next >= 3) {
-                advanceHalfInning();
-                return 0;
-            }
-            return next;
-        });
-    }, [advanceHalfInning, setOuts]);
+        const nextOuts = outs + 1;
+        if (nextOuts >= 3) {
+            advanceHalfInning();
+        } else {
+            setOuts(nextOuts);
+        }
+    }, [advanceHalfInning, outs, setOuts]);
 
     const completeAction = useCallback(
         (actionType, payload = null) => {
