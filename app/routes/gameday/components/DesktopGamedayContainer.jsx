@@ -19,7 +19,7 @@ import PlayHistoryList from "./PlayHistoryList";
 import DefenseCard from "./DefenseCard";
 import LastPlayCard from "./LastPlayCard";
 import FieldingControls from "./FieldingControls";
-import PlayActionDrawer from "./PlayActionDrawer";
+import DesktopPlayActionDrawer from "./DesktopPlayActionDrawer";
 import ContactSprayChart from "@/components/ContactSprayChart";
 
 export default function DesktopGamedayContainer({
@@ -197,7 +197,7 @@ export default function DesktopGamedayContainer({
                 </Grid>
             </Box>
 
-            <PlayActionDrawer
+            <DesktopPlayActionDrawer
                 opened={drawerOpened}
                 onClose={closeDrawer}
                 actionType={pendingAction}
