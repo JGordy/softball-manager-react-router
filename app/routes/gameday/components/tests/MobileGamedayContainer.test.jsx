@@ -11,7 +11,9 @@ jest.mock("../ScoreboardHeader", () => () => (
 jest.mock("../DiamondView", () => () => <div data-testid="diamond-view" />);
 jest.mock("../ActionPad", () => () => <div data-testid="action-pad" />);
 jest.mock("../PlayHistoryList", () => () => <div data-testid="play-history" />);
-jest.mock("../PlayActionDrawer", () => () => <div data-testid="play-drawer" />);
+jest.mock("../MobilePlayActionDrawer", () => () => (
+    <div data-testid="play-drawer" />
+));
 jest.mock("../CurrentBatterCard", () => () => (
     <div data-testid="batter-card" />
 ));

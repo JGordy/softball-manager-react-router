@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from "@/utils/test-utils";
 import * as runnerProjectionHook from "../../hooks/useRunnerProjection";
 import * as drawerUtils from "../../utils/drawerUtils";
 
-import PlayActionDrawer from "../PlayActionDrawer";
+import MobilePlayActionDrawer from "../MobilePlayActionDrawer";
 
 // Mock dependencies
 jest.mock(
@@ -31,7 +31,7 @@ jest.mock("../../utils/fieldMapping", () => ({
     getClampedCoordinates: jest.fn().mockImplementation((x, y) => ({ x, y })),
 }));
 
-describe("PlayActionDrawer", () => {
+describe("MobilePlayActionDrawer", () => {
     const mockOnSelect = jest.fn();
     const mockOnClose = jest.fn();
     const defaultProps = {
@@ -60,24 +60,24 @@ describe("PlayActionDrawer", () => {
     });
 
     it("renders drawer when opened", () => {
-        render(<PlayActionDrawer {...defaultProps} />);
+        render(<MobilePlayActionDrawer {...defaultProps} />);
         expect(screen.getByRole("dialog")).toBeInTheDocument();
         expect(screen.getByText("Batter singles to...")).toBeInTheDocument();
     });
 
     it("does not render when closed", () => {
-        render(<PlayActionDrawer {...defaultProps} opened={false} />);
+        render(<MobilePlayActionDrawer {...defaultProps} opened={false} />);
         expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 
     it("calls onClose when close button clicked", () => {
-        render(<PlayActionDrawer {...defaultProps} />);
+        render(<MobilePlayActionDrawer {...defaultProps} />);
         fireEvent.click(screen.getByText("Close"));
         expect(mockOnClose).toHaveBeenCalled();
     });
 
     it("renders field view initially", () => {
-        render(<PlayActionDrawer {...defaultProps} />);
+        render(<MobilePlayActionDrawer {...defaultProps} />);
         // Initially shows instructions to interact with field
         expect(screen.getByText(/Touch and drag/i)).toBeInTheDocument();
         expect(screen.queryByTestId("diamond-view")).not.toBeInTheDocument();

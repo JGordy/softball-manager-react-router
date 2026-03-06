@@ -27,7 +27,7 @@ import { getDrawerTitle, getRunnerConfigs } from "../utils/drawerUtils";
 import { getFieldZone, getClampedCoordinates } from "../utils/fieldMapping";
 import { getActionColor, ConfirmationPanel } from "./PlayActionDrawer";
 
-export default function DesktopPlayActionDrawer({
+export default function MobilePlayActionDrawer({
     opened,
     onClose,
     onSelect,
@@ -45,8 +45,7 @@ export default function DesktopPlayActionDrawer({
     const [selectedPosition, setSelectedPosition] = useState(null);
     const [battingSide, setBattingSide] = useState(bats || "right");
     const [hitCoordinates, setHitCoordinates] = useState({ x: null, y: null });
-    const [isLocked, setIsLocked] = useState(false);
-    const [showConfirmation, setShowConfirmation] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
     const containerRef = useRef(null);
 
     const hitLocation = getFieldZone(
@@ -77,10 +76,8 @@ export default function DesktopPlayActionDrawer({
             setSelectedPosition(null);
             setHitCoordinates({ x: null, y: null });
             setBattingSide(bats || "right"); // Or default from batter profile if available
-            setIsLocked(false);
-            setShowConfirmation(false);
         }
-    }, [opened, bats]);
+    }, [opened]);
 
     const handleConfirm = () => {
         onSelect({
@@ -160,8 +157,6 @@ export default function DesktopPlayActionDrawer({
                 setRunnerResults={setRunnerResults}
                 handleConfirm={handleConfirm}
                 onChangeClick={() => {
-                    setShowConfirmation(false);
-                    setIsLocked(false);
                     setHitCoordinates({ x: null, y: null });
                     setSelectedPosition(null);
                 }}
@@ -178,23 +173,16 @@ export default function DesktopPlayActionDrawer({
                     style={{ touchAction: "none", margin: "10px auto" }}
                     onContextMenu={(e) => e.preventDefault()}
                     onPointerDown={(e) => {
-                        if (!isLocked) {
-                            if (handlePointerEvent(e)) {
-                                setIsLocked(true);
-                            }
-                        }
+                        setIsDragging(true);
+                        handlePointerEvent(e);
                     }}
                     onPointerMove={(e) => {
-                        if (!isLocked) {
+                        if (isDragging) {
                             handlePointerEvent(e);
                         }
                     }}
-                    onPointerLeave={() => {
-                        if (!isLocked) {
-                            setHitCoordinates({ x: null, y: null });
-                            setSelectedPosition(null);
-                        }
-                    }}
+                    onPointerUp={() => setIsDragging(false)}
+                    onPointerLeave={() => setIsDragging(false)}
                 >
                     <Image
                         src={images.fieldSrc}
@@ -220,26 +208,12 @@ export default function DesktopPlayActionDrawer({
                                 key={pos.value}
                                 className={`${styles.fieldingPosition} ${className}`}
                                 onClick={() => {
-                                    if (!isLocked) {
-                                        setSelectedPosition(pos.value);
-                                        // If just clicked, set coords to centroid
-                                        setHitCoordinates(pos.centroid);
-                                        setIsLocked(true);
-                                    }
-                                }}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter" || e.key === " ") {
-                                        e.preventDefault();
-                                        if (!isLocked) {
-                                            setSelectedPosition(pos.value);
-                                            setHitCoordinates(pos.centroid);
-                                            setIsLocked(true);
-                                        }
-                                    }
+                                    setSelectedPosition(pos.value);
+                                    // If just clicked, set coords to centroid
+                                    setHitCoordinates(pos.centroid);
                                 }}
                                 tabIndex={0}
                                 role="button"
-                                aria-label={pos.fullName}
                             >
                                 <Avatar
                                     size="sm"
@@ -269,7 +243,7 @@ export default function DesktopPlayActionDrawer({
                     {hitCoordinates.x !== null && (
                         <Tooltip
                             label={hitLocation || "Touch the field"}
-                            opened={!!hitLocation && !isLocked}
+                            opened={!!hitLocation && isDragging}
                             position="top"
                             offset={40}
                             withinPortal={false}
@@ -301,8 +275,8 @@ export default function DesktopPlayActionDrawer({
             opened={opened}
             onClose={onClose}
             title={getDrawerTitle(actionType, currentBatter)}
-            position="right"
-            size="md"
+            position="bottom"
+            size="xl"
             keepMounted
         >
             <Stack gap="md" pb="xl">
@@ -322,44 +296,16 @@ export default function DesktopPlayActionDrawer({
                     />
                 </Group>
 
-                {!isLocked && !showConfirmation && (
+                {(hitCoordinates.x === null || isDragging) && (
                     <Text size="sm" ta="center" c="dimmed" my="sm">
-                        Hover over the field to find the hit location, then
-                        click to lock it in
+                        Touch and drag to the appropriate field location where
+                        the ball was hit
                     </Text>
                 )}
 
-                {!showConfirmation ? (
-                    <>
-                        {renderFieldInteraction()}
-                        {isLocked && (
-                            <Stack mt="md">
-                                <Group justify="center">
-                                    <Text size="sm" fw={500}>
-                                        Hit to {selectedPosition}
-                                        {hitLocation && ` (${hitLocation})`}
-                                    </Text>
-                                    <Button
-                                        variant="subtle"
-                                        size="xs"
-                                        onClick={() => setIsLocked(false)}
-                                    >
-                                        Unlock
-                                    </Button>
-                                </Group>
-                                <Button
-                                    fullWidth
-                                    color="blue"
-                                    onClick={() => setShowConfirmation(true)}
-                                >
-                                    Proceed to Runner Advancement
-                                </Button>
-                            </Stack>
-                        )}
-                    </>
-                ) : (
-                    renderConfirmation()
-                )}
+                {hitCoordinates.x === null || isDragging
+                    ? renderFieldInteraction()
+                    : renderConfirmation()}
 
                 <Button
                     variant="light"
