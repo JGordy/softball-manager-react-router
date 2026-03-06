@@ -12,7 +12,7 @@ import { logGameEvent, undoGameEvent } from "@/actions/gameLogs";
 
 import { useResponseNotification } from "@/utils/showNotification";
 
-import GamedayContainer from "./components/GamedayContainer.jsx";
+import GamedayContainer from "./components/GamedayContainer";
 import GamedayLoadingSkeleton from "./components/GamedayLoadingSkeleton";
 import GamedayMenu from "./components/GamedayMenu";
 
