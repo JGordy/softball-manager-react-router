@@ -74,7 +74,7 @@ describe("MobileGamedayContainer", () => {
                 playerChart={mockPlayerChart}
                 team={mockTeam}
                 initialLogs={[]}
-                canScore={true}
+                isScorekeeper={true}
             />,
         );
 
@@ -104,7 +104,7 @@ describe("MobileGamedayContainer", () => {
                 playerChart={mockPlayerChart}
                 team={mockTeam}
                 initialLogs={[]}
-                canScore={true}
+                isScorekeeper={true}
             />,
         );
 

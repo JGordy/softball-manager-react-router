@@ -28,7 +28,9 @@ export default function DefenseCard({ teamName, dueUpBatters }) {
                                     color="blue"
                                 >
                                     {index + 1}. {batter.firstName}{" "}
-                                    {batter.lastName?.charAt(0)}.
+                                    {batter.lastName
+                                        ? `${batter.lastName.charAt(0)}.`
+                                        : ""}
                                 </Badge>
                             ))}
                         </Group>

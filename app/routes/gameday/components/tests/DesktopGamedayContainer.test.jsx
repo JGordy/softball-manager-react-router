@@ -74,7 +74,7 @@ describe("DesktopGamedayContainer", () => {
                 playerChart={mockPlayerChart}
                 team={mockTeam}
                 initialLogs={[]}
-                canScore={true}
+                isScorekeeper={true}
             />,
         );
 
@@ -103,7 +103,7 @@ describe("DesktopGamedayContainer", () => {
                 playerChart={mockPlayerChart}
                 team={mockTeam}
                 initialLogs={[]}
-                canScore={true}
+                isScorekeeper={true}
             />,
         );
 
