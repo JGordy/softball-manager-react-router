@@ -62,20 +62,27 @@ export function useGamedayActions({
     }, [halfInning, setHalfInning, setInning, setOuts, setRunners]);
 
     const handleOpponentRun = useCallback(() => {
-        const nextScore = opponentScore + 1;
-        setOpponentScore(nextScore);
+        setOpponentScore((prev) => prev + 1);
+
         fetcher.submit(
-            { _action: "update-game-score", opponentScore: nextScore },
+            { _action: "update-game-score", opponentScore: opponentScore + 1 },
             { method: "post" },
         );
     }, [fetcher, opponentScore, setOpponentScore]);
 
     const handleOpponentOut = useCallback(() => {
-        const nextOuts = outs + 1;
-        if (nextOuts >= 3) {
+        setOuts((prev) => {
+            const next = prev + 1;
+            if (next >= 3) {
+                // Inning advancement is handled via useEffect in useGamedayController
+                // or after the state update to remain pure.
+                return 0;
+            }
+            return next;
+        });
+
+        if (outs + 1 >= 3) {
             advanceHalfInning();
-        } else {
-            setOuts(nextOuts);
         }
     }, [advanceHalfInning, outs, setOuts]);
 

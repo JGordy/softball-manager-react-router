@@ -35,12 +35,14 @@ export function useGamedayTabs({ gameFinal = false, isDesktop = false }) {
     // Update URL hash when tab changes
     const handleTabChange = useCallback(
         (value) => {
-            if (!value || value === activeTab) return;
+            if (!value) return;
 
             let normalizedValue = value;
             if (isDesktop && value === "live") {
                 normalizedValue = "boxscore";
             }
+
+            if (normalizedValue === activeTab) return;
 
             setActiveTab(normalizedValue);
 

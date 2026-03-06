@@ -127,11 +127,13 @@ export default function DesktopGamedayContainer({
                             {!gameFinal &&
                                 (isOurBatting ? (
                                     isScorekeeper && (
-                                        <ActionPad
-                                            onAction={initiateAction}
-                                            runners={runners}
-                                            outs={outs}
-                                        />
+                                        <Card radius="lg" withBorder>
+                                            <ActionPad
+                                                onAction={initiateAction}
+                                                runners={runners}
+                                                outs={outs}
+                                            />
+                                        </Card>
                                     )
                                 ) : (
                                     <>

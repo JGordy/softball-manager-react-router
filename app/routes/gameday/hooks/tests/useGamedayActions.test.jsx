@@ -56,7 +56,11 @@ describe("useGamedayActions", () => {
             result.current.handleOpponentRun();
         });
 
-        expect(defaultProps.setOpponentScore).toHaveBeenCalledWith(1);
+        expect(defaultProps.setOpponentScore).toHaveBeenCalledWith(
+            expect.any(Function),
+        );
+        const updater = defaultProps.setOpponentScore.mock.calls[0][0];
+        expect(updater(0)).toBe(1);
 
         expect(mockSubmit).toHaveBeenCalledWith(
             { _action: "update-game-score", opponentScore: 1 },
