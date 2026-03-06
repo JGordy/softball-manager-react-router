@@ -9,12 +9,12 @@ import {
 
 import CardSection from "./CardSection";
 
-export default function GamedayCard({ gameId, isLive, isPast, canScore }) {
+export default function GamedayCard({ gameId, isLive, isPast, isScorekeeper }) {
     const navigate = useNavigate();
 
     let titleLabel = "Gameday Hub";
-    let heading = canScore ? "Score the Game" : "Follow The Action";
-    let subHeading = canScore
+    let heading = isScorekeeper ? "Score the Game" : "Follow The Action";
+    let subHeading = isScorekeeper
         ? "Access real-time scoring, stats, and play-by-play."
         : "Follow the game with live updates and box scores.";
     let leftSection = <IconScoreboard size={20} />;
@@ -26,7 +26,7 @@ export default function GamedayCard({ gameId, isLive, isPast, canScore }) {
         leftSection = <IconClipboardData size={20} />;
     } else if (isLive) {
         titleLabel = "Ongoing Gameday";
-        if (canScore) {
+        if (isScorekeeper) {
             heading = "Score this Game";
             subHeading = "Keep the book updated with real-time stats.";
         } else {

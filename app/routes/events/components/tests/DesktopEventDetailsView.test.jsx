@@ -23,7 +23,7 @@ describe("DesktopEventDetailsView", () => {
         weatherPromise: Promise.resolve({}),
         gameInProgress: false,
         gameIsPast: false,
-        canScore: false,
+        isScorekeeper: false,
         managerView: false,
         playerChart: null,
     };

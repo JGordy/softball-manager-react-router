@@ -20,7 +20,7 @@ export default function DesktopEventDetailsView({
     weatherPromise,
     gameInProgress,
     gameIsPast,
-    canScore,
+    isScorekeeper,
     managerView,
     playerChart,
     result,
@@ -89,7 +89,7 @@ export default function DesktopEventDetailsView({
                             gameId={game.$id}
                             gameInProgress={gameInProgress}
                             gameIsPast={gameIsPast}
-                            canScore={canScore}
+                            isScorekeeper={isScorekeeper}
                             weatherPromise={weatherPromise}
                             gameDate={game.gameDate}
                             showWeather={false}
@@ -117,7 +117,7 @@ export default function DesktopEventDetailsView({
                                 gameId={game.$id}
                                 gameInProgress={gameInProgress}
                                 gameIsPast={gameIsPast}
-                                canScore={canScore}
+                                isScorekeeper={isScorekeeper}
                                 weatherPromise={weatherPromise}
                                 gameDate={game.gameDate}
                                 weatherOnly

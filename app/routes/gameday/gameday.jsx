@@ -64,7 +64,7 @@ export default function Gameday() {
     useResponseNotification(actionData);
 
     const team = teams?.[0];
-    const canScore = !!(
+    const isScorekeeper = !!(
         user &&
         scorekeeperIds &&
         scorekeeperIds.includes(user.$id)
@@ -75,7 +75,7 @@ export default function Gameday() {
             <Group justify="space-between" align="center" mb="xl">
                 <BackButton to={`/events/${game.$id}`} />
                 <Title order={3}>Scoring & Stats</Title>
-                {canScore && <GamedayMenu {...game} />}
+                {isScorekeeper && <GamedayMenu {...game} />}
             </Group>
 
             <DeferredLoader
@@ -89,7 +89,7 @@ export default function Gameday() {
                         team={team}
                         initialLogs={logs}
                         gameFinal={game.gameFinal}
-                        canScore={canScore}
+                        isScorekeeper={isScorekeeper}
                         isDesktop={isDesktop}
                     />
                 )}

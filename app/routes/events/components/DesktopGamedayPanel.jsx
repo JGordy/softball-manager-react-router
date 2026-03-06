@@ -218,7 +218,7 @@ export default function DesktopGamedayPanel({
     gameId,
     gameInProgress,
     gameIsPast,
-    canScore,
+    isScorekeeper,
     weatherPromise,
     gameDate,
     weatherOnly = false,
@@ -227,8 +227,8 @@ export default function DesktopGamedayPanel({
     const navigate = useNavigate();
 
     let titleLabel = "Gameday Hub";
-    let actionLabel = canScore ? "Score the Game" : "Follow The Action";
-    let actionDesc = canScore
+    let actionLabel = isScorekeeper ? "Score the Game" : "Follow The Action";
+    let actionDesc = isScorekeeper
         ? "Access real-time scoring, stats, and play-by-play."
         : "Follow the game with live updates and box scores.";
     let ActionIcon = IconScoreboard;
@@ -240,8 +240,8 @@ export default function DesktopGamedayPanel({
         ActionIcon = IconClipboardData;
     } else if (gameInProgress) {
         titleLabel = "Ongoing Gameday";
-        actionLabel = canScore ? "Score this Game" : "Follow the Action";
-        actionDesc = canScore
+        actionLabel = isScorekeeper ? "Score this Game" : "Follow the Action";
+        actionDesc = isScorekeeper
             ? "Keep the book updated with real-time stats."
             : "Watch the play-by-play unfold in real-time.";
     }
@@ -323,7 +323,7 @@ export default function DesktopGamedayPanel({
                     >
                         {gameIsPast
                             ? "View Recap"
-                            : canScore
+                            : isScorekeeper
                               ? "Score"
                               : "Follow"}
                     </Button>

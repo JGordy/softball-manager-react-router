@@ -13,7 +13,7 @@ export default function MobileEventDetailsView({
     // GamedayCard
     gameIsPast,
     gameInProgress,
-    canScore,
+    isScorekeeper,
     // WeatherCard
     weatherPromise,
     // AwardsContainer
@@ -35,7 +35,7 @@ export default function MobileEventDetailsView({
                 gameId={game.$id}
                 isLive={gameInProgress}
                 isPast={gameIsPast}
-                canScore={canScore}
+                isScorekeeper={isScorekeeper}
             />
 
             {gameIsPast ? (
