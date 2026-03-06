@@ -76,7 +76,9 @@ describe("useGamedayActions", () => {
             result.current.handleOpponentOut();
         });
 
-        expect(defaultProps.setOuts).toHaveBeenCalledWith(0);
+        expect(defaultProps.setOuts).toHaveBeenCalledWith(expect.any(Function));
+        const updater = defaultProps.setOuts.mock.calls[0][0];
+        expect(updater(2)).toBe(0);
 
         expect(defaultProps.setHalfInning).toHaveBeenCalledWith("bottom");
         expect(defaultProps.setRunners).toHaveBeenCalledWith({

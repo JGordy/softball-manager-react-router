@@ -71,17 +71,17 @@ export function useGamedayActions({
     }, [fetcher, opponentScore, setOpponentScore]);
 
     const handleOpponentOut = useCallback(() => {
+        let isInningOver = false;
         setOuts((prev) => {
             const next = prev + 1;
             if (next >= 3) {
-                // Inning advancement is handled via useEffect in useGamedayController
-                // or after the state update to remain pure.
+                isInningOver = true;
                 return 0;
             }
             return next;
         });
 
-        if (outs + 1 >= 3) {
+        if (isInningOver || outs + 1 >= 3) {
             advanceHalfInning();
         }
     }, [advanceHalfInning, outs, setOuts]);
