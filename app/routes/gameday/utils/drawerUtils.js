@@ -79,3 +79,9 @@ export function getRunnerConfigs(actionType, runners) {
     }
     return configs;
 }
+
+export const getActionColor = (actionType) => {
+    if (["1B", "2B", "3B", "HR"].includes(actionType)) return "lime";
+    if (actionType === "E" || actionType === "FC") return "orange";
+    return "red";
+};
