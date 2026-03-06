@@ -113,7 +113,7 @@ describe("useGamedayTabs", () => {
 
         expect(result.current.activeTab).toBe("plays");
         expect(mockNavigate).toHaveBeenCalledWith("/game#plays", {
-            replace: false,
+            replace: true,
         });
     });
 
