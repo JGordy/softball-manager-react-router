@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
     Avatar,
-    Badge,
     Button,
-    Divider,
     Group,
     Image,
     Paper,
@@ -19,13 +17,12 @@ import styles from "@/styles/positionPicker.module.css";
 import DrawerContainer from "@/components/DrawerContainer";
 import POSITIONS from "@/constants/positions";
 
-import DiamondView from "./DiamondView";
 import FieldHighlight from "./FieldHighlight";
 
 import { useRunnerProjection } from "../hooks/useRunnerProjection";
-import { getDrawerTitle, getRunnerConfigs } from "../utils/drawerUtils";
+import { getDrawerTitle, getActionColor } from "../utils/drawerUtils";
 import { getFieldZone, getClampedCoordinates } from "../utils/fieldMapping";
-import { getActionColor, ConfirmationPanel } from "./PlayActionDrawer";
+import ConfirmationPanel from "./ConfirmationPanel";
 
 export default function MobilePlayActionDrawer({
     opened,
@@ -77,7 +74,7 @@ export default function MobilePlayActionDrawer({
             setHitCoordinates({ x: null, y: null });
             setBattingSide(bats || "right"); // Or default from batter profile if available
         }
-    }, [opened]);
+    }, [opened, bats]);
 
     const handleConfirm = () => {
         onSelect({
