@@ -116,4 +116,28 @@ describe("useGamedayTabs", () => {
             replace: false,
         });
     });
+
+    it("navigates with replace: true when hash is normalized from URL on load", () => {
+        useLocation.mockReturnValue({
+            hash: "#live",
+            pathname: "/game",
+            search: "",
+        });
+        renderHook(() => useGamedayTabs({ isDesktop: true }));
+        expect(mockNavigate).toHaveBeenCalledWith("/game#boxscore", {
+            replace: true,
+        });
+    });
+
+    it("navigates with replace: true when hash is normalized from URL due to gameFinal", () => {
+        useLocation.mockReturnValue({
+            hash: "#live",
+            pathname: "/game",
+            search: "",
+        });
+        renderHook(() => useGamedayTabs({ gameFinal: true }));
+        expect(mockNavigate).toHaveBeenCalledWith("/game#plays", {
+            replace: true,
+        });
+    });
 });

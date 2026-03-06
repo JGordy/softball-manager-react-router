@@ -73,13 +73,27 @@ export function useGamedayTabs({ gameFinal = false, isDesktop = false }) {
         }
 
         if (normalizedHash === "live" && gameFinal) {
-            return;
+            normalizedHash = "plays";
         }
 
         if (normalizedHash && validTabs.includes(normalizedHash)) {
             setActiveTab(normalizedHash);
+
+            // If the URL hash is out of sync with the normalized state, update it
+            if (hash !== normalizedHash) {
+                const newHash = `#${normalizedHash}`;
+                const url = `${location.pathname}${location.search}${newHash}`;
+                navigate(url, { replace: true });
+            }
         }
-    }, [location.hash, gameFinal, isDesktop]);
+    }, [
+        location.hash,
+        gameFinal,
+        isDesktop,
+        location.pathname,
+        location.search,
+        navigate,
+    ]);
 
     return {
         activeTab,
