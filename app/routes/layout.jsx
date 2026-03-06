@@ -82,10 +82,7 @@ export async function loader({ request }) {
 function Layout({ loaderData }) {
     const navigation = useNavigation();
 
-    // Default the initial desktop query to the inverse of the server's user-agent Mobile check!
-    const isDesktop = useMediaQuery("(min-width: 48em)", !loaderData.isMobile, {
-        getInitialValueInEffect: false,
-    });
+    const isDesktop = useMediaQuery("(min-width: 62em)", !loaderData.isMobile);
 
     const isNavigating = navigation.state !== "idle";
 
@@ -119,7 +116,7 @@ function Layout({ loaderData }) {
                 </Container>
 
                 <Box hiddenFrom="md">
-                    <NavLinks user={loaderData.user} />
+                    <NavLinks user={loaderData.user} isDesktop={isDesktop} />
                 </Box>
                 <NotificationPromptDrawer />
                 <InstallAppDrawer />

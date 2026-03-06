@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
 
 import { Center, SegmentedControl } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
 
 import {
     IconBallBaseball,
@@ -24,10 +23,9 @@ function Label({ Icon, text }) {
     );
 }
 
-function NavLinks({ user }) {
+function NavLinks({ user, isDesktop }) {
     const navigate = useNavigate();
     const location = useLocation();
-    const isDesktop = useMediaQuery("(min-width: 48em)");
 
     const getInitialValue = () => {
         if (location.pathname.toLowerCase().includes("user")) {
