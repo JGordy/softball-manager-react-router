@@ -31,7 +31,7 @@ describe("AutocompleteEmail Component", () => {
         fireEvent.change(input, { target: { value: "joe" } });
 
         act(() => {
-            jest.runOnlyPendingTimers();
+            jest.advanceTimersByTime(300);
         });
 
         expect(screen.getByText("joe@gmail.com")).toBeInTheDocument();

@@ -130,7 +130,7 @@ describe("GenerateSeasonGames", () => {
         );
 
         act(() => {
-            jest.advanceTimersByTime(500);
+            jest.advanceTimersByTime();
         });
 
         const submitButton = await screen.findByRole("button", {
