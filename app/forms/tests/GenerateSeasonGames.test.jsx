@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from "@/utils/test-utils";
+import { render, screen, fireEvent, waitFor, act } from "@/utils/test-utils";
 import { getUserTimeZone } from "@/utils/dateTime";
 
 import GenerateSeasonGames from "../GenerateSeasonGames";
@@ -38,6 +38,11 @@ describe("GenerateSeasonGames", () => {
 
     beforeEach(() => {
         getUserTimeZone.mockReturnValue("UTC");
+        jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+        jest.useRealTimers();
     });
 
     it("renders initial state correctly", () => {
@@ -58,6 +63,10 @@ describe("GenerateSeasonGames", () => {
         });
         fireEvent.click(generateButton);
 
+        act(() => {
+            jest.advanceTimersByTime(500);
+        });
+
         // Wait for the "Save Games" button to appear (indicating generation is complete)
         // or wait for the "Date" header in the GamesTable.
         expect(await screen.findByText("Date")).toBeInTheDocument();
@@ -75,6 +84,10 @@ describe("GenerateSeasonGames", () => {
         fireEvent.click(
             screen.getByRole("button", { name: /generate games/i }),
         );
+
+        act(() => {
+            jest.advanceTimersByTime(500);
+        });
 
         // Wait for games to be generated
         const clearButton = await screen.findByRole("button", {
@@ -95,6 +108,10 @@ describe("GenerateSeasonGames", () => {
             screen.getByRole("button", { name: /generate games/i }),
         );
 
+        act(() => {
+            jest.advanceTimersByTime(500);
+        });
+
         await waitFor(
             () => {
                 expect(
@@ -111,6 +128,10 @@ describe("GenerateSeasonGames", () => {
         fireEvent.click(
             screen.getByRole("button", { name: /generate games/i }),
         );
+
+        act(() => {
+            jest.advanceTimersByTime(500);
+        });
 
         const submitButton = await screen.findByRole("button", {
             name: /save games/i,

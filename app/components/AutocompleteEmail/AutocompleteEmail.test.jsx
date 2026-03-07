@@ -1,9 +1,14 @@
-import { screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
+import { screen, fireEvent, cleanup, act } from "@testing-library/react";
 import { render } from "@/utils/test-utils";
 import AutocompleteEmail from "./AutocompleteEmail";
 
 describe("AutocompleteEmail Component", () => {
+    beforeEach(() => {
+        jest.useFakeTimers();
+    });
+
     afterEach(() => {
+        jest.useRealTimers();
         cleanup();
     });
 
@@ -19,24 +24,28 @@ describe("AutocompleteEmail Component", () => {
         expect(screen.queryByText(/@gmail.com/i)).not.toBeInTheDocument();
     });
 
-    it("shows suggestions after valid input", async () => {
+    it("shows suggestions after valid input", () => {
         render(<AutocompleteEmail />);
         const input = screen.getByPlaceholderText("youremail@email.com");
 
         fireEvent.change(input, { target: { value: "joe" } });
 
-        await waitFor(() => {
-            expect(screen.getByText("joe@gmail.com")).toBeInTheDocument();
+        act(() => {
+            jest.advanceTimersByTime(300);
         });
+
+        expect(screen.getByText("joe@gmail.com")).toBeInTheDocument();
     });
 
-    it("does not trigger suggestions if input contains @", async () => {
+    it("does not trigger suggestions if input contains @", () => {
         render(<AutocompleteEmail />);
         const input = screen.getByPlaceholderText("youremail@email.com");
 
         fireEvent.change(input, { target: { value: "joe@" } });
 
-        await new Promise((r) => setTimeout(r, 100));
+        act(() => {
+            jest.advanceTimersByTime(300);
+        });
 
         expect(screen.queryByText("joe@gmail.com")).not.toBeInTheDocument();
     });
