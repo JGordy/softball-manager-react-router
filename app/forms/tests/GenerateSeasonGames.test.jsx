@@ -64,7 +64,7 @@ describe("GenerateSeasonGames", () => {
         fireEvent.click(generateButton);
 
         act(() => {
-            jest.advanceTimersByTime(500);
+            jest.runOnlyPendingTimers();
         });
 
         // Wait for the "Save Games" button to appear (indicating generation is complete)
@@ -86,7 +86,7 @@ describe("GenerateSeasonGames", () => {
         );
 
         act(() => {
-            jest.advanceTimersByTime(500);
+            jest.runOnlyPendingTimers();
         });
 
         // Wait for games to be generated
@@ -109,7 +109,7 @@ describe("GenerateSeasonGames", () => {
         );
 
         act(() => {
-            jest.advanceTimersByTime(500);
+            jest.runOnlyPendingTimers();
         });
 
         await waitFor(
