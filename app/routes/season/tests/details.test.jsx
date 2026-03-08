@@ -1,4 +1,4 @@
-import { MemoryRouter } from "react-router";
+import { MemoryRouter, useOutletContext } from "react-router";
 import { render, screen } from "@/utils/test-utils";
 
 import { updateSeason } from "@/actions/seasons";
@@ -11,6 +11,7 @@ import SeasonDetails, { loader, action } from "../details";
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
     useNavigation: jest.fn(() => ({ state: "idle" })),
+    useOutletContext: jest.fn(() => ({ isDesktop: false })),
 }));
 
 // Mock hooks
@@ -25,6 +26,7 @@ jest.mock("@/hooks/useModal", () => ({
 // Mock icons
 jest.mock("@tabler/icons-react", () => ({
     IconBallBaseball: () => <div data-testid="icon-baseball" />,
+    IconCalendarMonth: () => <div data-testid="icon-calendar-month" />,
     IconCalendarRepeat: () => <div data-testid="icon-calendar" />,
     IconCurrencyDollar: () => <div data-testid="icon-dollar" />,
     IconExternalLink: () => <div data-testid="icon-external" />,
@@ -122,7 +124,11 @@ describe("SeasonDetails Route", () => {
     });
 
     describe("Component", () => {
-        it("renders season details correctly", () => {
+        beforeEach(() => {
+            useOutletContext.mockReturnValue({ isDesktop: false });
+        });
+
+        it("renders MobileSeasonDetails based on context", () => {
             render(
                 <MemoryRouter>
                     <SeasonDetails
@@ -133,9 +139,12 @@ describe("SeasonDetails Route", () => {
 
             expect(screen.getByText("Fall Season 2025")).toBeInTheDocument();
             expect(screen.getByTestId("back-button")).toBeInTheDocument();
+            // GamesList is rendered twice (Upcoming and Past in Desktop)
+            // In Mobile it's rendered once.
+            expect(screen.getByTestId("games-list")).toBeInTheDocument();
         });
 
-        it("calculates and displays record correctly", () => {
+        it("calculates and passes record correctly", () => {
             const seasonWithGames = {
                 ...mockSeason,
                 games: [
@@ -145,7 +154,7 @@ describe("SeasonDetails Route", () => {
                 ],
             };
 
-            render(
+            const { container } = render(
                 <MemoryRouter>
                     <SeasonDetails
                         loaderData={{ season: seasonWithGames, park: null }}
@@ -153,7 +162,25 @@ describe("SeasonDetails Route", () => {
                 </MemoryRouter>,
             );
 
-            expect(screen.getByText("Record 1-1-1")).toBeInTheDocument();
+            expect(container.textContent).toMatch(/Record/i);
+            expect(container.textContent).toMatch(/1-1-1/);
+        });
+
+        it("renders DesktopSeasonDetails based on context", () => {
+            useOutletContext.mockReturnValue({ isDesktop: true });
+            const { container } = render(
+                <MemoryRouter>
+                    <SeasonDetails
+                        loaderData={{ season: mockSeason, park: null }}
+                    />
+                </MemoryRouter>,
+            );
+
+            expect(screen.getByText("Fall Season 2025")).toBeInTheDocument();
+            expect(screen.getByTestId("back-button")).toBeInTheDocument();
+            expect(container.textContent).toMatch(/Upcoming/i);
+            expect(container.textContent).toMatch(/Past/i);
+            expect(screen.getAllByTestId("games-list").length).toBe(2);
         });
     });
 });
