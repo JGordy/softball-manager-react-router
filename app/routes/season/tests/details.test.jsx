@@ -1,4 +1,4 @@
-import { MemoryRouter } from "react-router";
+import { MemoryRouter, useOutletContext } from "react-router";
 import { render, screen } from "@/utils/test-utils";
 
 import { updateSeason } from "@/actions/seasons";
@@ -26,6 +26,7 @@ jest.mock("@/hooks/useModal", () => ({
 // Mock icons
 jest.mock("@tabler/icons-react", () => ({
     IconBallBaseball: () => <div data-testid="icon-baseball" />,
+    IconCalendarMonth: () => <div data-testid="icon-calendar-month" />,
     IconCalendarRepeat: () => <div data-testid="icon-calendar" />,
     IconCurrencyDollar: () => <div data-testid="icon-dollar" />,
     IconExternalLink: () => <div data-testid="icon-external" />,
@@ -61,14 +62,6 @@ jest.mock("@/components/GamesList", () => ({
 jest.mock("../components/SeasonMenu", () => ({
     __esModule: true,
     default: () => <div data-testid="season-menu" />,
-}));
-jest.mock("../components/MobileSeasonDetails", () => ({
-    __esModule: true,
-    default: () => <div data-testid="mobile-season-details" />,
-}));
-jest.mock("../components/DesktopSeasonDetails", () => ({
-    __esModule: true,
-    default: () => <div data-testid="desktop-season-details" />,
 }));
 
 describe("SeasonDetails Route", () => {
@@ -131,6 +124,10 @@ describe("SeasonDetails Route", () => {
     });
 
     describe("Component", () => {
+        beforeEach(() => {
+            useOutletContext.mockReturnValue({ isDesktop: false });
+        });
+
         it("renders MobileSeasonDetails based on context", () => {
             render(
                 <MemoryRouter>
@@ -140,9 +137,28 @@ describe("SeasonDetails Route", () => {
                 </MemoryRouter>,
             );
 
-            expect(
-                screen.getByTestId("mobile-season-details"),
-            ).toBeInTheDocument();
+            expect(screen.getByText("Fall Season 2025")).toBeInTheDocument();
+            expect(screen.getByTestId("back-button")).toBeInTheDocument();
+            // GamesList is rendered twice (Upcoming and Past in Desktop)
+            // In Mobile it's rendered once.
+            expect(screen.getByTestId("games-list")).toBeInTheDocument();
+        });
+
+        it("renders DesktopSeasonDetails based on context", () => {
+            useOutletContext.mockReturnValue({ isDesktop: true });
+            const { container } = render(
+                <MemoryRouter>
+                    <SeasonDetails
+                        loaderData={{ season: mockSeason, park: null }}
+                    />
+                </MemoryRouter>,
+            );
+
+            expect(screen.getByText("Fall Season 2025")).toBeInTheDocument();
+            expect(screen.getByTestId("back-button")).toBeInTheDocument();
+            expect(container.textContent).toMatch(/Upcoming/i);
+            expect(container.textContent).toMatch(/Past/i);
+            expect(screen.getAllByTestId("games-list").length).toBe(2);
         });
     });
 });
