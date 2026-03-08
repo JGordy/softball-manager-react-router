@@ -82,7 +82,7 @@ export default function DesktopSeasonDetails({
                         p="lg"
                         radius="md"
                         style={{
-                            borderTop: `4px solid var(--mantine-color-${primaryColor}-filled, ${primaryColor})`,
+                            borderTop: `4px solid ${primaryColor}`,
                             boxShadow: `0 4px 20px rgba(0, 0, 0, 0.05)`,
                         }}
                     >
