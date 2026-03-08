@@ -55,7 +55,6 @@ describe("MobileSeasonDetails", () => {
             <MemoryRouter>
                 <MobileSeasonDetails
                     season={mockSeason}
-                    park={mockPark}
                     primaryColor="lime"
                     record={{ wins: 1, losses: 0, ties: 0 }}
                     detailsConfig={mockDetailsConfig}

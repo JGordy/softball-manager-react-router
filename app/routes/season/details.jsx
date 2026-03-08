@@ -114,25 +114,16 @@ export default function SeasonDetails({ loaderData, actionData }) {
         },
     ];
 
+    const sharedProps = {
+        season,
+        primaryColor,
+        record,
+        detailsConfig,
+    };
+
     if (isDesktop) {
-        return (
-            <DesktopSeasonDetails
-                season={season}
-                park={park}
-                primaryColor={primaryColor}
-                record={record}
-                detailsConfig={detailsConfig}
-            />
-        );
+        return <DesktopSeasonDetails {...sharedProps} />;
     }
 
-    return (
-        <MobileSeasonDetails
-            season={season}
-            park={park}
-            primaryColor={primaryColor}
-            record={record}
-            detailsConfig={detailsConfig}
-        />
-    );
+    return <MobileSeasonDetails {...sharedProps} />;
 }

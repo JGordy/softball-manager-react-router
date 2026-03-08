@@ -20,8 +20,8 @@ jest.mock("../SeasonMenu", () => ({
 }));
 jest.mock("@/utils/getGames", () => ({
     splitGames: jest.fn(() => ({
-        futureGames: [{ $id: "upcoming1" }],
-        pastGames: [{ $id: "past1" }],
+        futureGames: [{ $id: "upcoming1", gameDate: "2026-04-01T12:00:00Z" }],
+        pastGames: [{ $id: "past1", gameDate: "2026-03-01T12:00:00Z" }],
     })),
 }));
 
@@ -58,7 +58,6 @@ describe("DesktopSeasonDetails", () => {
             <MemoryRouter>
                 <DesktopSeasonDetails
                     season={mockSeason}
-                    park={mockPark}
                     primaryColor="lime"
                     record={{ wins: 1, losses: 0, ties: 0 }}
                     detailsConfig={mockDetailsConfig}

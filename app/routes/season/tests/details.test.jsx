@@ -144,6 +144,28 @@ describe("SeasonDetails Route", () => {
             expect(screen.getByTestId("games-list")).toBeInTheDocument();
         });
 
+        it("calculates and passes record correctly", () => {
+            const seasonWithGames = {
+                ...mockSeason,
+                games: [
+                    { result: true, score: 10, opponentScore: 5 }, // Win
+                    { result: true, score: 5, opponentScore: 10 }, // Loss
+                    { result: true, score: 5, opponentScore: 5 }, // Tie
+                ],
+            };
+
+            const { container } = render(
+                <MemoryRouter>
+                    <SeasonDetails
+                        loaderData={{ season: seasonWithGames, park: null }}
+                    />
+                </MemoryRouter>,
+            );
+
+            expect(container.textContent).toMatch(/Record/i);
+            expect(container.textContent).toMatch(/1-1-1/);
+        });
+
         it("renders DesktopSeasonDetails based on context", () => {
             useOutletContext.mockReturnValue({ isDesktop: true });
             const { container } = render(

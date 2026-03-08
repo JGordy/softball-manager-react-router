@@ -52,7 +52,6 @@ function DetailCard({ icon: Icon, label, value, color, href, rightSection }) {
 
 export default function MobileSeasonDetails({
     season,
-    park,
     primaryColor,
     record,
     detailsConfig,
