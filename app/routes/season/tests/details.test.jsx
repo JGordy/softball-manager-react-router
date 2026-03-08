@@ -11,6 +11,7 @@ import SeasonDetails, { loader, action } from "../details";
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
     useNavigation: jest.fn(() => ({ state: "idle" })),
+    useOutletContext: jest.fn(() => ({ isDesktop: false })),
 }));
 
 // Mock hooks
@@ -60,6 +61,14 @@ jest.mock("@/components/GamesList", () => ({
 jest.mock("../components/SeasonMenu", () => ({
     __esModule: true,
     default: () => <div data-testid="season-menu" />,
+}));
+jest.mock("../components/MobileSeasonDetails", () => ({
+    __esModule: true,
+    default: () => <div data-testid="mobile-season-details" />,
+}));
+jest.mock("../components/DesktopSeasonDetails", () => ({
+    __esModule: true,
+    default: () => <div data-testid="desktop-season-details" />,
 }));
 
 describe("SeasonDetails Route", () => {
@@ -122,7 +131,7 @@ describe("SeasonDetails Route", () => {
     });
 
     describe("Component", () => {
-        it("renders season details correctly", () => {
+        it("renders MobileSeasonDetails based on context", () => {
             render(
                 <MemoryRouter>
                     <SeasonDetails
@@ -131,29 +140,9 @@ describe("SeasonDetails Route", () => {
                 </MemoryRouter>,
             );
 
-            expect(screen.getByText("Fall Season 2025")).toBeInTheDocument();
-            expect(screen.getByTestId("back-button")).toBeInTheDocument();
-        });
-
-        it("calculates and displays record correctly", () => {
-            const seasonWithGames = {
-                ...mockSeason,
-                games: [
-                    { result: true, score: 10, opponentScore: 5 }, // Win
-                    { result: true, score: 5, opponentScore: 10 }, // Loss
-                    { result: true, score: 5, opponentScore: 5 }, // Tie
-                ],
-            };
-
-            render(
-                <MemoryRouter>
-                    <SeasonDetails
-                        loaderData={{ season: seasonWithGames, park: null }}
-                    />
-                </MemoryRouter>,
-            );
-
-            expect(screen.getByText("Record 1-1-1")).toBeInTheDocument();
+            expect(
+                screen.getByTestId("mobile-season-details"),
+            ).toBeInTheDocument();
         });
     });
 });
