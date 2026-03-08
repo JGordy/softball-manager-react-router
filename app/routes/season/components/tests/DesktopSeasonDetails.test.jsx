@@ -46,7 +46,6 @@ describe("DesktopSeasonDetails", () => {
         ],
     };
 
-    const mockPark = { googleMapsURI: "http://maps.google.com" };
     const mockDetailsConfig = [];
 
     beforeEach(() => {
