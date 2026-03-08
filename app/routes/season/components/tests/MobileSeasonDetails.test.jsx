@@ -43,7 +43,6 @@ describe("MobileSeasonDetails", () => {
         ],
     };
 
-    const mockPark = { googleMapsURI: "http://maps.google.com" };
     const mockDetailsConfig = [];
 
     beforeEach(() => {
