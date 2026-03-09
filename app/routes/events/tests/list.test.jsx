@@ -9,11 +9,11 @@ jest.mock("react-router", () => ({
     useOutletContext: jest.fn(),
 }));
 
-jest.mock("../components/MobileEvents", () => () => (
-    <div data-testid="mobile-events" />
+jest.mock("../components/MobileEvents", () => ({ teams }) => (
+    <div data-testid="mobile-events">{teams?.managing?.length}</div>
 ));
-jest.mock("../components/DesktopEvents", () => () => (
-    <div data-testid="desktop-events" />
+jest.mock("../components/DesktopEvents", () => ({ teams }) => (
+    <div data-testid="desktop-events">{teams?.managing?.length}</div>
 ));
 jest.mock("@/loaders/teams");
 
@@ -50,16 +50,18 @@ describe("EventsList Route", () => {
     });
 
     describe("Component", () => {
-        it("renders MobileEvents when isDesktop is false", () => {
+        it("renders MobileEvents with teams when isDesktop is false", () => {
             useOutletContext.mockReturnValue({ isDesktop: false });
             render(<EventsList loaderData={mockLoaderData} />);
             expect(screen.getByTestId("mobile-events")).toBeInTheDocument();
+            expect(screen.getByText("1")).toBeInTheDocument(); // length of managing teams
         });
 
-        it("renders DesktopEvents when isDesktop is true", () => {
+        it("renders DesktopEvents with teams when isDesktop is true", () => {
             useOutletContext.mockReturnValue({ isDesktop: true });
             render(<EventsList loaderData={mockLoaderData} />);
             expect(screen.getByTestId("desktop-events")).toBeInTheDocument();
+            expect(screen.getByText("1")).toBeInTheDocument();
         });
     });
 });
