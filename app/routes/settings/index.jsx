@@ -16,7 +16,7 @@ import { createSessionClient } from "@/utils/appwrite/server";
 
 import UserHeader from "@/components/UserHeader";
 
-import DesktopSettingsContainer from "./components/DesktopSettingsContainer";
+import DesktopSettingsDashboard from "./components/DesktopSettingsDashboard";
 import MobileSettingsContainer from "./components/MobileSettingsContainer";
 
 export async function loader({ request }) {
@@ -92,7 +92,7 @@ export default function Settings({ actionData }) {
             <UserHeader subText={user?.email} />
 
             {isDesktop ? (
-                <DesktopSettingsContainer
+                <DesktopSettingsDashboard
                     actionData={actionData}
                     teams={teams}
                 />

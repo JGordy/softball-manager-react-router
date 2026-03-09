@@ -33,8 +33,8 @@ jest.mock("@/utils/appwrite/server", () => ({
     createSessionClient: jest.fn(),
 }));
 
-jest.mock("../components/DesktopSettingsContainer", () => () => (
-    <div data-testid="desktop-settings-container" />
+jest.mock("../components/DesktopSettingsDashboard", () => () => (
+    <div data-testid="desktop-settings-dashboard" />
 ));
 jest.mock("../components/MobileSettingsContainer", () => () => (
     <div data-testid="mobile-settings-container" />
@@ -122,7 +122,7 @@ describe("Settings Route", () => {
             ).toBeInTheDocument();
         });
 
-        it("renders DesktopSettingsContainer on desktop", () => {
+        it("renders DesktopSettingsDashboard on desktop", () => {
             useOutletContext.mockReturnValue({
                 user: mockUser,
                 isDesktop: true,
@@ -134,7 +134,7 @@ describe("Settings Route", () => {
             );
 
             expect(
-                screen.getByTestId("desktop-settings-container"),
+                screen.getByTestId("desktop-settings-dashboard"),
             ).toBeInTheDocument();
         });
     });
