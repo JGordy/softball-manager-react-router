@@ -1,10 +1,10 @@
 import { formatPhoneNumber } from "../phone";
 
 describe("formatPhoneNumber", () => {
-    it("returns a default message if no phone number is provided", () => {
-        expect(formatPhoneNumber(null)).toBe("No phone number provided");
-        expect(formatPhoneNumber(undefined)).toBe("No phone number provided");
-        expect(formatPhoneNumber("")).toBe("No phone number provided");
+    it("returns an empty string if no phone number is provided", () => {
+        expect(formatPhoneNumber(null)).toBe("");
+        expect(formatPhoneNumber(undefined)).toBe("");
+        expect(formatPhoneNumber("")).toBe("");
     });
 
     it("formats a standard US E.164 phone number correctly", () => {

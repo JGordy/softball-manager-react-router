@@ -4,7 +4,7 @@
  * @returns {string} - The formatted phone number.
  */
 export function formatPhoneNumber(phone) {
-    if (!phone) return "No phone number provided";
+    if (!phone) return "";
 
     // Remove any non-digits
     const cleaned = phone.replace(/\D/g, "");
