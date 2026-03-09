@@ -7,6 +7,7 @@ export default function ResetPasswordDrawer({ opened, onClose, user }) {
             opened={opened}
             onClose={onClose}
             title="Reset Password"
+            size="md"
         >
             <UpdatePassword
                 action="password-reset"

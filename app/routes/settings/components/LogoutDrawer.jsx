@@ -9,6 +9,7 @@ export default function LogoutDrawer({ opened, onClose }) {
             opened={opened}
             onClose={onClose}
             title="Confirm Log Out"
+            size="md"
         >
             <Text size="md" mb="xl">
                 Are you sure you want to log out? You will need to log in again
