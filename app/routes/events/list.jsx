@@ -1,149 +1,54 @@
 import { useState } from "react";
-
-import {
-    ActionIcon,
-    Container,
-    Group,
-    Menu,
-    SegmentedControl,
-    Tabs,
-    useComputedColorScheme,
-} from "@mantine/core";
-
-import { IconAdjustments, IconCalendarMonth } from "@tabler/icons-react";
-
-import UserHeader from "@/components/UserHeader";
-import GamesList from "@/components/GamesList";
-import TabsWrapper from "@/components/TabsWrapper";
-
+import { useOutletContext } from "react-router";
+import { getUserTeams } from "@/loaders/teams";
 import getGames from "@/utils/getGames";
 
-import { getUserTeams } from "@/loaders/teams";
+import MobileEvents from "./components/MobileEvents";
+import DesktopEvents from "./components/DesktopEvents";
 
 export async function loader({ request }) {
     const { managing, playing, userId } = await getUserTeams({ request });
     return { userId, teams: { managing, playing } };
 }
 
-export default function EventsDetails({ loaderData }) {
+export default function EventsList({ loaderData }) {
+    const { isDesktop } = useOutletContext();
     const teams = loaderData?.teams;
-
-    const computedColorScheme = useComputedColorScheme("light");
+    const teamsData = [...(teams?.managing || []), ...(teams?.playing || [])];
 
     const [filterId, setFilterId] = useState("all");
     const [showFilters, setShowFilters] = useState(false);
 
-    const teamsData = [...teams?.managing, ...teams?.playing];
-
     const { futureGames, pastGames } = getGames({ teams: teamsData });
-    // console.log('/events ', { user, teams, futureGames, pastGames });
 
-    const handleMenuItemChange = (teamId) => {
+    const handleFilterChange = (teamId) => {
         setFilterId(teamId);
-        setShowFilters(false); // Close the menu after clicking an item
-    };
-
-    const toggleMenu = () => {
-        setShowFilters((prev) => !prev);
-    };
-
-    const handleMenuClose = () => {
         setShowFilters(false);
     };
 
-    const filterGames = (games) => {
-        if (filterId === "all") {
-            return games;
-        }
+    const toggleFilters = () => setShowFilters((prev) => !prev);
+    const closeFilters = () => setShowFilters(false);
 
+    const filterGames = (games) => {
+        if (filterId === "all") return games;
         return games?.filter((game) => game.teamId === filterId);
     };
 
-    const teamFilter = teamsData?.length > 1 && (
-        <Menu
-            position="bottom-end"
-            offset={10}
-            opened={showFilters}
-            onClose={handleMenuClose}
-            trigger="click"
-            radius="lg"
-        >
-            <Menu.Target>
-                <ActionIcon
-                    variant="light"
-                    color="lime"
-                    radius="xl"
-                    aria-label="Filter Games"
-                    size="lg"
-                    onClick={toggleMenu}
-                >
-                    <IconAdjustments stroke={1.5} size={24} />
-                </ActionIcon>
-            </Menu.Target>
-            <Menu.Dropdown
-                bg={computedColorScheme === "light" ? "gray.1" : undefined}
-                py="md"
-                px="xs"
-            >
-                <Menu.Label>Filter Games by Team</Menu.Label>
+    const commonProps = {
+        teamsData,
+        filterId,
+        onFilterChange: handleFilterChange,
+        showFilters,
+        onToggleFilters: toggleFilters,
+        onCloseFilters: closeFilters,
+        filteredFutureGames: filterGames(futureGames),
+        filteredPastGames: filterGames(pastGames),
+        hasFutureGames: futureGames?.length > 0,
+    };
 
-                <SegmentedControl
-                    styles={{ label: { marginBottom: "10px" } }}
-                    fullWidth
-                    color="lime"
-                    transitionDuration={0}
-                    withItemsBorders={false}
-                    orientation="vertical"
-                    onChange={handleMenuItemChange}
-                    value={filterId}
-                    radius="md"
-                    size="md"
-                    p="xs"
-                    data={[
-                        {
-                            value: "all",
-                            label: "All Teams",
-                        },
-                        ...teamsData?.map((team) => ({
-                            value: team.$id,
-                            label: team.name,
-                        })),
-                    ]}
-                />
-            </Menu.Dropdown>
-        </Menu>
-    );
+    if (isDesktop) {
+        return <DesktopEvents {...commonProps} />;
+    }
 
-    return (
-        <Container>
-            <UserHeader subText="Track your game history">
-                {teamFilter}
-            </UserHeader>
-
-            <TabsWrapper
-                defaultValue={futureGames?.length > 0 ? "upcoming" : "past"}
-            >
-                <Tabs.Tab value="upcoming">
-                    <Group gap="xs" align="center" justify="center">
-                        <IconCalendarMonth size={16} />
-                        Upcoming
-                    </Group>
-                </Tabs.Tab>
-                <Tabs.Tab value="past">
-                    <Group gap="xs" align="center" justify="center">
-                        <IconCalendarMonth size={16} />
-                        Past
-                    </Group>
-                </Tabs.Tab>
-
-                <Tabs.Panel value="upcoming" pt="md">
-                    <GamesList games={filterGames(futureGames)} height="65vh" />
-                </Tabs.Panel>
-
-                <Tabs.Panel value="past" pt="md">
-                    <GamesList games={filterGames(pastGames)} height="65vh" />
-                </Tabs.Panel>
-            </TabsWrapper>
-        </Container>
-    );
+    return <MobileEvents {...commonProps} />;
 }
