@@ -10,6 +10,7 @@ Follow these parameters for all testing tasks:
 4. **Test Utils**: Use `@[app/utils/test-utils.jsx]` for component rendering, event firing, and other testing utilities.
 5. **Mantine Components**: Do not overly mock Mantine components; test the actual components that render to ensure realistic behavior.
 6. **Integrity**: Ensure all tests in the affected suite(s) pass before considering a task complete.
+7. **Test Runner**: Always use `npm test` or `npm run test` to execute tests, rather than calling the test runner (e.g., `jest`) directly. This ensures the correct configuration and environment variables are used.
 
 ## Best Practices
 
