@@ -103,7 +103,9 @@ export default function DesktopSettingsDashboard({ actionData, teams }) {
                     user={user}
                     defaults={{
                         email: user?.email || "",
-                        phoneNumber: formatPhoneNumber(user?.phone),
+                        phoneNumber: user?.phone
+                            ? formatPhoneNumber(user?.phone)
+                            : "",
                     }}
                 />
             ),
@@ -141,7 +143,7 @@ export default function DesktopSettingsDashboard({ actionData, teams }) {
                         </Avatar>
                         <Stack gap="xs">
                             <Text fw={600} size="lg">
-                                {user?.name || "Test User"}
+                                {user?.name || "No name provided"}
                             </Text>
                             <Text c="dimmed" size="sm">
                                 {user?.email || "No email"}
