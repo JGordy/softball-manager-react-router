@@ -288,3 +288,25 @@ export async function resetPassword({ values, request }) {
         };
     }
 }
+export async function updateUserPrefs({ values, request }) {
+    try {
+        const { account } = await createSessionClient(request);
+        const user = await account.get();
+        const updatedPrefs = { ...user.prefs, ...values };
+
+        await account.updatePrefs(updatedPrefs);
+
+        return {
+            success: true,
+            status: 204,
+            message: "Preferences updated successfully.",
+        };
+    } catch (error) {
+        console.error("Error updating user prefs:", error);
+        return {
+            success: false,
+            status: 500,
+            message: error.message || "Failed to update preferences.",
+        };
+    }
+}

@@ -4,6 +4,7 @@ import {
     updateAccountInfo,
     updatePassword,
     resetPassword,
+    updateUserPrefs,
 } from "../users";
 import {
     createDocument,
@@ -463,6 +464,47 @@ describe("Users Actions", () => {
             );
             expect(result.success).toBe(true);
             expect(result.status).toBe(200);
+        });
+    });
+
+    describe("updateUserPrefs", () => {
+        it("should update user preferences successfully", async () => {
+            const mockAccount = {
+                get: jest.fn().mockResolvedValue({ prefs: {} }),
+                updatePrefs: jest
+                    .fn()
+                    .mockResolvedValue({ prefs: { startingPage: "/events" } }),
+            };
+            createSessionClient.mockResolvedValue({ account: mockAccount });
+
+            const mockValues = { startingPage: "/events" };
+            const result = await updateUserPrefs({
+                values: mockValues,
+                request: {},
+            });
+
+            expect(mockAccount.updatePrefs).toHaveBeenCalledWith({
+                startingPage: "/events",
+            });
+            expect(result.success).toBe(true);
+            expect(result.status).toBe(204);
+        });
+
+        it("should handle preference update errors", async () => {
+            const mockAccount = {
+                updatePrefs: jest
+                    .fn()
+                    .mockRejectedValue(new Error("Prefs error")),
+            };
+            createSessionClient.mockResolvedValue({ account: mockAccount });
+
+            const result = await updateUserPrefs({
+                values: { startingPage: "/events" },
+                request: {},
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.status).toBe(500);
         });
     });
 });
