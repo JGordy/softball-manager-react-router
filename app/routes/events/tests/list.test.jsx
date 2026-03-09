@@ -1,46 +1,25 @@
-import { useComputedColorScheme } from "@mantine/core";
-
-import { render, screen, fireEvent, waitFor } from "@/utils/test-utils";
+import { useOutletContext } from "react-router";
+import { render, screen } from "@/utils/test-utils";
 
 import * as teamsLoaders from "@/loaders/teams";
-import * as getGamesUtils from "@/utils/getGames";
-
 import EventsList, { loader } from "../list";
 
-jest.mock("@mantine/core", () => {
-    const actual = jest.requireActual("@mantine/core");
-    return {
-        ...actual,
-        useComputedColorScheme: jest.fn(),
-    };
-});
+jest.mock("react-router", () => ({
+    ...jest.requireActual("react-router"),
+    useOutletContext: jest.fn(),
+}));
 
-jest.mock("@/components/UserHeader", () => ({ children, subText }) => (
-    <div data-testid="user-header">
-        <span>{subText}</span>
-        {children}
-    </div>
+jest.mock("../components/MobileEvents", () => ({ teams }) => (
+    <div data-testid="mobile-events">{teams?.managing?.length}</div>
 ));
-
-jest.mock("@/components/GamesList", () => ({ games }) => (
-    <div data-testid="games-list">
-        {games?.map((g) => (
-            <div key={g.id}>{g.name}</div>
-        ))}
-    </div>
+jest.mock("../components/DesktopEvents", () => ({ teams }) => (
+    <div data-testid="desktop-events">{teams?.managing?.length}</div>
 ));
-
 jest.mock("@/loaders/teams");
-jest.mock("@/utils/getGames");
 
 describe("EventsList Route", () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        useComputedColorScheme.mockReturnValue("light");
-        getGamesUtils.default.mockReturnValue({
-            futureGames: [],
-            pastGames: [],
-        });
     });
 
     const mockLoaderData = {
@@ -71,77 +50,18 @@ describe("EventsList Route", () => {
     });
 
     describe("Component", () => {
-        it("renders with default 'upcoming' tab if future games exist", () => {
-            getGamesUtils.default.mockReturnValue({
-                futureGames: [{ id: "g1", name: "Game 1" }],
-                pastGames: [],
-            });
-
+        it("renders MobileEvents with teams when isDesktop is false", () => {
+            useOutletContext.mockReturnValue({ isDesktop: false });
             render(<EventsList loaderData={mockLoaderData} />);
-            expect(screen.getByText("Game 1")).toBeInTheDocument();
+            expect(screen.getByTestId("mobile-events")).toBeInTheDocument();
+            expect(screen.getByText("1")).toBeInTheDocument(); // length of managing teams
         });
 
-        it("renders with default 'past' tab if no future games", () => {
-            getGamesUtils.default.mockReturnValue({
-                futureGames: [],
-                pastGames: [{ id: "g2", name: "Game 2" }],
-            });
-
+        it("renders DesktopEvents with teams when isDesktop is true", () => {
+            useOutletContext.mockReturnValue({ isDesktop: true });
             render(<EventsList loaderData={mockLoaderData} />);
-            expect(screen.getByText("Game 2")).toBeInTheDocument();
-        });
-
-        it("renders filter menu trigger (ActionIcon via UserHeader children)", () => {
-            render(<EventsList loaderData={mockLoaderData} />);
-            // The ActionIcon has aria-label="Filter Games".
-            expect(screen.getByLabelText("Filter Games")).toBeInTheDocument();
-        });
-
-        it("filters games when a team is selected", async () => {
-            const games = [
-                { id: "g1", name: "Game 1", teamId: "team1" },
-                { id: "g2", name: "Game 2", teamId: "team2" },
-            ];
-            getGamesUtils.default.mockReturnValue({
-                futureGames: games,
-                pastGames: [],
-            });
-
-            render(<EventsList loaderData={mockLoaderData} />);
-
-            // Initial render passed all games (filterId = 'all')
-            // GamesList mock prints names
-            expect(screen.getByText("Game 1")).toBeInTheDocument();
-            expect(screen.getByText("Game 2")).toBeInTheDocument();
-
-            // Open menu (click action icon)
-            fireEvent.click(screen.getByLabelText("Filter Games"));
-
-            const teamOneOption = await screen.findByRole("radio", {
-                name: "Team 1",
-            });
-            fireEvent.click(teamOneOption);
-
-            // Now only Game 1 should be visible
-            expect(screen.getByText("Game 1")).toBeInTheDocument();
-            expect(screen.queryByText("Game 2")).not.toBeInTheDocument();
-        });
-
-        it("toggles filter menu visibility", async () => {
-            render(<EventsList loaderData={mockLoaderData} />);
-
-            const trigger = screen.getByLabelText("Filter Games");
-
-            fireEvent.click(trigger);
-            await screen.findByText("Filter Games by Team");
-
-            fireEvent.click(trigger);
-
-            await waitFor(() =>
-                expect(
-                    screen.queryByText("Filter Games by Team"),
-                ).not.toBeInTheDocument(),
-            );
+            expect(screen.getByTestId("desktop-events")).toBeInTheDocument();
+            expect(screen.getByText("1")).toBeInTheDocument();
         });
     });
 });
