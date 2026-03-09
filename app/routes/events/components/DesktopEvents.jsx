@@ -4,17 +4,20 @@ import { IconCalendarMonth, IconHistory } from "@tabler/icons-react";
 import UserHeader from "@/components/UserHeader";
 import GamesList from "@/components/GamesList";
 import EventsFilter from "./EventsFilter";
+import { useEventsData } from "../hooks/useEventsData";
 
-export default function DesktopEvents({
-    teamsData,
-    filterId,
-    onFilterChange,
-    showFilters,
-    onToggleFilters,
-    onCloseFilters,
-    filteredFutureGames,
-    filteredPastGames,
-}) {
+export default function DesktopEvents({ teams }) {
+    const {
+        teamsData,
+        filterId,
+        onFilterChange,
+        showFilters,
+        onToggleFilters,
+        onCloseFilters,
+        filteredFutureGames,
+        filteredPastGames,
+    } = useEventsData({ teams });
+
     return (
         <Container size="xl">
             <UserHeader subText="Track your game history">
