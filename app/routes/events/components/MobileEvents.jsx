@@ -5,18 +5,21 @@ import UserHeader from "@/components/UserHeader";
 import GamesList from "@/components/GamesList";
 import TabsWrapper from "@/components/TabsWrapper";
 import EventsFilter from "./EventsFilter";
+import { useEventsData } from "../hooks/useEventsData";
 
-export default function MobileEvents({
-    teamsData,
-    filterId,
-    onFilterChange,
-    showFilters,
-    onToggleFilters,
-    onCloseFilters,
-    filteredFutureGames,
-    filteredPastGames,
-    hasFutureGames,
-}) {
+export default function MobileEvents({ teams }) {
+    const {
+        teamsData,
+        filterId,
+        onFilterChange,
+        showFilters,
+        onToggleFilters,
+        onCloseFilters,
+        filteredFutureGames,
+        filteredPastGames,
+        hasFutureGames,
+    } = useEventsData({ teams });
+
     return (
         <Container>
             <UserHeader subText="Track your game history">

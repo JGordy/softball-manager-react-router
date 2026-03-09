@@ -1,5 +1,15 @@
-import { render, screen } from "@/utils/test-utils";
+import { useComputedColorScheme } from "@mantine/core";
+import { render, screen, fireEvent } from "@/utils/test-utils";
+import * as getGamesUtils from "@/utils/getGames";
 import MobileEvents from "../MobileEvents";
+
+jest.mock("@mantine/core", () => {
+    const actual = jest.requireActual("@mantine/core");
+    return {
+        ...actual,
+        useComputedColorScheme: jest.fn(),
+    };
+});
 
 jest.mock("@/components/UserHeader", () => ({ children, subText }) => (
     <div data-testid="user-header">
@@ -16,43 +26,65 @@ jest.mock("@/components/GamesList", () => ({ games }) => (
     </div>
 ));
 
-jest.mock("../EventsFilter", () => () => <div data-testid="events-filter" />);
+jest.mock("@/utils/getGames");
 
 describe("MobileEvents Component", () => {
-    const defaultProps = {
-        teamsData: [],
-        filterId: "all",
-        onFilterChange: jest.fn(),
-        showFilters: false,
-        onToggleFilters: jest.fn(),
-        onCloseFilters: jest.fn(),
-        filteredFutureGames: [],
-        filteredPastGames: [],
-        hasFutureGames: false,
+    const mockTeams = {
+        managing: [{ $id: "team1", name: "Team 1" }],
+        playing: [{ $id: "team2", name: "Team 2" }],
     };
 
-    it("renders games and tabs", () => {
-        const props = {
-            ...defaultProps,
-            filteredFutureGames: [{ id: "g1", name: "Upcoming Game" }],
-            hasFutureGames: true,
-        };
-
-        render(<MobileEvents {...props} />);
-        expect(screen.getByText("Upcoming Game")).toBeInTheDocument();
-        expect(screen.getByText("Upcoming")).toBeInTheDocument();
-        expect(screen.getByTestId("events-filter")).toBeInTheDocument();
+    beforeEach(() => {
+        jest.clearAllMocks();
+        useComputedColorScheme.mockReturnValue("light");
+        getGamesUtils.default.mockReturnValue({
+            futureGames: [],
+            pastGames: [],
+        });
     });
 
-    it("renders past games if no future games", () => {
-        const props = {
-            ...defaultProps,
-            filteredPastGames: [{ id: "g2", name: "Past Game" }],
-            hasFutureGames: false,
-        };
+    it("renders with default 'upcoming' tab if future games exist", () => {
+        getGamesUtils.default.mockReturnValue({
+            futureGames: [{ id: "g1", name: "Game 1", teamId: "team1" }],
+            pastGames: [],
+        });
 
-        render(<MobileEvents {...props} />);
-        expect(screen.getByText("Past Game")).toBeInTheDocument();
+        render(<MobileEvents teams={mockTeams} />);
+        expect(screen.getByText("Game 1")).toBeInTheDocument();
+        expect(screen.getByText("Upcoming")).toBeInTheDocument();
+    });
+
+    it("renders with default 'past' tab if no future games", () => {
+        getGamesUtils.default.mockReturnValue({
+            futureGames: [],
+            pastGames: [{ id: "g2", name: "Game 2", teamId: "team1" }],
+        });
+
+        render(<MobileEvents teams={mockTeams} />);
+        expect(screen.getByText("Game 2")).toBeInTheDocument();
         expect(screen.getByText("Past")).toBeInTheDocument();
+    });
+
+    it("filters games when a team is selected", async () => {
+        const games = [
+            { id: "g1", name: "Game 1", teamId: "team1" },
+            { id: "g2", name: "Game 2", teamId: "team2" },
+        ];
+        getGamesUtils.default.mockReturnValue({
+            futureGames: games,
+            pastGames: [],
+        });
+
+        render(<MobileEvents teams={mockTeams} />);
+
+        fireEvent.click(screen.getByLabelText("Filter Games"));
+
+        const teamOneOption = await screen.findByRole("radio", {
+            name: "Team 1",
+        });
+        fireEvent.click(teamOneOption);
+
+        expect(screen.getByText("Game 1")).toBeInTheDocument();
+        expect(screen.queryByText("Game 2")).not.toBeInTheDocument();
     });
 });
