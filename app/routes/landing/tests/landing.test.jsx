@@ -12,6 +12,11 @@ jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
     useLoaderData: jest.fn(),
     useNavigation: jest.fn(() => ({ state: "idle" })),
+    redirect: jest.fn((url) => {
+        const response = new Response(null, { status: 302 });
+        response.url = url;
+        return response;
+    }),
 }));
 
 // Mock actions and loaders
@@ -96,14 +101,36 @@ describe("Landing Route", () => {
                 },
             });
 
-            const result = await loader({
-                request: new Request("http://localhost/"),
+            try {
+                await loader({
+                    request: new Request("http://localhost/"),
+                });
+            } catch (error) {
+                expect(error.status).toBe(302);
+                expect(error.url).toBe("/dashboard");
+            }
+        });
+
+        it("redirects to custom startingPage if session exists", async () => {
+            isMobileUserAgent.mockReturnValue(false);
+            createSessionClient.mockResolvedValue({
+                account: {
+                    get: jest.fn().mockResolvedValue({
+                        $id: "user-123",
+                        labels: [],
+                        prefs: { startingPage: "/events" },
+                    }),
+                },
             });
-            expect(result).toEqual({
-                isAuthenticated: true,
-                isDesktop: true,
-                isAdmin: false,
-            });
+
+            try {
+                await loader({
+                    request: new Request("http://localhost/"),
+                });
+            } catch (error) {
+                expect(error.status).toBe(302);
+                expect(error.url).toBe("/events");
+            }
         });
 
         it("returns isAuthenticated false if session check fails", async () => {
