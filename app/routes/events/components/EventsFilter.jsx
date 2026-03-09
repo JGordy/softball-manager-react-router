@@ -61,7 +61,7 @@ export default function EventsFilter({
                     p="xs"
                     data={[
                         { value: "all", label: "All Teams" },
-                        ...teamsData?.map((team) => ({
+                        ...teamsData.map((team) => ({
                             value: team.$id,
                             label: team.name,
                         })),
