@@ -1,7 +1,7 @@
 import { useOutletContext, useLoaderData } from "react-router";
 import { Query } from "node-appwrite";
 
-import { Accordion, Container } from "@mantine/core";
+import { Container } from "@mantine/core";
 
 import {
     updateAccountInfo,
@@ -16,11 +16,8 @@ import { createSessionClient } from "@/utils/appwrite/server";
 
 import UserHeader from "@/components/UserHeader";
 
-import AccountPanel from "./components/AccountPanel";
-import AuthPanel from "./components/AuthPanel";
-import NotificationsPanel from "./components/NotificationsPanel";
-import SupportPanel from "./components/SupportPanel";
-import PoliciesPanel from "./components/PoliciesPanel";
+import DesktopSettingsDashboard from "./components/DesktopSettingsDashboard";
+import MobileSettingsContainer from "./components/MobileSettingsContainer";
 
 export async function loader({ request }) {
     try {
@@ -87,54 +84,24 @@ export async function action({ request }) {
 }
 
 export default function Settings({ actionData }) {
-    const { user } = useOutletContext();
+    const { user, isDesktop } = useOutletContext();
     const { teams } = useLoaderData();
 
     return (
-        <Container className="settings-container">
+        <Container size="xl" className="settings-container">
             <UserHeader subText={user?.email} />
 
-            <Accordion
-                variant="separated"
-                radius="md"
-                defaultValue="account"
-                mt="xl"
-            >
-                <Accordion.Item value="account">
-                    <Accordion.Control>Account</Accordion.Control>
-                    <Accordion.Panel>
-                        <AccountPanel actionData={actionData} />
-                    </Accordion.Panel>
-                </Accordion.Item>
-
-                <Accordion.Item value="authentication">
-                    <Accordion.Control>Login Options</Accordion.Control>
-                    <Accordion.Panel>
-                        <AuthPanel actionData={actionData} />
-                    </Accordion.Panel>
-                </Accordion.Item>
-
-                <Accordion.Item value="notifications">
-                    <Accordion.Control>Notifications</Accordion.Control>
-                    <Accordion.Panel>
-                        <NotificationsPanel teams={teams} />
-                    </Accordion.Panel>
-                </Accordion.Item>
-
-                <Accordion.Item value="support">
-                    <Accordion.Control>Support</Accordion.Control>
-                    <Accordion.Panel>
-                        <SupportPanel />
-                    </Accordion.Panel>
-                </Accordion.Item>
-
-                <Accordion.Item value="policies">
-                    <Accordion.Control>Policies & Agreements</Accordion.Control>
-                    <Accordion.Panel>
-                        <PoliciesPanel />
-                    </Accordion.Panel>
-                </Accordion.Item>
-            </Accordion>
+            {isDesktop ? (
+                <DesktopSettingsDashboard
+                    actionData={actionData}
+                    teams={teams}
+                />
+            ) : (
+                <MobileSettingsContainer
+                    actionData={actionData}
+                    teams={teams}
+                />
+            )}
         </Container>
     );
 }

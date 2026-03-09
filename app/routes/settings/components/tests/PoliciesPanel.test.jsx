@@ -1,7 +1,7 @@
-import { render, screen, fireEvent } from "@/utils/test-utils";
-import PoliciesPanel from "../components/PoliciesPanel";
 import { useOutletContext } from "react-router";
+import { render, screen, fireEvent } from "@/utils/test-utils";
 import useModal from "@/hooks/useModal";
+import PoliciesPanel from "../PoliciesPanel";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),

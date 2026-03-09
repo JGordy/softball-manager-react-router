@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from "@/utils/test-utils";
 
 import { trackEvent } from "@/utils/analytics";
 
-import SupportPanel from "../components/SupportPanel";
+import SupportPanel from "../SupportPanel";
 
 // Mock analytics
 jest.mock("@/utils/analytics", () => ({

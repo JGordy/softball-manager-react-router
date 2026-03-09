@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { Form, useOutletContext } from "react-router";
+import { useOutletContext } from "react-router";
 
 import {
     ActionIcon,
@@ -19,7 +19,8 @@ import { IconLogout2, IconKey, IconRestore } from "@tabler/icons-react";
 import useModal from "@/hooks/useModal";
 
 import UpdatePassword from "@/forms/UpdatePassword";
-import DrawerContainer from "@/components/DrawerContainer";
+import LogoutDrawer from "./LogoutDrawer";
+import ResetPasswordDrawer from "./ResetPasswordDrawer";
 
 export default function AuthPanel({ actionData }) {
     const { user } = useOutletContext();
@@ -133,44 +134,16 @@ export default function AuthPanel({ actionData }) {
                 </Button>
             </div>
 
-            <DrawerContainer
+            <ResetPasswordDrawer
                 opened={passwordResetOpened}
                 onClose={closeResetPassword}
-                title="Reset Password"
-            >
-                <UpdatePassword
-                    action="password-reset"
-                    actionRoute="/settings"
-                    confirmText="Yes, Reset my Password"
-                    user={user}
-                />
-            </DrawerContainer>
+                user={user}
+            />
 
-            <DrawerContainer
+            <LogoutDrawer
                 opened={logoutDrawerOpened}
                 onClose={closeLogoutDrawer}
-                title="Confirm Log Out"
-            >
-                <Text size="md" mb="xl">
-                    Are you sure you want to log out? You will need to log in
-                    again to access your content.
-                </Text>
-                <Form method="post">
-                    <input type="hidden" name="_action" value="logout" />
-                    <Button
-                        type="submit"
-                        color="red"
-                        variant="filled"
-                        size="md"
-                        fullWidth
-                    >
-                        <Group gap="xs">
-                            <IconLogout2 size={16} mr="xs" />
-                            Yes, Log out
-                        </Group>
-                    </Button>
-                </Form>
-            </DrawerContainer>
+            />
         </Stack>
     );
 }

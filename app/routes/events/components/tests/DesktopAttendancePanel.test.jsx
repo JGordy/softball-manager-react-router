@@ -60,7 +60,7 @@ jest.mock("@/utils/addPlayerAvailability", () =>
 
 const defaultGame = {
     $id: "game1",
-    gameDate: "2026-03-08T18:30:00Z",
+    gameDate: "2030-03-08T18:30:00Z",
     timeZone: "America/New_York",
 };
 

@@ -1,9 +1,9 @@
-import { MemoryRouter, useOutletContext } from "react-router";
+import { useOutletContext } from "react-router";
 import { render, screen, fireEvent } from "@/utils/test-utils";
 
 import useModal from "@/hooks/useModal";
 
-import AccountPanel from "../components/AccountPanel";
+import AccountPanel from "../AccountPanel";
 
 // Mock react-router
 jest.mock("react-router", () => ({
@@ -34,22 +34,14 @@ describe("AccountPanel Component", () => {
     });
 
     it("renders user contact info", () => {
-        render(
-            <MemoryRouter>
-                <AccountPanel />
-            </MemoryRouter>,
-        );
+        render(<AccountPanel />);
 
         expect(screen.getByText("test@example.com")).toBeInTheDocument();
         expect(screen.getByText("(555) 123-4567")).toBeInTheDocument();
     });
 
     it("opens update modal on pencil click", () => {
-        render(
-            <MemoryRouter>
-                <AccountPanel />
-            </MemoryRouter>,
-        );
+        render(<AccountPanel />);
 
         fireEvent.click(screen.getByLabelText("Update Contact Information"));
         expect(mockModal.openModal).toHaveBeenCalledWith(
@@ -61,11 +53,9 @@ describe("AccountPanel Component", () => {
 
     it("renders success alert from actionData", () => {
         render(
-            <MemoryRouter>
-                <AccountPanel
-                    actionData={{ success: true, message: "Updated!" }}
-                />
-            </MemoryRouter>,
+            <AccountPanel
+                actionData={{ success: true, message: "Updated!" }}
+            />,
         );
 
         expect(screen.getByText("Updated!")).toBeInTheDocument();

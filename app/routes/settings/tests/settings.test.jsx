@@ -33,21 +33,11 @@ jest.mock("@/utils/appwrite/server", () => ({
     createSessionClient: jest.fn(),
 }));
 
-// Mock sub-components
-jest.mock("../components/AccountPanel", () => () => (
-    <div data-testid="account-panel" />
+jest.mock("../components/DesktopSettingsDashboard", () => () => (
+    <div data-testid="desktop-settings-dashboard" />
 ));
-jest.mock("../components/AuthPanel", () => () => (
-    <div data-testid="auth-panel" />
-));
-jest.mock("../components/NotificationsPanel", () => () => (
-    <div data-testid="notifications-panel" />
-));
-jest.mock("../components/SupportPanel", () => () => (
-    <div data-testid="support-panel" />
-));
-jest.mock("../components/PoliciesPanel", () => () => (
-    <div data-testid="policies-panel" />
+jest.mock("../components/MobileSettingsContainer", () => () => (
+    <div data-testid="mobile-settings-container" />
 ));
 
 describe("Settings Route", () => {
@@ -116,19 +106,35 @@ describe("Settings Route", () => {
     });
 
     describe("Component", () => {
-        it("renders accordion panels", () => {
+        it("renders MobileSettingsContainer on mobile", () => {
+            useOutletContext.mockReturnValue({
+                user: mockUser,
+                isDesktop: false,
+            });
             render(
                 <MemoryRouter>
                     <Settings />
                 </MemoryRouter>,
             );
 
-            expect(screen.getByText("Account")).toBeInTheDocument();
-            expect(screen.getByText("Login Options")).toBeInTheDocument();
-            expect(screen.getByText("Notifications")).toBeInTheDocument();
-            expect(screen.getByText("Support")).toBeInTheDocument();
             expect(
-                screen.getByText("Policies & Agreements"),
+                screen.getByTestId("mobile-settings-container"),
+            ).toBeInTheDocument();
+        });
+
+        it("renders DesktopSettingsDashboard on desktop", () => {
+            useOutletContext.mockReturnValue({
+                user: mockUser,
+                isDesktop: true,
+            });
+            render(
+                <MemoryRouter>
+                    <Settings />
+                </MemoryRouter>,
+            );
+
+            expect(
+                screen.getByTestId("desktop-settings-dashboard"),
             ).toBeInTheDocument();
         });
     });

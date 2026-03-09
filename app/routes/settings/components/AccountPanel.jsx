@@ -10,24 +10,7 @@ import useModal from "@/hooks/useModal";
 
 import UpdateContactInfo from "@/forms/UpdateContactInfo";
 
-// Format E.164 phone number for display
-function formatPhoneNumber(phone) {
-    if (!phone) return "No phone number provided";
-
-    // Remove the + and any non-digits
-    const cleaned = phone.replace(/\D/g, "");
-
-    // Check if it's a US number (starts with 1 and has 11 digits)
-    if (cleaned.length === 11 && cleaned.startsWith("1")) {
-        const areaCode = cleaned.slice(1, 4);
-        const prefix = cleaned.slice(4, 7);
-        const line = cleaned.slice(7, 11);
-        return `(${areaCode}) ${prefix}-${line}`;
-    }
-
-    // For international numbers, just return with + and spaces
-    return phone;
-}
+import { formatPhoneNumber } from "@/utils/phone";
 
 export default function AccountPanel({ actionData }) {
     const { user } = useOutletContext();

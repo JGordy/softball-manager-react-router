@@ -3,11 +3,19 @@ import { render, screen, fireEvent, waitFor } from "@/utils/test-utils";
 import { useNotifications } from "@/hooks/useNotifications";
 import { showNotification } from "@/utils/showNotification";
 
-import NotificationsPanel from "../components/NotificationsPanel";
+import NotificationsPanel from "../NotificationsPanel";
 
 // Mock hooks
 jest.mock("@/hooks/useNotifications");
 jest.mock("@/utils/showNotification");
+
+// Mock components
+jest.mock("@/components/NotificationToggle", () => ({
+    __esModule: true,
+    default: () => (
+        <div data-testid="notification-toggle">Notification Toggle</div>
+    ),
+}));
 
 // Mock Fetch
 global.fetch = jest.fn();
@@ -30,6 +38,7 @@ describe("NotificationsPanel Component", () => {
         render(<NotificationsPanel teams={mockTeams} />);
 
         expect(await screen.findByText("Team One")).toBeInTheDocument();
+        expect(screen.getByTestId("notification-toggle")).toBeInTheDocument();
     });
 
     it("handles team subscription change", async () => {
