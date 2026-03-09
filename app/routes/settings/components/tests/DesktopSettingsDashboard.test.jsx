@@ -22,6 +22,11 @@ jest.mock("react-router", () => ({
         },
         isDesktop: true,
     }),
+    useFetcher: () => ({
+        submit: jest.fn(),
+        data: null,
+        state: "idle",
+    }),
 }));
 
 const mockModal = {
