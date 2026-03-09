@@ -22,11 +22,9 @@ export default function LogoutDrawer({ opened, onClose }) {
                     variant="filled"
                     size="md"
                     fullWidth
+                    leftSection={<IconLogout2 size={16} />}
                 >
-                    <Group gap="xs">
-                        <IconLogout2 size={16} mr="xs" />
-                        Yes, Log out
-                    </Group>
+                    Yes, Log out
                 </Button>
             </Form>
         </DrawerContainer>

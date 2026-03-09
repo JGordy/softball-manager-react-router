@@ -34,17 +34,7 @@ import PoliciesPanel from "./PoliciesPanel";
 import LogoutDrawer from "./LogoutDrawer";
 import ResetPasswordDrawer from "./ResetPasswordDrawer";
 
-function formatPhoneNumber(phone) {
-    if (!phone) return "No phone number provided";
-    const cleaned = phone.replace(/\D/g, "");
-    if (cleaned.length === 11 && cleaned.startsWith("1")) {
-        const areaCode = cleaned.slice(1, 4);
-        const prefix = cleaned.slice(4, 7);
-        const line = cleaned.slice(7, 11);
-        return `(${areaCode}) ${prefix}-${line}`;
-    }
-    return phone;
-}
+import { formatPhoneNumber } from "@/utils/phone";
 
 function DashboardCard({
     icon: Icon,
@@ -198,11 +188,9 @@ export default function DesktopSettingsDashboard({ actionData, teams }) {
                         variant="light"
                         radius="md"
                         justify="flex-start"
+                        leftSection={<IconLogout2 size={16} />}
                     >
-                        <Group gap="xs">
-                            <IconLogout2 size={16} mr="xs" />
-                            Log out
-                        </Group>
+                        Log out
                     </Button>
                 </Stack>
             </DashboardCard>
@@ -213,7 +201,7 @@ export default function DesktopSettingsDashboard({ actionData, teams }) {
                 iconColor="orange"
                 title="Notifications"
             >
-                <NotificationsPanel teams={teams} isDesktop={true} />
+                <NotificationsPanel teams={teams} />
             </DashboardCard>
 
             {/* Resources Card */}
@@ -233,7 +221,7 @@ export default function DesktopSettingsDashboard({ actionData, teams }) {
                     >
                         Contact Support
                     </Button>
-                    <PoliciesPanel isDesktop={true} />
+                    <PoliciesPanel />
                 </Stack>
             </DashboardCard>
 
