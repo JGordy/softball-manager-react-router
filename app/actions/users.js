@@ -306,7 +306,7 @@ export async function updateUserPrefs({ values, request }) {
 
         const { account } = await createSessionClient(request);
         const user = await account.get();
-        const updatedPrefs = { ...user.prefs, ...values };
+        const updatedPrefs = { ...(user.prefs || {}), ...(values || {}) };
 
         await account.updatePrefs(updatedPrefs);
 

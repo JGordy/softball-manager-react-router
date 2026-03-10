@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useFetcher, useOutletContext } from "react-router";
 import {
     Card,
@@ -21,7 +22,14 @@ import {
 export default function StartingPagePanel() {
     const { user, isDesktop } = useOutletContext();
     const fetcher = useFetcher();
-    const startingPage = user?.prefs?.startingPage || "/dashboard";
+
+    const prefStartingPage = user?.prefs?.startingPage || "/dashboard";
+    const [startingPage, setStartingPage] = useState(prefStartingPage);
+
+    // Sync local state with user prefs when they change (e.g. after revalidation)
+    useEffect(() => {
+        setStartingPage(prefStartingPage);
+    }, [prefStartingPage]);
 
     const options = [
         {
@@ -97,6 +105,7 @@ export default function StartingPagePanel() {
     ];
 
     const handleChange = (value) => {
+        setStartingPage(value);
         fetcher.submit(
             {
                 _action: "update-starting-page",
