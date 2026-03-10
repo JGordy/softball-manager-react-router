@@ -15,7 +15,7 @@ Track all meaningful user interactions that represent progress or intent, includ
 
 ## 2. Implementation Pattern
 
-Always use the `trackEvent` utility imported from `@[app/utils/analytics.js]`.
+Always use the `trackEvent` utility imported from "@/utils/analytics".
 
 ### Basic Click Tracking
 
@@ -35,7 +35,7 @@ trackEvent("save-lineup", { teamId: user.teamId, version: "ai-generated" });
 
 ## 3. Naming Conventions (Kebab-Case)
 
-- Use **kebab-case** for event names (e.g., `go-to-admin`, `get-started`, `add-player`).
+- Use **kebab-case** for event names (e.g., `go-to-admin`, `get-started`, `add-player`). This is the new standard for the project; existing `snake_case` events should be migrated during feature updates.
 - Be descriptive but concise.
 - Use a `verb-noun` pattern whenever possible (e.g., `join-team`, `view-stats`).
 
@@ -49,4 +49,4 @@ trackEvent("save-lineup", { teamId: user.teamId, version: "ai-generated" });
 
 ## 5. Identifying Users
 
-In top-level layout or landing loaders, ensure `identifyUser(userId)` is called once the user is authenticated to link sessions across devices.
+In a top-level **client** layout component (not in route loaders), use a `useEffect` hook to call `identifyUser(userId)` after loader data confirms the user is authenticated. This ensures it only runs in the browser and correctly links sessions across devices.
