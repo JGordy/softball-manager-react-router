@@ -19,18 +19,21 @@ describe("CTASection", () => {
         ).toBeInTheDocument();
     });
 
-    it("shows 'Get Started Now' if not authenticated and on mobile", () => {
-        render(<CTASection isAuthenticated={false} isDesktop={false} />);
+    it("shows 'Get Started Now' if not authenticated on mobile or desktop", () => {
+        // Mobile
+        const { unmount } = render(
+            <CTASection isAuthenticated={false} isDesktop={false} />,
+        );
+        expect(screen.getByText("Get Started Now")).toBeInTheDocument();
+        unmount();
+
+        // Desktop
+        render(<CTASection isAuthenticated={false} isDesktop={true} />);
         expect(screen.getByText("Get Started Now")).toBeInTheDocument();
     });
 
     it("does not show 'Get Started Now' if authenticated", () => {
         render(<CTASection isAuthenticated={true} isDesktop={false} />);
-        expect(screen.queryByText("Get Started Now")).not.toBeInTheDocument();
-    });
-
-    it("does not show 'Get Started Now' if on desktop", () => {
-        render(<CTASection isAuthenticated={false} isDesktop={true} />);
         expect(screen.queryByText("Get Started Now")).not.toBeInTheDocument();
     });
 });

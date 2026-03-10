@@ -32,18 +32,19 @@ describe("HeroSection", () => {
         expect(screen.getByText("Go to Dashboard")).toBeInTheDocument();
     });
 
-    it("shows switch to phone message if authenticated on desktop", () => {
+    it("shows 'Go to Dashboard' if authenticated on desktop", () => {
         render(
             <MemoryRouter>
                 <HeroSection isAuthenticated={true} isDesktop={true} />
             </MemoryRouter>,
         );
 
+        expect(screen.getByText("Go to Dashboard")).toBeInTheDocument();
         expect(
-            screen.getByText(
+            screen.queryByText(
                 /Please switch to your phone to access the dashboard/i,
             ),
-        ).toBeInTheDocument();
+        ).not.toBeInTheDocument();
     });
 
     it("shows 'Get Started' if not authenticated on mobile", () => {
@@ -56,16 +57,17 @@ describe("HeroSection", () => {
         expect(screen.getByText("Get Started")).toBeInTheDocument();
     });
 
-    it("shows desktop message if not authenticated on desktop", () => {
+    it("shows 'Get Started' if not authenticated on desktop", () => {
         render(
             <MemoryRouter>
                 <HeroSection isAuthenticated={false} isDesktop={true} />
             </MemoryRouter>,
         );
 
+        expect(screen.getByText("Get Started")).toBeInTheDocument();
         expect(
-            screen.getByText(/Please switch to your phone to get started/i),
-        ).toBeInTheDocument();
+            screen.queryByText(/Please switch to your phone to get started/i),
+        ).not.toBeInTheDocument();
     });
 
     it("shows 'Go to Dashboard' and doesn't show phone message if authenticated admin on desktop", () => {
