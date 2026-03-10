@@ -30,13 +30,15 @@ describe("StartingPagePanel Component", () => {
     it("renders with correct initial selection based on user prefs", () => {
         render(<StartingPagePanel />);
 
-        // Dashboard uses IconBallBaseball now
         expect(screen.getByText("Dashboard")).toBeInTheDocument();
         expect(screen.getByText("Events")).toBeInTheDocument();
         expect(screen.getByText("Profile")).toBeInTheDocument();
 
-        // Check if the correct one is marked as active (through color or other means if possible,
-        // but here we check if the component renders)
+        // Check if the correct one is marked as active
+        // Mantine's SegmentedControl uses radio inputs under the hood
+        const eventsRadio = screen.getByLabelText("Events");
+        expect(eventsRadio).toBeChecked();
+        expect(screen.getByLabelText("Dashboard")).not.toBeChecked();
     });
 
     it("renders as card on desktop", () => {

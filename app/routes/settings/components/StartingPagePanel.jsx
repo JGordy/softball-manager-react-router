@@ -121,6 +121,7 @@ export default function StartingPagePanel() {
             </Box>
 
             <SegmentedControl
+                data-testid="starting-page-selector"
                 fullWidth
                 data={options}
                 value={startingPage}

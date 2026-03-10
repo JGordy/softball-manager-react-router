@@ -101,14 +101,14 @@ describe("Landing Route", () => {
                 },
             });
 
-            try {
-                await loader({
+            await expect(
+                loader({
                     request: new Request("http://localhost/"),
-                });
-            } catch (error) {
-                expect(error.status).toBe(302);
-                expect(error.url).toBe("/dashboard");
-            }
+                }),
+            ).rejects.toMatchObject({
+                status: 302,
+                url: "/dashboard",
+            });
         });
 
         it("redirects to custom startingPage if session exists", async () => {
@@ -123,14 +123,36 @@ describe("Landing Route", () => {
                 },
             });
 
-            try {
-                await loader({
+            await expect(
+                loader({
                     request: new Request("http://localhost/"),
-                });
-            } catch (error) {
-                expect(error.status).toBe(302);
-                expect(error.url).toBe("/events");
-            }
+                }),
+            ).rejects.toMatchObject({
+                status: 302,
+                url: "/events",
+            });
+        });
+
+        it("redirects to /dashboard if startingPage preference is unsafe", async () => {
+            isMobileUserAgent.mockReturnValue(false);
+            createSessionClient.mockResolvedValue({
+                account: {
+                    get: jest.fn().mockResolvedValue({
+                        $id: "user-123",
+                        labels: [],
+                        prefs: { startingPage: "https://malicious-site.com" },
+                    }),
+                },
+            });
+
+            await expect(
+                loader({
+                    request: new Request("http://localhost/"),
+                }),
+            ).rejects.toMatchObject({
+                status: 302,
+                url: "/dashboard",
+            });
         });
 
         it("returns isAuthenticated false if session check fails", async () => {

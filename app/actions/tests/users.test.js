@@ -490,6 +490,18 @@ describe("Users Actions", () => {
             expect(result.status).toBe(204);
         });
 
+        it("should reject invalid preference keys", async () => {
+            const result = await updateUserPrefs({
+                values: { invalidKey: "some-value" },
+                request: {},
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.status).toBe(400);
+            expect(result.message).toBe("Invalid preference key provided.");
+            expect(result.action).toBe("update-user-prefs");
+        });
+
         it("should handle preference update errors", async () => {
             const mockAccount = {
                 get: jest.fn().mockResolvedValue({ prefs: {} }),
