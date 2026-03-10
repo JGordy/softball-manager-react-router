@@ -3,7 +3,7 @@ import { render, screen } from "@/utils/test-utils";
 
 import { createSessionClient } from "@/utils/appwrite/server";
 import { logoutAction } from "@/actions/logout";
-import { updateUser } from "@/actions/users";
+import { updateUser, updateUserPrefs } from "@/actions/users";
 
 import Settings, { loader, action } from "../index";
 
@@ -24,6 +24,7 @@ jest.mock("react-router", () => ({
 jest.mock("@/actions/logout", () => ({ logoutAction: jest.fn() }));
 jest.mock("@/actions/users", () => ({
     updateUser: jest.fn(),
+    updateUserPrefs: jest.fn(),
     updateAccountInfo: jest.fn(),
     updatePassword: jest.fn(),
     resetPassword: jest.fn(),
@@ -101,6 +102,23 @@ describe("Settings Route", () => {
             expect(updateUser).toHaveBeenCalledWith({
                 userId: "user-123",
                 values: { name: "New Name" },
+            });
+        });
+
+        it("calls updateUserPrefs on update-starting-page", async () => {
+            const formData = new FormData();
+            formData.append("_action", "update-starting-page");
+            formData.append("userId", "user-123");
+            formData.append("startingPage", "/events");
+            await action({
+                request: new Request("http://localhost/", {
+                    method: "POST",
+                    body: formData,
+                }),
+            });
+            expect(updateUserPrefs).toHaveBeenCalledWith({
+                values: { startingPage: "/events" },
+                request: expect.any(Request),
             });
         });
     });

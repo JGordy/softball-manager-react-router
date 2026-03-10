@@ -7,6 +7,7 @@ import {
     updateAccountInfo,
     updatePassword,
     updateUser,
+    updateUserPrefs,
     resetPassword,
 } from "@/actions/users";
 
@@ -78,6 +79,10 @@ export async function action({ request }) {
 
     if (_action === "password-reset") {
         return resetPassword({ values, request });
+    }
+
+    if (_action === "update-starting-page") {
+        return updateUserPrefs({ values, request });
     }
 
     return null;

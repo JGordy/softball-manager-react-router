@@ -5,6 +5,7 @@ import AuthPanel from "./AuthPanel";
 import NotificationsPanel from "./NotificationsPanel";
 import SupportPanel from "./SupportPanel";
 import PoliciesPanel from "./PoliciesPanel";
+import StartingPagePanel from "./StartingPagePanel";
 
 export default function MobileSettingsContainer({ actionData, teams }) {
     return (
@@ -47,6 +48,13 @@ export default function MobileSettingsContainer({ actionData, teams }) {
                 <Accordion.Control>Policies & Agreements</Accordion.Control>
                 <Accordion.Panel>
                     <PoliciesPanel />
+                </Accordion.Panel>
+            </Accordion.Item>
+
+            <Accordion.Item value="preferences">
+                <Accordion.Control>App Preferences</Accordion.Control>
+                <Accordion.Panel>
+                    <StartingPagePanel />
                 </Accordion.Panel>
             </Accordion.Item>
         </Accordion>

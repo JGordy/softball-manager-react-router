@@ -74,7 +74,7 @@ describe("Layout Route", () => {
     });
 
     describe("loader", () => {
-        it("redirects to home if not a mobile device", async () => {
+        it("allows access on non-mobile devices", async () => {
             isMobileUserAgent.mockReturnValue(false);
             createSessionClient.mockResolvedValue({
                 account: {
@@ -82,30 +82,11 @@ describe("Layout Route", () => {
                 },
             });
 
-            try {
-                await loader({ request: new Request("http://localhost/") });
-            } catch (error) {
-                expect(error.url).toBe("/");
-            }
-        });
-
-        it("allows access on non-mobile if user is admin", async () => {
-            isMobileUserAgent.mockReturnValue(false);
-            const adminUser = {
-                ...mockUser,
-                labels: ["admin"],
-                agreedToTerms: true,
-            };
-            createSessionClient.mockResolvedValue({
-                account: {
-                    get: jest.fn().mockResolvedValue(adminUser),
-                },
-            });
-
             const result = await loader({
                 request: new Request("http://localhost/"),
             });
-            expect(result.user).toEqual(adminUser);
+            expect(result.user).toEqual(expect.objectContaining(mockUser));
+            expect(result.isMobile).toBe(false);
         });
 
         it("redirects to login if unauthorized (401)", async () => {
@@ -152,7 +133,7 @@ describe("Layout Route", () => {
                 request: new Request("http://localhost/"),
             });
             expect(result).toEqual({
-                user: { ...mockUser, agreedToTerms: true },
+                user: expect.objectContaining(mockUser),
                 isAuthenticated: true,
                 isVerified: true,
                 isMobile: true,

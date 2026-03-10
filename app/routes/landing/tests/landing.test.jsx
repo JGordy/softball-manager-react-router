@@ -12,6 +12,11 @@ jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
     useLoaderData: jest.fn(),
     useNavigation: jest.fn(() => ({ state: "idle" })),
+    redirect: jest.fn((url) => {
+        const response = new Response(null, { status: 302 });
+        response.url = url;
+        return response;
+    }),
 }));
 
 // Mock actions and loaders
@@ -96,13 +101,57 @@ describe("Landing Route", () => {
                 },
             });
 
-            const result = await loader({
-                request: new Request("http://localhost/"),
+            await expect(
+                loader({
+                    request: new Request("http://localhost/"),
+                }),
+            ).rejects.toMatchObject({
+                status: 302,
+                url: "/dashboard",
             });
-            expect(result).toEqual({
-                isAuthenticated: true,
-                isDesktop: true,
-                isAdmin: false,
+        });
+
+        it("redirects to custom startingPage if session exists", async () => {
+            isMobileUserAgent.mockReturnValue(false);
+            createSessionClient.mockResolvedValue({
+                account: {
+                    get: jest.fn().mockResolvedValue({
+                        $id: "user-123",
+                        labels: [],
+                        prefs: { startingPage: "/events" },
+                    }),
+                },
+            });
+
+            await expect(
+                loader({
+                    request: new Request("http://localhost/"),
+                }),
+            ).rejects.toMatchObject({
+                status: 302,
+                url: "/events",
+            });
+        });
+
+        it("redirects to /dashboard if startingPage preference is unsafe", async () => {
+            isMobileUserAgent.mockReturnValue(false);
+            createSessionClient.mockResolvedValue({
+                account: {
+                    get: jest.fn().mockResolvedValue({
+                        $id: "user-123",
+                        labels: [],
+                        prefs: { startingPage: "https://malicious-site.com" },
+                    }),
+                },
+            });
+
+            await expect(
+                loader({
+                    request: new Request("http://localhost/"),
+                }),
+            ).rejects.toMatchObject({
+                status: 302,
+                url: "/dashboard",
             });
         });
 

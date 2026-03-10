@@ -20,29 +20,21 @@ export async function loader({ request }) {
     try {
         const { account } = await createSessionClient(request);
         const accountUser = await account.get();
-        let agreedToTerms = false;
-
+        let userDoc = {};
         try {
-            const userDoc = await getUserById({ userId: accountUser.$id });
-            agreedToTerms = userDoc?.agreedToTerms ?? false;
+            userDoc = (await getUserById({ userId: accountUser.$id })) || {};
         } catch (e) {
             console.error(
                 "Layout loader - Failed to fetch user doc:",
                 e.message,
             );
-            // new users might not have a doc yet, default to false
+            // new users might not have a doc yet
         }
 
-        const user = { ...accountUser, agreedToTerms };
+        const user = { ...accountUser, ...userDoc };
 
-        const isAdmin = user.labels?.includes("admin");
-
-        // Check Device - Redirect desktop users immediately, unless they are admin
+        // Check Device
         const isMobile = isMobileUserAgent(request);
-
-        if (!isMobile && !isAdmin) {
-            throw redirect("/");
-        }
 
         // Check for "Generic" names (Profile Incomplete)
         const isProfileIncomplete =

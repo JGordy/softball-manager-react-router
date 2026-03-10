@@ -1,4 +1,4 @@
-import { useLoaderData, useNavigation } from "react-router";
+import { redirect, useLoaderData, useNavigation } from "react-router";
 
 import { LoadingOverlay } from "@mantine/core";
 
@@ -63,10 +63,21 @@ export async function loader({ request }) {
     try {
         const { account } = await createSessionClient(request);
         const user = await account.get();
-        const isAdmin = user.labels?.includes("admin");
 
-        return { isAuthenticated: true, isDesktop: !isMobile, isAdmin };
+        // Use prefs for startingPage preference
+        const startingPage = user.prefs?.startingPage || "/dashboard";
+
+        // Validate that the redirect path is safe and internal
+        const safePaths = ["/dashboard", "/events"];
+        const isSafePath =
+            safePaths.includes(startingPage) ||
+            startingPage.startsWith("/user/");
+
+        // If authenticated, redirect to preferred starting page if safe, otherwise dashboard
+        throw redirect(isSafePath ? startingPage : "/dashboard");
     } catch (error) {
+        if (error instanceof Response) throw error; // Handle redirects
+
         console.error("Landing loader authentication check failed");
         return { isAuthenticated: false, isDesktop: !isMobile, isAdmin: false };
     }
