@@ -1,4 +1,8 @@
-import { MemoryRouter, useLoaderData } from "react-router";
+import {
+    createMemoryRouter,
+    RouterProvider,
+    useLoaderData,
+} from "react-router";
 import { render, screen } from "@/utils/test-utils";
 
 import { logoutAction } from "@/actions/logout";
@@ -43,6 +47,9 @@ jest.mock("@tabler/icons-react", () => ({
     IconSparkles: () => null,
     IconTrophy: () => null,
     IconUsers: () => null,
+    IconShieldLock: () => <div data-testid="icon-shield-lock" />,
+    IconBallBaseball: () => null,
+    IconUserCircle: () => null,
 }));
 
 // Mock analytics
@@ -65,6 +72,7 @@ jest.mock("embla-carousel-autoplay", () =>
     jest.fn(() => ({
         stop: jest.fn(),
         reset: jest.fn(),
+        on: jest.fn(),
     })),
 );
 
@@ -184,21 +192,35 @@ describe("Landing Route", () => {
     });
 
     describe("Component", () => {
+        const renderWithRouter = (loaderData) => {
+            useLoaderData.mockReturnValue(loaderData);
+            const router = createMemoryRouter(
+                [
+                    {
+                        path: "/",
+                        element: <Landing />,
+                    },
+                ],
+                {
+                    initialEntries: ["/"],
+                },
+            );
+
+            return render(<RouterProvider router={router} />);
+        };
+
         it("renders landing sections and key content", () => {
-            useLoaderData.mockReturnValue({
+            renderWithRouter({
                 isAuthenticated: false,
                 isDesktop: true,
                 isAdmin: false,
             });
 
-            render(
-                <MemoryRouter>
-                    <Landing />
-                </MemoryRouter>,
-            );
-
             // Hero and Features
             expect(screen.getByText("RostrHQ")).toBeInTheDocument();
+            expect(
+                screen.getByText("The Advantage Starts Here."),
+            ).toBeInTheDocument();
             expect(
                 screen.getByText("Dynamic Game Scoring"),
             ).toBeInTheDocument();
@@ -215,6 +237,47 @@ describe("Landing Route", () => {
 
             // Footer
             expect(screen.getByText("View on GitHub")).toBeInTheDocument();
+        });
+
+        it("shows 'Get Started' on desktop when not authenticated", () => {
+            renderWithRouter({
+                isAuthenticated: false,
+                isDesktop: true,
+                isAdmin: false,
+            });
+
+            // Hero button
+            const getStartedButton = screen.getByText("Get Started");
+            expect(getStartedButton).toBeInTheDocument();
+
+            const getStartedNowButton = screen.getByText("Get Started Now");
+            expect(getStartedNowButton).toBeInTheDocument();
+        });
+
+        it("shows 'Go to Dashboard' and 'Log out' on desktop when authenticated", () => {
+            renderWithRouter({
+                isAuthenticated: true,
+                isDesktop: true,
+                isAdmin: false,
+                user: { $id: "user-123" },
+            });
+
+            expect(screen.getByText("Go to Dashboard")).toBeInTheDocument();
+            expect(screen.getByText("Log out")).toBeInTheDocument();
+            expect(
+                screen.getByText("You are currently logged in."),
+            ).toBeInTheDocument();
+        });
+
+        it("shows 'Admin Panel' on desktop for admin users", () => {
+            renderWithRouter({
+                isAuthenticated: true,
+                isDesktop: true,
+                isAdmin: true,
+                user: { $id: "admin-123" },
+            });
+
+            expect(screen.getByLabelText("Admin Panel")).toBeInTheDocument();
         });
     });
 });

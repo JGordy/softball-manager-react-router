@@ -25,7 +25,7 @@ export default function CTASection({ isAuthenticated, isDesktop }) {
                     Simplify your softball management. Join us in building the
                     ultimate toolbox for managers and players.
                 </Text>
-                {!isAuthenticated && !isDesktop && (
+                {!isAuthenticated && (
                     <Button
                         component={Link}
                         to="/login"
