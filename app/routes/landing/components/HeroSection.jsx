@@ -129,53 +129,46 @@ export default function HeroSection({ isAuthenticated, isDesktop, isAdmin }) {
                                 py={4}
                                 style={{ borderRadius: 20 }}
                             >
-                                {isDesktop && !isAdmin
-                                    ? "You are logged in. Please switch to your phone to access the dashboard."
-                                    : "You are currently logged in."}
+                                You are currently logged in.
                             </Text>
                             <Flex direction="column" gap="sm" w="100%">
-                                {(!isDesktop || isAdmin) && (
-                                    <Flex
-                                        gap="sm"
-                                        w={isMobile ? "100%" : "auto"}
+                                <Flex gap="sm" w={isMobile ? "100%" : "auto"}>
+                                    <Button
+                                        component={Link}
+                                        to="/dashboard"
+                                        onClick={() =>
+                                            trackEvent("go-to-dashboard")
+                                        }
+                                        size="xl"
+                                        variant="white"
+                                        color="dark"
+                                        radius="xl"
+                                        fullWidth={isMobile}
+                                        style={{ flex: 1 }}
+                                        rightSection={
+                                            <IconArrowRight size={20} />
+                                        }
                                     >
-                                        <Button
+                                        Go to Dashboard
+                                    </Button>
+                                    {isAdmin && (
+                                        <ActionIcon
                                             component={Link}
-                                            to="/dashboard"
+                                            to="/admin"
                                             onClick={() =>
-                                                trackEvent("go-to-dashboard")
+                                                trackEvent("go-to-admin")
                                             }
-                                            size="xl"
+                                            aria-label="Admin Panel"
+                                            size={rem(60)}
+                                            radius="xl"
                                             variant="white"
                                             color="dark"
-                                            radius="xl"
-                                            fullWidth={isMobile}
-                                            style={{ flex: 1 }}
-                                            rightSection={
-                                                <IconArrowRight size={20} />
-                                            }
+                                            style={{ flexShrink: 0 }}
                                         >
-                                            Go to Dashboard
-                                        </Button>
-                                        {isAdmin && (
-                                            <ActionIcon
-                                                component={Link}
-                                                to="/admin"
-                                                onClick={() =>
-                                                    trackEvent("go-to-admin")
-                                                }
-                                                aria-label="Admin Panel"
-                                                size={rem(60)}
-                                                radius="xl"
-                                                variant="white"
-                                                color="dark"
-                                                style={{ flexShrink: 0 }}
-                                            >
-                                                <IconShieldLock size={32} />
-                                            </ActionIcon>
-                                        )}
-                                    </Flex>
-                                )}
+                                            <IconShieldLock size={32} />
+                                        </ActionIcon>
+                                    )}
+                                </Flex>
                                 <Form
                                     method="post"
                                     style={{
@@ -204,33 +197,19 @@ export default function HeroSection({ isAuthenticated, isDesktop, isAdmin }) {
                         </Stack>
                     ) : (
                         <>
-                            {isDesktop && (
-                                <Text
-                                    c="white"
-                                    fw={500}
-                                    bg="rgba(0,0,0,0.2)"
-                                    px="lg"
-                                    py={4}
-                                    style={{ borderRadius: 20 }}
-                                >
-                                    Please switch to your phone to get started.
-                                </Text>
-                            )}
-                            {!isDesktop && (
-                                <Button
-                                    component={Link}
-                                    to="/login"
-                                    onClick={() => trackEvent("get-started")}
-                                    size="xl"
-                                    variant="white"
-                                    color="dark"
-                                    radius="xl"
-                                    fullWidth={isMobile}
-                                    rightSection={<IconArrowRight size={20} />}
-                                >
-                                    Get Started
-                                </Button>
-                            )}
+                            <Button
+                                component={Link}
+                                to="/login"
+                                onClick={() => trackEvent("get-started")}
+                                size="xl"
+                                variant="white"
+                                color="dark"
+                                radius="xl"
+                                fullWidth={isMobile}
+                                rightSection={<IconArrowRight size={20} />}
+                            >
+                                Get Started
+                            </Button>
                         </>
                     )}
                 </Group>
