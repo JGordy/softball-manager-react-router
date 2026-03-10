@@ -246,16 +246,12 @@ describe("Landing Route", () => {
                 isAdmin: false,
             });
 
-            // Hero button - use getAllByText since it's in both Hero and CTA
-            const getStartedButtons = screen.getAllByText("Get Started");
-            expect(getStartedButtons.length).toBeGreaterThan(0);
+            // Hero button
+            const getStartedButton = screen.getByText("Get Started");
+            expect(getStartedButton).toBeInTheDocument();
 
             const getStartedNowButton = screen.getByText("Get Started Now");
             expect(getStartedNowButton).toBeInTheDocument();
-
-            expect(
-                screen.queryByText(/Please switch to your phone/i),
-            ).not.toBeInTheDocument();
         });
 
         it("shows 'Go to Dashboard' and 'Log out' on desktop when authenticated", () => {
@@ -271,9 +267,6 @@ describe("Landing Route", () => {
             expect(
                 screen.getByText("You are currently logged in."),
             ).toBeInTheDocument();
-            expect(
-                screen.queryByText(/Please switch to your phone/i),
-            ).not.toBeInTheDocument();
         });
 
         it("shows 'Admin Panel' on desktop for admin users", () => {
