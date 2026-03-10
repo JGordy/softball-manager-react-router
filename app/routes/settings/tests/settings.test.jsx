@@ -105,7 +105,7 @@ describe("Settings Route", () => {
             });
         });
 
-        it("calls updateUser on update-starting-page", async () => {
+        it("calls updateUserPrefs on update-starting-page", async () => {
             const formData = new FormData();
             formData.append("_action", "update-starting-page");
             formData.append("userId", "user-123");

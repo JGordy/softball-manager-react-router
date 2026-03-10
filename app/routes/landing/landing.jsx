@@ -67,8 +67,14 @@ export async function loader({ request }) {
         // Use prefs for startingPage preference
         const startingPage = user.prefs?.startingPage || "/dashboard";
 
-        // If authenticated, redirect to preferred starting page
-        throw redirect(startingPage);
+        // Validate that the redirect path is safe and internal
+        const safePaths = ["/dashboard", "/events"];
+        const isSafePath =
+            safePaths.includes(startingPage) ||
+            startingPage.startsWith("/user/");
+
+        // If authenticated, redirect to preferred starting page if safe, otherwise dashboard
+        throw redirect(isSafePath ? startingPage : "/dashboard");
     } catch (error) {
         if (error instanceof Response) throw error; // Handle redirects
 

@@ -33,8 +33,6 @@ export async function loader({ request }) {
 
         const user = { ...accountUser, ...userDoc };
 
-        const isAdmin = user.labels?.includes("admin");
-
         // Check Device
         const isMobile = isMobileUserAgent(request);
 

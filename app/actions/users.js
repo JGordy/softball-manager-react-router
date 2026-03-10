@@ -290,6 +290,20 @@ export async function resetPassword({ values, request }) {
 }
 export async function updateUserPrefs({ values, request }) {
     try {
+        // Validate allowed keys
+        const allowedKeys = ["startingPage"];
+        const keys = Object.keys(values);
+        const isValid = keys.every((key) => allowedKeys.includes(key));
+
+        if (!isValid) {
+            return {
+                success: false,
+                status: 400,
+                message: "Invalid preference key provided.",
+                action: "update-user-prefs",
+            };
+        }
+
         const { account } = await createSessionClient(request);
         const user = await account.get();
         const updatedPrefs = { ...user.prefs, ...values };
@@ -300,6 +314,7 @@ export async function updateUserPrefs({ values, request }) {
             success: true,
             status: 204,
             message: "Preferences updated successfully.",
+            action: "update-user-prefs",
         };
     } catch (error) {
         console.error("Error updating user prefs:", error);
@@ -307,6 +322,7 @@ export async function updateUserPrefs({ values, request }) {
             success: false,
             status: 500,
             message: error.message || "Failed to update preferences.",
+            action: "update-user-prefs",
         };
     }
 }

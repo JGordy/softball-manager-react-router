@@ -492,6 +492,7 @@ describe("Users Actions", () => {
 
         it("should handle preference update errors", async () => {
             const mockAccount = {
+                get: jest.fn().mockResolvedValue({ prefs: {} }),
                 updatePrefs: jest
                     .fn()
                     .mockRejectedValue(new Error("Prefs error")),
@@ -505,6 +506,7 @@ describe("Users Actions", () => {
 
             expect(result.success).toBe(false);
             expect(result.status).toBe(500);
+            expect(result.action).toBe("update-user-prefs");
         });
     });
 });
