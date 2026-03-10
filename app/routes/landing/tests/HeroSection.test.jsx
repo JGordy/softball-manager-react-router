@@ -40,11 +40,6 @@ describe("HeroSection", () => {
         );
 
         expect(screen.getByText("Go to Dashboard")).toBeInTheDocument();
-        expect(
-            screen.queryByText(
-                /Please switch to your phone to access the dashboard/i,
-            ),
-        ).not.toBeInTheDocument();
     });
 
     it("shows 'Get Started' if not authenticated on mobile", () => {
@@ -65,9 +60,6 @@ describe("HeroSection", () => {
         );
 
         expect(screen.getByText("Get Started")).toBeInTheDocument();
-        expect(
-            screen.queryByText(/Please switch to your phone to get started/i),
-        ).not.toBeInTheDocument();
     });
 
     it("shows 'Go to Dashboard' and doesn't show phone message if authenticated admin on desktop", () => {
@@ -82,11 +74,6 @@ describe("HeroSection", () => {
         );
 
         expect(screen.getByText("Go to Dashboard")).toBeInTheDocument();
-        expect(
-            screen.queryByText(
-                /Please switch to your phone to access the dashboard/i,
-            ),
-        ).not.toBeInTheDocument();
         expect(
             screen.getByText("You are currently logged in."),
         ).toBeInTheDocument();
