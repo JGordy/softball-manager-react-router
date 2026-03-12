@@ -91,7 +91,7 @@ async function initializeDefaultAttendance(gameId, teamId) {
             }
         }
 
-        // Trigger all attendance updates in parallel
+        // Wait for all attendance updates in parallel
         if (attendanceUpdates.length > 0) {
             await Promise.all(attendanceUpdates);
         }
