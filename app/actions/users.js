@@ -291,7 +291,7 @@ export async function resetPassword({ values, request }) {
 export async function updateUserPrefs({ values, request }) {
     try {
         // Validate allowed keys
-        const allowedKeys = ["startingPage"];
+        const allowedKeys = ["startingPage", "themePreference"];
         const keys = Object.keys(values);
         const isValid = keys.every((key) => allowedKeys.includes(key));
 
