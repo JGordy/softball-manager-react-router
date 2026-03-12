@@ -105,9 +105,9 @@ describe("Settings Route", () => {
             });
         });
 
-        it("calls updateUserPrefs on update-starting-page", async () => {
+        it("calls updateUserPrefs on update-user-preferences", async () => {
             const formData = new FormData();
-            formData.append("_action", "update-starting-page");
+            formData.append("_action", "update-user-preferences");
             formData.append("userId", "user-123");
             formData.append("startingPage", "/events");
             await action({
