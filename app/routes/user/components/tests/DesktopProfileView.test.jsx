@@ -59,4 +59,25 @@ describe("DesktopProfileView", () => {
             screen.getByText("No attendance records found."),
         ).toBeInTheDocument();
     });
+
+    it("renders Alert when stats are private and user is not owner", () => {
+        const privatePlayer = {
+            ...mockProps.player,
+            prefs: { statsPrivacy: "private" },
+        };
+        const otherUser = { $id: "otherUser" };
+
+        render(
+            <DesktopProfileView
+                {...mockProps}
+                player={privatePlayer}
+                loggedInUser={otherUser}
+            />,
+        );
+
+        expect(screen.getByText("Stats are Private")).toBeInTheDocument();
+        expect(
+            screen.queryByText("No stats available yet."),
+        ).not.toBeInTheDocument();
+    });
 });

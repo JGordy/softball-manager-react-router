@@ -1,4 +1,5 @@
 import { ID, Permission, Role } from "node-appwrite";
+
 import {
     createDocument,
     deleteDocument,
@@ -9,8 +10,14 @@ import { combineDateTime } from "@/utils/dateTime";
 import { hasBadWords } from "@/utils/badWordsApi";
 import { getNotifiableTeamMembers } from "@/utils/teams.js";
 
-import { removeEmptyValues } from "./utils/formUtils";
 import { findOrCreatePark } from "@/actions/parks";
+
+import { getTeamMembers } from "@/utils/teams.js";
+import { createAdminClient } from "@/utils/appwrite/server";
+
+import { removeEmptyValues } from "./utils/formUtils";
+
+import { updatePlayerAttendance } from "./attendance";
 import {
     sendGameFinalNotification,
     sendAwardVoteNotification,
@@ -27,16 +34,84 @@ function computeResult(score, opponentScore) {
     return "tie";
 }
 
-export async function createSingleGame({ values }) {
+/**
+ * Initializes attendance records for a game based on user default availability preferences.
+ */
+async function initializeDefaultAttendance(gameId, teamId) {
+    if (!teamId) return;
+
+    try {
+        const { users } = createAdminClient();
+        const memberships = await getTeamMembers({ teamId });
+
+        const memberUserIds = memberships.memberships
+            .filter((m) => m.userId)
+            .map((m) => m.userId);
+
+        // Fetch all user preferences in parallel
+        const prefsResults = await Promise.allSettled(
+            memberUserIds.map((userId) =>
+                users.getPrefs({ userId }).then((prefs) => ({ userId, prefs })),
+            ),
+        );
+
+        const attendanceUpdates = [];
+
+        for (const result of prefsResults) {
+            if (result.status === "fulfilled") {
+                const { userId, prefs } = result.value;
+                let defaultAvailability = prefs?.defaultAvailability || {};
+
+                if (typeof defaultAvailability === "string") {
+                    try {
+                        defaultAvailability = JSON.parse(defaultAvailability);
+                    } catch (e) {
+                        defaultAvailability = {};
+                    }
+                }
+
+                if (defaultAvailability[teamId] === "accepted") {
+                    attendanceUpdates.push(
+                        updatePlayerAttendance({
+                            values: {
+                                playerId: userId,
+                                status: "accepted",
+                                teamId,
+                                updatedBy: "system-default",
+                            },
+                            eventId: gameId,
+                        }),
+                    );
+                }
+            } else {
+                console.warn(
+                    "Failed to fetch preferences for a user during attendance initialization:",
+                    result.reason,
+                );
+            }
+        }
+
+        // Wait for all attendance updates (started above) to complete
+        if (attendanceUpdates.length > 0) {
+            await Promise.all(attendanceUpdates);
+        }
+    } catch (error) {
+        console.error("Error in initializeDefaultAttendance:", error);
+    }
+}
+
+export async function createSingleGame({ values, teamId: passedTeamId }) {
     const {
         gameDate,
         gameTime,
         isHomeGame,
         opponent,
-        teamId,
+        teamId: valuesTeamId,
         locationDetails,
         ...gameData
     } = values;
+
+    const teamId = passedTeamId || valuesTeamId;
 
     let parsedLocationDetails = null;
     try {
@@ -122,6 +197,9 @@ export async function createSingleGame({ values }) {
             permissions,
         );
 
+        // Initialize attendance based on user defaults
+        await initializeDefaultAttendance(createdGame.$id, teamId);
+
         return {
             response: { game: createdGame },
             status: 201,
@@ -177,6 +255,15 @@ export async function createGames({ values }) {
                 permissions,
             );
             createdGames.push(createdGame);
+        }
+
+        // Initialize attendance for all created games in parallel
+        if (teamId) {
+            await Promise.all(
+                createdGames.map((createdGame) =>
+                    initializeDefaultAttendance(createdGame.$id, teamId),
+                ),
+            );
         }
 
         return {

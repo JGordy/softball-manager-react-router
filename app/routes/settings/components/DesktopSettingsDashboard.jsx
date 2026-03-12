@@ -116,7 +116,7 @@ export default function DesktopSettingsDashboard({ actionData, teams }) {
             data-testid="desktop-settings-dashboard"
         >
             {/* App Preferences Card */}
-            <AppPreferencesPanel />
+            <AppPreferencesPanel teams={teams} />
 
             {/* Account Card */}
             <DashboardCard

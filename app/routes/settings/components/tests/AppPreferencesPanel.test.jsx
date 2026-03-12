@@ -16,6 +16,12 @@ jest.mock("@mantine/core", () => ({
     useMantineColorScheme: jest.fn(),
 }));
 
+jest.mock("@/utils/analytics", () => ({
+    trackEvent: jest.fn(),
+}));
+
+import { trackEvent } from "@/utils/analytics";
+
 describe("AppPreferencesPanel Component", () => {
     const mockUser = {
         $id: "user-123",
@@ -72,6 +78,9 @@ describe("AppPreferencesPanel Component", () => {
         fireEvent.click(darkBtn);
 
         expect(mockColorScheme.setColorScheme).toHaveBeenCalledWith("dark");
+        expect(trackEvent).toHaveBeenCalledWith("theme-preference-changed", {
+            value: "dark",
+        });
         expect(mockFetcher.submit).toHaveBeenCalledWith(
             expect.objectContaining({
                 _action: "update-user-preferences",
@@ -87,11 +96,74 @@ describe("AppPreferencesPanel Component", () => {
         const dashboardBtn = screen.getByText("Dashboard");
         fireEvent.click(dashboardBtn);
 
+        expect(trackEvent).toHaveBeenCalledWith(
+            "starting-page-preference-changed",
+            { value: "/dashboard" },
+        );
         expect(mockFetcher.submit).toHaveBeenCalledWith(
             {
                 _action: "update-user-preferences",
                 userId: "user-123",
                 startingPage: "/dashboard",
+            },
+            { method: "post", action: "/settings" },
+        );
+    });
+
+    it("renders stats privacy options", () => {
+        render(<AppPreferencesPanel />);
+        expect(screen.getByText("Stats Privacy")).toBeInTheDocument();
+        expect(screen.getByLabelText("Public")).toBeInTheDocument();
+        expect(screen.getByLabelText("Private")).toBeInTheDocument();
+    });
+
+    it("calls fetcher.submit when stats privacy changes", () => {
+        render(<AppPreferencesPanel />);
+        const privateBtn = screen.getByText("Private");
+        fireEvent.click(privateBtn);
+
+        expect(trackEvent).toHaveBeenCalledWith(
+            "stats-privacy-preference-changed",
+            { value: "private" },
+        );
+        expect(mockFetcher.submit).toHaveBeenCalledWith(
+            {
+                _action: "update-user-preferences",
+                userId: "user-123",
+                statsPrivacy: "private",
+            },
+            { method: "post", action: "/settings" },
+        );
+    });
+
+    it("renders default availability for teams", () => {
+        const mockTeams = [
+            { $id: "team-1", name: "Team One" },
+            { $id: "team-2", name: "Team Two" },
+        ];
+        render(<AppPreferencesPanel teams={mockTeams} />);
+
+        expect(screen.getByText("Default Availability")).toBeInTheDocument();
+        expect(screen.getByText("Team One")).toBeInTheDocument();
+        expect(screen.getByText("Team Two")).toBeInTheDocument();
+    });
+
+    it("calls fetcher.submit when default availability changes", () => {
+        const mockTeams = [{ $id: "team-1", name: "Team One" }];
+        render(<AppPreferencesPanel teams={mockTeams} />);
+
+        const attendingBtns = screen.getAllByText("Attending");
+        fireEvent.click(attendingBtns[0]);
+
+        expect(trackEvent).toHaveBeenCalledWith(
+            "default-availability-preference-changed",
+            { teamId: "team-1", value: "accepted" },
+        );
+        expect(mockFetcher.submit).toHaveBeenCalledWith(
+            {
+                _action: "update-user-preferences",
+                userId: "user-123",
+                defaultAvailability: JSON.stringify({ "team-1": "accepted" }),
             },
             { method: "post", action: "/settings" },
         );

@@ -484,7 +484,9 @@ describe("Users Actions", () => {
             });
 
             expect(mockAccount.updatePrefs).toHaveBeenCalledWith({
-                startingPage: "/events",
+                prefs: {
+                    startingPage: "/events",
+                },
             });
             expect(result.success).toBe(true);
             expect(result.status).toBe(204);

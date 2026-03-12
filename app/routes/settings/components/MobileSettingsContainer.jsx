@@ -19,7 +19,7 @@ export default function MobileSettingsContainer({ actionData, teams }) {
             <Accordion.Item value="preferences">
                 <Accordion.Control>App Preferences</Accordion.Control>
                 <Accordion.Panel>
-                    <AppPreferencesPanel />
+                    <AppPreferencesPanel teams={teams} />
                 </Accordion.Panel>
             </Accordion.Item>
 
