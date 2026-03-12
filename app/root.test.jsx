@@ -1,110 +1,95 @@
-import { MemoryRouter } from "react-router";
-import { render, screen } from "@/utils/test-utils";
+import { render, screen } from "@testing-library/react";
+import { ColorSchemeScript, MantineProvider } from "@mantine/core";
 
-import { createSessionClient } from "@/utils/appwrite/server";
+import { Layout } from "./root";
 
-import App, { loader } from "./root";
+// Mock Mantine components and props
+jest.mock("@mantine/core", () => ({
+    ...jest.requireActual("@mantine/core"),
+    ColorSchemeScript: jest.fn(() => <div data-testid="color-scheme-script" />),
+    MantineProvider: jest.fn(({ children }) => (
+        <div data-testid="mantine-provider">{children}</div>
+    )),
+    mantineHtmlProps: {},
+}));
 
-// Mock react-router
+// Mock React Router components used in Layout
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
-    usePushNotificationListener: jest.fn(),
-    Outlet: () => <div data-testid="outlet" />,
+    useLoaderData: jest.fn(),
+    Meta: () => <div data-testid="mock-meta" />,
+    Links: () => <div data-testid="mock-links" />,
     ScrollRestoration: () => null,
     Scripts: () => null,
-    Links: () => null,
-    Meta: () => null,
 }));
 
-// Mock cookie parse
-jest.mock("cookie", () => ({
-    parse: jest.fn().mockImplementation((str) => {
-        if (!str) return {};
-        const obj = {};
-        str.split(";").forEach((pair) => {
-            const [key, val] = pair.trim().split("=");
-            obj[key] = val;
-        });
-        return obj;
-    }),
+import { useLoaderData } from "react-router";
+
+// Mock Mantine sub-components to prevent them from requiring context
+jest.mock("@mantine/notifications", () => ({
+    Notifications: () => <div data-testid="mock-notifications" />,
 }));
 
-// Mock Appwrite
-jest.mock("@/utils/appwrite/server", () => ({
-    createSessionClient: jest.fn(),
+jest.mock("@mantine/modals", () => ({
+    ModalsProvider: ({ children }) => <>{children}</>,
 }));
 
-// Mock hooks
-jest.mock("@/hooks/usePushNotificationListener", () => ({
-    usePushNotificationListener: jest.fn(),
-}));
-
-// Mock Umami
-jest.mock("@/components/UmamiTracker", () => ({
-    UmamiTracker: () => <div data-testid="umami" />,
-}));
-
-describe("Root Route", () => {
-    describe("loader", () => {
-        it("returns default dark mode when no cookies or session", async () => {
-            createSessionClient.mockRejectedValue(new Error("No session"));
-
-            const request = {
-                headers: {
-                    get: jest.fn().mockReturnValue(null),
-                },
-                url: "http://localhost/",
-            };
-            const result = await loader({ request });
-
-            expect(result.darkMode).toBe(false);
-            expect(result.preferences).toEqual({});
-        });
-
-        it("returns dark mode from cookies", async () => {
-            createSessionClient.mockRejectedValue(new Error("No session"));
-
-            const request = {
-                headers: {
-                    get: jest.fn().mockReturnValue("darkMode=true"),
-                },
-                url: "http://localhost/",
-            };
-            const result = await loader({ request });
-
-            expect(result.darkMode).toBe(true);
-        });
-
-        it("returns dark mode from user preferences", async () => {
-            const mockAccount = {
-                getPrefs: jest.fn().mockResolvedValue({ darkMode: "true" }),
-            };
-            createSessionClient.mockResolvedValue({ account: mockAccount });
-
-            const request = {
-                headers: {
-                    get: jest.fn().mockReturnValue(null),
-                },
-                url: "http://localhost/",
-            };
-            const result = await loader({ request });
-
-            expect(result.darkMode).toBe(true);
-            expect(result.preferences.darkMode).toBe("true");
-        });
+describe("Root Layout Theme Logic", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
     });
 
-    describe("Component", () => {
-        it("renders without crashing", () => {
-            const loaderData = { darkMode: false, preferences: {} };
+    it("applies dark mode to ColorSchemeScript and MantineProvider when themePreference is dark", () => {
+        useLoaderData.mockReturnValue({ themePreference: "dark" });
+        render(
+            <Layout>
+                <div data-testid="test-children">Test content</div>
+            </Layout>,
+        );
 
-            render(
-                <MemoryRouter>
-                    <App loaderData={loaderData} />
-                </MemoryRouter>,
-            );
+        expect(screen.getByTestId("test-children")).toBeInTheDocument();
 
-            expect(screen.getByTestId("outlet")).toBeInTheDocument();
-        });
+        expect(ColorSchemeScript.mock.calls[0][0]).toEqual(
+            expect.objectContaining({ defaultColorScheme: "dark" }),
+        );
+        expect(MantineProvider.mock.calls[0][0]).toEqual(
+            expect.objectContaining({ defaultColorScheme: "dark" }),
+        );
+    });
+
+    it("applies light mode to ColorSchemeScript and MantineProvider when themePreference is light", () => {
+        useLoaderData.mockReturnValue({ themePreference: "light" });
+        render(
+            <Layout>
+                <div data-testid="test-children-light">Test content</div>
+            </Layout>,
+        );
+
+        expect(screen.getByTestId("test-children-light")).toBeInTheDocument();
+
+        expect(ColorSchemeScript.mock.calls[0][0]).toEqual(
+            expect.objectContaining({ defaultColorScheme: "light" }),
+        );
+        expect(MantineProvider.mock.calls[0][0]).toEqual(
+            expect.objectContaining({ defaultColorScheme: "light" }),
+        );
+    });
+
+    it("applies auto mode to ColorSchemeScript and MantineProvider when themePreference is auto", () => {
+        useLoaderData.mockReturnValue({ themePreference: "auto" });
+        render(
+            <Layout>
+                <div data-testid="test-children-auto">Test content</div>
+            </Layout>,
+        );
+
+        expect(screen.getByTestId("test-children-auto")).toBeInTheDocument();
+
+        expect(ColorSchemeScript.mock.calls[0][0]).toEqual(
+            expect.objectContaining({ defaultColorScheme: "auto" }),
+        );
+        expect(MantineProvider.mock.calls[0][0]).toEqual(
+            expect.objectContaining({ defaultColorScheme: "auto" }),
+        );
     });
 });
