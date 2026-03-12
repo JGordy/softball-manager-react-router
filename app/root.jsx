@@ -1,7 +1,7 @@
-import { usePushNotificationListener } from "@/hooks/usePushNotificationListener";
-import { NotificationsProvider } from "@/context/NotificationsContext";
 import { useEffect } from "react";
+
 import {
+    useLoaderData,
     useLocation,
     useMatches,
     isRouteErrorResponse,
@@ -12,6 +12,7 @@ import {
     Scripts,
     ScrollRestoration,
 } from "react-router";
+
 import * as Sentry from "@sentry/react-router";
 
 import { parse } from "cookie";
@@ -39,6 +40,9 @@ import "@mantine/carousel/styles.css";
 import "@mantine/notifications/styles.css";
 
 import "@/styles/app.css";
+
+import { usePushNotificationListener } from "@/hooks/usePushNotificationListener";
+import { NotificationsProvider } from "@/context/NotificationsContext";
 
 import { createSessionClient } from "@/utils/appwrite/server";
 import UmamiTracker from "@/components/UmamiTracker";
@@ -107,13 +111,15 @@ export const links = () => [
 
 export async function loader({ request }) {
     const cookieHeader = request.headers.get("Cookie");
-    let darkMode = false;
+    let themePreference = "auto";
     let preferences = {};
 
     if (cookieHeader) {
         try {
             const parsedCookies = parse(cookieHeader);
-            darkMode = parsedCookies.darkMode === "true";
+            if (parsedCookies.themePreference) {
+                themePreference = parsedCookies.themePreference;
+            }
         } catch (error) {
             console.error("Error parsing cookie:", error);
         }
@@ -124,20 +130,42 @@ export async function loader({ request }) {
         const { account } = await createSessionClient(request);
         preferences = await account.getPrefs();
 
-        // Update darkMode from preferences if available
-        if (preferences.darkMode !== undefined) {
-            darkMode = preferences.darkMode === "true";
+        // Update themePreference from preferences if available
+        if (preferences.themePreference) {
+            themePreference = preferences.themePreference;
         }
     } catch (error) {
         // User not authenticated or error fetching preferences, use cookie value
-        console.log("No user session in root loader");
     }
 
-    return { darkMode, preferences };
+    // Validate themePreference
+    const validThemes = ["light", "dark", "auto"];
+    if (!validThemes.includes(themePreference)) {
+        themePreference = "auto";
+    }
+
+    return { themePreference, preferences };
 }
 
-function Layout({ children, context }) {
-    // const { darkMode } = context;
+/**
+ * Validates and returns the theme preference from loader data.
+ * @param {Object} data - The loader data.
+ * @returns {string} - 'light', 'dark', or 'auto'.
+ */
+export function getThemePreference(data) {
+    const themePreference = data?.themePreference || "auto";
+    const validThemes = ["light", "dark", "auto"];
+    return validThemes.includes(themePreference) ? themePreference : "auto";
+}
+
+export function Layout({ children }) {
+    let themePreference = "auto";
+    try {
+        const data = useLoaderData();
+        themePreference = getThemePreference(data);
+    } catch (e) {
+        // useLoaderData might throw in some error contexts or during initial SSR states
+    }
 
     return (
         <html lang="en" {...mantineHtmlProps}>
@@ -162,19 +190,13 @@ function Layout({ children, context }) {
                         ></script>
                     )}
 
-                <ColorSchemeScript
-                    // TODO: Figure out the mismatch of themes before turning this back on
-                    // defaultColorScheme={darkMode ? 'dark' : 'light'}
-                    defaultColorScheme="auto"
-                />
+                <ColorSchemeScript defaultColorScheme={themePreference} />
                 <Meta />
                 <Links />
             </head>
             <body>
                 <MantineProvider
-                    // TODO: Figure out the mismatch of themes before turning this back on
-                    // defaultColorScheme={darkMode ? 'dark' : 'light'}
-                    defaultColorScheme="auto"
+                    defaultColorScheme={themePreference}
                     theme={theme}
                 >
                     <Notifications position="top-center" zIndex={10000} />
@@ -187,9 +209,7 @@ function Layout({ children, context }) {
     );
 }
 
-export default function App({ loaderData }) {
-    const { darkMode } = loaderData;
-
+export default function App() {
     usePushNotificationListener();
 
     return (
@@ -197,9 +217,7 @@ export default function App({ loaderData }) {
             {import.meta.env.PROD &&
                 import.meta.env.VITE_UMAMI_WEBSITE_ID &&
                 import.meta.env.VITE_UMAMI_SCRIPT_URL && <UmamiTracker />}
-            <Layout context={{ darkMode }}>
-                <Outlet />
-            </Layout>
+            <Outlet />
         </NotificationsProvider>
     );
 }
@@ -225,21 +243,19 @@ export function ErrorBoundary({ error }) {
     }
 
     return (
-        <Layout>
-            <Container size="sm" py="xl">
-                <Stack gap="md">
-                    <Title order={1}>{message}</Title>
-                    <Text size="lg">{details}</Text>
-                    {stack && (
-                        <Code block style={{ whiteSpace: "pre-wrap" }}>
-                            {stack}
-                        </Code>
-                    )}
-                    <Button component={Link} to="/" variant="filled" mt="md">
-                        Go to Home
-                    </Button>
-                </Stack>
-            </Container>
-        </Layout>
+        <Container size="sm" py="xl">
+            <Stack gap="md">
+                <Title order={1}>{message}</Title>
+                <Text size="lg">{details}</Text>
+                {stack && (
+                    <Code block style={{ whiteSpace: "pre-wrap" }}>
+                        {stack}
+                    </Code>
+                )}
+                <Button component={Link} to="/" variant="filled" mt="md">
+                    Go to Home
+                </Button>
+            </Stack>
+        </Container>
     );
 }

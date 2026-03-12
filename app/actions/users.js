@@ -291,7 +291,7 @@ export async function resetPassword({ values, request }) {
 export async function updateUserPrefs({ values, request }) {
     try {
         // Validate allowed keys
-        const allowedKeys = ["startingPage"];
+        const allowedKeys = ["startingPage", "themePreference"];
         const keys = Object.keys(values);
         const isValid = keys.every((key) => allowedKeys.includes(key));
 
@@ -302,6 +302,38 @@ export async function updateUserPrefs({ values, request }) {
                 message: "Invalid preference key provided.",
                 action: "update-user-prefs",
             };
+        }
+
+        // Validate values
+        if (Object.prototype.hasOwnProperty.call(values, "themePreference")) {
+            const validThemes = ["light", "dark", "auto"];
+            if (
+                !validThemes.includes(values.themePreference) ||
+                values.themePreference === ""
+            ) {
+                return {
+                    success: false,
+                    status: 400,
+                    message: "Invalid theme preference.",
+                    action: "update-user-prefs",
+                };
+            }
+        }
+
+        if (Object.prototype.hasOwnProperty.call(values, "startingPage")) {
+            // Simplified validation: must be a string and start with /
+            if (
+                typeof values.startingPage !== "string" ||
+                !values.startingPage.startsWith("/") ||
+                values.startingPage === ""
+            ) {
+                return {
+                    success: false,
+                    status: 400,
+                    message: "Invalid starting page.",
+                    action: "update-user-prefs",
+                };
+            }
         }
 
         const { account } = await createSessionClient(request);

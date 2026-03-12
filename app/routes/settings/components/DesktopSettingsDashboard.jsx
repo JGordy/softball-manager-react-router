@@ -34,7 +34,7 @@ import PoliciesPanel from "./PoliciesPanel";
 import LogoutDrawer from "./LogoutDrawer";
 import ResetPasswordDrawer from "./ResetPasswordDrawer";
 
-import StartingPagePanel from "./StartingPagePanel";
+import AppPreferencesPanel from "./AppPreferencesPanel";
 import { formatPhoneNumber } from "@/utils/phone";
 
 function DashboardCard({
@@ -115,6 +115,9 @@ export default function DesktopSettingsDashboard({ actionData, teams }) {
             mt="xl"
             data-testid="desktop-settings-dashboard"
         >
+            {/* App Preferences Card */}
+            <AppPreferencesPanel />
+
             {/* Account Card */}
             <DashboardCard
                 icon={IconUser}
@@ -225,9 +228,6 @@ export default function DesktopSettingsDashboard({ actionData, teams }) {
                     <PoliciesPanel />
                 </Stack>
             </DashboardCard>
-
-            {/* App Preferences Card */}
-            <StartingPagePanel />
 
             <ResetPasswordDrawer
                 opened={passwordResetOpened}

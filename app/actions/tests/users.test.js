@@ -502,6 +502,50 @@ describe("Users Actions", () => {
             expect(result.action).toBe("update-user-prefs");
         });
 
+        it("should reject invalid themePreference values", async () => {
+            const result = await updateUserPrefs({
+                values: { themePreference: "invalid-theme" },
+                request: {},
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.status).toBe(400);
+            expect(result.message).toBe("Invalid theme preference.");
+        });
+
+        it("should reject empty themePreference values", async () => {
+            const result = await updateUserPrefs({
+                values: { themePreference: "" },
+                request: {},
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.status).toBe(400);
+            expect(result.message).toBe("Invalid theme preference.");
+        });
+
+        it("should reject invalid startingPage values", async () => {
+            const result = await updateUserPrefs({
+                values: { startingPage: "invalid-path" },
+                request: {},
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.status).toBe(400);
+            expect(result.message).toBe("Invalid starting page.");
+        });
+
+        it("should reject empty startingPage values", async () => {
+            const result = await updateUserPrefs({
+                values: { startingPage: "" },
+                request: {},
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.status).toBe(400);
+            expect(result.message).toBe("Invalid starting page.");
+        });
+
         it("should handle preference update errors", async () => {
             const mockAccount = {
                 get: jest.fn().mockResolvedValue({ prefs: {} }),
