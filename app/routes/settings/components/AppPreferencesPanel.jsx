@@ -44,7 +44,18 @@ export default function AppPreferencesPanel() {
     const handleThemeChange = (value) => {
         setColorScheme(value);
         // Save to cookie and Appwrite prefs
-        document.cookie = `themePreference=${value}; path=/; max-age=31536000; SameSite=Lax`;
+        const isSecureContext =
+            typeof window !== "undefined" &&
+            window.location &&
+            window.location.protocol === "https:";
+
+        const cookieAttributes = ["path=/", "max-age=31536000", "SameSite=Lax"];
+
+        if (isSecureContext) {
+            cookieAttributes.push("Secure");
+        }
+
+        document.cookie = `themePreference=${value}; ${cookieAttributes.join("; ")}`;
 
         fetcher.submit(
             {

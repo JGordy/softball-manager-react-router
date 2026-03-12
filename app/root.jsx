@@ -147,21 +147,24 @@ export async function loader({ request }) {
     return { themePreference, preferences };
 }
 
+/**
+ * Validates and returns the theme preference from loader data.
+ * @param {Object} data - The loader data.
+ * @returns {string} - 'light', 'dark', or 'auto'.
+ */
+export function getThemePreference(data) {
+    const themePreference = data?.themePreference || "auto";
+    const validThemes = ["light", "dark", "auto"];
+    return validThemes.includes(themePreference) ? themePreference : "auto";
+}
+
 export function Layout({ children }) {
     let themePreference = "auto";
     try {
         const data = useLoaderData();
-        if (data) {
-            themePreference = data.themePreference || "auto";
-        }
+        themePreference = getThemePreference(data);
     } catch (e) {
         // useLoaderData might throw in some error contexts or during initial SSR states
-    }
-
-    // Defensive validation
-    const validThemes = ["light", "dark", "auto"];
-    if (!validThemes.includes(themePreference)) {
-        themePreference = "auto";
     }
 
     return (
