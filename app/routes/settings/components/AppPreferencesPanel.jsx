@@ -21,6 +21,7 @@ import {
     IconShieldLock,
 } from "@tabler/icons-react";
 
+import { trackEvent } from "@/utils/analytics";
 import PreferenceSection from "./PreferenceSection";
 import TeamAvailabilityRow from "./TeamAvailabilityRow";
 
@@ -83,22 +84,29 @@ export default function AppPreferencesPanel({ teams = [] }) {
 
     const handleStartingPageChange = (value) => {
         setStartingPage(value);
+        trackEvent("starting-page-preference-changed", { value });
         handlePreferenceChange("startingPage", value);
     };
 
     const handleStatsPrivacyChange = (value) => {
         setStatsPrivacy(value);
+        trackEvent("stats-privacy-preference-changed", { value });
         handlePreferenceChange("statsPrivacy", value);
     };
 
     const handleDefaultAvailabilityChange = (teamId, value) => {
         const newPrefs = { ...defaultAvailability, [teamId]: value };
         setDefaultAvailability(newPrefs);
+        trackEvent("default-availability-preference-changed", {
+            teamId,
+            value,
+        });
         handlePreferenceChange("defaultAvailability", JSON.stringify(newPrefs));
     };
 
     const handleThemeChange = (value) => {
         setColorScheme(value);
+        trackEvent("theme-preference-changed", { value });
         // Save to cookie and Appwrite prefs
         const isSecureContext =
             typeof window !== "undefined" &&

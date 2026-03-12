@@ -16,6 +16,12 @@ jest.mock("@mantine/core", () => ({
     useMantineColorScheme: jest.fn(),
 }));
 
+jest.mock("@/utils/analytics", () => ({
+    trackEvent: jest.fn(),
+}));
+
+import { trackEvent } from "@/utils/analytics";
+
 describe("AppPreferencesPanel Component", () => {
     const mockUser = {
         $id: "user-123",
@@ -72,6 +78,9 @@ describe("AppPreferencesPanel Component", () => {
         fireEvent.click(darkBtn);
 
         expect(mockColorScheme.setColorScheme).toHaveBeenCalledWith("dark");
+        expect(trackEvent).toHaveBeenCalledWith("theme-preference-changed", {
+            value: "dark",
+        });
         expect(mockFetcher.submit).toHaveBeenCalledWith(
             expect.objectContaining({
                 _action: "update-user-preferences",
@@ -87,6 +96,10 @@ describe("AppPreferencesPanel Component", () => {
         const dashboardBtn = screen.getByText("Dashboard");
         fireEvent.click(dashboardBtn);
 
+        expect(trackEvent).toHaveBeenCalledWith(
+            "starting-page-preference-changed",
+            { value: "/dashboard" },
+        );
         expect(mockFetcher.submit).toHaveBeenCalledWith(
             {
                 _action: "update-user-preferences",
@@ -109,6 +122,10 @@ describe("AppPreferencesPanel Component", () => {
         const privateBtn = screen.getByText("Private");
         fireEvent.click(privateBtn);
 
+        expect(trackEvent).toHaveBeenCalledWith(
+            "stats-privacy-preference-changed",
+            { value: "private" },
+        );
         expect(mockFetcher.submit).toHaveBeenCalledWith(
             {
                 _action: "update-user-preferences",
@@ -138,6 +155,10 @@ describe("AppPreferencesPanel Component", () => {
         const attendingBtns = screen.getAllByText("Attending");
         fireEvent.click(attendingBtns[0]);
 
+        expect(trackEvent).toHaveBeenCalledWith(
+            "default-availability-preference-changed",
+            { teamId: "team-1", value: "accepted" },
+        );
         expect(mockFetcher.submit).toHaveBeenCalledWith(
             {
                 _action: "update-user-preferences",
