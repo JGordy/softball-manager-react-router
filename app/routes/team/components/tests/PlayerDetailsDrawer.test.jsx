@@ -71,4 +71,37 @@ describe("PlayerDetailsDrawer Component", () => {
         // Check default active content
         expect(screen.getByTestId("player-details")).toBeInTheDocument();
     });
+
+    it("hides Charts tab when canViewStats is false", () => {
+        // Player is not the user and privacy is private
+        const privatePlayer = {
+            ...mockPlayer,
+            prefs: { statsPrivacy: "private" },
+        };
+        render(
+            <PlayerDetailsDrawer
+                {...mockProps}
+                selectedPlayer={privatePlayer}
+                managerView={false}
+            />,
+        );
+
+        expect(screen.queryByText("Charts")).not.toBeInTheDocument();
+    });
+
+    it("shows Charts tab when user is manager even if privacy is private", () => {
+        const privatePlayer = {
+            ...mockPlayer,
+            prefs: { statsPrivacy: "private" },
+        };
+        render(
+            <PlayerDetailsDrawer
+                {...mockProps}
+                selectedPlayer={privatePlayer}
+                managerView={true}
+            />,
+        );
+
+        expect(screen.getByText("Charts")).toBeInTheDocument();
+    });
 });
