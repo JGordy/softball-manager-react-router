@@ -38,6 +38,7 @@ export default function SeasonMenu({ season }) {
                     actionRoute={`/season/${seasonId}`}
                     buttonColor={primaryColor}
                     seasonId={seasonId}
+                    teamId={teamId}
                     defaults={{
                         location: "",
                     }}
