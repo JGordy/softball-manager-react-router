@@ -10,11 +10,13 @@ import {
     deleteDocument,
 } from "@/utils/databases";
 import { hasBadWords } from "@/utils/badWordsApi";
+import { getNotifiableTeamMembers, getTeamMembers } from "@/utils/teams";
+import { createAdminClient } from "@/utils/appwrite/server";
+
 import {
     sendGameFinalNotification,
     sendAwardVoteNotification,
 } from "../notifications";
-import { getNotifiableTeamMembers } from "@/utils/teams";
 
 // Mock dependencies
 jest.mock("@/utils/databases", () => ({
@@ -43,6 +45,16 @@ jest.mock("../notifications", () => ({
 
 jest.mock("@/utils/teams", () => ({
     getNotifiableTeamMembers: jest.fn(),
+    getTeamMembers: jest.fn(),
+}));
+
+jest.mock("@/utils/appwrite/server", () => ({
+    createSessionClient: jest.fn(),
+    createAdminClient: jest.fn(),
+}));
+
+jest.mock("../attendance", () => ({
+    updatePlayerAttendance: jest.fn().mockResolvedValue({ success: true }),
 }));
 
 jest.mock("react-router", () => ({
@@ -55,6 +67,11 @@ describe("Games Actions", () => {
         jest.spyOn(console, "error").mockImplementation(() => {});
         hasBadWords.mockResolvedValue(false);
 
+        const mockUsers = {
+            getPrefs: jest.fn().mockResolvedValue({}),
+        };
+        createAdminClient.mockReturnValue({ users: mockUsers });
+        getTeamMembers.mockResolvedValue({ memberships: [] });
         getNotifiableTeamMembers.mockResolvedValue(["user1"]);
     });
 
@@ -197,6 +214,64 @@ describe("Games Actions", () => {
             expect(result.status).toBe(400);
             expect(createDocument).not.toHaveBeenCalled();
         });
+
+        it("should initialize attendance based on user defaults", async () => {
+            const { getTeamMembers } = require("@/utils/teams");
+            const { createAdminClient } = require("@/utils/appwrite/server");
+            const { updatePlayerAttendance } = require("../attendance");
+
+            const mockValues = {
+                gameDate: "2024-01-01",
+                gameTime: "10:00",
+                opponent: "Team A",
+                teamId: "team1",
+            };
+
+            getTeamMembers.mockResolvedValue({
+                memberships: [
+                    { userId: "user-accepted" },
+                    { userId: "user-declined" },
+                    { userId: "user-string-accepted" },
+                ],
+            });
+
+            const getPrefs = jest
+                .fn()
+                .mockResolvedValueOnce({
+                    defaultAvailability: { team1: "accepted" },
+                })
+                .mockResolvedValueOnce({
+                    defaultAvailability: { team1: "declined" },
+                })
+                .mockResolvedValueOnce({
+                    defaultAvailability: JSON.stringify({ team1: "accepted" }),
+                });
+
+            createAdminClient.mockReturnValue({ users: { getPrefs } });
+            createDocument.mockResolvedValue({ $id: "game1" });
+
+            await createSingleGame({ values: mockValues });
+
+            expect(updatePlayerAttendance).toHaveBeenCalledTimes(2);
+            expect(updatePlayerAttendance).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    values: expect.objectContaining({
+                        playerId: "user-accepted",
+                        status: "accepted",
+                    }),
+                    eventId: "game1",
+                }),
+            );
+            expect(updatePlayerAttendance).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    values: expect.objectContaining({
+                        playerId: "user-string-accepted",
+                        status: "accepted",
+                    }),
+                    eventId: "game1",
+                }),
+            );
+        });
     });
 
     describe("createGames", () => {
@@ -227,6 +302,45 @@ describe("Games Actions", () => {
             expect(result.success).toBe(true);
             expect(result.status).toBe(201);
             expect(result.response.games).toHaveLength(2);
+        });
+
+        it("should initialize attendance for all created games", async () => {
+            const { getTeamMembers } = require("@/utils/teams");
+            const { createAdminClient } = require("@/utils/appwrite/server");
+            const { updatePlayerAttendance } = require("../attendance");
+
+            const mockValues = {
+                games: JSON.stringify([
+                    { opponent: "Team A", teamId: "team1" },
+                ]),
+                timeZone: "America/New_York",
+            };
+
+            getTeamMembers.mockResolvedValue({
+                memberships: [{ userId: "user1" }],
+            });
+
+            createAdminClient.mockReturnValue({
+                users: {
+                    getPrefs: jest.fn().mockResolvedValue({
+                        defaultAvailability: { team1: "accepted" },
+                    }),
+                },
+            });
+
+            createDocument.mockResolvedValue({ $id: "game1" });
+
+            await createGames({ values: mockValues });
+
+            expect(updatePlayerAttendance).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    values: expect.objectContaining({
+                        playerId: "user1",
+                        status: "accepted",
+                    }),
+                    eventId: "game1",
+                }),
+            );
         });
     });
 
