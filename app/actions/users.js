@@ -304,6 +304,34 @@ export async function updateUserPrefs({ values, request }) {
             };
         }
 
+        // Validate values
+        if (values.themePreference) {
+            const validThemes = ["light", "dark", "auto"];
+            if (!validThemes.includes(values.themePreference)) {
+                return {
+                    success: false,
+                    status: 400,
+                    message: "Invalid theme preference.",
+                    action: "update-user-prefs",
+                };
+            }
+        }
+
+        if (values.startingPage) {
+            // Simplified validation: must be a string and start with /
+            if (
+                typeof values.startingPage !== "string" ||
+                !values.startingPage.startsWith("/")
+            ) {
+                return {
+                    success: false,
+                    status: 400,
+                    message: "Invalid starting page.",
+                    action: "update-user-prefs",
+                };
+            }
+        }
+
         const { account } = await createSessionClient(request);
         const user = await account.get();
         const updatedPrefs = { ...(user.prefs || {}), ...(values || {}) };

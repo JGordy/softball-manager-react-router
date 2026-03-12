@@ -92,4 +92,22 @@ describe("Root Layout Theme Logic", () => {
             expect.objectContaining({ defaultColorScheme: "auto" }),
         );
     });
+
+    it("falls back to auto mode when themePreference is invalid", () => {
+        useLoaderData.mockReturnValue({ themePreference: "invalid-theme" });
+        render(
+            <Layout>
+                <div data-testid="test-children-invalid">Test content</div>
+            </Layout>,
+        );
+
+        expect(screen.getByTestId("test-children-invalid")).toBeInTheDocument();
+
+        expect(ColorSchemeScript.mock.calls[0][0]).toEqual(
+            expect.objectContaining({ defaultColorScheme: "auto" }),
+        );
+        expect(MantineProvider.mock.calls[0][0]).toEqual(
+            expect.objectContaining({ defaultColorScheme: "auto" }),
+        );
+    });
 });

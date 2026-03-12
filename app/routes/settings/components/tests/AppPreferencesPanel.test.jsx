@@ -106,4 +106,26 @@ describe("AppPreferencesPanel Component", () => {
         render(<AppPreferencesPanel />);
         expect(screen.getByText("Preference saved!")).toBeInTheDocument();
     });
+
+    it("disables controls when fetcher is loading", () => {
+        useFetcher.mockReturnValue({
+            ...mockFetcher,
+            state: "submitting",
+        });
+
+        render(<AppPreferencesPanel />);
+
+        // Theme control (identified by its labels)
+        const lightBtn = screen.getByLabelText("Light");
+        const darkBtn = screen.getByLabelText("Dark");
+        const autoBtn = screen.getByLabelText("Auto");
+
+        expect(lightBtn).toBeDisabled();
+        expect(darkBtn).toBeDisabled();
+        expect(autoBtn).toBeDisabled();
+
+        // Starting page control
+        const dashboardBtn = screen.getByLabelText("Dashboard");
+        expect(dashboardBtn).toBeDisabled();
+    });
 });

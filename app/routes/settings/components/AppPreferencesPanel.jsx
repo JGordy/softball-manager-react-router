@@ -44,7 +44,7 @@ export default function AppPreferencesPanel() {
     const handleThemeChange = (value) => {
         setColorScheme(value);
         // Save to cookie and Appwrite prefs
-        document.cookie = `darkMode=${value === "dark"}; path=/; max-age=31536000; SameSite=Lax`;
+        document.cookie = `themePreference=${value}; path=/; max-age=31536000; SameSite=Lax`;
 
         fetcher.submit(
             {
@@ -84,6 +84,7 @@ export default function AppPreferencesPanel() {
                     data={themeOptions}
                     value={colorScheme}
                     onChange={handleThemeChange}
+                    disabled={isLoading}
                     radius="md"
                     color="lime.4"
                     transitionDuration={300}

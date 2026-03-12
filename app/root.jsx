@@ -138,6 +138,12 @@ export async function loader({ request }) {
         // User not authenticated or error fetching preferences, use cookie value
     }
 
+    // Validate themePreference
+    const validThemes = ["light", "dark", "auto"];
+    if (!validThemes.includes(themePreference)) {
+        themePreference = "auto";
+    }
+
     return { themePreference, preferences };
 }
 
@@ -150,6 +156,12 @@ export function Layout({ children }) {
         }
     } catch (e) {
         // useLoaderData might throw in some error contexts or during initial SSR states
+    }
+
+    // Defensive validation
+    const validThemes = ["light", "dark", "auto"];
+    if (!validThemes.includes(themePreference)) {
+        themePreference = "auto";
     }
 
     return (
