@@ -147,7 +147,9 @@ describe("OAuth Callback Route Loader", () => {
                 expect.any(Object),
             );
             expect(mockSessionAccount.updatePrefs).toHaveBeenCalledWith({
-                avatarUrl: "http://google.com/photo.jpg",
+                prefs: {
+                    avatarUrl: "http://google.com/photo.jpg",
+                },
             });
             expect(updateDocument).toHaveBeenCalledWith("users", "user1", {
                 avatarUrl: "http://google.com/photo.jpg",

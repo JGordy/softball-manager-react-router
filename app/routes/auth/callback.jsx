@@ -100,7 +100,9 @@ export async function loader({ request }) {
                 if (googleUser.picture) {
                     // 1. Update preferences
                     await sessionAccount.updatePrefs({
-                        avatarUrl: googleUser.picture,
+                        prefs: {
+                            avatarUrl: googleUser.picture,
+                        },
                     });
                     // 2. Update database
                     try {
