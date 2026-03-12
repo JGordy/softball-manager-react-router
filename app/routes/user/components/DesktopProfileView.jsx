@@ -1,8 +1,9 @@
-import { Box, Grid, Card, Tabs } from "@mantine/core";
+import { Alert, Box, Grid, Card, Tabs } from "@mantine/core";
 import {
     IconAward,
     IconCalendarCheck,
     IconClipboardData,
+    IconLock,
 } from "@tabler/icons-react";
 
 import TabsWrapper from "@/components/TabsWrapper";
@@ -14,8 +15,7 @@ import PlayerStats from "./PlayerStats";
 import PlayerAwards from "./PlayerAwards";
 import PlayerAttendance from "./PlayerAttendance";
 import { canViewStats } from "@/utils/users";
-import { Alert, Stack, Text } from "@mantine/core";
-import { IconLock } from "@tabler/icons-react";
+import { canViewStats } from "@/utils/users";
 
 export default function DesktopProfileView({
     tab,
@@ -77,8 +77,8 @@ export default function DesktopProfileView({
                                 radius="lg"
                             >
                                 {player.firstName} has set their stats to
-                                private. Only teammates and coaches can view
-                                their performance data.
+                                private. Only team owners, managers, and coaches
+                                can view their performance data.
                             </Alert>
                         )}
                     </Tabs.Panel>

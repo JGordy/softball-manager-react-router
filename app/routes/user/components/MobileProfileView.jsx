@@ -66,7 +66,7 @@ export default function MobileProfileView({
                         mt="md"
                     >
                         {player.firstName} has set their stats to private. Only
-                        teammates and coaches can view their performance data.
+                        coaches and managers can view their performance data.
                     </Alert>
                 )}
             </Tabs.Panel>

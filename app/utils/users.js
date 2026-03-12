@@ -27,7 +27,7 @@ export const isUserProfileComplete = (user) => {
  * Checks if a user has permission to view another player's stats.
  * @param {Object} player - The player whose stats are being viewed.
  * @param {Object} currentUser - The logged-in user viewing the stats.
- * @param {boolean} [isCoachOrManager] - Whether the currentUser is a coach/manager in the current context.
+ * @param {boolean} [isManager] - Whether the currentUser is a coach/manager in the current context.
  * @returns {boolean}
  */
 export const canViewStats = (player, currentUser, isManager = false) => {

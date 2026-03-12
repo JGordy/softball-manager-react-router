@@ -44,10 +44,18 @@ export default function AppPreferencesPanel({ teams = [] }) {
 
     const prefStartingPage = user?.prefs?.startingPage || "/dashboard";
     const prefStatsPrivacy = user?.prefs?.statsPrivacy || "public";
-    const prefDefaultAvailability =
-        typeof user?.prefs?.defaultAvailability === "string"
-            ? JSON.parse(user.prefs.defaultAvailability)
-            : user?.prefs?.defaultAvailability || EMPTY_OBJECT;
+    const prefDefaultAvailability = (() => {
+        if (typeof user?.prefs?.defaultAvailability === "string") {
+            try {
+                return (
+                    JSON.parse(user.prefs.defaultAvailability) || EMPTY_OBJECT
+                );
+            } catch {
+                return EMPTY_OBJECT;
+            }
+        }
+        return user?.prefs?.defaultAvailability || EMPTY_OBJECT;
+    })();
 
     const [startingPage, setStartingPage] = useState(prefStartingPage);
     const [statsPrivacy, setStatsPrivacy] = useState(prefStatsPrivacy);

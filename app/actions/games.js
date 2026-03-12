@@ -48,11 +48,19 @@ async function initializeDefaultAttendance(gameId, teamId) {
             .filter((m) => m.userId)
             .map((m) => m.userId);
 
-        for (const userId of memberUserIds) {
-            try {
-                const userPrefs = await users.getPrefs({ userId });
+        // Fetch all user preferences in parallel
+        const prefsResults = await Promise.allSettled(
+            memberUserIds.map((userId) =>
+                users.getPrefs({ userId }).then((prefs) => ({ userId, prefs })),
+            ),
+        );
 
-                let defaultAvailability = userPrefs?.defaultAvailability || {};
+        const attendanceUpdates = [];
+
+        for (const result of prefsResults) {
+            if (result.status === "fulfilled") {
+                const { userId, prefs } = result.value;
+                let defaultAvailability = prefs?.defaultAvailability || {};
 
                 if (typeof defaultAvailability === "string") {
                     try {
@@ -63,22 +71,29 @@ async function initializeDefaultAttendance(gameId, teamId) {
                 }
 
                 if (defaultAvailability[teamId] === "accepted") {
-                    await updatePlayerAttendance({
-                        values: {
-                            playerId: userId,
-                            status: "accepted",
-                            teamId,
-                            updatedBy: "system-default",
-                        },
-                        eventId: gameId,
-                    });
+                    attendanceUpdates.push(
+                        updatePlayerAttendance({
+                            values: {
+                                playerId: userId,
+                                status: "accepted",
+                                teamId,
+                                updatedBy: "system-default",
+                            },
+                            eventId: gameId,
+                        }),
+                    );
                 }
-            } catch (prefError) {
+            } else {
                 console.warn(
-                    `Failed to fetch prefs for user ${userId} during attendance initialization:`,
-                    prefError.message,
+                    "Failed to fetch preferences for a user during attendance initialization:",
+                    result.reason,
                 );
             }
+        }
+
+        // Trigger all attendance updates in parallel
+        if (attendanceUpdates.length > 0) {
+            await Promise.all(attendanceUpdates);
         }
     } catch (error) {
         console.error("Error in initializeDefaultAttendance:", error);
@@ -242,9 +257,13 @@ export async function createGames({ values }) {
             createdGames.push(createdGame);
         }
 
-        // Initialize attendance for all created games
-        for (const createdGame of createdGames) {
-            await initializeDefaultAttendance(createdGame.$id, teamId);
+        // Initialize attendance for all created games in parallel
+        if (teamId) {
+            await Promise.all(
+                createdGames.map((createdGame) =>
+                    initializeDefaultAttendance(createdGame.$id, teamId),
+                ),
+            );
         }
 
         return {
