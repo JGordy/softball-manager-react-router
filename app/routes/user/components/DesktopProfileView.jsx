@@ -13,6 +13,9 @@ import PlayerDetails from "@/components/PlayerDetails";
 import PlayerStats from "./PlayerStats";
 import PlayerAwards from "./PlayerAwards";
 import PlayerAttendance from "./PlayerAttendance";
+import { canViewStats } from "@/utils/users";
+import { Alert, Stack, Text } from "@mantine/core";
+import { IconLock } from "@tabler/icons-react";
 
 export default function DesktopProfileView({
     tab,
@@ -61,10 +64,23 @@ export default function DesktopProfileView({
                     </Tabs.Tab>
 
                     <Tabs.Panel value="stats" pt="xl">
-                        <PlayerStats
-                            statsPromise={statsPromise}
-                            isDesktop={true}
-                        />
+                        {canViewStats(player, loggedInUser) ? (
+                            <PlayerStats
+                                statsPromise={statsPromise}
+                                isDesktop={true}
+                            />
+                        ) : (
+                            <Alert
+                                icon={<IconLock size={16} />}
+                                title="Stats are Private"
+                                color="gray"
+                                radius="lg"
+                            >
+                                {player.firstName} has set their stats to
+                                private. Only teammates and coaches can view
+                                their performance data.
+                            </Alert>
+                        )}
                     </Tabs.Panel>
 
                     <Tabs.Panel value="awards" pt="xl">
