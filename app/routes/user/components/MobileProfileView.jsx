@@ -1,9 +1,12 @@
-import { Group, Tabs } from "@mantine/core";
+import { Alert, Group, Tabs } from "@mantine/core";
 import {
     IconAward,
     IconClipboardData,
+    IconLock,
     IconUserSquareRounded,
 } from "@tabler/icons-react";
+
+import { canViewStats } from "@/utils/users";
 
 import TabsWrapper from "@/components/TabsWrapper";
 import PersonalDetails from "@/components/PersonalDetails";
@@ -49,7 +52,23 @@ export default function MobileProfileView({
             </Tabs.Panel>
 
             <Tabs.Panel value="stats">
-                <PlayerStats statsPromise={statsPromise} isDesktop={false} />
+                {canViewStats(player, loggedInUser) ? (
+                    <PlayerStats
+                        statsPromise={statsPromise}
+                        isDesktop={false}
+                    />
+                ) : (
+                    <Alert
+                        icon={<IconLock size={16} />}
+                        title="Stats are Private"
+                        color="gray"
+                        radius="lg"
+                        mt="md"
+                    >
+                        {player.firstName} has set their stats to private. Only
+                        teammates and coaches can view their performance data.
+                    </Alert>
+                )}
             </Tabs.Panel>
 
             <Tabs.Panel value="awards">

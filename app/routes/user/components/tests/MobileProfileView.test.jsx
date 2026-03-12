@@ -51,4 +51,26 @@ describe("MobileProfileView", () => {
         render(<MobileProfileView {...mockProps} tab="awards" />);
         expect(screen.getByText(/awards yet/i)).toBeInTheDocument();
     });
+
+    it("renders Alert when stats are private and user is not owner", () => {
+        const privatePlayer = {
+            ...mockProps.player,
+            prefs: { statsPrivacy: "private" },
+        };
+        const otherUser = { $id: "otherUser" };
+
+        render(
+            <MobileProfileView
+                {...mockProps}
+                player={privatePlayer}
+                loggedInUser={otherUser}
+                tab="stats"
+            />,
+        );
+
+        expect(screen.getByText("Stats are Private")).toBeInTheDocument();
+        expect(
+            screen.queryByText("No stats available yet."),
+        ).not.toBeInTheDocument();
+    });
 });
