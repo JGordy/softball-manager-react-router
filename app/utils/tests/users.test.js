@@ -2,6 +2,7 @@ import {
     REQUIRED_PROFILE_FIELDS,
     getIncompleteProfileFields,
     isUserProfileComplete,
+    canViewStats,
 } from "../users";
 
 describe("Users Utils", () => {
@@ -91,6 +92,40 @@ describe("Users Utils", () => {
                 preferredPositions: ["1B"],
             };
             expect(isUserProfileComplete(user)).toBe(false);
+        });
+    });
+
+    describe("canViewStats", () => {
+        const currentUser = { $id: "u1" };
+
+        it("should return false if player or currentUser is missing", () => {
+            expect(canViewStats(null, currentUser)).toBe(false);
+            expect(canViewStats({ $id: "p1" }, null)).toBe(false);
+        });
+
+        it("should return true if player is the currentUser", () => {
+            const player = { $id: "u1" };
+            expect(canViewStats(player, currentUser)).toBe(true);
+        });
+
+        it("should return true if statsPrivacy is public", () => {
+            const player = { $id: "p2", prefs: { statsPrivacy: "public" } };
+            expect(canViewStats(player, currentUser)).toBe(true);
+        });
+
+        it("should return true if statsPrivacy is missing (defaults to public)", () => {
+            const player = { $id: "p2", prefs: {} };
+            expect(canViewStats(player, currentUser)).toBe(true);
+        });
+
+        it("should return true if user is manager regardless of privacy", () => {
+            const player = { $id: "p2", prefs: { statsPrivacy: "private" } };
+            expect(canViewStats(player, currentUser, true)).toBe(true);
+        });
+
+        it("should return false if statsPrivacy is private and user is not owner or manager", () => {
+            const player = { $id: "p2", prefs: { statsPrivacy: "private" } };
+            expect(canViewStats(player, currentUser, false)).toBe(false);
         });
     });
 });
