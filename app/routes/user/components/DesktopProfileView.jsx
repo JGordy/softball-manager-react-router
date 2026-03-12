@@ -15,7 +15,6 @@ import PlayerStats from "./PlayerStats";
 import PlayerAwards from "./PlayerAwards";
 import PlayerAttendance from "./PlayerAttendance";
 import { canViewStats } from "@/utils/users";
-import { canViewStats } from "@/utils/users";
 
 export default function DesktopProfileView({
     tab,
