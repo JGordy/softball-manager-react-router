@@ -45,6 +45,7 @@ describe("Root Layout Theme Logic", () => {
             <Layout>
                 <div data-testid="test-children">Test content</div>
             </Layout>,
+            { container: document.documentElement },
         );
 
         expect(screen.getByTestId("test-children")).toBeInTheDocument();
@@ -63,6 +64,7 @@ describe("Root Layout Theme Logic", () => {
             <Layout>
                 <div data-testid="test-children-light">Test content</div>
             </Layout>,
+            { container: document.documentElement },
         );
 
         expect(screen.getByTestId("test-children-light")).toBeInTheDocument();
@@ -81,6 +83,7 @@ describe("Root Layout Theme Logic", () => {
             <Layout>
                 <div data-testid="test-children-auto">Test content</div>
             </Layout>,
+            { container: document.documentElement },
         );
 
         expect(screen.getByTestId("test-children-auto")).toBeInTheDocument();
@@ -99,6 +102,7 @@ describe("Root Layout Theme Logic", () => {
             <Layout>
                 <div data-testid="test-children-invalid">Test content</div>
             </Layout>,
+            { container: document.documentElement },
         );
 
         expect(screen.getByTestId("test-children-invalid")).toBeInTheDocument();

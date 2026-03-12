@@ -305,9 +305,12 @@ export async function updateUserPrefs({ values, request }) {
         }
 
         // Validate values
-        if (values.themePreference) {
+        if (Object.prototype.hasOwnProperty.call(values, "themePreference")) {
             const validThemes = ["light", "dark", "auto"];
-            if (!validThemes.includes(values.themePreference)) {
+            if (
+                !validThemes.includes(values.themePreference) ||
+                values.themePreference === ""
+            ) {
                 return {
                     success: false,
                     status: 400,
@@ -317,11 +320,12 @@ export async function updateUserPrefs({ values, request }) {
             }
         }
 
-        if (values.startingPage) {
+        if (Object.prototype.hasOwnProperty.call(values, "startingPage")) {
             // Simplified validation: must be a string and start with /
             if (
                 typeof values.startingPage !== "string" ||
-                !values.startingPage.startsWith("/")
+                !values.startingPage.startsWith("/") ||
+                values.startingPage === ""
             ) {
                 return {
                     success: false,
