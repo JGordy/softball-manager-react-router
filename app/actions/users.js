@@ -291,7 +291,12 @@ export async function resetPassword({ values, request }) {
 export async function updateUserPrefs({ values, request }) {
     try {
         // Validate allowed keys
-        const allowedKeys = ["startingPage", "themePreference"];
+        const allowedKeys = [
+            "startingPage",
+            "themePreference",
+            "statsPrivacy",
+            "defaultAvailability",
+        ];
         const keys = Object.keys(values);
         const isValid = keys.every((key) => allowedKeys.includes(key));
 
@@ -320,6 +325,31 @@ export async function updateUserPrefs({ values, request }) {
             }
         }
 
+        if (Object.prototype.hasOwnProperty.call(values, "statsPrivacy")) {
+            const validPrivacy = ["public", "private"];
+            if (!validPrivacy.includes(values.statsPrivacy)) {
+                return {
+                    success: false,
+                    status: 400,
+                    message: "Invalid stats privacy preference.",
+                    action: "update-user-prefs",
+                };
+            }
+        }
+
+        if (
+            Object.prototype.hasOwnProperty.call(values, "defaultAvailability")
+        ) {
+            if (typeof values.defaultAvailability !== "string") {
+                return {
+                    success: false,
+                    status: 400,
+                    message: "Invalid default availability preference.",
+                    action: "update-user-prefs",
+                };
+            }
+        }
+
         if (Object.prototype.hasOwnProperty.call(values, "startingPage")) {
             // Simplified validation: must be a string and start with /
             if (
@@ -340,7 +370,7 @@ export async function updateUserPrefs({ values, request }) {
         const user = await account.get();
         const updatedPrefs = { ...(user.prefs || {}), ...(values || {}) };
 
-        await account.updatePrefs(updatedPrefs);
+        await account.updatePrefs({ prefs: updatedPrefs });
 
         return {
             success: true,
