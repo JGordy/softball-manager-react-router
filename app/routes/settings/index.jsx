@@ -81,7 +81,7 @@ export async function action({ request }) {
         return resetPassword({ values, request });
     }
 
-    if (_action === "update-starting-page") {
+    if (_action === "update-user-preferences") {
         return updateUserPrefs({ values, request });
     }
 
