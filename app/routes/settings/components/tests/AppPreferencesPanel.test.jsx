@@ -97,6 +97,57 @@ describe("AppPreferencesPanel Component", () => {
         );
     });
 
+    it("renders stats privacy options", () => {
+        render(<AppPreferencesPanel />);
+        expect(screen.getByText("Stats Privacy")).toBeInTheDocument();
+        expect(screen.getByLabelText("Public")).toBeInTheDocument();
+        expect(screen.getByLabelText("Private")).toBeInTheDocument();
+    });
+
+    it("calls fetcher.submit when stats privacy changes", () => {
+        render(<AppPreferencesPanel />);
+        const privateBtn = screen.getByText("Private");
+        fireEvent.click(privateBtn);
+
+        expect(mockFetcher.submit).toHaveBeenCalledWith(
+            {
+                _action: "update-user-preferences",
+                userId: "user-123",
+                statsPrivacy: "private",
+            },
+            { method: "post", action: "/settings" },
+        );
+    });
+
+    it("renders default availability for teams", () => {
+        const mockTeams = [
+            { $id: "team-1", name: "Team One" },
+            { $id: "team-2", name: "Team Two" },
+        ];
+        render(<AppPreferencesPanel teams={mockTeams} />);
+
+        expect(screen.getByText("Default Availability")).toBeInTheDocument();
+        expect(screen.getByText("Team One")).toBeInTheDocument();
+        expect(screen.getByText("Team Two")).toBeInTheDocument();
+    });
+
+    it("calls fetcher.submit when default availability changes", () => {
+        const mockTeams = [{ $id: "team-1", name: "Team One" }];
+        render(<AppPreferencesPanel teams={mockTeams} />);
+
+        const attendingBtns = screen.getAllByText("Attending");
+        fireEvent.click(attendingBtns[0]);
+
+        expect(mockFetcher.submit).toHaveBeenCalledWith(
+            {
+                _action: "update-user-preferences",
+                userId: "user-123",
+                defaultAvailability: JSON.stringify({ "team-1": "accepted" }),
+            },
+            { method: "post", action: "/settings" },
+        );
+    });
+
     it("shows success message when fetcher returns success", () => {
         useFetcher.mockReturnValue({
             ...mockFetcher,

@@ -13,32 +13,88 @@ import {
     useMantineColorScheme,
 } from "@mantine/core";
 
-import { IconSettings } from "@tabler/icons-react";
+import {
+    IconNotebook,
+    IconSettings,
+    IconPalette,
+    IconChecklist,
+    IconShieldLock,
+} from "@tabler/icons-react";
 
-export default function AppPreferencesPanel() {
+import PreferenceSection from "./PreferenceSection";
+import TeamAvailabilityRow from "./TeamAvailabilityRow";
+
+const EMPTY_OBJECT = {};
+
+const THEME_OPTIONS = [
+    { label: "Light", value: "light" },
+    { label: "Dark", value: "dark" },
+    { label: "Auto", value: "auto" },
+];
+
+const STATS_PRIVACY_OPTIONS = [
+    { label: "Public", value: "public" },
+    { label: "Private", value: "private" },
+];
+
+export default function AppPreferencesPanel({ teams = [] }) {
     const { user, isDesktop } = useOutletContext();
     const fetcher = useFetcher();
 
     const prefStartingPage = user?.prefs?.startingPage || "/dashboard";
+    const prefStatsPrivacy = user?.prefs?.statsPrivacy || "public";
+    const prefDefaultAvailability =
+        typeof user?.prefs?.defaultAvailability === "string"
+            ? JSON.parse(user.prefs.defaultAvailability)
+            : user?.prefs?.defaultAvailability || EMPTY_OBJECT;
 
     const [startingPage, setStartingPage] = useState(prefStartingPage);
+    const [statsPrivacy, setStatsPrivacy] = useState(prefStatsPrivacy);
+    const [defaultAvailability, setDefaultAvailability] = useState(
+        prefDefaultAvailability,
+    );
     const { colorScheme, setColorScheme } = useMantineColorScheme();
 
     // Sync local state with user prefs when they change
+    const prefDefaultAvailabilityStr = JSON.stringify(prefDefaultAvailability);
+
     useEffect(() => {
         setStartingPage(prefStartingPage);
     }, [prefStartingPage]);
 
-    const handleStartingPageChange = (value) => {
-        setStartingPage(value);
+    useEffect(() => {
+        setStatsPrivacy(prefStatsPrivacy);
+    }, [prefStatsPrivacy]);
+
+    useEffect(() => {
+        setDefaultAvailability(prefDefaultAvailability);
+    }, [prefDefaultAvailabilityStr]);
+
+    const handlePreferenceChange = (key, value) => {
         fetcher.submit(
             {
                 _action: "update-user-preferences",
                 userId: user.$id,
-                startingPage: value,
+                [key]: value,
             },
             { method: "post", action: "/settings" },
         );
+    };
+
+    const handleStartingPageChange = (value) => {
+        setStartingPage(value);
+        handlePreferenceChange("startingPage", value);
+    };
+
+    const handleStatsPrivacyChange = (value) => {
+        setStatsPrivacy(value);
+        handlePreferenceChange("statsPrivacy", value);
+    };
+
+    const handleDefaultAvailabilityChange = (teamId, value) => {
+        const newPrefs = { ...defaultAvailability, [teamId]: value };
+        setDefaultAvailability(newPrefs);
+        handlePreferenceChange("defaultAvailability", JSON.stringify(newPrefs));
     };
 
     const handleThemeChange = (value) => {
@@ -73,50 +129,35 @@ export default function AppPreferencesPanel() {
         { label: "Profile", value: `/user/${user.$id}` },
     ];
 
-    const themeOptions = [
-        { label: "Light", value: "light" },
-        { label: "Dark", value: "dark" },
-        { label: "Auto", value: "auto" },
-    ];
-
     const isLoading = fetcher.state !== "idle";
 
     const content = (
         <Stack gap="lg">
-            <Box px="xs">
-                <Text size="sm" fw={500} mb={4}>
-                    Theme
-                </Text>
-                <Text size="xs" c="dimmed" mb="md">
-                    Choose how the app looks to you.
-                </Text>
+            <PreferenceSection
+                icon={IconPalette}
+                label="Theme"
+                description="Choose how the app looks to you."
+            >
                 <SegmentedControl
                     fullWidth
-                    data={themeOptions}
+                    data={THEME_OPTIONS}
                     value={colorScheme}
                     onChange={handleThemeChange}
                     disabled={isLoading}
                     radius="md"
-                    color="lime.4"
+                    color="blue"
                     transitionDuration={300}
                     styles={{
-                        label: {
-                            fontWeight: 600,
-                        },
-                        // We'll use CSS variables or Mantine theme for text color consistency
+                        label: { fontWeight: 600 },
                     }}
                 />
-            </Box>
+            </PreferenceSection>
 
-            <Divider variant="dashed" />
-
-            <Box px="xs">
-                <Text size="sm" fw={500} mb={4}>
-                    Starting Page
-                </Text>
-                <Text size="xs" c="dimmed" mb="md">
-                    Pick the default view for when you open the app.
-                </Text>
+            <PreferenceSection
+                icon={IconNotebook}
+                label="Starting Page"
+                description="Pick the default view for when you open the app."
+            >
                 <SegmentedControl
                     data-testid="starting-page-selector"
                     fullWidth
@@ -125,7 +166,7 @@ export default function AppPreferencesPanel() {
                     onChange={handleStartingPageChange}
                     disabled={isLoading}
                     radius="md"
-                    color="lime.4"
+                    color="blue"
                     transitionDuration={300}
                     styles={{
                         label: {
@@ -134,7 +175,53 @@ export default function AppPreferencesPanel() {
                         },
                     }}
                 />
-            </Box>
+            </PreferenceSection>
+
+            <PreferenceSection
+                icon={IconShieldLock}
+                label="Stats Privacy"
+                description="Control who can see your batting averages and performance charts. Note: Team managers and coaches can always see your stats."
+            >
+                <SegmentedControl
+                    fullWidth
+                    data={STATS_PRIVACY_OPTIONS}
+                    value={statsPrivacy}
+                    onChange={handleStatsPrivacyChange}
+                    disabled={isLoading}
+                    radius="md"
+                    color="blue"
+                    transitionDuration={300}
+                    styles={{
+                        label: { fontWeight: 600 },
+                    }}
+                />
+            </PreferenceSection>
+
+            <PreferenceSection
+                icon={IconChecklist}
+                label="Default Availability"
+                description='Automatically set your status to "Attending" for new games on a per-team basis.'
+                showDivider={false}
+            >
+                <Stack gap="sm">
+                    {teams.map((team) => (
+                        <TeamAvailabilityRow
+                            key={team.$id}
+                            team={team}
+                            value={defaultAvailability[team.$id]}
+                            disabled={isLoading}
+                            onChange={(val) =>
+                                handleDefaultAvailabilityChange(team.$id, val)
+                            }
+                        />
+                    ))}
+                    {teams.length === 0 && (
+                        <Text size="xs" c="dimmed" ta="center">
+                            You are not currently a member of any teams.
+                        </Text>
+                    )}
+                </Stack>
+            </PreferenceSection>
 
             {fetcher.data?.success && (
                 <Text size="xs" c="green" ta="center">
