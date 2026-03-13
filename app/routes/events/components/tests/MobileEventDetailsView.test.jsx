@@ -42,4 +42,29 @@ describe("MobileEventDetailsView", () => {
         expect(screen.getByTestId("awards-container")).toBeInTheDocument();
         expect(screen.queryByTestId("weather-card")).not.toBeInTheDocument();
     });
+
+    it("does NOT render gameday-card or awards-container for practice", () => {
+        const practiceGame = { ...defaultProps.game, eventType: "practice" };
+        render(
+            <MobileEventDetailsView
+                {...defaultProps}
+                game={practiceGame}
+                gameIsPast={true}
+            />,
+        );
+
+        expect(screen.queryByTestId("gameday-card")).not.toBeInTheDocument();
+        expect(
+            screen.queryByTestId("awards-container"),
+        ).not.toBeInTheDocument();
+    });
+
+    it("still renders weather-card for future practice", () => {
+        const practiceGame = { ...defaultProps.game, eventType: "practice" };
+        render(
+            <MobileEventDetailsView {...defaultProps} game={practiceGame} />,
+        );
+
+        expect(screen.getByTestId("weather-card")).toBeInTheDocument();
+    });
 });
