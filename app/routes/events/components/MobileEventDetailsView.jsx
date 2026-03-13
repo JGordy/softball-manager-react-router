@@ -31,14 +31,15 @@ export default function MobileEventDetailsView({
                 team={team}
             />
 
-            <GamedayCard
-                gameId={game.$id}
-                isLive={gameInProgress}
-                isPast={gameIsPast}
-                isScorekeeper={isScorekeeper}
-            />
-
-            {gameIsPast ? (
+            {game.eventType !== "practice" && (
+                <GamedayCard
+                    gameId={game.$id}
+                    isLive={gameInProgress}
+                    isPast={gameIsPast}
+                    isScorekeeper={isScorekeeper}
+                />
+            )}
+            {game.eventType !== "practice" && gameIsPast ? (
                 <AwardsContainer
                     game={game}
                     team={team}
@@ -46,10 +47,12 @@ export default function MobileEventDetailsView({
                     deferredData={deferredData}
                 />
             ) : (
-                <WeatherCard
-                    gameDate={game.gameDate}
-                    weatherPromise={weatherPromise}
-                />
+                !gameIsPast && (
+                    <WeatherCard
+                        gameDate={game.gameDate}
+                        weatherPromise={weatherPromise}
+                    />
+                )
             )}
 
             <RosterDetails

@@ -163,6 +163,7 @@ export default function DesktopSeasonDetails({
                     <GamesList
                         games={upcomingGames}
                         height="calc(100vh - 250px)"
+                        primaryColor={primaryColor}
                     />
                 </Grid.Col>
 
@@ -184,7 +185,11 @@ export default function DesktopSeasonDetails({
                             ({pastGames.length})
                         </Text>
                     </Group>
-                    <GamesList games={pastGames} height="calc(100vh - 250px)" />
+                    <GamesList
+                        games={pastGames}
+                        height="calc(100vh - 250px)"
+                        primaryColor={primaryColor}
+                    />
                 </Grid.Col>
             </Grid>
         </Container>

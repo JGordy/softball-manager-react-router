@@ -18,6 +18,7 @@ describe("getGames utility", () => {
             $id: "team1",
             name: "Team 1",
             displayName: "T1",
+            primaryColor: "#ff0000",
             seasons: [
                 {
                     location: "Park A",
@@ -40,6 +41,7 @@ describe("getGames utility", () => {
             $id: "team2",
             name: "Team 2",
             displayName: "T2",
+            primaryColor: "#00ff00",
             seasons: [
                 {
                     location: "Park B",
@@ -81,13 +83,14 @@ describe("getGames utility", () => {
         expect(futureGames[0].$id).toBe("game2");
     });
 
-    it("should add team name and location to games", () => {
+    it("should add team name, location, and primaryColor to games", () => {
         const { futureGames } = getGames({ teams: mockTeams });
         const game3 = futureGames.find((g) => g.$id === "game3");
 
         expect(game3.teamName).toBe("Team 2");
         expect(game3.displayName).toBe("T2");
         expect(game3.location).toBe("Park B");
+        expect(game3.primaryColor).toBe("#00ff00");
     });
 
     it("should handle missing seasons or games gracefully", () => {

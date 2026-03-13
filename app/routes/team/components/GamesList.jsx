@@ -61,7 +61,7 @@ function findSeasonWithGames(seasons, today) {
     return defaultSeason;
 }
 
-export default function GamesListContainer({ seasons }) {
+export default function GamesListContainer({ seasons, primaryColor }) {
     const today = DateTime.local();
     const seasonToDisplay = findSeasonWithGames(seasons, today);
     const gamesToDisplay = seasonToDisplay?.games || [];
@@ -74,7 +74,11 @@ export default function GamesListContainer({ seasons }) {
                     {seasonToDisplay.seasonName}
                 </Text>
             )}
-            <GamesList games={sortedGames} height="55vh" />
+            <GamesList
+                games={sortedGames}
+                height="55vh"
+                primaryColor={primaryColor}
+            />
         </div>
     );
 }

@@ -7,7 +7,9 @@ import DesktopTeamDetails from "../DesktopTeamDetails";
 jest.mock("@/components/GameCalendarRow", () => () => (
     <div data-testid="game-calendar-row" />
 ));
-jest.mock("@/components/GameCard", () => () => <div data-testid="game-card" />);
+jest.mock("@/components/GameCard", () => ({ primaryColor }) => (
+    <div data-testid="game-card" data-primarycolor={primaryColor} />
+));
 jest.mock("../DesktopRosterTable", () => () => (
     <div data-testid="desktop-roster-table" />
 ));
@@ -41,8 +43,12 @@ describe("DesktopTeamDetails Component", () => {
 
     beforeEach(() => {
         getGames.mockReturnValue({
-            futureGames: [{ $id: "game1", gameDate: "2026-06-01" }],
-            pastGames: [{ $id: "game2", gameDate: "2026-05-01" }],
+            futureGames: [
+                { $id: "game1", gameDate: "2026-06-01", primaryColor: "blue" },
+            ],
+            pastGames: [
+                { $id: "game2", gameDate: "2026-05-01", primaryColor: "blue" },
+            ],
         });
     });
 
@@ -62,6 +68,9 @@ describe("DesktopTeamDetails Component", () => {
         render(<DesktopTeamDetails {...mockProps} />);
         expect(screen.getByText("Upcoming Games")).toBeInTheDocument();
         expect(screen.getByText("Recent Results")).toBeInTheDocument();
+
+        const cards = screen.getAllByTestId("game-card");
+        expect(cards[0]).toHaveAttribute("data-primarycolor", "blue");
     });
 
     it("renders Seasons Overview section", () => {

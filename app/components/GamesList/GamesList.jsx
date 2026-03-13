@@ -5,6 +5,7 @@ import { DateTime } from "luxon";
 
 export default function GamesList({
     games,
+    primaryColor,
     height = "48vh",
     sortOrder = "asc",
 }) {
@@ -50,7 +51,11 @@ export default function GamesList({
     return (
         <ScrollArea h={height}>
             {sortedGames.map((game) => (
-                <GameCard {...game} key={game.$id} />
+                <GameCard
+                    key={game.$id}
+                    primaryColor={primaryColor}
+                    {...game}
+                />
             ))}
         </ScrollArea>
     );

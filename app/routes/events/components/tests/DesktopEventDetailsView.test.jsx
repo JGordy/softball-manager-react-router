@@ -90,4 +90,40 @@ describe("DesktopEventDetailsView", () => {
         );
         expect(screen.getByTestId("menu-target-icon")).toBeInTheDocument();
     });
+
+    it("does NOT render score panel or gameday panel for practice", () => {
+        const practiceGame = { ...defaultProps.game, eventType: "practice" };
+        renderWithProviders(
+            <DesktopEventDetailsView {...defaultProps} game={practiceGame} />,
+        );
+
+        expect(
+            screen.queryByTestId("score-panel-compact"),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByTestId("desktop-gameday-panel"),
+        ).not.toBeInTheDocument();
+    });
+
+    it("does NOT render Lineups or Awards tabs for practice", () => {
+        const practiceGame = { ...defaultProps.game, eventType: "practice" };
+        renderWithProviders(
+            <DesktopEventDetailsView
+                {...defaultProps}
+                game={practiceGame}
+                gameIsPast={true}
+            />,
+        );
+
+        expect(
+            screen.queryByRole("tab", { name: /lineups/i }),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByRole("tab", { name: /awards/i }),
+        ).not.toBeInTheDocument();
+        // Attendance should still be there
+        expect(
+            screen.getByRole("tab", { name: /attendance/i }),
+        ).toBeInTheDocument();
+    });
 });

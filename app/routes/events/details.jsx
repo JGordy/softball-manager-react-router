@@ -197,13 +197,18 @@ export default function EventDetails({ loaderData, actionData }) {
                         />
                     )}
                 </Group>
-
-                <Scoreboard
-                    game={game}
-                    gameIsPast={gameIsPast}
-                    gameInProgress={gameInProgress}
-                    team={team}
-                />
+                {game.eventType !== "practice" ? (
+                    <Scoreboard
+                        game={game}
+                        gameIsPast={gameIsPast}
+                        gameInProgress={gameInProgress}
+                        team={team}
+                    />
+                ) : (
+                    <Title order={1} ta="center" c="white" mt="xl">
+                        Practice
+                    </Title>
+                )}
             </Box>
 
             <Box hiddenFrom="lg">

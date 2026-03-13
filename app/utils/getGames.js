@@ -68,6 +68,7 @@ export default function getGames({ teams, teamId }) {
                 ...game,
                 teamName: team ? team.name : undefined,
                 displayName: team ? team.displayName || "" : "",
+                primaryColor: team ? team.primaryColor : undefined,
             };
         });
 

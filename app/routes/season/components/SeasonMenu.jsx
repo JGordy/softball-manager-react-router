@@ -1,6 +1,11 @@
 import { Text } from "@mantine/core";
 
-import { IconBallBaseball, IconCalendar, IconEdit } from "@tabler/icons-react";
+import {
+    IconBallBaseball,
+    IconCalendar,
+    IconEdit,
+    IconRun,
+} from "@tabler/icons-react";
 
 import AddSingleGame from "@/forms/AddSingleGame";
 import AddSeason from "@/forms/AddSeason";
@@ -87,6 +92,30 @@ export default function SeasonMenu({ season }) {
                     onClick: openAddGameModal,
                     leftSection: <IconBallBaseball size={18} />,
                     content: <Text>Add Single Game</Text>,
+                },
+                {
+                    key: "add-practice",
+                    onClick: () =>
+                        openModal({
+                            title: "Schedule Practice",
+                            children: (
+                                <AddSingleGame
+                                    action="add-single-game"
+                                    actionRoute={`/season/${seasonId}`}
+                                    buttonColor={primaryColor}
+                                    seasonId={seasonId}
+                                    teamId={teamId}
+                                    isPractice={true}
+                                    confirmText="Schedule Practice"
+                                    defaults={{
+                                        location: "",
+                                    }}
+                                    locationPlaceholder={season.location || ""}
+                                />
+                            ),
+                        }),
+                    leftSection: <IconRun size={18} />,
+                    content: <Text>Schedule Practice</Text>,
                 },
             ],
         },

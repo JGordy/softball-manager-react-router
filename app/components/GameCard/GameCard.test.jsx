@@ -39,6 +39,7 @@ describe("GameCard Component", () => {
     it("renders basic game details", () => {
         renderWithRouter(<GameCard {...baseGame} />);
         expect(screen.getByText(/@ Rival Team/)).toBeInTheDocument();
+        expect(screen.getByText("6/15")).toBeInTheDocument();
     });
 
     it("renders displayName when provided", () => {
@@ -55,15 +56,15 @@ describe("GameCard Component", () => {
         expect(screen.getByText(/@ Rival Team/)).toBeInTheDocument();
     });
 
-    it("shows 'hours away' for same-day future games", () => {
+    it("shows 'hrs away' for same-day future games", () => {
         renderWithRouter(<GameCard {...baseGame} />);
-        expect(screen.getByText(/6 hours away!/)).toBeInTheDocument();
+        expect(screen.getByText(/6 hrs away!/)).toBeInTheDocument();
     });
 
-    it("shows '1 hour away' correctly or handles same day logic", () => {
+    it("shows '1 hr away' correctly or handles same day logic", () => {
         const game = { ...baseGame, gameDate: "2023-06-15T12:45:00.000Z" };
         renderWithRouter(<GameCard {...game} />);
-        expect(screen.getByText(/1 hour away!/)).toBeInTheDocument();
+        expect(screen.getByText(/1 hr away!/)).toBeInTheDocument();
     });
 
     it("renders past game result", () => {
@@ -95,5 +96,27 @@ describe("GameCard Component", () => {
         };
         renderWithRouter(<GameCard {...futureGame} />);
         expect(screen.getByText(/5 days away!/)).toBeInTheDocument();
+    });
+
+    it("renders practice details correctly", () => {
+        const practice = {
+            ...baseGame,
+            eventType: "practice",
+            opponent: "Practice",
+        };
+        renderWithRouter(<GameCard {...practice} />);
+        expect(screen.getByText("Practice")).toBeInTheDocument();
+        expect(screen.queryByText(/vs/)).not.toBeInTheDocument();
+    });
+
+    it("renders 'Completed' for past practices instead of 'Results Pending'", () => {
+        const pastPractice = {
+            ...baseGame,
+            eventType: "practice",
+            gameDate: "2023-06-14T10:00:00.000Z",
+        };
+        renderWithRouter(<GameCard {...pastPractice} />);
+        expect(screen.getByText("Completed")).toBeInTheDocument();
+        expect(screen.queryByText("Results Pending")).not.toBeInTheDocument();
     });
 });

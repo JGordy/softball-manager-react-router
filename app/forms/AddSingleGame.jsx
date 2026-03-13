@@ -23,12 +23,14 @@ export default function AddSingleGame({
     buttonColor,
     confirmText = "Create Game",
     defaults = {},
+    isPractice = false,
     locationPlaceholder,
     seasons,
     seasonId,
     teamId,
 }) {
     const ref = useRef();
+    const eventType = isPractice ? "practice" : defaults.eventType || "game";
 
     const currentTimeZone = getUserTimeZone();
 
@@ -60,29 +62,41 @@ export default function AddSingleGame({
                 <input type="hidden" name="seasonId" value={seasonId} />
             )}
             <input type="hidden" name="teamId" value={teamId} />
-            <TextInput
-                className={classes.inputs}
-                label="Opponent's Name"
-                name="opponent"
-                placeholder="Who are we playing?"
-                defaultValue={defaults.opponent}
-                radius="md"
-                size="md"
-            />
-            <Radio.Group
-                mb="md"
-                size="md"
-                className={classes.inputs}
-                defaultValue={`${defaults?.isHomeGame}`}
-                name="isHomeGame"
-                label="Select the game location"
-                description="Select whether this game is at home or away"
-            >
-                <Group mt="xs">
-                    <Radio color="red" value="false" label="Away" />
-                    <Radio color="lime" value="true" label="Home" />
-                </Group>
-            </Radio.Group>
+
+            {eventType === "practice" ? (
+                <>
+                    <input type="hidden" name="opponent" value="Practice" />
+                    <input type="hidden" name="isHomeGame" value="true" />
+                </>
+            ) : (
+                <>
+                    <TextInput
+                        className={classes.inputs}
+                        label="Opponent's Name"
+                        name="opponent"
+                        placeholder="Who are we playing?"
+                        defaultValue={defaults.opponent}
+                        radius="md"
+                        size="md"
+                    />
+                    <Radio.Group
+                        mb="md"
+                        size="md"
+                        className={classes.inputs}
+                        defaultValue={`${defaults?.isHomeGame ?? "true"}`}
+                        name="isHomeGame"
+                        label="Select the game location"
+                        description="Select whether this game is at home or away"
+                    >
+                        <Group mt="xs">
+                            <Radio color="red" value="false" label="Away" />
+                            <Radio color="lime" value="true" label="Home" />
+                        </Group>
+                    </Radio.Group>
+                </>
+            )}
+
+            <input type="hidden" name="eventType" value={eventType} />
             <LocationInput
                 defaultValue={defaults.location || ""}
                 placeholder={locationPlaceholder}
@@ -109,9 +123,9 @@ export default function AddSingleGame({
                 />
             )}
             <DatePicker
-                label="Game Date"
+                label={eventType === "practice" ? "Practice Date" : "Game Date"}
                 name="gameDate"
-                placeholder="When should this game be scheduled?"
+                placeholder="When should this be scheduled?"
                 defaultValue={
                     defaults.gameDate &&
                     DateTime.fromISO(defaults.gameDate, {
@@ -123,7 +137,11 @@ export default function AddSingleGame({
                 size="md"
             />
             <TimeInput
-                label="Game Start Time"
+                label={
+                    eventType === "practice"
+                        ? "Practice Start Time"
+                        : "Game Start Time"
+                }
                 name="gameTime"
                 placeholder="Set the start time of the game"
                 ref={ref}
