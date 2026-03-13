@@ -108,6 +108,7 @@ export async function createSingleGame({ values, teamId: passedTeamId }) {
         opponent,
         teamId: valuesTeamId,
         locationDetails,
+        eventType,
         ...gameData
     } = values;
 
@@ -186,6 +187,7 @@ export async function createSingleGame({ values, teamId: passedTeamId }) {
             opponent,
             teamId,
             parkId,
+            eventType: eventType || "game",
             seasonId: values.seasonId,
             seasons: values.seasonId,
         };

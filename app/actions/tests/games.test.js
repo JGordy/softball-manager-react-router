@@ -105,6 +105,7 @@ describe("Games Actions", () => {
                     location: null,
                     parkId: null,
                     teamId: "team1",
+                    eventType: "game",
                     seasons: "season1",
                     seasonId: "season1",
                     timeZone: "America/New_York",
@@ -113,6 +114,32 @@ describe("Games Actions", () => {
             );
             expect(result.success).toBe(true);
             expect(result.status).toBe(201);
+        });
+
+        it("should create a practice event successfully", async () => {
+            const mockValues = {
+                gameDate: "2024-01-01",
+                gameTime: "10:00",
+                isHomeGame: "false",
+                opponent: "Practice Session",
+                teamId: "team1",
+                eventType: "practice",
+            };
+
+            createDocument.mockResolvedValue({ $id: "practice1" });
+
+            const result = await createSingleGame({ values: mockValues });
+
+            expect(createDocument).toHaveBeenCalledWith(
+                "games",
+                "unique-id",
+                expect.objectContaining({
+                    opponent: "Practice Session",
+                    eventType: "practice",
+                }),
+                expect.any(Array),
+            );
+            expect(result.success).toBe(true);
         });
 
         it("should clear parkId and location when matching season location", async () => {
