@@ -4,7 +4,9 @@ import MobileTeamDetails from "../MobileTeamDetails";
 // Mock sub-components
 jest.mock("../PlayerList", () => () => <div data-testid="player-list" />);
 jest.mock("../SeasonList", () => () => <div data-testid="season-list" />);
-jest.mock("../GamesList", () => () => <div data-testid="games-list" />);
+jest.mock("../GamesList", () => ({ primaryColor }) => (
+    <div data-testid="games-list" data-primarycolor={primaryColor} />
+));
 
 describe("MobileTeamDetails Component", () => {
     const mockTeam = {
@@ -32,7 +34,10 @@ describe("MobileTeamDetails Component", () => {
 
     it("renders sub-components correctly", () => {
         render(<MobileTeamDetails {...mockProps} />);
-
+        expect(screen.getByTestId("games-list")).toHaveAttribute(
+            "data-primarycolor",
+            "blue",
+        );
         // Since TabsWrapper defaults to seasons, check if season list is present
         expect(screen.getByTestId("season-list")).toBeInTheDocument();
     });

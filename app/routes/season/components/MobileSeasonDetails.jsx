@@ -111,7 +111,11 @@ export default function MobileSeasonDetails({
                         </Group>
                     </Title>
 
-                    <GamesList games={season.games} height="50vh" />
+                    <GamesList
+                        games={season.games}
+                        height="50vh"
+                        primaryColor={primaryColor}
+                    />
                 </Tabs.Panel>
             </TabsWrapper>
         </Container>
