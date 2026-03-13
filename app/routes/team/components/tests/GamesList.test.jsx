@@ -7,6 +7,16 @@ import sortByDate from "@/utils/sortByDate";
 import GamesListContainer from "../GamesList";
 
 jest.mock("@/utils/sortByDate", () => jest.fn((games) => games));
+jest.mock("@/components/GamesList", () => ({
+    __esModule: true,
+    default: ({ games, primaryColor }) => (
+        <div data-testid="shared-games-list" data-primarycolor={primaryColor}>
+            {!games || games.length === 0
+                ? "No games currently listed."
+                : "Games List Rendering"}
+        </div>
+    ),
+}));
 
 describe("GamesListContainer Component", () => {
     const today = DateTime.local();
@@ -45,12 +55,17 @@ describe("GamesListContainer Component", () => {
     it("renders the current season and its games", () => {
         render(
             <MemoryRouter>
-                <GamesListContainer seasons={mockSeasons} />
+                <GamesListContainer
+                    seasons={mockSeasons}
+                    primaryColor="#ff0000"
+                />
             </MemoryRouter>,
         );
 
         expect(screen.getByText("Current Season")).toBeInTheDocument();
-        expect(screen.getByText(/Team A/)).toBeInTheDocument();
+        const gamesList = screen.getByTestId("shared-games-list");
+        expect(gamesList).toBeInTheDocument();
+        expect(gamesList).toHaveAttribute("data-primarycolor", "#ff0000");
         expect(sortByDate).toHaveBeenCalled();
     });
 
@@ -63,7 +78,7 @@ describe("GamesListContainer Component", () => {
         );
 
         expect(screen.getByText("Past Season")).toBeInTheDocument();
-        expect(screen.getByText(/Team B/)).toBeInTheDocument();
+        expect(screen.getByTestId("shared-games-list")).toBeInTheDocument();
     });
 
     it("renders no games message if no seasons", () => {
@@ -72,6 +87,10 @@ describe("GamesListContainer Component", () => {
                 <GamesListContainer seasons={[]} />
             </MemoryRouter>,
         );
+        // GamesList shared component will show this when games.length is 0
+        // But since we mocked it, it will render the mock.
+        // Wait, the mock I wrote renders regardless of games length.
+        // I should update the mock to reflect games length.
         expect(
             screen.getByText("No games currently listed."),
         ).toBeInTheDocument();
