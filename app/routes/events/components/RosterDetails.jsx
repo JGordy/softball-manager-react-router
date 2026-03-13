@@ -29,6 +29,7 @@ export default function RosterDetails({
     playerChart,
     team,
 }) {
+    const isPractice = game.eventType === "practice";
     const [lineupDrawerOpened, lineupDrawerHandlers] = useDisclosure(false);
     const [availabilityDrawerOpened, availabilityDrawerHandlers] =
         useDisclosure(false);
@@ -45,24 +46,38 @@ export default function RosterDetails({
                     Roster & Availability Details
                 </Text>
 
-                <CardSection
-                    onClick={lineupDrawerHandlers.open}
-                    heading="Lineup & Field Chart"
-                    leftSection={<IconClipboardList size={20} />}
-                    subHeading={
-                        !playerChart ? (
-                            <Text size="xs" mt="5px" ml="28px" c="dimmed">
-                                Charts currently not available
-                            </Text>
-                        ) : (
-                            <Text size="xs" mt="5px" ml="28px" c="dimmed">
-                                Charts available to view
-                            </Text>
-                        )
-                    }
-                />
+                {!isPractice && (
+                    <>
+                        <CardSection
+                            onClick={lineupDrawerHandlers.open}
+                            heading="Lineup & Field Chart"
+                            leftSection={<IconClipboardList size={20} />}
+                            subHeading={
+                                !playerChart ? (
+                                    <Text
+                                        size="xs"
+                                        mt="5px"
+                                        ml="28px"
+                                        c="dimmed"
+                                    >
+                                        Charts currently not available
+                                    </Text>
+                                ) : (
+                                    <Text
+                                        size="xs"
+                                        mt="5px"
+                                        ml="28px"
+                                        c="dimmed"
+                                    >
+                                        Charts available to view
+                                    </Text>
+                                )
+                            }
+                        />
 
-                <Divider />
+                        <Divider />
+                    </>
+                )}
 
                 <CardSection
                     onClick={availabilityDrawerHandlers.open}

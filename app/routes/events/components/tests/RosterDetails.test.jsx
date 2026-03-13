@@ -167,4 +167,20 @@ describe("RosterDetails Component", () => {
             screen.getByTestId("availability-container"),
         ).toBeInTheDocument();
     });
+
+    it("does NOT render Lineup & Field Chart section for practice", () => {
+        const practiceProps = {
+            ...defaultProps,
+            game: { ...defaultProps.game, eventType: "practice" },
+        };
+        render(<RosterDetails {...practiceProps} />);
+
+        expect(
+            screen.queryByText("Lineup & Field Chart"),
+        ).not.toBeInTheDocument();
+        // Roster & Availability should still be there
+        expect(
+            screen.getByText("Roster & Availability Details"),
+        ).toBeInTheDocument();
+    });
 });
