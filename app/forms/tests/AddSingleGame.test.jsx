@@ -116,4 +116,30 @@ describe("AddSingleGame", () => {
         expect(formData.get("teamId")).toBe("team123");
         expect(formData.get("_action")).toBe("add-single-game");
     });
+
+    it("hides fields and updates labels when isPractice={true}", () => {
+        render(<AddSingleGame teamId="team123" isPractice={true} />);
+
+        expect(
+            screen.queryByLabelText(/opponent's name/i),
+        ).not.toBeInTheDocument();
+        expect(screen.queryByLabelText("Home")).not.toBeInTheDocument();
+
+        expect(screen.getByLabelText(/practice date/i)).toBeInTheDocument();
+        expect(
+            screen.getByLabelText(/practice start time/i),
+        ).toBeInTheDocument();
+    });
+
+    it("submits the correct practice data when isPractice={true}", () => {
+        render(<AddSingleGame teamId="team123" isPractice={true} />);
+
+        fireEvent.click(screen.getByRole("button", { name: /create game/i }));
+
+        const formData =
+            mockSubmit.mock.calls[mockSubmit.mock.calls.length - 1][0];
+        expect(formData.get("eventType")).toBe("practice");
+        expect(formData.get("opponent")).toBe("Practice");
+        expect(formData.get("isHomeGame")).toBe("true");
+    });
 });
