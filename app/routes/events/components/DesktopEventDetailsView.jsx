@@ -1,4 +1,4 @@
-import { Box, Grid, Group, Tabs } from "@mantine/core";
+import { Box, Grid, Group, Tabs, Title } from "@mantine/core";
 
 import BackButton from "@/components/BackButton";
 import TabsWrapper from "@/components/TabsWrapper";
@@ -48,12 +48,18 @@ export default function DesktopEventDetailsView({
                             justifyContent: "center",
                         }}
                     >
-                        <DesktopScorePanel
-                            game={game}
-                            gameInProgress={gameInProgress}
-                            gameIsPast={gameIsPast}
-                            team={team}
-                        />
+                        {game.eventType !== "practice" ? (
+                            <DesktopScorePanel
+                                game={game}
+                                gameInProgress={gameInProgress}
+                                gameIsPast={gameIsPast}
+                                team={team}
+                            />
+                        ) : (
+                            <Title order={1} ta="center">
+                                Practice
+                            </Title>
+                        )}
                     </Box>
 
                     {managerView ? (
@@ -84,17 +90,19 @@ export default function DesktopEventDetailsView({
                             user={user}
                         />
                     </Grid.Col>
-                    <Grid.Col span={12}>
-                        <DesktopGamedayPanel
-                            gameId={game.$id}
-                            gameInProgress={gameInProgress}
-                            gameIsPast={gameIsPast}
-                            isScorekeeper={isScorekeeper}
-                            weatherPromise={weatherPromise}
-                            gameDate={game.gameDate}
-                            showWeather={false}
-                        />
-                    </Grid.Col>
+                    {game.eventType !== "practice" && (
+                        <Grid.Col span={12}>
+                            <DesktopGamedayPanel
+                                gameId={game.$id}
+                                gameInProgress={gameInProgress}
+                                gameIsPast={gameIsPast}
+                                isScorekeeper={isScorekeeper}
+                                weatherPromise={weatherPromise}
+                                gameDate={game.gameDate}
+                                showWeather={false}
+                            />
+                        </Grid.Col>
+                    )}
                 </Grid>
             </Grid.Col>
 
@@ -106,8 +114,12 @@ export default function DesktopEventDetailsView({
                         <Tabs.Tab value="weather">Weather</Tabs.Tab>
                     )}
                     <Tabs.Tab value="attendance">Attendance</Tabs.Tab>
-                    <Tabs.Tab value="lineups">Lineups</Tabs.Tab>
-                    {gameIsPast && <Tabs.Tab value="awards">Awards</Tabs.Tab>}
+                    {game.eventType !== "practice" && (
+                        <Tabs.Tab value="lineups">Lineups</Tabs.Tab>
+                    )}
+                    {game.eventType !== "practice" && gameIsPast && (
+                        <Tabs.Tab value="awards">Awards</Tabs.Tab>
+                    )}
 
                     {/* ── Tab panels ── */}
                     {!gameIsPast && (
@@ -133,14 +145,16 @@ export default function DesktopEventDetailsView({
                             team={team}
                         />
                     </Tabs.Panel>
-                    <Tabs.Panel value="lineups" pt="md">
-                        <DesktopLineupPanel
-                            game={game}
-                            managerView={managerView}
-                            playerChart={playerChart}
-                        />
-                    </Tabs.Panel>
-                    {gameIsPast && (
+                    {game.eventType !== "practice" && (
+                        <Tabs.Panel value="lineups" pt="md">
+                            <DesktopLineupPanel
+                                game={game}
+                                managerView={managerView}
+                                playerChart={playerChart}
+                            />
+                        </Tabs.Panel>
+                    )}
+                    {game.eventType !== "practice" && gameIsPast && (
                         <Tabs.Panel value="awards" pt="md">
                             <AwardsContainer
                                 game={game}
