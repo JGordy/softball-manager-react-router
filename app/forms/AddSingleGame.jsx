@@ -83,7 +83,7 @@ export default function AddSingleGame({
                         mb="md"
                         size="md"
                         className={classes.inputs}
-                        defaultValue={`${defaults?.isHomeGame || "true"}`}
+                        defaultValue={`${defaults?.isHomeGame ?? "true"}`}
                         name="isHomeGame"
                         label="Select the game location"
                         description="Select whether this game is at home or away"

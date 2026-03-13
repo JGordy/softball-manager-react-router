@@ -147,10 +147,11 @@ export default function GameCard({
         eventType,
     );
 
-    const shortDate = DateTime.fromISO(gameDate).toFormat("M/d");
-    const shortTime = DateTime.fromISO(gameDate, { zone: "utc" })
-        .setZone(timeZone || "local")
-        .toLocaleString(DateTime.TIME_SIMPLE);
+    const dt = DateTime.fromISO(gameDate, { zone: "utc" }).setZone(
+        timeZone || "local",
+    );
+    const shortDate = dt.toFormat("M/d");
+    const shortTime = dt.toLocaleString(DateTime.TIME_SIMPLE);
 
     const brandingColor = primaryColor || (isPractice ? "blue" : "lime");
 

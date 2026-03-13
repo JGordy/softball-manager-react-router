@@ -87,10 +87,6 @@ describe("GamesListContainer Component", () => {
                 <GamesListContainer seasons={[]} />
             </MemoryRouter>,
         );
-        // GamesList shared component will show this when games.length is 0
-        // But since we mocked it, it will render the mock.
-        // Wait, the mock I wrote renders regardless of games length.
-        // I should update the mock to reflect games length.
         expect(
             screen.getByText("No games currently listed."),
         ).toBeInTheDocument();
