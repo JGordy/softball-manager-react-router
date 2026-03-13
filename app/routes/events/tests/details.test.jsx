@@ -181,6 +181,19 @@ describe("EventDetails Route", () => {
             ).toBeInTheDocument();
         });
 
+        it("does NOT render scoreboard for practices", () => {
+            const practiceData = {
+                ...mockLoaderData,
+                game: {
+                    ...mockLoaderData.game,
+                    eventType: "practice",
+                },
+            };
+            render(<EventDetails loaderData={practiceData} />);
+
+            expect(screen.queryByTestId("scoreboard")).not.toBeInTheDocument();
+        });
+
         it("renders delete drawer for managers", () => {
             render(<EventDetails loaderData={mockLoaderData} />); // User is manager
             expect(screen.getByText("Open Delete Drawer")).toBeInTheDocument();
