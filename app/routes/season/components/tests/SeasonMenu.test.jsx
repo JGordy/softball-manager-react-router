@@ -58,7 +58,7 @@ describe("SeasonMenu", () => {
             </MemoryRouter>,
         );
 
-        fireEvent.click(screen.getByRole("button"));
+        fireEvent.click(screen.getByTestId("menu-target-icon"));
 
         expect(await screen.findByText("Edit Season")).toBeInTheDocument();
         expect(screen.getByText("Generate Games")).toBeInTheDocument();
@@ -73,7 +73,7 @@ describe("SeasonMenu", () => {
             </MemoryRouter>,
         );
 
-        fireEvent.click(screen.getByRole("button"));
+        fireEvent.click(screen.getByTestId("menu-target-icon"));
         fireEvent.click(await screen.findByText("Schedule Practice"));
 
         expect(mockOpenModal).toHaveBeenCalledWith(
@@ -98,7 +98,7 @@ describe("SeasonMenu", () => {
             </MemoryRouter>,
         );
 
-        fireEvent.click(screen.getByRole("button"));
+        fireEvent.click(screen.getByTestId("menu-target-icon"));
         fireEvent.click(await screen.findByText("Generate Games"));
 
         const modalChildren = mockOpenModal.mock.calls[0][0].children;

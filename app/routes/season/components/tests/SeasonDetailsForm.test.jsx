@@ -1,7 +1,7 @@
 import { MemoryRouter } from "react-router";
 import { render, screen, fireEvent } from "@/utils/test-utils";
 
-import SeasonDetailsForm from "../components/SeasonDetailsForm";
+import SeasonDetailsForm from "../SeasonDetailsForm";
 
 // Mock react-router
 const mockOnSubmit = jest.fn((e) => e.preventDefault());
