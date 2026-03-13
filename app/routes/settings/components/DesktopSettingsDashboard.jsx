@@ -110,124 +110,122 @@ export default function DesktopSettingsDashboard({ actionData, teams }) {
 
     return (
         <SimpleGrid
-            cols={2}
+            cols={3}
             spacing="lg"
             mt="xl"
             data-testid="desktop-settings-dashboard"
         >
-            {/* App Preferences Card */}
+            {/* Column 1: App Preferences */}
             <AppPreferencesPanel teams={teams} />
 
-            {/* Account Card */}
-            <DashboardCard
-                icon={IconUser}
-                iconColor="lime"
-                title="Account Profile"
-                description="View and update your contact information. This is how teammates and managers can reach you."
-            >
-                <Group
-                    wrap="nowrap"
-                    align="flex-start"
-                    justify="space-between"
-                    gap="lg"
+            {/* Column 2: Notifications & Policies */}
+            <Stack gap="lg">
+                <DashboardCard
+                    icon={IconBell}
+                    iconColor="orange"
+                    title="Notifications"
                 >
-                    <Group wrap="nowrap" align="flex-start" gap="lg">
-                        <Avatar size="xl" radius="md" color="lime">
-                            {initials || "U"}
-                        </Avatar>
-                        <Stack gap="xs">
-                            <Text fw={600} size="lg">
-                                {user?.name || "No name provided"}
-                            </Text>
-                            <Text c="dimmed" size="sm">
-                                {user?.email || "No email"}
-                            </Text>
-                            <Text c="dimmed" size="sm">
-                                {formatPhoneNumber(user?.phone)}
-                            </Text>
-                        </Stack>
-                    </Group>
-                    <Button
-                        variant="light"
-                        color="lime"
-                        onClick={openUpdateContactInfoModal}
-                        rightSection={<IconPencil size={16} />}
-                    >
-                        Edit Profile
-                    </Button>
-                </Group>
-            </DashboardCard>
+                    <NotificationsPanel teams={teams} />
+                </DashboardCard>
 
-            {/* Login Options Card */}
-            <DashboardCard
-                icon={IconLock}
-                iconColor="blue"
-                title="Login Options"
-                description="Manage your login credentials. Keep your account secure by using a strong, unique password."
-            >
-                <Stack gap="sm">
-                    <Button
-                        variant="light"
-                        color="blue"
-                        onClick={openUpdatePasswordModal}
-                        fullWidth
-                        justify="space-between"
-                        rightSection={<IconKey size={16} />}
-                    >
-                        Change Password
-                    </Button>
-                    <Button
-                        variant="light"
-                        color="gray"
-                        onClick={openResetPassword}
-                        fullWidth
-                        justify="space-between"
-                        rightSection={<IconRestore size={16} />}
-                    >
-                        Reset Password
-                    </Button>
-                    <Button
-                        color="red"
-                        onClick={openLogoutDrawer}
-                        variant="light"
-                        radius="md"
-                        justify="flex-start"
-                        leftSection={<IconLogout2 size={16} />}
-                    >
-                        Log out
-                    </Button>
-                </Stack>
-            </DashboardCard>
+                <DashboardCard
+                    icon={IconHelp}
+                    iconColor="grape"
+                    title="Resources & Support"
+                    description="Need help or want to review our policies?"
+                >
+                    <Stack gap="md">
+                        <Button
+                            component="a"
+                            href="mailto:support@rostrhq.app"
+                            variant="light"
+                            color="grape"
+                            fullWidth
+                        >
+                            Contact Support
+                        </Button>
+                        <PoliciesPanel />
+                    </Stack>
+                </DashboardCard>
+            </Stack>
 
-            {/* Notifications Card */}
-            <DashboardCard
-                icon={IconBell}
-                iconColor="orange"
-                title="Notifications"
-            >
-                <NotificationsPanel teams={teams} />
-            </DashboardCard>
+            {/* Column 3: Account & Login Options */}
+            <Stack gap="lg">
+                <DashboardCard
+                    icon={IconUser}
+                    iconColor="lime"
+                    title="Account Profile"
+                    description="View and update your contact information."
+                >
+                    <Stack gap="lg">
+                        <Group wrap="nowrap" align="flex-start" gap="lg">
+                            <Avatar size="xl" radius="md" color="lime">
+                                {initials || "U"}
+                            </Avatar>
+                            <Stack gap="xs">
+                                <Text fw={600} size="lg">
+                                    {user?.name || "No name provided"}
+                                </Text>
+                                <Text c="dimmed" size="sm">
+                                    {user?.email || "No email"}
+                                </Text>
+                                <Text c="dimmed" size="sm">
+                                    {formatPhoneNumber(user?.phone)}
+                                </Text>
+                            </Stack>
+                        </Group>
+                        <Button
+                            variant="light"
+                            color="lime"
+                            onClick={openUpdateContactInfoModal}
+                            rightSection={<IconPencil size={16} />}
+                            fullWidth
+                        >
+                            Edit Profile
+                        </Button>
+                    </Stack>
+                </DashboardCard>
 
-            {/* Resources Card */}
-            <DashboardCard
-                icon={IconHelp}
-                iconColor="grape"
-                title="Resources & Support"
-                description="Need help or want to review our policies?"
-            >
-                <Stack gap="md">
-                    <Button
-                        component="a"
-                        href="mailto:support@rostrhq.app"
-                        variant="light"
-                        color="grape"
-                        fullWidth
-                    >
-                        Contact Support
-                    </Button>
-                    <PoliciesPanel />
-                </Stack>
-            </DashboardCard>
+                <DashboardCard
+                    icon={IconLock}
+                    iconColor="blue"
+                    title="Login Options"
+                    description="Manage your login credentials."
+                >
+                    <Stack gap="sm">
+                        <Button
+                            variant="light"
+                            color="blue"
+                            onClick={openUpdatePasswordModal}
+                            fullWidth
+                            justify="space-between"
+                            rightSection={<IconKey size={16} />}
+                        >
+                            Change Password
+                        </Button>
+                        <Button
+                            variant="light"
+                            color="gray"
+                            onClick={openResetPassword}
+                            fullWidth
+                            justify="space-between"
+                            rightSection={<IconRestore size={16} />}
+                        >
+                            Reset Password
+                        </Button>
+                        <Button
+                            color="red"
+                            onClick={openLogoutDrawer}
+                            variant="light"
+                            radius="md"
+                            justify="flex-start"
+                            leftSection={<IconLogout2 size={16} />}
+                        >
+                            Log out
+                        </Button>
+                    </Stack>
+                </DashboardCard>
+            </Stack>
 
             <ResetPasswordDrawer
                 opened={passwordResetOpened}
