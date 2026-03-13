@@ -6,9 +6,9 @@ import GamesList from "./GamesList";
 
 // Mock Child Component
 jest.mock("@/components/GameCard", () => {
-    return function MockGameCard({ opponent, gameDate }) {
+    return function MockGameCard({ opponent, gameDate, primaryColor }) {
         return (
-            <div data-testid="game-card">
+            <div data-testid="game-card" data-primarycolor={primaryColor}>
                 {opponent} - {gameDate}
             </div>
         );
@@ -73,6 +73,15 @@ describe("GamesList Component", () => {
         render(<GamesList games={games} />);
         const cards = screen.getAllByTestId("game-card");
         expect(cards.length).toBe(4);
+    });
+
+    it("passes primaryColor to game cards", () => {
+        const primaryColor = "#ff0000";
+        render(<GamesList games={games} primaryColor={primaryColor} />);
+        const cards = screen.getAllByTestId("game-card");
+        cards.forEach((card) => {
+            expect(card).toHaveAttribute("data-primarycolor", primaryColor);
+        });
     });
 
     it("sorts games correctly: Today -> Future -> Past (Upcoming First)", () => {
