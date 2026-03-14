@@ -22,12 +22,16 @@ export async function action({ request }) {
             );
         }
 
+        const url = new URL(request.url);
+        const origin = url.origin;
+
         // Send a test notification to the current user
         const result = await sendPushNotification({
             userIds: [user.$id],
             title: "🎉 Test Notification",
             body: "Push notifications are working! This is a test message.",
             url: `/user/${user.$id}`,
+            origin,
         });
 
         return Response.json(result);
