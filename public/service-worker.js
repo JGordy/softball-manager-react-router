@@ -24,11 +24,6 @@ self.addEventListener("push", (event) => {
         try {
             const payload = event.data.json();
 
-            // If the payload has a notification object, let the browser/FCM handle the visual notification automatically.
-            if (payload.notification) {
-                return;
-            }
-
             // Extract from top-level or data sub-object
             // Normalize data to object if it's a JSON string
             const payloadData = normalizeNotificationData(
