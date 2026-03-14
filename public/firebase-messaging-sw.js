@@ -24,6 +24,12 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage(function (payload) {
     console.log("[Firebase SW] Background message received:", payload);
 
+    // If the payload has a notification object, the browser shows it automatically.
+    // We only need to manually trigger showNotification for data-only messages.
+    if (payload.notification) {
+        return;
+    }
+
     // If there's a notification block, the browser might show it automatically.
     // We only want to show a manual notification if we need to customize it
     // or if the automatic one is missing.
