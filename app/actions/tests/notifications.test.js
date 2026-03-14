@@ -8,6 +8,8 @@ import {
     sendAttendanceRequest,
     sendGameFinalNotification,
     sendAwardVoteNotification,
+    resolveAbsoluteUrl,
+    getAuthUserAndAdminUsers,
 } from "../notifications";
 
 // Use the __mocks__/node-appwrite.js mock for generic Appwrite SDK classes
@@ -28,6 +30,12 @@ jest.mock("@/utils/appwrite/server.js", () => {
     return {
         createAdminClient: jest.fn(() => ({
             messaging: new Messaging(),
+            users: { dummy: "users-client" },
+        })),
+        createSessionClient: jest.fn(() => ({
+            account: {
+                get: jest.fn().mockResolvedValue({ $id: "test-user-123" }),
+            },
         })),
     };
 });
@@ -301,6 +309,66 @@ describe("notifications actions", () => {
             });
 
             expect(result.success).toBe(true);
+        });
+    });
+
+    describe("resolveAbsoluteUrl", () => {
+        let originalAppUrl;
+
+        beforeAll(() => {
+            originalAppUrl = process.env.VITE_APP_URL;
+        });
+
+        afterAll(() => {
+            if (originalAppUrl !== undefined) {
+                process.env.VITE_APP_URL = originalAppUrl;
+            } else {
+                delete process.env.VITE_APP_URL;
+            }
+        });
+
+        it("should return absolute URL as-is", () => {
+            expect(resolveAbsoluteUrl("https://example.com/test")).toBe(
+                "https://example.com/test",
+            );
+        });
+
+        it("should resolve a relative URL using the provided origin", () => {
+            expect(
+                resolveAbsoluteUrl("/team/123", "https://my-custom-origin.com"),
+            ).toBe("https://my-custom-origin.com/team/123");
+        });
+
+        it("should resolve a relative URL using process.env.VITE_APP_URL if origin is not provided", () => {
+            process.env.VITE_APP_URL = "https://env-origin.com";
+            expect(resolveAbsoluteUrl("/team/123")).toBe(
+                "https://env-origin.com/team/123",
+            );
+        });
+
+        it("should resolve a relative URL using fallback if neither origin nor process.env is set", () => {
+            delete process.env.VITE_APP_URL;
+            expect(resolveAbsoluteUrl("/team/123")).toBe(
+                "https://rostrhq.app/team/123",
+            );
+        });
+
+        it("should handle error resulting from invalid URL construction returning string as-is or falsy values returning safely", () => {
+            expect(resolveAbsoluteUrl("")).toBe("");
+            expect(resolveAbsoluteUrl(undefined)).toBeUndefined();
+            expect(resolveAbsoluteUrl("invalid-path")).toBe("invalid-path");
+        });
+    });
+
+    describe("getAuthUserAndAdminUsers", () => {
+        it("should return accountUser and adminUsersClient", async () => {
+            const req = { headers: new Map() };
+            const result = await getAuthUserAndAdminUsers(req);
+
+            expect(result).toHaveProperty("accountUser");
+            expect(result.accountUser.$id).toBe("test-user-123");
+            expect(result).toHaveProperty("adminUsersClient");
+            expect(result.adminUsersClient).toEqual({ dummy: "users-client" });
         });
     });
 });
