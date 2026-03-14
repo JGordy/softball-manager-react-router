@@ -32,10 +32,26 @@ self.addEventListener("push", (event) => {
             );
 
             data = {
-                title: payload.title || payloadData.title || data.title,
-                body: payload.body || payloadData.body || data.body,
-                icon: payload.icon || payloadData.icon || data.icon,
-                badge: payload.badge || payloadData.badge || data.badge,
+                title:
+                    payload.notification?.title ||
+                    payload.title ||
+                    payloadData.title ||
+                    data.title,
+                body:
+                    payload.notification?.body ||
+                    payload.body ||
+                    payloadData.body ||
+                    data.body,
+                icon:
+                    payload.notification?.icon ||
+                    payload.icon ||
+                    payloadData.icon ||
+                    data.icon,
+                badge:
+                    payload.notification?.badge ||
+                    payload.badge ||
+                    payloadData.badge ||
+                    data.badge,
                 data: {
                     ...data.data,
                     ...payloadData,

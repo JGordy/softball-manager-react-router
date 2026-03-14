@@ -18,10 +18,12 @@ jest.mock("node-appwrite");
 // Optionally override specifics for this test suite
 import { ID, Messaging } from "node-appwrite";
 ID.unique.mockImplementation(() => "unique-id-123");
+
+const mockCreatePush = jest.fn().mockResolvedValue({
+    $id: "message-id-123",
+});
 Messaging.mockImplementation(() => ({
-    createPush: jest.fn().mockResolvedValue({
-        $id: "message-id-123",
-    }),
+    createPush: mockCreatePush,
 }));
 
 // Mock the server utility
@@ -121,6 +123,18 @@ describe("notifications actions", () => {
             expect(result.success).toBe(true);
             expect(result.messageId).toBe("message-id-123");
             expect(result.recipientCount).toBe(2);
+
+            expect(mockCreatePush).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    title: "Test Title",
+                    body: "Test body message",
+                    users: ["user-1", "user-2"],
+                    action: "http://localhost:5173/test",
+                    icon: "http://localhost:5173/android-chrome-192x192.png",
+                    color: "#facc15",
+                    tag: NOTIFICATION_TYPES.TEAM_ANNOUNCEMENT,
+                }),
+            );
         });
 
         it("should use default type if not provided", async () => {
@@ -155,6 +169,18 @@ describe("notifications actions", () => {
             expect(result.success).toBe(true);
             expect(result.messageId).toBe("message-id-123");
             expect(result.topic).toBe("team_team-123");
+
+            expect(mockCreatePush).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    title: "Team Announcement",
+                    body: "Hello team!",
+                    topics: ["team_team-123"],
+                    action: "http://localhost:5173/team/team-123",
+                    icon: "http://localhost:5173/android-chrome-192x192.png",
+                    color: "#facc15",
+                    tag: NOTIFICATION_TYPES.TEAM_ANNOUNCEMENT,
+                }),
+            );
         });
 
         it("should use default URL based on teamId if not provided", async () => {
@@ -349,7 +375,7 @@ describe("notifications actions", () => {
         it("should resolve a relative URL using fallback if neither origin nor process.env is set", () => {
             delete process.env.VITE_APP_URL;
             expect(resolveAbsoluteUrl("/team/123")).toBe(
-                "https://rostrhq.app/team/123",
+                "http://localhost:5173/team/123",
             );
         });
 

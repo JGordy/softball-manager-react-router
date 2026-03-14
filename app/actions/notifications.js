@@ -40,7 +40,7 @@ export async function getAuthUserAndAdminUsers(request) {
  */
 export function resolveAbsoluteUrl(url, origin) {
     const baseOrigin =
-        origin || process.env.VITE_APP_URL || "https://rostrhq.app";
+        origin || process.env.VITE_APP_URL || "http://localhost:5173";
 
     if (url && url.startsWith("/")) {
         try {
