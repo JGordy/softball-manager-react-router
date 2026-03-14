@@ -36,7 +36,7 @@ export async function getAuthUserAndAdminUsers(request) {
  * Helper to resolve an absolute URL using the provided origin or environment defaults
  * @param {string} url - The relative or absolute URL to resolve
  * @param {string} [origin] - Optional base origin
- * @returns {string} The resolved absolute URL
+ * @returns {string|undefined} The resolved absolute URL or the original input
  */
 export function resolveAbsoluteUrl(url, origin) {
     const baseOrigin =
