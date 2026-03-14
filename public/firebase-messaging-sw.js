@@ -24,28 +24,24 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage(function (payload) {
     console.log("[Firebase SW] Background message received:", payload);
 
-    // If there's a notification block, the browser might show it automatically.
-    // We only want to show a manual notification if we need to customize it
-    // or if the automatic one is missing.
-    // To avoid double notifications, we use a unique tag.
+    // If the payload has a notification object, the browser shows it automatically.
+    // We only need to manually trigger showNotification for data-only messages.
+    if (payload.notification) {
+        return;
+    }
 
     const data = normalizeNotificationData(payload.data, "[Firebase SW]");
 
     // Customize notification content
-    const notificationTitle =
-        payload.notification?.title || data.title || "Softball Manager";
+    const notificationTitle = data.title || "RostrHQ";
 
     const notificationOptions = {
-        body:
-            payload.notification?.body ||
-            data.body ||
-            "You have a new notification",
+        body: data.body || "You have a new notification",
         icon: data.icon || "/android-chrome-192x192.png",
         badge: data.badge || "/favicon-32x32.png",
         data: data,
-        // The tag ensures that if the browser automatically shows a notification
-        // AND this manual one triggers, they will merge/replace rather than duplicate.
-        // Use a more specific tag if possible, otherwise use a default.
+        // The tag ensures that if multiple data-only notifications are sent,
+        // they will merge/replace rather than duplicate.
         tag: data.tag || data.type || "softball-manager-notification",
         renotify: true,
     };

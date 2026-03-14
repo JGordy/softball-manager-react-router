@@ -21,6 +21,39 @@ import {
 } from "@/utils/notifications.js";
 
 /**
+ * Helper to get authenticated user and admin users client
+ * @param {Request} request - The incoming request
+ * @returns {Promise<{accountUser: Object, adminUsersClient: Object}>} The user object and admin users client
+ */
+export async function getAuthUserAndAdminUsers(request) {
+    const { account } = await createSessionClient(request);
+    const accountUser = await account.get();
+    const { users: adminUsersClient } = createAdminClient();
+    return { accountUser, adminUsersClient };
+}
+
+/**
+ * Helper to resolve an absolute URL using the provided origin or environment defaults
+ * @param {string} url - The relative or absolute URL to resolve
+ * @param {string} [origin] - Optional base origin
+ * @returns {string|undefined} The resolved absolute URL or the original input
+ */
+export function resolveAbsoluteUrl(url, origin) {
+    const baseOrigin =
+        origin || process.env.VITE_APP_URL || "http://localhost:5173";
+
+    if (url && url.startsWith("/")) {
+        try {
+            return new URL(url, baseOrigin).href;
+        } catch (e) {
+            console.error("Error resolving absolute URL:", e);
+        }
+    }
+
+    return url;
+}
+
+/**
  * Helper to find a specific subscriber in a topic with pagination
  * @param {Object} messaging - Appwrite Messaging client
  * @param {string} topic - Topic ID
@@ -67,22 +100,18 @@ export async function getPushTarget({ request, targetId }) {
         throw new Error("Target ID is required");
     }
 
-    // Get current user
-    const { account } = await createSessionClient(request);
-    const user = await account.get();
-
-    // Use admin client to fetch the target
-    const { users } = createAdminClient();
+    const { accountUser, adminUsersClient } =
+        await getAuthUserAndAdminUsers(request);
 
     // Try to fetch the target for this user
     try {
-        const target = await users.getTarget({
-            userId: user.$id,
+        const target = await adminUsersClient.getTarget({
+            userId: accountUser.$id,
             targetId: targetId,
         });
 
         // Verify ownership
-        if (target && target.userId === user.$id) {
+        if (target && target.userId === accountUser.$id) {
             return target;
         }
         return null;
@@ -99,16 +128,12 @@ export async function getPushTarget({ request, targetId }) {
  * @returns {Promise<Array>} Array of push targets
  */
 export async function listPushTargets({ request }) {
-    // Get current user
-    const { account } = await createSessionClient(request);
-    const user = await account.get();
-
-    // Use admin client to fetch the targets
-    const { users } = createAdminClient();
+    const { accountUser, adminUsersClient } =
+        await getAuthUserAndAdminUsers(request);
 
     try {
-        const result = await users.listTargets({
-            userId: user.$id,
+        const result = await adminUsersClient.listTargets({
+            userId: accountUser.$id,
         });
 
         // Filter to only push targets
@@ -140,17 +165,13 @@ export async function createPushTarget({ request, fcmToken, providerId }) {
         throw new Error("Provider ID is required");
     }
 
-    // First, get the current user's ID from the session
-    const { account } = await createSessionClient(request);
-    const user = await account.get();
-
-    // Use admin client to create the push target via Users service
-    const { users } = createAdminClient();
+    const { accountUser, adminUsersClient } =
+        await getAuthUserAndAdminUsers(request);
 
     // Check if a target with this FCM token already exists
     try {
-        const existingTargets = await users.listTargets({
-            userId: user.$id,
+        const existingTargets = await adminUsersClient.listTargets({
+            userId: accountUser.$id,
         });
 
         const existingPushTarget = existingTargets.targets.find(
@@ -171,8 +192,8 @@ export async function createPushTarget({ request, fcmToken, providerId }) {
     }
 
     const targetId = ID.unique();
-    const target = await users.createTarget({
-        userId: user.$id,
+    const target = await adminUsersClient.createTarget({
+        userId: accountUser.$id,
         targetId,
         providerType: MessagingProviderType.Push,
         identifier: fcmToken,
@@ -194,15 +215,11 @@ export async function deletePushTarget({ request, targetId }) {
         throw new Error("Target ID is required");
     }
 
-    // First, get the current user's ID from the session
-    const { account } = await createSessionClient(request);
-    const user = await account.get();
+    const { accountUser, adminUsersClient } =
+        await getAuthUserAndAdminUsers(request);
 
-    // Use admin client to delete the push target via Users service
-    const { users } = createAdminClient();
-
-    await users.deleteTarget({
-        userId: user.$id,
+    await adminUsersClient.deleteTarget({
+        userId: accountUser.$id,
         targetId,
     });
 
@@ -237,15 +254,9 @@ export async function sendPushNotification({
 
     userIds.forEach(validateUserId);
 
-    // Resolve absolute URL if origin is provided
-    let finalUrl = url;
-    if (origin && url.startsWith("/")) {
-        try {
-            finalUrl = new URL(url, origin).href;
-        } catch (e) {
-            console.error("Error resolving absolute URL:", e);
-        }
-    }
+    // Resolve absolute URLs
+    const finalUrl = resolveAbsoluteUrl(url, origin);
+    const iconUrl = resolveAbsoluteUrl("/android-chrome-192x192.png", origin);
 
     const payload = formatNotificationPayload({
         title,
@@ -267,6 +278,10 @@ export async function sendPushNotification({
             title,
             body,
             users: userIds,
+            action: finalUrl,
+            icon: iconUrl,
+            color: "#facc15",
+            tag: type,
             data: payload.data,
         });
 
@@ -292,6 +307,7 @@ export async function sendPushNotification({
  * @param {string} options.body - Notification body text
  * @param {string} [options.type] - Notification type
  * @param {string} [options.url] - Deep link URL
+ * @param {string} [options.origin] - Origin to use for absolute URLs
  * @param {Object} [options.data] - Additional data
  * @returns {Promise<Object>} Result of the notification send operation
  */
@@ -301,6 +317,7 @@ export async function sendTeamNotification({
     body,
     type = NOTIFICATION_TYPES.TEAM_ANNOUNCEMENT,
     url,
+    origin,
     data = {},
 }) {
     if (!teamId) {
@@ -310,11 +327,13 @@ export async function sendTeamNotification({
     const topic = buildTeamTopic(teamId);
     const defaultUrl = url || `/team/${teamId}`;
 
+    const finalUrl = resolveAbsoluteUrl(defaultUrl, origin);
+
     const payload = formatNotificationPayload({
         title,
         body,
         type,
-        url: defaultUrl,
+        url: finalUrl,
         data: {
             ...data,
             teamId,
@@ -333,6 +352,10 @@ export async function sendTeamNotification({
             title,
             body,
             topics: [topic],
+            action: finalUrl,
+            icon: resolveAbsoluteUrl("/android-chrome-192x192.png", origin),
+            color: "#facc15",
+            tag: type,
             data: payload.data,
         });
 
@@ -359,6 +382,7 @@ export async function sendTeamNotification({
  * @param {string} options.gameName - Name/description of the game
  * @param {string} options.gameTime - Formatted game time string
  * @param {string} options.location - Game location
+ * @param {string} [options.origin] - Origin to use for absolute URLs
  * @returns {Promise<Object>} Result of the notification send operation
  */
 export async function sendGameReminder({
@@ -368,6 +392,7 @@ export async function sendGameReminder({
     gameName,
     gameTime,
     location,
+    origin,
 }) {
     if (!gameId) {
         throw new Error("Game ID is required");
@@ -379,6 +404,7 @@ export async function sendGameReminder({
         body: `${gameName} at ${gameTime}${location ? ` - ${location}` : ""}`,
         type: NOTIFICATION_TYPES.GAME_REMINDER,
         url: `/events/${gameId}`,
+        origin,
         data: {
             gameId,
             teamId,
@@ -396,6 +422,7 @@ export async function sendGameReminder({
  * @param {string} options.teamId - Team ID
  * @param {string[]} options.userIds - User IDs to notify
  * @param {string} options.gameName - Name/description of the game
+ * @param {string} [options.origin] - Origin to use for absolute URLs
  * @returns {Promise<Object>} Result of the notification send operation
  */
 export async function sendLineupFinalizedNotification({
@@ -403,6 +430,7 @@ export async function sendLineupFinalizedNotification({
     teamId,
     userIds,
     gameName,
+    origin,
 }) {
     if (!gameId) {
         throw new Error("Game ID is required");
@@ -414,6 +442,7 @@ export async function sendLineupFinalizedNotification({
         body: `The lineup for ${gameName} has been finalized. Check your position!`,
         type: NOTIFICATION_TYPES.LINEUP_FINALIZED,
         url: `/events/${gameId}#lineup`,
+        origin,
         data: {
             gameId,
             teamId,
@@ -430,6 +459,7 @@ export async function sendLineupFinalizedNotification({
  * @param {string[]} options.userIds - User IDs to notify
  * @param {string} options.gameName - Name/description of the game
  * @param {string} options.gameDate - Formatted game date
+ * @param {string} [options.origin] - Origin to use for absolute URLs
  * @returns {Promise<Object>} Result of the notification send operation
  */
 export async function sendAttendanceRequest({
@@ -438,6 +468,7 @@ export async function sendAttendanceRequest({
     userIds,
     gameName,
     gameDate,
+    origin,
 }) {
     if (!gameId) {
         throw new Error("Game ID is required");
@@ -449,6 +480,7 @@ export async function sendAttendanceRequest({
         body: `Please confirm your attendance for ${gameName} on ${gameDate}`,
         type: NOTIFICATION_TYPES.ATTENDANCE_REQUEST,
         url: `/events/${gameId}#attendance`,
+        origin,
         data: {
             gameId,
             teamId,
@@ -466,6 +498,7 @@ export async function sendAttendanceRequest({
  * @param {string[]} options.userIds - User IDs to notify
  * @param {string} options.opponent - Opponent name
  * @param {string} options.score - Game final score (e.g. "12 - 4")
+ * @param {string} [options.origin] - Origin to use for absolute URLs
  * @returns {Promise<Object>} Result of the notification send operation
  */
 export async function sendGameFinalNotification({
@@ -474,6 +507,7 @@ export async function sendGameFinalNotification({
     userIds,
     opponent,
     score,
+    origin,
 }) {
     if (!gameId) {
         throw new Error("Game ID is required");
@@ -485,6 +519,7 @@ export async function sendGameFinalNotification({
         body: `The game against ${opponent} just went final. We ${score}`,
         type: NOTIFICATION_TYPES.GAME_FINAL,
         url: `/events/${gameId}/gameday#boxscore`,
+        origin,
         data: {
             gameId,
             teamId,
@@ -501,6 +536,7 @@ export async function sendGameFinalNotification({
  * @param {string} options.teamId - Team ID
  * @param {string[]} options.userIds - User IDs to notify
  * @param {string} options.opponent - Opponent name
+ * @param {string} [options.origin] - Origin to use for absolute URLs
  * @returns {Promise<Object>} Result of the notification send operation
  */
 export async function sendAwardVoteNotification({
@@ -508,6 +544,7 @@ export async function sendAwardVoteNotification({
     teamId,
     userIds,
     opponent,
+    origin,
 }) {
     if (!gameId) {
         throw new Error("Game ID is required");
@@ -519,6 +556,7 @@ export async function sendAwardVoteNotification({
         body: `The game against ${opponent} is over. Head over to the awards tab and vote for today's top performers!`,
         type: NOTIFICATION_TYPES.VOTE_REMINDER,
         url: `/events/${gameId}#awards`,
+        origin,
         data: {
             gameId,
             teamId,
