@@ -69,8 +69,8 @@ self.addEventListener("push", (event) => {
 
     const options = {
         body: data.body,
-        icon: data.icon,
-        badge: data.badge,
+        icon: normalizeUrl(data.icon, self.location.origin),
+        badge: normalizeUrl(data.badge, self.location.origin),
         data: data.data,
         // The tag ensures that if multiple notifications are sent, they merge/replace.
         // Use a more specific tag if possible, otherwise use a default.
