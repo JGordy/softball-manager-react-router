@@ -135,6 +135,8 @@ function Lineup({ loaderData, actionData }) {
             </Stack>
 
             <LineupContainer
+                game={game}
+                teams={teams}
                 managerView={managerView}
                 players={playersWithAvailability}
                 lineupState={lineupState}
