@@ -24,23 +24,44 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage(function (payload) {
     console.log("[Firebase SW] Background message received:", payload);
 
-    // If the payload has a notification object, the browser shows it automatically.
-    // We only need to manually trigger showNotification for data-only messages.
-    if (payload.notification) {
-        return;
+    // Always construct a normalized data object so clicks can deep-link correctly,
+    // even when the payload includes a notification object.
+    const rawData = payload && payload.data ? { ...payload.data } : {};
+
+    if (payload && payload.notification) {
+        // Merge notification fields into the data so the content matches
+        // what users see, and so click handling has access to the same info.
+        if (payload.notification.title && !rawData.title) {
+            rawData.title = payload.notification.title;
+        }
+        if (payload.notification.body && !rawData.body) {
+            rawData.body = payload.notification.body;
+        }
+        if (payload.notification.icon && !rawData.icon) {
+            rawData.icon = payload.notification.icon;
+        }
+        if (payload.notification.badge && !rawData.badge) {
+            rawData.badge = payload.notification.badge;
+        }
     }
 
-    const data = normalizeNotificationData(payload.data, "[Firebase SW]");
+    const data = normalizeNotificationData(rawData, "[Firebase SW]");
 
     // Customize notification content
     const notificationTitle = data.title || "RostrHQ";
 
     const notificationOptions = {
         body: data.body || "You have a new notification",
-        icon: data.icon || "/android-chrome-192x192.png",
-        badge: data.badge || "/favicon-32x32.png",
+        icon: normalizeUrl(
+            data.icon || "/android-chrome-192x192.png",
+            self.location.origin,
+        ),
+        badge: normalizeUrl(
+            data.badge || "/favicon-32x32.png",
+            self.location.origin,
+        ),
         data: data,
-        // The tag ensures that if multiple data-only notifications are sent,
+        // The tag ensures that if multiple notifications are sent,
         // they will merge/replace rather than duplicate.
         tag: data.tag || data.type || "softball-manager-notification",
         renotify: true,
