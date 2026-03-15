@@ -82,12 +82,27 @@ export function NotificationsProvider({ children }) {
             return null;
         }
         try {
+            // Clean up legacy Firebase worker
+            const registrations =
+                await navigator.serviceWorker.getRegistrations();
+            for (let reg of registrations) {
+                if (
+                    reg.active &&
+                    reg.active.scriptURL.includes("firebase-messaging-sw.js")
+                ) {
+                    console.log(
+                        "Unregistering legacy Firebase service worker...",
+                    );
+                    await reg.unregister();
+                }
+            }
+
             const registration = await navigator.serviceWorker.register(
-                "/firebase-messaging-sw.js",
+                "/service-worker.js",
                 { scope: "/" },
             );
             console.log(
-                "Firebase Messaging service worker registered:",
+                "Universal service worker registered:",
                 registration.scope,
             );
             return registration;
