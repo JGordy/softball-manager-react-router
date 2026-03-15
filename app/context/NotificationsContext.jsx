@@ -32,6 +32,48 @@ export function NotificationsProvider({ children }) {
     const [error, setError] = useState(null);
     const [pushTargetId, setPushTargetId] = useState(null);
 
+    /**
+     * Register the service worker if not already registered
+     * @returns {Promise<ServiceWorkerRegistration|null>}
+     */
+    const registerServiceWorker = useCallback(async () => {
+        if (!("serviceWorker" in navigator)) {
+            console.warn("Service workers are not supported");
+            return null;
+        }
+        try {
+            // Clean up legacy Firebase worker
+            const registrations =
+                await navigator.serviceWorker.getRegistrations();
+            for (let reg of registrations) {
+                const scriptURL =
+                    reg.active?.scriptURL ||
+                    reg.waiting?.scriptURL ||
+                    reg.installing?.scriptURL ||
+                    "";
+                if (scriptURL.includes("firebase-messaging-sw.js")) {
+                    console.log(
+                        "Unregistering legacy Firebase service worker...",
+                    );
+                    await reg.unregister();
+                }
+            }
+
+            const registration = await navigator.serviceWorker.register(
+                "/service-worker.js",
+                { scope: "/" },
+            );
+            console.log(
+                "Universal service worker registered:",
+                registration.scope,
+            );
+            return registration;
+        } catch (err) {
+            console.error("Service worker registration failed:", err);
+            throw new Error("Failed to register service worker");
+        }
+    }, []);
+
     // Check support and permission on mount
     useEffect(() => {
         const supported = isPushSupported();
@@ -42,6 +84,13 @@ export function NotificationsProvider({ children }) {
 
             // Check if we have a stored push target ID and verify it with the server
             const storedTargetId = localStorage.getItem(PUSH_TARGET_KEY);
+
+            // Auto-migrate service workers if user is already subscribed or granted permission
+            if (storedTargetId || getNotificationPermission() === "granted") {
+                registerServiceWorker().catch((err) => {
+                    console.error("Auto-registration of SW failed:", err);
+                });
+            }
 
             if (storedTargetId) {
                 // Verify with server
@@ -70,47 +119,7 @@ export function NotificationsProvider({ children }) {
                     });
             }
         }
-    }, []);
-
-    /**
-     * Register the service worker if not already registered
-     * @returns {Promise<ServiceWorkerRegistration|null>}
-     */
-    const registerServiceWorker = useCallback(async () => {
-        if (!("serviceWorker" in navigator)) {
-            console.warn("Service workers are not supported");
-            return null;
-        }
-        try {
-            // Clean up legacy Firebase worker
-            const registrations =
-                await navigator.serviceWorker.getRegistrations();
-            for (let reg of registrations) {
-                if (
-                    reg.active &&
-                    reg.active.scriptURL.includes("firebase-messaging-sw.js")
-                ) {
-                    console.log(
-                        "Unregistering legacy Firebase service worker...",
-                    );
-                    await reg.unregister();
-                }
-            }
-
-            const registration = await navigator.serviceWorker.register(
-                "/service-worker.js",
-                { scope: "/" },
-            );
-            console.log(
-                "Universal service worker registered:",
-                registration.scope,
-            );
-            return registration;
-        } catch (err) {
-            console.error("Service worker registration failed:", err);
-            throw new Error("Failed to register service worker");
-        }
-    }, []);
+    }, [registerServiceWorker]);
 
     /**
      * Request notification permission from the user
