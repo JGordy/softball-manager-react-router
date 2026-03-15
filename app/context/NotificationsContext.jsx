@@ -45,7 +45,7 @@ export function NotificationsProvider({ children }) {
             // Clean up legacy Firebase worker
             const registrations =
                 await navigator.serviceWorker.getRegistrations();
-            for (let reg of registrations) {
+            for (const reg of registrations) {
                 const scriptURL =
                     reg.active?.scriptURL ||
                     reg.waiting?.scriptURL ||
@@ -70,7 +70,7 @@ export function NotificationsProvider({ children }) {
             return registration;
         } catch (err) {
             console.error("Service worker registration failed:", err);
-            throw new Error("Failed to register service worker");
+            throw err;
         }
     }, []);
 
