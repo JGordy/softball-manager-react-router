@@ -138,6 +138,14 @@ describe("notifications actions", () => {
                     }),
                 }),
             );
+
+            // Verify top-level title and body are omitted to force data-only silent push
+            const callArgs =
+                mockCreatePush.mock.calls[
+                    mockCreatePush.mock.calls.length - 1
+                ][0];
+            expect(callArgs.title).toBeUndefined();
+            expect(callArgs.body).toBeUndefined();
         });
 
         it("should use default type if not provided", async () => {
@@ -187,6 +195,14 @@ describe("notifications actions", () => {
                     }),
                 }),
             );
+
+            // Verify top-level title and body are omitted to force data-only silent push
+            const callArgs =
+                mockCreatePush.mock.calls[
+                    mockCreatePush.mock.calls.length - 1
+                ][0];
+            expect(callArgs.title).toBeUndefined();
+            expect(callArgs.body).toBeUndefined();
         });
 
         it("should use default URL based on teamId if not provided", async () => {
