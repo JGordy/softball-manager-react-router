@@ -272,11 +272,10 @@ export async function sendPushNotification({
         const { messaging } = createAdminClient();
 
         // Create and send a push notification message
-        // Using real title/body to ensure visibility
+        // Omit top-level title/body to ensure a data-only silent push
+        // that our unified service-worker.js can handle deterministically
         const message = await messaging.createPush({
             messageId: ID.unique(),
-            title,
-            body,
             users: userIds,
             action: finalUrl,
             icon: iconUrl,
@@ -346,11 +345,10 @@ export async function sendTeamNotification({
         const { messaging } = createAdminClient();
 
         // Create and send a push notification to a topic
-        // Using real title/body to ensure visibility
+        // Omit top-level title/body to ensure a data-only silent push
+        // that our unified service-worker.js can handle deterministically
         const message = await messaging.createPush({
             messageId: ID.unique(),
-            title,
-            body,
             topics: [topic],
             action: finalUrl,
             icon: resolveAbsoluteUrl("/android-chrome-192x192.png", origin),
