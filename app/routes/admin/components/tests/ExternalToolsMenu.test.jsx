@@ -42,6 +42,7 @@ describe("ExternalToolsMenu", () => {
             "https://cloud.umami.is/analytics/us/websites/1e945f69-4632-4c87-a229-42769d855efa",
         );
         expect(link).toHaveAttribute("target", "_blank");
+        expect(link).toHaveAttribute("rel", "noopener noreferrer");
     });
 
     it("renders the Appwrite Console link", async () => {
@@ -55,6 +56,7 @@ describe("ExternalToolsMenu", () => {
             "https://cloud.appwrite.io/console/project-fra-679b95f10030c4821c90/overview/platforms",
         );
         expect(link).toHaveAttribute("target", "_blank");
+        expect(link).toHaveAttribute("rel", "noopener noreferrer");
     });
 
     it("renders the Render Server link", async () => {
@@ -68,6 +70,7 @@ describe("ExternalToolsMenu", () => {
             "https://dashboard.render.com/web/srv-cv69doan91rc73bdbrkg",
         );
         expect(link).toHaveAttribute("target", "_blank");
+        expect(link).toHaveAttribute("rel", "noopener noreferrer");
     });
 
     it("renders the Sentry Issues link", async () => {
@@ -81,5 +84,6 @@ describe("ExternalToolsMenu", () => {
             "https://joseph-gordy.sentry.io/issues/?project=4510845363814400",
         );
         expect(link).toHaveAttribute("target", "_blank");
+        expect(link).toHaveAttribute("rel", "noopener noreferrer");
     });
 });
