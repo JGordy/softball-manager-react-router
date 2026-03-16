@@ -200,6 +200,11 @@ describe("AdminDashboard Route", () => {
 
             // Revalidator check
             expect(screen.getByText("Live")).toBeInTheDocument();
+
+            // External Tools Menu check
+            expect(
+                screen.getByRole("button", { name: /external tools/i }),
+            ).toBeInTheDocument();
         });
 
         it("handles missing Umami data gracefully", () => {
