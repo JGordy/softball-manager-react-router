@@ -95,7 +95,12 @@ export default function AdminDashboard() {
                     <Title order={2}>Admin Dashboard</Title>
                     <Group gap="xs">
                         {revalidator.state === "loading" ? (
-                            <Loader color="yellow" size="sm" type="dots" />
+                            <Loader
+                                color="yellow"
+                                size="sm"
+                                type="dots"
+                                aria-label="Updating..."
+                            />
                         ) : (
                             <Badge color="lime" size="sm" variant="dot">
                                 Live
