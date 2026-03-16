@@ -126,15 +126,26 @@ describe("notifications actions", () => {
 
             expect(mockCreatePush).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    title: "Test Title",
-                    body: "Test body message",
                     users: ["user-1", "user-2"],
                     action: "http://localhost:5173/test",
                     icon: "http://localhost:5173/android-chrome-192x192.png",
                     color: "#facc15",
                     tag: NOTIFICATION_TYPES.TEAM_ANNOUNCEMENT,
+                    data: expect.objectContaining({
+                        title: "Test Title",
+                        body: "Test body message",
+                        type: NOTIFICATION_TYPES.TEAM_ANNOUNCEMENT,
+                    }),
                 }),
             );
+
+            // Verify top-level title and body are omitted to force data-only silent push
+            const callArgs =
+                mockCreatePush.mock.calls[
+                    mockCreatePush.mock.calls.length - 1
+                ][0];
+            expect(callArgs.title).toBeUndefined();
+            expect(callArgs.body).toBeUndefined();
         });
 
         it("should use default type if not provided", async () => {
@@ -172,15 +183,26 @@ describe("notifications actions", () => {
 
             expect(mockCreatePush).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    title: "Team Announcement",
-                    body: "Hello team!",
                     topics: ["team_team-123"],
                     action: "http://localhost:5173/team/team-123",
                     icon: "http://localhost:5173/android-chrome-192x192.png",
                     color: "#facc15",
                     tag: NOTIFICATION_TYPES.TEAM_ANNOUNCEMENT,
+                    data: expect.objectContaining({
+                        title: "Team Announcement",
+                        body: "Hello team!",
+                        teamId: "team-123",
+                    }),
                 }),
             );
+
+            // Verify top-level title and body are omitted to force data-only silent push
+            const callArgs =
+                mockCreatePush.mock.calls[
+                    mockCreatePush.mock.calls.length - 1
+                ][0];
+            expect(callArgs.title).toBeUndefined();
+            expect(callArgs.body).toBeUndefined();
         });
 
         it("should use default URL based on teamId if not provided", async () => {
