@@ -15,8 +15,8 @@ import {
     Text,
     SegmentedControl,
     Stack,
+    Loader,
 } from "@mantine/core";
-
 import {
     createAdminClient,
     createSessionClient,
@@ -32,6 +32,7 @@ import { FeaturePopularity } from "./components/FeaturePopularity";
 import { AILineupMetrics } from "./components/AILineupMetrics";
 import { ParkLeaderboard } from "./components/ParkLeaderboard";
 import { MobileDashboardNav } from "./components/DashboardNav";
+import { ExternalToolsMenu } from "./components/ExternalToolsMenu";
 
 export async function loader({ request }) {
     const url = new URL(request.url);
@@ -90,19 +91,18 @@ export default function AdminDashboard() {
     return (
         <Container size="lg" py="xl">
             <Stack gap="xs" mb="xl">
-                <Group justify="space-between" align="center">
+                <Group justify="space-between" align="center" mb="md">
                     <Title order={2}>Admin Dashboard</Title>
-                    <Badge
-                        color={
-                            revalidator.state === "loading" ? "yellow" : "lime"
-                        }
-                        size="lg"
-                        variant="light"
-                    >
-                        {revalidator.state === "loading"
-                            ? "Updating..."
-                            : "Live"}
-                    </Badge>
+                    <Group gap="xs">
+                        {revalidator.state === "loading" ? (
+                            <Loader color="yellow" size="sm" type="dots" />
+                        ) : (
+                            <Badge color="lime" size="sm" variant="dot">
+                                Live
+                            </Badge>
+                        )}
+                        <ExternalToolsMenu />
+                    </Group>
                 </Group>
                 <Group justify={{ base: "center", sm: "flex-start" }}>
                     <SegmentedControl
