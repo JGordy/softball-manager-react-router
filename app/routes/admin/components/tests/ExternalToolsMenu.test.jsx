@@ -1,6 +1,4 @@
-import userEvent from "@testing-library/user-event";
-
-import { render, screen } from "@/utils/test-utils";
+import { render, screen, fireEvent } from "@/utils/test-utils";
 
 import { ExternalToolsMenu } from "../ExternalToolsMenu";
 
@@ -14,13 +12,12 @@ describe("ExternalToolsMenu", () => {
         ).toBeInTheDocument();
     });
 
-    const openMenu = async () => {
-        const user = userEvent.setup();
+    const openMenu = () => {
         renderComponent();
         const menuButton = screen.getByRole("button", {
             name: /external tools/i,
         });
-        await user.click(menuButton);
+        fireEvent.click(menuButton);
     };
 
     it("displays the menu label when opened", async () => {
