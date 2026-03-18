@@ -9,6 +9,11 @@ jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
     useSubmit: () => jest.fn(),
     useNavigation: () => ({ state: "idle" }),
+    Form: ({ children, onSubmit, ...props }) => (
+        <form onSubmit={onSubmit} {...props}>
+            {children}
+        </form>
+    ),
 }));
 
 describe("BulkDeleteGames", () => {
