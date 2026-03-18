@@ -34,6 +34,15 @@ jest.mock("@/forms/GenerateSeasonGames", () => ({
         <div data-testid="generate-games-form" data-buttoncolor={buttonColor} />
     ),
 }));
+jest.mock("@/forms/BulkDeleteGames", () => ({
+    __esModule: true,
+    default: ({ buttonColor }) => (
+        <div
+            data-testid="bulk-delete-games-form"
+            data-buttoncolor={buttonColor}
+        />
+    ),
+}));
 
 describe("SeasonMenu", () => {
     const mockSeason = {
