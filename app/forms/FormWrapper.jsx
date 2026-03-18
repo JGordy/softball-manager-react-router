@@ -11,6 +11,7 @@ export default function FormWrapper({
     children,
     confirmText = "Confirm",
     cancelText = "Cancel",
+    confirmDisabled = false,
     onCancelClick,
     hideButtons,
     onSubmit,
@@ -43,6 +44,7 @@ export default function FormWrapper({
                         color={buttonColor || "lime"}
                         autoContrast
                         size="md"
+                        disabled={confirmDisabled}
                     >
                         {confirmText}
                     </Button>
