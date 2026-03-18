@@ -517,3 +517,32 @@ export async function deleteGame({ values, eventId }) {
         throw error;
     }
 }
+
+export async function deleteGames({ values }) {
+    const { gameIds } = values;
+    let ids = [];
+    try {
+        ids = typeof gameIds === "string" ? JSON.parse(gameIds) : gameIds;
+    } catch (e) {
+        console.error("Error parsing gameIds:", e);
+        return {
+            success: false,
+            status: 400,
+            message: "Invalid game IDs format",
+        };
+    }
+
+    try {
+        await Promise.all(ids.map((id) => deleteDocument("games", id)));
+
+        return {
+            success: true,
+            status: 200,
+            message: `${ids.length} games deleted successfully!`,
+            deleted: true,
+        };
+    } catch (error) {
+        console.error("Error deleting games:", error);
+        throw error;
+    }
+}
