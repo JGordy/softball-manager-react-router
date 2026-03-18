@@ -79,12 +79,16 @@ describe("BulkDeleteGames", () => {
         });
         expect(submitButton).toBeDisabled();
 
-        const games = screen
-            .getAllByRole("checkbox")
-            .filter((b) => b.getAttribute("value") !== null);
+        const selectAllCheckbox = screen.getByRole("checkbox", {
+            name: /Select All/i,
+        });
+        const checkboxes = screen.getAllByRole("checkbox");
+        const gameCheckboxes = checkboxes.filter(
+            (cb) => cb !== selectAllCheckbox,
+        );
 
-        // Ensure we find the clickable cards
-        const firstGameCard = games[0];
+        // Click the first game checkbox
+        const firstGameCard = gameCheckboxes[0];
         fireEvent.click(firstGameCard);
 
         expect(submitButton).not.toBeDisabled();
@@ -97,10 +101,10 @@ describe("BulkDeleteGames", () => {
 
     it("toggles select all", () => {
         renderForm();
-        const selectAllContent = screen.getByText("Select All");
-        const selectAllCheckbox = selectAllContent
-            .closest("label")
-            .parentElement.querySelector("input[type='checkbox']");
+
+        const selectAllCheckbox = screen.getByRole("checkbox", {
+            name: /Select All/i,
+        });
 
         const submitButton = screen.getByRole("button", {
             name: /Delete Games/i,
