@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Checkbox, Text, Stack, ScrollArea, Card, Group } from "@mantine/core";
+import { Checkbox, Text, Stack, ScrollArea, Group } from "@mantine/core";
 import { DateTime } from "luxon";
 
 import FormWrapper from "./FormWrapper";
@@ -39,6 +39,7 @@ export default function BulkDeleteGames({
                     ? `Delete ${selectedGameIds.length} Games`
                     : "Delete Games"
             }
+            confirmDisabled={selectedGameIds.length === 0}
             onCancelClick={onCancel}
         >
             <input
@@ -61,71 +62,62 @@ export default function BulkDeleteGames({
                             color={buttonColor}
                             fw={700}
                         />
-                        <ScrollArea h="50vh" type="auto" offsetScrollbars>
-                            <Stack gap="xs" mt="xs" mb="lg">
-                                {sortedGames.map((game) => {
-                                    const gameDateFormatted = DateTime.fromISO(
-                                        game.gameDate,
-                                        { zone: game.timeZone || "utc" },
-                                    ).toLocaleString(DateTime.DATETIME_MED);
-                                    const isSelected = selectedGameIds.includes(
-                                        game.$id,
-                                    );
-                                    return (
-                                        <Card
-                                            key={game.$id}
-                                            withBorder
-                                            padding="sm"
-                                            radius="md"
-                                            onClick={() => {
-                                                if (isSelected) {
-                                                    setSelectedGameIds((prev) =>
-                                                        prev.filter(
-                                                            (id) =>
-                                                                id !== game.$id,
-                                                        ),
-                                                    );
-                                                } else {
-                                                    setSelectedGameIds(
-                                                        (prev) => [
-                                                            ...prev,
-                                                            game.$id,
-                                                        ],
-                                                    );
-                                                }
-                                            }}
-                                            style={{
-                                                cursor: "pointer",
-                                                borderColor: isSelected
-                                                    ? "var(--mantine-color-red-6)"
-                                                    : undefined,
-                                            }}
-                                        >
-                                            <Group wrap="nowrap">
-                                                <Checkbox
-                                                    checked={isSelected}
-                                                    onChange={() => {}}
-                                                    style={{
-                                                        pointerEvents: "none",
-                                                    }}
-                                                    color={buttonColor}
-                                                />
-                                                <Stack gap={0}>
-                                                    <Text fw={500}>
-                                                        {gameDateFormatted} vs{" "}
-                                                        {game.opponent || "TBD"}
-                                                    </Text>
-                                                    <Text size="sm" c="dimmed">
-                                                        {game.isHomeGame
-                                                            ? "Home Game"
-                                                            : "Away Game"}
-                                                    </Text>
-                                                </Stack>
-                                            </Group>
-                                        </Card>
-                                    );
-                                })}
-                            </Stack>
+                        <ScrollArea h="60vh" type="auto" offsetScrollbars>
+                            <Checkbox.Group
+                                value={selectedGameIds}
+                                onChange={setSelectedGameIds}
+                            >
+                                <Stack gap="xs" mt="xs" mb="lg">
+                                    {sortedGames.map((game) => {
+                                        const gameDateFormatted =
+                                            DateTime.fromISO(game.gameDate, {
+                                                zone: game.timeZone || "utc",
+                                            })
+                                                .toFormat("M/d @ h:mma")
+                                                .toLowerCase();
+                                        return (
+                                            <Checkbox.Card
+                                                key={game.$id}
+                                                value={game.$id}
+                                                radius="md"
+                                                p="sm"
+                                                withBorder
+                                            >
+                                                <Group
+                                                    wrap="nowrap"
+                                                    align="center"
+                                                    gap="md"
+                                                >
+                                                    <Checkbox.Indicator
+                                                        color={buttonColor}
+                                                        radius="sm"
+                                                        size="md"
+                                                    />
+                                                    <Stack gap={2}>
+                                                        <Text
+                                                            fw={600}
+                                                            size="md"
+                                                        >
+                                                            vs{" "}
+                                                            {game.opponent ||
+                                                                "TBD"}{" "}
+                                                            {game.isHomeGame
+                                                                ? "(H)"
+                                                                : "(A)"}
+                                                        </Text>
+                                                        <Text
+                                                            size="sm"
+                                                            c="dimmed"
+                                                        >
+                                                            {gameDateFormatted}
+                                                        </Text>
+                                                    </Stack>
+                                                </Group>
+                                            </Checkbox.Card>
+                                        );
+                                    })}
+                                </Stack>
+                            </Checkbox.Group>
                         </ScrollArea>
                     </>
                 ) : (
