@@ -11,6 +11,27 @@ export async function getSeasonById({ seasonId }) {
                 Query.equal("$id", [season.teamId]),
             ]);
             season.teams = teamsResponse.rows || [];
+
+            try {
+                // Fetch managers
+                const { teams } = await import("@/utils/appwrite/server").then(
+                    (m) => m.createAdminClient(),
+                );
+                const memberships = await teams.listMemberships(season.teamId);
+                const managerIds = memberships.memberships
+                    .filter(
+                        (m) =>
+                            m.roles.includes("manager") ||
+                            m.roles.includes("owner"),
+                    )
+                    .map((m) => m.userId);
+
+                if (season.teams[0]) {
+                    season.teams[0].managerIds = managerIds;
+                }
+            } catch (e) {
+                console.error("Error fetching managers for season details", e);
+            }
         } else {
             season.teams = [];
         }
