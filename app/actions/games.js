@@ -523,6 +523,13 @@ export async function deleteGames({ values }) {
     let ids = [];
     try {
         ids = typeof gameIds === "string" ? JSON.parse(gameIds) : gameIds;
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return {
+                success: false,
+                status: 400,
+                message: "No valid game IDs provided",
+            };
+        }
     } catch (e) {
         console.error("Error parsing gameIds:", e);
         return {
@@ -533,12 +540,38 @@ export async function deleteGames({ values }) {
     }
 
     try {
-        await Promise.all(ids.map((id) => deleteDocument("games", id)));
+        const batchSize = 5;
+        let deletedCount = 0;
+        let errors = [];
+
+        for (let i = 0; i < ids.length; i += batchSize) {
+            const batch = ids.slice(i, i + batchSize);
+            const results = await Promise.allSettled(
+                batch.map((id) => deleteDocument("games", id)),
+            );
+
+            results.forEach((result) => {
+                if (result.status === "fulfilled") {
+                    deletedCount++;
+                } else {
+                    errors.push(result.reason);
+                }
+            });
+        }
+
+        if (errors.length > 0) {
+            return {
+                success: deletedCount > 0,
+                status: deletedCount > 0 ? 207 : 500,
+                message: `${deletedCount} games deleted, ${errors.length} failed.`,
+                deleted: deletedCount > 0,
+            };
+        }
 
         return {
             success: true,
             status: 200,
-            message: `${ids.length} games deleted successfully!`,
+            message: `${deletedCount} games deleted successfully!`,
             deleted: true,
         };
     } catch (error) {
