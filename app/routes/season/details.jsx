@@ -10,7 +10,7 @@ import {
 
 import { useOutletContext } from "react-router";
 
-import { createGames, createSingleGame } from "@/actions/games";
+import { createGames, createSingleGame, deleteGames } from "@/actions/games";
 import { updateSeason } from "@/actions/seasons";
 
 import { getSeasonById } from "@/loaders/seasons";
@@ -48,17 +48,23 @@ export async function action({ request, params }) {
         return createGames({ values });
     }
 
+    if (_action === "delete-games") {
+        return deleteGames({ values });
+    }
+
     if (_action === "add-single-game") {
         return createSingleGame({ values });
     }
 }
 
 export default function SeasonDetails({ loaderData, actionData }) {
-    const { isDesktop } = useOutletContext();
+    const { isDesktop, user } = useOutletContext();
     const { season, park } = loaderData;
     const { teams = [] } = season;
     const [team] = teams;
-    const { primaryColor } = team || { primaryColor: "lime" };
+    const { primaryColor, managerIds = [] } = team || { primaryColor: "lime" };
+
+    const isManager = managerIds.includes(user?.$id);
 
     useResponseNotification(actionData);
 
@@ -117,6 +123,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
     const sharedProps = {
         season,
         primaryColor,
+        isManager,
         record,
         detailsConfig,
     };
