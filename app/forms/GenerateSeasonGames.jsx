@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useNavigation } from "react-router";
 
 import {
     ActionIcon,
@@ -32,6 +33,9 @@ export default function GenerateSeasonGames({
     season,
 }) {
     const ref = useRef(null);
+    const navigation = useNavigation();
+    const isSubmitting =
+        navigation.state === "submitting" || navigation.state === "loading";
 
     const currentTimeZone = getUserTimeZone();
 
@@ -204,7 +208,7 @@ export default function GenerateSeasonGames({
             onCancelClick={handleResetGames}
         >
             <LoadingOverlay
-                visible={isLoading}
+                visible={isLoading || isSubmitting}
                 zIndex={1000}
                 overlayProps={{ radius: "sm", blur: 3 }}
             />

@@ -7,6 +7,7 @@ const mockSubmit = jest.fn();
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
     useSubmit: () => mockSubmit,
+    useNavigation: () => ({ state: "idle" }),
     Form: ({ children, onSubmit, ...props }) => (
         <form onSubmit={onSubmit} {...props}>
             {children}
