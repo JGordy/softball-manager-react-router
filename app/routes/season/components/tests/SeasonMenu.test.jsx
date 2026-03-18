@@ -6,6 +6,11 @@ import useModal from "@/hooks/useModal";
 // Mock hooks
 jest.mock("@/hooks/useModal");
 
+jest.mock("react-router", () => ({
+    ...jest.requireActual("react-router"),
+    useActionData: () => ({ success: true, deleted: true }),
+}));
+
 // Mock forms
 jest.mock("@/forms/AddSingleGame", () => ({
     __esModule: true,

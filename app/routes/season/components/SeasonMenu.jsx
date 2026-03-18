@@ -1,22 +1,40 @@
 import { Text } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import { useActionData } from "react-router";
+import { useEffect } from "react";
 
 import {
     IconBallBaseball,
     IconCalendar,
     IconEdit,
     IconRun,
+    IconTrash,
 } from "@tabler/icons-react";
 
 import AddSingleGame from "@/forms/AddSingleGame";
 import AddSeason from "@/forms/AddSeason";
 import GenerateSeasonGames from "@/forms/GenerateSeasonGames";
+import BulkDeleteGames from "@/forms/BulkDeleteGames";
 
 import useModal from "@/hooks/useModal";
 
 import MenuContainer from "@/components/MenuContainer";
+import DrawerContainer from "@/components/DrawerContainer";
 
 export default function SeasonMenu({ season }) {
     const { openModal } = useModal();
+    const actionData = useActionData();
+
+    const [
+        deleteDrawerOpened,
+        { open: openDeleteDrawer, close: closeDeleteDrawer },
+    ] = useDisclosure(false);
+
+    useEffect(() => {
+        if (actionData?.success && actionData?.deleted) {
+            closeDeleteDrawer();
+        }
+    }, [actionData, closeDeleteDrawer]);
 
     const { $id: seasonId, teams, teamId } = season;
     const [team] = teams;
@@ -117,9 +135,37 @@ export default function SeasonMenu({ season }) {
                     leftSection: <IconRun size={18} />,
                     content: <Text>Schedule Practice</Text>,
                 },
+                {
+                    key: "delete-games",
+                    onClick: openDeleteDrawer,
+                    leftSection: (
+                        <IconTrash
+                            size={18}
+                            color="var(--mantine-color-red-6)"
+                        />
+                    ),
+                    content: <Text c="red">Delete Games</Text>,
+                },
             ],
         },
     ];
 
-    return <MenuContainer sections={sections} />;
+    return (
+        <>
+            <MenuContainer sections={sections} />
+            <DrawerContainer
+                opened={deleteDrawerOpened}
+                onClose={closeDeleteDrawer}
+                title="Delete Games"
+            >
+                <BulkDeleteGames
+                    action="delete-games"
+                    actionRoute={`/season/${seasonId}`}
+                    buttonColor="red"
+                    season={season}
+                    onCancel={closeDeleteDrawer}
+                />
+            </DrawerContainer>
+        </>
+    );
 }
