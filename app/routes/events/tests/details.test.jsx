@@ -117,14 +117,16 @@ describe("EventDetails Route", () => {
             const formData = new FormData();
             formData.append("_action", "delete-game");
 
+            const request = { formData: () => Promise.resolve(formData) };
             await action({
-                request: { formData: () => Promise.resolve(formData) },
+                request,
                 params: { eventId: "evt1" },
             });
 
             expect(gamesActions.deleteGame).toHaveBeenCalledWith({
                 eventId: "evt1",
                 values: {},
+                request,
             });
         });
 
