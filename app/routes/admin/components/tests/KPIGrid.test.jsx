@@ -4,6 +4,7 @@ import { KPIGrid } from "../KPIGrid";
 describe("KPIGrid", () => {
     const stats = {
         totalUsers: 1500,
+        pushEnabledUsers: 750,
         totalTeams: 42,
         totalGames: 300,
         activeUsers: 7,
@@ -14,6 +15,8 @@ describe("KPIGrid", () => {
 
         expect(screen.getByText("Users")).toBeInTheDocument();
         expect(screen.getByText("1,500")).toBeInTheDocument();
+        expect(screen.getByText("Push Notifs - On")).toBeInTheDocument();
+        expect(screen.getByText("750/1500 • 50%")).toBeInTheDocument();
         expect(screen.getByText("Teams")).toBeInTheDocument();
         expect(screen.getByText("42")).toBeInTheDocument();
         expect(screen.getByText("Online")).toBeInTheDocument();
@@ -25,6 +28,7 @@ describe("KPIGrid", () => {
             <KPIGrid
                 stats={{
                     totalUsers: 0,
+                    pushEnabledUsers: 0,
                     totalTeams: 0,
                     totalGames: 0,
                     activeUsers: 0,
@@ -33,5 +37,6 @@ describe("KPIGrid", () => {
         );
 
         expect(screen.getAllByText("0")).toHaveLength(4);
+        expect(screen.getByText("0/0 • 0%")).toBeInTheDocument();
     });
 });

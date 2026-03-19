@@ -15,7 +15,7 @@ export const KPIGrid = ({ stats }) => {
             label: "Push Notifs - On",
             value:
                 stats.pushEnabledUsers !== undefined
-                    ? `${stats.pushEnabledUsers}/${stats.totalUsers} • ${Math.round((stats.pushEnabledUsers / stats.totalUsers) * 100)}%`
+                    ? `${stats.pushEnabledUsers}/${stats.totalUsers} • ${stats.totalUsers > 0 ? Math.round((stats.pushEnabledUsers / stats.totalUsers) * 100) : 0}%`
                     : "N/A",
         },
         { label: "Teams", value: stats.totalTeams },
