@@ -564,15 +564,27 @@ describe("Games Actions", () => {
     });
 
     describe("deleteGame", () => {
-        it("should delete game and redirect", async () => {
-            deleteDocument.mockResolvedValue({});
+        it("should delete game with session client", async () => {
+            const mockRequest = { headers: { get: () => "mock-cookie" } };
+            const mockTablesDB = { deleteRow: jest.fn().mockResolvedValue({}) };
+
+            const server = require("@/utils/appwrite/server");
+            server.createSessionClient.mockResolvedValue({
+                tablesDB: mockTablesDB,
+            });
 
             const result = await deleteGame({
                 values: {},
                 eventId: "game1",
+                request: mockRequest,
             });
 
-            expect(deleteDocument).toHaveBeenCalledWith("games", "game1");
+            expect(server.createSessionClient).toHaveBeenCalledWith(
+                mockRequest,
+            );
+            expect(deleteDocument).toHaveBeenCalledWith("games", "game1", {
+                tablesDB: mockTablesDB,
+            });
             expect(result.deleted).toBe(true);
         });
     });
