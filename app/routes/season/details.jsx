@@ -49,7 +49,7 @@ export async function action({ request, params }) {
     }
 
     if (_action === "delete-games") {
-        return deleteGames({ values });
+        return deleteGames({ values, request });
     }
 
     if (_action === "add-single-game") {
