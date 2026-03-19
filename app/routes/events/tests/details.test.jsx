@@ -125,7 +125,6 @@ describe("EventDetails Route", () => {
 
             expect(gamesActions.deleteGame).toHaveBeenCalledWith({
                 eventId: "evt1",
-                values: {},
                 request,
             });
         });
