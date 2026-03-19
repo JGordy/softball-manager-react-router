@@ -92,7 +92,7 @@ describe("BulkDeleteGames", () => {
         fireEvent.click(firstGameCard);
 
         expect(submitButton).not.toBeDisabled();
-        expect(submitButton).toHaveTextContent("Delete 1 Games");
+        expect(submitButton).toHaveTextContent("Delete 1 Game");
 
         fireEvent.click(firstGameCard); // Unselect
         expect(submitButton).toBeDisabled();

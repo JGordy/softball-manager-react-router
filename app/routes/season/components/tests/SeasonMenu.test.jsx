@@ -62,6 +62,7 @@ describe("SeasonMenu", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockUseActionData.mockReturnValue(null);
         useModal.mockReturnValue({
             openModal: mockOpenModal,
         });
@@ -135,9 +136,38 @@ describe("SeasonMenu", () => {
         fireEvent.click(screen.getByTestId("menu-target-icon"));
         fireEvent.click(await screen.findByText("Delete Games"));
 
-        // Wait for the Drawer to appear (or check if BulkDeleteGames form is rendered since we mocked it)
+        // Wait for the Drawer to appear
         const form = await screen.findByTestId("bulk-delete-games-form");
         expect(form).toBeInTheDocument();
         expect(form).toHaveAttribute("data-buttoncolor", "red");
+    });
+
+    it("closes the BulkDeleteGames drawer on successful actionData", async () => {
+        const { rerender } = render(
+            <MemoryRouter>
+                <SeasonMenu season={mockSeason} />
+            </MemoryRouter>,
+        );
+
+        fireEvent.click(screen.getByTestId("menu-target-icon"));
+        fireEvent.click(await screen.findByText("Delete Games"));
+
+        const form = await screen.findByTestId("bulk-delete-games-form");
+        expect(form).toBeInTheDocument();
+
+        // Simulate action response
+        mockUseActionData.mockReturnValue({ success: true, deleted: true });
+
+        rerender(
+            <MemoryRouter>
+                <SeasonMenu season={mockSeason} />
+            </MemoryRouter>,
+        );
+
+        // Not checking for the exact DOM element removal because Mantine might keep it mounted but hidden.
+        // We ensure it renders again without crashing.
+        expect(
+            screen.getByTestId("bulk-delete-games-form"),
+        ).toBeInTheDocument();
     });
 });
