@@ -131,7 +131,7 @@ describe("GenerateSeasonGames", () => {
         );
 
         act(() => {
-            jest.advanceTimersByTime();
+            jest.runOnlyPendingTimers();
         });
 
         const submitButton = await screen.findByRole("button", {
