@@ -103,11 +103,7 @@ async function initializeDefaultAttendance(gameId, teamId) {
     }
 }
 
-export async function createSingleGame({
-    values,
-    teamId: passedTeamId,
-    request,
-}) {
+export async function createSingleGame({ values, teamId: passedTeamId }) {
     const {
         gameDate,
         gameTime,
