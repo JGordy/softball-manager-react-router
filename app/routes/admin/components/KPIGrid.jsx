@@ -11,6 +11,13 @@ import {
 export const KPIGrid = ({ stats }) => {
     const kpis = [
         { label: "Users", value: stats.totalUsers },
+        {
+            label: "Push Notifs - On",
+            value:
+                stats.pushEnabledUsers !== undefined
+                    ? `${stats.pushEnabledUsers}/${stats.totalUsers} • ${Math.round((stats.pushEnabledUsers / stats.totalUsers) * 100)}%`
+                    : "N/A",
+        },
         { label: "Teams", value: stats.totalTeams },
         { label: "Games", value: stats.totalGames },
         {
@@ -23,7 +30,7 @@ export const KPIGrid = ({ stats }) => {
     return (
         <Grid gutter="xs">
             {kpis.map((kpi) => (
-                <Grid.Col key={kpi.label} span={3}>
+                <Grid.Col key={kpi.label} span={{ base: 6, sm: "auto" }}>
                     <Paper
                         withBorder
                         p="xs"
@@ -62,7 +69,9 @@ export const KPIGrid = ({ stats }) => {
                                     fontSize: "var(--mantine-font-size-lg)",
                                 }}
                             >
-                                {kpi.value.toLocaleString()}
+                                {typeof kpi.value === "number"
+                                    ? kpi.value.toLocaleString()
+                                    : kpi.value}
                             </Title>
                         </Stack>
                     </Paper>

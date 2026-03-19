@@ -193,6 +193,10 @@ export async function getAdminDashboardData({ users, range = "24h" }) {
         .sort((a, b) => new Date(b.accessedAt) - new Date(a.accessedAt))
         .slice(0, 25);
 
+    const pushEnabledUsers = userList.users.filter(
+        (u) => u.targets && u.targets.some((t) => t.providerType === "push"),
+    ).length;
+
     // 5. Process AI Lineup Metrics from Umami events
     const requested =
         eventMetrics?.find((e) => e.x === "ai-lineup-requested")?.y || 0;
@@ -226,6 +230,7 @@ export async function getAdminDashboardData({ users, range = "24h" }) {
     return {
         stats: {
             totalUsers: allUsers.total,
+            pushEnabledUsers,
             totalTeams: allTeams.total,
             totalGames: allGames.total,
             attendance: {
