@@ -94,11 +94,16 @@ describe("Admin Dashboard Utils", () => {
                         $id: "u1",
                         registration: "2024-01-01",
                         accessedAt: "2024-01-02",
+                        targets: [
+                            { providerType: "email" },
+                            { providerType: "push" },
+                        ],
                     },
                     {
                         $id: "u2",
                         registration: "2024-01-02",
                         accessedAt: "2024-01-01",
+                        targets: [{ providerType: "email" }],
                     },
                 ],
             });
@@ -109,6 +114,7 @@ describe("Admin Dashboard Utils", () => {
 
             // Verify Stats
             expect(result.stats.totalUsers).toBe(100);
+            expect(result.stats.pushEnabledUsers).toBe(1);
             expect(result.stats.totalTeams).toBe(20);
             expect(result.stats.totalGames).toBe(50);
             expect(result.stats.activeUsers).toBe(5);
