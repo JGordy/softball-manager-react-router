@@ -53,6 +53,7 @@ function DetailCard({ icon: Icon, label, value, color, href, rightSection }) {
 export default function MobileSeasonDetails({
     season,
     primaryColor,
+    isManager,
     record,
     detailsConfig,
 }) {
@@ -60,7 +61,7 @@ export default function MobileSeasonDetails({
         <Container pt="md">
             <Group justify="space-between">
                 <BackButton text="Team Details" to={`/team/${season.teamId}`} />
-                <SeasonMenu season={season} />
+                {isManager && <SeasonMenu season={season} />}
             </Group>
 
             <Title order={2} align="center" mt="lg">

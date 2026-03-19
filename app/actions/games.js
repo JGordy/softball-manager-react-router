@@ -13,7 +13,10 @@ import { getNotifiableTeamMembers } from "@/utils/teams.js";
 import { findOrCreatePark } from "@/actions/parks";
 
 import { getTeamMembers } from "@/utils/teams.js";
-import { createAdminClient } from "@/utils/appwrite/server";
+import {
+    createAdminClient,
+    createSessionClient,
+} from "@/utils/appwrite/server";
 
 import { removeEmptyValues } from "./utils/formUtils";
 
@@ -288,6 +291,7 @@ export async function createGames({ values }) {
 
 export async function updateGame({ values, eventId }) {
     const { opponent, locationDetails } = values;
+
     // Removes undefined or empty string values from data to update
     let dataToUpdate = removeEmptyValues({ values });
 
@@ -501,10 +505,16 @@ export async function updateGame({ values, eventId }) {
     }
 }
 
-export async function deleteGame({ values, eventId }) {
-    // TODO: Add permission check here with values.userId
+export async function deleteGame({ eventId, request }) {
     try {
-        await deleteDocument("games", eventId);
+        if (!request) {
+            throw new Error("Request object is required for authorization.");
+        }
+
+        const sessionClient = await createSessionClient(request);
+
+        // Appwrite row-level security handles manager/owner validation
+        await deleteDocument("games", eventId, sessionClient);
 
         return {
             success: true,
@@ -514,6 +524,77 @@ export async function deleteGame({ values, eventId }) {
         };
     } catch (error) {
         console.error("Error deleting game:", error);
+        throw error;
+    }
+}
+
+export async function deleteGames({ values, request }) {
+    const { gameIds } = values;
+    let ids = [];
+    try {
+        ids = typeof gameIds === "string" ? JSON.parse(gameIds) : gameIds;
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return {
+                success: false,
+                status: 400,
+                message: "No valid game IDs provided",
+            };
+        }
+    } catch (e) {
+        console.error("Error parsing gameIds:", e);
+        return {
+            success: false,
+            status: 400,
+            message: "Invalid game IDs format",
+        };
+    }
+
+    let errors = [];
+
+    try {
+        if (!request) {
+            throw new Error("Request object is required for authorization.");
+        }
+
+        const sessionClient = await createSessionClient(request);
+
+        const batchSize = 5;
+        let deletedCount = 0;
+
+        for (let i = 0; i < ids.length; i += batchSize) {
+            const batch = ids.slice(i, i + batchSize);
+            const results = await Promise.allSettled(
+                batch.map((id) => deleteDocument("games", id, sessionClient)),
+            );
+
+            results.forEach((result) => {
+                if (result.status === "fulfilled") {
+                    deletedCount++;
+                } else {
+                    errors.push(result.reason);
+                }
+            });
+        }
+
+        if (errors.length > 0) {
+            console.error("Errors encountered while deleting games:", errors);
+            return {
+                success: deletedCount > 0,
+                status: deletedCount > 0 ? 207 : 500,
+                message: `${deletedCount} games deleted, ${errors.length} failed.`,
+                deleted: deletedCount > 0,
+            };
+        }
+
+        return {
+            success: true,
+            status: 200,
+            message: `${deletedCount} games deleted successfully!`,
+            deleted: true,
+        };
+    } catch (error) {
+        console.error("Error deleting games:", error);
+        console.log("Errors array:", errors);
         throw error;
     }
 }

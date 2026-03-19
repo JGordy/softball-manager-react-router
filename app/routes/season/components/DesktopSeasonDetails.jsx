@@ -27,6 +27,7 @@ import SeasonMenu from "./SeasonMenu";
 export default function DesktopSeasonDetails({
     season,
     primaryColor,
+    isManager,
     record,
     detailsConfig,
 }) {
@@ -38,7 +39,7 @@ export default function DesktopSeasonDetails({
         <Container size="xl" pt="md">
             <Group justify="space-between">
                 <BackButton text="Team Details" to={`/team/${season.teamId}`} />
-                <SeasonMenu season={season} />
+                {isManager && <SeasonMenu season={season} />}
             </Group>
 
             <Group justify="space-between" align="flex-end" mb="xl" mt="lg">

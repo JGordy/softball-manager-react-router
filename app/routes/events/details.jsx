@@ -37,7 +37,7 @@ export async function action({ request, params }) {
         return updateGame({ eventId, values });
     }
     if (_action === "delete-game") {
-        return deleteGame({ eventId, values });
+        return deleteGame({ eventId, request });
     }
     if (_action === "update-attendance") {
         return updatePlayerAttendance({ eventId, values });

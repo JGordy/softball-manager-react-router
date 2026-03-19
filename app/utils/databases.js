@@ -26,12 +26,18 @@ export const createDocument = async (
 ) => {
     const { tablesDB } = createAdminClient();
     const _id = id || ID.unique();
+    const { $permissions: _ignoredPermissions, ...restData } = data;
     try {
         const response = await tablesDB.createRow({
             databaseId,
             tableId: collections[collectionType],
             rowId: _id,
-            data,
+            // Appwrite's newer TablesDB API sometimes drops the detached permissions array.
+            // We forcefully inject it directly into the document data payload as $permissions.
+            data: {
+                ...restData,
+                ...(permissions.length > 0 && { $permissions: permissions }),
+            },
             permissions,
         });
         return response;
@@ -92,8 +98,12 @@ export const updateDocument = async (collectionType, documentId, data) => {
 };
 
 // Helper function to delete a document
-export const deleteDocument = async (collectionType, documentId) => {
-    const { tablesDB } = createAdminClient();
+export const deleteDocument = async (
+    collectionType,
+    documentId,
+    sessionClient = null,
+) => {
+    const { tablesDB } = sessionClient || createAdminClient();
     try {
         const response = await tablesDB.deleteRow({
             databaseId,

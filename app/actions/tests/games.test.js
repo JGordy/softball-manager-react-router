@@ -3,6 +3,7 @@ import {
     createGames,
     updateGame,
     deleteGame,
+    deleteGames,
 } from "../games";
 import {
     createDocument,
@@ -564,15 +565,88 @@ describe("Games Actions", () => {
     });
 
     describe("deleteGame", () => {
-        it("should delete game and redirect", async () => {
-            deleteDocument.mockResolvedValue({});
+        it("should delete game with session client", async () => {
+            const mockRequest = { headers: { get: () => "mock-cookie" } };
+            const mockTablesDB = { deleteRow: jest.fn().mockResolvedValue({}) };
+
+            const server = require("@/utils/appwrite/server");
+            server.createSessionClient.mockResolvedValue({
+                tablesDB: mockTablesDB,
+            });
 
             const result = await deleteGame({
                 values: {},
                 eventId: "game1",
+                request: mockRequest,
             });
 
-            expect(deleteDocument).toHaveBeenCalledWith("games", "game1");
+            expect(server.createSessionClient).toHaveBeenCalledWith(
+                mockRequest,
+            );
+            expect(deleteDocument).toHaveBeenCalledWith("games", "game1", {
+                tablesDB: mockTablesDB,
+            });
+            expect(result.deleted).toBe(true);
+        });
+    });
+
+    describe("deleteGames", () => {
+        it("returns error for invalid gameIds", async () => {
+            const result = await deleteGames({ values: { gameIds: "[]" } });
+            expect(result.success).toBe(false);
+            expect(result.status).toBe(400);
+
+            const result2 = await deleteGames({
+                values: { gameIds: "invalid" },
+            });
+            expect(result2.success).toBe(false);
+        });
+
+        it("deletes multiple games successfully", async () => {
+            const mockRequest = { headers: { get: () => "mock-cookie" } };
+            const mockTablesDB = { deleteRow: jest.fn().mockResolvedValue({}) };
+            deleteDocument.mockResolvedValue({});
+
+            const server = require("@/utils/appwrite/server");
+            server.createSessionClient.mockResolvedValue({
+                tablesDB: mockTablesDB,
+            });
+
+            const result = await deleteGames({
+                values: { gameIds: '["game1", "game2"]' },
+                request: mockRequest,
+            });
+
+            expect(result.success).toBe(true);
+            expect(result.deleted).toBe(true);
+            expect(result.status).toBe(200);
+            expect(deleteDocument).toHaveBeenCalledTimes(2);
+        });
+
+        it("handles partial failures correctly", async () => {
+            const mockRequest = { headers: { get: () => "mock-cookie" } };
+            const mockTablesDB = { deleteRow: jest.fn() };
+
+            deleteDocument.mockImplementation((collection, id) => {
+                if (id === "game2") {
+                    return Promise.reject(new Error("Failed to delete game2"));
+                }
+                return Promise.resolve({});
+            });
+
+            const server = require("@/utils/appwrite/server");
+            server.createSessionClient.mockResolvedValue({
+                tablesDB: mockTablesDB,
+            });
+
+            const result = await deleteGames({
+                values: { gameIds: '["game1", "game2", "game3"]' },
+                request: mockRequest,
+            });
+
+            expect(result.success).toBe(true); // partially successful
+            expect(result.status).toBe(207); // Partial status
+            expect(result.message).toMatch(/2 games deleted, 1 failed/);
             expect(result.deleted).toBe(true);
         });
     });
