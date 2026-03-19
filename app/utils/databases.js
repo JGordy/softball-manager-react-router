@@ -26,7 +26,7 @@ export const createDocument = async (
 ) => {
     const { tablesDB } = createAdminClient();
     const _id = id || ID.unique();
-    const { $permissions, ...restData } = data;
+    const { $permissions: _ignoredPermissions, ...restData } = data;
     try {
         const response = await tablesDB.createRow({
             databaseId,

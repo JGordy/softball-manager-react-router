@@ -14,6 +14,15 @@ jest.mock("react-router", () => ({
 }));
 
 // Mock forms
+jest.mock("@/components/DrawerContainer", () => ({
+    __esModule: true,
+    default: ({ opened, children }) => (
+        <div data-testid="drawer-container" data-opened={opened}>
+            {children}
+        </div>
+    ),
+}));
+
 jest.mock("@/forms/AddSingleGame", () => ({
     __esModule: true,
     default: ({ isPractice, buttonColor }) => (
@@ -155,6 +164,9 @@ describe("SeasonMenu", () => {
         const form = await screen.findByTestId("bulk-delete-games-form");
         expect(form).toBeInTheDocument();
 
+        const drawer = screen.getByTestId("drawer-container");
+        expect(drawer).toHaveAttribute("data-opened", "true");
+
         // Simulate action response
         mockUseActionData.mockReturnValue({ success: true, deleted: true });
 
@@ -164,10 +176,7 @@ describe("SeasonMenu", () => {
             </MemoryRouter>,
         );
 
-        // Not checking for the exact DOM element removal because Mantine might keep it mounted but hidden.
-        // We ensure it renders again without crashing.
-        expect(
-            screen.getByTestId("bulk-delete-games-form"),
-        ).toBeInTheDocument();
+        // Verify the close handler was triggered
+        expect(drawer).toHaveAttribute("data-opened", "false");
     });
 });
