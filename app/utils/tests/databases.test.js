@@ -88,7 +88,10 @@ describe("databases utility", () => {
                 databaseId: dbId,
                 tableId: collections.users,
                 rowId: "provided-id",
-                data,
+                data: {
+                    ...data,
+                    $permissions: permissions,
+                },
                 permissions,
             });
             expect(result).toEqual({ id: "provided-id" });
