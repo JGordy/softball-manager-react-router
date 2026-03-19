@@ -36,7 +36,7 @@ export default function BulkDeleteGames({
             buttonColor={buttonColor}
             confirmText={
                 selectedGameIds.length > 0
-                    ? `Delete ${selectedGameIds.length} Games`
+                    ? `Delete ${selectedGameIds.length} Game${selectedGameIds.length === 1 ? "" : "s"}`
                     : "Delete Games"
             }
             confirmDisabled={selectedGameIds.length === 0}

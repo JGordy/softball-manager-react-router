@@ -549,6 +549,8 @@ export async function deleteGames({ values, request }) {
         };
     }
 
+    let errors = [];
+
     try {
         if (!request) {
             throw new Error("Request object is required for authorization.");
@@ -558,7 +560,6 @@ export async function deleteGames({ values, request }) {
 
         const batchSize = 5;
         let deletedCount = 0;
-        let errors = [];
 
         for (let i = 0; i < ids.length; i += batchSize) {
             const batch = ids.slice(i, i + batchSize);

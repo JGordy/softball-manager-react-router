@@ -6,9 +6,11 @@ import useModal from "@/hooks/useModal";
 // Mock hooks
 jest.mock("@/hooks/useModal");
 
+const mockUseActionData = jest.fn(() => null);
+
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
-    useActionData: () => ({ success: true, deleted: true }),
+    useActionData: () => mockUseActionData(),
 }));
 
 // Mock forms
@@ -78,6 +80,7 @@ describe("SeasonMenu", () => {
         expect(screen.getByText("Generate Games")).toBeInTheDocument();
         expect(screen.getByText("Add Single Game")).toBeInTheDocument();
         expect(screen.getByText("Schedule Practice")).toBeInTheDocument();
+        expect(screen.getByText("Delete Games")).toBeInTheDocument();
     });
 
     it("opens AddSingleGame modal with correct props for practice", async () => {
@@ -120,5 +123,21 @@ describe("SeasonMenu", () => {
 
         const form = screen.getByTestId("generate-games-form");
         expect(form).toHaveAttribute("data-buttoncolor", "#ff0000");
+    });
+
+    it("opens BulkDeleteGames drawer with correct buttonColor", async () => {
+        render(
+            <MemoryRouter>
+                <SeasonMenu season={mockSeason} />
+            </MemoryRouter>,
+        );
+
+        fireEvent.click(screen.getByTestId("menu-target-icon"));
+        fireEvent.click(await screen.findByText("Delete Games"));
+
+        // Wait for the Drawer to appear (or check if BulkDeleteGames form is rendered since we mocked it)
+        const form = await screen.findByTestId("bulk-delete-games-form");
+        expect(form).toBeInTheDocument();
+        expect(form).toHaveAttribute("data-buttoncolor", "red");
     });
 });

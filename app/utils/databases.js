@@ -26,6 +26,7 @@ export const createDocument = async (
 ) => {
     const { tablesDB } = createAdminClient();
     const _id = id || ID.unique();
+    const { $permissions, ...restData } = data;
     try {
         const response = await tablesDB.createRow({
             databaseId,
@@ -34,7 +35,7 @@ export const createDocument = async (
             // Appwrite's newer TablesDB API sometimes drops the detached permissions array.
             // We forcefully inject it directly into the document data payload as $permissions.
             data: {
-                ...data,
+                ...restData,
                 ...(permissions.length > 0 && { $permissions: permissions }),
             },
             permissions,

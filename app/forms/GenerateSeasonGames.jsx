@@ -206,6 +206,7 @@ export default function GenerateSeasonGames({
             confirmText="Save Games"
             cancelText="Clear Games"
             onCancelClick={handleResetGames}
+            confirmDisabled={isLoading || isSubmitting}
         >
             <LoadingOverlay
                 visible={isLoading || isSubmitting}
