@@ -29,6 +29,7 @@ describe("Attendance Actions", () => {
             status: "accepted",
         };
         const eventId = "event1";
+        const mockClient = { id: "mock-db-client" };
 
         it("should create new attendance when no documents exist", async () => {
             listDocuments.mockResolvedValue({ rows: [] });
@@ -37,11 +38,14 @@ describe("Attendance Actions", () => {
             const result = await updatePlayerAttendance({
                 values: mockValues,
                 eventId,
+                client: mockClient,
             });
 
-            expect(listDocuments).toHaveBeenCalledWith("attendance", [
-                expect.any(String),
-            ]);
+            expect(listDocuments).toHaveBeenCalledWith(
+                "attendance",
+                [expect.any(String)],
+                mockClient,
+            );
             expect(createDocument).toHaveBeenCalledWith(
                 "attendance",
                 "unique-id",
@@ -51,6 +55,7 @@ describe("Attendance Actions", () => {
                     status: "accepted",
                 },
                 expect.any(Array), // permissions array
+                mockClient,
             );
             expect(result.success).toBe(true);
             expect(result.status).toBe(201);
@@ -65,6 +70,7 @@ describe("Attendance Actions", () => {
             const result = await updatePlayerAttendance({
                 values: mockValues,
                 eventId,
+                client: mockClient,
             });
 
             expect(createDocument).toHaveBeenCalled();
@@ -81,11 +87,17 @@ describe("Attendance Actions", () => {
             const result = await updatePlayerAttendance({
                 values: mockValues,
                 eventId,
+                client: mockClient,
             });
 
-            expect(updateDocument).toHaveBeenCalledWith("attendance", "att1", {
-                status: "accepted",
-            });
+            expect(updateDocument).toHaveBeenCalledWith(
+                "attendance",
+                "att1",
+                {
+                    status: "accepted",
+                },
+                mockClient,
+            );
             expect(result.success).toBe(true);
             expect(result.status).toBe(204);
         });
@@ -96,6 +108,7 @@ describe("Attendance Actions", () => {
             const result = await updatePlayerAttendance({
                 values: mockValues,
                 eventId,
+                client: mockClient,
             });
 
             expect(result.success).toBe(false);

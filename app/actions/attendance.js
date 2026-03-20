@@ -1,14 +1,21 @@
 import { ID, Permission, Query, Role } from "node-appwrite";
+import { createSessionClient } from "@/utils/appwrite/server";
 import {
     createDocument,
     listDocuments,
     updateDocument,
 } from "@/utils/databases";
 
-export async function updatePlayerAttendance({ values, eventId }) {
+export async function updatePlayerAttendance({
+    values,
+    eventId,
+    client,
+    request,
+}) {
     const { playerId, updatedBy, teamId, ...updates } = values;
 
     try {
+        const activeClient = client || (await createSessionClient(request));
         // Build permissions array if we have teamId
         const permissions = teamId
             ? [
@@ -22,9 +29,11 @@ export async function updatePlayerAttendance({ values, eventId }) {
               ]
             : [];
 
-        const response = await listDocuments("attendance", [
-            Query.equal("gameId", eventId),
-        ]);
+        const response = await listDocuments(
+            "attendance",
+            [Query.equal("gameId", eventId)],
+            activeClient,
+        );
 
         if (response.rows.length === 0) {
             const result = await createDocument(
@@ -37,6 +46,7 @@ export async function updatePlayerAttendance({ values, eventId }) {
                     ...updates,
                 },
                 permissions,
+                activeClient,
             );
 
             return { response: result, status: 201, success: true };
@@ -59,6 +69,7 @@ export async function updatePlayerAttendance({ values, eventId }) {
                         ...updates,
                     },
                     permissions,
+                    activeClient,
                 );
 
                 return { response: result, status: 201, success: true };
@@ -69,6 +80,7 @@ export async function updatePlayerAttendance({ values, eventId }) {
                 "attendance",
                 currentPlayerAttendance.$id,
                 { ...updates },
+                activeClient,
             );
 
             return { response: updatedResponse, status: 204, success: true };
