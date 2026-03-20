@@ -1,3 +1,5 @@
+import { ID, Permission, Role } from "node-appwrite";
+
 import {
     createDocument,
     deleteDocument,
@@ -8,8 +10,9 @@ import {
     rollbackTransaction,
     collections,
 } from "@/utils/databases";
+import { createSessionClient } from "@/utils/appwrite/server";
+
 import { EVENT_TYPE_MAP } from "@/constants/scoring";
-import { ID, Permission, Role } from "node-appwrite";
 
 const databaseId = process.env.APPWRITE_DATABASE_ID;
 
@@ -28,8 +31,14 @@ export const logGameEvent = async ({
     hitY,
     hitLocation,
     battingSide,
+    request,
 }) => {
     let transaction = null;
+    let sessionClient = null;
+
+    if (request) {
+        sessionClient = await createSessionClient(request);
+    }
 
     try {
         const runs = parseInt(rbi, 10) || 0;
@@ -39,20 +48,14 @@ export const logGameEvent = async ({
         let game = null;
 
         if (!teamId || runs > 0) {
-            game = await readDocument("games", gameId);
+            game = await readDocument("games", gameId, [], sessionClient);
             if (!teamId) teamId = game?.teamId;
         }
 
-        const teamRoles = ["manager", "owner", "scorekeeper"];
-
         const permissions = [
             Permission.read(Role.any()),
-            ...teamRoles.map((role) =>
-                Permission.update(Role.team(teamId, role)),
-            ),
-            ...teamRoles.map((role) =>
-                Permission.delete(Role.team(teamId, role)),
-            ),
+            Permission.update(Role.team(teamId, "scorekeeper")),
+            Permission.delete(Role.team(teamId, "scorekeeper")),
         ];
 
         // Validate baseState before stringify
@@ -120,12 +123,12 @@ export const logGameEvent = async ({
 
             return { success: true, log: { $id: logId } };
         } else {
-            // No score update needed, just create the log
             const response = await createDocument(
                 "game_logs",
                 null,
                 logPayload,
                 permissions,
+                sessionClient,
             );
 
             return { success: true, log: response };
@@ -150,12 +153,17 @@ export const logGameEvent = async ({
     }
 };
 
-export const undoGameEvent = async ({ logId }) => {
+export const undoGameEvent = async ({ logId, request }) => {
     let transaction = null;
+    let sessionClient = null;
+
+    if (request) {
+        sessionClient = await createSessionClient(request);
+    }
 
     try {
         // 1. Fetch the log to see if we need to revert score
-        const log = await readDocument("game_logs", logId);
+        const log = await readDocument("game_logs", logId, [], sessionClient);
         const runs = parseInt(log.rbi || 0, 10);
 
         // 2. If the log had runs, use transaction for atomic undo
@@ -163,7 +171,12 @@ export const undoGameEvent = async ({ logId }) => {
             transaction = await createTransaction();
 
             // Read current score to calculate reverted score
-            const game = await readDocument("games", log.gameId);
+            const game = await readDocument(
+                "games",
+                log.gameId,
+                [],
+                sessionClient,
+            );
             const currentScore = parseInt(game.score || 0, 10);
             const newScore = Math.max(0, currentScore - runs);
 
@@ -192,7 +205,7 @@ export const undoGameEvent = async ({ logId }) => {
             return { success: true };
         } else {
             // No score to revert, just delete the log
-            await deleteDocument("game_logs", logId);
+            await deleteDocument("game_logs", logId, sessionClient);
             return { success: true };
         }
     } catch (error) {

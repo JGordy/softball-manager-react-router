@@ -7,10 +7,19 @@ jest.mock("@/utils/databases", () => ({
     updateDocument: jest.fn(),
 }));
 
+jest.mock("@/utils/appwrite/server", () => ({
+    createSessionClient: jest.fn(),
+}));
+
 describe("Awards Actions", () => {
+    const mockRequest = { headers: { get: () => "mock-cookie" } };
+    const mockSessionClient = { tablesDB: { id: "mock-session-db" } };
+
     beforeEach(() => {
         jest.clearAllMocks();
         jest.spyOn(console, "error").mockImplementation(() => {});
+        const { createSessionClient } = require("@/utils/appwrite/server");
+        createSessionClient.mockResolvedValue(mockSessionClient);
     });
 
     afterEach(() => {
@@ -34,6 +43,7 @@ describe("Awards Actions", () => {
             const result = await sendAwardVotes({
                 values: mockValues,
                 eventId,
+                request: mockRequest,
             });
 
             expect(createDocument).toHaveBeenCalledTimes(2);
@@ -57,11 +67,17 @@ describe("Awards Actions", () => {
             const result = await sendAwardVotes({
                 values: mockValues,
                 eventId,
+                request: mockRequest,
             });
 
-            expect(updateDocument).toHaveBeenCalledWith("votes", "vote1", {
-                nominated_user_id: "user1",
-            });
+            expect(updateDocument).toHaveBeenCalledWith(
+                "votes",
+                "vote1",
+                {
+                    nominated_user_id: "user1",
+                },
+                mockSessionClient,
+            );
             expect(result.success).toBe(true);
         });
 
@@ -79,6 +95,7 @@ describe("Awards Actions", () => {
             const result = await sendAwardVotes({
                 values: mockValues,
                 eventId: "event1",
+                request: mockRequest,
             });
 
             expect(result.success).toBe(false);
@@ -93,11 +110,20 @@ describe("Awards Actions", () => {
 
             updateDocument.mockResolvedValue({ $id: voteId });
 
-            const result = await updateAwardVote({ voteId, values });
-
-            expect(updateDocument).toHaveBeenCalledWith("votes", voteId, {
-                nominated_user_id: "user2",
+            const result = await updateAwardVote({
+                voteId,
+                values,
+                request: mockRequest,
             });
+
+            expect(updateDocument).toHaveBeenCalledWith(
+                "votes",
+                voteId,
+                {
+                    nominated_user_id: "user2",
+                },
+                mockSessionClient,
+            );
             expect(result.success).toBe(true);
             expect(result.status).toBe(204);
         });
@@ -106,6 +132,7 @@ describe("Awards Actions", () => {
             const result = await updateAwardVote({
                 voteId: null,
                 values: null,
+                request: mockRequest,
             });
 
             expect(updateDocument).not.toHaveBeenCalled();

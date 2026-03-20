@@ -1,7 +1,8 @@
 import { ID, Permission, Role } from "node-appwrite";
 import { createDocument, updateDocument } from "@/utils/databases.js";
+import { createSessionClient } from "@/utils/appwrite/server";
 
-export async function sendAwardVotes({ values, eventId }) {
+export async function sendAwardVotes({ values, eventId, request }) {
     const { playerVotes, voter_user_id, team_id, ...rest } = values;
 
     const votes = JSON.parse(playerVotes);
@@ -9,6 +10,11 @@ export async function sendAwardVotes({ values, eventId }) {
     const categories = votes && Object.keys(votes);
 
     try {
+        if (!request) {
+            throw new Error("Request object is required for authorization.");
+        }
+        const sessionClient = await createSessionClient(request);
+
         // Build permissions array if we have team_id
         // Votes can be read by team, updated/deleted by voter or managers/owners
         const permissions = team_id
@@ -16,17 +22,20 @@ export async function sendAwardVotes({ values, eventId }) {
                   Permission.read(Role.team(team_id)), // Team members can see votes
                   Permission.update(Role.user(voter_user_id)), // Only the voter can update
                   Permission.delete(Role.user(voter_user_id)), // Only the voter can delete
-                  Permission.delete(Role.team(team_id, "manager")), // Managers can delete
-                  Permission.delete(Role.team(team_id, "owner")), // Owners can delete
               ]
             : [];
 
         const promises = categories.map((category) => {
             const vote = votes[category];
             if (vote.vote_id) {
-                return updateDocument("votes", vote.vote_id, {
-                    nominated_user_id: vote.nominated_user_id,
-                });
+                return updateDocument(
+                    "votes",
+                    vote.vote_id,
+                    {
+                        nominated_user_id: vote.nominated_user_id,
+                    },
+                    sessionClient,
+                );
             } else {
                 return createDocument(
                     "votes",
@@ -40,6 +49,7 @@ export async function sendAwardVotes({ values, eventId }) {
                         voter_user_id,
                     },
                     permissions,
+                    sessionClient,
                 );
             }
         });
@@ -55,15 +65,23 @@ export async function sendAwardVotes({ values, eventId }) {
     }
 }
 
-export async function updateAwardVote({ voteId, values }) {
+export async function updateAwardVote({ voteId, values, request }) {
     if (voteId && values) {
         const parsedVoteDetails = JSON.parse(values);
 
         try {
+            if (!request) {
+                throw new Error(
+                    "Request object is required for authorization.",
+                );
+            }
+            const sessionClient = await createSessionClient(request);
+
             const voteDetails = await updateDocument(
                 "votes",
                 voteId,
                 parsedVoteDetails,
+                sessionClient,
             );
 
             return { response: { voteDetails }, status: 204, success: true };

@@ -58,6 +58,7 @@ async function initializeDefaultAttendance(gameId, teamId) {
             ),
         );
 
+        const adminClient = createAdminClient();
         const attendanceUpdates = [];
 
         for (const result of prefsResults) {
@@ -83,6 +84,7 @@ async function initializeDefaultAttendance(gameId, teamId) {
                                 updatedBy: "system-default",
                             },
                             eventId: gameId,
+                            client: adminClient,
                         }),
                     );
                 }
@@ -103,7 +105,11 @@ async function initializeDefaultAttendance(gameId, teamId) {
     }
 }
 
-export async function createSingleGame({ values, teamId: passedTeamId }) {
+export async function createSingleGame({
+    values,
+    request,
+    teamId: passedTeamId,
+}) {
     const {
         gameDate,
         gameTime,
@@ -127,6 +133,10 @@ export async function createSingleGame({ values, teamId: passedTeamId }) {
     }
 
     try {
+        if (!request) {
+            throw new Error("Request object is required for authorization.");
+        }
+        const sessionClient = await createSessionClient(request);
         // Check opponent name for inappropriate language
         if (opponent && (await hasBadWords(opponent))) {
             return {
@@ -144,6 +154,7 @@ export async function createSingleGame({ values, teamId: passedTeamId }) {
             const parkResponse = await findOrCreatePark({
                 values: parsedLocationDetails,
                 placeId: parsedLocationDetails.placeId,
+                client: sessionClient,
             });
 
             if (parkResponse) {
@@ -154,7 +165,12 @@ export async function createSingleGame({ values, teamId: passedTeamId }) {
         // If location matches season location, don't persist it at the game level
         if (values.seasonId && location) {
             try {
-                const season = await readDocument("seasons", values.seasonId);
+                const season = await readDocument(
+                    "seasons",
+                    values.seasonId,
+                    [],
+                    sessionClient,
+                );
                 if (season?.location === location) {
                     location = null;
                     parkId = null;
@@ -164,15 +180,11 @@ export async function createSingleGame({ values, teamId: passedTeamId }) {
             }
         }
 
-        // Build permissions array if we have teamId
         const permissions = teamId
             ? [
                   Permission.read(Role.team(teamId)), // Team members can read
-                  Permission.update(Role.team(teamId, "manager")), // Managers can update
-                  Permission.update(Role.team(teamId, "owner")), // Owners can update
-                  Permission.update(Role.team(teamId, "scorekeeper")), // Scorekeepers can update
-                  Permission.delete(Role.team(teamId, "manager")), // Managers can delete
-                  Permission.delete(Role.team(teamId, "owner")), // Owners can delete
+                  Permission.update(Role.team(teamId, "scorekeeper")), // Scorekeepers, Managers, and Owners can update
+                  Permission.delete(Role.team(teamId, "manager")), // Managers and Owners can delete
               ]
             : [];
 
@@ -200,6 +212,7 @@ export async function createSingleGame({ values, teamId: passedTeamId }) {
             ID.unique(),
             updatedGameData,
             permissions,
+            sessionClient,
         );
 
         // Initialize attendance based on user defaults
@@ -223,7 +236,7 @@ export async function createSingleGame({ values, teamId: passedTeamId }) {
     }
 }
 
-export async function createGames({ values }) {
+export async function createGames({ values, request }) {
     const { games: generatedGames, timeZone } = values;
     let games = JSON.parse(generatedGames);
 
@@ -231,15 +244,15 @@ export async function createGames({ values }) {
     const teamId = games[0]?.teamId;
 
     try {
-        // Build permissions array if we have teamId
+        if (!request) {
+            throw new Error("Request object is required for authorization.");
+        }
+        const sessionClient = await createSessionClient(request);
         const permissions = teamId
             ? [
                   Permission.read(Role.team(teamId)), // Team members can read
-                  Permission.update(Role.team(teamId, "manager")), // Managers can update
-                  Permission.update(Role.team(teamId, "owner")), // Owners can update
-                  Permission.update(Role.team(teamId, "scorekeeper")), // Scorekeepers can update
-                  Permission.delete(Role.team(teamId, "manager")), // Managers can delete
-                  Permission.delete(Role.team(teamId, "owner")), // Owners can delete
+                  Permission.update(Role.team(teamId, "scorekeeper")), // Scorekeepers, Managers, and Owners can update
+                  Permission.delete(Role.team(teamId, "manager")), // Managers and Owners can delete
               ]
             : [];
 
@@ -258,7 +271,9 @@ export async function createGames({ values }) {
                     seasons: game.seasons || game.seasonId,
                 },
                 permissions,
+                sessionClient,
             );
+
             createdGames.push(createdGame);
         }
 
@@ -289,7 +304,7 @@ export async function createGames({ values }) {
     }
 }
 
-export async function updateGame({ values, eventId }) {
+export async function updateGame({ values, eventId, request }) {
     const { opponent, locationDetails } = values;
 
     // Removes undefined or empty string values from data to update
@@ -304,6 +319,13 @@ export async function updateGame({ values, eventId }) {
             // Clear parkId for manual edits; it will be re-set if locationDetails are valid
             dataToUpdate.parkId = null;
 
+            if (!request) {
+                throw new Error(
+                    "Request object is required for authorization.",
+                );
+            }
+            const sessionClient = await createSessionClient(request);
+
             if (locationDetails) {
                 try {
                     const parsedLocationDetails = JSON.parse(locationDetails);
@@ -311,6 +333,7 @@ export async function updateGame({ values, eventId }) {
                         const parkResponse = await findOrCreatePark({
                             values: parsedLocationDetails,
                             placeId: parsedLocationDetails.placeId,
+                            client: sessionClient,
                         });
 
                         if (parkResponse?.$id) {
@@ -328,6 +351,8 @@ export async function updateGame({ values, eventId }) {
                     const season = await readDocument(
                         "seasons",
                         values.seasonId,
+                        [],
+                        sessionClient,
                     );
                     if (season?.location === values.location) {
                         dataToUpdate.location = null;
@@ -413,6 +438,17 @@ export async function updateGame({ values, eventId }) {
     delete dataToUpdate.gameTime;
     delete dataToUpdate.locationDetails;
 
+    // sessionClient might have not been instantiated if we didn't update location
+    let finalSessionClient;
+    try {
+        if (!request) {
+            throw new Error("Request object is required for authorization.");
+        }
+        finalSessionClient = await createSessionClient(request);
+    } catch (e) {
+        throw new Error("Request object is required for authorization.");
+    }
+
     try {
         // Check opponent name for inappropriate language
         if (opponent && (await hasBadWords(opponent))) {
@@ -428,6 +464,7 @@ export async function updateGame({ values, eventId }) {
             "games",
             eventId,
             dataToUpdate,
+            finalSessionClient,
         );
 
         // Send notification if game is finalized or score is updated
