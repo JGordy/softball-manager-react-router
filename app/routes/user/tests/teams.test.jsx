@@ -1,3 +1,6 @@
+process.env.APPWRITE_ENDPOINT = "http://localhost/v1";
+process.env.APPWRITE_PROJECT_ID = "test";
+
 import { useActionData } from "react-router";
 import { render, screen, fireEvent } from "@/utils/test-utils";
 
@@ -14,6 +17,10 @@ jest.mock("react-router", () => ({
 
 jest.mock("@/actions/teams");
 jest.mock("@/loaders/teams");
+jest.mock("@/utils/appwrite/server", () => ({
+    __esModule: true,
+    createSessionClient: jest.fn().mockResolvedValue({ tablesDB: {} }),
+}));
 
 jest.mock("@/hooks/useModal", () => ({
     __esModule: true,
@@ -49,10 +56,12 @@ describe("UserTeams Route Component", () => {
     });
 
     describe("loader", () => {
-        it("calls getUserTeams", async () => {
+        it("calls getUserTeams with client payload", async () => {
             const request = { url: "http://localhost/teams" };
             await loader({ request });
-            expect(teamsLoaders.getUserTeams).toHaveBeenCalledWith({ request });
+            expect(teamsLoaders.getUserTeams).toHaveBeenCalledWith({
+                client: expect.any(Object),
+            });
         });
     });
 
@@ -69,6 +78,8 @@ describe("UserTeams Route Component", () => {
             expect(teamsActions.createTeam).toHaveBeenCalledWith({
                 values: { name: "New Team" },
                 userId: "user-1",
+                request: expect.any(Object),
+                client: expect.any(Object),
             });
         });
     });

@@ -9,6 +9,7 @@ import { render, screen, fireEvent } from "@/utils/test-utils";
 
 import * as usersActions from "@/actions/users";
 import * as usersLoaders from "@/loaders/users";
+import { createSessionClient } from "@/utils/appwrite/server";
 
 import UserProfile, { action, loader } from "../profile";
 
@@ -22,6 +23,9 @@ jest.mock("react-router", () => ({
 
 jest.mock("@/actions/users");
 jest.mock("@/loaders/users");
+jest.mock("@/utils/appwrite/server", () => ({
+    createSessionClient: jest.fn(),
+}));
 
 jest.mock("@/components/UserHeader", () => ({ children }) => (
     <div data-testid="user-header">{children}</div>
@@ -59,6 +63,7 @@ describe("UserProfile Route Component", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        createSessionClient.mockResolvedValue({});
         useNavigate.mockReturnValue(mockNavigate);
         useLocation.mockReturnValue({ hash: "" });
         useOutletContext.mockReturnValue({ user: { $id: "user-1" } });
@@ -80,15 +85,19 @@ describe("UserProfile Route Component", () => {
 
             expect(usersLoaders.getUserById).toHaveBeenCalledWith({
                 userId: "user-1",
+                client: expect.any(Object),
             });
             expect(usersLoaders.getAwardsByUserId).toHaveBeenCalledWith({
                 userId: "user-1",
+                client: expect.any(Object),
             });
             expect(usersLoaders.getAttendanceByUserId).toHaveBeenCalledWith({
                 userId: "user-1",
+                client: expect.any(Object),
             });
             expect(usersLoaders.getStatsByUserId).toHaveBeenCalledWith({
                 userId: "user-1",
+                client: expect.any(Object),
             });
             expect(result.player).toEqual(mockPlayer);
             expect(result.defaultTab).toBe("stats");
@@ -120,6 +129,7 @@ describe("UserProfile Route Component", () => {
             expect(usersActions.updateUser).toHaveBeenCalledWith({
                 values: { name: "Updated Name" },
                 userId: "user-1",
+                client: expect.any(Object),
             });
         });
 

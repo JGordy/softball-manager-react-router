@@ -24,6 +24,7 @@ import {
     getIncompleteProfileFields,
     REQUIRED_PROFILE_FIELDS,
 } from "@/utils/users";
+import { createSessionClient } from "@/utils/appwrite/server";
 
 import AlertIncomplete from "./components/AlertIncomplete";
 import ProfileMenu from "./components/ProfileMenu";
@@ -42,7 +43,8 @@ export async function action({ request, params }) {
     const { _action, ...values } = Object.fromEntries(formData);
 
     if (_action === "edit-player") {
-        return updateUser({ values, userId });
+        const sessionClient = await createSessionClient(request);
+        return updateUser({ values, userId, client: sessionClient });
     }
 }
 
@@ -54,11 +56,16 @@ export async function loader({ params, request }) {
     const validTabs = ["player", "stats", "awards", "attendance"];
     const defaultTab = validTabs.includes(hash) ? hash : "player";
 
+    const sessionClient = await createSessionClient(request);
+
     return {
-        player: await getUserById({ userId }),
-        awardsPromise: getAwardsByUserId({ userId }),
-        attendancePromise: getAttendanceByUserId({ userId }),
-        statsPromise: getStatsByUserId({ userId }),
+        player: await getUserById({ userId, client: sessionClient }),
+        awardsPromise: getAwardsByUserId({ userId, client: sessionClient }),
+        attendancePromise: getAttendanceByUserId({
+            userId,
+            client: sessionClient,
+        }),
+        statsPromise: getStatsByUserId({ userId, client: sessionClient }),
         defaultTab,
     };
 }
