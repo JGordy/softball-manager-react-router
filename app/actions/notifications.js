@@ -5,10 +5,7 @@
 
 import { ID, MessagingProviderType, Query } from "node-appwrite";
 
-import {
-    createAdminClient,
-    createSessionClient,
-} from "@/utils/appwrite/server.js";
+import { createAdminClient } from "@/utils/appwrite/server.js";
 
 import { getAppwriteTeam } from "@/utils/teams.js";
 
@@ -22,11 +19,11 @@ import {
 
 /**
  * Helper to get authenticated user and admin users client
- * @param {Request} request - The incoming request
+ * @param {Request} client - The incoming client
  * @returns {Promise<{accountUser: Object, adminUsersClient: Object}>} The user object and admin users client
  */
-export async function getAuthUserAndAdminUsers(request) {
-    const { account } = await createSessionClient(request);
+export async function getAuthUserAndAdminUsers(client) {
+    const { account } = client;
     const accountUser = await account.get();
     const { users: adminUsersClient } = createAdminClient();
     return { accountUser, adminUsersClient };
@@ -91,17 +88,17 @@ async function findSubscriber(messaging, topic, targetId) {
 
 /**
  * Get a push target for the current user by targetId
- * @param {Request} request - The incoming request (for session)
+ * @param {Request} client - The incoming client (for session)
  * @param {string} targetId - The push target ID to look up
  * @returns {Promise<Object|null>} The push target object if found and owned by user, else null
  */
-export async function getPushTarget({ request, targetId }) {
+export async function getPushTarget({ client, targetId }) {
     if (!targetId) {
         throw new Error("Target ID is required");
     }
 
     const { accountUser, adminUsersClient } =
-        await getAuthUserAndAdminUsers(request);
+        await getAuthUserAndAdminUsers(client);
 
     // Try to fetch the target for this user
     try {
@@ -124,12 +121,12 @@ export async function getPushTarget({ request, targetId }) {
 
 /**
  * List all push targets for the current user
- * @param {Request} request - The incoming request (for session)
+ * @param {Request} client - The incoming client (for session)
  * @returns {Promise<Array>} Array of push targets
  */
-export async function listPushTargets({ request }) {
+export async function listPushTargets({ client }) {
     const { accountUser, adminUsersClient } =
-        await getAuthUserAndAdminUsers(request);
+        await getAuthUserAndAdminUsers(client);
 
     try {
         const result = await adminUsersClient.listTargets({
@@ -152,12 +149,12 @@ export async function listPushTargets({ request }) {
  * Create a push target for the current user (server-side)
  * This registers the user's device for push notifications
  * If a target with the same FCM token already exists, returns that instead
- * @param {Request} request - The incoming request (for session)
+ * @param {Request} client - The incoming client (for session)
  * @param {string} fcmToken - The FCM token from the browser
  * @param {string} providerId - The FCM provider ID
  * @returns {Promise<Object>} The created or existing push target
  */
-export async function createPushTarget({ request, fcmToken, providerId }) {
+export async function createPushTarget({ client, fcmToken, providerId }) {
     if (!fcmToken) {
         throw new Error("FCM token is required");
     }
@@ -166,7 +163,7 @@ export async function createPushTarget({ request, fcmToken, providerId }) {
     }
 
     const { accountUser, adminUsersClient } =
-        await getAuthUserAndAdminUsers(request);
+        await getAuthUserAndAdminUsers(client);
 
     // Check if a target with this FCM token already exists
     try {
@@ -206,17 +203,17 @@ export async function createPushTarget({ request, fcmToken, providerId }) {
 /**
  * Delete a push target for the current user (server-side)
  * This unregisters the user's device from push notifications
- * @param {Request} request - The incoming request (for session)
+ * @param {Request} client - The incoming client (for session)
  * @param {string} targetId - The push target ID to delete
  * @returns {Promise<Object>} Success result
  */
-export async function deletePushTarget({ request, targetId }) {
+export async function deletePushTarget({ client, targetId }) {
     if (!targetId) {
         throw new Error("Target ID is required");
     }
 
     const { accountUser, adminUsersClient } =
-        await getAuthUserAndAdminUsers(request);
+        await getAuthUserAndAdminUsers(client);
 
     await adminUsersClient.deleteTarget({
         userId: accountUser.$id,
@@ -450,7 +447,7 @@ export async function sendLineupFinalizedNotification({
 }
 
 /**
- * Send an attendance request notification
+ * Send an attendance client notification
  * @param {Object} options - Attendance options
  * @param {string} options.gameId - Game ID
  * @param {string} options.teamId - Team ID
@@ -671,18 +668,18 @@ export async function unsubscribeFromTeam({ teamId, targetId }) {
  * Subscribe a target to all teams the user is a member of
  * Used when a user globally enables notifications
  * @param {Object} options
- * @param {Request} options.request - Request object (for session)
+ * @param {Request} options.client - Request object (for session)
  * @param {string} options.targetId - Push Target ID
  * @returns {Promise<Object>} Success status and count
  */
-export async function subscribeToAllTeams({ request, targetId }) {
-    if (!request || !targetId) {
+export async function subscribeToAllTeams({ client, targetId }) {
+    if (!client || !targetId) {
         return { success: false, error: "Request and Target ID are required" };
     }
 
     try {
         // Use session client to get the user's teams
-        const { teams } = await createSessionClient(request);
+        const { teams } = client;
 
         let subscribedCount = 0;
         const errors = [];

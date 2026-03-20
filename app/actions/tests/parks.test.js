@@ -12,10 +12,18 @@ jest.mock("@/loaders/parks", () => ({
     getParkByPlaceId: jest.fn(),
 }));
 
+jest.mock("@/utils/appwrite/server", () => ({
+    createSessionClient: jest.fn(),
+}));
+
 describe("Parks Actions", () => {
+    const mockSessionClient = { tablesDB: { id: "mock-session-db" } };
+
     beforeEach(() => {
         jest.clearAllMocks();
         jest.spyOn(console, "error").mockImplementation(() => {});
+        const { createSessionClient } = require("@/utils/appwrite/server");
+        createSessionClient.mockResolvedValue(mockSessionClient);
     });
 
     afterEach(() => {
@@ -30,6 +38,7 @@ describe("Parks Actions", () => {
             const result = await findOrCreatePark({
                 values: {},
                 placeId: "place1",
+                client: mockSessionClient,
             });
 
             expect(result).toEqual(existingPark);
@@ -48,6 +57,7 @@ describe("Parks Actions", () => {
             const result = await findOrCreatePark({
                 values: mockValues,
                 placeId: "place2",
+                client: mockSessionClient,
             });
 
             expect(createDocument).toHaveBeenCalledWith(
@@ -59,6 +69,7 @@ describe("Parks Actions", () => {
                     longitude: -74.006,
                 },
                 ['read("any")', 'update("users")', 'delete("users")'],
+                mockSessionClient,
             );
             expect(result).toEqual(newPark);
         });
@@ -74,6 +85,7 @@ describe("Parks Actions", () => {
             const result = await findOrCreatePark({
                 values: mockValues,
                 placeId: null,
+                client: mockSessionClient,
             });
 
             expect(getParkByPlaceId).not.toHaveBeenCalled();
@@ -89,17 +101,30 @@ describe("Parks Actions", () => {
 
             updateDocument.mockResolvedValue({ $id: parkId });
 
-            const result = await updatePark({ values, parkId });
-
-            expect(updateDocument).toHaveBeenCalledWith("parks", parkId, {
-                name: "Updated Park",
+            const result = await updatePark({
+                values,
+                parkId,
+                client: mockSessionClient,
             });
+
+            expect(updateDocument).toHaveBeenCalledWith(
+                "parks",
+                parkId,
+                {
+                    name: "Updated Park",
+                },
+                mockSessionClient,
+            );
             expect(result.success).toBe(true);
             expect(result.status).toBe(204);
         });
 
         it("should not update if parkId or values are missing", async () => {
-            const result = await updatePark({ parkId: null, values: null });
+            const result = await updatePark({
+                parkId: null,
+                values: null,
+                client: mockSessionClient,
+            });
 
             expect(updateDocument).not.toHaveBeenCalled();
             expect(result).toBeUndefined();

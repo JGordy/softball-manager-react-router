@@ -249,7 +249,7 @@ describe("notification subscription actions", () => {
             mockCreateSubscriber.mockResolvedValue({});
 
             const result = await subscribeToAllTeams({
-                request: {},
+                client: await createSessionClient(),
                 targetId: "target-123",
             });
 
@@ -289,7 +289,7 @@ describe("notification subscription actions", () => {
             mockCreateSubscriber.mockResolvedValue({});
 
             const result = await subscribeToAllTeams({
-                request: {},
+                client: await createSessionClient(),
                 targetId: "target-123",
             });
 
@@ -311,7 +311,7 @@ describe("notification subscription actions", () => {
                 .mockRejectedValueOnce(new Error("Failed")); // Fail for second
 
             const result = await subscribeToAllTeams({
-                request: {},
+                client: await createSessionClient(),
                 targetId: "target-123",
             });
 
@@ -325,7 +325,7 @@ describe("notification subscription actions", () => {
             mockTeamsList.mockRejectedValue(new Error("Network error"));
 
             const result = await subscribeToAllTeams({
-                request: {},
+                client: await createSessionClient(),
                 targetId: "target-123",
             });
 

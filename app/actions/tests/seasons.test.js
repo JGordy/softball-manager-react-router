@@ -17,11 +17,19 @@ jest.mock("@/actions/parks", () => ({
     findOrCreatePark: jest.fn(),
 }));
 
+jest.mock("@/utils/appwrite/server", () => ({
+    createSessionClient: jest.fn(),
+}));
+
 describe("Seasons Actions", () => {
+    const mockSessionClient = { tablesDB: { id: "mock-session-db" } };
+
     beforeEach(() => {
         jest.clearAllMocks();
         jest.spyOn(console, "error").mockImplementation(() => {});
         hasBadWords.mockResolvedValue(false);
+        const { createSessionClient } = require("@/utils/appwrite/server");
+        createSessionClient.mockResolvedValue(mockSessionClient);
     });
 
     afterEach(() => {
@@ -41,7 +49,11 @@ describe("Seasons Actions", () => {
             findOrCreatePark.mockResolvedValue({ $id: "park1" });
             createDocument.mockResolvedValue({ $id: "season1" });
 
-            const result = await createSeason({ values: mockValues, teamId });
+            const result = await createSeason({
+                values: mockValues,
+                teamId,
+                client: mockSessionClient,
+            });
 
             expect(createDocument).toHaveBeenCalledWith(
                 "seasons",
@@ -54,7 +66,11 @@ describe("Seasons Actions", () => {
                     teamId,
                     teams: [teamId],
                 },
-                expect.any(Array), // permissions array
+                expect.arrayContaining([
+                    'update("team:team1/manager")',
+                    'delete("team:team1/manager")',
+                ]),
+                mockSessionClient,
             );
             expect(result.success).toBe(true);
             expect(result.status).toBe(201);
@@ -72,6 +88,7 @@ describe("Seasons Actions", () => {
             const result = await createSeason({
                 values: mockValues,
                 teamId: "team1",
+                client: mockSessionClient,
             });
 
             expect(result.success).toBe(false);
@@ -92,6 +109,7 @@ describe("Seasons Actions", () => {
             const result = await createSeason({
                 values: mockValues,
                 teamId: "team1",
+                client: mockSessionClient,
             });
 
             expect(findOrCreatePark).not.toHaveBeenCalled();
@@ -110,13 +128,22 @@ describe("Seasons Actions", () => {
 
             updateDocument.mockResolvedValue({ $id: seasonId });
 
-            const result = await updateSeason({ values: mockValues, seasonId });
-
-            expect(updateDocument).toHaveBeenCalledWith("seasons", seasonId, {
-                seasonName: "Updated Season",
-                gameDays: ["Tuesday", "Thursday"],
-                signUpFee: 75,
+            const result = await updateSeason({
+                values: mockValues,
+                seasonId,
+                client: mockSessionClient,
             });
+
+            expect(updateDocument).toHaveBeenCalledWith(
+                "seasons",
+                seasonId,
+                {
+                    seasonName: "Updated Season",
+                    gameDays: ["Tuesday", "Thursday"],
+                    signUpFee: 75,
+                },
+                mockSessionClient,
+            );
             expect(result.success).toBe(true);
             expect(result.status).toBe(204);
         });
@@ -132,9 +159,12 @@ describe("Seasons Actions", () => {
             const result = await updateSeason({
                 values: mockValues,
                 seasonId: "season1",
+                client: mockSessionClient,
             });
 
-            expect(findOrCreatePark).toHaveBeenCalled();
+            expect(findOrCreatePark).toHaveBeenCalledWith(
+                expect.objectContaining({ client: mockSessionClient }),
+            );
             expect(result.success).toBe(true);
         });
 
@@ -144,6 +174,7 @@ describe("Seasons Actions", () => {
             const result = await updateSeason({
                 values: { seasonName: "BadWord Season" },
                 seasonId: "season1",
+                client: mockSessionClient,
             });
 
             expect(result.success).toBe(false);
