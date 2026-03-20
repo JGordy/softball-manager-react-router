@@ -16,19 +16,25 @@ import { updateSeason } from "@/actions/seasons";
 import { getSeasonById } from "@/loaders/seasons";
 import { getParkById } from "@/loaders/parks";
 
+import { createSessionClient } from "@/utils/appwrite/server";
+
 import { useResponseNotification } from "@/utils/showNotification";
 
 import DesktopSeasonDetails from "./components/DesktopSeasonDetails";
 import MobileSeasonDetails from "./components/MobileSeasonDetails";
 
-export async function loader({ params }) {
+export async function loader({ request, params }) {
     const { seasonId } = params;
+    const client = await createSessionClient(request);
 
     let park = null;
-    const { season } = await getSeasonById({ seasonId });
+    const { season } = await getSeasonById({ seasonId, client });
 
     if (season.parkId) {
-        park = await getParkById({ parkId: season.parkId });
+        park = await getParkById({
+            parkId: season.parkId,
+            client,
+        });
     }
 
     return { season, park };
@@ -39,21 +45,22 @@ export async function action({ request, params }) {
 
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
+    const client = await createSessionClient(request);
 
     if (_action === "edit-season") {
-        return updateSeason({ values, seasonId });
+        return updateSeason({ values, seasonId, client });
     }
 
     if (_action === "add-games") {
-        return createGames({ values });
+        return createGames({ values, client });
     }
 
     if (_action === "delete-games") {
-        return deleteGames({ values, request });
+        return deleteGames({ values, client });
     }
 
     if (_action === "add-single-game") {
-        return createSingleGame({ values });
+        return createSingleGame({ values, client });
     }
 }
 

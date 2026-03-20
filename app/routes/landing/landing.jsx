@@ -53,8 +53,9 @@ export const meta = () => {
 export async function action({ request }) {
     const url = new URL(request.url);
     const redirectTo = url.searchParams.get("redirect");
+    const client = await createSessionClient(request);
 
-    return logoutAction({ request, redirectTo });
+    return logoutAction({ client, redirectTo });
 }
 
 export async function loader({ request }) {
