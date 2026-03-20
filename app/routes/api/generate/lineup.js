@@ -2,7 +2,10 @@ import { Query } from "node-appwrite";
 
 import { createModel, generateContentStream } from "@/utils/ai";
 import { listDocuments, updateDocument } from "@/utils/databases";
-import { createAdminClient } from "@/utils/appwrite/server";
+import {
+    createAdminClient,
+    createSessionClient,
+} from "@/utils/appwrite/server";
 import { EVENT_TYPE_MAP, UI_KEYS } from "@/constants/scoring";
 import { MAX_AI_GENERATIONS_PER_GAME } from "@/constants/ai";
 
@@ -38,6 +41,7 @@ export async function action({ request }) {
     let rollbackCount = null;
 
     try {
+        const sessionClient = await createSessionClient(request);
         // Parse the request body to get players, team info, and game details
         const body = await request.json();
         const { players, team, gameId } = body;
@@ -67,9 +71,11 @@ export async function action({ request }) {
         }
 
         // Step 1: Get the game to find the teamId
-        const game = await listDocuments("games", [
-            Query.equal("$id", gameId),
-        ]).then((response) => response.rows[0]);
+        const game = await listDocuments(
+            "games",
+            [Query.equal("$id", gameId)],
+            sessionClient,
+        ).then((response) => response.rows[0]);
 
         if (!game || !game.teamId) {
             return new Response(
@@ -100,9 +106,14 @@ export async function action({ request }) {
         // Increment count
         // Note: Appwrite doesn't support atomic increments natively via updateDocument API yet without functions.
         // We accept a small race condition risk here for the generation limit behavior.
-        await updateDocument("games", game.$id, {
-            aiGenerationCount: currentCount + 1,
-        });
+        await updateDocument(
+            "games",
+            game.$id,
+            {
+                aiGenerationCount: currentCount + 1,
+            },
+            sessionClient,
+        );
 
         // Set rollback values in case of failure later in the process
         rollbackGameId = game.$id;
@@ -121,12 +132,16 @@ export async function action({ request }) {
 
         // Step 2: Get recent games for this team (rolling history)
         // Fetch up to 20 to ensure we find 10 valid ones with lineups
-        const teamGames = await listDocuments("games", [
-            Query.equal("teamId", teamId),
-            Query.isNotNull("result"),
-            Query.orderDesc("gameDate"),
-            Query.limit(20),
-        ]);
+        const teamGames = await listDocuments(
+            "games",
+            [
+                Query.equal("teamId", teamId),
+                Query.isNotNull("result"),
+                Query.orderDesc("gameDate"),
+                Query.limit(20),
+            ],
+            sessionClient,
+        );
 
         // Client-side sort to be safe on date format
         const sortedGames = [...teamGames.rows].sort((a, b) => {
@@ -147,17 +162,21 @@ export async function action({ request }) {
         const gameStats = {};
         if (recentGameIds.length > 0) {
             try {
-                const logs = await listDocuments("game_logs", [
-                    Query.equal("gameId", recentGameIds),
-                    Query.limit(2000), // Ensure we get enough logs
-                    Query.select([
-                        "gameId",
-                        "playerId",
-                        "eventType",
-                        "description",
-                        "rbi",
-                    ]),
-                ]);
+                const logs = await listDocuments(
+                    "game_logs",
+                    [
+                        Query.equal("gameId", recentGameIds),
+                        Query.limit(2000), // Ensure we get enough logs
+                        Query.select([
+                            "gameId",
+                            "playerId",
+                            "eventType",
+                            "description",
+                            "rbi",
+                        ]),
+                    ],
+                    sessionClient,
+                );
 
                 logs.rows.forEach((log) => {
                     const eventCode = DB_TO_MINIFIED_EVENT[log.eventType];
@@ -391,9 +410,14 @@ export async function action({ request }) {
                         // Rollback generation count if immediate failure
                         if (rollbackGameId && rollbackCount !== null) {
                             try {
-                                await updateDocument("games", rollbackGameId, {
-                                    aiGenerationCount: rollbackCount,
-                                });
+                                await updateDocument(
+                                    "games",
+                                    rollbackGameId,
+                                    {
+                                        aiGenerationCount: rollbackCount,
+                                    },
+                                    sessionClient,
+                                );
                             } catch (cleanupError) {
                                 console.error(
                                     "Failed to rollback generation count:",
@@ -439,9 +463,14 @@ export async function action({ request }) {
         // Rollback generation count if successfully incremented but failed later
         if (rollbackGameId && rollbackCount !== null) {
             try {
-                await updateDocument("games", rollbackGameId, {
-                    aiGenerationCount: rollbackCount,
-                });
+                await updateDocument(
+                    "games",
+                    rollbackGameId,
+                    {
+                        aiGenerationCount: rollbackCount,
+                    },
+                    createAdminClient(),
+                ); // Admin client used here because session Client won't be easily available if instantiated locally inside the try without it being accessible here in the outer catch block
             } catch (cleanupError) {
                 console.error(
                     "Failed to rollback generation count:",

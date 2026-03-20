@@ -2,7 +2,8 @@ import { getStatsByUserId } from "@/loaders/users";
 import { createSessionClient } from "@/utils/appwrite/server";
 
 export async function loader({ request }) {
-    const { account } = await createSessionClient(request);
+    const sessionClient = await createSessionClient(request);
+    const { account } = sessionClient;
     let userId;
 
     try {
@@ -13,7 +14,7 @@ export async function loader({ request }) {
     }
 
     try {
-        const stats = await getStatsByUserId({ userId });
+        const stats = await getStatsByUserId({ userId, client: sessionClient });
         return Response.json(stats);
     } catch (error) {
         console.error("Error fetching stats:", error);

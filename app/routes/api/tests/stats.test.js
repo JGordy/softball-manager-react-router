@@ -59,7 +59,10 @@ describe("stats API", () => {
             expect(response.status).toBe(200);
             const data = await response.json();
             expect(data).toEqual(mockStats);
-            expect(getStatsByUserId).toHaveBeenCalledWith({ userId: "123" });
+            expect(getStatsByUserId).toHaveBeenCalledWith({
+                userId: "123",
+                client: expect.any(Object),
+            });
         });
 
         it("should return 500 if getting stats fails", async () => {

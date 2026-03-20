@@ -14,6 +14,10 @@ jest.mock("@/actions/notifications", () => ({
     subscribeToAllTeams: jest.fn(),
 }));
 
+jest.mock("@/utils/appwrite/server", () => ({
+    createSessionClient: jest.fn().mockResolvedValue({}),
+}));
+
 describe("push-target API", () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -46,7 +50,7 @@ describe("push-target API", () => {
             const data = await response.json();
             expect(data.error).toBe("Not found");
             expect(getPushTarget).toHaveBeenCalledWith({
-                request: expect.any(Request), // actually passed as object property
+                client: expect.any(Object), // actually passed as object property
                 targetId: "t1",
             });
         });
@@ -100,7 +104,7 @@ describe("push-target API", () => {
 
             // Verify steps
             expect(createPushTarget).toHaveBeenCalledWith({
-                request: expect.any(Request),
+                client: expect.any(Object),
                 fcmToken: "token123",
                 providerId: "p1",
             });
@@ -110,7 +114,7 @@ describe("push-target API", () => {
 
             // Verify auto-subscription called
             expect(subscribeToAllTeams).toHaveBeenCalledWith({
-                request: expect.any(Request),
+                client: expect.any(Object),
                 targetId: "target123",
             });
         });
@@ -154,7 +158,7 @@ describe("push-target API", () => {
 
             expect(response.status).toBe(200);
             expect(deletePushTarget).toHaveBeenCalledWith({
-                request: expect.any(Request),
+                client: expect.any(Object),
                 targetId: "target123",
             });
         });

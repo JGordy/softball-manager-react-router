@@ -40,6 +40,7 @@ describe("agreements API route", () => {
         expect(updateUser).toHaveBeenCalledWith({
             userId: "user-123",
             values: { agreedToTerms: true },
+            client: expect.any(Object),
         });
         expect(response.status).toBe(200);
     });
