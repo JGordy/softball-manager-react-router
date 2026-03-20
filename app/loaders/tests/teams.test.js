@@ -35,7 +35,9 @@ describe("Teams Loader", () => {
                 teams: { list: jest.fn() },
             });
 
-            const result = await getUserTeams({ request: {} });
+            const result = await getUserTeams({
+                client: await createSessionClient(),
+            });
 
             expect(result).toEqual({ managing: [], playing: [], userId: null });
         });
@@ -87,7 +89,9 @@ describe("Teams Loader", () => {
                 .mockResolvedValueOnce({ rows: mockPlayerTeams }) // player teams from DB
                 .mockResolvedValueOnce({ rows: [] }); // seasons for player team
 
-            const result = await getUserTeams({ request: {} });
+            const result = await getUserTeams({
+                client: await createSessionClient(),
+            });
 
             expect(result.userId).toBe("user1");
             expect(result.managing).toEqual(mockManagerTeams);
@@ -130,7 +134,7 @@ describe("Teams Loader", () => {
                 .mockResolvedValueOnce({ total: 10 }); // game logs count
 
             const result = await getUserTeams({
-                request: {},
+                client: await createSessionClient(),
                 isDashboard: true,
             });
 
@@ -185,7 +189,7 @@ describe("Teams Loader", () => {
 
             const result = await getTeamById({
                 teamId: "team1",
-                request: {},
+                client: await createSessionClient(),
             });
 
             expect(result.teamData.$id).toBe("team1");
@@ -197,7 +201,10 @@ describe("Teams Loader", () => {
         });
 
         it("should return empty object if teamId is missing", async () => {
-            const result = await getTeamById({ teamId: null, request: {} });
+            const result = await getTeamById({
+                teamId: null,
+                client: await createSessionClient(),
+            });
             expect(result).toEqual({ teamData: {} });
         });
     });

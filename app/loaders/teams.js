@@ -1,15 +1,12 @@
 import { Query } from "node-appwrite";
 import { DateTime } from "luxon";
 import { listDocuments, readDocument } from "@/utils/databases";
-import {
-    createSessionClient,
-    createAdminClient,
-} from "@/utils/appwrite/server";
+import { createAdminClient } from "@/utils/appwrite/server";
 
-export async function getUserTeams({ request, isDashboard = false }) {
+export async function getUserTeams({ client, isDashboard = false }) {
     try {
         // Get authenticated user from session
-        const { account, teams } = await createSessionClient(request);
+        const { account, teams } = client;
         const user = await account.get();
         const userId = user?.$id;
 
@@ -64,18 +61,22 @@ export async function getUserTeams({ request, isDashboard = false }) {
             }
 
             // Batch query: fetch all teams in a single request
-            const result = await listDocuments("teams", [
-                Query.equal("$id", teamIds),
-            ]);
+            const result = await listDocuments(
+                "teams",
+                [Query.equal("$id", teamIds)],
+                client,
+            );
             const teams = result.rows;
 
             // 1. Batch fetch seasons for all teams
             const allTeamIds = teams.map((t) => t.$id);
             let allSeasons = [];
             if (allTeamIds.length > 0) {
-                const seasonsResponse = await listDocuments("seasons", [
-                    Query.equal("teamId", allTeamIds),
-                ]);
+                const seasonsResponse = await listDocuments(
+                    "seasons",
+                    [Query.equal("teamId", allTeamIds)],
+                    client,
+                );
                 allSeasons = seasonsResponse.rows || [];
 
                 if (isDashboard) {
@@ -108,18 +109,26 @@ export async function getUserTeams({ request, isDashboard = false }) {
                     const now = DateTime.utc().toISO();
                     // Fetch 10 past games and 10 upcoming games
                     const [pastGames, futureGames] = await Promise.all([
-                        listDocuments("games", [
-                            Query.equal("seasons", allSeasonIds),
-                            Query.lessThan("gameDate", now),
-                            Query.orderDesc("gameDate"),
-                            Query.limit(10),
-                        ]),
-                        listDocuments("games", [
-                            Query.equal("seasons", allSeasonIds),
-                            Query.greaterThanEqual("gameDate", now),
-                            Query.orderAsc("gameDate"),
-                            Query.limit(10),
-                        ]),
+                        listDocuments(
+                            "games",
+                            [
+                                Query.equal("seasons", allSeasonIds),
+                                Query.lessThan("gameDate", now),
+                                Query.orderDesc("gameDate"),
+                                Query.limit(10),
+                            ],
+                            client,
+                        ),
+                        listDocuments(
+                            "games",
+                            [
+                                Query.equal("seasons", allSeasonIds),
+                                Query.greaterThanEqual("gameDate", now),
+                                Query.orderAsc("gameDate"),
+                                Query.limit(10),
+                            ],
+                            client,
+                        ),
                     ]);
 
                     // Map and strip unnecessary fields from games
@@ -154,10 +163,14 @@ export async function getUserTeams({ request, isDashboard = false }) {
                         ...(futureGames.rows || []).map(stripGame),
                     ];
                 } else {
-                    const gamesResponse = await listDocuments("games", [
-                        Query.equal("seasons", allSeasonIds),
-                        Query.limit(100), // Increase limit to get all games
-                    ]);
+                    const gamesResponse = await listDocuments(
+                        "games",
+                        [
+                            Query.equal("seasons", allSeasonIds),
+                            Query.limit(100), // Increase limit to get all games
+                        ],
+                        client,
+                    );
                     allGames = gamesResponse.rows || [];
                 }
             }
@@ -213,14 +226,16 @@ export async function getUserTeams({ request, isDashboard = false }) {
         if (isDashboard) {
             // Fetch additional stats for the dashboard header
             const [awardsResult, gameLogsResult] = await Promise.all([
-                listDocuments("awards", [
-                    Query.equal("winner_user_id", userId),
-                    Query.limit(1),
-                ]),
-                listDocuments("game_logs", [
-                    Query.equal("playerId", userId),
-                    Query.limit(1),
-                ]),
+                listDocuments(
+                    "awards",
+                    [Query.equal("winner_user_id", userId), Query.limit(1)],
+                    client,
+                ),
+                listDocuments(
+                    "game_logs",
+                    [Query.equal("playerId", userId), Query.limit(1)],
+                    client,
+                ),
             ]);
 
             return {
@@ -242,7 +257,13 @@ export async function getUserTeams({ request, isDashboard = false }) {
     }
 }
 
-export async function getTeamById({ teamId, request }) {
+export async function getTeamById({ teamId, client }) {
+    if (!client) {
+        throw new Error(
+            "A constructed 'client' object is strictly required for authorization.",
+        );
+    }
+
     if (teamId) {
         const managerIds = [];
         const ownerIds = [];
@@ -291,16 +312,18 @@ export async function getTeamById({ teamId, request }) {
         let players = [];
         if (userIds.length > 0) {
             // Batch query: fetch all users in a single request
-            const result = await listDocuments("users", [
-                Query.equal("$id", userIds),
-            ]);
+            const result = await listDocuments(
+                "users",
+                [Query.equal("$id", userIds)],
+                client,
+            );
             players = result.rows.map((player) => ({
                 ...player,
                 roles: userRoles[player.$id] || [],
             }));
         }
 
-        const teamData = await readDocument("teams", teamId);
+        const teamData = await readDocument("teams", teamId, [], client);
 
         try {
             const { teams } = createAdminClient();
@@ -311,19 +334,25 @@ export async function getTeamById({ teamId, request }) {
         }
 
         // Manually fetch seasons since TablesDB doesn't auto-populate relationships
-        const seasonsResponse = await listDocuments("seasons", [
-            Query.equal("teamId", teamId),
-        ]);
+        const seasonsResponse = await listDocuments(
+            "seasons",
+            [Query.equal("teamId", teamId)],
+            client,
+        );
         const seasons = seasonsResponse.rows || [];
 
         // Batch fetch games for all seasons
         const seasonIds = seasons.map((s) => s.$id);
         let allGames = [];
         if (seasonIds.length > 0) {
-            const gamesResponse = await listDocuments("games", [
-                Query.equal("seasons", seasonIds),
-                Query.limit(100), // Increase limit to get all games
-            ]);
+            const gamesResponse = await listDocuments(
+                "games",
+                [
+                    Query.equal("seasons", seasonIds),
+                    Query.limit(100), // Increase limit to get all games
+                ],
+                client,
+            );
             allGames = gamesResponse.rows || [];
         }
 
@@ -335,10 +364,11 @@ export async function getTeamById({ teamId, request }) {
             // For now, assuming < 5000 logs for a team view or using a reasonable limit.
             // Appwrite limit is typically 5000 with offset, or 100 default.
             // We use a safe high number.
-            const logsResponse = await listDocuments("game_logs", [
-                Query.equal("gameId", gameIds),
-                Query.limit(5000),
-            ]);
+            const logsResponse = await listDocuments(
+                "game_logs",
+                [Query.equal("gameId", gameIds), Query.limit(5000)],
+                client,
+            );
             allLogs = logsResponse?.rows || [];
         }
 

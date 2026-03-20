@@ -11,6 +11,8 @@ jest.mock("@/utils/databases", () => ({
 }));
 
 describe("Parks Loader", () => {
+    const mockSessionClient = { tablesDB: { id: "mock-session-db" } };
+
     beforeEach(() => {
         jest.clearAllMocks();
         // Console error mock to suppress error logs during tests
@@ -26,16 +28,27 @@ describe("Parks Loader", () => {
             const mockPark = { $id: "123", name: "Test Park" };
             readDocument.mockResolvedValue(mockPark);
 
-            const result = await getParkById({ parkId: "123" });
+            const result = await getParkById({
+                parkId: "123",
+                client: mockSessionClient,
+            });
 
-            expect(readDocument).toHaveBeenCalledWith("parks", "123");
+            expect(readDocument).toHaveBeenCalledWith(
+                "parks",
+                "123",
+                [],
+                mockSessionClient,
+            );
             expect(result).toEqual(mockPark);
         });
 
         it("should return empty object if response is null/undefined", async () => {
             readDocument.mockResolvedValue(null);
 
-            const result = await getParkById({ parkId: "123" });
+            const result = await getParkById({
+                parkId: "123",
+                client: mockSessionClient,
+            });
 
             expect(result).toEqual({});
         });
@@ -43,7 +56,10 @@ describe("Parks Loader", () => {
         it("should return null on error", async () => {
             readDocument.mockRejectedValue(new Error("Database error"));
 
-            const result = await getParkById({ parkId: "123" });
+            const result = await getParkById({
+                parkId: "123",
+                client: mockSessionClient,
+            });
 
             expect(result).toBeNull();
             expect(console.error).toHaveBeenCalled();
@@ -61,21 +77,28 @@ describe("Parks Loader", () => {
             Query.equal.mockReturnValue('equal("placeId", "place_123")');
             Query.limit.mockReturnValue("limit(1)");
 
-            const result = await getParkByPlaceId({ placeId: "place_123" });
+            const result = await getParkByPlaceId({
+                placeId: "place_123",
+                client: mockSessionClient,
+            });
 
             expect(Query.equal).toHaveBeenCalledWith("placeId", "place_123");
             expect(Query.limit).toHaveBeenCalledWith(1);
-            expect(listDocuments).toHaveBeenCalledWith("parks", [
-                'equal("placeId", "place_123")',
-                "limit(1)",
-            ]);
+            expect(listDocuments).toHaveBeenCalledWith(
+                "parks",
+                ['equal("placeId", "place_123")', "limit(1)"],
+                mockSessionClient,
+            );
             expect(result).toEqual(mockPark);
         });
 
         it("should return null when no park is found", async () => {
             listDocuments.mockResolvedValue({ rows: [] });
 
-            const result = await getParkByPlaceId({ placeId: "place_123" });
+            const result = await getParkByPlaceId({
+                placeId: "place_123",
+                client: mockSessionClient,
+            });
 
             expect(result).toBeNull();
         });
@@ -83,7 +106,10 @@ describe("Parks Loader", () => {
         it("should return null on error", async () => {
             listDocuments.mockRejectedValue(new Error("Database error"));
 
-            const result = await getParkByPlaceId({ placeId: "place_123" });
+            const result = await getParkByPlaceId({
+                placeId: "place_123",
+                client: mockSessionClient,
+            });
 
             expect(result).toBeNull();
             expect(console.error).toHaveBeenCalled();

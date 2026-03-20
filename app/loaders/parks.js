@@ -1,9 +1,9 @@
 import { Query } from "node-appwrite";
 import { listDocuments, readDocument } from "@/utils/databases.js";
 
-export async function getParkById({ parkId }) {
+export async function getParkById({ parkId, client }) {
     try {
-        const response = await readDocument("parks", parkId);
+        const response = await readDocument("parks", parkId, [], client);
 
         return response || {};
     } catch (error) {
@@ -12,12 +12,13 @@ export async function getParkById({ parkId }) {
     }
 }
 
-export async function getParkByPlaceId({ placeId }) {
+export async function getParkByPlaceId({ placeId, client }) {
     try {
-        const response = await listDocuments("parks", [
-            Query.equal("placeId", placeId),
-            Query.limit(1),
-        ]);
+        const response = await listDocuments(
+            "parks",
+            [Query.equal("placeId", placeId), Query.limit(1)],
+            client,
+        );
 
         return response.rows.length > 0 ? response.rows[0] : null;
     } catch (error) {
