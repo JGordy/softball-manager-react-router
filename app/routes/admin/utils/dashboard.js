@@ -2,7 +2,7 @@ import { Query } from "node-appwrite";
 import { listDocuments } from "@/utils/databases";
 import { umamiService } from "@/utils/umami/server";
 
-export async function getAdminDashboardData({ users, range = "24h" }) {
+export async function getAdminDashboardData({ users, client, range = "24h" }) {
     // 1. Calculate timeframe for Umami and normalize range
     const now = Date.now();
     const VALID_RANGES = ["24h", "7d", "30d"];
@@ -27,21 +27,28 @@ export async function getAdminDashboardData({ users, range = "24h" }) {
         recentGames,
     ] = await Promise.all([
         users.list([Query.limit(1)]),
-        listDocuments("teams", [Query.limit(1)]),
-        listDocuments("games", [Query.limit(1)]),
-        listDocuments("attendance", [
-            Query.equal("status", "accepted"),
-            Query.limit(1),
-        ]),
-        listDocuments("attendance", [
-            Query.equal("status", "declined"),
-            Query.limit(1),
-        ]),
-        listDocuments("attendance", [
-            Query.equal("status", "tentative"),
-            Query.limit(1),
-        ]),
-        listDocuments("games", [Query.orderDesc("gameDate"), Query.limit(100)]),
+        listDocuments("teams", [Query.limit(1)], client),
+        listDocuments("games", [Query.limit(1)], client),
+        listDocuments(
+            "attendance",
+            [Query.equal("status", "accepted"), Query.limit(1)],
+            client,
+        ),
+        listDocuments(
+            "attendance",
+            [Query.equal("status", "declined"), Query.limit(1)],
+            client,
+        ),
+        listDocuments(
+            "attendance",
+            [Query.equal("status", "tentative"), Query.limit(1)],
+            client,
+        ),
+        listDocuments(
+            "games",
+            [Query.orderDesc("gameDate"), Query.limit(100)],
+            client,
+        ),
     ]);
 
     let umamiStats = null;
@@ -114,9 +121,11 @@ export async function getAdminDashboardData({ users, range = "24h" }) {
 
     let activeTeams = [];
     if (topTeamIds.length > 0) {
-        const resolvedTeams = await listDocuments("teams", [
-            Query.equal("$id", topTeamIds),
-        ]);
+        const resolvedTeams = await listDocuments(
+            "teams",
+            [Query.equal("$id", topTeamIds)],
+            client,
+        );
 
         activeTeams = topTeamIds
             .map((id) => {
@@ -139,9 +148,11 @@ export async function getAdminDashboardData({ users, range = "24h" }) {
 
     let seasonMap = {};
     if (seasonIds.length > 0) {
-        const resolvedSeasons = await listDocuments("seasons", [
-            Query.equal("$id", seasonIds),
-        ]);
+        const resolvedSeasons = await listDocuments(
+            "seasons",
+            [Query.equal("$id", seasonIds)],
+            client,
+        );
         seasonMap = (resolvedSeasons.rows || []).reduce((acc, s) => {
             acc[s.$id] = s.parkId;
             return acc;
@@ -162,9 +173,11 @@ export async function getAdminDashboardData({ users, range = "24h" }) {
 
     let activeParks = [];
     if (topParkIds.length > 0) {
-        const resolvedParks = await listDocuments("parks", [
-            Query.equal("$id", topParkIds),
-        ]);
+        const resolvedParks = await listDocuments(
+            "parks",
+            [Query.equal("$id", topParkIds)],
+            client,
+        );
 
         activeParks = topParkIds
             .map((id) => {

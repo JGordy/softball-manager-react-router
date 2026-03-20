@@ -34,6 +34,10 @@ jest.mock("@/hooks/useModal", () => ({
 jest.mock("@/actions/teams", () => ({
     createTeam: jest.fn(),
 }));
+
+jest.mock("@/utils/appwrite/server", () => ({
+    createSessionClient: jest.fn().mockResolvedValue({ tablesDB: {} }),
+}));
 jest.mock("@/loaders/teams", () => ({
     getUserTeams: jest.fn(),
 }));
@@ -122,6 +126,8 @@ describe("Dashboard Route", () => {
             expect(createTeam).toHaveBeenCalledWith({
                 userId: "user-123",
                 values: { name: "New Team" },
+                request: expect.any(Object),
+                client: expect.any(Object),
             });
         });
     });

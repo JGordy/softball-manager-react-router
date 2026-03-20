@@ -18,11 +18,16 @@ import { isMobileUserAgent } from "@/utils/device";
 
 export async function loader({ request }) {
     try {
-        const { account } = await createSessionClient(request);
+        const sessionClient = await createSessionClient(request);
+        const { account } = sessionClient;
         const accountUser = await account.get();
         let userDoc = {};
         try {
-            userDoc = (await getUserById({ userId: accountUser.$id })) || {};
+            userDoc =
+                (await getUserById({
+                    userId: accountUser.$id,
+                    client: sessionClient,
+                })) || {};
         } catch (e) {
             console.error(
                 "Layout loader - Failed to fetch user doc:",
