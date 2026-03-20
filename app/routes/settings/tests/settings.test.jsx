@@ -102,6 +102,7 @@ describe("Settings Route", () => {
             expect(updateUser).toHaveBeenCalledWith({
                 userId: "user-123",
                 values: { name: "New Name" },
+                client: expect.anything(),
             });
         });
 
