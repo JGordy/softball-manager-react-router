@@ -13,10 +13,7 @@ import { getNotifiableTeamMembers } from "@/utils/teams.js";
 import { findOrCreatePark } from "@/actions/parks";
 
 import { getTeamMembers } from "@/utils/teams.js";
-import {
-    createAdminClient,
-    createSessionClient,
-} from "@/utils/appwrite/server";
+import { createAdminClient } from "@/utils/appwrite/server";
 
 import { removeEmptyValues } from "./utils/formUtils";
 
@@ -107,7 +104,7 @@ async function initializeDefaultAttendance(gameId, teamId) {
 
 export async function createSingleGame({
     values,
-    request,
+    client,
     teamId: passedTeamId,
 }) {
     const {
@@ -133,10 +130,11 @@ export async function createSingleGame({
     }
 
     try {
-        if (!request) {
-            throw new Error("Request object is required for authorization.");
+        if (!client) {
+            throw new Error(
+                "A constructed 'client' object is strictly required for authorization.",
+            );
         }
-        const sessionClient = await createSessionClient(request);
         // Check opponent name for inappropriate language
         if (opponent && (await hasBadWords(opponent))) {
             return {
@@ -154,7 +152,7 @@ export async function createSingleGame({
             const parkResponse = await findOrCreatePark({
                 values: parsedLocationDetails,
                 placeId: parsedLocationDetails.placeId,
-                client: sessionClient,
+                client: client,
             });
 
             if (parkResponse) {
@@ -169,7 +167,7 @@ export async function createSingleGame({
                     "seasons",
                     values.seasonId,
                     [],
-                    sessionClient,
+                    client,
                 );
                 if (season?.location === location) {
                     location = null;
@@ -212,7 +210,7 @@ export async function createSingleGame({
             ID.unique(),
             updatedGameData,
             permissions,
-            sessionClient,
+            client,
         );
 
         // Initialize attendance based on user defaults
@@ -236,7 +234,7 @@ export async function createSingleGame({
     }
 }
 
-export async function createGames({ values, request }) {
+export async function createGames({ values, client }) {
     const { games: generatedGames, timeZone } = values;
     let games = JSON.parse(generatedGames);
 
@@ -244,10 +242,11 @@ export async function createGames({ values, request }) {
     const teamId = games[0]?.teamId;
 
     try {
-        if (!request) {
-            throw new Error("Request object is required for authorization.");
+        if (!client) {
+            throw new Error(
+                "A constructed 'client' object is strictly required for authorization.",
+            );
         }
-        const sessionClient = await createSessionClient(request);
         const permissions = teamId
             ? [
                   Permission.read(Role.team(teamId)), // Team members can read
@@ -271,7 +270,7 @@ export async function createGames({ values, request }) {
                     seasons: game.seasons || game.seasonId,
                 },
                 permissions,
-                sessionClient,
+                client,
             );
 
             createdGames.push(createdGame);
@@ -304,7 +303,7 @@ export async function createGames({ values, request }) {
     }
 }
 
-export async function updateGame({ values, eventId, request }) {
+export async function updateGame({ values, eventId, client }) {
     const { opponent, locationDetails } = values;
 
     // Removes undefined or empty string values from data to update
@@ -319,12 +318,11 @@ export async function updateGame({ values, eventId, request }) {
             // Clear parkId for manual edits; it will be re-set if locationDetails are valid
             dataToUpdate.parkId = null;
 
-            if (!request) {
+            if (!client) {
                 throw new Error(
-                    "Request object is required for authorization.",
+                    "A constructed 'client' object is strictly required for authorization.",
                 );
             }
-            const sessionClient = await createSessionClient(request);
 
             if (locationDetails) {
                 try {
@@ -333,7 +331,7 @@ export async function updateGame({ values, eventId, request }) {
                         const parkResponse = await findOrCreatePark({
                             values: parsedLocationDetails,
                             placeId: parsedLocationDetails.placeId,
-                            client: sessionClient,
+                            client: client,
                         });
 
                         if (parkResponse?.$id) {
@@ -352,7 +350,7 @@ export async function updateGame({ values, eventId, request }) {
                         "seasons",
                         values.seasonId,
                         [],
-                        sessionClient,
+                        client,
                     );
                     if (season?.location === values.location) {
                         dataToUpdate.location = null;
@@ -382,6 +380,7 @@ export async function updateGame({ values, eventId, request }) {
             values.timeZone,
         );
     }
+    delete dataToUpdate.gameTime;
 
     if (values.isHomeGame) {
         dataToUpdate.isHomeGame = values.isHomeGame === "true";
@@ -435,19 +434,7 @@ export async function updateGame({ values, eventId, request }) {
         );
     }
 
-    delete dataToUpdate.gameTime;
     delete dataToUpdate.locationDetails;
-
-    // sessionClient might have not been instantiated if we didn't update location
-    let finalSessionClient;
-    try {
-        if (!request) {
-            throw new Error("Request object is required for authorization.");
-        }
-        finalSessionClient = await createSessionClient(request);
-    } catch (e) {
-        throw new Error("Request object is required for authorization.");
-    }
 
     try {
         // Check opponent name for inappropriate language
@@ -464,7 +451,7 @@ export async function updateGame({ values, eventId, request }) {
             "games",
             eventId,
             dataToUpdate,
-            finalSessionClient,
+            client,
         );
 
         // Send notification if game is finalized or score is updated
@@ -542,16 +529,16 @@ export async function updateGame({ values, eventId, request }) {
     }
 }
 
-export async function deleteGame({ eventId, request }) {
+export async function deleteGame({ eventId, client }) {
     try {
-        if (!request) {
-            throw new Error("Request object is required for authorization.");
+        if (!client) {
+            throw new Error(
+                "A constructed 'client' object is strictly required for authorization.",
+            );
         }
 
-        const sessionClient = await createSessionClient(request);
-
         // Appwrite row-level security handles manager/owner validation
-        await deleteDocument("games", eventId, sessionClient);
+        await deleteDocument("games", eventId, client);
 
         return {
             success: true,
@@ -565,7 +552,7 @@ export async function deleteGame({ eventId, request }) {
     }
 }
 
-export async function deleteGames({ values, request }) {
+export async function deleteGames({ values, client }) {
     const { gameIds } = values;
     let ids = [];
     try {
@@ -589,11 +576,11 @@ export async function deleteGames({ values, request }) {
     let errors = [];
 
     try {
-        if (!request) {
-            throw new Error("Request object is required for authorization.");
+        if (!client) {
+            throw new Error(
+                "A constructed 'client' object is strictly required for authorization.",
+            );
         }
-
-        const sessionClient = await createSessionClient(request);
 
         const batchSize = 5;
         let deletedCount = 0;
@@ -601,7 +588,7 @@ export async function deleteGames({ values, request }) {
         for (let i = 0; i < ids.length; i += batchSize) {
             const batch = ids.slice(i, i + batchSize);
             const results = await Promise.allSettled(
-                batch.map((id) => deleteDocument("games", id, sessionClient)),
+                batch.map((id) => deleteDocument("games", id, client)),
             );
 
             results.forEach((result) => {

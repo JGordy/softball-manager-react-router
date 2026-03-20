@@ -11,57 +11,26 @@ export async function invitePlayerByEmail({
     teamId,
     name,
     url,
-    sessionProp,
-    config = {},
+    roles = ["player"],
+    client,
 }) {
     try {
-        let session = sessionProp;
-        const hostUrl =
-            config.endpoint || import.meta.env.VITE_APPWRITE_HOST_URL;
-        const projectId =
-            config.projectId || import.meta.env.VITE_APPWRITE_PROJECT_ID;
+        const teamsClient = client.teams;
 
-        // Fetch the session from our server API if not provided
-        if (!session) {
-            const sessionResponse = await fetch("/api/session");
-            if (!sessionResponse.ok) {
-                throw new Error("Failed to retrieve session");
-            }
-            const data = await sessionResponse.json();
-            session = data.session;
-        }
-
-        if (!session) {
-            throw new Error("No active session found. Please log in.");
-        }
-
-        // Make direct API call to Appwrite - this bypasses SDK cookie conflicts
-        const response = await fetch(`${hostUrl}/teams/${teamId}/memberships`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-Appwrite-Project": projectId,
-                "X-Appwrite-Session": session,
-            },
-            body: JSON.stringify({
-                roles: ["player"],
-                email,
-                url,
-                name,
-            }),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || "Failed to send invitation");
-        }
-
-        const result = await response.json();
+        const membership = await teamsClient.createMembership(
+            teamId,
+            roles,
+            email,
+            undefined, // userId
+            undefined, // phone
+            url,
+            name,
+        );
 
         return {
             response: {
-                membershipId: result.$id,
-                userId: result.userId,
+                membershipId: membership.$id,
+                userId: membership.userId,
             },
             status: 201,
             success: true,
@@ -83,62 +52,11 @@ export async function invitePlayerByEmail({
  * Bulk invite players by email
  * Wrapper around invitePlayerByEmail to handle multiple invites
  */
-export async function invitePlayers({ players, teamId, url }) {
-    // Fetch session once to reuse across all requests (with retry)
-    let session = null;
-
-    const sleep = (ms) =>
-        new Promise((resolve) => {
-            setTimeout(resolve, ms);
-        });
-
-    const fetchSessionWithRetry = async ({
-        maxAttempts = 3,
-        initialDelayMs = 200,
-    } = {}) => {
-        let delayMs = initialDelayMs;
-
-        for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-            try {
-                const sessionResponse = await fetch("/api/session");
-                if (!sessionResponse.ok) {
-                    throw new Error(
-                        `Failed to retrieve session (status ${sessionResponse.status})`,
-                    );
-                }
-
-                const data = await sessionResponse.json();
-
-                if (!data || !data.session) {
-                    throw new Error("Session data missing in response");
-                }
-
-                return data.session;
-            } catch (error) {
-                if (attempt === maxAttempts - 1) {
-                    throw error;
-                }
-
-                // Exponential backoff before next attempt
-                await sleep(delayMs);
-                delayMs *= 2;
-            }
-        }
-
-        throw new Error("Unable to retrieve session after retries");
-    };
-
-    try {
-        session = await fetchSessionWithRetry();
-    } catch (error) {
-        console.error(
-            "Failed to pre-fetch session for bulk invite after retries:",
-            error,
-        );
+export async function invitePlayers({ players, teamId, url, client }) {
+    if (!players || !Array.isArray(players) || players.length === 0) {
         return {
-            success: false,
-            message:
-                "Failed to retrieve session. No invitations were sent. Please try again.",
+            success: true,
+            message: "Successfully invited 0 players",
         };
     }
 
@@ -149,7 +67,7 @@ export async function invitePlayers({ players, teamId, url }) {
                 name: player.name,
                 teamId,
                 url,
-                sessionProp: session,
+                client,
             }),
         ),
     );
@@ -257,6 +175,8 @@ export async function setPasswordForInvitedUser({
     const { Users } = await import("node-appwrite");
     const { createAdminClient } = await import("@/utils/appwrite/server");
     const { createDocument, readDocument } = await import("@/utils/databases");
+
+    const { Permission, Role } = await import("node-appwrite");
     const cookie = await import("cookie");
 
     if (!password || password.length < 8) {
@@ -295,14 +215,27 @@ export async function setPasswordForInvitedUser({
                 lastName = nameParts.slice(1).join(" ") || "";
             }
 
-            await createDocument("users", userId, {
-                email,
-                firstName,
-                lastName,
-                userId, // Store the Auth userId for reference
-                preferredPositions: [],
-                dislikedPositions: [],
-            });
+            const docPermissions = [
+                Permission.read(Role.any()),
+                Permission.update(Role.user(userId)),
+                Permission.delete(Role.user(userId)),
+            ];
+
+            const adminVars = createAdminClient();
+            await createDocument(
+                "users",
+                userId,
+                {
+                    email,
+                    firstName,
+                    lastName,
+                    userId, // Store the Auth userId for reference
+                    preferredPositions: [],
+                    dislikedPositions: [],
+                },
+                docPermissions,
+                { tablesDB: adminVars.tablesDB },
+            );
         }
 
         // Create a session for the user using Users API (Server SDK)
@@ -345,15 +278,12 @@ export async function setPasswordForInvitedUser({
  * - If user exists in project: Automatically add them to team (Admin Client)
  * - If user is new: Send invitation email (Session Client)
  */
-export async function invitePlayersServer({ players, teamId, url, request }) {
+export async function invitePlayersServer({ players, teamId, url, client }) {
     const { Query } = await import("node-appwrite");
-    const { createSessionClient, createAdminClient, parseSessionCookie } =
-        await import("@/utils/appwrite/server");
-    const { appwriteConfig } = await import("@/utils/appwrite/config");
+    const { createAdminClient } = await import("@/utils/appwrite/server");
 
     // 1. Verify permissions
-    const { teams: sessionTeams, account: sessionAccount } =
-        await createSessionClient(request);
+    const { teams: sessionTeams, account: sessionAccount } = client;
 
     try {
         // Get current user details
@@ -385,8 +315,6 @@ export async function invitePlayersServer({ players, teamId, url, request }) {
     }
 
     const { teams: adminTeams, users: adminUsers } = createAdminClient();
-    const session = parseSessionCookie(request.headers.get("Cookie"));
-
     const processPlayer = async (player) => {
         const { email, name } = player;
 
@@ -442,17 +370,12 @@ export async function invitePlayersServer({ players, teamId, url, request }) {
                 // We use the raw fetch method to ensure Appwrite treats this as a
                 // client-side invite and sends the email.
                 // Using the Server SDK (even with user session) might be treated as
-                // a server operation which suppresses emails in some contexts.
                 const result = await invitePlayerByEmail({
                     email,
                     teamId,
                     name,
                     url,
-                    sessionProp: session,
-                    config: {
-                        endpoint: appwriteConfig.endpoint,
-                        projectId: appwriteConfig.projectId,
-                    },
+                    client,
                 });
 
                 if (result.success) {

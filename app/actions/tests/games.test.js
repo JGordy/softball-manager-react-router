@@ -103,7 +103,7 @@ describe("Games Actions", () => {
 
             const result = await createSingleGame({
                 values: mockValues,
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(createDocument).toHaveBeenCalledWith(
@@ -145,7 +145,7 @@ describe("Games Actions", () => {
 
             const result = await createSingleGame({
                 values: mockValues,
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(createDocument).toHaveBeenCalledWith(
@@ -179,7 +179,7 @@ describe("Games Actions", () => {
 
             await createSingleGame({
                 values: mockValues,
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(createDocument).toHaveBeenCalledWith(
@@ -206,7 +206,7 @@ describe("Games Actions", () => {
 
             await createSingleGame({
                 values: mockValues,
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(createDocument).toHaveBeenCalledWith(
@@ -232,7 +232,7 @@ describe("Games Actions", () => {
 
             await createSingleGame({
                 values: mockValues,
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(createDocument).toHaveBeenCalledWith(
@@ -265,7 +265,7 @@ describe("Games Actions", () => {
 
             const result = await createSingleGame({
                 values: mockValues,
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(result.success).toBe(false);
@@ -310,7 +310,7 @@ describe("Games Actions", () => {
 
             await createSingleGame({
                 values: mockValues,
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(updatePlayerAttendance).toHaveBeenCalledTimes(2);
@@ -359,7 +359,7 @@ describe("Games Actions", () => {
 
             const result = await createGames({
                 values: mockValues,
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(createDocument).toHaveBeenCalledTimes(2);
@@ -394,7 +394,10 @@ describe("Games Actions", () => {
 
             createDocument.mockResolvedValue({ $id: "game1" });
 
-            await createGames({ values: mockValues, request: mockRequest });
+            await createGames({
+                values: mockValues,
+                client: mockSessionClient,
+            });
 
             expect(updatePlayerAttendance).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -421,7 +424,7 @@ describe("Games Actions", () => {
             const result = await updateGame({
                 values: mockValues,
                 eventId: "game1",
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(updateDocument).toHaveBeenCalledWith(
@@ -453,7 +456,7 @@ describe("Games Actions", () => {
             const result = await updateGame({
                 values: mockValues,
                 eventId: "game1",
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(result.event).toBeUndefined();
@@ -469,7 +472,7 @@ describe("Games Actions", () => {
             await updateGame({
                 values: mockValues,
                 eventId: "game1",
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(updateDocument).toHaveBeenCalledWith(
@@ -499,7 +502,7 @@ describe("Games Actions", () => {
             await updateGame({
                 values: mockValues,
                 eventId: "game1",
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(updateDocument).toHaveBeenCalledWith(
@@ -520,7 +523,7 @@ describe("Games Actions", () => {
             let result = await updateGame({
                 values: { score: "10", opponentScore: "5" },
                 eventId: "game1",
-                request: mockRequest,
+                client: mockSessionClient,
             });
             expect(result.response.gameDetails).toBeDefined();
 
@@ -528,7 +531,7 @@ describe("Games Actions", () => {
             result = await updateGame({
                 values: { score: "5", opponentScore: "10" },
                 eventId: "game1",
-                request: mockRequest,
+                client: mockSessionClient,
             });
             expect(result.response.gameDetails).toBeDefined();
 
@@ -536,7 +539,7 @@ describe("Games Actions", () => {
             result = await updateGame({
                 values: { score: "5", opponentScore: "5" },
                 eventId: "game1",
-                request: mockRequest,
+                client: mockSessionClient,
             });
             expect(result.response.gameDetails).toBeDefined();
         });
@@ -547,7 +550,7 @@ describe("Games Actions", () => {
             const result = await updateGame({
                 values: { opponent: "BadWord Team" },
                 eventId: "game1",
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(result.success).toBe(false);
@@ -570,7 +573,7 @@ describe("Games Actions", () => {
             await updateGame({
                 values: { gameFinal: "true" },
                 eventId: "game1",
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(sendGameFinalNotification).toHaveBeenCalledWith({
@@ -607,7 +610,7 @@ describe("Games Actions", () => {
             await updateGame({
                 values: { score: "12", opponentScore: "4" },
                 eventId: "game1",
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(sendGameFinalNotification).toHaveBeenCalled();
@@ -629,15 +632,14 @@ describe("Games Actions", () => {
             const result = await deleteGame({
                 values: {},
                 eventId: "game1",
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
-            expect(server.createSessionClient).toHaveBeenCalledWith(
-                mockRequest,
+            expect(deleteDocument).toHaveBeenCalledWith(
+                "games",
+                "game1",
+                mockSessionClient,
             );
-            expect(deleteDocument).toHaveBeenCalledWith("games", "game1", {
-                tablesDB: mockTablesDB,
-            });
             expect(result.deleted).toBe(true);
         });
     });
@@ -665,7 +667,7 @@ describe("Games Actions", () => {
 
             const result = await deleteGames({
                 values: { gameIds: '["game1", "game2"]' },
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(result.success).toBe(true);
@@ -691,7 +693,7 @@ describe("Games Actions", () => {
 
             const result = await deleteGames({
                 values: { gameIds: '["game1", "game2", "game3"]' },
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(result.success).toBe(true); // partially successful

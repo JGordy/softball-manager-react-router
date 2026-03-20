@@ -43,7 +43,7 @@ describe("Awards Actions", () => {
             const result = await sendAwardVotes({
                 values: mockValues,
                 eventId,
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(createDocument).toHaveBeenCalledTimes(2);
@@ -67,7 +67,7 @@ describe("Awards Actions", () => {
             const result = await sendAwardVotes({
                 values: mockValues,
                 eventId,
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(updateDocument).toHaveBeenCalledWith(
@@ -95,11 +95,23 @@ describe("Awards Actions", () => {
             const result = await sendAwardVotes({
                 values: mockValues,
                 eventId: "event1",
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(result.success).toBe(false);
             expect(result.status).toBe(500);
+        });
+
+        it("should reject without client", async () => {
+            const result = sendAwardVotes({
+                values: {},
+                eventId: "event1",
+                client: undefined,
+            });
+
+            await expect(result).rejects.toThrow(
+                "A constructed 'client' object is strictly required for authorization.",
+            );
         });
     });
 
@@ -113,7 +125,7 @@ describe("Awards Actions", () => {
             const result = await updateAwardVote({
                 voteId,
                 values,
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(updateDocument).toHaveBeenCalledWith(
@@ -132,11 +144,22 @@ describe("Awards Actions", () => {
             const result = await updateAwardVote({
                 voteId: null,
                 values: null,
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(updateDocument).not.toHaveBeenCalled();
             expect(result).toBeUndefined();
+        });
+        it("should reject without client", async () => {
+            const result = updateAwardVote({
+                voteId: "vote1",
+                values: "{}",
+                client: undefined,
+            });
+
+            await expect(result).rejects.toThrow(
+                "A constructed 'client' object is strictly required for authorization.",
+            );
         });
     });
 });

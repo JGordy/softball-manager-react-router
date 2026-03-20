@@ -10,7 +10,6 @@ import {
     rollbackTransaction,
     collections,
 } from "@/utils/databases";
-import { createSessionClient } from "@/utils/appwrite/server";
 
 import { EVENT_TYPE_MAP } from "@/constants/scoring";
 
@@ -31,14 +30,9 @@ export const logGameEvent = async ({
     hitY,
     hitLocation,
     battingSide,
-    request,
+    client,
 }) => {
     let transaction = null;
-    let sessionClient = null;
-
-    if (request) {
-        sessionClient = await createSessionClient(request);
-    }
 
     try {
         const runs = parseInt(rbi, 10) || 0;
@@ -48,7 +42,7 @@ export const logGameEvent = async ({
         let game = null;
 
         if (!teamId || runs > 0) {
-            game = await readDocument("games", gameId, [], sessionClient);
+            game = await readDocument("games", gameId, [], client);
             if (!teamId) teamId = game?.teamId;
         }
 
@@ -128,7 +122,7 @@ export const logGameEvent = async ({
                 null,
                 logPayload,
                 permissions,
-                sessionClient,
+                client,
             );
 
             return { success: true, log: response };
@@ -153,17 +147,12 @@ export const logGameEvent = async ({
     }
 };
 
-export const undoGameEvent = async ({ logId, request }) => {
+export const undoGameEvent = async ({ logId, client }) => {
     let transaction = null;
-    let sessionClient = null;
-
-    if (request) {
-        sessionClient = await createSessionClient(request);
-    }
 
     try {
         // 1. Fetch the log to see if we need to revert score
-        const log = await readDocument("game_logs", logId, [], sessionClient);
+        const log = await readDocument("game_logs", logId, [], client);
         const runs = parseInt(log.rbi || 0, 10);
 
         // 2. If the log had runs, use transaction for atomic undo
@@ -171,12 +160,7 @@ export const undoGameEvent = async ({ logId, request }) => {
             transaction = await createTransaction();
 
             // Read current score to calculate reverted score
-            const game = await readDocument(
-                "games",
-                log.gameId,
-                [],
-                sessionClient,
-            );
+            const game = await readDocument("games", log.gameId, [], client);
             const currentScore = parseInt(game.score || 0, 10);
             const newScore = Math.max(0, currentScore - runs);
 
@@ -205,7 +189,7 @@ export const undoGameEvent = async ({ logId, request }) => {
             return { success: true };
         } else {
             // No score to revert, just delete the log
-            await deleteDocument("game_logs", logId, sessionClient);
+            await deleteDocument("game_logs", logId, client);
             return { success: true };
         }
     } catch (error) {

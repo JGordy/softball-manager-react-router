@@ -58,7 +58,10 @@ describe("gameLogs actions", () => {
             createOperations.mockResolvedValue({});
             commitTransaction.mockResolvedValue({});
 
-            const result = await logGameEvent({ ...mockPayload, request: {} });
+            const result = await logGameEvent({
+                ...mockPayload,
+                client: { mockedClient: true },
+            });
 
             expect(createTransaction).toHaveBeenCalled();
             expect(readDocument).toHaveBeenCalledWith("games", "game123", [], {
@@ -119,7 +122,10 @@ describe("gameLogs actions", () => {
                 score: "0",
             });
 
-            const result = await logGameEvent({ ...mockPayload, request: {} });
+            const result = await logGameEvent({
+                ...mockPayload,
+                client: { mockedClient: true },
+            });
 
             expect(createDocument).toHaveBeenCalledWith(
                 "game_logs",
@@ -210,7 +216,7 @@ describe("gameLogs actions", () => {
 
             const result = await undoGameEvent({
                 logId: "log789",
-                request: {},
+                client: { mockedClient: true },
             });
 
             expect(readDocument).toHaveBeenCalledWith(
@@ -252,7 +258,7 @@ describe("gameLogs actions", () => {
 
             const result = await undoGameEvent({
                 logId: "log789",
-                request: {},
+                client: { mockedClient: true },
             });
 
             expect(readDocument).toHaveBeenCalledWith(

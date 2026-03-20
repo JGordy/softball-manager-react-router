@@ -1,8 +1,11 @@
 import { ID, Permission, Role } from "node-appwrite";
 import { createDocument, updateDocument } from "@/utils/databases.js";
-import { createSessionClient } from "@/utils/appwrite/server";
+export async function sendAwardVotes({ values, eventId, client }) {
+    if (!client)
+        throw new Error(
+            "A constructed 'client' object is strictly required for authorization.",
+        );
 
-export async function sendAwardVotes({ values, eventId, request }) {
     const { playerVotes, voter_user_id, team_id, ...rest } = values;
 
     const votes = JSON.parse(playerVotes);
@@ -10,11 +13,6 @@ export async function sendAwardVotes({ values, eventId, request }) {
     const categories = votes && Object.keys(votes);
 
     try {
-        if (!request) {
-            throw new Error("Request object is required for authorization.");
-        }
-        const sessionClient = await createSessionClient(request);
-
         // Build permissions array if we have team_id
         // Votes can be read by team, updated/deleted by voter or managers/owners
         const permissions = team_id
@@ -34,7 +32,7 @@ export async function sendAwardVotes({ values, eventId, request }) {
                     {
                         nominated_user_id: vote.nominated_user_id,
                     },
-                    sessionClient,
+                    client,
                 );
             } else {
                 return createDocument(
@@ -49,7 +47,7 @@ export async function sendAwardVotes({ values, eventId, request }) {
                         voter_user_id,
                     },
                     permissions,
-                    sessionClient,
+                    client,
                 );
             }
         });
@@ -65,23 +63,20 @@ export async function sendAwardVotes({ values, eventId, request }) {
     }
 }
 
-export async function updateAwardVote({ voteId, values, request }) {
+export async function updateAwardVote({ voteId, values, client }) {
     if (voteId && values) {
         const parsedVoteDetails = JSON.parse(values);
 
         try {
-            if (!request) {
+            if (!client)
                 throw new Error(
-                    "Request object is required for authorization.",
+                    "A constructed 'client' object is strictly required for authorization.",
                 );
-            }
-            const sessionClient = await createSessionClient(request);
-
             const voteDetails = await updateDocument(
                 "votes",
                 voteId,
                 parsedVoteDetails,
-                sessionClient,
+                client,
             );
 
             return { response: { voteDetails }, status: 204, success: true };
