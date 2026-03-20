@@ -23,8 +23,9 @@ export const createDocument = async (
     id,
     data,
     permissions = [],
+    client,
 ) => {
-    const { tablesDB } = createAdminClient();
+    const { tablesDB } = client;
     const _id = id || ID.unique();
     const { $permissions: _ignoredPermissions, ...restData } = data;
     try {
@@ -48,8 +49,8 @@ export const createDocument = async (
 };
 
 // Helper function to list a series of documents
-export const listDocuments = async (collectionType, queries) => {
-    const { tablesDB } = createAdminClient();
+export const listDocuments = async (collectionType, queries, client) => {
+    const { tablesDB } = client;
     try {
         const response = await tablesDB.listRows({
             databaseId,
@@ -64,8 +65,13 @@ export const listDocuments = async (collectionType, queries) => {
 };
 
 // Helper function to read a document
-export const readDocument = async (collectionType, documentId, queries) => {
-    const { tablesDB } = createAdminClient();
+export const readDocument = async (
+    collectionType,
+    documentId,
+    queries,
+    client,
+) => {
+    const { tablesDB } = client;
     try {
         const response = await tablesDB.getRow({
             databaseId,
@@ -81,8 +87,13 @@ export const readDocument = async (collectionType, documentId, queries) => {
 };
 
 // Helper function to update a document
-export const updateDocument = async (collectionType, documentId, data) => {
-    const { tablesDB } = createAdminClient();
+export const updateDocument = async (
+    collectionType,
+    documentId,
+    data,
+    client,
+) => {
+    const { tablesDB } = client;
     try {
         const response = await tablesDB.updateRow({
             databaseId,
@@ -98,12 +109,8 @@ export const updateDocument = async (collectionType, documentId, data) => {
 };
 
 // Helper function to delete a document
-export const deleteDocument = async (
-    collectionType,
-    documentId,
-    sessionClient = null,
-) => {
-    const { tablesDB } = sessionClient || createAdminClient();
+export const deleteDocument = async (collectionType, documentId, client) => {
+    const { tablesDB } = client;
     try {
         const response = await tablesDB.deleteRow({
             databaseId,
