@@ -16,6 +16,9 @@ jest.mock("react-router", () => ({
 jest.mock("@/loaders/teams");
 jest.mock("@/actions/lineups");
 jest.mock("@/utils/analytics");
+jest.mock("@/utils/appwrite/server", () => ({
+    createSessionClient: jest.fn().mockResolvedValue({}),
+}));
 
 jest.mock("../components/TeamLineupContainer", () => () => (
     <div data-testid="lineup-container" />
@@ -54,7 +57,7 @@ describe("TeamLineup Route", () => {
             await loader({ params, request });
             expect(getTeamById).toHaveBeenCalledWith({
                 teamId: "team1",
-                request,
+                client: expect.any(Object),
             });
         });
     });
@@ -71,6 +74,7 @@ describe("TeamLineup Route", () => {
             expect(saveBattingOrder).toHaveBeenCalledWith({
                 teamId: "team1",
                 values: { idealLineup: JSON.stringify({ lineup: ["p1"] }) },
+                client: expect.any(Object),
             });
         });
 
@@ -85,6 +89,7 @@ describe("TeamLineup Route", () => {
             expect(saveFieldingPositions).toHaveBeenCalledWith({
                 teamId: "team1",
                 values: { idealPositioning: JSON.stringify({ P: ["p1"] }) },
+                client: expect.any(Object),
             });
         });
     });

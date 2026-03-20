@@ -1,3 +1,6 @@
+process.env.APPWRITE_ENDPOINT = "http://localhost/v1";
+process.env.APPWRITE_PROJECT_ID = "test";
+
 import { useOutletContext } from "react-router";
 import { render, screen } from "@/utils/test-utils";
 
@@ -24,6 +27,10 @@ jest.mock("@/actions/seasons");
 jest.mock("@/actions/teams");
 jest.mock("@/actions/invitations");
 jest.mock("@/utils/showNotification");
+jest.mock("@/utils/appwrite/server", () => ({
+    __esModule: true,
+    createSessionClient: jest.fn().mockResolvedValue({ tablesDB: {} }),
+}));
 
 jest.mock("../components/PlayerList", () => () => (
     <div data-testid="player-list" />
@@ -82,7 +89,7 @@ describe("TeamDetails Route", () => {
             await loader({ params, request });
             expect(teamsLoaders.getTeamById).toHaveBeenCalledWith({
                 teamId: "team1",
-                request,
+                client: expect.any(Object),
             });
         });
     });
@@ -100,6 +107,7 @@ describe("TeamDetails Route", () => {
             expect(usersActions.createPlayer).toHaveBeenCalledWith({
                 values: { name: "New Player" },
                 teamId: "team1",
+                client: expect.any(Object),
             });
         });
 
@@ -111,8 +119,9 @@ describe("TeamDetails Route", () => {
 
             await action({ request, params });
             expect(teamsActions.updatePreferences).toHaveBeenCalledWith({
+                values: { maxMaleBatters: "3" },
                 teamId: "team1",
-                prefs: { maxMaleBatters: "3" },
+                client: expect.any(Object),
             });
         });
 
@@ -132,7 +141,7 @@ describe("TeamDetails Route", () => {
                     players: [{ email: "test@test.com", name: "Test User" }],
                     teamId: "team1",
                     url: "http://localhost/team/team1/accept-invite",
-                    request,
+                    client: expect.any(Object),
                 },
             );
         });
@@ -147,6 +156,7 @@ describe("TeamDetails Route", () => {
             expect(seasonsActions.createSeason).toHaveBeenCalledWith({
                 values: { name: "New Season" },
                 teamId: "team1",
+                client: expect.any(Object),
             });
         });
 
@@ -160,6 +170,7 @@ describe("TeamDetails Route", () => {
             expect(teamsActions.updateTeam).toHaveBeenCalledWith({
                 values: { name: "Updated Team" },
                 teamId: "team1",
+                client: expect.any(Object),
             });
         });
 
@@ -173,6 +184,7 @@ describe("TeamDetails Route", () => {
             expect(gamesActions.createSingleGame).toHaveBeenCalledWith({
                 values: { opponent: "Opponent" },
                 teamId: "team1",
+                client: expect.any(Object),
             });
         });
 
@@ -189,7 +201,7 @@ describe("TeamDetails Route", () => {
             expect(teamsActions.updateMemberRole).toHaveBeenCalledWith({
                 values: { playerId: "player1", role: "manager" },
                 teamId: "team1",
-                request,
+                client: expect.any(Object),
             });
         });
     });
