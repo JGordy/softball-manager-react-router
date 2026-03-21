@@ -9,6 +9,7 @@ import {
     readDocument,
     updateDocument,
 } from "@/utils/databases";
+import { Permission, Role } from "node-appwrite";
 
 /**
  * Loader to handle the callback from Appwrite OAuth2.
@@ -28,28 +29,42 @@ export async function loader({ request }) {
     }
 
     try {
-        const { account: adminAccount, users: adminUsers } =
-            createAdminClient();
+        const adminVars = createAdminClient();
+        const { account: adminAccount, users: adminUsers } = adminVars;
 
         // Exchange the temporary token for a persistent session
         const session = await adminAccount.createSession(userId, secret);
 
         // --- Ensure User Document exists in Database ---
         try {
-            await readDocument("users", userId);
+            await readDocument("users", userId, [], adminVars);
         } catch (readErr) {
             // If document does not exist (404), create it
             if (readErr.code === 404) {
                 try {
                     const userAccount = await adminUsers.get(userId);
-                    await createDocument("users", userId, {
-                        userId: userId,
-                        firstName: userAccount.name?.split(" ")[0] || "User",
-                        lastName:
-                            userAccount.name?.split(" ").slice(1).join(" ") ||
-                            "",
-                        email: userAccount.email,
-                    });
+                    const docPermissions = [
+                        Permission.read(Role.any()),
+                        Permission.update(Role.user(userId)),
+                        Permission.delete(Role.user(userId)),
+                    ];
+                    await createDocument(
+                        "users",
+                        userId,
+                        {
+                            userId: userId,
+                            firstName:
+                                userAccount.name?.split(" ")[0] || "User",
+                            lastName:
+                                userAccount.name
+                                    ?.split(" ")
+                                    .slice(1)
+                                    .join(" ") || "",
+                            email: userAccount.email,
+                        },
+                        docPermissions,
+                        adminVars,
+                    );
                 } catch (createErr) {
                     console.error(
                         "Callback loader - Failed to create user document:",
@@ -106,9 +121,14 @@ export async function loader({ request }) {
                     });
                     // 2. Update database
                     try {
-                        await updateDocument("users", userId, {
-                            avatarUrl: googleUser.picture,
-                        });
+                        await updateDocument(
+                            "users",
+                            userId,
+                            {
+                                avatarUrl: googleUser.picture,
+                            },
+                            adminVars,
+                        );
                     } catch (dbErr) {
                         console.warn(
                             "Callback loader - DB sync failed:",

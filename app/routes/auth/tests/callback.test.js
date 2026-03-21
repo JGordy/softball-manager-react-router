@@ -103,12 +103,18 @@ describe("OAuth Callback Route Loader", () => {
                 "user1",
                 "secret123",
             );
-            expect(createDocument).toHaveBeenCalledWith("users", "user1", {
-                userId: "user1",
-                firstName: "John",
-                lastName: "Doe",
-                email: "john@doe.com",
-            });
+            expect(createDocument).toHaveBeenCalledWith(
+                "users",
+                "user1",
+                {
+                    userId: "user1",
+                    firstName: "John",
+                    lastName: "Doe",
+                    email: "john@doe.com",
+                },
+                expect.any(Array),
+                expect.any(Object),
+            );
             expect(getRedirectUrl(error)).toBe("/");
             expect(error.headers.get("Set-Cookie")).toBe("cookie-string");
         }
@@ -151,9 +157,14 @@ describe("OAuth Callback Route Loader", () => {
                     avatarUrl: "http://google.com/photo.jpg",
                 },
             });
-            expect(updateDocument).toHaveBeenCalledWith("users", "user1", {
-                avatarUrl: "http://google.com/photo.jpg",
-            });
+            expect(updateDocument).toHaveBeenCalledWith(
+                "users",
+                "user1",
+                {
+                    avatarUrl: "http://google.com/photo.jpg",
+                },
+                expect.any(Object),
+            );
             expect(getRedirectUrl(error)).toBe("/");
         }
     });
