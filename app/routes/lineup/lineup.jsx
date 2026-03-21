@@ -11,6 +11,8 @@ import { savePlayerChart } from "@/actions/lineups";
 
 import BackButton from "@/components/BackButton";
 
+import { createSessionClient } from "@/utils/appwrite/server";
+
 import LineupContainer from "./components/LineupContainer";
 import LineupMenu from "./components/LineupMenu";
 import LineupValidationMenu from "./components/LineupValidationMenu";
@@ -21,22 +23,28 @@ import { formatForViewerDate } from "@/utils/dateTime";
 
 export async function loader({ params, request }) {
     const { eventId } = params;
-    // console.log("/events/:eventId > ", { eventId });
-    return await getEventWithPlayerCharts({ eventId, request });
+    const client = await createSessionClient(request);
+    return await getEventWithPlayerCharts({ eventId, client });
 }
 
 export async function action({ request, params }) {
     const { eventId } = params;
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
+    const client = await createSessionClient(request);
 
     if (_action === "save-chart") {
-        return savePlayerChart({ eventId, values });
+        return savePlayerChart({ eventId, values, client });
     }
 
     if (_action === "finalize-chart") {
         // Finalize and send notifications to team members
-        return savePlayerChart({ eventId, values, sendNotification: true });
+        return savePlayerChart({
+            eventId,
+            values,
+            client,
+            sendNotification: true,
+        });
     }
 }
 
