@@ -1,6 +1,3 @@
-process.env.APPWRITE_ENDPOINT = "http://localhost/v1";
-process.env.APPWRITE_PROJECT_ID = "test";
-
 import { useActionData } from "react-router";
 import { render, screen, fireEvent } from "@/utils/test-utils";
 
@@ -35,6 +32,18 @@ jest.mock("../components/TeamCard", () => ({ team }) => (
 ));
 
 describe("UserTeams Route Component", () => {
+    const originalEnv = process.env;
+
+    beforeAll(() => {
+        process.env = { ...originalEnv };
+        process.env.APPWRITE_ENDPOINT = "http://localhost/v1";
+        process.env.APPWRITE_PROJECT_ID = "test";
+    });
+
+    afterAll(() => {
+        process.env = originalEnv;
+    });
+
     const mockManaging = [{ $id: "t1", name: "Managing Team 1", seasons: [] }];
     const mockPlaying = [{ $id: "t2", name: "Playing Team 1", seasons: [] }];
     const mockLoaderData = {
@@ -78,7 +87,6 @@ describe("UserTeams Route Component", () => {
             expect(teamsActions.createTeam).toHaveBeenCalledWith({
                 values: { name: "New Team" },
                 userId: "user-1",
-                request: expect.any(Object),
                 client: expect.any(Object),
             });
         });

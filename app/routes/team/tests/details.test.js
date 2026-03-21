@@ -1,6 +1,3 @@
-process.env.APPWRITE_ENDPOINT = "http://localhost/v1";
-process.env.APPWRITE_PROJECT_ID = "test";
-
 import { useOutletContext } from "react-router";
 import { render, screen } from "@/utils/test-utils";
 
@@ -55,6 +52,18 @@ jest.mock("../components/DesktopTeamDetails", () => () => (
 ));
 
 describe("TeamDetails Route", () => {
+    const originalEnv = process.env;
+
+    beforeAll(() => {
+        process.env = { ...originalEnv };
+        process.env.APPWRITE_ENDPOINT = "http://localhost/v1";
+        process.env.APPWRITE_PROJECT_ID = "test";
+    });
+
+    afterAll(() => {
+        process.env = originalEnv;
+    });
+
     const mockUser = { $id: "user1", firstName: "John", lastName: "Doe" };
     const mockTeam = {
         $id: "team1",
