@@ -71,19 +71,19 @@ export async function action({ request }) {
     }
 
     if (_action === "update-contact") {
-        return updateAccountInfo({ values, request });
+        return updateAccountInfo({ values, client });
     }
 
     if (_action === "update-password") {
-        return updatePassword({ values, request });
+        return updatePassword({ values, client });
     }
 
     if (_action === "password-reset") {
-        return resetPassword({ values, request });
+        return resetPassword({ values, client, requestUrl: request.url });
     }
 
     if (_action === "update-user-preferences") {
-        return updateUserPrefs({ values, request });
+        return updateUserPrefs({ values, client });
     }
 
     return null;

@@ -119,7 +119,7 @@ describe("Settings Route", () => {
             });
             expect(updateUserPrefs).toHaveBeenCalledWith({
                 values: { startingPage: "/events" },
-                request: expect.any(Request),
+                client: expect.anything(),
             });
         });
     });

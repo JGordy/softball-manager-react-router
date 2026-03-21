@@ -288,6 +288,13 @@ export async function invitePlayersServer({ players, teamId, url, client }) {
     const { createAdminClient } = await import("@/utils/appwrite/server");
 
     // 1. Verify permissions
+    if (!client?.teams || !client?.account) {
+        return {
+            success: false,
+            message:
+                "Missing or invalid Appwrite client provided to invitePlayersServer.",
+        };
+    }
     const { teams: sessionTeams, account: sessionAccount } = client;
 
     try {
