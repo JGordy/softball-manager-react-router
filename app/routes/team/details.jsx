@@ -49,18 +49,9 @@ export async function action({ request, params }) {
 
     if (_action === "update-preferences") {
         return updatePreferences({
-            values,
             teamId,
-            client,
+            prefs: { maxMaleBatters: values.maxMaleBatters },
         });
-    }
-
-    if (_action === "edit-player") {
-        return editPlayer({ values, teamId, client });
-    }
-
-    if (_action === "delete-player") {
-        return deletePlayer({ values, teamId, client });
     }
 
     if (_action === "invite-player") {

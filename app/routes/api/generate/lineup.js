@@ -39,9 +39,10 @@ const DB_TO_MINIFIED_EVENT = Object.entries(EVENT_TYPE_MAP).reduce(
 export async function action({ request }) {
     let rollbackGameId = null;
     let rollbackCount = null;
+    let sessionClient;
 
     try {
-        const sessionClient = await createSessionClient(request);
+        sessionClient = await createSessionClient(request);
         // Parse the request body to get players, team info, and game details
         const body = await request.json();
         const { players, team, gameId } = body;
@@ -469,8 +470,8 @@ export async function action({ request }) {
                     {
                         aiGenerationCount: rollbackCount,
                     },
-                    createAdminClient(),
-                ); // Admin client used here because session Client won't be easily available if instantiated locally inside the try without it being accessible here in the outer catch block
+                    sessionClient,
+                );
             } catch (cleanupError) {
                 console.error(
                     "Failed to rollback generation count:",

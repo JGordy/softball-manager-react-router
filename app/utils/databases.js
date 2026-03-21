@@ -25,6 +25,11 @@ export const createDocument = async (
     permissions = [],
     client,
 ) => {
+    if (!client?.tablesDB) {
+        throw new Error(
+            "Missing or invalid Appwrite client provided to createDocument.",
+        );
+    }
     const { tablesDB } = client;
     const _id = id || ID.unique();
     const { $permissions: _ignoredPermissions, ...restData } = data;
@@ -50,6 +55,11 @@ export const createDocument = async (
 
 // Helper function to list a series of documents
 export const listDocuments = async (collectionType, queries, client) => {
+    if (!client?.tablesDB) {
+        throw new Error(
+            "Missing or invalid Appwrite client provided to listDocuments.",
+        );
+    }
     const { tablesDB } = client;
     try {
         const response = await tablesDB.listRows({
@@ -71,6 +81,11 @@ export const readDocument = async (
     queries,
     client,
 ) => {
+    if (!client?.tablesDB) {
+        throw new Error(
+            "Missing or invalid Appwrite client provided to readDocument.",
+        );
+    }
     const { tablesDB } = client;
     try {
         const response = await tablesDB.getRow({
@@ -93,6 +108,11 @@ export const updateDocument = async (
     data,
     client,
 ) => {
+    if (!client?.tablesDB) {
+        throw new Error(
+            "Missing or invalid Appwrite client provided to updateDocument.",
+        );
+    }
     const { tablesDB } = client;
     try {
         const response = await tablesDB.updateRow({
@@ -110,6 +130,11 @@ export const updateDocument = async (
 
 // Helper function to delete a document
 export const deleteDocument = async (collectionType, documentId, client) => {
+    if (!client?.tablesDB) {
+        throw new Error(
+            "Missing or invalid Appwrite client provided to deleteDocument.",
+        );
+    }
     const { tablesDB } = client;
     try {
         const response = await tablesDB.deleteRow({

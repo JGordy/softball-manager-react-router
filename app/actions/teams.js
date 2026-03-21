@@ -10,7 +10,6 @@ import {
 } from "@/utils/teams.js";
 
 import { hasBadWords } from "@/utils/badWordsApi";
-import { createSessionClient } from "@/utils/appwrite/server";
 
 import { removeEmptyValues } from "./utils/formUtils";
 

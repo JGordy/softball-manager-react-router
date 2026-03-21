@@ -119,9 +119,8 @@ describe("TeamDetails Route", () => {
 
             await action({ request, params });
             expect(teamsActions.updatePreferences).toHaveBeenCalledWith({
-                values: { maxMaleBatters: "3" },
                 teamId: "team1",
-                client: expect.any(Object),
+                prefs: { maxMaleBatters: "3" },
             });
         });
 

@@ -19,7 +19,7 @@ import {
 
 /**
  * Helper to get authenticated user and admin users client
- * @param {Request} client - The incoming client
+ * @param {Object} client - The incoming client
  * @returns {Promise<{accountUser: Object, adminUsersClient: Object}>} The user object and admin users client
  */
 export async function getAuthUserAndAdminUsers(client) {
@@ -447,7 +447,7 @@ export async function sendLineupFinalizedNotification({
 }
 
 /**
- * Send an attendance client notification
+ * Send an attendance request notification
  * @param {Object} options - Attendance options
  * @param {string} options.gameId - Game ID
  * @param {string} options.teamId - Team ID

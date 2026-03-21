@@ -2,8 +2,7 @@
  * CLIENT-SIDE ACTION
  * Invite a player to join a team by email using Appwrite Teams API
  *
- * Uses direct fetch to Appwrite REST API with X-Appwrite-Session header.
- * This bypasses the SDK's cookie handling which conflicts with our SSR session management.
+ * Uses injected `client.teams` API directly exposing Server Actions dynamically.
  * Appwrite automatically handles user lookup, account creation, and email sending.
  */
 export async function invitePlayerByEmail({
@@ -15,6 +14,11 @@ export async function invitePlayerByEmail({
     client,
 }) {
     try {
+        if (!client?.teams) {
+            throw new Error(
+                "Missing or invalid Appwrite client provided to invitePlayerByEmail.",
+            );
+        }
         const teamsClient = client.teams;
 
         const membership = await teamsClient.createMembership(
