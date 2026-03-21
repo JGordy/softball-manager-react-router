@@ -45,8 +45,8 @@ export async function createPlayer({ values, teamId, userId, client }) {
         const docPermissions = teamId
             ? [
                   Permission.read(Role.any()),
-                  Permission.update(Role.team(teamId)),
-                  Permission.delete(Role.team(teamId)),
+                  Permission.update(Role.user(_userId)),
+                  Permission.delete(Role.user(_userId)),
               ]
             : undefined;
 

@@ -202,7 +202,7 @@ export async function setPasswordForInvitedUser({
         // Check if user document already exists in the users collection
         let userDocExists = false;
         try {
-            await readDocument("users", userId, undefined, adminClient);
+            await readDocument("users", userId, [], adminClient);
             userDocExists = true;
         } catch (error) {
             // Document doesn't exist, we'll create it
