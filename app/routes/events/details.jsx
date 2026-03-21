@@ -36,16 +36,16 @@ export async function action({ request, params }) {
     const client = await createSessionClient(request);
 
     if (_action === "update-game") {
-        return updateGame({ eventId, values, client, request });
+        return updateGame({ eventId, values, client });
     }
     if (_action === "delete-game") {
-        return deleteGame({ eventId, client, request });
+        return deleteGame({ eventId, client });
     }
     if (_action === "update-attendance") {
         return updatePlayerAttendance({ eventId, values, client });
     }
     if (_action === "send-votes") {
-        return sendAwardVotes({ eventId, values, client, request });
+        return sendAwardVotes({ eventId, values, client });
     }
 }
 

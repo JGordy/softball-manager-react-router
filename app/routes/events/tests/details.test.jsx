@@ -114,7 +114,6 @@ describe("EventDetails Route", () => {
             expect(gamesActions.updateGame).toHaveBeenCalledWith({
                 eventId: "evt1",
                 values: { someField: "value" },
-                request: expect.any(Object),
                 client: expect.any(Object),
             });
         });
@@ -131,7 +130,6 @@ describe("EventDetails Route", () => {
 
             expect(gamesActions.deleteGame).toHaveBeenCalledWith({
                 eventId: "evt1",
-                request,
                 client: expect.any(Object),
             });
         });
@@ -166,7 +164,6 @@ describe("EventDetails Route", () => {
             expect(awardsActions.sendAwardVotes).toHaveBeenCalledWith({
                 eventId: "evt1",
                 values: {},
-                request: expect.any(Object),
                 client: expect.any(Object),
             });
         });
