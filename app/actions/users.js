@@ -187,6 +187,15 @@ export async function updateUser({ values, userId, client }) {
 
 // Server action - uses server-side session for authentication
 export async function updateAccountInfo({ values, client }) {
+    if (!client || !client.account) {
+        return {
+            success: false,
+            status: 400,
+            message:
+                "Missing or invalid Appwrite client provided to updateAccountInfo.",
+            action: "update-account-info",
+        };
+    }
     const { user: _user, ...newContactInfo } = values;
     const user = JSON.parse(_user);
     const { email, password, phoneNumber } = newContactInfo;
@@ -197,7 +206,6 @@ export async function updateAccountInfo({ values, client }) {
 
     try {
         // Get authenticated account from server session
-
         const { account } = client;
 
         if (email && email !== user.email) {
@@ -258,6 +266,15 @@ export async function updateAccountInfo({ values, client }) {
 }
 
 export async function updatePassword({ values, client }) {
+    if (!client || !client.account) {
+        return {
+            success: false,
+            status: 400,
+            message:
+                "Missing or invalid Appwrite client provided to updatePassword.",
+            action: "update-password",
+        };
+    }
     const { currentPassword, newPassword } = values;
 
     try {
@@ -283,6 +300,15 @@ export async function updatePassword({ values, client }) {
 }
 
 export async function resetPassword({ values, client, requestUrl }) {
+    if (!client || !client.account) {
+        return {
+            success: false,
+            status: 400,
+            message:
+                "Missing or invalid Appwrite client provided to resetPassword.",
+            action: "password-reset",
+        };
+    }
     const { email } = values;
     const url = new URL(requestUrl);
     // The URL the user will be redirected to from the email.
@@ -311,6 +337,15 @@ export async function resetPassword({ values, client, requestUrl }) {
     }
 }
 export async function updateUserPrefs({ values, client }) {
+    if (!client || !client.account) {
+        return {
+            success: false,
+            status: 400,
+            message:
+                "Missing or invalid Appwrite client provided to updateUserPrefs.",
+            action: "update-user-prefs",
+        };
+    }
     try {
         // Validate allowed keys
         const allowedKeys = [

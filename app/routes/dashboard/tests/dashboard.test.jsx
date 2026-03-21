@@ -126,7 +126,6 @@ describe("Dashboard Route", () => {
             expect(createTeam).toHaveBeenCalledWith({
                 userId: "user-123",
                 values: { name: "New Team" },
-                request: expect.any(Object),
                 client: expect.any(Object),
             });
         });

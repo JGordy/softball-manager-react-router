@@ -4,6 +4,11 @@ import { redirect } from "react-router";
  * Server-side logout action
  */
 export async function logoutAction({ client, redirectTo = "/" }) {
+    if (!client || !client.account) {
+        throw new Error(
+            "logoutAction requires a valid Appwrite client with an account instance",
+        );
+    }
     const { account } = client;
 
     try {

@@ -40,7 +40,7 @@ export async function action({ request }) {
     const sessionClient = await createSessionClient(request);
 
     if (_action === "add-team") {
-        return createTeam({ values, userId, client: sessionClient, request });
+        return createTeam({ values, userId, client: sessionClient });
     }
 }
 
