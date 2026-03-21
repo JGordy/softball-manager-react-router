@@ -4,8 +4,11 @@ import { getUserTeams } from "@/loaders/teams";
 import MobileEvents from "./components/MobileEvents";
 import DesktopEvents from "./components/DesktopEvents";
 
+import { createSessionClient } from "@/utils/appwrite/server";
+
 export async function loader({ request }) {
-    const { managing, playing, userId } = await getUserTeams({ request });
+    const client = await createSessionClient(request);
+    const { managing, playing, userId } = await getUserTeams({ client });
     return { userId, teams: { managing, playing } };
 }
 
