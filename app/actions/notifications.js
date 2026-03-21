@@ -668,13 +668,13 @@ export async function unsubscribeFromTeam({ teamId, targetId }) {
  * Subscribe a target to all teams the user is a member of
  * Used when a user globally enables notifications
  * @param {Object} options
- * @param {Request} options.client - Request object (for session)
+ * @param {client} options.client - Client object
  * @param {string} options.targetId - Push Target ID
  * @returns {Promise<Object>} Success status and count
  */
 export async function subscribeToAllTeams({ client, targetId }) {
     if (!client || !targetId) {
-        return { success: false, error: "Request and Target ID are required" };
+        return { success: false, error: "Client and Target ID are required" };
     }
 
     try {

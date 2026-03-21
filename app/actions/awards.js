@@ -14,7 +14,7 @@ export async function sendAwardVotes({ values, eventId, client }) {
 
     try {
         // Build permissions array if we have team_id
-        // Votes can be read by team, updated/deleted by voter or managers/owners
+        // Votes can be read by team, updated/deleted by voter
         const permissions = team_id
             ? [
                   Permission.read(Role.team(team_id)), // Team members can see votes

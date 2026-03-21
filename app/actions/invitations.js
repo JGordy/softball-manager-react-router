@@ -372,9 +372,6 @@ export async function invitePlayersServer({ players, teamId, url, client }) {
                 }
             } else {
                 // User does not exist - Send invite via Client API (simulated)
-                // We use the raw fetch method to ensure Appwrite treats this as a
-                // client-side invite and sends the email.
-                // Using the Server SDK (even with user session) might be treated as
                 const result = await invitePlayerByEmail({
                     email,
                     teamId,
