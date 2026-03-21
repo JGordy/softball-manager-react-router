@@ -121,7 +121,7 @@ export async function getPushTarget({ client, targetId }) {
 
 /**
  * List all push targets for the current user
- * @param {Request} client - The incoming client (for session)
+ * @param {Object} client - The incoming client (for session)
  * @returns {Promise<Array>} Array of push targets
  */
 export async function listPushTargets({ client }) {
@@ -149,7 +149,7 @@ export async function listPushTargets({ client }) {
  * Create a push target for the current user (server-side)
  * This registers the user's device for push notifications
  * If a target with the same FCM token already exists, returns that instead
- * @param {Request} client - The incoming client (for session)
+ * @param {Object} client - The incoming client (for session)
  * @param {string} fcmToken - The FCM token from the browser
  * @param {string} providerId - The FCM provider ID
  * @returns {Promise<Object>} The created or existing push target
@@ -203,7 +203,7 @@ export async function createPushTarget({ client, fcmToken, providerId }) {
 /**
  * Delete a push target for the current user (server-side)
  * This unregisters the user's device from push notifications
- * @param {Request} client - The incoming client (for session)
+ * @param {Object} client - The incoming client (for session)
  * @param {string} targetId - The push target ID to delete
  * @returns {Promise<Object>} Success result
  */
