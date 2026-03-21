@@ -6,11 +6,7 @@ import { Container, Group } from "@mantine/core";
 import { trackEvent } from "@/utils/analytics";
 
 import { getTeamById } from "@/loaders/teams";
-import {
-    importLineup,
-    saveFieldingPositions,
-    saveBattingOrder,
-} from "@/actions/lineups";
+import { saveFieldingPositions, saveBattingOrder } from "@/actions/lineups";
 
 import { createSessionClient } from "@/utils/appwrite/server";
 
@@ -29,10 +25,6 @@ export async function action({ request, params }) {
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
     const client = await createSessionClient(request);
-
-    if (_action === "import-lineup") {
-        return importLineup({ values, teamId, client });
-    }
 
     if (_action === "save-fielding-positions") {
         return saveFieldingPositions({ values, teamId, client });

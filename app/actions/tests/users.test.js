@@ -1,3 +1,5 @@
+import { Permission, Role } from "node-appwrite";
+
 import {
     createPlayer,
     updateUser,
@@ -75,7 +77,11 @@ describe("Users Actions", () => {
                     dislikedPositions: ["P", "C"],
                     userId: "unique-id",
                 },
-                undefined,
+                [
+                    Permission.read(Role.any()),
+                    Permission.update(Role.team("team1")),
+                    Permission.delete(Role.team("team1")),
+                ],
                 expect.any(Object),
             );
             expect(result.success).toBe(true);
@@ -110,7 +116,11 @@ describe("Users Actions", () => {
                     dislikedPositions: ["OF"], // C was removed
                     userId: "user123",
                 },
-                undefined,
+                [
+                    Permission.read(Role.any()),
+                    Permission.update(Role.team("team1")),
+                    Permission.delete(Role.team("team1")),
+                ],
                 expect.any(Object),
             );
         });

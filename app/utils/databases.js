@@ -149,28 +149,6 @@ export const deleteDocument = async (collectionType, documentId, client) => {
     }
 };
 
-// Helper function to update document permissions
-export const updateDocumentPermissions = async (
-    collectionType,
-    documentId,
-    permissions,
-) => {
-    const { tablesDB } = createAdminClient();
-    try {
-        const response = await tablesDB.updateRow({
-            databaseId,
-            tableId: collections[collectionType],
-            rowId: documentId,
-            permissions,
-        });
-        return response;
-    } catch (error) {
-        console.error(`Error updating ${collectionType} permissions:`, error);
-        throw error;
-    }
-};
-
-// Transaction helpers
 export const createTransaction = async () => {
     const { tablesDB } = createAdminClient();
     try {

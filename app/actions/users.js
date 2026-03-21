@@ -1,4 +1,4 @@
-import { ID } from "node-appwrite";
+import { ID, Permission, Role } from "node-appwrite";
 import {
     createDocument,
     updateDocument,
@@ -10,7 +10,7 @@ import { isUserProfileComplete } from "@/utils/users";
 
 import { removeEmptyValues } from "./utils/formUtils";
 
-export async function createPlayer({ values, userId, client }) {
+export async function createPlayer({ values, teamId, userId, client }) {
     try {
         // Check first and last name for inappropriate language
         if (values.firstName && (await hasBadWords(values.firstName))) {
@@ -42,6 +42,14 @@ export async function createPlayer({ values, userId, client }) {
                   .filter((pos) => !preferredPositions.includes(pos))
             : [];
 
+        const docPermissions = teamId
+            ? [
+                  Permission.read(Role.any()),
+                  Permission.update(Role.team(teamId)),
+                  Permission.delete(Role.team(teamId)),
+              ]
+            : undefined;
+
         const player = await createDocument(
             "users",
             _userId,
@@ -51,7 +59,7 @@ export async function createPlayer({ values, userId, client }) {
                 dislikedPositions,
                 userId: _userId,
             },
-            undefined,
+            docPermissions,
             client,
         );
 

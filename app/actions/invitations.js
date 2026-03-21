@@ -197,10 +197,12 @@ export async function setPasswordForInvitedUser({
         // Update the user's password
         await users.updatePassword({ userId, password });
 
+        const adminClient = createAdminClient();
+
         // Check if user document already exists in the users collection
         let userDocExists = false;
         try {
-            await readDocument("users", userId);
+            await readDocument("users", userId, undefined, adminClient);
             userDocExists = true;
         } catch (error) {
             // Document doesn't exist, we'll create it
@@ -225,7 +227,6 @@ export async function setPasswordForInvitedUser({
                 Permission.delete(Role.user(userId)),
             ];
 
-            const adminVars = createAdminClient();
             await createDocument(
                 "users",
                 userId,
@@ -238,7 +239,7 @@ export async function setPasswordForInvitedUser({
                     dislikedPositions: [],
                 },
                 docPermissions,
-                { tablesDB: adminVars.tablesDB },
+                adminClient,
             );
         }
 

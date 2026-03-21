@@ -88,7 +88,7 @@ async function findSubscriber(messaging, topic, targetId) {
 
 /**
  * Get a push target for the current user by targetId
- * @param {Request} client - The incoming client (for session)
+ * @param {Object} client - The incoming client (for session)
  * @param {string} targetId - The push target ID to look up
  * @returns {Promise<Object|null>} The push target object if found and owned by user, else null
  */
