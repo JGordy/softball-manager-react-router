@@ -94,7 +94,6 @@ describe("EventDetails Route", () => {
             await loader({ params, request });
             expect(gamesLoaders.getEventById).toHaveBeenCalledWith({
                 eventId: "evt123",
-                request,
                 client: expect.any(Object),
             });
         });
