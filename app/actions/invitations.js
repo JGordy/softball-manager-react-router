@@ -191,13 +191,13 @@ export async function setPasswordForInvitedUser({
     }
 
     try {
-        const { account } = createAdminClient();
+        const adminClient = createAdminClient();
+
+        const { account } = adminClient;
         const users = new Users(account.client);
 
         // Update the user's password
         await users.updatePassword({ userId, password });
-
-        const adminClient = createAdminClient();
 
         // Check if user document already exists in the users collection
         let userDocExists = false;
