@@ -32,6 +32,16 @@ export const logGameEvent = async ({
     battingSide,
     client,
 }) => {
+    if (!client) {
+        return {
+            success: false,
+            status: 400,
+            message:
+                "Missing or invalid Appwrite client provided to logGameEvent.",
+            action: "log-game-event",
+        };
+    }
+
     let transaction = null;
 
     try {
@@ -148,6 +158,16 @@ export const logGameEvent = async ({
 };
 
 export const undoGameEvent = async ({ logId, client }) => {
+    if (!client) {
+        return {
+            success: false,
+            status: 400,
+            message:
+                "Missing or invalid Appwrite client provided to undoGameEvent.",
+            action: "undo-game-event",
+        };
+    }
+
     let transaction = null;
 
     try {
