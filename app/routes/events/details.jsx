@@ -53,7 +53,7 @@ export async function loader({ params, request }) {
     const { eventId } = params;
     const client = await createSessionClient(request);
 
-    return await getEventById({ eventId, client, request });
+    return await getEventById({ eventId, client });
 }
 
 export default function EventDetails({ loaderData, actionData }) {
