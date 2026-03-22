@@ -167,7 +167,10 @@ describe("gameLogs actions", () => {
             createOperations.mockRejectedValue(new Error("Database error"));
             rollbackTransaction.mockResolvedValue({});
 
-            const result = await logGameEvent(mockPayload);
+            const result = await logGameEvent({
+                ...mockPayload,
+                client: { mockedClient: true },
+            });
 
             expect(rollbackTransaction).toHaveBeenCalledWith("txn-123");
             expect(result.success).toBe(false);
@@ -193,7 +196,10 @@ describe("gameLogs actions", () => {
             circular.self = circular;
             mockPayload.baseState = circular;
 
-            const result = await logGameEvent(mockPayload);
+            const result = await logGameEvent({
+                ...mockPayload,
+                client: { mockedClient: true },
+            });
 
             expect(result.success).toBe(false);
             expect(result.message).toContain("Invalid baseState data");
@@ -287,7 +293,10 @@ describe("gameLogs actions", () => {
             createOperations.mockRejectedValue(new Error("Fetch error"));
             rollbackTransaction.mockResolvedValue({});
 
-            const result = await undoGameEvent({ logId: "log789" });
+            const result = await undoGameEvent({
+                logId: "log789",
+                client: { mockedClient: true },
+            });
 
             expect(rollbackTransaction).toHaveBeenCalledWith("txn-456");
             expect(result.success).toBe(false);

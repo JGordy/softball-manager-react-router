@@ -79,8 +79,8 @@ describe("Users Actions", () => {
                 },
                 [
                     Permission.read(Role.any()),
-                    Permission.update(Role.team("team1")),
-                    Permission.delete(Role.team("team1")),
+                    Permission.update(Role.user("unique-id")),
+                    Permission.delete(Role.user("unique-id")),
                 ],
                 expect.any(Object),
             );
@@ -118,8 +118,8 @@ describe("Users Actions", () => {
                 },
                 [
                     Permission.read(Role.any()),
-                    Permission.update(Role.team("team1")),
-                    Permission.delete(Role.team("team1")),
+                    Permission.update(Role.user("user123")),
+                    Permission.delete(Role.user("user123")),
                 ],
                 expect.any(Object),
             );
