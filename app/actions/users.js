@@ -48,7 +48,7 @@ export async function createPlayer({ values, teamId, userId, client }) {
                   Permission.update(Role.user(_userId)),
                   Permission.delete(Role.user(_userId)),
               ]
-            : undefined;
+            : [];
 
         const player = await createDocument(
             "users",
