@@ -668,7 +668,7 @@ export async function unsubscribeFromTeam({ teamId, targetId }) {
  * Subscribe a target to all teams the user is a member of
  * Used when a user globally enables notifications
  * @param {Object} options
- * @param {client} options.client - Client object
+ * @param {Object} options.client - Client object
  * @param {string} options.targetId - Push Target ID
  * @returns {Promise<Object>} Success status and count
  */
