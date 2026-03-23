@@ -2,10 +2,6 @@ import { render, screen } from "@/utils/test-utils";
 import CompactMatchupCard from "../CompactMatchupCard";
 
 jest.mock("../DiamondView", () => () => <div data-testid="diamond-view" />);
-jest.mock("../CurrentBatterCard", () => () => (
-    <div data-testid="batter-card" />
-));
-jest.mock("../OnDeckCard", () => () => <div data-testid="ondeck-card" />);
 
 describe("CompactMatchupCard", () => {
     const defaultProps = {
@@ -20,8 +16,8 @@ describe("CompactMatchupCard", () => {
         realtimeStatus: "connected",
         isOurBatting: true,
         runners: { first: true, second: false, third: false },
-        currentBatter: { name: "John Doe" },
-        onDeckBatter: { name: "Jane Doe" },
+        currentBatter: { $id: "1", firstName: "John", lastName: "Doe" },
+        upcomingBatters: [{ $id: "2", firstName: "Jane", lastName: "Doe" }],
         logs: [],
     };
 
@@ -49,13 +45,15 @@ describe("CompactMatchupCard", () => {
 
     it("renders batter cards when isOurBatting is true", () => {
         render(<CompactMatchupCard {...defaultProps} />);
-        expect(screen.getByTestId("batter-card")).toBeInTheDocument();
-        expect(screen.getByTestId("ondeck-card")).toBeInTheDocument();
+        expect(screen.getByText("CURRENT BATTER")).toBeInTheDocument();
+        expect(screen.getByText("John Doe")).toBeInTheDocument();
+        expect(screen.getByText("UP NEXT")).toBeInTheDocument();
+        expect(screen.getByText("Jane D.")).toBeInTheDocument();
     });
 
     it("hides batter cards when isOurBatting is false", () => {
         render(<CompactMatchupCard {...defaultProps} isOurBatting={false} />);
-        expect(screen.queryByTestId("batter-card")).not.toBeInTheDocument();
-        expect(screen.queryByTestId("ondeck-card")).not.toBeInTheDocument();
+        expect(screen.queryByText("CURRENT BATTER")).not.toBeInTheDocument();
+        expect(screen.queryByText("UP NEXT")).not.toBeInTheDocument();
     });
 });
