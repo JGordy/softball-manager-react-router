@@ -3,18 +3,22 @@ import { listDocuments, readDocument } from "@/utils/databases";
 import { createAdminClient } from "@/utils/appwrite/server";
 import { DateTime } from "luxon";
 
-const getAttendance = async ({ eventId, accepted = false }) => {
+const getAttendance = async ({ eventId, accepted = false, client }) => {
     const queries = [Query.equal("gameId", eventId)];
 
     if (accepted) {
         queries.push(Query.equal("status", "accepted"));
     }
 
-    const { rows: attendance } = await listDocuments("attendance", queries);
+    const { rows: attendance } = await listDocuments(
+        "attendance",
+        queries,
+        client,
+    );
     return attendance;
 };
 
-const getWeatherData = (parkId, game) => {
+const getWeatherData = (parkId, game, client) => {
     const { gameDate } = game;
     const apiKey = import.meta.env.VITE_GOOGLE_SERVICES_API_KEY;
     const baseUrl = "https://weather.googleapis.com/v1";
@@ -82,7 +86,7 @@ const getWeatherData = (parkId, game) => {
     };
 
     return (async () => {
-        const park = await readDocument("parks", parkId);
+        const park = await readDocument("parks", parkId, [], client);
         if (!park) return null;
 
         let hourlyData = [];
@@ -118,15 +122,15 @@ const getWeatherData = (parkId, game) => {
     })();
 };
 
-async function loadGameBase(eventId) {
+async function loadGameBase({ eventId, client }) {
     try {
         // Read basic game document
-        const gameDoc = await readDocument("games", eventId);
+        const gameDoc = await readDocument("games", eventId, [], client);
         const { seasons: seasonId, playerChart, ...game } = gameDoc;
 
         // Manually fetch the season since TablesDB doesn't auto-populate relationships
         const season = seasonId
-            ? await readDocument("seasons", seasonId)
+            ? await readDocument("seasons", seasonId, [], client)
             : null;
 
         if (!season) {
@@ -143,15 +147,19 @@ async function loadGameBase(eventId) {
         // Fetch actual team objects (TablesDB only stores IDs in relationships)
         let teams = [];
         if (teamIds.length > 0) {
-            const teamsResponse = await listDocuments("teams", [
-                Query.equal("$id", teamIds),
-            ]);
+            const teamsResponse = await listDocuments(
+                "teams",
+                [Query.equal("$id", teamIds)],
+                client,
+            );
             teams = teamsResponse.rows || [];
         } else if (season.teamId) {
             // Fallback to single teamId if teams array is empty
-            const teamsResponse = await listDocuments("teams", [
-                Query.equal("$id", [season.teamId]),
-            ]);
+            const teamsResponse = await listDocuments(
+                "teams",
+                [Query.equal("$id", [season.teamId])],
+                client,
+            );
             teams = teamsResponse.rows || [];
         }
 
@@ -228,7 +236,7 @@ async function loadGameBase(eventId) {
     }
 }
 
-function makeDeferredData({ eventId, userIds, parkId, options = {} }) {
+function makeDeferredData({ eventId, userIds, parkId, options = {}, client }) {
     const {
         includePlayers = true,
         includePark = true,
@@ -242,34 +250,40 @@ function makeDeferredData({ eventId, userIds, parkId, options = {} }) {
     const userIdList = userIds.map(({ userId }) => userId);
     const playersPromise =
         includePlayers && userIdList.length > 0
-            ? listDocuments("users", [Query.equal("$id", userIdList)]).then(
-                  (result) => result.rows || [],
-              )
+            ? listDocuments(
+                  "users",
+                  [Query.equal("$id", userIdList)],
+                  client,
+              ).then((result) => result.rows || [])
             : Promise.resolve([]);
 
     const parkPromise =
         includePark && parkId
-            ? readDocument("parks", parkId)
+            ? readDocument("parks", parkId, [], client)
             : Promise.resolve(null);
 
     const attendancePromise = includeAttendance
-        ? listDocuments("attendance", [Query.equal("gameId", eventId)])
+        ? listDocuments("attendance", [Query.equal("gameId", eventId)], client)
         : Promise.resolve({ rows: [], total: 0 });
 
     const awardsPromise = includeAwards
-        ? listDocuments("awards", [Query.equal("game_id", eventId)])
+        ? listDocuments("awards", [Query.equal("game_id", eventId)], client)
         : Promise.resolve({ rows: [], total: 0 });
 
     const votesPromise = includeVotes
-        ? listDocuments("votes", [Query.equal("game_id", eventId)])
+        ? listDocuments("votes", [Query.equal("game_id", eventId)], client)
         : Promise.resolve({ rows: [], total: 0 });
 
     const logsPromise = includeLogs
-        ? listDocuments("game_logs", [
-              Query.equal("gameId", eventId),
-              Query.orderAsc("$createdAt"),
-              Query.limit(150), // Increase limit to handle games with many plays
-          ]).then((result) => result.rows || [])
+        ? listDocuments(
+              "game_logs",
+              [
+                  Query.equal("gameId", eventId),
+                  Query.orderAsc("$createdAt"),
+                  Query.limit(150), // Increase limit to handle games with many plays
+              ],
+              client,
+          ).then((result) => result.rows || [])
         : Promise.resolve([]);
 
     return {
@@ -282,25 +296,33 @@ function makeDeferredData({ eventId, userIds, parkId, options = {} }) {
     };
 }
 
-async function resolvePlayers(userIds) {
+async function resolvePlayers(userIds, client) {
     // Batch fetch all users in a single query instead of individual queries
     const userIdList = userIds.map(({ userId }) => userId);
     if (userIdList.length === 0) {
         return [];
     }
 
-    const result = await listDocuments("users", [
-        Query.equal("$id", userIdList),
-    ]);
+    const result = await listDocuments(
+        "users",
+        [Query.equal("$id", userIdList)],
+        client,
+    );
     return result.rows || [];
 }
 
-export async function getEventById({ eventId, ...options }) {
+export async function getEventById({ eventId, client, ...options }) {
+    if (!client) {
+        throw new Error(
+            "A constructed 'client' object is strictly required for authorization.",
+        );
+    }
+
     // Extract weather option and pass the rest to deferred data
     const { includeWeather = true, ...deferredOptions } = options;
 
     // Use shared loader helper to get base data for the event
-    const baseData = await loadGameBase(eventId);
+    const baseData = await loadGameBase({ eventId, client: client });
 
     // Game was deleted
     if (!baseData) {
@@ -334,6 +356,7 @@ export async function getEventById({ eventId, ...options }) {
         userIds,
         parkId,
         options: deferredOptions,
+        client: client,
     });
 
     return {
@@ -352,20 +375,30 @@ export async function getEventById({ eventId, ...options }) {
         teams,
         // Deferred data for weather, but is conditional so we didn't add it to the deferredData
         weatherPromise: includeWeather
-            ? getWeatherData(parkId, game)
+            ? getWeatherData(parkId, game, client)
             : Promise.resolve(null),
     };
 }
 
-export async function getEventWithPlayerCharts({ request, eventId }) {
+export async function getEventWithPlayerCharts({ client, eventId }) {
+    if (!client) {
+        throw new Error(
+            "A constructed 'client' object is strictly required for authorization.",
+        );
+    }
+
     // Use shared loader helper to get base data for the event
     const { game, teams, userIds, managerIds, scorekeeperIds, playerChart } =
-        await loadGameBase(eventId);
+        await loadGameBase({ eventId, client: client });
 
     // Fully resolve the players for the non-deferred path
-    const players = await resolvePlayers(userIds);
+    const players = await resolvePlayers(userIds, client);
 
-    const attendance = await getAttendance({ eventId, accepted: false });
+    const attendance = await getAttendance({
+        eventId,
+        accepted: false,
+        client: client,
+    });
 
     return {
         attendance,

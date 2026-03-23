@@ -10,6 +10,8 @@ import {
     subscribeToAllTeams,
 } from "@/actions/notifications";
 
+import { createSessionClient } from "@/utils/appwrite/server";
+
 /**
  * POST: Create a new push target
  * DELETE: Remove an existing push target
@@ -24,7 +26,8 @@ export async function loader({ request }) {
         return Response.json({ error: "Missing targetId" }, { status: 400 });
     }
     try {
-        const target = await getPushTarget({ request, targetId });
+        const sessionClient = await createSessionClient(request);
+        const target = await getPushTarget({ client: sessionClient, targetId });
 
         if (!target) {
             return Response.json({ error: "Not found" }, { status: 404 });
@@ -43,9 +46,10 @@ export async function action({ request }) {
     try {
         if (method === "POST") {
             const { fcmToken, providerId } = await request.json();
+            const sessionClient = await createSessionClient(request);
 
             const target = await createPushTarget({
-                request,
+                client: sessionClient,
                 fcmToken,
                 providerId,
             });
@@ -56,7 +60,7 @@ export async function action({ request }) {
             // Since "Enable Notifications" is a heavy action, awaiting is fine.
             try {
                 await subscribeToAllTeams({
-                    request,
+                    client: sessionClient,
                     targetId: target.$id,
                 });
             } catch (subError) {
@@ -72,8 +76,9 @@ export async function action({ request }) {
 
         if (method === "DELETE") {
             const { targetId } = await request.json();
+            const sessionClient = await createSessionClient(request);
 
-            await deletePushTarget({ request, targetId });
+            await deletePushTarget({ client: sessionClient, targetId });
 
             return Response.json({ success: true });
         }

@@ -22,6 +22,9 @@ jest.mock("@/loaders/games");
 jest.mock("@/actions/lineups");
 jest.mock("@/utils/addPlayerAvailability");
 jest.mock("../utils/validateLineup");
+jest.mock("@/utils/appwrite/server", () => ({
+    createSessionClient: jest.fn().mockResolvedValue({}),
+}));
 
 // Mock child components
 jest.mock("../components/LineupContainer", () => () => (
@@ -73,7 +76,7 @@ describe("Lineup Route", () => {
             await loader({ params, request });
             expect(gamesLoaders.getEventWithPlayerCharts).toHaveBeenCalledWith({
                 eventId: "evt123",
-                request,
+                client: expect.any(Object),
             });
         });
     });
@@ -92,6 +95,7 @@ describe("Lineup Route", () => {
             expect(lineupsActions.savePlayerChart).toHaveBeenCalledWith({
                 eventId: "evt1",
                 values: { someField: "value" },
+                client: expect.any(Object),
             });
         });
 
@@ -109,6 +113,7 @@ describe("Lineup Route", () => {
                 eventId: "evt1",
                 values: { someField: "value" },
                 sendNotification: true,
+                client: expect.any(Object),
             });
         });
     });

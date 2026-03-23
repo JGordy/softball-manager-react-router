@@ -16,8 +16,9 @@ import DrawerContainer from "@/components/DrawerContainer";
 import { deleteGame, updateGame } from "@/actions/games";
 import { updatePlayerAttendance } from "@/actions/attendance";
 import { sendAwardVotes } from "@/actions/awards";
-
 import { getEventById } from "@/loaders/games";
+
+import { createSessionClient } from "@/utils/appwrite/server";
 
 import { getGameDayStatus } from "@/utils/dateTime";
 
@@ -32,25 +33,27 @@ export async function action({ request, params }) {
     const { eventId } = params;
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
+    const client = await createSessionClient(request);
 
     if (_action === "update-game") {
-        return updateGame({ eventId, values });
+        return updateGame({ eventId, values, client });
     }
     if (_action === "delete-game") {
-        return deleteGame({ eventId, request });
+        return deleteGame({ eventId, client });
     }
     if (_action === "update-attendance") {
-        return updatePlayerAttendance({ eventId, values });
+        return updatePlayerAttendance({ eventId, values, client });
     }
     if (_action === "send-votes") {
-        return sendAwardVotes({ eventId, values });
+        return sendAwardVotes({ eventId, values, client });
     }
 }
 
 export async function loader({ params, request }) {
     const { eventId } = params;
+    const client = await createSessionClient(request);
 
-    return await getEventById({ eventId, request });
+    return await getEventById({ eventId, client });
 }
 
 export default function EventDetails({ loaderData, actionData }) {

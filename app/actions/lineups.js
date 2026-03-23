@@ -7,13 +7,25 @@ export async function savePlayerChart({
     values,
     eventId,
     sendNotification = false,
+    client,
 }) {
     const { playerChart } = values;
     // NOTE: We must stringify the playerChart json before sending to appwrite
     try {
-        const gameDetails = await updateDocument("games", eventId, {
-            playerChart: JSON.stringify(playerChart),
-        });
+        if (!client) {
+            throw new Error(
+                "A constructed 'client' object is strictly required for authorization.",
+            );
+        }
+
+        const gameDetails = await updateDocument(
+            "games",
+            eventId,
+            {
+                playerChart: JSON.stringify(playerChart),
+            },
+            client,
+        );
 
         // Send notification to team members if requested and lineup is not null
         if (sendNotification && playerChart && gameDetails) {
@@ -63,15 +75,26 @@ export async function savePlayerChart({
     }
 }
 
-export async function saveBattingOrder({ values, teamId }) {
+export async function saveBattingOrder({ values, teamId, client }) {
     const { idealLineup } = values;
     try {
-        const teamDetails = await updateDocument("teams", teamId, {
-            idealLineup:
-                typeof idealLineup === "string"
-                    ? idealLineup
-                    : JSON.stringify(idealLineup),
-        });
+        if (!client) {
+            throw new Error(
+                "A constructed 'client' object is strictly required for authorization.",
+            );
+        }
+
+        const teamDetails = await updateDocument(
+            "teams",
+            teamId,
+            {
+                idealLineup:
+                    typeof idealLineup === "string"
+                        ? idealLineup
+                        : JSON.stringify(idealLineup),
+            },
+            client,
+        );
 
         return {
             response: { teamDetails },
@@ -88,15 +111,26 @@ export async function saveBattingOrder({ values, teamId }) {
     }
 }
 
-export async function saveFieldingPositions({ values, teamId }) {
+export async function saveFieldingPositions({ values, teamId, client }) {
     const { idealPositioning } = values;
     try {
-        const teamDetails = await updateDocument("teams", teamId, {
-            idealPositioning:
-                typeof idealPositioning === "string"
-                    ? idealPositioning
-                    : JSON.stringify(idealPositioning),
-        });
+        if (!client) {
+            throw new Error(
+                "A constructed 'client' object is strictly required for authorization.",
+            );
+        }
+
+        const teamDetails = await updateDocument(
+            "teams",
+            teamId,
+            {
+                idealPositioning:
+                    typeof idealPositioning === "string"
+                        ? idealPositioning
+                        : JSON.stringify(idealPositioning),
+            },
+            client,
+        );
 
         return {
             response: { teamDetails },

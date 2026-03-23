@@ -1,18 +1,16 @@
-import { ID } from "node-appwrite";
+import { ID, Permission, Role } from "node-appwrite";
 import {
     createDocument,
     updateDocument,
     readDocument,
 } from "@/utils/databases.js";
 
-import { createSessionClient } from "@/utils/appwrite/server";
-
 import { hasBadWords } from "@/utils/badWordsApi";
 import { isUserProfileComplete } from "@/utils/users";
 
 import { removeEmptyValues } from "./utils/formUtils";
 
-export async function createPlayer({ values, teamId, userId }) {
+export async function createPlayer({ values, teamId, userId, client }) {
     try {
         // Check first and last name for inappropriate language
         if (values.firstName && (await hasBadWords(values.firstName))) {
@@ -44,12 +42,26 @@ export async function createPlayer({ values, teamId, userId }) {
                   .filter((pos) => !preferredPositions.includes(pos))
             : [];
 
-        const player = await createDocument("users", _userId, {
-            ...values,
-            preferredPositions,
-            dislikedPositions,
-            userId: _userId,
-        });
+        const docPermissions = teamId
+            ? [
+                  Permission.read(Role.any()),
+                  Permission.update(Role.user(_userId)),
+                  Permission.delete(Role.user(_userId)),
+              ]
+            : [];
+
+        const player = await createDocument(
+            "users",
+            _userId,
+            {
+                ...values,
+                preferredPositions,
+                dislikedPositions,
+                userId: _userId,
+            },
+            docPermissions,
+            client,
+        );
 
         return { response: { player }, status: 201, success: true };
     } catch (error) {
@@ -58,7 +70,7 @@ export async function createPlayer({ values, teamId, userId }) {
     }
 }
 
-export async function updateUser({ values, userId }) {
+export async function updateUser({ values, userId, client }) {
     // Removes undefined or empty string values from data to update
     let dataToUpdate = removeEmptyValues({ values });
 
@@ -102,7 +114,7 @@ export async function updateUser({ values, userId }) {
         let wasComplete = false;
         let existingUser = null;
         try {
-            existingUser = await readDocument("users", userId);
+            existingUser = await readDocument("users", userId, [], client);
             wasComplete = isUserProfileComplete(existingUser);
         } catch (fetchError) {
             // If we can't fetch the existing user, assume it was not complete
@@ -145,7 +157,12 @@ export async function updateUser({ values, userId }) {
             }
         }
 
-        const updatedUser = await updateDocument("users", userId, dataToUpdate);
+        const updatedUser = await updateDocument(
+            "users",
+            userId,
+            dataToUpdate,
+            client,
+        );
 
         // Check if the profile is now considered "complete"
         const isNowComplete = isUserProfileComplete(updatedUser);
@@ -169,7 +186,16 @@ export async function updateUser({ values, userId }) {
 }
 
 // Server action - uses server-side session for authentication
-export async function updateAccountInfo({ values, request }) {
+export async function updateAccountInfo({ values, client }) {
+    if (!client || !client.account) {
+        return {
+            success: false,
+            status: 400,
+            message:
+                "Missing or invalid Appwrite client provided to updateAccountInfo.",
+            action: "update-account-info",
+        };
+    }
     const { user: _user, ...newContactInfo } = values;
     const user = JSON.parse(_user);
     const { email, password, phoneNumber } = newContactInfo;
@@ -180,7 +206,7 @@ export async function updateAccountInfo({ values, request }) {
 
     try {
         // Get authenticated account from server session
-        const { account } = await createSessionClient(request);
+        const { account } = client;
 
         if (email && email !== user.email) {
             await account.updateEmail(email, password);
@@ -202,7 +228,11 @@ export async function updateAccountInfo({ values, request }) {
         if (emailUpdated || phoneUpdated) {
             // Update the email or phone number in the user profile
             try {
-                await updateUser({ userId, values: { phoneNumber, email } });
+                await updateUser({
+                    userId,
+                    values: { phoneNumber, email },
+                    client: client,
+                });
             } catch (dbError) {
                 console.error(
                     "Data inconsistency: Appwrite account updated, but failed to update user document in database.",
@@ -235,12 +265,21 @@ export async function updateAccountInfo({ values, request }) {
     }
 }
 
-export async function updatePassword({ values, request }) {
+export async function updatePassword({ values, client }) {
+    if (!client || !client.account) {
+        return {
+            success: false,
+            status: 400,
+            message:
+                "Missing or invalid Appwrite client provided to updatePassword.",
+            action: "update-password",
+        };
+    }
     const { currentPassword, newPassword } = values;
 
     try {
         // Get authenticated account from server session
-        const { account } = await createSessionClient(request);
+        const { account } = client;
 
         await account.updatePassword(newPassword, currentPassword);
         return {
@@ -260,15 +299,24 @@ export async function updatePassword({ values, request }) {
     }
 }
 
-export async function resetPassword({ values, request }) {
+export async function resetPassword({ values, client, requestUrl }) {
+    if (!client || !client.account) {
+        return {
+            success: false,
+            status: 400,
+            message:
+                "Missing or invalid Appwrite client provided to resetPassword.",
+            action: "password-reset",
+        };
+    }
     const { email } = values;
-    const url = new URL(request.url);
+    const url = new URL(requestUrl);
     // The URL the user will be redirected to from the email.
     const resetUrl = `${url.origin}/recovery`;
 
     try {
         // Get authenticated account from server session
-        const { account } = await createSessionClient(request);
+        const { account } = client;
 
         await account.createRecovery(email, resetUrl);
         return {
@@ -288,7 +336,16 @@ export async function resetPassword({ values, request }) {
         };
     }
 }
-export async function updateUserPrefs({ values, request }) {
+export async function updateUserPrefs({ values, client }) {
+    if (!client || !client.account) {
+        return {
+            success: false,
+            status: 400,
+            message:
+                "Missing or invalid Appwrite client provided to updateUserPrefs.",
+            action: "update-user-prefs",
+        };
+    }
     try {
         // Validate allowed keys
         const allowedKeys = [
@@ -366,7 +423,7 @@ export async function updateUserPrefs({ values, request }) {
             }
         }
 
-        const { account } = await createSessionClient(request);
+        const { account } = client;
         const user = await account.get();
         const updatedPrefs = { ...(user.prefs || {}), ...(values || {}) };
 

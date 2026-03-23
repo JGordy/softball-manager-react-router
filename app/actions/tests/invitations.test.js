@@ -21,6 +21,17 @@ const mockCreateSession = jest.fn().mockResolvedValue({
 });
 jest.mock("node-appwrite", () => ({
     Query: { equal: jest.fn((k, v) => ({ key: k, value: v })) },
+    Permission: {
+        read: jest.fn(),
+        write: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+    },
+    Role: {
+        any: jest.fn(),
+        user: jest.fn((id) => `user:${id}`),
+        team: jest.fn(),
+    },
     Users: jest.fn().mockImplementation(() => ({
         updatePassword: mockUpdatePassword,
         createSession: mockCreateSession,
@@ -58,7 +69,7 @@ jest.mock("@/utils/databases", () => ({
 describe("Invitations Actions", () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        jest.spyOn(console, "error").mockImplementation(() => {});
+        // jest.spyOn(console, "error").mockImplementation(() => {});
 
         // Set up environment variables
         process.env.VITE_APPWRITE_HOST_URL = "https://test.appwrite.io/v1";
@@ -66,31 +77,30 @@ describe("Invitations Actions", () => {
     });
 
     afterEach(() => {
-        console.error.mockRestore();
+        if (console.error.mockRestore) console.error.mockRestore();
     });
 
     describe("invitePlayerByEmail", () => {
+        let mockTeamsClient;
+
+        beforeEach(() => {
+            mockTeamsClient = {
+                createMembership: jest.fn(),
+            };
+        });
+
         it("should send invitation successfully", async () => {
-            // Mock session fetch
-            global.fetch
-                .mockResolvedValueOnce({
-                    ok: true,
-                    json: () => Promise.resolve({ session: "test-session" }),
-                })
-                .mockResolvedValueOnce({
-                    ok: true,
-                    json: () =>
-                        Promise.resolve({
-                            $id: "membership-123",
-                            userId: "user-456",
-                        }),
-                });
+            mockTeamsClient.createMembership.mockResolvedValue({
+                $id: "membership-123",
+                userId: "user-456",
+            });
 
             const result = await invitePlayerByEmail({
                 email: "player@example.com",
                 teamId: "team-123",
                 name: "John Doe",
                 url: "http://localhost/accept",
+                client: { teams: mockTeamsClient },
             });
 
             expect(result.success).toBe(true);
@@ -98,92 +108,47 @@ describe("Invitations Actions", () => {
             expect(result.message).toContain(
                 "Invitation sent to player@example.com",
             );
-            expect(result.response.membershipId).toBe("membership-123");
-            expect(result.response.userId).toBe("user-456");
-        });
-
-        it("should fail if no session found", async () => {
-            global.fetch.mockResolvedValueOnce({
-                ok: true,
-                json: () => Promise.resolve({ session: null }),
-            });
-
-            const result = await invitePlayerByEmail({
-                email: "player@example.com",
-                teamId: "team-123",
-                name: "John Doe",
-                url: "http://localhost/accept",
-            });
-
-            expect(result.success).toBe(false);
-            expect(result.message).toBe(
-                "No active session found. Please log in.",
-            );
         });
 
         it("should handle API errors", async () => {
-            global.fetch
-                .mockResolvedValueOnce({
-                    ok: true,
-                    json: () => Promise.resolve({ session: "test-session" }),
-                })
-                .mockResolvedValueOnce({
-                    ok: false,
-                    json: () =>
-                        Promise.resolve({
-                            message: "User already invited",
-                        }),
-                });
-
+            mockTeamsClient.createMembership.mockRejectedValue({
+                message: "User already invited",
+            });
             const result = await invitePlayerByEmail({
                 email: "player@example.com",
                 teamId: "team-123",
                 name: "John Doe",
                 url: "http://localhost/accept",
+                client: { teams: mockTeamsClient },
             });
 
             expect(result.success).toBe(false);
             expect(result.message).toBe("User already invited");
         });
 
-        it("should send correct headers and body to Appwrite API", async () => {
-            global.fetch
-                .mockResolvedValueOnce({
-                    ok: true,
-                    json: () =>
-                        Promise.resolve({ session: "my-session-token" }),
-                })
-                .mockResolvedValueOnce({
-                    ok: true,
-                    json: () =>
-                        Promise.resolve({
-                            $id: "membership-123",
-                            userId: "user-456",
-                        }),
-                });
+        it("should send correct payload to Appwrite API", async () => {
+            mockTeamsClient.createMembership.mockResolvedValue({
+                $id: "membership-123",
+                userId: "user-456",
+            });
 
             await invitePlayerByEmail({
                 email: "player@example.com",
                 teamId: "team-123",
                 name: "John Doe",
                 url: "http://localhost/accept",
+                client: { teams: mockTeamsClient },
             });
 
-            // Check the second fetch call (to Appwrite)
-            expect(global.fetch).toHaveBeenCalledTimes(2);
-            const [url, options] = global.fetch.mock.calls[1];
-
-            expect(url).toContain("/teams/team-123/memberships");
-            expect(options.method).toBe("POST");
-            expect(options.headers["X-Appwrite-Session"]).toBe(
-                "my-session-token",
+            expect(mockTeamsClient.createMembership).toHaveBeenCalledWith(
+                "team-123",
+                ["player"],
+                "player@example.com",
+                undefined,
+                undefined,
+                "http://localhost/accept",
+                "John Doe",
             );
-            expect(options.headers["Content-Type"]).toBe("application/json");
-
-            const body = JSON.parse(options.body);
-            expect(body.email).toBe("player@example.com");
-            expect(body.name).toBe("John Doe");
-            expect(body.roles).toEqual(["player"]);
         });
     });
 
@@ -194,26 +159,26 @@ describe("Invitations Actions", () => {
             { email: "p1@example.com", name: "P1" },
             { email: "p2@example.com", name: "P2" },
         ];
+        let mockTeamsClient;
+
+        beforeEach(() => {
+            mockTeamsClient = {
+                createMembership: jest.fn(),
+            };
+        });
 
         it("should invite all players successfully", async () => {
-            global.fetch.mockImplementation(async (url, options) => {
-                if (url.toString().includes("/api/session")) {
-                    return {
-                        ok: true,
-                        json: async () => ({ session: "test-session" }),
-                    };
-                }
-                // Appwrite Invite API
-                return {
-                    ok: true,
-                    json: async () => ({
-                        $id: "membership-123",
-                        userId: "user-456",
-                    }),
-                };
+            mockTeamsClient.createMembership.mockResolvedValue({
+                $id: "membership-123",
+                userId: "user-456",
             });
 
-            const result = await invitePlayers({ players, teamId, url });
+            const result = await invitePlayers({
+                players,
+                teamId,
+                url,
+                client: { teams: mockTeamsClient },
+            });
 
             expect(result.success).toBe(true);
             expect(result.message).toContain("Successfully invited 2 players");
@@ -221,30 +186,16 @@ describe("Invitations Actions", () => {
         });
 
         it("should handle mixed success (partial failure)", async () => {
-            global.fetch.mockImplementation(async (url, options) => {
-                if (url.toString().includes("/api/session")) {
-                    return {
-                        ok: true,
-                        json: async () => ({ session: "test-session" }),
-                    };
-                }
+            mockTeamsClient.createMembership
+                .mockResolvedValueOnce({ $id: "m1", userId: "u1" })
+                .mockRejectedValueOnce({ message: "Already invited" });
 
-                // Parse body to identify player
-                const body = JSON.parse(options.body);
-                if (body.email === "p1@example.com") {
-                    return {
-                        ok: true,
-                        json: async () => ({ $id: "m1", userId: "u1" }),
-                    };
-                } else {
-                    return {
-                        ok: false,
-                        json: async () => ({ message: "Already invited" }),
-                    };
-                }
+            const result = await invitePlayers({
+                players,
+                teamId,
+                url,
+                client: { teams: mockTeamsClient },
             });
-
-            const result = await invitePlayers({ players, teamId, url });
 
             expect(result.success).toBe(true);
             expect(result.warning).toBe(true);
@@ -253,20 +204,16 @@ describe("Invitations Actions", () => {
         });
 
         it("should return false if all invites fail", async () => {
-            global.fetch.mockImplementation(async (url, options) => {
-                if (url.toString().includes("/api/session")) {
-                    return {
-                        ok: true,
-                        json: async () => ({ session: "test-session" }),
-                    };
-                }
-                return {
-                    ok: false,
-                    json: async () => ({ message: "Simulated Error" }),
-                };
+            mockTeamsClient.createMembership.mockRejectedValue({
+                message: "Simulated Error",
             });
 
-            const result = await invitePlayers({ players, teamId, url });
+            const result = await invitePlayers({
+                players,
+                teamId,
+                url,
+                client: { teams: mockTeamsClient },
+            });
 
             expect(result.success).toBe(false);
             expect(result.message).toBe("Failed to send any invitations");
@@ -274,9 +221,12 @@ describe("Invitations Actions", () => {
         });
 
         it("should handle empty player list gracefully", async () => {
-            const result = await invitePlayers({ players: [], teamId, url });
-            // An empty list should result in success with 0 invitations sent
-            // Promise.allSettled([]) resolves safely to []
+            const result = await invitePlayers({
+                players: [],
+                teamId,
+                url,
+                client: { teams: mockTeamsClient },
+            });
 
             expect(result.success).toBe(true);
             expect(result.message).toContain("Successfully invited 0 players");
@@ -360,6 +310,7 @@ describe("Invitations Actions", () => {
                 account: {
                     client: {},
                 },
+                databases: {},
             });
         });
 
@@ -442,6 +393,7 @@ describe("Invitations Actions", () => {
                     total: 1,
                     memberships: [{ roles: ["owner"] }],
                 }),
+                createMembership: jest.fn(),
             };
             mockSessionAccount = {
                 get: jest.fn().mockResolvedValue({ $id: "user-123" }),
@@ -476,7 +428,10 @@ describe("Invitations Actions", () => {
                 players,
                 teamId,
                 url,
-                request,
+                client: {
+                    teams: mockSessionTeams,
+                    account: mockSessionAccount,
+                },
             });
 
             expect(result.success).toBe(false);
@@ -493,7 +448,10 @@ describe("Invitations Actions", () => {
                 players,
                 teamId,
                 url,
-                request,
+                client: {
+                    teams: mockSessionTeams,
+                    account: mockSessionAccount,
+                },
             });
 
             expect(result.success).toBe(false);
@@ -518,7 +476,10 @@ describe("Invitations Actions", () => {
                 players,
                 teamId,
                 url,
-                request,
+                client: {
+                    teams: mockSessionTeams,
+                    account: mockSessionAccount,
+                },
             });
 
             expect(mockAdminUsers.list).toHaveBeenCalled();
@@ -550,35 +511,37 @@ describe("Invitations Actions", () => {
                 players,
                 teamId,
                 url,
-                request,
+                client: {
+                    teams: mockSessionTeams,
+                    account: mockSessionAccount,
+                },
             });
 
             expect(result.success).toBe(false);
             expect(result.errors).toContain("Player is already a member");
         });
 
-        it("should send email invite for new users (via invitePlayerByEmail/fetch)", async () => {
+        it("should send email invite for new users (via client.teams.createMembership)", async () => {
             // User does not exist
             mockAdminUsers.list.mockResolvedValue({ total: 0, users: [] });
 
-            // Mock fetch to simulate successful client invite
-            global.fetch.mockResolvedValue({
-                ok: true,
-                json: async () => ({ $id: "m1", userId: "u1" }),
+            // Mock createMembership to simulate successful client invite
+            mockSessionTeams.createMembership.mockResolvedValue({
+                $id: "m1",
+                userId: "u1",
             });
 
             const result = await invitePlayersServer({
                 players,
                 teamId,
                 url,
-                request,
+                client: {
+                    teams: mockSessionTeams,
+                    account: mockSessionAccount,
+                },
             });
 
-            // Should call fetch (via invitePlayerByEmail)
-            expect(global.fetch).toHaveBeenCalled();
-            const [fetchUrl] = global.fetch.mock.calls[0];
-            expect(fetchUrl).toContain(`/teams/${teamId}/memberships`);
-
+            expect(mockSessionTeams.createMembership).toHaveBeenCalled();
             expect(result.success).toBe(true);
         });
     });

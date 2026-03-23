@@ -31,6 +31,8 @@ jest.mock("@/utils/appwrite/server", () => ({
 describe("databases utility", () => {
     const dbId = process.env.APPWRITE_DATABASE_ID;
 
+    const mockClient = { tablesDB: mockTablesDB };
+
     beforeEach(() => {
         jest.clearAllMocks();
     });
@@ -39,7 +41,13 @@ describe("databases utility", () => {
         it("should create a document with generated ID", async () => {
             mockTablesDB.createRow.mockResolvedValue({ id: "doc-id" });
             const data = { name: "test" };
-            const result = await createDocument("users", null, data);
+            const result = await createDocument(
+                "users",
+                null,
+                data,
+                [],
+                mockClient,
+            );
 
             expect(mockTablesDB.createRow).toHaveBeenCalledWith({
                 databaseId: dbId,
@@ -56,7 +64,13 @@ describe("databases utility", () => {
                 id: "provided-id",
             });
             const data = { name: "test" };
-            const result = await createDocument("users", "provided-id", data);
+            const result = await createDocument(
+                "users",
+                "provided-id",
+                data,
+                [],
+                mockClient,
+            );
 
             expect(mockTablesDB.createRow).toHaveBeenCalledWith({
                 databaseId: dbId,
@@ -82,6 +96,7 @@ describe("databases utility", () => {
                 "provided-id",
                 data,
                 permissions,
+                mockClient,
             );
 
             expect(mockTablesDB.createRow).toHaveBeenCalledWith({
@@ -103,9 +118,9 @@ describe("databases utility", () => {
                 .spyOn(console, "error")
                 .mockImplementation(() => {});
 
-            await expect(createDocument("users", "id", {})).rejects.toThrow(
-                "DB Error",
-            );
+            await expect(
+                createDocument("users", "id", {}, [], mockClient),
+            ).rejects.toThrow("DB Error");
             expect(consoleErrorSpy).toHaveBeenCalled();
             consoleErrorSpy.mockRestore();
         });
@@ -117,7 +132,7 @@ describe("databases utility", () => {
             mockTablesDB.listRows.mockResolvedValue({ rows: mockRows });
             const queries = ["query"];
 
-            const result = await listDocuments("users", queries);
+            const result = await listDocuments("users", queries, mockClient);
 
             expect(mockTablesDB.listRows).toHaveBeenCalledWith({
                 databaseId: dbId,
@@ -133,9 +148,9 @@ describe("databases utility", () => {
                 .spyOn(console, "error")
                 .mockImplementation(() => {});
 
-            await expect(listDocuments("users", [])).rejects.toThrow(
-                "DB Error",
-            );
+            await expect(
+                listDocuments("users", [], mockClient),
+            ).rejects.toThrow("DB Error");
             expect(consoleErrorSpy).toHaveBeenCalled();
             consoleErrorSpy.mockRestore();
         });
@@ -146,7 +161,12 @@ describe("databases utility", () => {
             const mockResponse = { id: "doc-id" };
             mockTablesDB.getRow.mockResolvedValue(mockResponse);
 
-            const result = await readDocument("users", "doc-id");
+            const result = await readDocument(
+                "users",
+                "doc-id",
+                undefined,
+                mockClient,
+            );
 
             expect(mockTablesDB.getRow).toHaveBeenCalledWith({
                 databaseId: dbId,
@@ -162,9 +182,9 @@ describe("databases utility", () => {
                 .spyOn(console, "error")
                 .mockImplementation(() => {});
 
-            await expect(readDocument("users", "doc-id")).rejects.toThrow(
-                "DB Error",
-            );
+            await expect(
+                readDocument("users", "doc-id", undefined, mockClient),
+            ).rejects.toThrow("DB Error");
             expect(consoleErrorSpy).toHaveBeenCalled();
             consoleErrorSpy.mockRestore();
         });
@@ -176,7 +196,12 @@ describe("databases utility", () => {
             mockTablesDB.updateRow.mockResolvedValue(mockResponse);
             const data = { name: "updated" };
 
-            const result = await updateDocument("users", "doc-id", data);
+            const result = await updateDocument(
+                "users",
+                "doc-id",
+                data,
+                mockClient,
+            );
 
             expect(mockTablesDB.updateRow).toHaveBeenCalledWith({
                 databaseId: dbId,
@@ -193,9 +218,9 @@ describe("databases utility", () => {
                 .spyOn(console, "error")
                 .mockImplementation(() => {});
 
-            await expect(updateDocument("users", "doc-id", {})).rejects.toThrow(
-                "DB Error",
-            );
+            await expect(
+                updateDocument("users", "doc-id", {}, mockClient),
+            ).rejects.toThrow("DB Error");
             expect(consoleErrorSpy).toHaveBeenCalled();
             consoleErrorSpy.mockRestore();
         });
@@ -206,7 +231,7 @@ describe("databases utility", () => {
             const mockResponse = { deleted: true };
             mockTablesDB.deleteRow.mockResolvedValue(mockResponse);
 
-            const result = await deleteDocument("users", "doc-id");
+            const result = await deleteDocument("users", "doc-id", mockClient);
 
             expect(mockTablesDB.deleteRow).toHaveBeenCalledWith({
                 databaseId: dbId,
@@ -222,9 +247,9 @@ describe("databases utility", () => {
                 .spyOn(console, "error")
                 .mockImplementation(() => {});
 
-            await expect(deleteDocument("users", "doc-id")).rejects.toThrow(
-                "DB Error",
-            );
+            await expect(
+                deleteDocument("users", "doc-id", mockClient),
+            ).rejects.toThrow("DB Error");
             expect(consoleErrorSpy).toHaveBeenCalled();
             consoleErrorSpy.mockRestore();
         });

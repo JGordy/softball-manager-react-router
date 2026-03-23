@@ -12,6 +12,8 @@ import AddTeam from "@/forms/AddTeam";
 import { createTeam } from "@/actions/teams";
 import { getUserTeams } from "@/loaders/teams";
 
+import { createSessionClient } from "@/utils/appwrite/server";
+
 import DashboardMenu from "./components/DashboardMenu";
 import MobileDashboard from "./components/MobileDashboard";
 import DesktopDashboard from "./components/DesktopDashboard";
@@ -24,8 +26,9 @@ export function meta() {
 }
 
 export async function loader({ request }) {
+    const sessionClient = await createSessionClient(request);
     const { managing, playing, userId, stats } = await getUserTeams({
-        request,
+        client: sessionClient,
         isDashboard: true,
     });
     return {
@@ -38,9 +41,10 @@ export async function loader({ request }) {
 export async function action({ request }) {
     const formData = await request.formData();
     const { _action, userId, ...values } = Object.fromEntries(formData);
+    const sessionClient = await createSessionClient(request);
 
     if (_action === "add-team") {
-        return createTeam({ values, userId });
+        return createTeam({ values, userId, client: sessionClient });
     }
 }
 

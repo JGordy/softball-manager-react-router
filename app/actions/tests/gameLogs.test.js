@@ -9,6 +9,10 @@ import {
 } from "@/utils/databases";
 import { logGameEvent, undoGameEvent } from "../gameLogs";
 
+jest.mock("@/utils/appwrite/server", () => ({
+    createSessionClient: jest.fn(() => ({ mockedClient: true })),
+}));
+
 jest.mock("@/utils/databases", () => ({
     createDocument: jest.fn(),
     deleteDocument: jest.fn(),
@@ -54,10 +58,15 @@ describe("gameLogs actions", () => {
             createOperations.mockResolvedValue({});
             commitTransaction.mockResolvedValue({});
 
-            const result = await logGameEvent(mockPayload);
+            const result = await logGameEvent({
+                ...mockPayload,
+                client: { mockedClient: true },
+            });
 
             expect(createTransaction).toHaveBeenCalled();
-            expect(readDocument).toHaveBeenCalledWith("games", "game123");
+            expect(readDocument).toHaveBeenCalledWith("games", "game123", [], {
+                mockedClient: true,
+            });
             expect(createOperations).toHaveBeenCalledWith(
                 "txn-123",
                 expect.arrayContaining([
@@ -77,11 +86,7 @@ describe("gameLogs actions", () => {
                         }),
                         permissions: expect.arrayContaining([
                             'read("any")',
-                            'update("team:team789/manager")',
-                            'update("team:team789/owner")',
                             'update("team:team789/scorekeeper")',
-                            'delete("team:team789/manager")',
-                            'delete("team:team789/owner")',
                             'delete("team:team789/scorekeeper")',
                         ]),
                     }),
@@ -117,7 +122,10 @@ describe("gameLogs actions", () => {
                 score: "0",
             });
 
-            const result = await logGameEvent(mockPayload);
+            const result = await logGameEvent({
+                ...mockPayload,
+                client: { mockedClient: true },
+            });
 
             expect(createDocument).toHaveBeenCalledWith(
                 "game_logs",
@@ -128,12 +136,15 @@ describe("gameLogs actions", () => {
                 }),
                 expect.arrayContaining([
                     'read("any")',
-                    'update("team:team789/manager")',
-                    'delete("team:team789/owner")',
+                    'update("team:team789/scorekeeper")',
+                    'delete("team:team789/scorekeeper")',
                 ]),
+                { mockedClient: true },
             );
             expect(createTransaction).not.toHaveBeenCalled();
-            expect(readDocument).toHaveBeenCalledWith("games", "game123");
+            expect(readDocument).toHaveBeenCalledWith("games", "game123", [], {
+                mockedClient: true,
+            });
             expect(result.success).toBe(true);
         });
 
@@ -156,7 +167,10 @@ describe("gameLogs actions", () => {
             createOperations.mockRejectedValue(new Error("Database error"));
             rollbackTransaction.mockResolvedValue({});
 
-            const result = await logGameEvent(mockPayload);
+            const result = await logGameEvent({
+                ...mockPayload,
+                client: { mockedClient: true },
+            });
 
             expect(rollbackTransaction).toHaveBeenCalledWith("txn-123");
             expect(result.success).toBe(false);
@@ -182,7 +196,10 @@ describe("gameLogs actions", () => {
             circular.self = circular;
             mockPayload.baseState = circular;
 
-            const result = await logGameEvent(mockPayload);
+            const result = await logGameEvent({
+                ...mockPayload,
+                client: { mockedClient: true },
+            });
 
             expect(result.success).toBe(false);
             expect(result.message).toContain("Invalid baseState data");
@@ -203,10 +220,20 @@ describe("gameLogs actions", () => {
             createOperations.mockResolvedValue({});
             commitTransaction.mockResolvedValue({});
 
-            const result = await undoGameEvent({ logId: "log789" });
+            const result = await undoGameEvent({
+                logId: "log789",
+                client: { mockedClient: true },
+            });
 
-            expect(readDocument).toHaveBeenCalledWith("game_logs", "log789");
-            expect(readDocument).toHaveBeenCalledWith("games", "game123");
+            expect(readDocument).toHaveBeenCalledWith(
+                "game_logs",
+                "log789",
+                [],
+                { mockedClient: true },
+            );
+            expect(readDocument).toHaveBeenCalledWith("games", "game123", [], {
+                mockedClient: true,
+            });
             expect(createTransaction).toHaveBeenCalled();
             expect(createOperations).toHaveBeenCalledWith(
                 "txn-456",
@@ -235,11 +262,21 @@ describe("gameLogs actions", () => {
             });
             deleteDocument.mockResolvedValue({});
 
-            const result = await undoGameEvent({ logId: "log789" });
+            const result = await undoGameEvent({
+                logId: "log789",
+                client: { mockedClient: true },
+            });
 
-            expect(readDocument).toHaveBeenCalledWith("game_logs", "log789");
+            expect(readDocument).toHaveBeenCalledWith(
+                "game_logs",
+                "log789",
+                [],
+                { mockedClient: true },
+            );
             expect(createTransaction).not.toHaveBeenCalled();
-            expect(deleteDocument).toHaveBeenCalledWith("game_logs", "log789");
+            expect(deleteDocument).toHaveBeenCalledWith("game_logs", "log789", {
+                mockedClient: true,
+            });
             expect(result.success).toBe(true);
         });
 
@@ -256,7 +293,10 @@ describe("gameLogs actions", () => {
             createOperations.mockRejectedValue(new Error("Fetch error"));
             rollbackTransaction.mockResolvedValue({});
 
-            const result = await undoGameEvent({ logId: "log789" });
+            const result = await undoGameEvent({
+                logId: "log789",
+                client: { mockedClient: true },
+            });
 
             expect(rollbackTransaction).toHaveBeenCalledWith("txn-456");
             expect(result.success).toBe(false);

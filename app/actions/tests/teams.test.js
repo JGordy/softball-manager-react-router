@@ -35,11 +35,22 @@ jest.mock("@/utils/teams", () => ({
     updateTeamPreferences: jest.fn(),
 }));
 
+jest.mock("@/utils/appwrite/server", () => ({
+    createSessionClient: jest.fn(),
+}));
+
 describe("Teams Actions", () => {
+    const mockSessionClient = {
+        tablesDB: { id: "mock-session-db" },
+        account: { get: jest.fn().mockResolvedValue({ $id: "user1" }) },
+    };
+
     beforeEach(() => {
         jest.clearAllMocks();
         jest.spyOn(console, "error").mockImplementation(() => {});
         hasBadWords.mockResolvedValue(false);
+        const { createSessionClient } = require("@/utils/appwrite/server");
+        createSessionClient.mockResolvedValue(mockSessionClient);
     });
 
     afterEach(() => {
@@ -60,7 +71,11 @@ describe("Teams Actions", () => {
             });
             createDocument.mockResolvedValue({ $id: "unique-id" });
 
-            const result = await createTeam({ values: mockValues, userId });
+            const result = await createTeam({
+                values: mockValues,
+                userId,
+                client: mockSessionClient,
+            });
 
             // Should create Appwrite Team
             expect(createAppwriteTeam).toHaveBeenCalledWith({
@@ -89,6 +104,7 @@ describe("Teams Actions", () => {
                     'update("team:unique-id/manager")',
                     'delete("team:unique-id/manager")',
                 ],
+                mockSessionClient,
             );
 
             expect(result.success).toBe(true);
@@ -105,6 +121,7 @@ describe("Teams Actions", () => {
             const result = await createTeam({
                 values: mockValues,
                 userId: "user1",
+                client: mockSessionClient,
             });
 
             expect(result.success).toBe(false);
@@ -122,11 +139,20 @@ describe("Teams Actions", () => {
 
             updateDocument.mockResolvedValue({ $id: teamId });
 
-            const result = await updateTeam({ values: mockValues, teamId });
-
-            expect(updateDocument).toHaveBeenCalledWith("teams", teamId, {
-                name: "Updated Team",
+            const result = await updateTeam({
+                values: mockValues,
+                teamId,
+                client: mockSessionClient,
             });
+
+            expect(updateDocument).toHaveBeenCalledWith(
+                "teams",
+                teamId,
+                {
+                    name: "Updated Team",
+                },
+                mockSessionClient,
+            );
             expect(result.success).toBe(true);
             expect(result.status).toBe(204);
         });
@@ -193,22 +219,25 @@ describe("Teams Actions", () => {
 
         beforeEach(async () => {
             // Mock the request object
-            mockRequest = {};
+            mockRequest = { headers: { get: () => "mock-cookie" } };
 
             // Mock the account.get() response
             mockAccount = {
                 get: jest.fn().mockResolvedValue({ $id: "owner-user-id" }),
             };
 
+            mockSessionClient.account = mockAccount;
+
             // Mock createSessionClient
             mockCreateSessionClient = jest.fn().mockResolvedValue({
                 account: mockAccount,
             });
 
-            // Mock the dynamic import
-            jest.doMock("@/utils/appwrite/server", () => ({
-                createSessionClient: mockCreateSessionClient,
-            }));
+            // Override the hoisted mock specifically for this suite
+            const server = require("@/utils/appwrite/server");
+            server.createSessionClient.mockImplementation(
+                mockCreateSessionClient,
+            );
         });
 
         it("should update role to owner", async () => {
@@ -232,7 +261,7 @@ describe("Teams Actions", () => {
             const result = await updateMemberRole({
                 teamId,
                 values: { playerId: userId, role: "owner" },
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(getTeamMembers).toHaveBeenCalledWith({ teamId });
@@ -266,7 +295,7 @@ describe("Teams Actions", () => {
             const result = await updateMemberRole({
                 teamId,
                 values: { playerId: userId, role: "manager" },
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(updateMembershipRoles).toHaveBeenCalledWith({
@@ -298,7 +327,7 @@ describe("Teams Actions", () => {
             const result = await updateMemberRole({
                 teamId,
                 values: { playerId: userId, role: "scorekeeper" },
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(updateMembershipRoles).toHaveBeenCalledWith({
@@ -330,7 +359,7 @@ describe("Teams Actions", () => {
             const result = await updateMemberRole({
                 teamId,
                 values: { playerId: userId, role: "player" },
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(updateMembershipRoles).toHaveBeenCalledWith({
@@ -359,7 +388,7 @@ describe("Teams Actions", () => {
             const result = await updateMemberRole({
                 teamId,
                 values: { playerId: userId, role: "manager" },
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(result.success).toBe(false);
@@ -387,7 +416,7 @@ describe("Teams Actions", () => {
             const result = await updateMemberRole({
                 teamId,
                 values: { playerId: userId, role: "manager" },
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(result.success).toBe(false);
@@ -404,7 +433,7 @@ describe("Teams Actions", () => {
             const result = await updateMemberRole({
                 teamId,
                 values: { playerId: userId, role: "invalid-role" },
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(result.success).toBe(false);
@@ -432,7 +461,7 @@ describe("Teams Actions", () => {
             const result = await updateMemberRole({
                 teamId,
                 values: { playerId: userId, role: "player" },
-                request: mockRequest,
+                client: mockSessionClient,
             });
 
             expect(result.success).toBe(false);

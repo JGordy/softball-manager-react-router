@@ -1,3 +1,5 @@
+import { Permission, Role } from "node-appwrite";
+
 import {
     createPlayer,
     updateUser,
@@ -40,7 +42,13 @@ describe("Users Actions", () => {
         console.error.mockRestore();
     });
 
+    const mockClient = { tablesDB: { id: "mock-session-db" } };
+
     describe("createPlayer", () => {
+        beforeEach(() => {
+            createSessionClient.mockResolvedValue(mockClient);
+        });
+
         it("should create player successfully", async () => {
             const mockValues = {
                 firstName: "John",
@@ -56,15 +64,26 @@ describe("Users Actions", () => {
                 values: mockValues,
                 teamId,
                 userId: null,
+                client: mockClient,
             });
 
-            expect(createDocument).toHaveBeenCalledWith("users", "unique-id", {
-                firstName: "John",
-                lastName: "Doe",
-                preferredPositions: ["1B", "OF"],
-                dislikedPositions: ["P", "C"],
-                userId: "unique-id",
-            });
+            expect(createDocument).toHaveBeenCalledWith(
+                "users",
+                "unique-id",
+                {
+                    firstName: "John",
+                    lastName: "Doe",
+                    preferredPositions: ["1B", "OF"],
+                    dislikedPositions: ["P", "C"],
+                    userId: "unique-id",
+                },
+                [
+                    Permission.read(Role.any()),
+                    Permission.update(Role.user("unique-id")),
+                    Permission.delete(Role.user("unique-id")),
+                ],
+                expect.any(Object),
+            );
             expect(result.success).toBe(true);
             expect(result.status).toBe(201);
         });
@@ -84,15 +103,26 @@ describe("Users Actions", () => {
                 values: mockValues,
                 teamId,
                 userId: "user123",
+                client: mockClient,
             });
 
-            expect(createDocument).toHaveBeenCalledWith("users", "user123", {
-                firstName: "Overlap",
-                lastName: "Player",
-                preferredPositions: ["P", "C"],
-                dislikedPositions: ["OF"], // C was removed
-                userId: "user123",
-            });
+            expect(createDocument).toHaveBeenCalledWith(
+                "users",
+                "user123",
+                {
+                    firstName: "Overlap",
+                    lastName: "Player",
+                    preferredPositions: ["P", "C"],
+                    dislikedPositions: ["OF"], // C was removed
+                    userId: "user123",
+                },
+                [
+                    Permission.read(Role.any()),
+                    Permission.update(Role.user("user123")),
+                    Permission.delete(Role.user("user123")),
+                ],
+                expect.any(Object),
+            );
         });
 
         it("should reject player with bad words in first name", async () => {
@@ -108,6 +138,7 @@ describe("Users Actions", () => {
             const result = await createPlayer({
                 values: mockValues,
                 teamId: "team1",
+                client: mockClient,
             });
 
             expect(result.success).toBe(false);
@@ -129,6 +160,7 @@ describe("Users Actions", () => {
             const result = await createPlayer({
                 values: mockValues,
                 teamId: "team1",
+                client: mockClient,
             });
 
             expect(result.success).toBe(false);
@@ -155,12 +187,21 @@ describe("Users Actions", () => {
                 preferredPositions: ["OF", "2B"],
             });
 
-            const result = await updateUser({ values: mockValues, userId });
-
-            expect(updateDocument).toHaveBeenCalledWith("users", userId, {
-                firstName: "Jane",
-                preferredPositions: ["OF", "2B"],
+            const result = await updateUser({
+                values: mockValues,
+                userId,
+                client: mockClient,
             });
+
+            expect(updateDocument).toHaveBeenCalledWith(
+                "users",
+                userId,
+                {
+                    firstName: "Jane",
+                    preferredPositions: ["OF", "2B"],
+                },
+                mockClient,
+            );
             expect(result.success).toBe(true);
             expect(result.status).toBe(204);
             expect(result.event).toEqual({
@@ -179,12 +220,21 @@ describe("Users Actions", () => {
             readDocument.mockResolvedValue({ $id: userId });
             updateDocument.mockResolvedValue({ $id: userId });
 
-            await updateUser({ values: mockValues, userId });
-
-            expect(updateDocument).toHaveBeenCalledWith("users", userId, {
-                preferredPositions: ["1B", "SS"],
-                dislikedPositions: ["P"], // SS was removed
+            await updateUser({
+                values: mockValues,
+                userId,
+                client: mockClient,
             });
+
+            expect(updateDocument).toHaveBeenCalledWith(
+                "users",
+                userId,
+                {
+                    preferredPositions: ["1B", "SS"],
+                    dislikedPositions: ["P"], // SS was removed
+                },
+                mockClient,
+            );
         });
 
         it("should remove overlaps when only updating preferredPositions and they overlap with existing dislikedPositions", async () => {
@@ -200,12 +250,21 @@ describe("Users Actions", () => {
             });
             updateDocument.mockResolvedValue({ $id: userId });
 
-            await updateUser({ values: mockValues, userId });
-
-            expect(updateDocument).toHaveBeenCalledWith("users", userId, {
-                preferredPositions: ["SS", "3B"],
-                dislikedPositions: ["OF"], // SS was removed
+            await updateUser({
+                values: mockValues,
+                userId,
+                client: mockClient,
             });
+
+            expect(updateDocument).toHaveBeenCalledWith(
+                "users",
+                userId,
+                {
+                    preferredPositions: ["SS", "3B"],
+                    dislikedPositions: ["OF"], // SS was removed
+                },
+                mockClient,
+            );
         });
 
         it("should remove overlaps when only updating dislikedPositions and they overlap with existing preferredPositions", async () => {
@@ -221,11 +280,20 @@ describe("Users Actions", () => {
             });
             updateDocument.mockResolvedValue({ $id: userId });
 
-            await updateUser({ values: mockValues, userId });
-
-            expect(updateDocument).toHaveBeenCalledWith("users", userId, {
-                dislikedPositions: ["P"], // C was removed because it's in preferred
+            await updateUser({
+                values: mockValues,
+                userId,
+                client: mockClient,
             });
+
+            expect(updateDocument).toHaveBeenCalledWith(
+                "users",
+                userId,
+                {
+                    dislikedPositions: ["P"], // C was removed because it's in preferred
+                },
+                mockClient,
+            );
         });
 
         it("should emit player-profile-completed when profile becomes complete", async () => {
@@ -255,7 +323,11 @@ describe("Users Actions", () => {
                 phoneNumber: "123-456-7890",
             });
 
-            const result = await updateUser({ values: mockValues, userId });
+            const result = await updateUser({
+                values: mockValues,
+                userId,
+                client: mockClient,
+            });
 
             expect(result.event).toEqual({
                 name: "player-profile-completed",
@@ -288,7 +360,11 @@ describe("Users Actions", () => {
                 firstName: "New Name",
             });
 
-            const result = await updateUser({ values: mockValues, userId });
+            const result = await updateUser({
+                values: mockValues,
+                userId,
+                client: mockClient,
+            });
 
             expect(result.event).toEqual({
                 name: "player-profile-updated",
@@ -302,6 +378,7 @@ describe("Users Actions", () => {
             const result = await updateUser({
                 values: { firstName: "BadWord" },
                 userId: "user1",
+                client: mockClient,
             });
 
             expect(result.success).toBe(false);
@@ -329,7 +406,7 @@ describe("Users Actions", () => {
 
             const result = await updateAccountInfo({
                 values: mockValues,
-                request: {},
+                client: await createSessionClient(),
             });
 
             expect(mockAccount.updateEmail).toHaveBeenCalledWith(
@@ -359,7 +436,7 @@ describe("Users Actions", () => {
 
             const result = await updateAccountInfo({
                 values: mockValues,
-                request: {},
+                client: await createSessionClient(),
             });
 
             expect(mockAccount.updatePhone).toHaveBeenCalledWith(
@@ -388,7 +465,7 @@ describe("Users Actions", () => {
 
             const result = await updateAccountInfo({
                 values: mockValues,
-                request: {},
+                client: await createSessionClient(),
             });
 
             expect(result.success).toBe(false);
@@ -410,7 +487,7 @@ describe("Users Actions", () => {
 
             const result = await updatePassword({
                 values: mockValues,
-                request: {},
+                client: await createSessionClient(),
             });
 
             expect(mockAccount.updatePassword).toHaveBeenCalledWith(
@@ -431,7 +508,7 @@ describe("Users Actions", () => {
 
             const result = await updatePassword({
                 values: { currentPassword: "old", newPassword: "new" },
-                request: {},
+                client: await createSessionClient(),
             });
 
             expect(result.success).toBe(false);
@@ -449,13 +526,11 @@ describe("Users Actions", () => {
             const mockValues = {
                 email: "user@example.com",
             };
-            const mockRequest = {
-                url: "http://localhost:3000/settings",
-            };
 
             const result = await resetPassword({
                 values: mockValues,
-                request: mockRequest,
+                client: { account: mockAccount },
+                requestUrl: "http://localhost:3000/settings",
             });
 
             expect(mockAccount.createRecovery).toHaveBeenCalledWith(
@@ -480,7 +555,7 @@ describe("Users Actions", () => {
             const mockValues = { startingPage: "/events" };
             const result = await updateUserPrefs({
                 values: mockValues,
-                request: {},
+                client: await createSessionClient(),
             });
 
             expect(mockAccount.updatePrefs).toHaveBeenCalledWith({
@@ -495,7 +570,7 @@ describe("Users Actions", () => {
         it("should reject invalid preference keys", async () => {
             const result = await updateUserPrefs({
                 values: { invalidKey: "some-value" },
-                request: {},
+                client: await createSessionClient(),
             });
 
             expect(result.success).toBe(false);
@@ -507,7 +582,7 @@ describe("Users Actions", () => {
         it("should reject invalid themePreference values", async () => {
             const result = await updateUserPrefs({
                 values: { themePreference: "invalid-theme" },
-                request: {},
+                client: await createSessionClient(),
             });
 
             expect(result.success).toBe(false);
@@ -518,7 +593,7 @@ describe("Users Actions", () => {
         it("should reject empty themePreference values", async () => {
             const result = await updateUserPrefs({
                 values: { themePreference: "" },
-                request: {},
+                client: await createSessionClient(),
             });
 
             expect(result.success).toBe(false);
@@ -529,7 +604,7 @@ describe("Users Actions", () => {
         it("should reject invalid startingPage values", async () => {
             const result = await updateUserPrefs({
                 values: { startingPage: "invalid-path" },
-                request: {},
+                client: await createSessionClient(),
             });
 
             expect(result.success).toBe(false);
@@ -540,7 +615,7 @@ describe("Users Actions", () => {
         it("should reject empty startingPage values", async () => {
             const result = await updateUserPrefs({
                 values: { startingPage: "" },
-                request: {},
+                client: await createSessionClient(),
             });
 
             expect(result.success).toBe(false);
@@ -559,7 +634,7 @@ describe("Users Actions", () => {
 
             const result = await updateUserPrefs({
                 values: { startingPage: "/events" },
-                request: {},
+                client: await createSessionClient(),
             });
 
             expect(result.success).toBe(false);

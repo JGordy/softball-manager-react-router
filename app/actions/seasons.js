@@ -7,7 +7,7 @@ import { findOrCreatePark } from "@/actions/parks";
 
 import { removeEmptyValues } from "./utils/formUtils";
 
-export async function createSeason({ values, teamId }) {
+export async function createSeason({ values, teamId, client }) {
     const { locationDetails, ...rest } = values;
 
     let parsedLocationDetails = null;
@@ -18,6 +18,12 @@ export async function createSeason({ values, teamId }) {
     }
 
     try {
+        if (!client) {
+            throw new Error(
+                "A constructed 'client' object is strictly required for authorization.",
+            );
+        }
+
         // Check season name for inappropriate language
         if (rest.seasonName && (await hasBadWords(rest.seasonName))) {
             return {
@@ -34,6 +40,7 @@ export async function createSeason({ values, teamId }) {
             const parkResponse = await findOrCreatePark({
                 values: parsedLocationDetails,
                 placeId: parsedLocationDetails.placeId,
+                client: client,
             });
 
             if (parkResponse) {
@@ -45,10 +52,8 @@ export async function createSeason({ values, teamId }) {
         const permissions = teamId
             ? [
                   Permission.read(Role.team(teamId)), // Team members can read
-                  Permission.update(Role.team(teamId, "manager")), // Managers can update
-                  Permission.update(Role.team(teamId, "owner")), // Owners can update
-                  Permission.delete(Role.team(teamId, "manager")), // Managers can delete
-                  Permission.delete(Role.team(teamId, "owner")), // Owners can delete
+                  Permission.update(Role.team(teamId, "manager")), // Managers & Owners can update
+                  Permission.delete(Role.team(teamId, "manager")), // Managers & Owners can delete
               ]
             : [];
 
@@ -64,6 +69,7 @@ export async function createSeason({ values, teamId }) {
                 teams: [teamId],
             },
             permissions,
+            client,
         );
 
         return {
@@ -84,12 +90,18 @@ export async function createSeason({ values, teamId }) {
     }
 }
 
-export async function updateSeason({ values, seasonId }) {
+export async function updateSeason({ values, seasonId, client }) {
     const { locationDetails, seasonName, ...rest } = values;
 
     let parkId;
 
     try {
+        if (!client) {
+            throw new Error(
+                "A constructed 'client' object is strictly required for authorization.",
+            );
+        }
+
         // Check season name for inappropriate language
         if (seasonName && (await hasBadWords(seasonName))) {
             return {
@@ -113,6 +125,7 @@ export async function updateSeason({ values, seasonId }) {
                 const parkResponse = await findOrCreatePark({
                     values: parsedLocationDetails,
                     placeId: parsedLocationDetails.placeId,
+                    client: client,
                 });
 
                 if (parkResponse?.$id) {
@@ -139,6 +152,7 @@ export async function updateSeason({ values, seasonId }) {
             "seasons",
             seasonId,
             dataToUpdate,
+            client,
         );
 
         return {

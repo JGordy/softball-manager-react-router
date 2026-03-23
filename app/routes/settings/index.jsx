@@ -60,29 +60,30 @@ export async function loader({ request }) {
 export async function action({ request }) {
     const formData = await request.formData();
     const { _action, userId, ...values } = Object.fromEntries(formData);
+    const client = await createSessionClient(request);
 
     if (_action === "logout") {
-        return logoutAction({ request });
+        return logoutAction({ client });
     }
 
     if (_action === "update-profile-info") {
-        return updateUser({ userId, values });
+        return updateUser({ userId, values, client });
     }
 
     if (_action === "update-contact") {
-        return updateAccountInfo({ values, request });
+        return updateAccountInfo({ values, client });
     }
 
     if (_action === "update-password") {
-        return updatePassword({ values, request });
+        return updatePassword({ values, client });
     }
 
     if (_action === "password-reset") {
-        return resetPassword({ values, request });
+        return resetPassword({ values, client, requestUrl: request.url });
     }
 
     if (_action === "update-user-preferences") {
-        return updateUserPrefs({ values, request });
+        return updateUserPrefs({ values, client });
     }
 
     return null;

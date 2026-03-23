@@ -12,14 +12,18 @@ import { logGameEvent, undoGameEvent } from "@/actions/gameLogs";
 
 import { useResponseNotification } from "@/utils/showNotification";
 
+import { createSessionClient } from "@/utils/appwrite/server";
+
 import GamedayContainer from "./components/GamedayContainer";
 import GamedayLoadingSkeleton from "./components/GamedayLoadingSkeleton";
 import GamedayMenu from "./components/GamedayMenu";
 
 export async function loader({ params, request }) {
     const { eventId } = params;
+    const client = await createSessionClient(request);
     return await getEventById({
         eventId,
+        client,
         includeWeather: false,
         includeAttendance: false,
         includeAwards: false,
@@ -32,26 +36,28 @@ export async function action({ request, params }) {
     const { eventId } = params;
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
+    const client = await createSessionClient(request);
 
     if (_action === "log-game-event") {
         const { baseState, ...logData } = values;
         return await logGameEvent({
             gameId: eventId,
+            client,
             ...logData,
             baseState: baseState ? JSON.parse(baseState) : null,
         });
     }
     if (_action === "undo-game-event") {
-        return await undoGameEvent({ logId: values.logId });
+        return await undoGameEvent({ logId: values.logId, client });
     }
     if (_action === "update-game-score") {
-        return updateGame({ values, eventId });
+        return updateGame({ values, eventId, client });
     }
     if (_action === "end-game") {
-        return updateGame({ values, eventId });
+        return updateGame({ values, eventId, client });
     }
     if (_action === "resume-game") {
-        return updateGame({ values, eventId });
+        return updateGame({ values, eventId, client });
     }
     return null;
 }

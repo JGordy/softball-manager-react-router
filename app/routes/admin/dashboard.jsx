@@ -51,9 +51,10 @@ export async function loader({ request }) {
         throw redirect("/dashboard");
     }
 
-    const { users } = createAdminClient();
+    const adminClient = createAdminClient();
+    const { users } = adminClient;
 
-    return await getAdminDashboardData({ users, range });
+    return await getAdminDashboardData({ users, client: adminClient, range });
 }
 
 export default function AdminDashboard() {

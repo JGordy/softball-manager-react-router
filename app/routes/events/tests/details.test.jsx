@@ -35,6 +35,9 @@ jest.mock("@/actions/awards");
 jest.mock("@/loaders/games");
 jest.mock("@/utils/dateTime");
 jest.mock("@/hooks/useModal");
+jest.mock("@/utils/appwrite/server", () => ({
+    createSessionClient: jest.fn().mockResolvedValue({ tablesDB: {} }),
+}));
 
 // Mock child components
 jest.mock("../components/MobileEventDetailsView", () => () => (
@@ -91,7 +94,7 @@ describe("EventDetails Route", () => {
             await loader({ params, request });
             expect(gamesLoaders.getEventById).toHaveBeenCalledWith({
                 eventId: "evt123",
-                request,
+                client: expect.any(Object),
             });
         });
     });
@@ -110,6 +113,7 @@ describe("EventDetails Route", () => {
             expect(gamesActions.updateGame).toHaveBeenCalledWith({
                 eventId: "evt1",
                 values: { someField: "value" },
+                client: expect.any(Object),
             });
         });
 
@@ -125,7 +129,7 @@ describe("EventDetails Route", () => {
 
             expect(gamesActions.deleteGame).toHaveBeenCalledWith({
                 eventId: "evt1",
-                request,
+                client: expect.any(Object),
             });
         });
 
@@ -143,6 +147,7 @@ describe("EventDetails Route", () => {
             ).toHaveBeenCalledWith({
                 eventId: "evt1",
                 values: {},
+                client: expect.any(Object),
             });
         });
 
@@ -158,6 +163,7 @@ describe("EventDetails Route", () => {
             expect(awardsActions.sendAwardVotes).toHaveBeenCalledWith({
                 eventId: "evt1",
                 values: {},
+                client: expect.any(Object),
             });
         });
     });

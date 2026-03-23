@@ -10,6 +10,7 @@ jest.mock("@/utils/databases", () => ({
 
 jest.mock("@/utils/appwrite/server", () => ({
     createAdminClient: jest.fn(),
+    createSessionClient: jest.fn(),
 }));
 
 import { createAdminClient } from "@/utils/appwrite/server";
@@ -18,9 +19,13 @@ import { createAdminClient } from "@/utils/appwrite/server";
 global.fetch = jest.fn();
 
 describe("Games Loader", () => {
+    const mockSessionClient = { tablesDB: { id: "mock-session-db" } };
+
     beforeEach(() => {
         jest.clearAllMocks();
         jest.spyOn(console, "error").mockImplementation(() => {});
+        const { createSessionClient } = require("@/utils/appwrite/server");
+        createSessionClient.mockResolvedValue(mockSessionClient);
 
         // Default mock for fetch to prevent errors
         global.fetch.mockResolvedValue({
@@ -37,7 +42,10 @@ describe("Games Loader", () => {
         it("should return gameDeleted: true if game is not found", async () => {
             readDocument.mockRejectedValue({ code: 404 });
 
-            const result = await getEventById({ eventId: "missing" });
+            const result = await getEventById({
+                eventId: "missing",
+                client: mockSessionClient,
+            });
 
             expect(result.gameDeleted).toBe(true);
             expect(result.game).toBeNull();
@@ -75,7 +83,10 @@ describe("Games Loader", () => {
             // Mock for getWeatherData
             readDocument.mockResolvedValue({ latitude: 0, longitude: 0 });
 
-            const result = await getEventById({ eventId: "game1" });
+            const result = await getEventById({
+                eventId: "game1",
+                client: mockSessionClient,
+            });
 
             expect(result.gameDeleted).toBe(false);
             expect(result.game.$id).toBe("game1");
@@ -119,7 +130,10 @@ describe("Games Loader", () => {
             listDocuments.mockResolvedValue({ rows: mockTeams });
             readDocument.mockResolvedValue({ latitude: 0, longitude: 0 });
 
-            const result = await getEventById({ eventId: "game1" });
+            const result = await getEventById({
+                eventId: "game1",
+                client: mockSessionClient,
+            });
 
             expect(result.managerIds).toContain("user1");
             expect(result.managerIds).toContain("user2");
@@ -177,7 +191,7 @@ describe("Games Loader", () => {
                 .mockResolvedValueOnce({ rows: mockAttendance }); // attendance
 
             const result = await getEventWithPlayerCharts({
-                request: {},
+                client: mockSessionClient,
                 eventId: "game1",
             });
 

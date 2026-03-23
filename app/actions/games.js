@@ -13,10 +13,7 @@ import { getNotifiableTeamMembers } from "@/utils/teams.js";
 import { findOrCreatePark } from "@/actions/parks";
 
 import { getTeamMembers } from "@/utils/teams.js";
-import {
-    createAdminClient,
-    createSessionClient,
-} from "@/utils/appwrite/server";
+import { createAdminClient } from "@/utils/appwrite/server";
 
 import { removeEmptyValues } from "./utils/formUtils";
 
@@ -58,6 +55,7 @@ async function initializeDefaultAttendance(gameId, teamId) {
             ),
         );
 
+        const adminClient = createAdminClient();
         const attendanceUpdates = [];
 
         for (const result of prefsResults) {
@@ -83,6 +81,7 @@ async function initializeDefaultAttendance(gameId, teamId) {
                                 updatedBy: "system-default",
                             },
                             eventId: gameId,
+                            client: adminClient,
                         }),
                     );
                 }
@@ -103,7 +102,11 @@ async function initializeDefaultAttendance(gameId, teamId) {
     }
 }
 
-export async function createSingleGame({ values, teamId: passedTeamId }) {
+export async function createSingleGame({
+    values,
+    client,
+    teamId: passedTeamId,
+}) {
     const {
         gameDate,
         gameTime,
@@ -127,6 +130,11 @@ export async function createSingleGame({ values, teamId: passedTeamId }) {
     }
 
     try {
+        if (!client) {
+            throw new Error(
+                "A constructed 'client' object is strictly required for authorization.",
+            );
+        }
         // Check opponent name for inappropriate language
         if (opponent && (await hasBadWords(opponent))) {
             return {
@@ -144,6 +152,7 @@ export async function createSingleGame({ values, teamId: passedTeamId }) {
             const parkResponse = await findOrCreatePark({
                 values: parsedLocationDetails,
                 placeId: parsedLocationDetails.placeId,
+                client: client,
             });
 
             if (parkResponse) {
@@ -154,7 +163,12 @@ export async function createSingleGame({ values, teamId: passedTeamId }) {
         // If location matches season location, don't persist it at the game level
         if (values.seasonId && location) {
             try {
-                const season = await readDocument("seasons", values.seasonId);
+                const season = await readDocument(
+                    "seasons",
+                    values.seasonId,
+                    [],
+                    client,
+                );
                 if (season?.location === location) {
                     location = null;
                     parkId = null;
@@ -164,15 +178,11 @@ export async function createSingleGame({ values, teamId: passedTeamId }) {
             }
         }
 
-        // Build permissions array if we have teamId
         const permissions = teamId
             ? [
                   Permission.read(Role.team(teamId)), // Team members can read
-                  Permission.update(Role.team(teamId, "manager")), // Managers can update
-                  Permission.update(Role.team(teamId, "owner")), // Owners can update
-                  Permission.update(Role.team(teamId, "scorekeeper")), // Scorekeepers can update
-                  Permission.delete(Role.team(teamId, "manager")), // Managers can delete
-                  Permission.delete(Role.team(teamId, "owner")), // Owners can delete
+                  Permission.update(Role.team(teamId, "scorekeeper")), // Scorekeepers, Managers, and Owners can update
+                  Permission.delete(Role.team(teamId, "manager")), // Managers and Owners can delete
               ]
             : [];
 
@@ -200,6 +210,7 @@ export async function createSingleGame({ values, teamId: passedTeamId }) {
             ID.unique(),
             updatedGameData,
             permissions,
+            client,
         );
 
         // Initialize attendance based on user defaults
@@ -223,7 +234,7 @@ export async function createSingleGame({ values, teamId: passedTeamId }) {
     }
 }
 
-export async function createGames({ values }) {
+export async function createGames({ values, client }) {
     const { games: generatedGames, timeZone } = values;
     let games = JSON.parse(generatedGames);
 
@@ -231,15 +242,16 @@ export async function createGames({ values }) {
     const teamId = games[0]?.teamId;
 
     try {
-        // Build permissions array if we have teamId
+        if (!client) {
+            throw new Error(
+                "A constructed 'client' object is strictly required for authorization.",
+            );
+        }
         const permissions = teamId
             ? [
                   Permission.read(Role.team(teamId)), // Team members can read
-                  Permission.update(Role.team(teamId, "manager")), // Managers can update
-                  Permission.update(Role.team(teamId, "owner")), // Owners can update
-                  Permission.update(Role.team(teamId, "scorekeeper")), // Scorekeepers can update
-                  Permission.delete(Role.team(teamId, "manager")), // Managers can delete
-                  Permission.delete(Role.team(teamId, "owner")), // Owners can delete
+                  Permission.update(Role.team(teamId, "scorekeeper")), // Scorekeepers, Managers, and Owners can update
+                  Permission.delete(Role.team(teamId, "manager")), // Managers and Owners can delete
               ]
             : [];
 
@@ -258,7 +270,9 @@ export async function createGames({ values }) {
                     seasons: game.seasons || game.seasonId,
                 },
                 permissions,
+                client,
             );
+
             createdGames.push(createdGame);
         }
 
@@ -289,7 +303,7 @@ export async function createGames({ values }) {
     }
 }
 
-export async function updateGame({ values, eventId }) {
+export async function updateGame({ values, eventId, client }) {
     const { opponent, locationDetails } = values;
 
     // Removes undefined or empty string values from data to update
@@ -304,6 +318,12 @@ export async function updateGame({ values, eventId }) {
             // Clear parkId for manual edits; it will be re-set if locationDetails are valid
             dataToUpdate.parkId = null;
 
+            if (!client) {
+                throw new Error(
+                    "A constructed 'client' object is strictly required for authorization.",
+                );
+            }
+
             if (locationDetails) {
                 try {
                     const parsedLocationDetails = JSON.parse(locationDetails);
@@ -311,6 +331,7 @@ export async function updateGame({ values, eventId }) {
                         const parkResponse = await findOrCreatePark({
                             values: parsedLocationDetails,
                             placeId: parsedLocationDetails.placeId,
+                            client: client,
                         });
 
                         if (parkResponse?.$id) {
@@ -328,6 +349,8 @@ export async function updateGame({ values, eventId }) {
                     const season = await readDocument(
                         "seasons",
                         values.seasonId,
+                        [],
+                        client,
                     );
                     if (season?.location === values.location) {
                         dataToUpdate.location = null;
@@ -357,6 +380,7 @@ export async function updateGame({ values, eventId }) {
             values.timeZone,
         );
     }
+    delete dataToUpdate.gameTime;
 
     if (values.isHomeGame) {
         dataToUpdate.isHomeGame = values.isHomeGame === "true";
@@ -410,7 +434,6 @@ export async function updateGame({ values, eventId }) {
         );
     }
 
-    delete dataToUpdate.gameTime;
     delete dataToUpdate.locationDetails;
 
     try {
@@ -428,6 +451,7 @@ export async function updateGame({ values, eventId }) {
             "games",
             eventId,
             dataToUpdate,
+            client,
         );
 
         // Send notification if game is finalized or score is updated
@@ -505,16 +529,16 @@ export async function updateGame({ values, eventId }) {
     }
 }
 
-export async function deleteGame({ eventId, request }) {
+export async function deleteGame({ eventId, client }) {
     try {
-        if (!request) {
-            throw new Error("Request object is required for authorization.");
+        if (!client) {
+            throw new Error(
+                "A constructed 'client' object is strictly required for authorization.",
+            );
         }
 
-        const sessionClient = await createSessionClient(request);
-
         // Appwrite row-level security handles manager/owner validation
-        await deleteDocument("games", eventId, sessionClient);
+        await deleteDocument("games", eventId, client);
 
         return {
             success: true,
@@ -528,7 +552,7 @@ export async function deleteGame({ eventId, request }) {
     }
 }
 
-export async function deleteGames({ values, request }) {
+export async function deleteGames({ values, client }) {
     const { gameIds } = values;
     let ids = [];
     try {
@@ -552,11 +576,11 @@ export async function deleteGames({ values, request }) {
     let errors = [];
 
     try {
-        if (!request) {
-            throw new Error("Request object is required for authorization.");
+        if (!client) {
+            throw new Error(
+                "A constructed 'client' object is strictly required for authorization.",
+            );
         }
-
-        const sessionClient = await createSessionClient(request);
 
         const batchSize = 5;
         let deletedCount = 0;
@@ -564,7 +588,7 @@ export async function deleteGames({ values, request }) {
         for (let i = 0; i < ids.length; i += batchSize) {
             const batch = ids.slice(i, i + batchSize);
             const results = await Promise.allSettled(
-                batch.map((id) => deleteDocument("games", id, sessionClient)),
+                batch.map((id) => deleteDocument("games", id, client)),
             );
 
             results.forEach((result) => {

@@ -12,6 +12,10 @@ jest.mock("@/utils/databases", () => ({
     updateDocument: jest.fn(),
 }));
 
+jest.mock("@/utils/appwrite/server", () => ({
+    createSessionClient: jest.fn(),
+}));
+
 jest.mock("@/utils/teams", () => ({
     getNotifiableTeamMembers: jest.fn(),
 }));
@@ -21,9 +25,13 @@ jest.mock("@/actions/notifications", () => ({
 }));
 
 describe("Lineups Actions", () => {
+    const mockSessionClient = { tablesDB: { id: "mock-session-db" } };
+
     beforeEach(() => {
         jest.clearAllMocks();
         jest.spyOn(console, "error").mockImplementation(() => {});
+        const { createSessionClient } = require("@/utils/appwrite/server");
+        createSessionClient.mockResolvedValue(mockSessionClient);
     });
 
     afterEach(() => {
@@ -42,11 +50,19 @@ describe("Lineups Actions", () => {
             const result = await savePlayerChart({
                 values: mockValues,
                 eventId,
+                client: mockSessionClient,
             });
 
-            expect(updateDocument).toHaveBeenCalledWith("games", eventId, {
-                playerChart: JSON.stringify({ lineup: ["player1", "player2"] }),
-            });
+            expect(updateDocument).toHaveBeenCalledWith(
+                "games",
+                eventId,
+                {
+                    playerChart: JSON.stringify({
+                        lineup: ["player1", "player2"],
+                    }),
+                },
+                mockSessionClient,
+            );
             expect(result.success).toBe(true);
             expect(result.status).toBe(204);
         });
@@ -74,6 +90,7 @@ describe("Lineups Actions", () => {
                 values: mockValues,
                 eventId,
                 sendNotification: true,
+                client: mockSessionClient,
             });
 
             expect(result.success).toBe(true);
@@ -107,6 +124,7 @@ describe("Lineups Actions", () => {
                 values: mockValues,
                 eventId,
                 sendNotification: false,
+                client: mockSessionClient,
             });
 
             expect(result.success).toBe(true);
@@ -143,6 +161,7 @@ describe("Lineups Actions", () => {
                 values: mockValues,
                 eventId,
                 sendNotification: true,
+                client: mockSessionClient,
             });
 
             expect(result.success).toBe(true);
@@ -156,7 +175,11 @@ describe("Lineups Actions", () => {
             updateDocument.mockRejectedValue(new Error("Database error"));
 
             await expect(
-                savePlayerChart({ values: mockValues, eventId: "event1" }),
+                savePlayerChart({
+                    values: mockValues,
+                    eventId: "event1",
+                    client: mockSessionClient,
+                }),
             ).rejects.toThrow("Database error");
         });
     });
@@ -173,11 +196,21 @@ describe("Lineups Actions", () => {
             const result = await saveBattingOrder({
                 values: mockValues,
                 teamId,
+                client: mockSessionClient,
             });
 
-            expect(updateDocument).toHaveBeenCalledWith("teams", teamId, {
-                idealLineup: JSON.stringify(["player1", "player2", "player3"]),
-            });
+            expect(updateDocument).toHaveBeenCalledWith(
+                "teams",
+                teamId,
+                {
+                    idealLineup: JSON.stringify([
+                        "player1",
+                        "player2",
+                        "player3",
+                    ]),
+                },
+                mockSessionClient,
+            );
             expect(result.success).toBe(true);
             expect(result.status).toBe(204);
             expect(result.event).toEqual({
@@ -197,11 +230,17 @@ describe("Lineups Actions", () => {
             const result = await saveBattingOrder({
                 values: mockValues,
                 teamId,
+                client: mockSessionClient,
             });
 
-            expect(updateDocument).toHaveBeenCalledWith("teams", teamId, {
-                idealLineup: '["player1","player2"]',
-            });
+            expect(updateDocument).toHaveBeenCalledWith(
+                "teams",
+                teamId,
+                {
+                    idealLineup: '["player1","player2"]',
+                },
+                mockSessionClient,
+            );
             expect(result.success).toBe(true);
             expect(result.event).toEqual({
                 name: "update-ideal-lineup",
@@ -217,7 +256,11 @@ describe("Lineups Actions", () => {
             updateDocument.mockRejectedValue(new Error("Database error"));
 
             await expect(
-                saveBattingOrder({ values: mockValues, teamId: "team1" }),
+                saveBattingOrder({
+                    values: mockValues,
+                    teamId: "team1",
+                    client: mockSessionClient,
+                }),
             ).rejects.toThrow("Database error");
         });
     });
@@ -237,14 +280,20 @@ describe("Lineups Actions", () => {
             const result = await saveFieldingPositions({
                 values: mockValues,
                 teamId,
+                client: mockSessionClient,
             });
 
-            expect(updateDocument).toHaveBeenCalledWith("teams", teamId, {
-                idealPositioning: JSON.stringify({
-                    Pitcher: ["player1"],
-                    Catcher: ["player2"],
-                }),
-            });
+            expect(updateDocument).toHaveBeenCalledWith(
+                "teams",
+                teamId,
+                {
+                    idealPositioning: JSON.stringify({
+                        Pitcher: ["player1"],
+                        Catcher: ["player2"],
+                    }),
+                },
+                mockSessionClient,
+            );
             expect(result.success).toBe(true);
             expect(result.status).toBe(204);
             expect(result.event).toEqual({
@@ -264,11 +313,17 @@ describe("Lineups Actions", () => {
             const result = await saveFieldingPositions({
                 values: mockValues,
                 teamId,
+                client: mockSessionClient,
             });
 
-            expect(updateDocument).toHaveBeenCalledWith("teams", teamId, {
-                idealPositioning: '{"Pitcher":["player1"]}',
-            });
+            expect(updateDocument).toHaveBeenCalledWith(
+                "teams",
+                teamId,
+                {
+                    idealPositioning: '{"Pitcher":["player1"]}',
+                },
+                mockSessionClient,
+            );
             expect(result.success).toBe(true);
             expect(result.event).toEqual({
                 name: "update-depth-chart",
@@ -284,7 +339,11 @@ describe("Lineups Actions", () => {
             updateDocument.mockRejectedValue(new Error("Database error"));
 
             await expect(
-                saveFieldingPositions({ values: mockValues, teamId: "team1" }),
+                saveFieldingPositions({
+                    values: mockValues,
+                    teamId: "team1",
+                    client: mockSessionClient,
+                }),
             ).rejects.toThrow("Database error");
         });
     });

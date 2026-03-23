@@ -7,7 +7,8 @@ export async function action({ request }) {
     }
 
     try {
-        const { account } = await createSessionClient(request);
+        const sessionClient = await createSessionClient(request);
+        const { account } = sessionClient;
         const user = await account.get();
 
         if (!user) {
@@ -20,6 +21,7 @@ export async function action({ request }) {
         await updateUser({
             values: { agreedToTerms: true },
             userId,
+            client: sessionClient,
         });
 
         return Response.json({ success: true });

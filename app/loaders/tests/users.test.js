@@ -26,6 +26,8 @@ jest.mock("node-appwrite", () => ({
 }));
 
 describe("Users Loader", () => {
+    const mockClient = { tablesDB: { id: "mock-session-db" } };
+
     beforeEach(() => {
         jest.clearAllMocks();
     });
@@ -59,7 +61,10 @@ describe("Users Loader", () => {
                 Promise.resolve({ rows: mockTeams }),
             );
 
-            const result = await getStatsByUserId({ userId: "user1" });
+            const result = await getStatsByUserId({
+                userId: "user1",
+                client: mockClient,
+            });
 
             expect(listDocuments).toHaveBeenNthCalledWith(
                 1,
@@ -68,6 +73,7 @@ describe("Users Loader", () => {
                     Query.equal("playerId", "user1"),
                     Query.orderDesc("$createdAt"),
                 ]),
+                mockClient,
             );
 
             // Check that we requested the correct game IDs
@@ -77,6 +83,7 @@ describe("Users Loader", () => {
                 expect.arrayContaining([
                     Query.equal("$id", ["game1", "game2"]),
                 ]),
+                mockClient,
             );
 
             // Check that we requested the correct team IDs
@@ -86,6 +93,7 @@ describe("Users Loader", () => {
                 expect.arrayContaining([
                     Query.equal("$id", ["team1", "team2"]),
                 ]),
+                mockClient,
             );
 
             expect(result).toEqual({
@@ -98,7 +106,10 @@ describe("Users Loader", () => {
         it("should return empty arrays if no logs found", async () => {
             listDocuments.mockResolvedValueOnce({ rows: [] });
 
-            const result = await getStatsByUserId({ userId: "user1" });
+            const result = await getStatsByUserId({
+                userId: "user1",
+                client: mockClient,
+            });
 
             expect(listDocuments).toHaveBeenCalledTimes(1);
             expect(result).toEqual({ logs: [], games: [], teams: [] });
@@ -110,9 +121,17 @@ describe("Users Loader", () => {
             const mockUser = { $id: "user1", name: "Test User" };
             readDocument.mockResolvedValue(mockUser);
 
-            const result = await getUserById({ userId: "user1" });
+            const result = await getUserById({
+                userId: "user1",
+                client: mockClient,
+            });
 
-            expect(readDocument).toHaveBeenCalledWith("users", "user1");
+            expect(readDocument).toHaveBeenCalledWith(
+                "users",
+                "user1",
+                [],
+                mockClient,
+            );
             expect(result).toEqual(mockUser);
         });
     });
@@ -122,19 +141,26 @@ describe("Users Loader", () => {
             const mockAttendance = [{ $id: "att1", status: "accepted" }];
             listDocuments.mockResolvedValue({ rows: mockAttendance });
 
-            const result = await getAttendanceByUserId({ userId: "user1" });
+            const result = await getAttendanceByUserId({
+                userId: "user1",
+                client: mockClient,
+            });
 
-            expect(listDocuments).toHaveBeenCalledWith("attendance", [
-                'equal("playerId", "user1")',
-                "limit(100)",
-            ]);
+            expect(listDocuments).toHaveBeenCalledWith(
+                "attendance",
+                ['equal("playerId", "user1")', "limit(100)"],
+                mockClient,
+            );
             expect(result).toEqual(mockAttendance);
         });
 
         it("should return empty array if no documents", async () => {
             listDocuments.mockResolvedValue({ rows: [] });
 
-            const result = await getAttendanceByUserId({ userId: "user1" });
+            const result = await getAttendanceByUserId({
+                userId: "user1",
+                client: mockClient,
+            });
 
             expect(result).toEqual([]);
         });
@@ -145,7 +171,10 @@ describe("Users Loader", () => {
             const mockAwards = [{ $id: "award1", name: "MVP" }];
             listDocuments.mockResolvedValue({ rows: mockAwards });
 
-            const result = await getAwardsByUserId({ userId: "user1" });
+            const result = await getAwardsByUserId({
+                userId: "user1",
+                client: mockClient,
+            });
 
             expect(result).toEqual(mockAwards);
         });
@@ -153,7 +182,10 @@ describe("Users Loader", () => {
         it("should return empty array if no documents", async () => {
             listDocuments.mockResolvedValue({ rows: [] });
 
-            const result = await getAwardsByUserId({ userId: "user1" });
+            const result = await getAwardsByUserId({
+                userId: "user1",
+                client: mockClient,
+            });
 
             expect(result).toEqual([]);
         });

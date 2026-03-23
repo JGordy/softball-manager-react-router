@@ -18,6 +18,8 @@ import { useResponseNotification } from "@/utils/showNotification";
 
 import { getUserTeams } from "@/loaders/teams";
 
+import { createSessionClient } from "@/utils/appwrite/server";
+
 import TeamCard from "./components/TeamCard";
 
 export function meta() {
@@ -28,15 +30,17 @@ export function meta() {
 }
 
 export async function loader({ request }) {
-    return getUserTeams({ request });
+    const sessionClient = await createSessionClient(request);
+    return getUserTeams({ client: sessionClient });
 }
 
 export async function action({ request }) {
     const formData = await request.formData();
     const { _action, userId, ...values } = Object.fromEntries(formData);
+    const sessionClient = await createSessionClient(request);
 
     if (_action === "add-team") {
-        return createTeam({ values, userId });
+        return createTeam({ values, userId, client: sessionClient });
     }
 }
 

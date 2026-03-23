@@ -410,8 +410,12 @@ describe("notifications actions", () => {
 
     describe("getAuthUserAndAdminUsers", () => {
         it("should return accountUser and adminUsersClient", async () => {
-            const req = { headers: new Map() };
-            const result = await getAuthUserAndAdminUsers(req);
+            const {
+                createSessionClient,
+            } = require("@/utils/appwrite/server.js");
+            const result = await getAuthUserAndAdminUsers(
+                await createSessionClient(),
+            );
 
             expect(result).toHaveProperty("accountUser");
             expect(result.accountUser.$id).toBe("test-user-123");

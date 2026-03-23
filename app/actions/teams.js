@@ -13,10 +13,14 @@ import { hasBadWords } from "@/utils/badWordsApi";
 
 import { removeEmptyValues } from "./utils/formUtils";
 
-export async function createTeam({ values, userId }) {
+export async function createTeam({ values, userId, client }) {
     const teamData = removeEmptyValues({ values });
 
     try {
+        if (!client)
+            throw new Error(
+                "A constructed 'client' object is strictly required for authorization.",
+            );
         // Check team name for inappropriate language
         if (teamData.name && (await hasBadWords(teamData.name))) {
             return {
@@ -45,11 +49,17 @@ export async function createTeam({ values, userId }) {
         });
 
         // 3. Create database record for custom team data with permissions
-        const team = await createDocument("teams", teamId, teamData, [
-            Permission.read(Role.team(teamId)), // All team members can read
-            Permission.update(Role.team(teamId, "manager")), // Only managers can update
-            Permission.delete(Role.team(teamId, "manager")), // Only managers can delete
-        ]);
+        const team = await createDocument(
+            "teams",
+            teamId,
+            teamData,
+            [
+                Permission.read(Role.team(teamId)), // All team members can read
+                Permission.update(Role.team(teamId, "manager")), // Only managers can update
+                Permission.delete(Role.team(teamId, "manager")), // Only managers can delete
+            ],
+            client,
+        );
 
         return {
             response: team,
@@ -68,12 +78,21 @@ export async function createTeam({ values, userId }) {
     }
 }
 
-export async function updateTeam({ values, teamId }) {
+export async function updateTeam({ values, teamId, client }) {
     // Removes undefined or empty string values from data to update
     const dataToUpdate = removeEmptyValues({ values });
 
     try {
-        const teamDetails = await updateDocument("teams", teamId, dataToUpdate);
+        if (!client)
+            throw new Error(
+                "A constructed 'client' object is strictly required for authorization.",
+            );
+        const teamDetails = await updateDocument(
+            "teams",
+            teamId,
+            dataToUpdate,
+            client,
+        );
 
         return { response: { teamDetails }, status: 204, success: true };
     } catch (error) {
@@ -139,7 +158,7 @@ export async function addPlayerToTeam({ userId, email, teamId, name }) {
     }
 }
 
-export async function updateMemberRole({ values, teamId, request }) {
+export async function updateMemberRole({ values, teamId, client }) {
     const { playerId: userId, role } = values;
 
     // Validate role input
@@ -153,8 +172,11 @@ export async function updateMemberRole({ values, teamId, request }) {
 
     try {
         // 1. Get requesting user from session
-        const { createSessionClient } = await import("@/utils/appwrite/server");
-        const { account } = await createSessionClient(request);
+        if (!client)
+            throw new Error(
+                "A constructed 'client' object is strictly required for authorization.",
+            );
+        const { account } = client;
         const requestingUser = await account.get();
 
         // 2. Get team memberships

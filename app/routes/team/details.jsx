@@ -20,6 +20,8 @@ import { getTeamById } from "@/loaders/teams";
 
 import { useResponseNotification } from "@/utils/showNotification";
 
+import { createSessionClient } from "@/utils/appwrite/server";
+
 import TeamMenu from "./components/TeamMenu";
 import MobileTeamDetails from "./components/MobileTeamDetails";
 import DesktopTeamDetails from "./components/DesktopTeamDetails";
@@ -31,16 +33,18 @@ export function links() {
 
 export async function loader({ params, request }) {
     const { teamId } = params;
-    return getTeamById({ teamId, request });
+    const client = await createSessionClient(request);
+    return getTeamById({ teamId, client });
 }
 
 export async function action({ request, params }) {
     const { teamId } = params;
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
+    const client = await createSessionClient(request);
 
     if (_action === "add-player") {
-        return createPlayer({ values, teamId });
+        return createPlayer({ values, teamId, client });
     }
 
     if (_action === "update-preferences") {
@@ -61,7 +65,6 @@ export async function action({ request, params }) {
             }))
             .filter((player) => player.email !== "");
 
-        // Build the invitation URL from the request
         const url = new URL(request.url);
         const inviteUrl = `${url.origin}/team/${teamId}/accept-invite`;
 
@@ -69,24 +72,24 @@ export async function action({ request, params }) {
             players,
             teamId,
             url: inviteUrl,
-            request,
+            client,
         });
     }
 
     if (_action === "add-season") {
-        return createSeason({ values, teamId });
+        return createSeason({ values, teamId, client });
     }
 
     if (_action === "edit-team") {
-        return updateTeam({ values, teamId });
+        return updateTeam({ values, teamId, client });
     }
 
     if (_action === "add-single-game") {
-        return createSingleGame({ values, teamId });
+        return createSingleGame({ values, teamId, client });
     }
 
     if (_action === "update-role") {
-        return updateMemberRole({ values, teamId, request });
+        return updateMemberRole({ values, teamId, client });
     }
 }
 

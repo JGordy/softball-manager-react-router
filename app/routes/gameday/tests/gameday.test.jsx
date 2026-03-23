@@ -19,6 +19,9 @@ jest.mock("@/loaders/games");
 jest.mock("@/actions/games");
 jest.mock("@/actions/gameLogs");
 jest.mock("@/utils/showNotification");
+jest.mock("@/utils/appwrite/server", () => ({
+    createSessionClient: jest.fn().mockResolvedValue({}),
+}));
 
 jest.mock("@/components/BackButton", () => () => <button>Back</button>);
 jest.mock("@/components/DeferredLoader", () => ({ children, resolve }) => (
@@ -36,6 +39,18 @@ jest.mock("../components/GamedayMenu", () => () => (
 ));
 
 describe("Gameday Route", () => {
+    const originalEnv = process.env;
+
+    beforeAll(() => {
+        process.env = { ...originalEnv };
+        process.env.APPWRITE_ENDPOINT = "http://localhost/v1";
+        process.env.APPWRITE_PROJECT_ID = "test";
+    });
+
+    afterAll(() => {
+        process.env = originalEnv;
+    });
+
     const mockLoaderData = {
         game: {
             $id: "game123",
@@ -61,11 +76,11 @@ describe("Gameday Route", () => {
     describe("Loader", () => {
         it("calls getEventById with correct params", async () => {
             const params = { eventId: "game123" };
-            const request = {};
+            const request = { url: "http://test.com" };
             await loader({ params, request });
-
             expect(gamesLoaders.getEventById).toHaveBeenCalledWith({
                 eventId: "game123",
+                client: expect.any(Object),
                 includeWeather: false,
                 includeAttendance: false,
                 includeAwards: false,
@@ -93,6 +108,7 @@ describe("Gameday Route", () => {
                 gameId: "game123",
                 someData: "value",
                 baseState: { prop: "val" },
+                client: expect.any(Object),
             });
         });
 
@@ -110,6 +126,7 @@ describe("Gameday Route", () => {
 
             expect(gameLogActions.undoGameEvent).toHaveBeenCalledWith({
                 logId: "log1",
+                client: expect.any(Object),
             });
         });
 
@@ -128,6 +145,7 @@ describe("Gameday Route", () => {
             expect(gamesActions.updateGame).toHaveBeenCalledWith({
                 values: { score: "10" },
                 eventId: "game123",
+                client: expect.any(Object),
             });
         });
     });

@@ -31,6 +31,7 @@ jest.mock("@/utils/appwrite/server", () => ({
             getPrefs: jest.fn().mockResolvedValue({ maxMaleBatters: 0 }),
         },
     })),
+    createSessionClient: jest.fn().mockResolvedValue({}),
 }));
 
 // Mock Query manually since it's used in the file
@@ -137,9 +138,14 @@ describe("lineup generation action", () => {
             const req = createMockRequest();
             await action({ request: req });
 
-            expect(updateDocument).toHaveBeenCalledWith("games", "g1", {
-                aiGenerationCount: 1,
-            });
+            expect(updateDocument).toHaveBeenCalledWith(
+                "games",
+                "g1",
+                {
+                    aiGenerationCount: 1,
+                },
+                expect.any(Object),
+            );
         });
         it("should rollback generation count on failure after increment", async () => {
             const req = createMockRequest();
@@ -170,14 +176,24 @@ describe("lineup generation action", () => {
             expect(response.status).toBe(500);
 
             // Verify increment was called
-            expect(updateDocument).toHaveBeenCalledWith("games", "curr", {
-                aiGenerationCount: originalCount + 1,
-            });
+            expect(updateDocument).toHaveBeenCalledWith(
+                "games",
+                "curr",
+                {
+                    aiGenerationCount: originalCount + 1,
+                },
+                expect.any(Object),
+            );
 
             // Verify rollback was called
-            expect(updateDocument).toHaveBeenCalledWith("games", "curr", {
-                aiGenerationCount: originalCount,
-            });
+            expect(updateDocument).toHaveBeenCalledWith(
+                "games",
+                "curr",
+                {
+                    aiGenerationCount: originalCount,
+                },
+                expect.any(Object),
+            );
         });
     });
 
@@ -405,11 +421,17 @@ describe("lineup generation action", () => {
                 "games",
                 "g1",
                 expect.objectContaining({ aiGenerationCount: 1 }),
+                expect.any(Object),
             );
             // 2. Rollback call (back to 0)
-            expect(updateDocument).toHaveBeenLastCalledWith("games", "g1", {
-                aiGenerationCount: 0,
-            });
+            expect(updateDocument).toHaveBeenLastCalledWith(
+                "games",
+                "g1",
+                {
+                    aiGenerationCount: 0,
+                },
+                expect.any(Object),
+            );
         });
 
         it("should handle streaming errors by calling error() if data already sent", async () => {

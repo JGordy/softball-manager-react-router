@@ -102,6 +102,7 @@ describe("Settings Route", () => {
             expect(updateUser).toHaveBeenCalledWith({
                 userId: "user-123",
                 values: { name: "New Name" },
+                client: expect.anything(),
             });
         });
 
@@ -118,7 +119,7 @@ describe("Settings Route", () => {
             });
             expect(updateUserPrefs).toHaveBeenCalledWith({
                 values: { startingPage: "/events" },
-                request: expect.any(Request),
+                client: expect.anything(),
             });
         });
     });

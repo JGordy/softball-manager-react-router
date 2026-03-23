@@ -1,16 +1,17 @@
 import { Query } from "node-appwrite";
 import { readDocument, listDocuments } from "@/utils/databases";
 
-export async function getUserById({ userId }) {
-    return await readDocument("users", userId);
+export async function getUserById({ userId, client }) {
+    return await readDocument("users", userId, [], client);
 }
 
-export async function getAttendanceByUserId({ userId }) {
+export async function getAttendanceByUserId({ userId, client }) {
     try {
-        const attendance = await listDocuments("attendance", [
-            Query.equal("playerId", userId),
-            Query.limit(100),
-        ]);
+        const attendance = await listDocuments(
+            "attendance",
+            [Query.equal("playerId", userId), Query.limit(100)],
+            client,
+        );
 
         return attendance.rows || [];
     } catch (e) {
@@ -19,21 +20,27 @@ export async function getAttendanceByUserId({ userId }) {
     }
 }
 
-export async function getAwardsByUserId({ userId }) {
-    const awards = await listDocuments("awards", [
-        Query.equal("winner_user_id", userId),
-    ]);
+export async function getAwardsByUserId({ userId, client }) {
+    const awards = await listDocuments(
+        "awards",
+        [Query.equal("winner_user_id", userId)],
+        client,
+    );
 
     return awards.rows.length > 0 ? awards.rows : [];
 }
 
-export async function getStatsByUserId({ userId }) {
+export async function getStatsByUserId({ userId, client }) {
     // 1. Fetch last 100 game logs for the user
-    const logsResponse = await listDocuments("game_logs", [
-        Query.equal("playerId", userId),
-        Query.orderDesc("$createdAt"),
-        Query.limit(100),
-    ]);
+    const logsResponse = await listDocuments(
+        "game_logs",
+        [
+            Query.equal("playerId", userId),
+            Query.orderDesc("$createdAt"),
+            Query.limit(100),
+        ],
+        client,
+    );
 
     const logs = logsResponse.rows;
 
@@ -45,10 +52,14 @@ export async function getStatsByUserId({ userId }) {
     const gameIds = [...new Set(logs.map((log) => log.gameId))];
 
     // 3. Fetch game details for these games
-    const gamesResponse = await listDocuments("games", [
-        Query.equal("$id", gameIds),
-        Query.select(["gameDate", "opponent", "teamId"]),
-    ]);
+    const gamesResponse = await listDocuments(
+        "games",
+        [
+            Query.equal("$id", gameIds),
+            Query.select(["gameDate", "opponent", "teamId"]),
+        ],
+        client,
+    );
 
     const games = gamesResponse.rows;
 
@@ -58,10 +69,14 @@ export async function getStatsByUserId({ userId }) {
     let teamsResponse;
     // 5. Fetch team details for these games
     if (teamIds?.length > 0) {
-        teamsResponse = await listDocuments("teams", [
-            Query.equal("$id", teamIds),
-            Query.select(["name", "displayName"]),
-        ]);
+        teamsResponse = await listDocuments(
+            "teams",
+            [
+                Query.equal("$id", teamIds),
+                Query.select(["name", "displayName"]),
+            ],
+            client,
+        );
     }
 
     return {

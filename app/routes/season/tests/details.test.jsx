@@ -15,6 +15,10 @@ jest.mock("react-router", () => ({
 }));
 
 // Mock hooks
+jest.mock("@/utils/appwrite/server", () => ({
+    createSessionClient: jest.fn(() => ({})),
+}));
+
 jest.mock("@/hooks/useModal", () => ({
     __esModule: true,
     default: jest.fn(() => ({
@@ -89,12 +93,19 @@ describe("SeasonDetails Route", () => {
             });
             getParkById.mockResolvedValue(mockPark);
 
-            const result = await loader({ params: { seasonId: "season-123" } });
+            const result = await loader({
+                params: { seasonId: "season-123" },
+                request: {},
+            });
 
             expect(getSeasonById).toHaveBeenCalledWith({
                 seasonId: "season-123",
+                client: expect.any(Object),
             });
-            expect(getParkById).toHaveBeenCalledWith({ parkId: "park-123" });
+            expect(getParkById).toHaveBeenCalledWith({
+                parkId: "park-123",
+                client: expect.any(Object),
+            });
             expect(result).toEqual({
                 season: { ...mockSeason, parkId: "park-123" },
                 park: mockPark,
@@ -119,6 +130,7 @@ describe("SeasonDetails Route", () => {
             expect(updateSeason).toHaveBeenCalledWith({
                 values: { seasonName: "New Name" },
                 seasonId: "season-123",
+                client: expect.any(Object),
             });
         });
     });

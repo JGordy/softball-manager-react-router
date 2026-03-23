@@ -27,7 +27,8 @@ describe("Logout Actions", () => {
                 account: { deleteSession: mockDeleteSession },
             });
 
-            const result = await logoutAction({ request: {} });
+            const client = await createSessionClient();
+            const result = await logoutAction({ client });
 
             expect(mockDeleteSession).toHaveBeenCalledWith("current");
             expect(result.redirect).toBe("/");
@@ -42,7 +43,8 @@ describe("Logout Actions", () => {
                 account: { deleteSession: mockDeleteSession },
             });
 
-            const result = await logoutAction({ request: {} });
+            const client = await createSessionClient();
+            const result = await logoutAction({ client });
 
             expect(result.redirect).toBe("/");
             expect(console.log).toHaveBeenCalled();
@@ -54,8 +56,9 @@ describe("Logout Actions", () => {
                 account: { deleteSession: mockDeleteSession },
             });
 
+            const client = await createSessionClient();
             const result = await logoutAction({
-                request: {},
+                client,
                 redirectTo: "/landing",
             });
 

@@ -1,7 +1,11 @@
 import { ID, Permission, Role } from "node-appwrite";
 import { createDocument, updateDocument } from "@/utils/databases.js";
+export async function sendAwardVotes({ values, eventId, client }) {
+    if (!client)
+        throw new Error(
+            "A constructed 'client' object is strictly required for authorization.",
+        );
 
-export async function sendAwardVotes({ values, eventId }) {
     const { playerVotes, voter_user_id, team_id, ...rest } = values;
 
     const votes = JSON.parse(playerVotes);
@@ -10,23 +14,26 @@ export async function sendAwardVotes({ values, eventId }) {
 
     try {
         // Build permissions array if we have team_id
-        // Votes can be read by team, updated/deleted by voter or managers/owners
+        // Votes can be read by team, updated/deleted by voter
         const permissions = team_id
             ? [
                   Permission.read(Role.team(team_id)), // Team members can see votes
                   Permission.update(Role.user(voter_user_id)), // Only the voter can update
                   Permission.delete(Role.user(voter_user_id)), // Only the voter can delete
-                  Permission.delete(Role.team(team_id, "manager")), // Managers can delete
-                  Permission.delete(Role.team(team_id, "owner")), // Owners can delete
               ]
             : [];
 
         const promises = categories.map((category) => {
             const vote = votes[category];
             if (vote.vote_id) {
-                return updateDocument("votes", vote.vote_id, {
-                    nominated_user_id: vote.nominated_user_id,
-                });
+                return updateDocument(
+                    "votes",
+                    vote.vote_id,
+                    {
+                        nominated_user_id: vote.nominated_user_id,
+                    },
+                    client,
+                );
             } else {
                 return createDocument(
                     "votes",
@@ -40,6 +47,7 @@ export async function sendAwardVotes({ values, eventId }) {
                         voter_user_id,
                     },
                     permissions,
+                    client,
                 );
             }
         });
@@ -55,15 +63,20 @@ export async function sendAwardVotes({ values, eventId }) {
     }
 }
 
-export async function updateAwardVote({ voteId, values }) {
+export async function updateAwardVote({ voteId, values, client }) {
     if (voteId && values) {
         const parsedVoteDetails = JSON.parse(values);
 
         try {
+            if (!client)
+                throw new Error(
+                    "A constructed 'client' object is strictly required for authorization.",
+                );
             const voteDetails = await updateDocument(
                 "votes",
                 voteId,
                 parsedVoteDetails,
+                client,
             );
 
             return { response: { voteDetails }, status: 204, success: true };

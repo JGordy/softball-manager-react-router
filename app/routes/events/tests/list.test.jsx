@@ -16,6 +16,9 @@ jest.mock("../components/DesktopEvents", () => ({ teams }) => (
     <div data-testid="desktop-events">{teams?.managing?.length}</div>
 ));
 jest.mock("@/loaders/teams");
+jest.mock("@/utils/appwrite/server", () => ({
+    createSessionClient: jest.fn().mockResolvedValue({}),
+}));
 
 describe("EventsList Route", () => {
     beforeEach(() => {
@@ -31,6 +34,18 @@ describe("EventsList Route", () => {
     };
 
     describe("Loader", () => {
+        it("calls getUserTeams with client payload", async () => {
+            teamsLoaders.getUserTeams.mockResolvedValue({
+                managing: ["t1"],
+                playing: ["t2"],
+                userId: "u1",
+            });
+            const request = new Request("http://localhost/events");
+            await loader({ request });
+            expect(teamsLoaders.getUserTeams).toHaveBeenCalledWith({
+                client: expect.any(Object),
+            });
+        });
         it("calls getUserTeams and returns formatted data", async () => {
             teamsLoaders.getUserTeams.mockResolvedValue({
                 managing: ["t1"],
@@ -41,7 +56,9 @@ describe("EventsList Route", () => {
             const request = { url: "http://test.com" };
             const result = await loader({ request });
 
-            expect(teamsLoaders.getUserTeams).toHaveBeenCalledWith({ request });
+            expect(teamsLoaders.getUserTeams).toHaveBeenCalledWith({
+                client: expect.any(Object),
+            });
             expect(result).toEqual({
                 userId: "u1",
                 teams: { managing: ["t1"], playing: ["t2"] },
