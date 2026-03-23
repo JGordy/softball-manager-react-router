@@ -141,18 +141,20 @@ export function useGamedayController({
         : halfInning === "top";
 
     const currentBatter = playerChart[battingOrderIndex];
-    const onDeckBatter =
-        playerChart.length > 0
-            ? playerChart[(battingOrderIndex + 1) % playerChart.length]
-            : undefined;
-    const inTheHoleBatter =
-        playerChart.length > 0
-            ? playerChart[(battingOrderIndex + 2) % playerChart.length]
-            : undefined;
 
-    const dueUpBatters = [currentBatter, onDeckBatter, inTheHoleBatter].filter(
-        Boolean,
-    );
+    const upcomingBatters = [];
+    if (playerChart.length > 1) {
+        const numBattersToFetch = Math.min(3, playerChart.length - 1);
+        for (let i = 1; i <= numBattersToFetch; i++) {
+            upcomingBatters.push(
+                playerChart[(battingOrderIndex + i) % playerChart.length],
+            );
+        }
+    }
+
+    const dueUpBatters = [currentBatter, ...upcomingBatters]
+        .slice(0, 3)
+        .filter(Boolean);
 
     return {
         logs,
@@ -171,8 +173,7 @@ export function useGamedayController({
         opponentScore,
         runners,
         currentBatter,
-        onDeckBatter,
-        inTheHoleBatter,
+        upcomingBatters,
         dueUpBatters,
         isOurBatting,
         isScorekeeper,

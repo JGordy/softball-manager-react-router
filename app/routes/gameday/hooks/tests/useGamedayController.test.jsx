@@ -118,8 +118,8 @@ describe("useGamedayController", () => {
         );
 
         expect(result.current.currentBatter.$id).toBe("p2");
-        expect(result.current.onDeckBatter.$id).toBe("p3");
-        expect(result.current.inTheHoleBatter.$id).toBe("p1"); // Wraps around
+        expect(result.current.upcomingBatters[0].$id).toBe("p3");
+        expect(result.current.upcomingBatters[1].$id).toBe("p1"); // Wraps around
         expect(result.current.dueUpBatters).toHaveLength(3);
         expect(result.current.dueUpBatters[0].$id).toBe("p2");
     });
