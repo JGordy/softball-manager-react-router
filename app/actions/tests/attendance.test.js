@@ -5,17 +5,49 @@ import {
     updateDocument,
 } from "@/utils/databases";
 
-// Mock dependencies
 jest.mock("@/utils/databases", () => ({
     createDocument: jest.fn(),
     listDocuments: jest.fn(),
     updateDocument: jest.fn(),
 }));
 
+jest.mock("@/utils/appwrite/server", () => ({
+    createAdminClient: jest.fn(),
+}));
+
+import { createAdminClient } from "@/utils/appwrite/server";
+
 describe("Attendance Actions", () => {
+    let mockAdminClient;
+    let mockAdminTeams;
+    let mockAccountGet;
+    let mockClient;
+
     beforeEach(() => {
         jest.clearAllMocks();
         jest.spyOn(console, "error").mockImplementation(() => {});
+
+        mockAdminTeams = {
+            listMemberships: jest.fn().mockResolvedValue({
+                memberships: [
+                    { userId: "user-manager-id", roles: ["manager"] },
+                ],
+            }),
+        };
+
+        mockAdminClient = {
+            teams: mockAdminTeams,
+            id: "mock-admin-client",
+        };
+
+        createAdminClient.mockReturnValue(mockAdminClient);
+
+        mockAccountGet = jest.fn().mockResolvedValue({ $id: "player1" });
+
+        mockClient = {
+            account: { get: mockAccountGet },
+            id: "mock-session-client",
+        };
     });
 
     afterEach(() => {
@@ -29,7 +61,6 @@ describe("Attendance Actions", () => {
             status: "accepted",
         };
         const eventId = "event1";
-        const mockClient = { id: "mock-db-client" };
 
         it("should create new attendance when no documents exist", async () => {
             listDocuments.mockResolvedValue({ rows: [] });
@@ -44,18 +75,18 @@ describe("Attendance Actions", () => {
             expect(listDocuments).toHaveBeenCalledWith(
                 "attendance",
                 [expect.any(String)],
-                mockClient,
+                mockAdminClient,
             );
             expect(createDocument).toHaveBeenCalledWith(
                 "attendance",
-                "unique-id",
+                expect.any(String),
                 {
                     gameId: eventId,
                     playerId: "player1",
                     status: "accepted",
                 },
                 expect.any(Array), // permissions array
-                mockClient,
+                mockAdminClient,
             );
             expect(result.success).toBe(true);
             expect(result.status).toBe(201);
@@ -96,14 +127,36 @@ describe("Attendance Actions", () => {
                 {
                     status: "accepted",
                 },
-                mockClient,
+                mockAdminClient,
             );
             expect(result.success).toBe(true);
             expect(result.status).toBe(204);
         });
 
+        it("should deny access if user is not authorized", async () => {
+            // User is not the player, AND not a manager/owner
+            mockAccountGet.mockResolvedValue({ $id: "random-guy" });
+            mockAdminTeams.listMemberships.mockResolvedValue({
+                memberships: [{ userId: "random-guy", roles: [] }], // No manager role
+            });
+
+            const result = await updatePlayerAttendance({
+                values: {
+                    playerId: "player1",
+                    teamId: "team1",
+                    status: "accepted",
+                },
+                eventId,
+                client: mockClient,
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.status).toBe(403);
+            expect(result.error).toMatch(/Unauthorized/);
+        });
+
         it("should handle errors gracefully", async () => {
-            listDocuments.mockRejectedValue(new Error("Database error"));
+            mockAccountGet.mockRejectedValue(new Error("Database error"));
 
             const result = await updatePlayerAttendance({
                 values: mockValues,

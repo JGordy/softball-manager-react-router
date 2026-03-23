@@ -4,7 +4,21 @@ import {
     listDocuments,
     updateDocument,
 } from "@/utils/databases";
+import { createAdminClient } from "@/utils/appwrite/server";
 
+/**
+ * Updates or creates a player's attendance record for a specific game.
+ *
+ * SECURITY EXCEPTION:
+ * Most loaders and actions in this application use the user's session `client` for Appwrite DB operations.
+ * However, this action requires a server-side `adminClient` to bypass Appwrite's Document Security constraint
+ * ("a user can only grant permission roles they possess").
+ *
+ * Because managers need to create attendance records on behalf of players and grant them
+ * `Permission.update(Role.user(playerId))`, using the session client would fail throwing a
+ * 401 "Permissions must be one of..." error. We must manually authorize the session user,
+ * then use the Admin Client to securely create/update the document.
+ */
 export async function updatePlayerAttendance({ values, eventId, client }) {
     const { playerId, updatedBy, teamId, ...updates } = values;
 
@@ -14,21 +28,59 @@ export async function updatePlayerAttendance({ values, eventId, client }) {
                 "A constructed 'client' object is strictly required for authorization.",
             );
 
+        // --- AUTHORIZATION CHECK ---
+        const { account } = client;
+        const currentUser = await account.get();
+        if (!currentUser) throw new Error("Unauthorized");
+
+        let isAuthorized = currentUser.$id === playerId;
+
+        // Note: Using adminClient here to bypass Appwrite "grant only what you possess" restriction on createDocument
+        const adminClient = createAdminClient();
+
+        if (!isAuthorized && teamId) {
+            const membershipsResponse =
+                await adminClient.teams.listMemberships(teamId);
+            const membership = membershipsResponse.memberships.find(
+                (m) => m.userId === currentUser.$id,
+            );
+            if (
+                membership &&
+                (membership.roles.includes("manager") ||
+                    membership.roles.includes("owner"))
+            ) {
+                isAuthorized = true;
+            }
+        }
+
+        if (!isAuthorized) {
+            return {
+                success: false,
+                error: "Unauthorized to update attendance for this player.",
+                status: 403,
+            };
+        }
+        // --- END AUTHORIZATION CHECK ---
+
         // Build permissions array if we have teamId
         const permissions = teamId
             ? [
                   Permission.read(Role.team(teamId)), // All team members can read
                   Permission.update(Role.user(playerId)), // Player can update their own
                   Permission.update(Role.team(teamId, "scorekeeper")), // Scorekeepers can update
+                  Permission.update(Role.team(teamId, "manager")), // Managers can update
+                  Permission.update(Role.team(teamId, "owner")), // Owners can update
                   Permission.delete(Role.user(playerId)), // Player can delete their own
                   Permission.delete(Role.team(teamId, "manager")), // Managers can delete
+                  Permission.delete(Role.team(teamId, "owner")), // Owners can delete
               ]
             : [];
 
+        // Use adminClient for all DB operations to bypass the strict "you can only grant what you possess" rule during creation
         const response = await listDocuments(
             "attendance",
             [Query.equal("gameId", eventId)],
-            client,
+            adminClient,
         );
 
         if (response.rows.length === 0) {
@@ -42,7 +94,7 @@ export async function updatePlayerAttendance({ values, eventId, client }) {
                     ...updates,
                 },
                 permissions,
-                client,
+                adminClient,
             );
 
             return { response: result, status: 201, success: true };
@@ -65,7 +117,7 @@ export async function updatePlayerAttendance({ values, eventId, client }) {
                         ...updates,
                     },
                     permissions,
-                    client,
+                    adminClient,
                 );
 
                 return { response: result, status: 201, success: true };
@@ -76,7 +128,7 @@ export async function updatePlayerAttendance({ values, eventId, client }) {
                 "attendance",
                 currentPlayerAttendance.$id,
                 { ...updates },
-                client,
+                adminClient,
             );
 
             return { response: updatedResponse, status: 204, success: true };
