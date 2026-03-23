@@ -4,28 +4,8 @@ import * as gameStateHook from "../../hooks/useGameState";
 
 import MobileGamedayContainer from "../MobileGamedayContainer";
 
-// Mock child components to isolate MobileGamedayContainer logic
-jest.mock("../ScoreboardHeader", () => () => (
-    <div data-testid="scoreboard-header" />
-));
-jest.mock("../DiamondView", () => () => <div data-testid="diamond-view" />);
-jest.mock("../ActionPad", () => () => <div data-testid="action-pad" />);
-jest.mock("../PlayHistoryList", () => () => <div data-testid="play-history" />);
 jest.mock("../MobilePlayActionDrawer", () => () => (
     <div data-testid="play-drawer" />
-));
-jest.mock("../CurrentBatterCard", () => () => (
-    <div data-testid="batter-card" />
-));
-jest.mock("../DefenseCard", () => () => <div data-testid="defense-card" />);
-jest.mock("../LastPlayCard", () => () => <div data-testid="last-play" />);
-jest.mock("../FieldingControls", () => () => (
-    <div data-testid="fielding-controls" />
-));
-jest.mock("../BoxScore", () => () => <div data-testid="box-score" />);
-jest.mock("../OnDeckCard", () => () => <div data-testid="ondeck-card" />);
-jest.mock("@/components/ContactSprayChart", () => () => (
-    <div data-testid="spray-chart" />
 ));
 
 // Mock hooks
@@ -47,8 +27,8 @@ describe("MobileGamedayContainer", () => {
     };
     const mockTeam = { name: "Tigers" };
     const mockPlayerChart = [
-        { $id: "p1", firstName: "Alice" },
-        { $id: "p2", firstName: "Bob" },
+        { $id: "p1", firstName: "Alice", lastName: "Smith" },
+        { $id: "p2", firstName: "Bob", lastName: "Johnson" },
     ];
 
     beforeEach(() => {
@@ -80,13 +60,11 @@ describe("MobileGamedayContainer", () => {
             />,
         );
 
-        expect(screen.getByTestId("scoreboard-header")).toBeInTheDocument();
-        expect(screen.getByTestId("diamond-view")).toBeInTheDocument();
+        expect(screen.getByText("Tigers")).toBeInTheDocument();
+        expect(screen.getByLabelText("Home plate")).toBeInTheDocument();
         // Since we are batting, we expect ActionPad
-        expect(screen.getByTestId("action-pad")).toBeInTheDocument();
-        expect(
-            screen.queryByTestId("fielding-controls"),
-        ).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "1B" })).toBeInTheDocument();
+        expect(screen.queryByText("FIELDING CONTROLS")).not.toBeInTheDocument();
     });
 
     it("renders fielding controls when on defense", () => {
@@ -110,8 +88,10 @@ describe("MobileGamedayContainer", () => {
             />,
         );
 
-        expect(screen.getByTestId("fielding-controls")).toBeInTheDocument();
-        expect(screen.queryByTestId("action-pad")).not.toBeInTheDocument();
+        expect(screen.getByText("FIELDING CONTROLS")).toBeInTheDocument();
+        expect(
+            screen.queryByRole("button", { name: "1B" }),
+        ).not.toBeInTheDocument();
     });
 
     it("switches tabs correctly", async () => {
@@ -125,14 +105,16 @@ describe("MobileGamedayContainer", () => {
         );
 
         // Default tab is 'Live'
-        expect(screen.getByTestId("diamond-view")).toBeInTheDocument();
+        expect(screen.getByLabelText("Home plate")).toBeInTheDocument();
 
         // Click on 'Plays' tab
         const playsTab = screen.getByText("Plays");
         fireEvent.click(playsTab);
 
         await waitFor(() => {
-            expect(screen.getByTestId("play-history")).toBeVisible();
+            expect(
+                screen.getByText("No plays logged yet for this game."),
+            ).toBeVisible();
         });
 
         // Click on 'Box Score' tab
@@ -140,7 +122,7 @@ describe("MobileGamedayContainer", () => {
         fireEvent.click(boxScoreTab);
 
         await waitFor(() => {
-            expect(screen.getByTestId("box-score")).toBeVisible();
+            expect(screen.getByText("TOTALS")).toBeVisible();
         });
     });
 });
