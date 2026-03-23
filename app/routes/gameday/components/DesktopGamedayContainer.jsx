@@ -45,7 +45,7 @@ export default function DesktopGamedayContainer({
         opponentScore,
         runners,
         currentBatter,
-        onDeckBatter,
+        upcomingBatters,
         dueUpBatters,
         isOurBatting,
         pendingAction,
@@ -107,7 +107,7 @@ export default function DesktopGamedayContainer({
                                 isOurBatting={isOurBatting}
                                 runners={runners}
                                 currentBatter={currentBatter}
-                                onDeckBatter={onDeckBatter}
+                                upcomingBatters={upcomingBatters}
                                 logs={logs}
                             />
                             {logs.length > 0 && isOurBatting && !gameFinal && (

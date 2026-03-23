@@ -22,7 +22,7 @@ import DefenseCard from "./DefenseCard";
 import LastPlayCard from "./LastPlayCard";
 import FieldingControls from "./FieldingControls";
 import BoxScore from "./BoxScore";
-import OnDeckCard from "./OnDeckCard";
+import UpNextCard from "./UpNextCard";
 import ContactSprayChart from "@/components/ContactSprayChart";
 
 export default function MobileGamedayContainer({
@@ -48,7 +48,7 @@ export default function MobileGamedayContainer({
         opponentScore,
         runners,
         currentBatter,
-        onDeckBatter,
+        upcomingBatters,
         dueUpBatters,
         isOurBatting,
         pendingAction,
@@ -124,8 +124,10 @@ export default function MobileGamedayContainer({
                                                 currentBatter={currentBatter}
                                                 logs={logs}
                                             />
-                                            <OnDeckCard
-                                                onDeckBatter={onDeckBatter}
+                                            <UpNextCard
+                                                upcomingBatters={
+                                                    upcomingBatters
+                                                }
                                             />
                                         </>
                                     ) : (

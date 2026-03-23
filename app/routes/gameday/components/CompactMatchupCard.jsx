@@ -5,7 +5,7 @@ import StatusBadge from "@/components/StatusBadge";
 
 import DiamondView from "./DiamondView";
 import CurrentBatterCard from "./CurrentBatterCard";
-import OnDeckCard from "./OnDeckCard";
+import UpNextCard from "./UpNextCard";
 
 export default function CompactMatchupCard({
     score,
@@ -20,7 +20,7 @@ export default function CompactMatchupCard({
     isOurBatting,
     runners,
     currentBatter,
-    onDeckBatter,
+    upcomingBatters,
     logs,
 }) {
     return (
@@ -123,8 +123,8 @@ export default function CompactMatchupCard({
                                     logs={logs}
                                     p="sm"
                                 />
-                                <OnDeckCard
-                                    onDeckBatter={onDeckBatter}
+                                <UpNextCard
+                                    upcomingBatters={upcomingBatters}
                                     p="sm"
                                 />
                             </>
