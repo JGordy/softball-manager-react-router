@@ -128,8 +128,8 @@ describe("Games Loader", () => {
             });
 
             expect(result.gameDeleted).toBe(false);
-            // It should fall back to [] if parse fails
-            expect(result.game.playerChart).toEqual([]);
+            // It should fall back to null if parse fails
+            expect(result.game.playerChart).toBeNull();
         });
 
         it("should correctly identify scorekeepers", async () => {
