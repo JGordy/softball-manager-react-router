@@ -8,6 +8,10 @@ jest.mock("../DesktopPlayActionDrawer", () => () => (
     <div data-testid="play-drawer" />
 ));
 
+jest.mock("../SubPlayerModal", () => () => (
+    <div data-testid="sub-player-modal" />
+));
+
 // Mock hooks
 jest.mock("react-router", () => ({
     useFetcher: () => ({ submit: jest.fn(), state: "idle" }),
@@ -61,6 +65,7 @@ describe("DesktopGamedayContainer", () => {
         );
 
         expect(screen.getByText("Opponent")).toBeInTheDocument();
+        expect(screen.getByTestId("sub-player-modal")).toBeInTheDocument();
         // Since we are batting, we expect ActionPad
         expect(screen.getByText("ON BASE")).toBeInTheDocument();
         expect(screen.queryByText("FIELDING CONTROLS")).not.toBeInTheDocument();

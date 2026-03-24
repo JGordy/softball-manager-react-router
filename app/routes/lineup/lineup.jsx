@@ -34,14 +34,18 @@ export async function action({ request, params }) {
     const client = await createSessionClient(request);
 
     if (_action === "save-chart") {
-        return savePlayerChart({ eventId, values, client });
+        return savePlayerChart({
+            eventId,
+            values: { ...values, playerChart: JSON.parse(values.playerChart) },
+            client,
+        });
     }
 
     if (_action === "finalize-chart") {
         // Finalize and send notifications to team members
         return savePlayerChart({
             eventId,
-            values,
+            values: { ...values, playerChart: JSON.parse(values.playerChart) },
             client,
             sendNotification: true,
         });

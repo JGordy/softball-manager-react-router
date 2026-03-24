@@ -1,7 +1,6 @@
 import { useLoaderData, useOutletContext, useActionData } from "react-router";
-import { Container, Title, Group } from "@mantine/core";
+import { Container } from "@mantine/core";
 
-import BackButton from "@/components/BackButton";
 import DeferredLoader from "@/components/DeferredLoader";
 
 import { getEventById } from "@/loaders/games";
@@ -9,6 +8,7 @@ import { getEventById } from "@/loaders/games";
 import { updateGame } from "@/actions/games";
 
 import { logGameEvent, undoGameEvent } from "@/actions/gameLogs";
+import { savePlayerChart } from "@/actions/lineups";
 
 import { useResponseNotification } from "@/utils/showNotification";
 
@@ -16,7 +16,6 @@ import { createSessionClient } from "@/utils/appwrite/server";
 
 import GamedayContainer from "./components/GamedayContainer";
 import GamedayLoadingSkeleton from "./components/GamedayLoadingSkeleton";
-import GamedayMenu from "./components/GamedayMenu";
 
 export async function loader({ params, request }) {
     const { eventId } = params;
@@ -48,6 +47,13 @@ export async function action({ request, params }) {
         });
     }
     if (_action === "undo-game-event") {
+        if (values.playerChart) {
+            await savePlayerChart({
+                values: { playerChart: JSON.parse(values.playerChart) },
+                eventId,
+                client,
+            });
+        }
         return await undoGameEvent({ logId: values.logId, client });
     }
     if (_action === "update-game-score") {
@@ -58,6 +64,29 @@ export async function action({ request, params }) {
     }
     if (_action === "resume-game") {
         return updateGame({ values, eventId, client });
+    }
+    if (_action === "substitute-player") {
+        const { playerChart, baseState, ...logData } = values;
+
+        await savePlayerChart({
+            values: { playerChart: JSON.parse(playerChart) },
+            eventId,
+            client,
+        });
+
+        return await logGameEvent({
+            gameId: eventId,
+            client,
+            ...logData,
+            baseState: baseState ? JSON.parse(baseState) : null,
+        });
+    }
+    if (_action === "save-player-chart") {
+        return await savePlayerChart({
+            values: { playerChart: JSON.parse(values.playerChart) },
+            eventId,
+            client,
+        });
     }
     return null;
 }
@@ -78,17 +107,11 @@ export default function Gameday() {
 
     return (
         <Container size="xl" py="xl">
-            <Group justify="space-between" align="center" mb="xl">
-                <BackButton to={`/events/${game.$id}`} />
-                <Title order={3}>Scoring & Stats</Title>
-                {isScorekeeper && <GamedayMenu {...game} />}
-            </Group>
-
             <DeferredLoader
                 resolve={deferredData}
                 fallback={<GamedayLoadingSkeleton isDesktop={isDesktop} />}
             >
-                {({ logs }) => (
+                {({ logs, players }) => (
                     <GamedayContainer
                         game={game}
                         playerChart={game.playerChart || []}
@@ -97,6 +120,7 @@ export default function Gameday() {
                         gameFinal={game.gameFinal}
                         isScorekeeper={isScorekeeper}
                         isDesktop={isDesktop}
+                        players={players || []}
                     />
                 )}
             </DeferredLoader>

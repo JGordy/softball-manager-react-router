@@ -86,6 +86,7 @@ describe("Lineup Route", () => {
             const formData = new FormData();
             formData.append("_action", "save-chart");
             formData.append("someField", "value");
+            formData.append("playerChart", JSON.stringify([{ id: "1" }]));
 
             await action({
                 request: { formData: () => Promise.resolve(formData) },
@@ -94,7 +95,7 @@ describe("Lineup Route", () => {
 
             expect(lineupsActions.savePlayerChart).toHaveBeenCalledWith({
                 eventId: "evt1",
-                values: { someField: "value" },
+                values: { someField: "value", playerChart: [{ id: "1" }] },
                 client: expect.any(Object),
             });
         });
@@ -103,6 +104,7 @@ describe("Lineup Route", () => {
             const formData = new FormData();
             formData.append("_action", "finalize-chart");
             formData.append("someField", "value");
+            formData.append("playerChart", JSON.stringify([{ id: "1" }]));
 
             await action({
                 request: { formData: () => Promise.resolve(formData) },
@@ -111,7 +113,7 @@ describe("Lineup Route", () => {
 
             expect(lineupsActions.savePlayerChart).toHaveBeenCalledWith({
                 eventId: "evt1",
-                values: { someField: "value" },
+                values: { someField: "value", playerChart: [{ id: "1" }] },
                 sendNotification: true,
                 client: expect.any(Object),
             });

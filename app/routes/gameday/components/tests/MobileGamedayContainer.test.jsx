@@ -8,6 +8,10 @@ jest.mock("../MobilePlayActionDrawer", () => () => (
     <div data-testid="play-drawer" />
 ));
 
+jest.mock("../SubPlayerModal", () => () => (
+    <div data-testid="sub-player-modal" />
+));
+
 // Mock hooks
 jest.mock("react-router", () => ({
     useFetcher: () => ({ submit: jest.fn(), state: "idle" }),
@@ -62,6 +66,7 @@ describe("MobileGamedayContainer", () => {
 
         expect(screen.getByText("Tigers")).toBeInTheDocument();
         expect(screen.getByLabelText("Home plate")).toBeInTheDocument();
+        expect(screen.getByTestId("sub-player-modal")).toBeInTheDocument();
         // Since we are batting, we expect ActionPad
         expect(screen.getByRole("button", { name: "1B" })).toBeInTheDocument();
         expect(screen.queryByText("FIELDING CONTROLS")).not.toBeInTheDocument();
