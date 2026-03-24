@@ -98,6 +98,40 @@ describe("Games Loader", () => {
             expect(result.deferredData.logs).toBeInstanceOf(Promise);
         });
 
+        it("gracefully falls back when double-stringified playerChart fails JSON parsing", async () => {
+            const mockGameBadChart = {
+                $id: "game1",
+                gameDate: "2023-10-27T10:00:00Z",
+                playerChart: "Not even JSON at all",
+                seasons: "season1",
+            };
+            const mockSeason = { $id: "season1", teams: ["team1"] };
+
+            const mockListMemberships = jest.fn().mockResolvedValue({
+                memberships: [{ userId: "user1", roles: ["owner"] }],
+            });
+            createAdminClient.mockReturnValue({
+                teams: { listMemberships: mockListMemberships },
+            });
+
+            // Mock loadGameBase
+            readDocument.mockResolvedValueOnce(mockGameBadChart);
+            readDocument.mockResolvedValueOnce(mockSeason);
+            listDocuments.mockResolvedValue({
+                rows: [{ $id: "team1", name: "Team 1" }],
+            });
+            readDocument.mockResolvedValue({ latitude: 0, longitude: 0 });
+
+            const result = await getEventById({
+                eventId: "game1",
+                client: mockSessionClient,
+            });
+
+            expect(result.gameDeleted).toBe(false);
+            // It should fall back to [] if parse fails
+            expect(result.game.playerChart).toEqual([]);
+        });
+
         it("should correctly identify scorekeepers", async () => {
             const mockGame = {
                 $id: "game1",

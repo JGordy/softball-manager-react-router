@@ -359,13 +359,24 @@ export async function getEventById({ eventId, client, ...options }) {
         client: client,
     });
 
+    let parsedChart = null;
+    if (playerChart) {
+        try {
+            parsedChart = JSON.parse(playerChart);
+            if (typeof parsedChart === "string") {
+                parsedChart = JSON.parse(parsedChart);
+            }
+        } catch (e) {
+            console.error("Error parsing playerChart:", e);
+        }
+    }
+
     return {
         gameDeleted: false,
         deferredData,
         game: {
             ...game,
-            // NOTE: We need to parse the string from the database twice before passing to the front end
-            playerChart: JSON.parse(JSON.parse(playerChart)),
+            playerChart: parsedChart,
         },
         location,
         userIds,
