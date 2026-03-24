@@ -4,6 +4,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { UI_BATTED_OUTS, UI_WALKS } from "@/constants/scoring";
 import {
     getEventDescription,
+    getActivePlayerInSlot,
     handleWalk,
     handleRunnerResults,
 } from "../utils/gamedayUtils";
@@ -97,8 +98,12 @@ export function useGamedayActions({
             const hitLocation = payload?.hitLocation || null;
             const battingSide = payload?.battingSide || "right";
 
-            const batter = playerChart[battingOrderIndex];
-            const batterName = `${batter.firstName} ${batter.lastName}`;
+            // Resolve the active player for this slot (may be a substitute)
+            const slot = playerChart[battingOrderIndex];
+            const activePlayer = getActivePlayerInSlot(slot);
+            const activePlayerId = activePlayer.playerId ?? activePlayer.$id;
+            const batterName = `${activePlayer.firstName} ${activePlayer.lastName}`;
+
             const description = getEventDescription(
                 actionType,
                 batterName,
@@ -110,12 +115,12 @@ export function useGamedayActions({
             let result;
 
             if (UI_WALKS.includes(actionType)) {
-                result = handleWalk(runners, batter.$id);
+                result = handleWalk(runners, activePlayerId);
             } else if (runnerResults) {
                 result = handleRunnerResults(
                     runnerResults,
                     runners,
-                    batter.$id,
+                    activePlayerId,
                 );
             } else if (
                 actionType === "K" ||
@@ -141,7 +146,7 @@ export function useGamedayActions({
                     teamId: team.$id,
                     inning,
                     halfInning,
-                    playerId: batter.$id,
+                    playerId: activePlayerId,
                     eventType: actionType,
                     rbi: runsOnPlay,
                     outsOnPlay: outsRecorded,
@@ -193,6 +198,71 @@ export function useGamedayActions({
         ],
     );
 
+    /**
+     * Performs a mid-game substitution for the current batter slot.
+     * @param {Object} incomingPlayer - A player object from availablePlayers
+     *   with at minimum { $id, firstName, lastName }
+     * @param {number} slotIndex - The playerChart slot index to sub into
+     * @param {Array} currentPlayerChart - The current playerChart state
+     * @param {Function} onChartUpdate - Callback to update playerChart in parent state
+     */
+    const handleSubCurrentBatter = useCallback(
+        (incomingPlayer, slotIndex, currentPlayerChart, onChartUpdate) => {
+            if (!isScorekeeper) return;
+
+            const slot = currentPlayerChart[slotIndex];
+            const outgoingPlayer = getActivePlayerInSlot(slot);
+            const outgoingName = `${outgoingPlayer.firstName} ${outgoingPlayer.lastName}`;
+            const incomingName = `${incomingPlayer.firstName} ${incomingPlayer.lastName}`;
+
+            const subEntry = {
+                playerId: incomingPlayer.$id,
+                firstName: incomingPlayer.firstName,
+                lastName: incomingPlayer.lastName,
+                entryInning: inning,
+            };
+
+            // Build updated chart with the sub pushed into this slot's substitutions
+            const updatedChart = currentPlayerChart.map((s, idx) => {
+                if (idx !== slotIndex) return s;
+                return {
+                    ...s,
+                    substitutions: [...(s.substitutions || []), subEntry],
+                };
+            });
+
+            // Notify parent to update local state
+            onChartUpdate(updatedChart);
+
+            // Submit a single action to both update the chart and log the event atomically
+            fetcher.submit(
+                {
+                    _action: "substitute-player",
+                    playerChart: JSON.stringify(updatedChart),
+                    teamId: team.$id,
+                    inning,
+                    halfInning,
+                    playerId: incomingPlayer.$id,
+                    eventType: "SUB",
+                    rbi: 0,
+                    outsOnPlay: 0,
+                    description: `${incomingName} enters for ${outgoingName} in slot ${slotIndex + 1}`,
+                    hitX: null,
+                    hitY: null,
+                    hitLocation: null,
+                    battingSide: null,
+                    baseState: JSON.stringify({
+                        first: null,
+                        second: null,
+                        third: null,
+                    }),
+                },
+                { method: "post" },
+            );
+        },
+        [fetcher, halfInning, inning, isScorekeeper, team.$id],
+    );
+
     const initiateAction = useCallback(
         (actionType) => {
             if (!isScorekeeper) return;
@@ -206,18 +276,24 @@ export function useGamedayActions({
         [isScorekeeper, completeAction, openDrawer],
     );
 
-    const undoLast = useCallback(() => {
-        if (!isScorekeeper || logs.length === 0) return;
-        const lastLog = logs[logs.length - 1];
-        if (!lastLog || !lastLog.$id) {
-            console.error("Cannot undo: invalid last log", lastLog);
-            return;
-        }
-        fetcher.submit(
-            { _action: "undo-game-event", logId: lastLog.$id },
-            { method: "post" },
-        );
-    }, [isScorekeeper, fetcher, logs]);
+    const undoLast = useCallback(
+        (revertedChart = null) => {
+            if (!isScorekeeper || logs.length === 0) return;
+            const lastLog = logs[logs.length - 1];
+            if (!lastLog || !lastLog.$id) {
+                console.error("Cannot undo: invalid last log", lastLog);
+                return;
+            }
+
+            const payload = { _action: "undo-game-event", logId: lastLog.$id };
+            if (revertedChart) {
+                payload.playerChart = JSON.stringify(revertedChart);
+            }
+
+            fetcher.submit(payload, { method: "post" });
+        },
+        [isScorekeeper, fetcher, logs],
+    );
 
     return {
         pendingAction,
@@ -229,6 +305,7 @@ export function useGamedayActions({
         handleOpponentOut,
         initiateAction,
         completeAction,
+        handleSubCurrentBatter,
         undoLast,
         isSubmitting,
         fetcher,
