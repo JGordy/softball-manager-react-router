@@ -1,10 +1,10 @@
+import { useFetcher } from "react-router";
 import { Text, Group, Button } from "@mantine/core";
 import {
     IconFlag,
     IconPlayerPlay,
     IconArrowsExchange,
 } from "@tabler/icons-react";
-import { useFetcher } from "react-router";
 
 import MenuContainer from "@/components/MenuContainer";
 import useModal from "@/hooks/useModal";
