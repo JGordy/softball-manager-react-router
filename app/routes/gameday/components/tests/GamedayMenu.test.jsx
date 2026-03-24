@@ -19,6 +19,7 @@ jest.mock("@tabler/icons-react", () => ({
     ),
     IconFlag: () => <div data-testid="icon-flag" />,
     IconPlayerPlay: () => <div data-testid="icon-play" />,
+    IconArrowsExchange: () => <div data-testid="icon-arrows-exchange" />,
 }));
 
 describe("GamedayMenu", () => {
@@ -58,6 +59,24 @@ describe("GamedayMenu", () => {
         render(<GamedayMenu gameFinal={true} score={5} opponentScore={3} />);
         await openMenu();
         expect(screen.getByText("Resume Game")).toBeInTheDocument();
+    });
+
+    it("renders sub batter button when 'onSubBatter' is provided and game is active", async () => {
+        const mockSub = jest.fn();
+        render(
+            <GamedayMenu
+                gameFinal={false}
+                score={5}
+                opponentScore={3}
+                onSubBatter={mockSub}
+            />,
+        );
+        await openMenu();
+
+        const subButton = screen.getByText("Sub Current Batter");
+        expect(subButton).toBeInTheDocument();
+        fireEvent.click(subButton);
+        expect(mockSub).toHaveBeenCalled();
     });
 
     it("opens modal on end game click", async () => {

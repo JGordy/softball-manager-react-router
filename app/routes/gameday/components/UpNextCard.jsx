@@ -1,4 +1,5 @@
-import { Card, Group, Text } from "@mantine/core";
+import { Card, Group, Text, Badge } from "@mantine/core";
+import { getActivePlayerInSlot } from "../utils/gamedayUtils";
 
 export default function UpNextCard({ upcomingBatters = [], ...props }) {
     if (!upcomingBatters || upcomingBatters.length === 0) return null;
@@ -36,15 +37,17 @@ export default function UpNextCard({ upcomingBatters = [], ...props }) {
                         flex: 1,
                     }}
                 >
-                    {upcomingBatters.map((batter, index) => {
+                    {upcomingBatters.map((slot, index) => {
                         const isFirst = index === 0;
-                        const lastInitial = batter.lastName
-                            ? `${batter.lastName.charAt(0)}.`
+                        const activePlayer = getActivePlayerInSlot(slot);
+                        const isSub = !!slot.substitutions?.length;
+                        const lastInitial = activePlayer.lastName
+                            ? `${activePlayer.lastName.charAt(0)}.`
                             : "";
                         const name =
-                            `${batter.firstName} ${lastInitial}`.trim();
+                            `${activePlayer.firstName} ${lastInitial}`.trim();
                         return (
-                            <span key={`${batter.$id}`}>
+                            <span key={`${slot.$id}`}>
                                 {index > 0 && (
                                     <Text
                                         component="span"
@@ -62,6 +65,17 @@ export default function UpNextCard({ upcomingBatters = [], ...props }) {
                                 >
                                     {name}
                                 </Text>
+                                {isSub && (
+                                    <Badge
+                                        component="span"
+                                        size="xs"
+                                        color="orange"
+                                        variant="light"
+                                        ml={4}
+                                    >
+                                        SUB
+                                    </Badge>
+                                )}
                             </span>
                         );
                     })}

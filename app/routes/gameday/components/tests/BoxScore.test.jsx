@@ -5,16 +5,29 @@ describe("BoxScore", () => {
     const mockLogs = [
         { playerId: "p1", eventType: "1B", rbi: 1, runs: 1 },
         { playerId: "p2", eventType: "K" },
+        { playerId: "sub1", eventType: "HR", rbi: 2, runs: 1 },
     ];
     const mockPlayerChart = [
-        { $id: "p1", firstName: "John", lastName: "Doe" },
+        {
+            $id: "p1",
+            firstName: "John",
+            lastName: "Doe",
+            substitutions: [
+                {
+                    playerId: "sub1",
+                    firstName: "Substitute",
+                    lastName: "Player",
+                },
+            ],
+        },
         { $id: "p2", firstName: "Jane", lastName: "Smith" },
     ];
 
-    it("renders player names correctly", () => {
+    it("renders player names correctly and renders substitutes nested underneath", () => {
         render(<BoxScore logs={mockLogs} playerChart={mockPlayerChart} />);
         expect(screen.getByText("John")).toBeInTheDocument();
         expect(screen.getByText("Jane")).toBeInTheDocument();
+        expect(screen.getByText("Substitute")).toBeInTheDocument();
     });
 
     it("renders stats table headers", () => {

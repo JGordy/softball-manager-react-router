@@ -1,5 +1,7 @@
-import { useMemo } from "react";
-import { Table, ScrollArea, Text, Card } from "@mantine/core";
+import { useMemo, Fragment } from "react";
+import { Table, ScrollArea, Text, Card, Group } from "@mantine/core";
+import { IconCornerDownRight } from "@tabler/icons-react";
+
 import { calculateGameStats, calculateTeamTotals } from "@/utils/stats";
 
 export default function BoxScore({
@@ -24,11 +26,16 @@ export default function BoxScore({
         return counts;
     }, [stats]);
 
-    const rows = stats.map((stat) => {
+    // Helper to render a single row
+    const renderRow = (stat, isSub = false) => {
+        if (!stat) return null;
+
+        const currentSlotIds = new Set([currentBatter?.$id]);
+        currentBatter?.substitutions?.forEach((s) =>
+            currentSlotIds.add(s.playerId),
+        );
         const isCurrentBatter =
-            !gameFinal &&
-            currentBatter &&
-            stat.player.$id === currentBatter.$id;
+            !gameFinal && currentBatter && currentSlotIds.has(stat.player.$id);
 
         const hasDuplicateFirstName =
             firstNameCounts[stat.player.firstName] > 1;
@@ -46,9 +53,21 @@ export default function BoxScore({
                 }
             >
                 <Table.Td>
-                    <Text size="sm" fw={isCurrentBatter ? 700 : 500}>
-                        {displayName}
-                    </Text>
+                    <Group gap={4} wrap="nowrap" pl={isSub ? "xs" : 0}>
+                        {isSub && (
+                            <IconCornerDownRight
+                                size={14}
+                                color="var(--mantine-color-dimmed)"
+                            />
+                        )}
+                        <Text
+                            size="sm"
+                            fw={isCurrentBatter ? 700 : isSub ? 400 : 500}
+                            c={isSub ? "dimmed" : undefined}
+                        >
+                            {displayName}
+                        </Text>
+                    </Group>
                 </Table.Td>
                 <Table.Td ta="center">{stat.AB}</Table.Td>
                 <Table.Td ta="center">{stat.H}</Table.Td>
@@ -67,6 +86,26 @@ export default function BoxScore({
                     {stat.OPS}
                 </Table.Td>
             </Table.Tr>
+        );
+    };
+
+    const rows = playerChart.map((slot) => {
+        // Find starter stats
+        const starterStat = stats.find((s) => s.player.$id === slot.$id);
+
+        // Find unique substitutes for this slot
+        const subIds = Array.from(
+            new Set(slot.substitutions?.map((s) => s.playerId) || []),
+        );
+        const subStats = subIds
+            .map((subId) => stats.find((s) => s.player.$id === subId))
+            .filter(Boolean);
+
+        return (
+            <Fragment key={`slot-${slot.$id}`}>
+                {renderRow(starterStat, false)}
+                {subStats.map((subStat) => renderRow(subStat, true))}
+            </Fragment>
         );
     });
 
