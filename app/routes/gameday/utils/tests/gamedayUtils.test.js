@@ -1,9 +1,32 @@
 import {
+    getActivePlayerInSlot,
     getRunnerMovement,
     getEventDescription,
     handleWalk,
     handleRunnerResults,
 } from "../gamedayUtils";
+
+describe("getActivePlayerInSlot", () => {
+    it("should return the root slot if there are no substitutions", () => {
+        const slot = { $id: "p1", firstName: "Root", lastName: "Player" };
+        expect(getActivePlayerInSlot(slot)).toEqual(slot);
+    });
+
+    it("should return the latest substitution target if the substitutions array exists", () => {
+        const slot = {
+            $id: "p1",
+            firstName: "Root",
+            lastName: "Player",
+            substitutions: [
+                { playerId: "sub1", firstName: "First", lastName: "Sub" },
+                { playerId: "sub2", firstName: "Current", lastName: "Sub" },
+            ],
+        };
+        const active = getActivePlayerInSlot(slot);
+        expect(active.playerId).toBe("sub2");
+        expect(active.firstName).toBe("Current");
+    });
+});
 
 describe("getRunnerMovement", () => {
     const mockPlayerChart = [

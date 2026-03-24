@@ -1,3 +1,13 @@
+/**
+ * Returns the currently active player object for a lineup slot.
+ * If the slot has substitutions, the last substitute is the active player.
+ * Otherwise, the original slot player (with $id, firstName, lastName) is returned.
+ */
+export const getActivePlayerInSlot = (slot) => {
+    if (!slot?.substitutions || slot.substitutions.length === 0) return slot;
+    return slot.substitutions[slot.substitutions.length - 1];
+};
+
 export function getRunnerMovement(baseState, playerChart) {
     if (!baseState || !playerChart) return [];
 
@@ -7,12 +17,22 @@ export function getRunnerMovement(baseState, playerChart) {
         const state =
             typeof baseState === "string" ? JSON.parse(baseState) : baseState;
 
-        // Helper to get player name by ID
+        // Helper to get player name by ID — checks root $id and substitutions
         const getPlayerName = (playerId) => {
-            const player = playerChart.find((p) => p.$id === playerId);
-            return player
-                ? `${player.firstName} ${player.lastName.charAt(0)}.`
-                : "Runner";
+            for (const slot of playerChart) {
+                if (slot.$id === playerId) {
+                    return `${slot.firstName} ${slot.lastName.charAt(0)}.`;
+                }
+                if (slot.substitutions) {
+                    const sub = slot.substitutions.find(
+                        (s) => s.playerId === playerId,
+                    );
+                    if (sub) {
+                        return `${sub.firstName} ${sub.lastName.charAt(0)}.`;
+                    }
+                }
+            }
+            return "Runner";
         };
 
         // First, show who scored

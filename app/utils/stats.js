@@ -13,30 +13,65 @@ export const calculateGameStats = (logs = [], playerChart = []) => {
     // 1. Initialize stats map for all players in lineup
     const statsMap = {};
 
-    playerChart.forEach((player) => {
-        statsMap[player.$id] = {
-            player, // Keep reference to player info
-            PA: 0, // Plate Appearances
-            AB: 0, // At Bats
-            H: 0, // Hits
-            "1B": 0, // Singles
-            "2B": 0, // Doubles
-            "3B": 0, // Triples
-            HR: 0, // Home Runs
-            R: 0, // Runs Scored
-            RBI: 0, // Runs Batted In
-            BB: 0, // Walks
-            K: 0, // Strikeouts
-            SF: 0, // Sacrifice Flies
-            AVG: ".000", // Batting Average
-            OBP: ".000", // On-Base Percentage
-            SLG: ".000", // Slugging Percentage
-            OPS: ".000", // On-Base Plus Slugging
+    playerChart.forEach((slot) => {
+        // Seed entry for the original slot player
+        statsMap[slot.$id] = {
+            player: slot,
+            PA: 0,
+            AB: 0,
+            H: 0,
+            "1B": 0,
+            "2B": 0,
+            "3B": 0,
+            HR: 0,
+            R: 0,
+            RBI: 0,
+            BB: 0,
+            K: 0,
+            SF: 0,
+            AVG: ".000",
+            OBP: ".000",
+            SLG: ".000",
+            OPS: ".000",
         };
+
+        // Seed entries for any substitutes in this slot
+        slot.substitutions?.forEach((sub) => {
+            if (!statsMap[sub.playerId]) {
+                // Build a player-like object with the sub's identity
+                const subPlayer = {
+                    $id: sub.playerId,
+                    firstName: sub.firstName,
+                    lastName: sub.lastName,
+                };
+                statsMap[sub.playerId] = {
+                    player: subPlayer,
+                    PA: 0,
+                    AB: 0,
+                    H: 0,
+                    "1B": 0,
+                    "2B": 0,
+                    "3B": 0,
+                    HR: 0,
+                    R: 0,
+                    RBI: 0,
+                    BB: 0,
+                    K: 0,
+                    SF: 0,
+                    AVG: ".000",
+                    OBP: ".000",
+                    SLG: ".000",
+                    OPS: ".000",
+                };
+            }
+        });
     });
 
     // 2. Process logs
     logs.forEach((log) => {
+        // Skip substitution events — they are metadata, not at-bats
+        if (log.eventType === "SUB") return;
+
         const batterId = log.playerId;
         if (!statsMap[batterId]) return; // Skip if player not in chart (shouldn't happen)
 

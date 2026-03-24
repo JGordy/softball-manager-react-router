@@ -29,6 +29,25 @@ describe("calculateGameStats", () => {
         });
     });
 
+    it("should initialize stats for substitutes by tracking the substitutions array", () => {
+        const mockPlayerChartWithSub = [
+            {
+                $id: "player1",
+                firstName: "John",
+                lastName: "Doe",
+                substitutions: [
+                    { playerId: "sub1", firstName: "Bench", lastName: "Guy" },
+                ],
+            },
+        ];
+        const stats = calculateGameStats([], mockPlayerChartWithSub);
+
+        expect(stats).toHaveLength(2);
+        expect(stats[0].player.$id).toBe("player1");
+        expect(stats[1].player.$id).toBe("sub1");
+        expect(stats[1].player.firstName).toBe("Bench");
+    });
+
     it("should correctly count hits and calculate batting average", () => {
         const logs = [
             {
@@ -63,6 +82,23 @@ describe("calculateGameStats", () => {
         expect(player1Stats["3B"]).toBe(1);
         expect(player1Stats.RBI).toBe(3);
         expect(player1Stats.AVG).toBe(".750"); // 3/4
+    });
+
+    it("should skip SUB event types entirely and not increment at-bats or plate appearances", () => {
+        const mockPlayerChartLocal = [{ $id: "player1" }];
+        const logs = [
+            { playerId: "player1", eventType: "SUB", rbi: 0, baseState: "{}" },
+            {
+                playerId: "player1",
+                eventType: "single",
+                rbi: 0,
+                baseState: "{}",
+            },
+        ];
+        const stats = calculateGameStats(logs, mockPlayerChartLocal);
+        const player1Stats = stats.find((s) => s.player.$id === "player1");
+        expect(player1Stats.PA).toBe(1);
+        expect(player1Stats.AB).toBe(1);
     });
 
     it("should handle walks correctly (not counting as at-bats)", () => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useGamedayTabs } from "./useGamedayTabs";
 import { useGamedayActions } from "./useGamedayActions";
 import { useGameState } from "./useGameState";
@@ -6,14 +6,17 @@ import { useGameUpdates } from "@/hooks/useGameUpdates";
 
 export function useGamedayController({
     game,
-    playerChart,
+    playerChart: initialPlayerChart,
     team,
     initialLogs = [],
     gameFinal = false,
     isScorekeeper = false,
     isDesktop = false,
+    players = [],
 }) {
     const [logs, setLogs] = useState(initialLogs);
+    // Hold playerChart in local state so sub updates reflect immediately
+    const [playerChart, setPlayerChart] = useState(initialPlayerChart);
 
     // Real-time updates for game logs
     const { status: realtimeStatus } = useGameUpdates(game.$id, {
@@ -74,6 +77,7 @@ export function useGamedayController({
         handleOpponentOut,
         initiateAction,
         completeAction,
+        handleSubCurrentBatter: handleSubAction,
         undoLast,
         isSubmitting,
         fetcher,
@@ -97,6 +101,62 @@ export function useGamedayController({
         logs,
         isScorekeeper,
     });
+
+    // Derive the list of players eligible to substitute:
+    // In the playerChart, but not already occupying any slot (original or sub)
+    const occupiedIds = useMemo(() => {
+        const ids = new Set();
+        playerChart.forEach((slot) => {
+            ids.add(slot.$id);
+            slot.substitutions?.forEach((s) => ids.add(s.playerId));
+        });
+        return ids;
+    }, [playerChart]);
+
+    const eligibleSubstitutes = useMemo(() => {
+        return players.filter((p) => !occupiedIds.has(p.$id));
+    }, [players, occupiedIds]);
+
+    /**
+     * Bound sub handler — passes the current chart and a state updater.
+     */
+    const handleSubCurrentBatter = useCallback(
+        (incomingPlayer) => {
+            handleSubAction(
+                incomingPlayer,
+                battingOrderIndex,
+                playerChart,
+                setPlayerChart,
+            );
+        },
+        [handleSubAction, battingOrderIndex, playerChart],
+    );
+
+    const handleUndoLast = useCallback(() => {
+        if (!isScorekeeper || logs.length === 0) return;
+        const lastLog = logs[logs.length - 1];
+        if (!lastLog || !lastLog.$id) return;
+
+        if (lastLog.eventType === "SUB") {
+            const revertedChart = playerChart.map((slot) => {
+                if (!slot.substitutions || slot.substitutions.length === 0)
+                    return slot;
+                const lastSub =
+                    slot.substitutions[slot.substitutions.length - 1];
+                if (lastSub.playerId === lastLog.playerId) {
+                    return {
+                        ...slot,
+                        substitutions: slot.substitutions.slice(0, -1),
+                    };
+                }
+                return slot;
+            });
+            setPlayerChart(revertedChart);
+            undoLast(revertedChart);
+        } else {
+            undoLast();
+        }
+    }, [isScorekeeper, logs, playerChart, setPlayerChart, undoLast]);
 
     const batters = useMemo(() => {
         return playerChart
@@ -186,6 +246,9 @@ export function useGamedayController({
         handleOpponentOut,
         initiateAction,
         completeAction,
-        undoLast,
+        handleSubCurrentBatter,
+        eligibleSubstitutes,
+        playerChart,
+        undoLast: handleUndoLast,
     };
 }
