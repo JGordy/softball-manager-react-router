@@ -3,12 +3,14 @@ import {
     createDocument,
     listDocuments,
     updateDocument,
+    getDocument,
 } from "@/utils/databases";
 
 jest.mock("@/utils/databases", () => ({
     createDocument: jest.fn(),
     listDocuments: jest.fn(),
     updateDocument: jest.fn(),
+    getDocument: jest.fn(),
 }));
 
 jest.mock("@/utils/appwrite/server", () => ({
@@ -48,6 +50,8 @@ describe("Attendance Actions", () => {
             account: { get: mockAccountGet },
             id: "mock-session-client",
         };
+
+        getDocument.mockResolvedValue({ teamId: "team1" });
     });
 
     afterEach(() => {
@@ -153,6 +157,37 @@ describe("Attendance Actions", () => {
             expect(result.success).toBe(false);
             expect(result.status).toBe(403);
             expect(result.error).toMatch(/Unauthorized/);
+        });
+
+        it("should bypass authorization checks when bypassAuth is true", async () => {
+            listDocuments.mockResolvedValue({ rows: [] });
+            createDocument.mockResolvedValue({ $id: "att1" });
+
+            const result = await updatePlayerAttendance({
+                values: mockValues,
+                eventId,
+                client: mockClient,
+                bypassAuth: true,
+            });
+
+            expect(mockAccountGet).not.toHaveBeenCalled();
+            expect(createDocument).toHaveBeenCalled();
+            expect(result.success).toBe(true);
+            expect(result.status).toBe(201);
+        });
+
+        it("should reject attendance update if game teamId does not match provided teamId", async () => {
+            getDocument.mockResolvedValue({ teamId: "different-team" });
+
+            const result = await updatePlayerAttendance({
+                values: mockValues,
+                eventId,
+                client: mockClient,
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.status).toBe(400);
+            expect(result.error).toMatch(/Invalid team association/);
         });
 
         it("should handle errors gracefully", async () => {

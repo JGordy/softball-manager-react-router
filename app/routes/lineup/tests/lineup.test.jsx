@@ -100,6 +100,21 @@ describe("Lineup Route", () => {
             });
         });
 
+        it("returns 400 for invalid playerChart JSON in save-chart", async () => {
+            const formData = new FormData();
+            formData.append("_action", "save-chart");
+            formData.append("playerChart", "{ invalid json");
+
+            const result = await action({
+                request: { formData: () => Promise.resolve(formData) },
+                params: { eventId: "evt1" },
+            });
+
+            expect(result.status).toBe(400);
+            expect(result.error).toMatch(/Invalid playerChart JSON/);
+            expect(lineupsActions.savePlayerChart).not.toHaveBeenCalled();
+        });
+
         it("handles finalize-chart action", async () => {
             const formData = new FormData();
             formData.append("_action", "finalize-chart");
@@ -117,6 +132,21 @@ describe("Lineup Route", () => {
                 sendNotification: true,
                 client: expect.any(Object),
             });
+        });
+
+        it("returns 400 for invalid playerChart JSON in finalize-chart", async () => {
+            const formData = new FormData();
+            formData.append("_action", "finalize-chart");
+            formData.append("playerChart", "{ invalid json");
+
+            const result = await action({
+                request: { formData: () => Promise.resolve(formData) },
+                params: { eventId: "evt1" },
+            });
+
+            expect(result.status).toBe(400);
+            expect(result.error).toMatch(/Invalid playerChart JSON/);
+            expect(lineupsActions.savePlayerChart).not.toHaveBeenCalled();
         });
     });
 

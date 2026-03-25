@@ -16,6 +16,13 @@ export default function BoxScore({
         return { stats, totals };
     }, [logs, playerChart]);
 
+    // O(1) Lookup Map for Stats
+    const statsMap = useMemo(() => {
+        const map = new Map();
+        stats.forEach((s) => map.set(s.player.$id, s));
+        return map;
+    }, [stats]);
+
     // Check for duplicate first names
     const firstNameCounts = useMemo(() => {
         const counts = {};
@@ -90,15 +97,15 @@ export default function BoxScore({
     };
 
     const rows = playerChart.map((slot) => {
-        // Find starter stats
-        const starterStat = stats.find((s) => s.player.$id === slot.$id);
+        // Find starter stats in O(1)
+        const starterStat = statsMap.get(slot.$id);
 
         // Find unique substitutes for this slot
         const subIds = Array.from(
             new Set(slot.substitutions?.map((s) => s.playerId) || []),
         );
         const subStats = subIds
-            .map((subId) => stats.find((s) => s.player.$id === subId))
+            .map((subId) => statsMap.get(subId))
             .filter(Boolean);
 
         return (

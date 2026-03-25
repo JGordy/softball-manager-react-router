@@ -34,21 +34,43 @@ export async function action({ request, params }) {
     const client = await createSessionClient(request);
 
     if (_action === "save-chart") {
-        return savePlayerChart({
-            eventId,
-            values: { ...values, playerChart: JSON.parse(values.playerChart) },
-            client,
-        });
+        try {
+            return await savePlayerChart({
+                eventId,
+                values: {
+                    ...values,
+                    playerChart: JSON.parse(values.playerChart),
+                },
+                client,
+            });
+        } catch (err) {
+            return {
+                success: false,
+                status: 400,
+                error: "Invalid playerChart JSON format provided.",
+            };
+        }
     }
 
     if (_action === "finalize-chart") {
         // Finalize and send notifications to team members
-        return savePlayerChart({
-            eventId,
-            values: { ...values, playerChart: JSON.parse(values.playerChart) },
-            client,
-            sendNotification: true,
-        });
+        try {
+            return await savePlayerChart({
+                eventId,
+                values: {
+                    ...values,
+                    playerChart: JSON.parse(values.playerChart),
+                },
+                client,
+                sendNotification: true,
+            });
+        } catch (err) {
+            return {
+                success: false,
+                status: 400,
+                error: "Invalid playerChart JSON format provided.",
+            };
+        }
     }
 }
 

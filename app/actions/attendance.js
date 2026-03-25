@@ -3,6 +3,7 @@ import {
     createDocument,
     listDocuments,
     updateDocument,
+    getDocument,
 } from "@/utils/databases";
 import { createAdminClient } from "@/utils/appwrite/server";
 
@@ -19,7 +20,12 @@ import { createAdminClient } from "@/utils/appwrite/server";
  * 401 "Permissions must be one of..." error. We must manually authorize the session user,
  * then use the Admin Client to securely create/update the document.
  */
-export async function updatePlayerAttendance({ values, eventId, client }) {
+export async function updatePlayerAttendance({
+    values,
+    eventId,
+    client,
+    bypassAuth = false,
+}) {
     const { playerId, updatedBy, teamId, ...updates } = values;
 
     try {
@@ -29,27 +35,48 @@ export async function updatePlayerAttendance({ values, eventId, client }) {
             );
 
         // --- AUTHORIZATION CHECK ---
-        const { account } = client;
-        const currentUser = await account.get();
-        if (!currentUser) throw new Error("Unauthorized");
-
-        let isAuthorized = currentUser.$id === playerId;
+        let isAuthorized = false;
 
         // Note: Using adminClient here to bypass Appwrite "grant only what you possess" restriction on createDocument
         const adminClient = createAdminClient();
 
-        if (!isAuthorized && teamId) {
-            const membershipsResponse =
-                await adminClient.teams.listMemberships(teamId);
-            const membership = membershipsResponse.memberships.find(
-                (m) => m.userId === currentUser.$id,
-            );
-            if (
-                membership &&
-                (membership.roles.includes("manager") ||
-                    membership.roles.includes("owner"))
-            ) {
-                isAuthorized = true;
+        if (bypassAuth) {
+            isAuthorized = true;
+        } else {
+            const { account } = client;
+            const currentUser = await account.get();
+            if (!currentUser) throw new Error("Unauthorized");
+
+            isAuthorized = currentUser.$id === playerId;
+
+            if (teamId) {
+                const gameDoc = await getDocument(
+                    "games",
+                    eventId,
+                    adminClient,
+                );
+                if (!gameDoc || gameDoc.teamId !== teamId) {
+                    return {
+                        success: false,
+                        error: "Invalid team association for this event.",
+                        status: 400,
+                    };
+                }
+            }
+
+            if (!isAuthorized && teamId) {
+                const membershipsResponse =
+                    await adminClient.teams.listMemberships(teamId);
+                const membership = membershipsResponse.memberships.find(
+                    (m) => m.userId === currentUser.$id,
+                );
+                if (
+                    membership &&
+                    (membership.roles.includes("manager") ||
+                        membership.roles.includes("owner"))
+                ) {
+                    isAuthorized = true;
+                }
             }
         }
 
@@ -62,7 +89,14 @@ export async function updatePlayerAttendance({ values, eventId, client }) {
         }
         // --- END AUTHORIZATION CHECK ---
 
-        // Build permissions array if we have teamId
+        // --- PERMISSIONS CONFIGURATION ---
+        // [IMPORTANT] Appwrite Security Rule: A user session can ONLY grant permissions/roles
+        // that the current user already possesses.
+        // Example: A user with only 'scorekeeper' role cannot grant 'manager' role to a doc.
+        //
+        // To bypass this "grant what you possess" restriction, we use the adminClient (API Key)
+        // for the actual database writes below. This allows managers/scorekeepers to
+        // initialize or update attendance records for OTHER players.
         const permissions = teamId
             ? [
                   Permission.read(Role.team(teamId)), // All team members can read

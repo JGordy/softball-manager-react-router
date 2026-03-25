@@ -194,6 +194,11 @@ export function useGamedayController({
         setLogs(initialLogs);
     }, [initialLogs]);
 
+    // Sync initialPlayerChart when it changes (e.g. from loader revalidation)
+    useEffect(() => {
+        setPlayerChart(initialPlayerChart);
+    }, [initialPlayerChart]);
+
     const isSyncing = fetcher.state !== "idle" || realtimeStatus === "syncing";
 
     const isOurBatting = game.isHomeGame

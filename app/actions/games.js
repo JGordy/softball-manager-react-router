@@ -82,6 +82,7 @@ async function initializeDefaultAttendance(gameId, teamId) {
                             },
                             eventId: gameId,
                             client: adminClient,
+                            bypassAuth: true,
                         }),
                     );
                 }

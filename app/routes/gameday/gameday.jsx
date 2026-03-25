@@ -47,14 +47,21 @@ export async function action({ request, params }) {
         });
     }
     if (_action === "undo-game-event") {
-        if (values.playerChart) {
+        const undoResponse = await undoGameEvent({
+            logId: values.logId,
+            client,
+        });
+
+        // Only update player chart if the undo successfully removed the log
+        if (undoResponse && !undoResponse.error && values.playerChart) {
             await savePlayerChart({
                 values: { playerChart: JSON.parse(values.playerChart) },
                 eventId,
                 client,
             });
         }
-        return await undoGameEvent({ logId: values.logId, client });
+
+        return undoResponse;
     }
     if (_action === "update-game-score") {
         return updateGame({ values, eventId, client });
@@ -68,19 +75,33 @@ export async function action({ request, params }) {
     if (_action === "substitute-player") {
         const { playerChart, baseState, ...logData } = values;
 
-        await savePlayerChart({
-            values: { playerChart: JSON.parse(playerChart) },
-            eventId,
-            client,
-        });
-
-        return await logGameEvent({
+        // Log the substitution event first
+        const logResponse = await logGameEvent({
             gameId: eventId,
             client,
             ...logData,
             baseState: baseState ? JSON.parse(baseState) : null,
         });
+
+        // If logging fails, do not persist the chart update
+        if (logResponse && logResponse.error) {
+            return logResponse;
+        }
+
+        // Apply lineup chart change and merge responses
+        const chartResponse = await savePlayerChart({
+            values: { playerChart: JSON.parse(playerChart) },
+            eventId,
+            client,
+        });
+
+        if (chartResponse && chartResponse.error) {
+            return chartResponse;
+        }
+
+        return logResponse;
     }
+
     if (_action === "save-player-chart") {
         return await savePlayerChart({
             values: { playerChart: JSON.parse(values.playerChart) },

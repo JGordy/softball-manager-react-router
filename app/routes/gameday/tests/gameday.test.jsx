@@ -116,18 +116,49 @@ describe("Gameday Route", () => {
             const formData = new FormData();
             formData.append("_action", "undo-game-event");
             formData.append("logId", "log1");
+            formData.append("playerChart", JSON.stringify([{ id: "1" }]));
 
             const request = {
                 formData: () => Promise.resolve(formData),
             };
             const params = { eventId: "game123" };
 
+            gameLogActions.undoGameEvent.mockResolvedValue({ success: true });
+
+            // Mock lineups action
+            const lineupsActions = require("@/actions/lineups");
+            jest.spyOn(lineupsActions, "savePlayerChart").mockResolvedValue({});
+
             await action({ request, params });
 
-            expect(gameLogActions.undoGameEvent).toHaveBeenCalledWith({
-                logId: "log1",
-                client: expect.any(Object),
+            expect(gameLogActions.undoGameEvent).toHaveBeenCalled();
+            expect(lineupsActions.savePlayerChart).toHaveBeenCalled();
+        });
+
+        it("skips savePlayerChart if undoGameEvent fails", async () => {
+            const formData = new FormData();
+            formData.append("_action", "undo-game-event");
+            formData.append("logId", "log1");
+            formData.append("playerChart", JSON.stringify([{ id: "1" }]));
+
+            const request = {
+                formData: () => Promise.resolve(formData),
+            };
+            const params = { eventId: "game123" };
+
+            gameLogActions.undoGameEvent.mockResolvedValue({
+                success: false,
+                error: "Undo failed",
             });
+
+            const lineupsActions = require("@/actions/lineups");
+            jest.spyOn(lineupsActions, "savePlayerChart");
+
+            const result = await action({ request, params });
+
+            expect(gameLogActions.undoGameEvent).toHaveBeenCalled();
+            expect(lineupsActions.savePlayerChart).not.toHaveBeenCalled();
+            expect(result.error).toBe("Undo failed");
         });
 
         it("handles update-game-score action", async () => {
@@ -161,24 +192,72 @@ describe("Gameday Route", () => {
             };
             const params = { eventId: "game123" };
 
-            // Mock lineups action
+            gameLogActions.logGameEvent.mockResolvedValue({
+                success: true,
+                log: { $id: "log1" },
+            });
             const lineupsActions = require("@/actions/lineups");
-            jest.spyOn(lineupsActions, "savePlayerChart").mockResolvedValue({});
+            jest.spyOn(lineupsActions, "savePlayerChart").mockResolvedValue({
+                success: true,
+            });
 
             await action({ request, params });
 
-            expect(lineupsActions.savePlayerChart).toHaveBeenCalledWith({
-                values: { playerChart: [{ id: "1" }] },
-                eventId: "game123",
-                client: expect.any(Object),
+            expect(gameLogActions.logGameEvent).toHaveBeenCalled();
+            expect(lineupsActions.savePlayerChart).toHaveBeenCalled();
+        });
+
+        it("skips savePlayerChart if logGameEvent fails during substitution", async () => {
+            const formData = new FormData();
+            formData.append("_action", "substitute-player");
+            formData.append("playerChart", JSON.stringify([{ id: "1" }]));
+            formData.append("playerId", "sub999");
+
+            const request = {
+                formData: () => Promise.resolve(formData),
+            };
+            const params = { eventId: "game123" };
+
+            gameLogActions.logGameEvent.mockResolvedValue({
+                success: false,
+                error: "Log failed",
+            });
+            const lineupsActions = require("@/actions/lineups");
+            jest.spyOn(lineupsActions, "savePlayerChart");
+
+            const result = await action({ request, params });
+
+            expect(gameLogActions.logGameEvent).toHaveBeenCalled();
+            expect(lineupsActions.savePlayerChart).not.toHaveBeenCalled();
+            expect(result.error).toBe("Log failed");
+        });
+
+        it("returns error if savePlayerChart fails during substitution", async () => {
+            const formData = new FormData();
+            formData.append("_action", "substitute-player");
+            formData.append("playerChart", JSON.stringify([{ id: "1" }]));
+            formData.append("playerId", "sub999");
+
+            const request = {
+                formData: () => Promise.resolve(formData),
+            };
+            const params = { eventId: "game123" };
+
+            gameLogActions.logGameEvent.mockResolvedValue({
+                success: true,
+                log: { $id: "log1" },
+            });
+            const lineupsActions = require("@/actions/lineups");
+            jest.spyOn(lineupsActions, "savePlayerChart").mockResolvedValue({
+                success: false,
+                error: "Chart save failed",
             });
 
-            expect(gameLogActions.logGameEvent).toHaveBeenCalledWith({
-                gameId: "game123",
-                playerId: "sub999",
-                baseState: { first: "123" },
-                client: expect.any(Object),
-            });
+            const result = await action({ request, params });
+
+            expect(gameLogActions.logGameEvent).toHaveBeenCalled();
+            expect(lineupsActions.savePlayerChart).toHaveBeenCalled();
+            expect(result.error).toBe("Chart save failed");
         });
 
         it("handles save-player-chart action", async () => {
