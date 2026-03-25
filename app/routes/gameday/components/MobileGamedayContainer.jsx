@@ -27,7 +27,7 @@ import LastPlayCard from "./LastPlayCard";
 import FieldingControls from "./FieldingControls";
 import BoxScore from "./BoxScore";
 import UpNextCard from "./UpNextCard";
-import SubPlayerModal from "./SubPlayerModal";
+import SubPlayerDrawer from "./SubPlayerDrawer";
 import GamedayMenu from "./GamedayMenu";
 
 export default function MobileGamedayContainer({
@@ -266,7 +266,7 @@ export default function MobileGamedayContainer({
                 outs={outs}
             />
 
-            <SubPlayerModal
+            <SubPlayerDrawer
                 opened={subModalOpened}
                 onClose={closeSubModal}
                 currentSlot={currentBatter}

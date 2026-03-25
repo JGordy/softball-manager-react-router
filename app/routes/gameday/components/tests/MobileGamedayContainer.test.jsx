@@ -8,7 +8,7 @@ jest.mock("../MobilePlayActionDrawer", () => () => (
     <div data-testid="play-drawer" />
 ));
 
-jest.mock("../SubPlayerModal", () => () => (
+jest.mock("../SubPlayerDrawer", () => () => (
     <div data-testid="sub-player-modal" />
 ));
 

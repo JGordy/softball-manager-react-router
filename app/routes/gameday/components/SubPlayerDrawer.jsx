@@ -17,7 +17,7 @@ import DrawerContainer from "@/components/DrawerContainer/DrawerContainer";
 
 import { getActivePlayerInSlot } from "../utils/gamedayUtils";
 
-export default function SubPlayerModal({
+export default function SubPlayerDrawer({
     opened,
     onClose,
     currentSlot,

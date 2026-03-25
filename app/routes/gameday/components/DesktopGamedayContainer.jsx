@@ -25,7 +25,7 @@ import DefenseCard from "./DefenseCard";
 import LastPlayCard from "./LastPlayCard";
 import FieldingControls from "./FieldingControls";
 import DesktopPlayActionDrawer from "./DesktopPlayActionDrawer";
-import SubPlayerModal from "./SubPlayerModal";
+import SubPlayerDrawer from "./SubPlayerDrawer";
 import GamedayMenu from "./GamedayMenu";
 
 export default function DesktopGamedayContainer({
@@ -238,7 +238,7 @@ export default function DesktopGamedayContainer({
                 outs={outs}
             />
 
-            <SubPlayerModal
+            <SubPlayerDrawer
                 opened={subModalOpened}
                 onClose={closeSubModal}
                 currentSlot={currentBatter}

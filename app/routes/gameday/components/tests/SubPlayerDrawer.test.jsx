@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from "@/utils/test-utils";
-import SubPlayerModal from "../SubPlayerModal";
+import SubPlayerDrawer from "../SubPlayerDrawer";
 
-describe("SubPlayerModal", () => {
+describe("SubPlayerDrawer", () => {
     const mockOnClose = jest.fn();
     const mockOnConfirmSub = jest.fn();
 
@@ -23,7 +23,7 @@ describe("SubPlayerModal", () => {
 
     it("does not render when closed", () => {
         render(
-            <SubPlayerModal
+            <SubPlayerDrawer
                 opened={false}
                 onClose={mockOnClose}
                 currentSlot={mockSlot}
@@ -38,7 +38,7 @@ describe("SubPlayerModal", () => {
 
     it("renders replacing player identity properly", () => {
         render(
-            <SubPlayerModal
+            <SubPlayerDrawer
                 opened={true}
                 onClose={mockOnClose}
                 currentSlot={mockSlot}
@@ -64,7 +64,7 @@ describe("SubPlayerModal", () => {
             ],
         };
         render(
-            <SubPlayerModal
+            <SubPlayerDrawer
                 opened={true}
                 onClose={mockOnClose}
                 currentSlot={subSlot}
@@ -78,7 +78,7 @@ describe("SubPlayerModal", () => {
 
     it("renders empty state when no eligible substitutes exist", () => {
         render(
-            <SubPlayerModal
+            <SubPlayerDrawer
                 opened={true}
                 onClose={mockOnClose}
                 currentSlot={mockSlot}
@@ -98,7 +98,7 @@ describe("SubPlayerModal", () => {
 
     it("allows a user to select a substitute and confirm", async () => {
         render(
-            <SubPlayerModal
+            <SubPlayerDrawer
                 opened={true}
                 onClose={mockOnClose}
                 currentSlot={mockSlot}
@@ -130,7 +130,7 @@ describe("SubPlayerModal", () => {
 
     it("allows a user to cancel the operation", async () => {
         render(
-            <SubPlayerModal
+            <SubPlayerDrawer
                 opened={true}
                 onClose={mockOnClose}
                 currentSlot={mockSlot}
