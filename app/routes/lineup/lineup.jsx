@@ -40,7 +40,7 @@ export async function action({ request, params }) {
             return {
                 success: false,
                 status: 400,
-                error: "Invalid playerChart JSON format provided.",
+                message: "Invalid playerChart JSON format provided.",
             };
         }
 
@@ -61,7 +61,7 @@ export async function action({ request, params }) {
             return {
                 success: false,
                 status: 400,
-                error: "Invalid playerChart JSON format provided.",
+                message: "Invalid playerChart JSON format provided.",
             };
         }
 

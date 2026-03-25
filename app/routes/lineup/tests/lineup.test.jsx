@@ -133,7 +133,7 @@ describe("Lineup Route", () => {
             });
 
             expect(result.status).toBe(400);
-            expect(result.error).toMatch(/Invalid playerChart JSON/);
+            expect(result.message).toMatch(/Invalid playerChart JSON/);
             expect(lineupsActions.savePlayerChart).not.toHaveBeenCalled();
         });
 
@@ -167,7 +167,7 @@ describe("Lineup Route", () => {
             });
 
             expect(result.status).toBe(400);
-            expect(result.error).toMatch(/Invalid playerChart JSON/);
+            expect(result.message).toMatch(/Invalid playerChart JSON/);
             expect(lineupsActions.savePlayerChart).not.toHaveBeenCalled();
         });
     });
