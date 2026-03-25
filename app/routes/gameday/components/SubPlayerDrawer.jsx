@@ -29,7 +29,7 @@ export default function SubPlayerDrawer({
     if (!currentSlot) return null;
 
     const activePlayer = getActivePlayerInSlot(currentSlot);
-    const activeName = `${activePlayer.firstName} ${activePlayer.lastName}`;
+    const activeName = `${activePlayer.firstName}${activePlayer.lastName ? " " + activePlayer.lastName : ""}`;
     const isCurrentSub = !!currentSlot.substitutions?.length;
 
     const handleConfirm = () => {
@@ -105,7 +105,10 @@ export default function SubPlayerDrawer({
                                         fw={isSelected ? 600 : 500}
                                         c={isSelected ? "blue" : "inherit"}
                                     >
-                                        {player.firstName} {player.lastName}
+                                        {player.firstName}
+                                        {player.lastName
+                                            ? " " + player.lastName
+                                            : ""}
                                     </Text>
                                 </Button>
                             );

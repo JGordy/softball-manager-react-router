@@ -92,8 +92,7 @@ export async function action({ request, params }) {
                 );
                 return {
                     success: false,
-                    error: true,
-                    status: error instanceof SyntaxError ? 400 : 500,
+                    status: 500,
                     message: "Log undone, but failed to revert lineup chart.",
                     details: error.message,
                 };

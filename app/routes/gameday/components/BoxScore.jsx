@@ -47,7 +47,7 @@ export default function BoxScore({
         const hasDuplicateFirstName =
             firstNameCounts[stat.player.firstName] > 1;
         const displayName = hasDuplicateFirstName
-            ? `${stat.player.firstName} ${stat.player.lastName.charAt(0)}.`
+            ? `${stat.player.firstName} ${stat.player.lastName ? stat.player.lastName.charAt(0) : ""}.`
             : stat.player.firstName;
 
         return (

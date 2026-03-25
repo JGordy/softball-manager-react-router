@@ -30,14 +30,20 @@ export function getRunnerMovement(baseState, playerChart) {
         const getPlayerName = (playerId) => {
             for (const slot of playerChart) {
                 if (slot.$id === playerId) {
-                    return `${slot.firstName} ${slot.lastName.charAt(0)}.`;
+                    const lastInitial = slot.lastName
+                        ? ` ${slot.lastName.charAt(0)}.`
+                        : "";
+                    return `${slot.firstName}${lastInitial}`;
                 }
                 if (slot.substitutions) {
                     const sub = slot.substitutions.find(
                         (s) => s.playerId === playerId,
                     );
                     if (sub) {
-                        return `${sub.firstName} ${sub.lastName.charAt(0)}.`;
+                        const lastInitial = sub.lastName
+                            ? ` ${sub.lastName.charAt(0)}.`
+                            : "";
+                        return `${sub.firstName}${lastInitial}`;
                     }
                 }
             }

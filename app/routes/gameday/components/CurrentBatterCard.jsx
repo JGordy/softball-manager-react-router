@@ -42,12 +42,17 @@ export default function CurrentBatterCard({ currentBatter, logs, ...props }) {
                         )}
                     </Group>
                     <Text size="lg" fw={800} c="white">
-                        {activePlayer.firstName} {activePlayer.lastName}
+                        {activePlayer.firstName}
+                        {activePlayer.lastName
+                            ? ` ${activePlayer.lastName}`
+                            : ""}
                     </Text>
                     {isSubstitute && (
                         <Text size="xs" c="blue.2">
-                            for {currentBatter.firstName}{" "}
-                            {currentBatter.lastName}
+                            for {currentBatter.firstName}
+                            {currentBatter.lastName
+                                ? ` ${currentBatter.lastName}`
+                                : ""}
                         </Text>
                     )}
                 </Stack>

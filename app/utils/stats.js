@@ -13,56 +13,39 @@ export const calculateGameStats = (logs = [], playerChart = []) => {
     // 1. Initialize stats map for all players in lineup
     const statsMap = {};
 
+    const initStats = (player) => ({
+        player,
+        PA: 0,
+        AB: 0,
+        H: 0,
+        "1B": 0,
+        "2B": 0,
+        "3B": 0,
+        HR: 0,
+        R: 0,
+        RBI: 0,
+        BB: 0,
+        K: 0,
+        SF: 0,
+        AVG: ".000",
+        OBP: ".000",
+        SLG: ".000",
+        OPS: ".000",
+    });
+
     playerChart.forEach((slot) => {
         // Seed entry for the original slot player
-        statsMap[slot.$id] = {
-            player: slot,
-            PA: 0,
-            AB: 0,
-            H: 0,
-            "1B": 0,
-            "2B": 0,
-            "3B": 0,
-            HR: 0,
-            R: 0,
-            RBI: 0,
-            BB: 0,
-            K: 0,
-            SF: 0,
-            AVG: ".000",
-            OBP: ".000",
-            SLG: ".000",
-            OPS: ".000",
-        };
+        statsMap[slot.$id] = initStats(slot);
 
         // Seed entries for any substitutes in this slot
         slot.substitutions?.forEach((sub) => {
             if (!statsMap[sub.playerId]) {
-                // Build a player-like object with the sub's identity
                 const subPlayer = {
                     $id: sub.playerId,
                     firstName: sub.firstName,
                     lastName: sub.lastName,
                 };
-                statsMap[sub.playerId] = {
-                    player: subPlayer,
-                    PA: 0,
-                    AB: 0,
-                    H: 0,
-                    "1B": 0,
-                    "2B": 0,
-                    "3B": 0,
-                    HR: 0,
-                    R: 0,
-                    RBI: 0,
-                    BB: 0,
-                    K: 0,
-                    SF: 0,
-                    AVG: ".000",
-                    OBP: ".000",
-                    SLG: ".000",
-                    OPS: ".000",
-                };
+                statsMap[sub.playerId] = initStats(subPlayer);
             }
         });
     });

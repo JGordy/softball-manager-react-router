@@ -102,7 +102,8 @@ export function useGamedayActions({
             const slot = playerChart[battingOrderIndex];
             const activePlayer = getActivePlayerInSlot(slot);
             const activePlayerId = activePlayer.playerId ?? activePlayer.$id;
-            const batterName = `${activePlayer.firstName} ${activePlayer.lastName}`;
+            const batterName =
+                `${activePlayer.firstName || ""}${activePlayer.lastName ? " " + activePlayer.lastName : ""}`.trim();
 
             const description = getEventDescription(
                 actionType,
@@ -212,8 +213,10 @@ export function useGamedayActions({
 
             const slot = currentPlayerChart[slotIndex];
             const outgoingPlayer = getActivePlayerInSlot(slot);
-            const outgoingName = `${outgoingPlayer.firstName} ${outgoingPlayer.lastName}`;
-            const incomingName = `${incomingPlayer.firstName} ${incomingPlayer.lastName}`;
+            const outgoingName =
+                `${outgoingPlayer.firstName || ""}${outgoingPlayer.lastName ? " " + outgoingPlayer.lastName : ""}`.trim();
+            const incomingName =
+                `${incomingPlayer.firstName || ""}${incomingPlayer.lastName ? " " + incomingPlayer.lastName : ""}`.trim();
 
             const subEntry = {
                 playerId: incomingPlayer.$id,
