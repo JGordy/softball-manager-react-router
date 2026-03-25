@@ -20,6 +20,7 @@ import LineupValidationMenu from "./components/LineupValidationMenu";
 import addPlayerAvailability from "@/utils/addPlayerAvailability";
 import { validateLineup } from "./utils/validateLineup";
 import { formatForViewerDate } from "@/utils/dateTime";
+import { parsePlayerChart } from "@/routes/gameday/utils/gamedayUtils";
 
 export async function loader({ params, request }) {
     const { eventId } = params;
@@ -34,43 +35,45 @@ export async function action({ request, params }) {
     const client = await createSessionClient(request);
 
     if (_action === "save-chart") {
-        try {
-            return await savePlayerChart({
-                eventId,
-                values: {
-                    ...values,
-                    playerChart: JSON.parse(values.playerChart),
-                },
-                client,
-            });
-        } catch (err) {
+        const playerChart = parsePlayerChart(values.playerChart);
+        if (!playerChart) {
             return {
                 success: false,
                 status: 400,
                 error: "Invalid playerChart JSON format provided.",
             };
         }
+
+        return await savePlayerChart({
+            eventId,
+            values: {
+                ...values,
+                playerChart,
+            },
+            client,
+        });
     }
 
     if (_action === "finalize-chart") {
         // Finalize and send notifications to team members
-        try {
-            return await savePlayerChart({
-                eventId,
-                values: {
-                    ...values,
-                    playerChart: JSON.parse(values.playerChart),
-                },
-                client,
-                sendNotification: true,
-            });
-        } catch (err) {
+        const playerChart = parsePlayerChart(values.playerChart);
+        if (!playerChart) {
             return {
                 success: false,
                 status: 400,
                 error: "Invalid playerChart JSON format provided.",
             };
         }
+
+        return await savePlayerChart({
+            eventId,
+            values: {
+                ...values,
+                playerChart,
+            },
+            client,
+            sendNotification: true,
+        });
     }
 }
 
