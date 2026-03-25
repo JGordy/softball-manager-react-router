@@ -360,7 +360,7 @@ export async function getEventById({ eventId, client, ...options }) {
         client: client,
     });
 
-    const parsedChart = parsePlayerChart(playerChart);
+    const parsedChart = parsePlayerChart(playerChart) ?? null;
 
     return {
         gameDeleted: false,
@@ -409,7 +409,7 @@ export async function getEventWithPlayerCharts({ client, eventId }) {
     });
 
     // Use shared defensive parser
-    const parsedChart = parsePlayerChart(playerChart);
+    const parsedChart = parsePlayerChart(playerChart) ?? null;
 
     return {
         attendance,
