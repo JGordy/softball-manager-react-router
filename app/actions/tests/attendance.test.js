@@ -3,14 +3,14 @@ import {
     createDocument,
     listDocuments,
     updateDocument,
-    getDocument,
+    readDocument,
 } from "@/utils/databases";
 
 jest.mock("@/utils/databases", () => ({
     createDocument: jest.fn(),
     listDocuments: jest.fn(),
     updateDocument: jest.fn(),
-    getDocument: jest.fn(),
+    readDocument: jest.fn(),
 }));
 
 jest.mock("@/utils/appwrite/server", () => ({
@@ -51,7 +51,7 @@ describe("Attendance Actions", () => {
             id: "mock-session-client",
         };
 
-        getDocument.mockResolvedValue({ teamId: "team1" });
+        readDocument.mockResolvedValue({ teamId: "team1" });
     });
 
     afterEach(() => {
@@ -177,7 +177,8 @@ describe("Attendance Actions", () => {
         });
 
         it("should reject attendance update if game teamId does not match provided teamId", async () => {
-            getDocument.mockResolvedValue({ teamId: "different-team" });
+            const { readDocument } = require("@/utils/databases");
+            readDocument.mockResolvedValue({ teamId: "different-team" });
 
             const result = await updatePlayerAttendance({
                 values: mockValues,

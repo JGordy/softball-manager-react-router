@@ -3,7 +3,7 @@ import {
     createDocument,
     listDocuments,
     updateDocument,
-    getDocument,
+    readDocument,
 } from "@/utils/databases";
 import { createAdminClient } from "@/utils/appwrite/server";
 
@@ -50,9 +50,10 @@ export async function updatePlayerAttendance({
             isAuthorized = currentUser.$id === playerId;
 
             if (teamId) {
-                const gameDoc = await getDocument(
+                const gameDoc = await readDocument(
                     "games",
                     eventId,
+                    [],
                     adminClient,
                 );
                 if (!gameDoc || gameDoc.teamId !== teamId) {
