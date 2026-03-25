@@ -100,6 +100,28 @@ describe("Lineup Route", () => {
             });
         });
 
+        it("handles double-stringified playerChart JSON in save-chart", async () => {
+            const chartData = [{ id: "1" }];
+            const doubleStringified = JSON.stringify(JSON.stringify(chartData));
+
+            const formData = new FormData();
+            formData.append("_action", "save-chart");
+            formData.append("playerChart", doubleStringified);
+
+            await action({
+                request: { formData: () => Promise.resolve(formData) },
+                params: { eventId: "evt1" },
+            });
+
+            expect(lineupsActions.savePlayerChart).toHaveBeenCalledWith({
+                eventId: "evt1",
+                values: expect.objectContaining({
+                    playerChart: chartData,
+                }),
+                client: expect.any(Object),
+            });
+        });
+
         it("returns 400 for invalid playerChart JSON in save-chart", async () => {
             const formData = new FormData();
             formData.append("_action", "save-chart");

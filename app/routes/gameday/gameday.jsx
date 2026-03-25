@@ -48,15 +48,16 @@ export async function action({ request, params }) {
         });
     }
     if (_action === "undo-game-event") {
+        // Log the undo event deletion first
         const undoResponse = await undoGameEvent({
             logId: values.logId,
             client,
         });
 
-        // Only update player chart if the undo successfully removed the log
+        // If the log was successfully removed and a reverting playerChart is provided, apply it to the database
         if (undoResponse && !undoResponse.error && values.playerChart) {
             const parsedPlayerChart = parsePlayerChart(values.playerChart);
-            if (!parsedPlayerChart) {
+            if (parsedPlayerChart === undefined) {
                 return {
                     error: true,
                     status: 400,
@@ -115,9 +116,17 @@ export async function action({ request, params }) {
         const logId = logResponse.log?.$id;
 
         const parsedPlayerChart = parsePlayerChart(playerChart);
-        if (!parsedPlayerChart) {
+        if (parsedPlayerChart === undefined) {
             // Rollback if parse fails
-            if (logId) await undoGameEvent({ logId, client });
+            if (logId) {
+                const rollback = await undoGameEvent({ logId, client });
+                if (rollback && rollback.error) {
+                    console.error(
+                        "Critical: Substitution parsing rollback failed!",
+                        rollback.error,
+                    );
+                }
+            }
             return {
                 error: true,
                 status: 400,
@@ -139,7 +148,15 @@ export async function action({ request, params }) {
                 error,
             );
             // Manual rollback of the log event if savePlayerChart threw an exception
-            if (logId) await undoGameEvent({ logId, client });
+            if (logId) {
+                const rollback = await undoGameEvent({ logId, client });
+                if (rollback && rollback.error) {
+                    console.error(
+                        "Critical: Substitution rollback failed!",
+                        rollback.error,
+                    );
+                }
+            }
 
             return {
                 error: true,
@@ -155,7 +172,7 @@ export async function action({ request, params }) {
 
     if (_action === "save-player-chart") {
         const parsedPlayerChart = parsePlayerChart(values.playerChart);
-        if (!parsedPlayerChart) {
+        if (parsedPlayerChart === undefined) {
             return {
                 error: true,
                 status: 400,

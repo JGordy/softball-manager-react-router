@@ -74,7 +74,8 @@ export async function updatePlayerAttendance({
                 if (
                     membership &&
                     (membership.roles.includes("manager") ||
-                        membership.roles.includes("owner"))
+                        membership.roles.includes("owner") ||
+                        membership.roles.includes("scorekeeper"))
                 ) {
                     isAuthorized = true;
                 }

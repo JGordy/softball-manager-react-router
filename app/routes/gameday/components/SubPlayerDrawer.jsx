@@ -88,27 +88,16 @@ export default function SubPlayerDrawer({
                                 selectedPlayer?.$id === player.$id;
 
                             return (
-                                <UnstyledButton
+                                <Button
                                     key={player.$id}
+                                    variant={isSelected ? "light" : "subtle"}
+                                    color={isSelected ? "blue" : "gray"}
                                     onClick={() => setSelectedPlayer(player)}
-                                    style={{ width: "100%" }}
-                                >
-                                    <Group
-                                        p="xs"
-                                        style={(theme) => ({
-                                            borderRadius: theme.radius.md,
-                                            border: `1px solid ${isSelected ? "var(--mantine-color-blue-filled)" : "var(--mantine-color-default-border)"}`,
-                                            backgroundColor: isSelected
-                                                ? "var(--mantine-color-blue-light)"
-                                                : "transparent",
-                                            transition: "all 0.15s ease",
-                                            "&:hover": {
-                                                backgroundColor: isSelected
-                                                    ? "var(--mantine-color-blue-light-hover)"
-                                                    : "var(--mantine-color-default-hover)",
-                                            },
-                                        })}
-                                    >
+                                    fullWidth
+                                    justify="flex-start"
+                                    h="auto"
+                                    p="xs"
+                                    leftSection={
                                         <Avatar
                                             size="sm"
                                             color="blue"
@@ -117,15 +106,16 @@ export default function SubPlayerDrawer({
                                             {player.firstName?.[0]}
                                             {player.lastName?.[0]}
                                         </Avatar>
-                                        <Text
-                                            size="sm"
-                                            fw={isSelected ? 600 : 500}
-                                            c={isSelected ? "blue" : undefined}
-                                        >
-                                            {player.firstName} {player.lastName}
-                                        </Text>
-                                    </Group>
-                                </UnstyledButton>
+                                    }
+                                >
+                                    <Text
+                                        size="sm"
+                                        fw={isSelected ? 600 : 500}
+                                        c={isSelected ? "blue" : "inherit"}
+                                    >
+                                        {player.firstName} {player.lastName}
+                                    </Text>
+                                </Button>
                             );
                         })}
                     </Stack>

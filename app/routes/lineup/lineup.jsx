@@ -36,7 +36,7 @@ export async function action({ request, params }) {
 
     if (_action === "save-chart") {
         const playerChart = parsePlayerChart(values.playerChart);
-        if (!playerChart) {
+        if (playerChart === undefined) {
             return {
                 success: false,
                 status: 400,
@@ -57,7 +57,7 @@ export async function action({ request, params }) {
     if (_action === "finalize-chart") {
         // Finalize and send notifications to team members
         const playerChart = parsePlayerChart(values.playerChart);
-        if (!playerChart) {
+        if (playerChart === undefined) {
             return {
                 success: false,
                 status: 400,

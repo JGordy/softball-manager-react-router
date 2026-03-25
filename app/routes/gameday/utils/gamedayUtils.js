@@ -215,7 +215,8 @@ export function handleRunnerResults(runnerResults, runners, batterId) {
  * @returns {Array|null} - The parsed array of slots or null if invalid.
  */
 export function parsePlayerChart(playerChart) {
-    if (!playerChart) return null;
+    if (playerChart === undefined || playerChart === "") return undefined;
+    if (playerChart === null) return null;
     if (Array.isArray(playerChart)) return playerChart;
 
     try {
@@ -229,9 +230,10 @@ export function parsePlayerChart(playerChart) {
             parsed = JSON.parse(parsed);
         }
 
-        return Array.isArray(parsed) ? parsed : null;
+        if (parsed === null) return null;
+        return Array.isArray(parsed) ? parsed : undefined;
     } catch (e) {
         console.error("Error parsing playerChart:", e);
-        return null;
+        return undefined;
     }
 }
