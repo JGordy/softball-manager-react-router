@@ -1,9 +1,33 @@
 import {
+    getActivePlayerInSlot,
     getRunnerMovement,
     getEventDescription,
     handleWalk,
     handleRunnerResults,
+    parsePlayerChart,
 } from "../gamedayUtils";
+
+describe("getActivePlayerInSlot", () => {
+    it("should return the root slot if there are no substitutions", () => {
+        const slot = { $id: "p1", firstName: "Root", lastName: "Player" };
+        expect(getActivePlayerInSlot(slot)).toEqual(slot);
+    });
+
+    it("should return the latest substitution target if the substitutions array exists", () => {
+        const slot = {
+            $id: "p1",
+            firstName: "Root",
+            lastName: "Player",
+            substitutions: [
+                { playerId: "sub1", firstName: "First", lastName: "Sub" },
+                { playerId: "sub2", firstName: "Current", lastName: "Sub" },
+            ],
+        };
+        const active = getActivePlayerInSlot(slot);
+        expect(active.playerId).toBe("sub2");
+        expect(active.firstName).toBe("Current");
+    });
+});
 
 describe("getRunnerMovement", () => {
     const mockPlayerChart = [
@@ -268,5 +292,45 @@ describe("handleRunnerResults", () => {
 
         const result = handleRunnerResults(runnerResults, runners, "batterId");
         expect(result.newRunners.first).toBe("r1");
+    });
+});
+
+describe("parsePlayerChart", () => {
+    it("should return null for null and undefined for undefined/empty input", () => {
+        expect(parsePlayerChart(null)).toBeNull();
+        expect(parsePlayerChart(undefined)).toBeUndefined();
+        expect(parsePlayerChart("")).toBeUndefined();
+    });
+
+    it("should return the array directly if input is already an array", () => {
+        const input = [{ $id: "1" }];
+        expect(parsePlayerChart(input)).toBe(input);
+    });
+
+    it("should parse single-stringified JSON", () => {
+        const input = JSON.stringify([{ $id: "1" }]);
+        const result = parsePlayerChart(input);
+        expect(Array.isArray(result)).toBe(true);
+        expect(result[0].$id).toBe("1");
+    });
+
+    it("should parse double-stringified JSON", () => {
+        const input = JSON.stringify(JSON.stringify([{ $id: "1" }]));
+        const result = parsePlayerChart(input);
+        expect(Array.isArray(result)).toBe(true);
+        expect(result[0].$id).toBe("1");
+    });
+
+    it("should return undefined and log error for malformed JSON", () => {
+        const spy = jest.spyOn(console, "error").mockImplementation(() => {});
+        const result = parsePlayerChart("{ invalid json");
+        expect(result).toBeUndefined();
+        expect(spy).toHaveBeenCalled();
+        spy.mockRestore();
+    });
+
+    it("should return undefined if parsed result is not an array", () => {
+        const input = JSON.stringify({ not: "an array" });
+        expect(parsePlayerChart(input)).toBeUndefined();
     });
 });

@@ -1,5 +1,9 @@
 import { ScrollArea, Text, Group, Stack, Paper, Badge } from "@mantine/core";
-import { IconCaretUpFilled, IconCaretDownFilled } from "@tabler/icons-react";
+import {
+    IconCaretUpFilled,
+    IconCaretDownFilled,
+    IconArrowsExchange,
+} from "@tabler/icons-react";
 import { getRunnerMovement } from "../utils/gamedayUtils";
 
 export default function PlayHistoryList({ logs, playerChart }) {
@@ -17,6 +21,55 @@ export default function PlayHistoryList({ logs, playerChart }) {
         <ScrollArea h={400} offsetScrollbars>
             <Stack gap="xs">
                 {[...logs].reverse().map((log) => {
+                    // Render substitution events with a distinct visual style
+                    if (log.eventType === "SUB") {
+                        return (
+                            <Paper
+                                key={log.$id}
+                                withBorder
+                                p="xs"
+                                radius="md"
+                                style={{
+                                    borderColor:
+                                        "var(--mantine-color-orange-4)",
+                                    borderStyle: "dashed",
+                                }}
+                            >
+                                <Group gap="xs" wrap="nowrap">
+                                    <IconArrowsExchange
+                                        size={14}
+                                        color="var(--mantine-color-orange-6)"
+                                        style={{ flexShrink: 0 }}
+                                    />
+                                    <Text
+                                        size="sm"
+                                        c="orange.7"
+                                        fs="italic"
+                                        style={{ flex: 1 }}
+                                    >
+                                        {log.description}
+                                    </Text>
+                                    <Group gap={4}>
+                                        {log.halfInning === "top" ? (
+                                            <IconCaretUpFilled
+                                                size={10}
+                                                color="var(--mantine-color-blue-9)"
+                                            />
+                                        ) : (
+                                            <IconCaretDownFilled
+                                                size={10}
+                                                color="var(--mantine-color-blue-9)"
+                                            />
+                                        )}
+                                        <Text size="xs" c="dimmed">
+                                            {log.inning}
+                                        </Text>
+                                    </Group>
+                                </Group>
+                            </Paper>
+                        );
+                    }
+
                     const runnerMovements = getRunnerMovement(
                         log.baseState,
                         playerChart,

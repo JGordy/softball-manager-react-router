@@ -61,4 +61,20 @@ describe("PlayHistoryList", () => {
         render(<PlayHistoryList logs={[mockLogs[0]]} playerChart={[]} />);
         expect(screen.getByText("Runner scores")).toBeInTheDocument();
     });
+
+    it("renders SUB event types with the sub description", () => {
+        const subLog = {
+            $id: "log3",
+            description: "Jane D. enters for Joseph G. in slot 3",
+            eventType: "SUB",
+        };
+        render(
+            <PlayHistoryList logs={[...mockLogs, subLog]} playerChart={[]} />,
+        );
+
+        // Assert it explicitly renders the sub text
+        expect(
+            screen.getByText("Jane D. enters for Joseph G. in slot 3"),
+        ).toBeInTheDocument();
+    });
 });

@@ -161,4 +161,39 @@ describe("useGamedayController", () => {
 
         expect(result.current.isSyncing).toBe(true);
     });
+
+    it("includes substitutes in the batters list and labels them correctly", () => {
+        const playerChartWithSubs = [
+            {
+                $id: "p1",
+                firstName: "John",
+                lastName: "Doe",
+                substitutions: [
+                    {
+                        playerId: "sub1",
+                        firstName: "Substitute",
+                        lastName: "Player",
+                    },
+                ],
+            },
+        ];
+
+        const { result } = renderHook(() =>
+            useGamedayController({
+                game: mockGame,
+                playerChart: playerChartWithSubs,
+                team: mockTeam,
+            }),
+        );
+
+        expect(result.current.batters).toHaveLength(2);
+        expect(result.current.batters).toContainEqual({
+            value: "p1",
+            label: "John Doe",
+        });
+        expect(result.current.batters).toContainEqual({
+            value: "sub1",
+            label: "Substitute Player (Sub)",
+        });
+    });
 });

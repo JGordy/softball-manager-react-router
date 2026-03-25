@@ -51,6 +51,37 @@ describe("useGameState", () => {
         expect(result.current.battingOrderIndex).toBe(1);
     });
 
+    it("ignores 'SUB' logs when calculating the next batter", () => {
+        const logs = [
+            {
+                $id: "log1",
+                playerId: "p1",
+                inning: 1,
+                halfInning: "top",
+                outsOnPlay: 1, // At-bat completes, advances index to p2 (index 1)
+                baseState: "{}",
+                eventType: "1B",
+            },
+            {
+                $id: "log2",
+                playerId: "sub99",
+                inning: 1,
+                halfInning: "top",
+                outsOnPlay: 0,
+                baseState: "{}",
+                eventType: "SUB",
+            },
+        ];
+
+        const { result } = renderHook(() =>
+            useGameState({ logs, game: defaultGame, playerChart }),
+        );
+
+        // Even though log2 happened, it's a SUB, so the engine should correctly see log1
+        // as the last at-bat and remain on index 1 for p2.
+        expect(result.current.battingOrderIndex).toBe(1);
+    });
+
     it("advances inning when 3 outs", () => {
         const logs = [
             {

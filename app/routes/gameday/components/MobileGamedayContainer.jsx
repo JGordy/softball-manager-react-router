@@ -6,9 +6,13 @@ import {
     Stack,
     Tabs,
     Text,
+    Title,
 } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 
 import TabsWrapper from "@/components/TabsWrapper";
+import BackButton from "@/components/BackButton";
+import ContactSprayChart from "@/components/ContactSprayChart";
 
 import { useGamedayController } from "../hooks/useGamedayController";
 
@@ -23,15 +27,17 @@ import LastPlayCard from "./LastPlayCard";
 import FieldingControls from "./FieldingControls";
 import BoxScore from "./BoxScore";
 import UpNextCard from "./UpNextCard";
-import ContactSprayChart from "@/components/ContactSprayChart";
+import SubPlayerDrawer from "./SubPlayerDrawer";
+import GamedayMenu from "./GamedayMenu";
 
 export default function MobileGamedayContainer({
     game,
-    playerChart,
+    playerChart: initialPlayerChart,
     team,
     initialLogs = [],
     gameFinal = false,
     isScorekeeper = false,
+    players = [],
 }) {
     const {
         logs,
@@ -59,15 +65,22 @@ export default function MobileGamedayContainer({
         advanceHalfInning,
         initiateAction,
         completeAction,
+        handleSubCurrentBatter,
+        eligibleSubstitutes,
+        playerChart,
         undoLast,
     } = useGamedayController({
         game,
-        playerChart,
+        playerChart: initialPlayerChart,
         team,
         initialLogs,
         gameFinal,
         isScorekeeper,
+        players,
     });
+
+    const [subModalOpened, { open: openSubModal, close: closeSubModal }] =
+        useDisclosure(false);
 
     if (playerChart.length === 0) {
         return (
@@ -84,6 +97,22 @@ export default function MobileGamedayContainer({
 
     return (
         <Stack gap="md">
+            {/* Page header — rendered here so menu has access to openSubModal */}
+            <Group justify="space-between" align="center">
+                <BackButton to={`/events/${game.$id}`} />
+                <Title order={3}>Scoring & Stats</Title>
+                {isScorekeeper ? (
+                    <GamedayMenu
+                        gameFinal={gameFinal}
+                        score={score}
+                        opponentScore={opponentScore}
+                        onSubBatter={isOurBatting ? openSubModal : undefined}
+                    />
+                ) : (
+                    <div style={{ minWidth: 40 }} />
+                )}
+            </Group>
+
             <ScoreboardHeader
                 score={score}
                 opponentScore={opponentScore}
@@ -235,6 +264,14 @@ export default function MobileGamedayContainer({
                 playerChart={playerChart}
                 currentBatter={currentBatter}
                 outs={outs}
+            />
+
+            <SubPlayerDrawer
+                opened={subModalOpened}
+                onClose={closeSubModal}
+                currentSlot={currentBatter}
+                eligibleSubstitutes={eligibleSubstitutes}
+                onConfirmSub={handleSubCurrentBatter}
             />
         </Stack>
     );

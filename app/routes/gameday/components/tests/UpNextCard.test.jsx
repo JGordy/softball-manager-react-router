@@ -39,4 +39,17 @@ describe("UpNextCard", () => {
         expect(screen.getByText("Alice W.")).toBeInTheDocument();
         expect(screen.getAllByText("•")).toHaveLength(2);
     });
+
+    it("renders substitute names and SUB badges correctly", () => {
+        const substituteBatter = {
+            ...mockBatters[0],
+            substitutions: [
+                { playerId: "sub1", firstName: "Temp", lastName: "Guy" },
+            ],
+        };
+        render(<UpNextCard upcomingBatters={[substituteBatter]} />);
+        expect(screen.getByText("UP NEXT")).toBeInTheDocument();
+        expect(screen.getByText("Temp G.")).toBeInTheDocument();
+        expect(screen.getByText("SUB")).toBeInTheDocument();
+    });
 });

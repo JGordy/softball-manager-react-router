@@ -31,17 +31,34 @@ export function useGameState({ logs, game, playerChart }) {
         // 1. Current Batter Index
         // Calculate based on the last logged batter to handle undo correctly
         if (logs.length > 0) {
-            const lastLog = logs[logs.length - 1];
-            // Find the last batter's index in the player chart
-            const lastBatterIndex = playerChart.findIndex(
-                (p) => p.$id === lastLog.playerId,
-            );
-            // Next batter is the one after the last logged batter
-            const nextIndex =
-                lastBatterIndex >= 0
-                    ? (lastBatterIndex + 1) % playerChart.length
-                    : 0;
-            setBattingOrderIndex(nextIndex);
+            // Find the last log that was actually an at-bat (not a substitution)
+            let lastAtBatLog = null;
+            for (let i = logs.length - 1; i >= 0; i--) {
+                if (logs[i].eventType !== "SUB") {
+                    lastAtBatLog = logs[i];
+                    break;
+                }
+            }
+
+            if (lastAtBatLog) {
+                // Find the last batter's index in the player chart
+                const lastBatterIndex = playerChart.findIndex(
+                    (p) =>
+                        p.$id === lastAtBatLog.playerId ||
+                        p.substitutions?.some(
+                            (s) => s.playerId === lastAtBatLog.playerId,
+                        ),
+                );
+                // Next batter is the one after the last logged batter
+                const nextIndex =
+                    lastBatterIndex >= 0
+                        ? (lastBatterIndex + 1) % playerChart.length
+                        : 0;
+                setBattingOrderIndex(nextIndex);
+            } else {
+                // Only subs logged so far, start at first batter
+                setBattingOrderIndex(0);
+            }
         } else {
             // No logs yet, start with first batter
             setBattingOrderIndex(0);

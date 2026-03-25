@@ -1,11 +1,20 @@
-import { Text, Group, Button } from "@mantine/core";
-import { IconFlag, IconPlayerPlay } from "@tabler/icons-react";
 import { useFetcher } from "react-router";
+import { Text, Group, Button } from "@mantine/core";
+import {
+    IconFlag,
+    IconPlayerPlay,
+    IconArrowsExchange,
+} from "@tabler/icons-react";
 
 import MenuContainer from "@/components/MenuContainer";
 import useModal from "@/hooks/useModal";
 
-export default function GamedayMenu({ gameFinal, score, opponentScore }) {
+export default function GamedayMenu({
+    gameFinal,
+    score,
+    opponentScore,
+    onSubBatter,
+}) {
     const fetcher = useFetcher();
     const { openModal, closeAllModals } = useModal();
 
@@ -87,24 +96,36 @@ export default function GamedayMenu({ gameFinal, score, opponentScore }) {
         });
     };
 
+    const gameControls = [
+        gameFinal
+            ? {
+                  key: "resume-game",
+                  onClick: handleResumeGame,
+                  leftSection: <IconPlayerPlay size={14} />,
+                  content: <Text>Resume Game</Text>,
+              }
+            : {
+                  key: "end-game",
+                  onClick: handleEndGame,
+                  leftSection: <IconFlag size={14} />,
+                  content: <Text>End Game</Text>,
+              },
+    ];
+
+    // Only show Sub Batter when the game is active and a sub callback is provided
+    if (!gameFinal && onSubBatter) {
+        gameControls.unshift({
+            key: "sub-batter",
+            onClick: onSubBatter,
+            leftSection: <IconArrowsExchange size={14} />,
+            content: <Text>Sub Current Batter</Text>,
+        });
+    }
+
     const sections = [
         {
             label: "Game Controls",
-            items: [
-                gameFinal
-                    ? {
-                          key: "resume-game",
-                          onClick: handleResumeGame,
-                          leftSection: <IconPlayerPlay size={14} />,
-                          content: <Text>Resume Game</Text>,
-                      }
-                    : {
-                          key: "end-game",
-                          onClick: handleEndGame,
-                          leftSection: <IconFlag size={14} />,
-                          content: <Text>End Game</Text>,
-                      },
-            ],
+            items: gameControls,
         },
     ];
 

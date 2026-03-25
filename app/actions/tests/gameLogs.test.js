@@ -148,6 +148,75 @@ describe("gameLogs actions", () => {
             expect(result.success).toBe(true);
         });
 
+        it("should cast FormData 'null' string literals to native nulls for SDK optional fields", async () => {
+            const mockPayload = {
+                gameId: "game123",
+                inning: "1",
+                halfInning: "top",
+                playerId: "player456",
+                eventType: "walk",
+                rbi: 0,
+                outsOnPlay: 0,
+                description: "Walk",
+                baseState: {},
+                battingSide: "null", // formData sends strings
+            };
+
+            createDocument.mockResolvedValue({ $id: "log790", ...mockPayload });
+            readDocument.mockResolvedValue({ score: "0", teamId: "team789" });
+
+            await logGameEvent({
+                ...mockPayload,
+                client: { mockedClient: true },
+            });
+
+            // Expect createDocument data field to feature actual nulls, not "null" strings
+            expect(createDocument).toHaveBeenCalledWith(
+                "game_logs",
+                null,
+                expect.objectContaining({
+                    battingSide: null,
+                }),
+                expect.any(Array),
+                expect.any(Object),
+            );
+        });
+
+        it("should preserve 0 values for hitX and hitY coordinates", async () => {
+            const mockPayload = {
+                gameId: "game123",
+                inning: "1",
+                halfInning: "top",
+                playerId: "player456",
+                eventType: "1B",
+                rbi: 0,
+                outsOnPlay: 0,
+                description: "Single",
+                baseState: {},
+                hitX: "0",
+                hitY: "0",
+            };
+
+            createDocument.mockResolvedValue({ $id: "log790", ...mockPayload });
+            readDocument.mockResolvedValue({ score: "0", teamId: "team789" });
+
+            await logGameEvent({
+                ...mockPayload,
+                client: { mockedClient: true },
+            });
+
+            expect(createDocument).toHaveBeenCalledWith(
+                "game_logs",
+                null,
+                expect.objectContaining({
+                    hitX: 0,
+                    hitY: 0,
+                }),
+                expect.any(Array),
+                expect.any(Object),
+            );
+        });
+
         it("should handle errors and rollback transaction when logging fails", async () => {
             const mockPayload = {
                 gameId: "game123",

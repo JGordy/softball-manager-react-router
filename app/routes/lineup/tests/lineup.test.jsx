@@ -86,6 +86,7 @@ describe("Lineup Route", () => {
             const formData = new FormData();
             formData.append("_action", "save-chart");
             formData.append("someField", "value");
+            formData.append("playerChart", JSON.stringify([{ id: "1" }]));
 
             await action({
                 request: { formData: () => Promise.resolve(formData) },
@@ -94,15 +95,53 @@ describe("Lineup Route", () => {
 
             expect(lineupsActions.savePlayerChart).toHaveBeenCalledWith({
                 eventId: "evt1",
-                values: { someField: "value" },
+                values: { someField: "value", playerChart: [{ id: "1" }] },
                 client: expect.any(Object),
             });
+        });
+
+        it("handles double-stringified playerChart JSON in save-chart", async () => {
+            const chartData = [{ id: "1" }];
+            const doubleStringified = JSON.stringify(JSON.stringify(chartData));
+
+            const formData = new FormData();
+            formData.append("_action", "save-chart");
+            formData.append("playerChart", doubleStringified);
+
+            await action({
+                request: { formData: () => Promise.resolve(formData) },
+                params: { eventId: "evt1" },
+            });
+
+            expect(lineupsActions.savePlayerChart).toHaveBeenCalledWith({
+                eventId: "evt1",
+                values: expect.objectContaining({
+                    playerChart: chartData,
+                }),
+                client: expect.any(Object),
+            });
+        });
+
+        it("returns 400 for invalid playerChart JSON in save-chart", async () => {
+            const formData = new FormData();
+            formData.append("_action", "save-chart");
+            formData.append("playerChart", "{ invalid json");
+
+            const result = await action({
+                request: { formData: () => Promise.resolve(formData) },
+                params: { eventId: "evt1" },
+            });
+
+            expect(result.status).toBe(400);
+            expect(result.message).toMatch(/Invalid playerChart JSON/);
+            expect(lineupsActions.savePlayerChart).not.toHaveBeenCalled();
         });
 
         it("handles finalize-chart action", async () => {
             const formData = new FormData();
             formData.append("_action", "finalize-chart");
             formData.append("someField", "value");
+            formData.append("playerChart", JSON.stringify([{ id: "1" }]));
 
             await action({
                 request: { formData: () => Promise.resolve(formData) },
@@ -111,10 +150,25 @@ describe("Lineup Route", () => {
 
             expect(lineupsActions.savePlayerChart).toHaveBeenCalledWith({
                 eventId: "evt1",
-                values: { someField: "value" },
+                values: { someField: "value", playerChart: [{ id: "1" }] },
                 sendNotification: true,
                 client: expect.any(Object),
             });
+        });
+
+        it("returns 400 for invalid playerChart JSON in finalize-chart", async () => {
+            const formData = new FormData();
+            formData.append("_action", "finalize-chart");
+            formData.append("playerChart", "{ invalid json");
+
+            const result = await action({
+                request: { formData: () => Promise.resolve(formData) },
+                params: { eventId: "evt1" },
+            });
+
+            expect(result.status).toBe(400);
+            expect(result.message).toMatch(/Invalid playerChart JSON/);
+            expect(lineupsActions.savePlayerChart).not.toHaveBeenCalled();
         });
     });
 

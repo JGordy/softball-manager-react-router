@@ -1,3 +1,22 @@
+/**
+ * Returns the currently active player object for a lineup slot.
+ * If the slot has substitutions, the last substitute is the active player.
+ * Otherwise, the original slot player (with $id, firstName, lastName) is returned.
+ */
+export const getActivePlayerInSlot = (slot) => {
+    if (!slot?.substitutions || slot.substitutions.length === 0) return slot;
+    return slot.substitutions[slot.substitutions.length - 1];
+};
+
+/**
+ * Returns the currently active player ID for a lineup slot.
+ * Handles both starters (using $id) and substitutes (using playerId).
+ */
+export const getActivePlayerId = (slot) => {
+    const active = getActivePlayerInSlot(slot);
+    return active?.playerId || active?.$id;
+};
+
 export function getRunnerMovement(baseState, playerChart) {
     if (!baseState || !playerChart) return [];
 
@@ -7,12 +26,28 @@ export function getRunnerMovement(baseState, playerChart) {
         const state =
             typeof baseState === "string" ? JSON.parse(baseState) : baseState;
 
-        // Helper to get player name by ID
+        // Helper to get player name by ID — checks root $id and substitutions
         const getPlayerName = (playerId) => {
-            const player = playerChart.find((p) => p.$id === playerId);
-            return player
-                ? `${player.firstName} ${player.lastName.charAt(0)}.`
-                : "Runner";
+            for (const slot of playerChart) {
+                if (slot.$id === playerId) {
+                    const lastInitial = slot.lastName
+                        ? ` ${slot.lastName.charAt(0)}.`
+                        : "";
+                    return `${slot.firstName}${lastInitial}`;
+                }
+                if (slot.substitutions) {
+                    const sub = slot.substitutions.find(
+                        (s) => s.playerId === playerId,
+                    );
+                    if (sub) {
+                        const lastInitial = sub.lastName
+                            ? ` ${sub.lastName.charAt(0)}.`
+                            : "";
+                        return `${sub.firstName}${lastInitial}`;
+                    }
+                }
+            }
+            return "Runner";
         };
 
         // First, show who scored
@@ -186,4 +221,34 @@ export function handleRunnerResults(runnerResults, runners, batterId) {
     });
 
     return { newRunners, runsOnPlay, outsRecorded };
+}
+
+/**
+ * Defensively parses the playerChart string from the database.
+ * Handles single-stringified, double-stringified, or already parsed data.
+ * @param {any} playerChart - The playerChart data to parse.
+ * @returns {Array|null|undefined} - The parsed array of slots, null if explicitly null, or undefined if missing/malformed.
+ */
+export function parsePlayerChart(playerChart) {
+    if (playerChart === undefined || playerChart === "") return undefined;
+    if (playerChart === null) return null;
+    if (Array.isArray(playerChart)) return playerChart;
+
+    try {
+        let parsed =
+            typeof playerChart === "string"
+                ? JSON.parse(playerChart)
+                : playerChart;
+
+        // Handle double-stringified data from older records
+        if (typeof parsed === "string") {
+            parsed = JSON.parse(parsed);
+        }
+
+        if (parsed === null) return null;
+        return Array.isArray(parsed) ? parsed : undefined;
+    } catch (e) {
+        console.error("Error parsing playerChart:", e);
+        return undefined;
+    }
 }

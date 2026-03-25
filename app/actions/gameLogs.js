@@ -13,6 +13,24 @@ import {
 
 import { EVENT_TYPE_MAP } from "@/constants/scoring";
 
+/**
+ * Normalizes optional form fields (e.g. hitX, hitY) that may be "null" strings,
+ * empty strings, or undefined, ensuring they are returned as either a
+ * parsed numeric/string value or a native null.
+ */
+function normalizeOptionalField(value, parser = null) {
+    if (
+        value === undefined ||
+        value === null ||
+        value === "" ||
+        value === "null"
+    ) {
+        return null;
+    }
+
+    return parser ? parser(value) : value;
+}
+
 const databaseId = process.env.APPWRITE_DATABASE_ID;
 
 export const logGameEvent = async ({
@@ -86,10 +104,10 @@ export const logGameEvent = async ({
             outsOnPlay: parseInt(outsOnPlay, 10),
             description,
             baseState: baseStateStr,
-            hitX: hitX ? parseFloat(hitX) : null,
-            hitY: hitY ? parseFloat(hitY) : null,
-            hitLocation,
-            battingSide,
+            hitX: normalizeOptionalField(hitX, parseFloat),
+            hitY: normalizeOptionalField(hitY, parseFloat),
+            hitLocation: normalizeOptionalField(hitLocation),
+            battingSide: normalizeOptionalField(battingSide),
         };
 
         // If runs > 0, use transaction for atomicity
