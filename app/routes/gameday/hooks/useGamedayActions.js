@@ -237,7 +237,7 @@ export function useGamedayActions({
             // Notify parent to update local state
             onChartUpdate(updatedChart);
 
-            // Submit a single action to both update the chart and log the event atomically
+            // Submit a single request to update the chart and log the event together
             fetcher.submit(
                 {
                     _action: "substitute-player",
