@@ -47,7 +47,8 @@ export async function action({ request, params }) {
             } catch (e) {
                 return {
                     success: false,
-                    error: "Invalid baseState JSON structure",
+                    status: 400,
+                    message: "Invalid baseState JSON structure",
                 };
             }
         }

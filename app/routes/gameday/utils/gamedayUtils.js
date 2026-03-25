@@ -8,6 +8,15 @@ export const getActivePlayerInSlot = (slot) => {
     return slot.substitutions[slot.substitutions.length - 1];
 };
 
+/**
+ * Returns the currently active player ID for a lineup slot.
+ * Handles both starters (using $id) and substitutes (using playerId).
+ */
+export const getActivePlayerId = (slot) => {
+    const active = getActivePlayerInSlot(slot);
+    return active?.playerId || active?.$id;
+};
+
 export function getRunnerMovement(baseState, playerChart) {
     if (!baseState || !playerChart) return [];
 

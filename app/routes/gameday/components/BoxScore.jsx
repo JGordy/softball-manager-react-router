@@ -4,7 +4,7 @@ import { IconCornerDownRight } from "@tabler/icons-react";
 
 import { calculateGameStats, calculateTeamTotals } from "@/utils/stats";
 
-import { getActivePlayerInSlot } from "../utils/gamedayUtils";
+import { getActivePlayerId } from "../utils/gamedayUtils";
 
 export default function BoxScore({
     logs,
@@ -39,8 +39,7 @@ export default function BoxScore({
     const renderRow = (stat, isSub = false) => {
         if (!stat) return null;
 
-        const activePlayer = getActivePlayerInSlot(currentBatter);
-        const activeId = activePlayer?.playerId || activePlayer?.$id;
+        const activeId = getActivePlayerId(currentBatter);
 
         const isCurrentBatter =
             !gameFinal && currentBatter && stat.player.$id === activeId;
