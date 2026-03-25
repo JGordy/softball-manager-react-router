@@ -4,6 +4,8 @@ import { IconCornerDownRight } from "@tabler/icons-react";
 
 import { calculateGameStats, calculateTeamTotals } from "@/utils/stats";
 
+import { getActivePlayerInSlot } from "../utils/gamedayUtils";
+
 export default function BoxScore({
     logs,
     playerChart,
@@ -37,12 +39,11 @@ export default function BoxScore({
     const renderRow = (stat, isSub = false) => {
         if (!stat) return null;
 
-        const currentSlotIds = new Set([currentBatter?.$id]);
-        currentBatter?.substitutions?.forEach((s) =>
-            currentSlotIds.add(s.playerId),
-        );
+        const activePlayer = getActivePlayerInSlot(currentBatter);
+        const activeId = activePlayer?.playerId || activePlayer?.$id;
+
         const isCurrentBatter =
-            !gameFinal && currentBatter && currentSlotIds.has(stat.player.$id);
+            !gameFinal && currentBatter && stat.player.$id === activeId;
 
         const hasDuplicateFirstName =
             firstNameCounts[stat.player.firstName] > 1;

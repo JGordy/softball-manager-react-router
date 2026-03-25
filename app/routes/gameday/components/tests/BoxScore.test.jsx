@@ -47,9 +47,14 @@ describe("BoxScore", () => {
                 currentBatter={mockPlayerChart[0]}
             />,
         );
-        const row = screen.getByText("John").closest("tr");
-        // Check for style attribute containing the variable
-        expect(row.getAttribute("style")).toContain(
+        // "John" is the starter, but "Substitute" is active
+        const starterRow = screen.getByText("John").closest("tr");
+        const subRow = screen.getByText("Substitute").closest("tr");
+
+        expect(starterRow.getAttribute("style") || "").not.toContain(
+            "var(--mantine-color-blue-light)",
+        );
+        expect(subRow.getAttribute("style")).toContain(
             "var(--mantine-color-blue-light)",
         );
     });

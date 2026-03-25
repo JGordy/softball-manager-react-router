@@ -159,17 +159,35 @@ export function useGamedayController({
     }, [isScorekeeper, logs, playerChart, setPlayerChart, undoLast]);
 
     const batters = useMemo(() => {
-        return playerChart
-            .map((p) => {
-                const name =
-                    `${p.firstName || ""} ${p.lastName || ""}`.trim() ||
-                    "Unknown Player";
-                return {
-                    value: p.$id,
-                    label: name,
-                };
-            })
-            .sort((a, b) => a.label.localeCompare(b.label));
+        const batterMap = new Map();
+
+        playerChart.forEach((slot) => {
+            // Add starter
+            const starterName =
+                `${slot.firstName || ""} ${slot.lastName || ""}`.trim() ||
+                "Unknown Player";
+            batterMap.set(slot.$id, {
+                value: slot.$id,
+                label: starterName,
+            });
+
+            // Add all unique substitutes for this slot
+            slot.substitutions?.forEach((sub) => {
+                if (!batterMap.has(sub.playerId)) {
+                    const subName =
+                        `${sub.firstName || ""} ${sub.lastName || ""}`.trim() ||
+                        "Unknown Player";
+                    batterMap.set(sub.playerId, {
+                        value: sub.playerId,
+                        label: `${subName} (Sub)`,
+                    });
+                }
+            });
+        });
+
+        return Array.from(batterMap.values()).sort((a, b) =>
+            a.label.localeCompare(b.label),
+        );
     }, [playerChart]);
 
     // Update logs when fetcher returns a new log successfully

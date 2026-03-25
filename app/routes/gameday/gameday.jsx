@@ -69,12 +69,13 @@ export async function action({ request, params }) {
         if (undoResponse?.success && values.playerChart) {
             const parsedPlayerChart = parsePlayerChart(values.playerChart);
             if (parsedPlayerChart === undefined) {
+                console.warn(
+                    "Invalid player chart data provided when undoing game event. Undo succeeded; lineup was not reverted.",
+                );
                 return {
-                    success: false,
-                    error: true,
-                    status: 400,
-                    message:
-                        "Invalid player chart data provided when undoing game event.",
+                    ...undoResponse,
+                    warning:
+                        "Undo succeeded, but lineup chart was not reverted due to invalid player chart data.",
                 };
             }
             try {
@@ -112,12 +113,25 @@ export async function action({ request, params }) {
     if (_action === "substitute-player") {
         const { playerChart, baseState, ...logData } = values;
 
+        let parsedBaseState = null;
+        if (baseState) {
+            try {
+                parsedBaseState = JSON.parse(baseState);
+            } catch (e) {
+                return {
+                    success: false,
+                    status: 400,
+                    message: "Invalid baseState JSON structure",
+                };
+            }
+        }
+
         // Log the substitution event first
         const logResponse = await logGameEvent({
             gameId: eventId,
             client,
             ...logData,
-            baseState: baseState ? JSON.parse(baseState) : null,
+            baseState: parsedBaseState,
         });
 
         // If logging fails, do not persist the chart update
