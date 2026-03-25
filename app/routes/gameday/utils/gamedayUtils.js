@@ -207,3 +207,31 @@ export function handleRunnerResults(runnerResults, runners, batterId) {
 
     return { newRunners, runsOnPlay, outsRecorded };
 }
+
+/**
+ * Defensively parses the playerChart string from the database.
+ * Handles single-stringified, double-stringified, or already parsed data.
+ * @param {any} playerChart - The playerChart data to parse.
+ * @returns {Array|null} - The parsed array of slots or null if invalid.
+ */
+export function parsePlayerChart(playerChart) {
+    if (!playerChart) return null;
+    if (Array.isArray(playerChart)) return playerChart;
+
+    try {
+        let parsed =
+            typeof playerChart === "string"
+                ? JSON.parse(playerChart)
+                : playerChart;
+
+        // Handle double-stringified data from older records
+        if (typeof parsed === "string") {
+            parsed = JSON.parse(parsed);
+        }
+
+        return Array.isArray(parsed) ? parsed : null;
+    } catch (e) {
+        console.error("Error parsing playerChart:", e);
+        return null;
+    }
+}

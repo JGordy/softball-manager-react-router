@@ -182,6 +182,41 @@ describe("gameLogs actions", () => {
             );
         });
 
+        it("should preserve 0 values for hitX and hitY coordinates", async () => {
+            const mockPayload = {
+                gameId: "game123",
+                inning: "1",
+                halfInning: "top",
+                playerId: "player456",
+                eventType: "1B",
+                rbi: 0,
+                outsOnPlay: 0,
+                description: "Single",
+                baseState: {},
+                hitX: "0",
+                hitY: "0",
+            };
+
+            createDocument.mockResolvedValue({ $id: "log790", ...mockPayload });
+            readDocument.mockResolvedValue({ score: "0", teamId: "team789" });
+
+            await logGameEvent({
+                ...mockPayload,
+                client: { mockedClient: true },
+            });
+
+            expect(createDocument).toHaveBeenCalledWith(
+                "game_logs",
+                null,
+                expect.objectContaining({
+                    hitX: 0,
+                    hitY: 0,
+                }),
+                expect.any(Array),
+                expect.any(Object),
+            );
+        });
+
         it("should handle errors and rollback transaction when logging fails", async () => {
             const mockPayload = {
                 gameId: "game123",

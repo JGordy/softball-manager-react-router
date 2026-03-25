@@ -260,6 +260,42 @@ describe("Gameday Route", () => {
             expect(result.error).toBe("Chart save failed");
         });
 
+        it("rolls back the log if savePlayerChart fails during substitution", async () => {
+            const formData = new FormData();
+            formData.append("_action", "substitute-player");
+            formData.append("playerChart", JSON.stringify([{ id: "1" }]));
+            formData.append("playerId", "sub999");
+
+            const request = {
+                formData: () => Promise.resolve(formData),
+            };
+            const params = { eventId: "game123" };
+
+            // logGameEvent succeeds
+            gameLogActions.logGameEvent.mockResolvedValue({
+                $id: "log123",
+                success: true,
+            });
+
+            // savePlayerChart fails
+            const lineupsActions = require("@/actions/lineups");
+            jest.spyOn(lineupsActions, "savePlayerChart").mockResolvedValue({
+                success: false,
+                error: "Chart save failed",
+            });
+
+            const result = await action({ request, params });
+
+            expect(gameLogActions.logGameEvent).toHaveBeenCalled();
+            expect(lineupsActions.savePlayerChart).toHaveBeenCalled();
+            // Verify undoGameEvent was called for the rollback
+            expect(gameLogActions.undoGameEvent).toHaveBeenCalledWith({
+                logId: "log123",
+                client: expect.any(Object),
+            });
+            expect(result.error).toBe("Chart save failed");
+        });
+
         it("handles save-player-chart action", async () => {
             const formData = new FormData();
             formData.append("_action", "save-player-chart");

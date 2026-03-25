@@ -1,5 +1,6 @@
 import { Query } from "node-appwrite";
-import { listDocuments, readDocument } from "@/utils/databases";
+import { listDocuments, readDocument, updateDocument } from "@/utils/databases";
+import { parsePlayerChart } from "@/routes/gameday/utils/gamedayUtils";
 import { createAdminClient } from "@/utils/appwrite/server";
 import { DateTime } from "luxon";
 
@@ -359,17 +360,7 @@ export async function getEventById({ eventId, client, ...options }) {
         client: client,
     });
 
-    let parsedChart = null;
-    if (playerChart) {
-        try {
-            parsedChart = JSON.parse(playerChart);
-            if (typeof parsedChart === "string") {
-                parsedChart = JSON.parse(parsedChart);
-            }
-        } catch (e) {
-            console.error("Error parsing playerChart:", e);
-        }
-    }
+    const parsedChart = parsePlayerChart(playerChart);
 
     return {
         gameDeleted: false,
@@ -399,8 +390,14 @@ export async function getEventWithPlayerCharts({ client, eventId }) {
     }
 
     // Use shared loader helper to get base data for the event
+    const baseData = await loadGameBase({ eventId, client: client });
+
+    if (!baseData) {
+        throw new Error(`Game ${eventId} could not be found.`);
+    }
+
     const { game, teams, userIds, managerIds, scorekeeperIds, playerChart } =
-        await loadGameBase({ eventId, client: client });
+        baseData;
 
     // Fully resolve the players for the non-deferred path
     const players = await resolvePlayers(userIds, client);
@@ -411,6 +408,9 @@ export async function getEventWithPlayerCharts({ client, eventId }) {
         client: client,
     });
 
+    // Use shared defensive parser
+    const parsedChart = parsePlayerChart(playerChart);
+
     return {
         attendance,
         game,
@@ -418,8 +418,7 @@ export async function getEventWithPlayerCharts({ client, eventId }) {
         managerIds,
         scorekeeperIds,
         teams,
-        // NOTE: We need to parse the string from the database twice before passing to the front end
-        playerChart: playerChart ? JSON.parse(JSON.parse(playerChart)) : null,
+        playerChart: parsedChart,
         players,
     };
 }

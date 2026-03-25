@@ -251,16 +251,12 @@ export function useGamedayActions({
                     hitY: null,
                     hitLocation: null,
                     battingSide: null,
-                    baseState: JSON.stringify({
-                        first: null,
-                        second: null,
-                        third: null,
-                    }),
+                    baseState: JSON.stringify(runners),
                 },
                 { method: "post" },
             );
         },
-        [fetcher, halfInning, inning, isScorekeeper, team.$id],
+        [fetcher, halfInning, inning, isScorekeeper, runners, team.$id],
     );
 
     const initiateAction = useCallback(
