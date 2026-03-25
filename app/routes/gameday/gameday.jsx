@@ -40,11 +40,22 @@ export async function action({ request, params }) {
 
     if (_action === "log-game-event") {
         const { baseState, ...logData } = values;
+        let parsedBaseState = null;
+        if (baseState) {
+            try {
+                parsedBaseState = JSON.parse(baseState);
+            } catch (e) {
+                return {
+                    success: false,
+                    error: "Invalid baseState JSON structure",
+                };
+            }
+        }
         return await logGameEvent({
             gameId: eventId,
             client,
             ...logData,
-            baseState: baseState ? JSON.parse(baseState) : null,
+            baseState: parsedBaseState,
         });
     }
     if (_action === "undo-game-event") {

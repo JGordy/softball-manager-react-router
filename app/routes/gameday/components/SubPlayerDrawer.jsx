@@ -1,15 +1,7 @@
 import { useState, useEffect } from "react";
 import { useMediaQuery } from "@mantine/hooks";
 
-import {
-    Stack,
-    Text,
-    Button,
-    Group,
-    Avatar,
-    UnstyledButton,
-    Badge,
-} from "@mantine/core";
+import { Stack, Text, Button, Group, Avatar, Badge } from "@mantine/core";
 
 import { IconArrowsExchange } from "@tabler/icons-react";
 

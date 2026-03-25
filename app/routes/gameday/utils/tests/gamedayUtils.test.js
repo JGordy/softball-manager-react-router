@@ -296,7 +296,7 @@ describe("handleRunnerResults", () => {
 });
 
 describe("parsePlayerChart", () => {
-    it("should return null for null/undefined/empty input", () => {
+    it("should return null for null and undefined for undefined/empty input", () => {
         expect(parsePlayerChart(null)).toBeNull();
         expect(parsePlayerChart(undefined)).toBeUndefined();
         expect(parsePlayerChart("")).toBeUndefined();

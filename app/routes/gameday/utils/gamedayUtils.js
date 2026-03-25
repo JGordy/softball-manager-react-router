@@ -212,7 +212,9 @@ export function handleRunnerResults(runnerResults, runners, batterId) {
  * Defensively parses the playerChart string from the database.
  * Handles single-stringified, double-stringified, or already parsed data.
  * @param {any} playerChart - The playerChart data to parse.
- * @returns {Array|null} - The parsed array of slots or null if invalid.
+ * @returns {Array|null|undefined} - The parsed array of slots, null if invalid if the
+ * input is explicitly null or parses to null, or undefined if the value is
+ * missing/empty, fails to parse, or does not represent an array.
  */
 export function parsePlayerChart(playerChart) {
     if (playerChart === undefined || playerChart === "") return undefined;
