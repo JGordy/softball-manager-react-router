@@ -70,6 +70,7 @@ export async function action({ request, params }) {
             const parsedPlayerChart = parsePlayerChart(values.playerChart);
             if (parsedPlayerChart === undefined) {
                 return {
+                    success: false,
                     error: true,
                     status: 400,
                     message:
@@ -88,6 +89,7 @@ export async function action({ request, params }) {
                     error,
                 );
                 return {
+                    success: false,
                     error: true,
                     status: error instanceof SyntaxError ? 400 : 500,
                     message: "Log undone, but failed to revert lineup chart.",
@@ -139,6 +141,7 @@ export async function action({ request, params }) {
                 }
             }
             return {
+                success: false,
                 error: true,
                 status: 400,
                 message:
@@ -170,6 +173,7 @@ export async function action({ request, params }) {
             }
 
             return {
+                success: false,
                 error: true,
                 status: error instanceof SyntaxError ? 400 : 500,
                 message:
@@ -185,6 +189,7 @@ export async function action({ request, params }) {
         const parsedPlayerChart = parsePlayerChart(values.playerChart);
         if (parsedPlayerChart === undefined) {
             return {
+                success: false,
                 error: true,
                 status: 400,
                 message: "Invalid player chart JSON format provided.",
@@ -199,6 +204,7 @@ export async function action({ request, params }) {
             });
         } catch (error) {
             return {
+                success: false,
                 error: true,
                 status: 500,
                 message: "Failed to save player chart.",
