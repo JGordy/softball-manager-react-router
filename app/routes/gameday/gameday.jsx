@@ -16,6 +16,7 @@ import { createSessionClient } from "@/utils/appwrite/server";
 
 import GamedayContainer from "./components/GamedayContainer";
 import GamedayLoadingSkeleton from "./components/GamedayLoadingSkeleton";
+import { parsePlayerChart } from "./utils/gamedayUtils";
 
 export async function loader({ params, request }) {
     const { eventId } = params;
@@ -54,9 +55,18 @@ export async function action({ request, params }) {
 
         // Only update player chart if the undo successfully removed the log
         if (undoResponse && !undoResponse.error && values.playerChart) {
+            const parsedPlayerChart = parsePlayerChart(values.playerChart);
+            if (!parsedPlayerChart) {
+                return {
+                    error: true,
+                    status: 400,
+                    message:
+                        "Invalid player chart data provided when undoing game event.",
+                };
+            }
             try {
                 await savePlayerChart({
-                    values: { playerChart: JSON.parse(values.playerChart) },
+                    values: { playerChart: parsedPlayerChart },
                     eventId,
                     client,
                 });
@@ -101,21 +111,28 @@ export async function action({ request, params }) {
             return logResponse;
         }
 
-        const logId = logResponse.$id;
+        // logResponse shape is { success, log: { $id, ... } }
+        const logId = logResponse.log?.$id;
+
+        const parsedPlayerChart = parsePlayerChart(playerChart);
+        if (!parsedPlayerChart) {
+            // Rollback if parse fails
+            if (logId) await undoGameEvent({ logId, client });
+            return {
+                error: true,
+                status: 400,
+                message:
+                    "Invalid player chart JSON format provided during substitution.",
+            };
+        }
 
         try {
-            // Apply lineup chart change
-            const chartResponse = await savePlayerChart({
-                values: { playerChart: JSON.parse(playerChart) },
+            // Apply lineup chart change; failures will throw and be handled in the catch block
+            await savePlayerChart({
+                values: { playerChart: parsedPlayerChart },
                 eventId,
                 client,
             });
-
-            if (chartResponse && chartResponse.error) {
-                // Manual rollback of the log event if the chart save returned an error object
-                if (logId) await undoGameEvent({ logId, client });
-                return chartResponse;
-            }
         } catch (error) {
             console.error(
                 "Failed to save player chart during substitution:",
@@ -137,16 +154,25 @@ export async function action({ request, params }) {
     }
 
     if (_action === "save-player-chart") {
+        const parsedPlayerChart = parsePlayerChart(values.playerChart);
+        if (!parsedPlayerChart) {
+            return {
+                error: true,
+                status: 400,
+                message: "Invalid player chart JSON format provided.",
+            };
+        }
+
         try {
             return await savePlayerChart({
-                values: { playerChart: JSON.parse(values.playerChart) },
+                values: { playerChart: parsedPlayerChart },
                 eventId,
                 client,
             });
         } catch (error) {
             return {
                 error: true,
-                status: error instanceof SyntaxError ? 400 : 500,
+                status: 500,
                 message: "Failed to save player chart.",
                 details: error.message,
             };

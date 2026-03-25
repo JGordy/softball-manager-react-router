@@ -248,16 +248,17 @@ describe("Gameday Route", () => {
                 log: { $id: "log1" },
             });
             const lineupsActions = require("@/actions/lineups");
-            jest.spyOn(lineupsActions, "savePlayerChart").mockResolvedValue({
-                success: false,
-                error: "Chart save failed",
-            });
+            jest.spyOn(lineupsActions, "savePlayerChart").mockRejectedValue(
+                new Error("Chart save failed"),
+            );
 
             const result = await action({ request, params });
 
             expect(gameLogActions.logGameEvent).toHaveBeenCalled();
             expect(lineupsActions.savePlayerChart).toHaveBeenCalled();
-            expect(result.error).toBe("Chart save failed");
+            expect(result.message).toBe(
+                "Substitution log created, but lineup update failed. Rolled back log.",
+            );
         });
 
         it("rolls back the log if savePlayerChart fails during substitution", async () => {
@@ -271,29 +272,30 @@ describe("Gameday Route", () => {
             };
             const params = { eventId: "game123" };
 
-            // logGameEvent succeeds
+            // logGameEvent succeeds with real shape
             gameLogActions.logGameEvent.mockResolvedValue({
-                $id: "log123",
                 success: true,
+                log: { $id: "log123" },
             });
 
-            // savePlayerChart fails
+            // savePlayerChart fails by throwing
             const lineupsActions = require("@/actions/lineups");
-            jest.spyOn(lineupsActions, "savePlayerChart").mockResolvedValue({
-                success: false,
-                error: "Chart save failed",
-            });
+            jest.spyOn(lineupsActions, "savePlayerChart").mockRejectedValue(
+                new Error("Chart save failed"),
+            );
 
             const result = await action({ request, params });
 
             expect(gameLogActions.logGameEvent).toHaveBeenCalled();
             expect(lineupsActions.savePlayerChart).toHaveBeenCalled();
-            // Verify undoGameEvent was called for the rollback
+            // Verify undoGameEvent was called for the rollback with the CORRECT logId
             expect(gameLogActions.undoGameEvent).toHaveBeenCalledWith({
                 logId: "log123",
                 client: expect.any(Object),
             });
-            expect(result.error).toBe("Chart save failed");
+            expect(result.message).toBe(
+                "Substitution log created, but lineup update failed. Rolled back log.",
+            );
         });
 
         it("handles save-player-chart action", async () => {

@@ -1,5 +1,5 @@
 import { Query } from "node-appwrite";
-import { listDocuments, readDocument, updateDocument } from "@/utils/databases";
+import { listDocuments, readDocument } from "@/utils/databases";
 import { parsePlayerChart } from "@/routes/gameday/utils/gamedayUtils";
 import { createAdminClient } from "@/utils/appwrite/server";
 import { DateTime } from "luxon";
