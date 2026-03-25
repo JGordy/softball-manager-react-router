@@ -66,7 +66,7 @@ export async function action({ request, params }) {
         });
 
         // If the log was successfully removed and a reverting playerChart is provided, apply it to the database
-        if (undoResponse && !undoResponse.error && values.playerChart) {
+        if (undoResponse?.success && values.playerChart) {
             const parsedPlayerChart = parsePlayerChart(values.playerChart);
             if (parsedPlayerChart === undefined) {
                 return {
@@ -121,7 +121,7 @@ export async function action({ request, params }) {
         });
 
         // If logging fails, do not persist the chart update
-        if (logResponse && logResponse.error) {
+        if (logResponse && !logResponse.success) {
             return logResponse;
         }
 
@@ -133,10 +133,10 @@ export async function action({ request, params }) {
             // Rollback if parse fails
             if (logId) {
                 const rollback = await undoGameEvent({ logId, client });
-                if (rollback && rollback.error) {
+                if (rollback && !rollback.success) {
                     console.error(
                         "Critical: Substitution parsing rollback failed!",
-                        rollback.error,
+                        rollback.message || rollback.error,
                     );
                 }
             }
@@ -164,10 +164,10 @@ export async function action({ request, params }) {
             // Manual rollback of the log event if savePlayerChart threw an exception
             if (logId) {
                 const rollback = await undoGameEvent({ logId, client });
-                if (rollback && rollback.error) {
+                if (rollback && !rollback.success) {
                     console.error(
                         "Critical: Substitution rollback failed!",
-                        rollback.error,
+                        rollback.message || rollback.error,
                     );
                 }
             }
