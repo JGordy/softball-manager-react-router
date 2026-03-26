@@ -29,7 +29,15 @@ jest.mock("../../utils/drawerUtils");
 jest.mock("../../utils/fieldMapping", () => ({
     getFieldZone: jest.fn().mockReturnValue("left field"),
     getClampedCoordinates: jest.fn().mockImplementation((x, y) => ({ x, y })),
+    getRelativePointerCoordinates: jest.fn().mockReturnValue({ x: 50, y: 50 }),
 }));
+jest.mock("../ConfirmationPanel", () => (props) => (
+    <div data-testid="confirmation-panel">
+        <p>Fielded by: {props.selectedPosition}</p>
+        <p>Location: {props.hitLocation}</p>
+        <button onClick={props.handleConfirm}>Confirm Play</button>
+    </div>
+));
 
 describe("MobilePlayActionDrawer", () => {
     const mockOnSelect = jest.fn();
@@ -80,6 +88,45 @@ describe("MobilePlayActionDrawer", () => {
         render(<MobilePlayActionDrawer {...defaultProps} />);
         // Initially shows instructions to interact with field
         expect(screen.getByText(/Touch and drag/i)).toBeInTheDocument();
-        expect(screen.queryByTestId("diamond-view")).not.toBeInTheDocument();
+    });
+
+    it("handles field interaction and shows confirmation", async () => {
+        render(<MobilePlayActionDrawer {...defaultProps} />);
+
+        // Find the interactive container (the parent of the image that has the ref)
+        const fieldImage = screen.getByAltText(
+            /Interactive softball field diagram/i,
+        );
+        const interactiveContainer = fieldImage.parentElement;
+
+        // Simulate a pointer down event (start drag)
+        fireEvent.pointerDown(interactiveContainer, {
+            clientX: 100,
+            clientY: 100,
+            pointerId: 1,
+        });
+
+        // Simulate releasing the drag
+        fireEvent.pointerUp(interactiveContainer);
+
+        // Should now show the confirmation panel instead of instructions
+        // (Wait for the re-render after setHitCoordinates and setIsDragging)
+        expect(
+            await screen.findByTestId("confirmation-panel"),
+        ).toBeInTheDocument();
+        expect(screen.queryByText(/Touch and drag/i)).not.toBeInTheDocument();
+
+        // Verify we got the hit location from our mock (left field)
+        expect(
+            await screen.findByText(/Location: left field/i),
+        ).toBeInTheDocument();
+
+        // Clicking confirm should call onSelect
+        fireEvent.click(screen.getByText("Confirm Play"));
+        expect(mockOnSelect).toHaveBeenCalledWith(
+            expect.objectContaining({
+                hitLocation: "left field",
+            }),
+        );
     });
 });

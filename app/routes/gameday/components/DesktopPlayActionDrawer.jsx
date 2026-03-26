@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import {
     Avatar,
     Button,
@@ -13,6 +13,7 @@ import {
 
 import images from "@/constants/images";
 import styles from "@/styles/positionPicker.module.css";
+import fieldStyles from "./GamedayField.module.css";
 
 import DrawerContainer from "@/components/DrawerContainer";
 import POSITIONS from "@/constants/positions";
@@ -21,7 +22,11 @@ import FieldHighlight from "./FieldHighlight";
 
 import { useRunnerProjection } from "../hooks/useRunnerProjection";
 import { getDrawerTitle, getActionColor } from "../utils/drawerUtils";
-import { getFieldZone, getClampedCoordinates } from "../utils/fieldMapping";
+import {
+    getFieldZone,
+    getClampedCoordinates,
+    getRelativePointerCoordinates,
+} from "../utils/fieldMapping";
 import ConfirmationPanel from "./ConfirmationPanel";
 
 export default function DesktopPlayActionDrawer({
@@ -52,14 +57,12 @@ export default function DesktopPlayActionDrawer({
         actionType,
     );
 
-    const {
-        runnerResults,
-        setRunnerResults,
-        projectedRunners,
-        occupiedBases,
-        runsScored,
-        outsRecorded,
-    } = useRunnerProjection({ opened, actionType, runners, outs });
+    const { runnerResults, setRunnerResults } = useRunnerProjection({
+        opened,
+        actionType,
+        runners,
+        outs,
+    });
 
     const positions = Object.entries(POSITIONS).map(([key, pos]) => ({
         label: pos.initials,
@@ -68,16 +71,17 @@ export default function DesktopPlayActionDrawer({
         centroid: { x: pos.x ?? 0, y: pos.y ?? 0 },
     }));
 
-    // Reset local state when drawer closes
-    useEffect(() => {
-        if (!opened) {
-            setSelectedPosition(null);
-            setHitCoordinates({ x: null, y: null });
-            setBattingSide(bats || "right"); // Or default from batter profile if available
-            setIsLocked(false);
-            setShowConfirmation(false);
-        }
-    }, [opened, bats]);
+    // Reset state when drawer closes
+    if (
+        !opened &&
+        (selectedPosition !== null || isLocked || showConfirmation)
+    ) {
+        setSelectedPosition(null);
+        setHitCoordinates({ x: null, y: null });
+        setBattingSide(bats || "right"); // Or default from batter profile if available
+        setIsLocked(false);
+        setShowConfirmation(false);
+    }
 
     const handleConfirm = () => {
         onSelect({
@@ -90,11 +94,9 @@ export default function DesktopPlayActionDrawer({
     };
 
     const handlePointerEvent = (e) => {
-        if (!containerRef.current) return;
+        if (!containerRef.current || isLocked) return;
 
-        const rect = containerRef.current.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        const { x, y } = getRelativePointerCoordinates(e, containerRef.current);
 
         // Constraint within 0-100
         const constrainedX = Math.max(0, Math.min(100, x));
@@ -145,17 +147,14 @@ export default function DesktopPlayActionDrawer({
             <ConfirmationPanel
                 selectedPosition={selectedPosition}
                 hitLocation={hitLocation}
-                runsScored={runsScored}
-                outsRecorded={outsRecorded}
-                occupiedBases={occupiedBases}
-                projectedRunners={projectedRunners}
                 playerChart={playerChart}
                 actionType={actionType}
                 runners={runners}
-                outs={outs}
                 runnerResults={runnerResults}
                 setRunnerResults={setRunnerResults}
                 handleConfirm={handleConfirm}
+                currentBatter={currentBatter}
+                variant="desktop"
                 onChangeClick={() => {
                     setShowConfirmation(false);
                     setIsLocked(false);
@@ -244,18 +243,12 @@ export default function DesktopPlayActionDrawer({
                                     color={
                                         isSelected
                                             ? getActionColor(actionType)
-                                            : "gray"
+                                            : "white"
                                     }
-                                    variant={isSelected ? "filled" : "light"}
-                                    style={{
-                                        transform: isSelected
-                                            ? "scale(1.2)"
-                                            : "scale(1.1)",
-                                        transition: "transform 0.1s ease",
-                                        border: isSelected
-                                            ? "2px solid white"
-                                            : "none",
-                                    }}
+                                    variant={
+                                        isSelected ? "filled" : "transparent"
+                                    }
+                                    className={`${fieldStyles.fieldPositionLabel} ${isSelected ? fieldStyles.fieldPositionLabelSelected : ""}`}
                                 >
                                     {pos.label}
                                 </Avatar>
