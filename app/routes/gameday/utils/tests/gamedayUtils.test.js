@@ -143,7 +143,7 @@ describe("getEventDescription", () => {
     it("should include advancement context if batter moves further than expected on error", () => {
         const runnerResults = { batter: "second" };
         expect(getEventDescription("E", "Joseph", "RF", runnerResults)).toBe(
-            "Joseph reaches on an error by RF and advances to second on the play",
+            "Joseph reaches on an error and advances to second on the play",
         );
     });
 
@@ -176,7 +176,7 @@ describe("getEventDescription", () => {
                 null,
                 "shallow left field",
             ),
-        ).toBe("Joseph reaches on an error by LF (shallow left field)");
+        ).toBe("Joseph reaches on an error (shallow left field)");
     });
 
     it("should include hit description when provided for extra base hits", () => {
@@ -198,7 +198,7 @@ describe("getEventDescription", () => {
             null,
             "to shortstop",
         );
-        expect(result).toBe("Joseph reaches on an error by SS (to shortstop)");
+        expect(result).toBe("Joseph reaches on an error (to shortstop)");
     });
 
     it("should include hit description for outs", () => {
@@ -210,6 +210,50 @@ describe("getEventDescription", () => {
             "deep center field",
         );
         expect(result).toBe("Joseph flies out to deep center field");
+    });
+});
+
+describe("getEventDescription - New Standardized Formats", () => {
+    it("should strip redundant 'home run to' from hitLocation", () => {
+        const result = getEventDescription(
+            "HR",
+            "Chris Godwin",
+            "RF",
+            null,
+            "home run to right-center gap",
+        );
+        expect(result).toBe("Chris Godwin hits a home run to right-center gap");
+    });
+
+    it("should handle inside the park home run correctly", () => {
+        const result = getEventDescription(
+            "HR",
+            "Jeff Anderson",
+            "RF",
+            null,
+            "inside the park home run to deep right field",
+        );
+        expect(result).toBe(
+            "Jeff Anderson hits an inside the park home run to deep right field",
+        );
+    });
+
+    it("should use hitLocation directly for fielder's choice if it starts with 'to '", () => {
+        const result = getEventDescription(
+            "FC",
+            "Kemaya Mays",
+            "3B",
+            null,
+            "to third base",
+        );
+        expect(result).toBe(
+            "Kemaya Mays reaches on a fielder's choice to third base",
+        );
+    });
+
+    it("should use position for fielder's choice if hitLocation is missing", () => {
+        const result = getEventDescription("FC", "Joseph", "SS");
+        expect(result).toBe("Joseph reaches on a fielder's choice to SS");
     });
 });
 

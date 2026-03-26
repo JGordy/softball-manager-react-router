@@ -111,9 +111,15 @@ export function getEventDescription(
     if (actionType === "1B") baseDesc = `${batterName} singles to ${loc}`;
     else if (actionType === "2B") baseDesc = `${batterName} doubles to ${loc}`;
     else if (actionType === "3B") baseDesc = `${batterName} triples to ${loc}`;
-    else if (actionType === "HR")
-        baseDesc = `${batterName} hits a home run to ${loc}`;
-    else if (actionType === "Ground Out")
+    else if (actionType === "HR") {
+        if (hitLocation?.includes("inside the park home run")) {
+            baseDesc = `${batterName} hits an ${hitLocation}`;
+        } else if (hitLocation?.includes("home run to ")) {
+            baseDesc = `${batterName} hits a ${hitLocation}`;
+        } else {
+            baseDesc = `${batterName} hits a home run to ${loc}`;
+        }
+    } else if (actionType === "Ground Out")
         baseDesc = `${batterName} grounds out to ${loc}`;
     else if (actionType === "Fly Out")
         baseDesc = `${batterName} flies out to ${loc}`;
@@ -122,10 +128,14 @@ export function getEventDescription(
     else if (actionType === "Pop Out")
         baseDesc = `${batterName} pops out to ${loc}`;
     else if (actionType === "E")
-        baseDesc = `${batterName} reaches on an error by ${position}${hitLocation ? ` (${hitLocation})` : ""}`;
-    else if (actionType === "FC")
-        baseDesc = `${batterName} reaches on a fielder's choice to ${position}${hitLocation ? ` (${hitLocation})` : ""}`;
-    else if (actionType === "BB") baseDesc = `${batterName} walks`;
+        baseDesc = `${batterName} reaches on an error${hitLocation ? ` (${hitLocation})` : ""}`;
+    else if (actionType === "FC") {
+        const fcLoc =
+            hitLocation && hitLocation.startsWith("to ")
+                ? hitLocation
+                : `to ${position}`;
+        baseDesc = `${batterName} reaches on a fielder's choice ${fcLoc}`;
+    } else if (actionType === "BB") baseDesc = `${batterName} walks`;
     else if (actionType === "K") baseDesc = `${batterName} strikes out`;
     else baseDesc = `${batterName}: ${actionType}${loc ? ` (${loc})` : ""}`;
 
