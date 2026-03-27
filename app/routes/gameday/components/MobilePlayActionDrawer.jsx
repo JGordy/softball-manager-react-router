@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
     Avatar,
     Button,
@@ -72,11 +72,13 @@ export default function MobilePlayActionDrawer({
     }));
 
     // Reset local state when drawer closes
-    if (!opened && selectedPosition !== null) {
-        setSelectedPosition(null);
-        setHitCoordinates({ x: null, y: null });
-        setBattingSide(bats || "right"); // Or default from batter profile if available
-    }
+    useEffect(() => {
+        if (!opened) {
+            setSelectedPosition(null);
+            setHitCoordinates({ x: null, y: null });
+            setBattingSide(bats || "right");
+        }
+    }, [opened, bats]);
 
     const handleConfirm = () => {
         onSelect({
@@ -266,7 +268,7 @@ export default function MobilePlayActionDrawer({
             onClose={onClose}
             title={getDrawerTitle(actionType, currentBatter)}
             position="bottom"
-            size="xxl"
+            size="100%"
             keepMounted
         >
             <Stack gap="md" pb="xl">

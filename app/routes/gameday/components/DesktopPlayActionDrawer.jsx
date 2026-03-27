@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
     Avatar,
     Button,
@@ -73,16 +73,15 @@ export default function DesktopPlayActionDrawer({
     }));
 
     // Reset state when drawer closes
-    if (
-        !opened &&
-        (selectedPosition !== null || isLocked || showConfirmation)
-    ) {
-        setSelectedPosition(null);
-        setHitCoordinates({ x: null, y: null });
-        setBattingSide(bats || "right"); // Or default from batter profile if available
-        setIsLocked(false);
-        setShowConfirmation(false);
-    }
+    useEffect(() => {
+        if (!opened) {
+            setSelectedPosition(null);
+            setHitCoordinates({ x: null, y: null });
+            setBattingSide(bats || "right");
+            setIsLocked(false);
+            setShowConfirmation(false);
+        }
+    }, [opened, bats]);
 
     const handleConfirm = () => {
         onSelect({
