@@ -124,6 +124,7 @@ export default function MobileGamedayContainer({
                 gameFinal={gameFinal}
                 realtimeStatus={realtimeStatus}
                 isOurBatting={isOurBatting}
+                runners={runners}
             />
 
             <Box pos="relative">
@@ -168,47 +169,34 @@ export default function MobileGamedayContainer({
                                 </>
                             )}
 
-                            <Group align="start" gap="xl" wrap="nowrap">
-                                {/* Left Column: Visuals & Context */}
-                                <Stack
-                                    gap="sm"
-                                    style={{ width: 180, flexShrink: 0 }}
-                                >
-                                    <DiamondView runners={runners} />
-
-                                    {logs.length > 0 && isOurBatting && (
-                                        <LastPlayCard
-                                            lastLog={logs[logs.length - 1]}
-                                            onUndo={
-                                                isScorekeeper ? undoLast : null
-                                            }
-                                            isSubmitting={isSubmitting}
-                                            playerChart={playerChart}
+                            {isScorekeeper && !gameFinal && (
+                                <Stack flex={1} gap="md">
+                                    {isOurBatting ? (
+                                        <ActionPad
+                                            onAction={initiateAction}
+                                            runners={runners}
+                                            outs={outs}
+                                        />
+                                    ) : (
+                                        <FieldingControls
+                                            onOut={handleOpponentOut}
+                                            onRun={handleOpponentRun}
+                                            onSkip={advanceHalfInning}
                                         />
                                     )}
                                 </Stack>
+                            )}
 
-                                {/* Right Column: Actions */}
-                                <Stack style={{ flex: 1 }}>
-                                    {isScorekeeper && !gameFinal && (
-                                        <>
-                                            {isOurBatting ? (
-                                                <ActionPad
-                                                    onAction={initiateAction}
-                                                    runners={runners}
-                                                    outs={outs}
-                                                />
-                                            ) : (
-                                                <FieldingControls
-                                                    onOut={handleOpponentOut}
-                                                    onRun={handleOpponentRun}
-                                                    onSkip={advanceHalfInning}
-                                                />
-                                            )}
-                                        </>
-                                    )}
-                                </Stack>
-                            </Group>
+                            {logs.length > 0 && isOurBatting && (
+                                <Box mt="auto" pt="md">
+                                    <LastPlayCard
+                                        lastLog={logs[logs.length - 1]}
+                                        onUndo={isScorekeeper ? undoLast : null}
+                                        isSubmitting={isSubmitting}
+                                        playerChart={playerChart}
+                                    />
+                                </Box>
+                            )}
                         </Stack>
                     </Tabs.Panel>
 
