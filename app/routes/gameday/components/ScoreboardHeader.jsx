@@ -95,23 +95,26 @@ export default function ScoreboardHeader({
                                 />
                             </Box>
 
-                            <Group gap={2} aria-label={`${outs} outs`}>
+                            <Group
+                                gap={4}
+                                aria-label={`${outs} ${outs === 1 ? "out" : "outs"}`}
+                            >
                                 <Box
+                                    w={8}
+                                    h={8}
                                     style={{
-                                        width: 8,
-                                        height: 8,
                                         borderRadius: "50%",
                                         backgroundColor:
                                             outs >= 1
-                                                ? "var(--mantine-color-red-filled)"
+                                                ? "var(--mantine-color-orange-filled)"
                                                 : "var(--mantine-color-gray-3)",
                                         opacity: outs >= 1 ? 1 : 0.3,
                                     }}
                                 />
                                 <Box
+                                    w={8}
+                                    h={8}
                                     style={{
-                                        width: 8,
-                                        height: 8,
                                         borderRadius: "50%",
                                         backgroundColor:
                                             outs >= 2
@@ -121,7 +124,7 @@ export default function ScoreboardHeader({
                                     }}
                                 />
                                 <Text size="xs" c="dimmed" ml={4} fw={700}>
-                                    {outs} OUT
+                                    {outs} {outs === 1 ? "OUT" : "OUTS"}
                                 </Text>
                             </Group>
                         </>

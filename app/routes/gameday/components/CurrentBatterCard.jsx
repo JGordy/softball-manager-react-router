@@ -33,7 +33,7 @@ export default function CurrentBatterCard({ currentBatter, logs, ...props }) {
                 <Group wrap="nowrap" gap="md" style={{ minWidth: 0, flex: 1 }}>
                     <Avatar
                         src={activePlayer.avatarUrl}
-                        alt={`${activePlayer.firstName} ${activePlayer.lastName}`}
+                        alt={`${activePlayer.firstName}${activePlayer.lastName ? ` ${activePlayer.lastName}` : ""}`}
                         radius="xl"
                         size="lg"
                         color="lime"

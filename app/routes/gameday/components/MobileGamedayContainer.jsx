@@ -17,7 +17,6 @@ import ContactSprayChart from "@/components/ContactSprayChart";
 import { useGamedayController } from "../hooks/useGamedayController";
 
 import ScoreboardHeader from "./ScoreboardHeader";
-import DiamondView from "./DiamondView";
 import ActionPad from "./ActionPad";
 import PlayHistoryList from "./PlayHistoryList";
 import MobilePlayActionDrawer from "./MobilePlayActionDrawer";

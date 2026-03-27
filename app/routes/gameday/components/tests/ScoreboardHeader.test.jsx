@@ -29,7 +29,8 @@ describe("ScoreboardHeader", () => {
         expect(screen.getByText("TOP 2")).toBeInTheDocument();
 
         // Verify outs indicator
-        expect(screen.getByLabelText("1 outs")).toBeInTheDocument();
+        expect(screen.getByLabelText("1 out")).toBeInTheDocument();
+        expect(screen.getByText("1 OUT")).toBeInTheDocument();
         expect(screen.getByText("1 OUT")).toBeInTheDocument();
     });
 
