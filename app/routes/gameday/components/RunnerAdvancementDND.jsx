@@ -138,44 +138,47 @@ export default function RunnerAdvancementDND({
             return { allowed: false };
         }
 
-        // 2. No-Passing Calculation
-        const playerRank =
-            pId === (batterId || "Batter")
-                ? 0
-                : runners.third === pId
-                  ? 3
-                  : runners.second === pId
-                    ? 2
-                    : 1;
-
-        for (const [key, result] of Object.entries(runnerResults)) {
-            const otherId =
-                key === "batter" ? batterId || "Batter" : runners[key];
-            if (!otherId || otherId === pId) continue;
-
-            const otherRank =
-                key === "batter"
+        // 2. No-Passing Calculation (Skipped for Out-Zone)
+        if (targetBaseId !== "out-zone") {
+            const playerRank =
+                pId === (batterId || "Batter")
                     ? 0
-                    : key === "third"
+                    : runners.third === pId
                       ? 3
-                      : key === "second"
+                      : runners.second === pId
                         ? 2
                         : 1;
-            let otherBaseIdx = 0;
-            if (result === "score") otherBaseIdx = 4;
-            else if (result === "third") otherBaseIdx = 3;
-            else if (result === "second") otherBaseIdx = 2;
-            else if (result === "first") otherBaseIdx = 1;
-            else if (result === "out") otherBaseIdx = 99;
-            else if (result === "stay") otherBaseIdx = otherRank;
 
-            if (otherBaseIdx !== 99) {
-                // If I am trailing they must stay ahead of me
-                if (playerRank < otherRank && targetIdx > otherBaseIdx)
-                    return { allowed: false };
-                // If I am leading they must stay behind me
-                if (playerRank > otherRank && targetIdx < otherBaseIdx)
-                    return { allowed: false };
+            for (const [key, result] of Object.entries(runnerResults)) {
+                const otherId =
+                    key === "batter" ? batterId || "Batter" : runners[key];
+                if (!otherId || otherId === pId) continue;
+
+                const otherRank =
+                    key === "batter"
+                        ? 0
+                        : key === "third"
+                          ? 3
+                          : key === "second"
+                            ? 2
+                            : 1;
+                let otherBaseIdx = 0;
+                if (result === "score") otherBaseIdx = 4;
+                else if (result === "third") otherBaseIdx = 3;
+                else if (result === "second") otherBaseIdx = 2;
+                else if (result === "first") otherBaseIdx = 1;
+                else if (result === "out")
+                    otherBaseIdx = 99; // Sentinel for "Out"
+                else if (result === "stay") otherBaseIdx = otherRank;
+
+                if (otherBaseIdx !== 99) {
+                    // If I am trailing they must stay ahead of me
+                    if (playerRank < otherRank && targetIdx > otherBaseIdx)
+                        return { allowed: false };
+                    // If I am leading they must stay behind me
+                    if (playerRank > otherRank && targetIdx < otherBaseIdx)
+                        return { allowed: false };
+                }
             }
         }
 
@@ -460,7 +463,6 @@ export default function RunnerAdvancementDND({
             "base-home",
         ];
         let startIdx = sequence.indexOf(dragSourceId);
-        if (dragSourceId === "base-home" && startIdx === 4) startIdx = 0;
         let closestBaseIdx = startIdx,
             minDist = Infinity;
         sequence.forEach((baseId, idx) => {
