@@ -35,6 +35,8 @@ describe("RunnerAdvancementDND", () => {
         batterId: "batter1",
         batterName: "Jane",
         variant: "mobile",
+        runsScored: 0,
+        outsRecorded: 0,
     };
 
     beforeEach(() => {
@@ -58,6 +60,8 @@ describe("RunnerAdvancementDND", () => {
                 first: "score",
                 batter: "out",
             },
+            runsScored: 1,
+            outsRecorded: 1,
         };
         render(<RunnerAdvancementDND {...props} />);
 
