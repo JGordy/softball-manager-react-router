@@ -55,7 +55,7 @@ describe("LastPlayCard", () => {
             />,
         );
         expect(
-            screen.getByRole("button", { name: "Undo" }),
+            screen.getByRole("button", { name: "UNDO" }),
         ).toBeInTheDocument();
     });
 
@@ -68,7 +68,7 @@ describe("LastPlayCard", () => {
                 playerChart={mockPlayerChart}
             />,
         );
-        fireEvent.click(screen.getByRole("button", { name: "Undo" }));
+        fireEvent.click(screen.getByRole("button", { name: "UNDO" }));
         expect(mockOnUndo).toHaveBeenCalled();
     });
 
@@ -81,6 +81,6 @@ describe("LastPlayCard", () => {
                 playerChart={mockPlayerChart}
             />,
         );
-        expect(screen.getByRole("button", { name: "Undo" })).toBeDisabled();
+        expect(screen.getByRole("button", { name: "UNDO" })).toBeDisabled();
     });
 });
