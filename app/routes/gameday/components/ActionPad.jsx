@@ -41,12 +41,12 @@ export default function ActionPad({ onAction, runners, outs: currentOuts }) {
     };
 
     return (
-        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md" align="flex-start">
+        <SimpleGrid cols={2} spacing="md" align="flex-start" mb="md">
             <Stack gap="xs">
-                <Text size="xs" fw={700} c="dimmed" mb={-5}>
+                <Text size="xs" fw={700} c="dimmed" mb={-5} tt="uppercase">
                     ON BASE
                 </Text>
-                <SimpleGrid cols={2} spacing="xs">
+                <SimpleGrid cols={2} spacing="xs" verticalSpacing="md">
                     {onBase.map((btn) => (
                         <Button
                             key={btn.value}
@@ -61,28 +61,25 @@ export default function ActionPad({ onAction, runners, outs: currentOuts }) {
                 </SimpleGrid>
             </Stack>
 
-            <Box>
-                <Divider my="xs" hiddenFrom="sm" />
-                <Stack gap="xs">
-                    <Text size="xs" fw={700} c="dimmed" mb={-5}>
-                        OUTS
-                    </Text>
-                    <SimpleGrid cols={2} spacing="xs">
-                        {[...outs, fielders_choice, sac_fly].map((btn) => (
-                            <Button
-                                key={btn.value}
-                                color={btn.color}
-                                variant={btn.variant || "filled"}
-                                radius="md"
-                                onClick={() => onAction(btn.value)}
-                                disabled={btn.disabled}
-                            >
-                                {btn.label}
-                            </Button>
-                        ))}
-                    </SimpleGrid>
-                </Stack>
-            </Box>
+            <Stack gap="xs">
+                <Text size="xs" fw={700} c="dimmed" mb={-5} tt="uppercase">
+                    OUTS
+                </Text>
+                <SimpleGrid cols={2} spacing="xs" verticalSpacing="md">
+                    {[...outs, fielders_choice, sac_fly].map((btn) => (
+                        <Button
+                            key={btn.value}
+                            color={btn.color}
+                            variant={btn.variant || "filled"}
+                            radius="md"
+                            onClick={() => onAction(btn.value)}
+                            disabled={btn.disabled}
+                        >
+                            {btn.label}
+                        </Button>
+                    ))}
+                </SimpleGrid>
+            </Stack>
         </SimpleGrid>
     );
 }
