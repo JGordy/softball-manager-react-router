@@ -29,7 +29,16 @@ jest.mock("../../utils/drawerUtils");
 jest.mock("../../utils/fieldMapping", () => ({
     getFieldZone: jest.fn().mockReturnValue("left field"),
     getClampedCoordinates: jest.fn().mockImplementation((x, y) => ({ x, y })),
+    getRelativePointerCoordinates: jest.fn().mockReturnValue({ x: 50, y: 50 }),
 }));
+
+jest.mock("../ConfirmationPanel", () => (props) => (
+    <div data-testid="confirmation-panel">
+        <p>Fielded by: {props.selectedPosition}</p>
+        <p>Location: {props.hitLocation}</p>
+        <button onClick={props.handleConfirm}>Confirm Play</button>
+    </div>
+));
 
 describe("DesktopPlayActionDrawer", () => {
     const mockOnSelect = jest.fn();
@@ -72,7 +81,7 @@ describe("DesktopPlayActionDrawer", () => {
 
     it("calls onClose when close button clicked", () => {
         render(<DesktopPlayActionDrawer {...defaultProps} />);
-        fireEvent.click(screen.getByText("Close"));
+        fireEvent.click(screen.getByText("Cancel")); // Using the 'Cancel' button in the Stack
         expect(mockOnClose).toHaveBeenCalled();
     });
 
@@ -80,33 +89,49 @@ describe("DesktopPlayActionDrawer", () => {
         render(<DesktopPlayActionDrawer {...defaultProps} />);
         // Initially shows instructions to interact with field
         expect(screen.getByText(/Hover over the field/i)).toBeInTheDocument();
-        expect(screen.queryByTestId("diamond-view")).not.toBeInTheDocument();
     });
 
-    it("allows locking a position, advancing runners, and confirming play", () => {
+    it("allows locking a position and proceeding to confirmation", async () => {
         render(<DesktopPlayActionDrawer {...defaultProps} />);
 
-        // Mock positions have role="button". Let's say we click "P" for Pitcher
-        const pitcherButton = screen.getByRole("button", { name: "Pitcher" });
-        fireEvent.click(pitcherButton);
+        // 1. Initial State: Instruction is visible
+        expect(screen.getByText(/Hover over the field/i)).toBeInTheDocument();
 
-        // Expect the confirmation prompt and proceed button
-        expect(screen.getByText(/Hit to P/i)).toBeInTheDocument();
-        const proceedButton = screen.getByRole("button", {
-            name: /Proceed to Runner Advancement/i,
+        // 2. Interaction: Simulate hovering/clicking a position
+        // Find the interactive container (parent of the image)
+        const fieldImage = screen.getByAltText(
+            /Interactive softball field diagram/i,
+        );
+        const container = fieldImage.parentElement;
+
+        // Simulate pointer down to lock the position
+        fireEvent.pointerDown(container, {
+            clientX: 100,
+            clientY: 100,
+            pointerId: 1,
         });
-        fireEvent.click(proceedButton);
 
-        // After proceeding, it should show the Confirm Play button
-        const confirmButton = screen.getByRole("button", {
-            name: /Confirm Play/i,
-        });
-        fireEvent.click(confirmButton);
+        // 3. Locked State: Instruction should disappear, 'Unlock' and 'Proceed' should appear
+        expect(
+            screen.queryByText(/Hover over the field/i),
+        ).not.toBeInTheDocument();
+        expect(screen.getByText(/Hit to/i)).toBeInTheDocument();
+        expect(screen.getByText(/Unlock/i)).toBeInTheDocument();
 
-        // Check if onSelect was actually called
+        const proceedBtn = screen.getByText(/Proceed to Runner Advancement/i);
+        fireEvent.click(proceedBtn);
+
+        // 4. Confirmation State: ConfirmationPanel should be visible
+        expect(
+            await screen.findByTestId("confirmation-panel"),
+        ).toBeInTheDocument();
+        expect(screen.getByText(/Location: left field/i)).toBeInTheDocument();
+
+        // 5. Finalize: Click confirm in the panel
+        fireEvent.click(screen.getByText("Confirm Play"));
         expect(mockOnSelect).toHaveBeenCalledWith(
             expect.objectContaining({
-                position: "P",
+                hitLocation: "left field",
                 battingSide: "right",
             }),
         );

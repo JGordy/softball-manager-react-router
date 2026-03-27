@@ -143,3 +143,30 @@ export function getClampedCoordinates(x, y, actionType) {
         y: Math.round(finalY * 100) / 100,
     };
 }
+
+/**
+ * Calculates percentage-based coordinates relative to a container from a pointer event.
+ *
+ * @param {PointerEvent|MouseEvent|TouchEvent} e - The native event
+ * @param {HTMLElement} container - The container element to measure against
+ * @returns {{x: number, y: number}} - Coordinates in percentage (0-100)
+ */
+export function getRelativePointerCoordinates(e, container) {
+    if (!container) return { x: 50, y: 50 };
+
+    const rect = container.getBoundingClientRect();
+
+    // Support TouchEvents (first touch) or Mouse/Pointer events
+    const clientX =
+        e.clientX ?? (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+    const clientY =
+        e.clientY ?? (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+
+    const x = ((clientX - rect.left) / rect.width) * 100;
+    const y = ((clientY - rect.top) / rect.height) * 100;
+
+    return {
+        x: Math.round(Math.max(0, Math.min(100, x)) * 100) / 100,
+        y: Math.round(Math.max(0, Math.min(100, y)) * 100) / 100,
+    };
+}

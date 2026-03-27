@@ -1,32 +1,23 @@
-import { Badge, Button, Divider, Group, Stack, Text } from "@mantine/core";
+import { Button, Divider, Group, Stack, Text } from "@mantine/core";
 
-import DiamondView from "./DiamondView";
-import RunnerPanel from "./RunnerPanel";
+import RunnerAdvancementDND from "./RunnerAdvancementDND";
 import { getActionColor } from "../utils/drawerUtils";
 
 export function ConfirmationPanel({
     selectedPosition,
     hitLocation,
-    runsScored,
-    outsRecorded,
-    occupiedBases,
-    projectedRunners,
     playerChart,
     actionType,
     runners,
-    outs,
     runnerResults,
     setRunnerResults,
+    runsScored,
+    outsRecorded,
     handleConfirm,
+    variant = "desktop",
     onChangeClick,
+    currentBatter,
 }) {
-    const getPlayerName = (id) => {
-        if (!id) return "Empty";
-        if (id === "Batter") return "Batter";
-        const player = playerChart?.find((p) => p.$id === id);
-        return player ? `${player.firstName}` : "Unknown";
-    };
-
     return (
         <>
             <Group justify="space-between" my="sm">
@@ -49,70 +40,17 @@ export function ConfirmationPanel({
 
             <Divider label="Runner Advancement" labelPosition="center" />
 
-            <Group align="start" grow wrap="nowrap">
-                {/* Left Column: Visual Diamond */}
-                <Stack align="center" gap="xs">
-                    <DiamondView runners={occupiedBases} withTitle={false} />
-                </Stack>
-
-                {/* Right Column: Runners List & Stats */}
-                <Stack gap="sm" pl="xs">
-                    {(runsScored > 0 || outsRecorded > 0) && (
-                        <Group gap="xs">
-                            {runsScored > 0 && (
-                                <Badge size="md" color="blue">
-                                    {runsScored} RBI
-                                    {runsScored > 1 ? "s" : ""}
-                                </Badge>
-                            )}
-                            {outsRecorded > 0 && (
-                                <Badge size="md" color="red">
-                                    {outsRecorded} OUT
-                                    {outsRecorded > 1 ? "S" : ""}
-                                </Badge>
-                            )}
-                        </Group>
-                    )}
-
-                    {(runsScored > 0 || outsRecorded > 0) && <Divider />}
-
-                    <Stack gap="xs">
-                        <Text size="xs" fw={700} c="dimmed">
-                            PROJECTED RUNNERS
-                        </Text>
-                        {[
-                            { base: "third", label: "3rd" },
-                            { base: "second", label: "2nd" },
-                            { base: "first", label: "1st" },
-                        ].map((b) => (
-                            <Group
-                                key={b.base}
-                                justify="space-between"
-                                wrap="nowrap"
-                            >
-                                <Badge
-                                    variant="filled"
-                                    color="gray"
-                                    size="sm"
-                                    w={40}
-                                >
-                                    {b.label}
-                                </Badge>
-                                <Text size="sm" fw={500} truncate>
-                                    {getPlayerName(projectedRunners[b.base])}
-                                </Text>
-                            </Group>
-                        ))}
-                    </Stack>
-                </Stack>
-            </Group>
-
-            <RunnerPanel
-                actionType={actionType}
+            <RunnerAdvancementDND
                 runners={runners}
-                outs={outs}
                 runnerResults={runnerResults}
                 setRunnerResults={setRunnerResults}
+                runsScored={runsScored}
+                outsRecorded={outsRecorded}
+                playerChart={playerChart}
+                actionType={actionType}
+                batterId={currentBatter?.$id || currentBatter?.id}
+                batterName={currentBatter?.firstName || "Batter"}
+                variant={variant}
             />
 
             <Button

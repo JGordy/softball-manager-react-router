@@ -8,7 +8,7 @@
         "start": "cross-env \"NODE_OPTIONS=--import ./instrument.server.mjs\" react-router-serve ./build/server/index.js",
         "typecheck": "react-router typegen && tsc",
         "prepare": "husky",
-        "lint": "prettier --check .",
+        "lint": "eslint .",
         "format": "prettier --write .",
         "test": "jest --verbose"
     },
@@ -54,6 +54,7 @@
     "devDependencies": {
         "@babel/preset-env": "^7.28.5",
         "@babel/preset-react": "^7.28.5",
+        "@eslint/js": "^9.39.4",
         "@netlify/vite-plugin-react-router": "^1.0.0",
         "@react-router/dev": "^7.3.0",
         "@sentry/vite-plugin": "^4.9.0",
@@ -67,6 +68,11 @@
         "babel-plugin-transform-import-meta": "^2.3.3",
         "babel-plugin-transform-vite-meta-env": "^1.0.3",
         "dotenv": "^17.2.3",
+        "eslint": "^9.39.4",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-react": "^7.37.5",
+        "eslint-plugin-react-hooks": "^7.0.1",
+        "globals": "^17.4.0",
         "husky": "9.1.7",
         "jest": "^30.2.0",
         "jest-environment-jsdom": "^30.2.0",

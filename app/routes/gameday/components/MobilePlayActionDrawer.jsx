@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
     Avatar,
     Button,
@@ -13,6 +13,7 @@ import {
 
 import images from "@/constants/images";
 import styles from "@/styles/positionPicker.module.css";
+import fieldStyles from "./GamedayField.module.css";
 
 import DrawerContainer from "@/components/DrawerContainer";
 import POSITIONS from "@/constants/positions";
@@ -21,7 +22,11 @@ import FieldHighlight from "./FieldHighlight";
 
 import { useRunnerProjection } from "../hooks/useRunnerProjection";
 import { getDrawerTitle, getActionColor } from "../utils/drawerUtils";
-import { getFieldZone, getClampedCoordinates } from "../utils/fieldMapping";
+import {
+    getFieldZone,
+    getClampedCoordinates,
+    getRelativePointerCoordinates,
+} from "../utils/fieldMapping";
 import ConfirmationPanel from "./ConfirmationPanel";
 
 export default function MobilePlayActionDrawer({
@@ -51,14 +56,13 @@ export default function MobilePlayActionDrawer({
         actionType,
     );
 
-    const {
-        runnerResults,
-        setRunnerResults,
-        projectedRunners,
-        occupiedBases,
-        runsScored,
-        outsRecorded,
-    } = useRunnerProjection({ opened, actionType, runners, outs });
+    const { runnerResults, setRunnerResults, runsScored, outsRecorded } =
+        useRunnerProjection({
+            opened,
+            actionType,
+            runners,
+            outs,
+        });
 
     const positions = Object.entries(POSITIONS).map(([key, pos]) => ({
         label: pos.initials,
@@ -72,7 +76,7 @@ export default function MobilePlayActionDrawer({
         if (!opened) {
             setSelectedPosition(null);
             setHitCoordinates({ x: null, y: null });
-            setBattingSide(bats || "right"); // Or default from batter profile if available
+            setBattingSide(bats || "right");
         }
     }, [opened, bats]);
 
@@ -89,11 +93,9 @@ export default function MobilePlayActionDrawer({
     const handlePointerEvent = (e) => {
         if (!containerRef.current) return;
 
-        const rect = containerRef.current.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        const { x, y } = getRelativePointerCoordinates(e, containerRef.current);
 
-        // Constraint within 0-100
+        // Constraint within 0-100 before passing to zone clamping
         const constrainedX = Math.max(0, Math.min(100, x));
         const constrainedY = Math.max(0, Math.min(100, y));
 
@@ -142,17 +144,16 @@ export default function MobilePlayActionDrawer({
             <ConfirmationPanel
                 selectedPosition={selectedPosition}
                 hitLocation={hitLocation}
-                runsScored={runsScored}
-                outsRecorded={outsRecorded}
-                occupiedBases={occupiedBases}
-                projectedRunners={projectedRunners}
                 playerChart={playerChart}
                 actionType={actionType}
                 runners={runners}
-                outs={outs}
                 runnerResults={runnerResults}
                 setRunnerResults={setRunnerResults}
+                runsScored={runsScored}
+                outsRecorded={outsRecorded}
                 handleConfirm={handleConfirm}
+                currentBatter={currentBatter}
+                variant="mobile"
                 onChangeClick={() => {
                     setHitCoordinates({ x: null, y: null });
                     setSelectedPosition(null);
@@ -218,18 +219,12 @@ export default function MobilePlayActionDrawer({
                                     color={
                                         isSelected
                                             ? getActionColor(actionType)
-                                            : "gray"
+                                            : "white"
                                     }
-                                    variant={isSelected ? "filled" : "light"}
-                                    style={{
-                                        transform: isSelected
-                                            ? "scale(1.2)"
-                                            : "scale(1.1)",
-                                        transition: "transform 0.1s ease",
-                                        border: isSelected
-                                            ? "2px solid white"
-                                            : "none",
-                                    }}
+                                    variant={
+                                        isSelected ? "filled" : "transparent"
+                                    }
+                                    className={`${fieldStyles.fieldPositionLabel} ${isSelected ? fieldStyles.fieldPositionLabelSelected : ""}`}
                                 >
                                     {pos.label}
                                 </Avatar>
@@ -273,7 +268,7 @@ export default function MobilePlayActionDrawer({
             onClose={onClose}
             title={getDrawerTitle(actionType, currentBatter)}
             position="bottom"
-            size="xl"
+            size="100%"
             keepMounted
         >
             <Stack gap="md" pb="xl">

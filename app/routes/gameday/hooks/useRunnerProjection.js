@@ -55,57 +55,50 @@ export function useRunnerProjection({ opened, actionType, runners, outs }) {
         }
     }, [opened, actionType, runners]);
 
-    /**
-     * Calculates the projected state of the game based on the current runner results.
-     *
-     * @returns {Object} An object containing:
-     * - projectedRunners: Mapping of bases to player IDs (or "Batter")
-     * - occupiedBases: Boolean mapping of which bases will be occupied
-     * - runsScored: Total runs resulting from the play
-     * - outsRecorded: Total outs resulting from the play
-     */
-    const getProjectedState = () => {
-        // Track WHO is on which base (playerId or null)
-        const projectedRunners = { first: null, second: null, third: null };
-        const occupiedBases = { first: false, second: false, third: false };
-        let runsScored = 0;
-        let outsRecorded = 0;
+    // Final derived state
+    const runsScored = Object.values(runnerResults).filter(
+        (v) => v === "score",
+    ).length;
+    const outsRecorded = Object.values(runnerResults).filter(
+        (v) => v === "out",
+    ).length;
 
-        // Helper to process a result
-        const processResult = (result, runnerId, sourceBase) => {
-            if (!result) return;
-            if (result === "score") {
-                runsScored++;
-            } else if (result === "out") {
-                outsRecorded++;
-            } else if (["first", "second", "third"].includes(result)) {
-                projectedRunners[result] = runnerId;
-                occupiedBases[result] = true;
-            } else if (result === "stay" && sourceBase) {
-                projectedRunners[sourceBase] = runnerId;
-                occupiedBases[sourceBase] = true;
+    const occupiedBases = {
+        first: false,
+        second: false,
+        third: false,
+    };
+
+    Object.entries(runnerResults).forEach(([origin, result]) => {
+        if (!result) return;
+
+        let finalBase = null;
+        if (result === "stay") {
+            if (
+                origin === "first" ||
+                origin === "second" ||
+                origin === "third"
+            ) {
+                finalBase = origin;
             }
-        };
-
-        if (runnerResults.batter) {
-            processResult(runnerResults.batter, "Batter", null);
+        } else if (
+            result === "first" ||
+            result === "second" ||
+            result === "third"
+        ) {
+            finalBase = result;
         }
 
-        // Process existing runners
-        const bases = ["first", "second", "third"];
-        bases.forEach((base) => {
-            if (runners[base]) {
-                const result = runnerResults[base];
-                processResult(result, runners[base], base);
-            }
-        });
-
-        return { projectedRunners, occupiedBases, runsScored, outsRecorded };
-    };
+        if (finalBase && finalBase in occupiedBases) {
+            occupiedBases[finalBase] = true;
+        }
+    });
 
     return {
         runnerResults,
         setRunnerResults,
-        ...getProjectedState(),
+        runsScored,
+        outsRecorded,
+        occupiedBases,
     };
 }
