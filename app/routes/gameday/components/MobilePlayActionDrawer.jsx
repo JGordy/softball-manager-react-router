@@ -56,12 +56,13 @@ export default function MobilePlayActionDrawer({
         actionType,
     );
 
-    const { runnerResults, setRunnerResults } = useRunnerProjection({
-        opened,
-        actionType,
-        runners,
-        outs,
-    });
+    const { runnerResults, setRunnerResults, runsScored, outsRecorded } =
+        useRunnerProjection({
+            opened,
+            actionType,
+            runners,
+            outs,
+        });
 
     const positions = Object.entries(POSITIONS).map(([key, pos]) => ({
         label: pos.initials,
@@ -146,6 +147,8 @@ export default function MobilePlayActionDrawer({
                 runners={runners}
                 runnerResults={runnerResults}
                 setRunnerResults={setRunnerResults}
+                runsScored={runsScored}
+                outsRecorded={outsRecorded}
                 handleConfirm={handleConfirm}
                 currentBatter={currentBatter}
                 variant="mobile"

@@ -57,12 +57,13 @@ export default function DesktopPlayActionDrawer({
         actionType,
     );
 
-    const { runnerResults, setRunnerResults } = useRunnerProjection({
-        opened,
-        actionType,
-        runners,
-        outs,
-    });
+    const { runnerResults, setRunnerResults, runsScored, outsRecorded } =
+        useRunnerProjection({
+            opened,
+            actionType,
+            runners,
+            outs,
+        });
 
     const positions = Object.entries(POSITIONS).map(([key, pos]) => ({
         label: pos.initials,
@@ -152,14 +153,14 @@ export default function DesktopPlayActionDrawer({
                 runners={runners}
                 runnerResults={runnerResults}
                 setRunnerResults={setRunnerResults}
+                runsScored={runsScored}
+                outsRecorded={outsRecorded}
                 handleConfirm={handleConfirm}
                 currentBatter={currentBatter}
                 variant="desktop"
                 onChangeClick={() => {
                     setShowConfirmation(false);
                     setIsLocked(false);
-                    setHitCoordinates({ x: null, y: null });
-                    setSelectedPosition(null);
                 }}
             />
         );

@@ -11,6 +11,8 @@ export default function RunnerAdvancementDND({
     runners,
     runnerResults,
     setRunnerResults,
+    runsScored,
+    outsRecorded,
     playerChart,
     actionType,
     batterId,
@@ -87,13 +89,6 @@ export default function RunnerAdvancementDND({
         });
         return groups;
     }, [runnerResults, runners, batterId, getPlayerName]);
-
-    const runsScored = Object.values(runnerResults).filter(
-        (v) => v === "score",
-    ).length;
-    const outsRecorded = Object.values(runnerResults).filter(
-        (v) => v === "out",
-    ).length;
 
     // --- RULES ENGINE (Shared by DND and Manual Pointer) ---
 

@@ -11,6 +11,8 @@ export function ConfirmationPanel({
     runners,
     runnerResults,
     setRunnerResults,
+    runsScored,
+    outsRecorded,
     handleConfirm,
     variant = "desktop",
     onChangeClick,
@@ -42,6 +44,8 @@ export function ConfirmationPanel({
                 runners={runners}
                 runnerResults={runnerResults}
                 setRunnerResults={setRunnerResults}
+                runsScored={runsScored}
+                outsRecorded={outsRecorded}
                 playerChart={playerChart}
                 actionType={actionType}
                 batterId={currentBatter?.$id || currentBatter?.id}

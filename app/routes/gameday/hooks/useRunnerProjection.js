@@ -56,8 +56,25 @@ export function useRunnerProjection({ opened, actionType, runners, _outs }) {
         setPrevProps({ actionType: null, runners: null });
     }
 
+    // Final derived state
+    const runsScored = Object.values(runnerResults).filter(
+        (v) => v === "score",
+    ).length;
+    const outsRecorded = Object.values(runnerResults).filter(
+        (v) => v === "out",
+    ).length;
+
+    const occupiedBases = {
+        first: Object.values(runnerResults).some((v) => v === "first"),
+        second: Object.values(runnerResults).some((v) => v === "second"),
+        third: Object.values(runnerResults).some((v) => v === "third"),
+    };
+
     return {
         runnerResults,
         setRunnerResults,
+        runsScored,
+        outsRecorded,
+        occupiedBases,
     };
 }
