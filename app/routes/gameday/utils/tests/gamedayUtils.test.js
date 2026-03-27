@@ -5,7 +5,35 @@ import {
     handleWalk,
     handleRunnerResults,
     parsePlayerChart,
+    getPlayerName,
 } from "../gamedayUtils";
+
+describe("getPlayerName", () => {
+    const mockPlayerChart = [
+        {
+            $id: "p1",
+            firstName: "Mike",
+            lastName: "Trout",
+            substitutions: [
+                { playerId: "sub1", firstName: "Shohei", lastName: "Ohtani" },
+            ],
+        },
+        { $id: "p2", firstName: "Mookie", lastName: "Betts" },
+    ];
+
+    it("should resolve starter name by ID", () => {
+        expect(getPlayerName("p1", mockPlayerChart)).toBe("Mike T.");
+        expect(getPlayerName("p2", mockPlayerChart)).toBe("Mookie B.");
+    });
+
+    it("should resolve substitute name by ID", () => {
+        expect(getPlayerName("sub1", mockPlayerChart)).toBe("Shohei O.");
+    });
+
+    it("should return 'Runner' for unknown IDs", () => {
+        expect(getPlayerName("unknown", mockPlayerChart)).toBe("Runner");
+    });
+});
 
 describe("getActivePlayerInSlot", () => {
     it("should return the root slot if there are no substitutions", () => {

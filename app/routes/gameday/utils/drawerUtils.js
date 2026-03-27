@@ -1,5 +1,8 @@
+import { getActivePlayerInSlot } from "./gamedayUtils";
+
 export function getDrawerTitle(actionType, currentBatter) {
-    const batterName = currentBatter?.firstName || "Batter";
+    const activePlayer = getActivePlayerInSlot(currentBatter);
+    const batterName = activePlayer?.firstName || "Batter";
 
     switch (actionType) {
         case "1B":

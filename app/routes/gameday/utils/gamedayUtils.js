@@ -8,13 +8,38 @@ export const getActivePlayerInSlot = (slot) => {
     return slot.substitutions[slot.substitutions.length - 1];
 };
 
-/**
- * Returns the currently active player ID for a lineup slot.
- * Handles both starters (using $id) and substitutes (using playerId).
- */
 export const getActivePlayerId = (slot) => {
     const active = getActivePlayerInSlot(slot);
     return active?.playerId || active?.$id;
+};
+
+/**
+ * Returns the formatted name of a player by ID.
+ * Checks both the starter slot and all substitution history.
+ * @param {string} playerId - The ID to look up
+ * @param {Array} playerChart - The current lineup chart
+ * @returns {string} - The formatted name (e.g. "John D.") or "Runner" if not found.
+ */
+export const getPlayerName = (playerId, playerChart) => {
+    if (!playerId || !playerChart) return "Runner";
+    for (const slot of playerChart) {
+        if (slot.$id === playerId) {
+            const lastInitial = slot.lastName
+                ? ` ${slot.lastName.charAt(0)}.`
+                : "";
+            return `${slot.firstName}${lastInitial}`;
+        }
+        if (slot.substitutions) {
+            const sub = slot.substitutions.find((s) => s.playerId === playerId);
+            if (sub) {
+                const lastInitial = sub.lastName
+                    ? ` ${sub.lastName.charAt(0)}.`
+                    : "";
+                return `${sub.firstName}${lastInitial}`;
+            }
+        }
+    }
+    return "Runner";
 };
 
 export function getRunnerMovement(baseState, playerChart) {
@@ -26,30 +51,6 @@ export function getRunnerMovement(baseState, playerChart) {
         const state =
             typeof baseState === "string" ? JSON.parse(baseState) : baseState;
 
-        // Helper to get player name by ID — checks root $id and substitutions
-        const getPlayerName = (playerId) => {
-            for (const slot of playerChart) {
-                if (slot.$id === playerId) {
-                    const lastInitial = slot.lastName
-                        ? ` ${slot.lastName.charAt(0)}.`
-                        : "";
-                    return `${slot.firstName}${lastInitial}`;
-                }
-                if (slot.substitutions) {
-                    const sub = slot.substitutions.find(
-                        (s) => s.playerId === playerId,
-                    );
-                    if (sub) {
-                        const lastInitial = sub.lastName
-                            ? ` ${sub.lastName.charAt(0)}.`
-                            : "";
-                        return `${sub.firstName}${lastInitial}`;
-                    }
-                }
-            }
-            return "Runner";
-        };
-
         // First, show who scored
         if (
             state.scored &&
@@ -57,18 +58,26 @@ export function getRunnerMovement(baseState, playerChart) {
             state.scored.length > 0
         ) {
             state.scored.forEach((playerId) => {
-                movements.push(`${getPlayerName(playerId)} scores`);
+                movements.push(
+                    `${getPlayerName(playerId, playerChart)} scores`,
+                );
             });
         }
 
         // Then show the resulting base state (who's on base now)
         const baseOccupants = [];
         if (state.first)
-            baseOccupants.push(`1B: ${getPlayerName(state.first)}`);
+            baseOccupants.push(
+                `1B: ${getPlayerName(state.first, playerChart)}`,
+            );
         if (state.second)
-            baseOccupants.push(`2B: ${getPlayerName(state.second)}`);
+            baseOccupants.push(
+                `2B: ${getPlayerName(state.second, playerChart)}`,
+            );
         if (state.third)
-            baseOccupants.push(`3B: ${getPlayerName(state.third)}`);
+            baseOccupants.push(
+                `3B: ${getPlayerName(state.third, playerChart)}`,
+            );
 
         if (baseOccupants.length > 0) {
             movements.push(baseOccupants.join(", "));
