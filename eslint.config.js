@@ -12,6 +12,7 @@ export default [
         files: ["**/*.{js,jsx}"],
         languageOptions: {
             ecmaVersion: 2020,
+            sourceType: "module",
             globals: {
                 ...globals.browser,
                 ...globals.node,
