@@ -57,19 +57,7 @@ export default function RunnerAdvancementDND({
             "out-zone": [],
         };
 
-        if (runnerResults.batter) {
-            let currentBase = "out-zone";
-            if (runnerResults.batter === "score") currentBase = "base-home";
-            else if (runnerResults.batter === "first") currentBase = "base-1";
-            else if (runnerResults.batter === "second") currentBase = "base-2";
-            else if (runnerResults.batter === "third") currentBase = "base-3";
-            else if (runnerResults.batter === "out") currentBase = "out-zone";
-            else if (runnerResults.batter === "stay") currentBase = "base-home";
-            const bId = batterId || "Batter";
-            groups[currentBase].push({ id: bId, name: getPlayerName(bId) });
-        }
-
-        ["first", "second", "third"].forEach((base) => {
+        ["third", "second", "first"].forEach((base) => {
             const playerId = runners[base];
             if (playerId) {
                 const result = runnerResults[base];
@@ -87,6 +75,19 @@ export default function RunnerAdvancementDND({
                 });
             }
         });
+
+        if (runnerResults.batter) {
+            let currentBase = "out-zone";
+            if (runnerResults.batter === "score") currentBase = "base-home";
+            else if (runnerResults.batter === "first") currentBase = "base-1";
+            else if (runnerResults.batter === "second") currentBase = "base-2";
+            else if (runnerResults.batter === "third") currentBase = "base-3";
+            else if (runnerResults.batter === "out") currentBase = "out-zone";
+            else if (runnerResults.batter === "stay") currentBase = "base-home";
+            const bId = batterId || "Batter";
+            groups[currentBase].push({ id: bId, name: getPlayerName(bId) });
+        }
+
         return groups;
     }, [runnerResults, runners, batterId, getPlayerName]);
 
