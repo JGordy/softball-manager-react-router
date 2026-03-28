@@ -70,4 +70,22 @@ describe("CurrentBatterCard", () => {
         expect(screen.getByText("2/3")).toBeInTheDocument();
         expect(screen.getByText("2 RBI")).toBeInTheDocument();
     });
+
+    it("renders avatar with the correct lime border styling", () => {
+        const batterWithAvatar = {
+            ...mockBatter,
+            avatarUrl: "http://avatar.url",
+        };
+        const { container } = render(
+            <CurrentBatterCard currentBatter={batterWithAvatar} logs={[]} />,
+        );
+
+        // Find the avatar element
+        const avatar = container.querySelector(".mantine-Avatar-root");
+        expect(avatar).toBeInTheDocument();
+        // Check for the expected color variable in the style attribute
+        expect(avatar.getAttribute("style")).toContain(
+            "var(--mantine-color-lime-4)",
+        );
+    });
 });
