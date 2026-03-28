@@ -16,7 +16,32 @@ export function useGamedayController({
 }) {
     const [logs, setLogs] = useState(initialLogs);
     // Hold playerChart in local state so sub updates reflect immediately
-    const [playerChart, setPlayerChart] = useState(initialPlayerChart);
+    const [lineup, setLineup] = useState(initialPlayerChart);
+
+    // Enrich playerChart with live data (like avatarUrl) from the players (user documents) array
+    const playerChart = useMemo(() => {
+        const playerMap = new Map(players.map((p) => [p.$id, p]));
+        return lineup.map((slot) => {
+            const playerDoc = playerMap.get(slot.$id);
+            const enrichedSlot = {
+                ...slot,
+                avatarUrl: playerDoc?.avatarUrl || slot.avatarUrl,
+            };
+
+            if (slot.substitutions) {
+                enrichedSlot.substitutions = slot.substitutions.map((sub) => {
+                    const subDoc = playerMap.get(sub.playerId);
+                    return {
+                        ...sub,
+                        avatarUrl: subDoc?.avatarUrl || sub.avatarUrl,
+                    };
+                });
+            }
+            return enrichedSlot;
+        });
+    }, [lineup, players]);
+
+    const setPlayerChart = setLineup;
 
     // Real-time updates for game logs
     const { status: realtimeStatus } = useGameUpdates(game.$id, {
