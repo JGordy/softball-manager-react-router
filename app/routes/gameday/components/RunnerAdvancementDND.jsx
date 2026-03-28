@@ -85,7 +85,7 @@ export default function RunnerAdvancementDND({
         }
 
         return groups;
-    }, [runnerResults, runners, batterId, getPlayerName]);
+    }, [runnerResults, runners, batterId, getRunnerName]);
 
     // --- RULES ENGINE (Shared by DND and Manual Pointer) ---
 
