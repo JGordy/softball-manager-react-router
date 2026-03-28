@@ -31,7 +31,6 @@ describe("ScoreboardHeader", () => {
         // Verify outs indicator
         expect(screen.getByLabelText("1 out")).toBeInTheDocument();
         expect(screen.getByText("1 OUT")).toBeInTheDocument();
-        expect(screen.getByText("1 OUT")).toBeInTheDocument();
     });
 
     it("renders runner status indicators", () => {
