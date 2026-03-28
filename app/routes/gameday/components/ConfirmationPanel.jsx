@@ -1,7 +1,10 @@
 import { Button, Divider, Group, Stack, Text } from "@mantine/core";
-
 import RunnerAdvancementDND from "./RunnerAdvancementDND";
 import { getActionColor } from "../utils/drawerUtils";
+import {
+    getActivePlayerInSlot,
+    getActivePlayerId,
+} from "../utils/gamedayUtils";
 
 export function ConfirmationPanel({
     selectedPosition,
@@ -18,6 +21,9 @@ export function ConfirmationPanel({
     onChangeClick,
     currentBatter,
 }) {
+    const activeBatter = getActivePlayerInSlot(currentBatter);
+    const activeBatterId = getActivePlayerId(currentBatter);
+
     return (
         <>
             <Group justify="space-between" my="sm">
@@ -48,8 +54,8 @@ export function ConfirmationPanel({
                 outsRecorded={outsRecorded}
                 playerChart={playerChart}
                 actionType={actionType}
-                batterId={currentBatter?.$id || currentBatter?.id}
-                batterName={currentBatter?.firstName || "Batter"}
+                batterId={activeBatterId}
+                batterName={activeBatter?.firstName || "Batter"}
                 variant={variant}
             />
 

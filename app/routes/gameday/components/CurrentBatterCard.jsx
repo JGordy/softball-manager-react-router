@@ -1,4 +1,4 @@
-import { Card, Group, Stack, Text, Badge } from "@mantine/core";
+import { Card, Group, Stack, Text, Badge, Avatar } from "@mantine/core";
 import { HITS, WALKS, getUILabel } from "@/constants/scoring";
 import { getActivePlayerInSlot } from "../utils/gamedayUtils";
 
@@ -28,53 +28,95 @@ export default function CurrentBatterCard({ currentBatter, logs, ...props }) {
     const hitTypes = hits.map((h) => getUILabel(h.eventType)).join(", ");
 
     return (
-        <Card withBorder p="sm" radius="md" bg="blue" {...props}>
+        <Card withBorder p="sm" radius="md" bg="blue.9" {...props}>
             <Group justify="space-between" wrap="nowrap">
-                <Stack gap={0}>
-                    <Group gap="xs">
-                        <Text size="xs" fw={700} c="white">
-                            CURRENT BATTER
-                        </Text>
-                        {isSubstitute && (
-                            <Badge size="xs" color="orange" variant="filled">
-                                SUB
-                            </Badge>
-                        )}
-                    </Group>
-                    <Text size="lg" fw={800} c="white">
-                        {activePlayer.firstName}
-                        {activePlayer.lastName
-                            ? ` ${activePlayer.lastName}`
-                            : ""}
-                    </Text>
-                    {isSubstitute && (
-                        <Text size="xs" c="blue.2">
-                            for {currentBatter.firstName}
-                            {currentBatter.lastName
-                                ? ` ${currentBatter.lastName}`
+                <Group wrap="nowrap" gap="md" style={{ minWidth: 0, flex: 1 }}>
+                    <Avatar
+                        src={activePlayer.avatarUrl}
+                        alt={`${activePlayer.firstName}${activePlayer.lastName ? ` ${activePlayer.lastName}` : ""}`}
+                        radius="xl"
+                        size="lg"
+                        color="lime"
+                    >
+                        {activePlayer.firstName?.[0]}
+                        {activePlayer.lastName?.[0]}
+                    </Avatar>
+                    <Stack gap={0} style={{ minWidth: 0, flex: 1 }}>
+                        <Group gap="xs" wrap="nowrap">
+                            <Text
+                                size="xs"
+                                fw={700}
+                                c="lime.4"
+                                tt="uppercase"
+                                lts={1}
+                                style={{ whiteSpace: "nowrap" }}
+                            >
+                                CURRENT BATTER
+                            </Text>
+                            {isSubstitute && (
+                                <Badge
+                                    size="xs"
+                                    color="orange"
+                                    variant="filled"
+                                >
+                                    SUB
+                                </Badge>
+                            )}
+                        </Group>
+                        <Text
+                            size="xl"
+                            fw={800}
+                            c="white"
+                            style={{ lineHeight: 1.1 }}
+                            truncate="end"
+                        >
+                            {activePlayer.firstName}
+                            {activePlayer.lastName
+                                ? ` ${activePlayer.lastName}`
                                 : ""}
                         </Text>
-                    )}
-                </Stack>
-                <Stack gap={2} align="flex-end">
-                    <Text size="xs" fw={700} c="white">
-                        GAME STATS
-                    </Text>
-                    <Group gap="xs">
-                        <Text size="sm" fw={700} c="white">
-                            {hits.length}/{ab}
-                        </Text>
-                        {hits.length > 0 && (
-                            <Text size="xs" c="white">
-                                [{hitTypes}]
+                        {isSubstitute && (
+                            <Text size="xs" c="blue.2" truncate="end">
+                                for {currentBatter.firstName}
+                                {currentBatter.lastName
+                                    ? ` ${currentBatter.lastName}`
+                                    : ""}
                             </Text>
                         )}
+                    </Stack>
+                </Group>
+                <Stack gap={2} align="flex-end" style={{ flexShrink: 0 }}>
+                    <Text
+                        size="xs"
+                        fw={700}
+                        c="white"
+                        tt="uppercase"
+                        opacity={0.7}
+                        lts={1}
+                        style={{ whiteSpace: "nowrap" }}
+                    >
+                        Game Stats
+                    </Text>
+                    <Group gap={6} align="flex-end" wrap="nowrap">
+                        <Text
+                            size="md"
+                            fw={800}
+                            c="white"
+                            style={{ whiteSpace: "nowrap" }}
+                        >
+                            {hits.length}/{ab}
+                        </Text>
                         {rbis > 0 && (
-                            <Badge size="xs" color="lime" variant="light">
+                            <Badge size="xs" color="lime" variant="filled">
                                 {rbis} RBI
                             </Badge>
                         )}
                     </Group>
+                    {hits.length > 0 && (
+                        <Text size="xs" c="blue.1" fw={600} truncate="end">
+                            [{hitTypes}]
+                        </Text>
+                    )}
                 </Stack>
             </Group>
         </Card>

@@ -65,7 +65,7 @@ describe("MobileGamedayContainer", () => {
         );
 
         expect(screen.getByText("Tigers")).toBeInTheDocument();
-        expect(screen.getByLabelText("Home plate")).toBeInTheDocument();
+        expect(screen.getByLabelText("Runner status")).toBeInTheDocument();
         expect(screen.getByTestId("sub-player-modal")).toBeInTheDocument();
         // Since we are batting, we expect ActionPad
         expect(screen.getByRole("button", { name: "1B" })).toBeInTheDocument();
@@ -110,7 +110,7 @@ describe("MobileGamedayContainer", () => {
         );
 
         // Default tab is 'Live'
-        expect(screen.getByLabelText("Home plate")).toBeInTheDocument();
+        expect(screen.getByLabelText("Runner status")).toBeInTheDocument();
 
         // Click on 'Plays' tab
         const playsTab = screen.getByText("Plays");

@@ -6,6 +6,7 @@ import { Box, Text, Paper, Badge, Group, Stack } from "@mantine/core";
 import { BASE_POSITIONS } from "@/constants/basePositions";
 import { getRelativePointerCoordinates } from "../utils/fieldMapping";
 import fieldStyles from "./GamedayField.module.css";
+import { getPlayerName } from "../utils/gamedayUtils";
 
 export default function RunnerAdvancementDND({
     runners,
@@ -32,19 +33,14 @@ export default function RunnerAdvancementDND({
 
     // --- SHARED DATA Calculation ---
 
-    const getPlayerName = useCallback(
+    const getRunnerName = useCallback(
         (id) => {
             if (!id) return "";
             if (id === batterId && batterName && batterName !== "Batter")
                 return batterName;
-            const player = playerChart?.find((p) => p.$id === id);
-            return player
-                ? `${player.firstName}`
-                : id === batterId
-                  ? batterName || "Batter"
-                  : "Unknown";
+            return getPlayerName(id, playerChart);
         },
-        [batterId, batterName, playerChart],
+        [batterId, batterName, playerChart, getPlayerName],
     );
 
     // Each zone is an array because Home (Score) and the OUT zone support multiple runners
@@ -71,7 +67,7 @@ export default function RunnerAdvancementDND({
                 else if (result === "out") currentBase = "out-zone";
                 groups[currentBase].push({
                     id: playerId,
-                    name: getPlayerName(playerId),
+                    name: getRunnerName(playerId),
                 });
             }
         });
@@ -85,11 +81,11 @@ export default function RunnerAdvancementDND({
             else if (runnerResults.batter === "out") currentBase = "out-zone";
             else if (runnerResults.batter === "stay") currentBase = "base-home";
             const bId = batterId || "Batter";
-            groups[currentBase].push({ id: bId, name: getPlayerName(bId) });
+            groups[currentBase].push({ id: bId, name: getRunnerName(bId) });
         }
 
         return groups;
-    }, [runnerResults, runners, batterId, getPlayerName]);
+    }, [runnerResults, runners, batterId, getRunnerName]);
 
     // --- RULES ENGINE (Shared by DND and Manual Pointer) ---
 
@@ -552,7 +548,7 @@ export default function RunnerAdvancementDND({
             // Find in runners
             ["first", "second", "third"].forEach((base) => {
                 if (runners[base] === activeDraggableId) {
-                    playerName = getPlayerName(activeDraggableId);
+                    playerName = getRunnerName(activeDraggableId);
                 }
             });
         }
