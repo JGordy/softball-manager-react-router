@@ -251,11 +251,7 @@ function makeDeferredData({ eventId, userIds, parkId, options = {}, client }) {
     const userIdList = userIds.map(({ userId }) => userId);
     const playersPromise =
         includePlayers && userIdList.length > 0
-            ? listDocuments(
-                  "users",
-                  [Query.equal("$id", userIdList)],
-                  client,
-              ).then((result) => result.rows || [])
+            ? resolvePlayers(userIds, client)
             : Promise.resolve([]);
 
     const parkPromise =
@@ -304,12 +300,42 @@ async function resolvePlayers(userIds, client) {
         return [];
     }
 
+    // 1. Fetch documents from the 'users' database collection
     const result = await listDocuments(
         "users",
         [Query.equal("$id", userIdList)],
         client,
     );
-    return result.rows || [];
+    const players = result.rows || [];
+
+    // 2. Fetch associated account information (specifically preferences) from the Users management API
+    // This requires an admin client to read preferences of other users.
+    const { users: adminUsers } = createAdminClient();
+    try {
+        const accountResult = await adminUsers.list([
+            Query.equal("$id", userIdList),
+        ]);
+        const accounts = accountResult.users || [];
+
+        // 3. Create a map of account preferences for O(1) lookup
+        const accountMap = new Map(accounts.map((a) => [a.$id, a]));
+
+        // 4. Merge account preferences (like avatarUrl) into the database documents
+        return players.map((p) => {
+            const acc = accountMap.get(p.$id);
+            // Account preferences take precedence for display data like avatars
+            return {
+                ...p,
+                avatarUrl: acc?.prefs?.avatarUrl || p.avatarUrl,
+            };
+        });
+    } catch (e) {
+        console.warn(
+            "resolvePlayers: Failed to fetch account preferences for enrichment. Falling back to database collection data.",
+            e.message,
+        );
+        return players;
+    }
 }
 
 export async function getEventById({ eventId, client, ...options }) {
