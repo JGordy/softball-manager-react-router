@@ -196,4 +196,38 @@ describe("useGamedayController", () => {
             label: "Substitute Player (Sub)",
         });
     });
+
+    it("enriches playerChart and currentBatter with avatarUrl from players array", () => {
+        const playersWithAvatars = [
+            {
+                $id: "p1",
+                firstName: "John",
+                lastName: "Doe",
+                avatarUrl: "http://avatar.url/p1",
+            },
+            {
+                $id: "p2",
+                firstName: "Jane",
+                lastName: "Smith",
+                avatarUrl: "http://avatar.url/p2",
+            },
+        ];
+
+        const { result } = renderHook(() =>
+            useGamedayController({
+                game: mockGame,
+                playerChart: mockPlayerChart,
+                team: mockTeam,
+                players: playersWithAvatars,
+            }),
+        );
+
+        // Verify current batter (p1 at index 0) has the avatarUrl
+        expect(result.current.currentBatter.avatarUrl).toBe(
+            "http://avatar.url/p1",
+        );
+        // Verify Jane (p2) also has it in the full chart
+        const janeSlot = result.current.playerChart.find((s) => s.$id === "p2");
+        expect(janeSlot.avatarUrl).toBe("http://avatar.url/p2");
+    });
 });

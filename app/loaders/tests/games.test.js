@@ -206,12 +206,18 @@ describe("Games Loader", () => {
             const mockAttendance = [{ $id: "att1" }];
             const mockTeams = [{ $id: "team1", name: "Team 1" }];
 
-            // Mock Teams API for memberships
+            // Mock Teams API and Users API
             const mockListMemberships = jest.fn().mockResolvedValue({
                 memberships: [{ userId: "user1", roles: ["player"] }],
             });
+            const mockListUsers = jest.fn().mockResolvedValue({
+                users: [
+                    { $id: "user1", prefs: { avatarUrl: "http://avatar.url" } },
+                ],
+            });
             createAdminClient.mockReturnValue({
                 teams: { listMemberships: mockListMemberships },
+                users: { list: mockListUsers },
             });
 
             // Mock for loadGameBase
@@ -231,7 +237,8 @@ describe("Games Loader", () => {
 
             expect(result.game).toBeDefined();
             expect(result.players).toHaveLength(1);
-            expect(result.players[0].name).toBe("Player 1");
+            // Verify enrichment worked: avatarUrl from prefs should be present
+            expect(result.players[0].avatarUrl).toBe("http://avatar.url");
             expect(result.attendance).toHaveLength(1);
         });
     });

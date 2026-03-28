@@ -70,4 +70,19 @@ describe("CurrentBatterCard", () => {
         expect(screen.getByText("2/3")).toBeInTheDocument();
         expect(screen.getByText("2 RBI")).toBeInTheDocument();
     });
+
+    it("renders avatar image with the provided URL", () => {
+        const batterWithAvatar = {
+            ...mockBatter,
+            avatarUrl: "http://avatar.url",
+        };
+        render(
+            <CurrentBatterCard currentBatter={batterWithAvatar} logs={[]} />,
+        );
+
+        // Assert that the avatar image is rendered with the correct src
+        const avatarImage = screen.getByRole("img", { name: "John Doe" });
+        expect(avatarImage).toBeInTheDocument();
+        expect(avatarImage).toHaveAttribute("src", "http://avatar.url");
+    });
 });
