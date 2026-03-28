@@ -310,8 +310,8 @@ async function resolvePlayers(userIds, client) {
 
     // 2. Fetch associated account information (specifically preferences) from the Users management API
     // This requires an admin client to read preferences of other users.
-    const { users: adminUsers } = createAdminClient();
     try {
+        const { users: adminUsers } = createAdminClient();
         const accountResult = await adminUsers.list([
             Query.equal("$id", userIdList),
         ]);
