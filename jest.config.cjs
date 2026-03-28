@@ -19,6 +19,8 @@ module.exports = {
         "import.meta": {
             env: {
                 VITE_GOOGLE_SERVICES_API_KEY: "test-api-key",
+                VITE_APPWRITE_HOST_URL: "http://localhost",
+                VITE_APPWRITE_PROJECT_ID: "test-project",
             },
         },
     },
