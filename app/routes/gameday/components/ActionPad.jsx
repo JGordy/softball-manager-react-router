@@ -1,4 +1,4 @@
-import { Button, SimpleGrid, Stack, Text, Divider, Box } from "@mantine/core";
+import { Button, SimpleGrid, Stack, Text } from "@mantine/core";
 import { UI_KEYS } from "@/constants/scoring";
 
 const HIT_COLOR = "lime.4";
