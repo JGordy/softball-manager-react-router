@@ -130,7 +130,14 @@ async function loadGameBase({ eventId, client }) {
     try {
         // Read basic game document
         const gameDoc = await readDocument("games", eventId, [], client);
-        const { seasons: seasonId, playerChart, ...game } = gameDoc;
+        const {
+            seasons: seasonId,
+            playerChart: rawPlayerChart,
+            ...game
+        } = gameDoc;
+
+        // Shared defensive parsing for consistent data structure across loaders
+        const playerChart = parsePlayerChart(rawPlayerChart);
 
         // Manually fetch the season since TablesDB doesn't auto-populate relationships
         const season = seasonId
@@ -217,7 +224,7 @@ async function loadGameBase({ eventId, client }) {
         }
 
         return {
-            game,
+            game: { ...game, playerChart },
             season,
             teams,
             parkId,
@@ -380,45 +387,31 @@ export async function getEventById({ eventId, client, ...options }) {
         playerChart,
     } = baseData;
 
-    const parsedChart = parsePlayerChart(playerChart) ?? null;
-    const chartPlayerIds = getUniquePlayerIdsFromChart(parsedChart);
-    const officialUserIdsSet = new Set(userIds.map((u) => u.userId));
-    const guestUserIds = Array.from(chartPlayerIds).filter(
-        (id) => !officialUserIdsSet.has(id),
-    );
+    // Fetch weather data as a deferred promise if a park is available
+    const weatherPromise =
+        includeWeather && parkId
+            ? getWeatherData(parkId, game, client)
+            : Promise.resolve(null);
 
-    // Combine for deferred resolution
-    const allUserIds = [
-        ...userIds,
-        ...guestUserIds.map((id) => ({ userId: id, role: "guest" })),
-    ];
-
-    // Build deferred data object (promises for lazy loading in the UI)
+    // Batch fetch remaining event data as deferred promises
     const deferredData = makeDeferredData({
         eventId,
-        userIds: allUserIds,
+        userIds,
         parkId,
         options: deferredOptions,
-        client: client,
+        client,
     });
 
     return {
         gameDeleted: false,
-        deferredData,
-        game: {
-            ...game,
-            playerChart: parsedChart,
-        },
-        location,
-        userIds: allUserIds,
+        game: { ...game, location, playerChart },
+        ...deferredData,
+        userIds,
         managerIds,
         scorekeeperIds,
         season,
         teams,
-        // Deferred data for weather, but is conditional so we didn't add it to the deferredData
-        weatherPromise: includeWeather
-            ? getWeatherData(parkId, game, client)
-            : Promise.resolve(null),
+        weatherPromise,
     };
 }
 
@@ -439,8 +432,8 @@ export async function getEventWithPlayerCharts({ client, eventId }) {
     const { game, teams, userIds, managerIds, scorekeeperIds, playerChart } =
         baseData;
 
-    // Use shared defensive parser
-    const parsedChart = parsePlayerChart(playerChart) ?? null;
+    // Use shared defensive parser (guaranteed to be parsed or null from loadGameBase)
+    const parsedChart = playerChart ?? null;
 
     // Identify guest players already in the chart
     const chartPlayerIds = getUniquePlayerIdsFromChart(parsedChart);
@@ -480,8 +473,13 @@ export async function getEventWithPlayerCharts({ client, eventId }) {
     const allGuestPlayers = [...teamGuestPlayers, ...extraChartGuests];
 
     // Parallelize official players + attendance
+    // Only resolve official team users (don't pass guest IDs to resolvePlayers as they won't exist in users collection)
+    const filteredOfficialUserIds = userIds.filter(
+        (u) => !allGuestPlayers.some((g) => g.$id === u.userId),
+    );
+
     const [officialPlayers, attendance] = await Promise.all([
-        resolvePlayers(userIds, client),
+        resolvePlayers(filteredOfficialUserIds, client),
         getAttendance({ eventId, accepted: false, client: client }),
     ]);
 

@@ -50,6 +50,19 @@ export async function checkBadWords(text, options = {}) {
 
         if (!response.ok) {
             const errorText = await response.text();
+            // Handle specific 404 case from apilayer Bad Words API when no bad words are found
+            if (
+                response.status === 404 &&
+                errorText.includes("Unable to detect an inappropriate word")
+            ) {
+                return {
+                    bad_words_total: 0,
+                    bad_words_list: [],
+                    content: text,
+                    censored_content: text,
+                };
+            }
+
             throw new Error(
                 `Bad Words API error (${response.status}): ${errorText}`,
             );

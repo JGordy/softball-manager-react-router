@@ -1,9 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useActionData } from "react-router";
 import { Stack, TextInput, Radio, Group } from "@mantine/core";
-import FormWrapper from "./FormWrapper";
+
 import useModal from "@/hooks/useModal";
 import classes from "@/styles/inputs.module.css";
+
+import FormWrapper from "./FormWrapper";
 
 export default function AddGuestPlayer({
     action = "create-guest-player",
@@ -17,16 +19,9 @@ export default function AddGuestPlayer({
 }) {
     const actionData = useActionData();
     const { closeAllModals } = useModal();
-    // Capture the action data from the route when this modal is first opened
-    const initialActionData = useRef(actionData);
 
     useEffect(() => {
-        // Only close if we have a NEW successful submission (actionData changed from initial)
-        if (
-            actionData?.success &&
-            actionData !== initialActionData.current &&
-            actionData?.response?.player
-        ) {
+        if (actionData?.success) {
             if (onSubmit) {
                 onSubmit();
             }
