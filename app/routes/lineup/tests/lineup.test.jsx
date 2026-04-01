@@ -1,6 +1,7 @@
 import { render, screen } from "@/utils/test-utils";
 import * as gamesLoaders from "@/loaders/games";
 import * as lineupsActions from "@/actions/lineups";
+import * as playersActions from "@/actions/players";
 import * as addPlayerAvailability from "@/utils/addPlayerAvailability";
 import * as validateLineupUtils from "../utils/validateLineup";
 
@@ -20,6 +21,7 @@ jest.mock("@/components/BackButton", () => () => <button>Back</button>);
 
 jest.mock("@/loaders/games");
 jest.mock("@/actions/lineups");
+jest.mock("@/actions/players");
 jest.mock("@/utils/addPlayerAvailability");
 jest.mock("../utils/validateLineup");
 jest.mock("@/utils/appwrite/server", () => ({
@@ -55,6 +57,15 @@ describe("Lineup Route", () => {
         // Setup default mock returns
         addPlayerAvailability.default.mockReturnValue([]);
         validateLineupUtils.validateLineup.mockReturnValue({});
+        gamesLoaders.getEventWithPlayerCharts.mockResolvedValue({
+            $id: "game-123",
+            playerChart: [],
+        });
+        playersActions.createTemporaryPlayer.mockResolvedValue({
+            success: true,
+            response: { player: { userId: "new-user-id" } },
+        });
+        lineupsActions.savePlayerChart.mockResolvedValue({ success: true });
     });
 
     const mockLoaderData = {
@@ -133,42 +144,93 @@ describe("Lineup Route", () => {
             });
 
             expect(result.status).toBe(400);
-            expect(result.message).toMatch(/Invalid playerChart JSON/);
+            expect(result.message).toMatch(
+                /Invalid playerChart JSON format provided./,
+            );
             expect(lineupsActions.savePlayerChart).not.toHaveBeenCalled();
         });
 
         it("handles finalize-chart action", async () => {
             const formData = new FormData();
             formData.append("_action", "finalize-chart");
+            formData.append("playerChart", JSON.stringify([{ userId: "p1" }]));
             formData.append("someField", "value");
-            formData.append("playerChart", JSON.stringify([{ id: "1" }]));
 
-            await action({
-                request: { formData: () => Promise.resolve(formData) },
-                params: { eventId: "evt1" },
+            const request = new Request("http://localhost/lineup/evt123", {
+                method: "POST",
+                body: formData,
+            });
+
+            const response = await action({
+                request,
+                params: { eventId: "evt123" },
             });
 
             expect(lineupsActions.savePlayerChart).toHaveBeenCalledWith({
-                eventId: "evt1",
-                values: { someField: "value", playerChart: [{ id: "1" }] },
-                sendNotification: true,
+                eventId: "evt123",
+                values: expect.objectContaining({
+                    playerChart: [{ userId: "p1" }],
+                }),
                 client: expect.any(Object),
+                sendNotification: true,
             });
+            expect(response.success).toBe(true);
         });
 
         it("returns 400 for invalid playerChart JSON in finalize-chart", async () => {
             const formData = new FormData();
-            formData.append("_action", "finalize-chart");
-            formData.append("playerChart", "{ invalid json");
+            formData.set("_action", "finalize-chart");
+            formData.set("playerChart", "invalid-json");
 
-            const result = await action({
-                request: { formData: () => Promise.resolve(formData) },
-                params: { eventId: "evt1" },
+            const request = new Request("http://localhost/lineup/event-123", {
+                method: "POST",
+                body: formData,
             });
 
-            expect(result.status).toBe(400);
-            expect(result.message).toMatch(/Invalid playerChart JSON/);
-            expect(lineupsActions.savePlayerChart).not.toHaveBeenCalled();
+            const response = await action({
+                request,
+                params: { eventId: "event-123" },
+            });
+
+            expect(response.status).toBe(400);
+            expect(response).toEqual({
+                success: false,
+                message: "Invalid playerChart JSON format provided.",
+                status: 400,
+            });
+        });
+
+        it("handles create-guest-player action with integrated lineup addition", async () => {
+            const formData = new FormData();
+            formData.append("_action", "create-guest-player");
+            formData.append("firstName", "Guest");
+            formData.append("lastName", "Player");
+            formData.append("gender", "male");
+            formData.append("teamId", "team-123");
+
+            const request = new Request("http://localhost/lineup/event-123", {
+                method: "POST",
+                body: formData,
+            });
+
+            const response = await action({
+                request,
+                params: { eventId: "event-123" },
+            });
+
+            expect(playersActions.createTemporaryPlayer).toHaveBeenCalledWith({
+                values: expect.objectContaining({
+                    firstName: "Guest",
+                    lastName: "Player",
+                    gender: "male",
+                    teamId: "team-123",
+                }),
+                eventId: "event-123",
+                client: expect.any(Object),
+            });
+            // Verify lineup was also saved
+            expect(lineupsActions.savePlayerChart).toHaveBeenCalled();
+            expect(response.success).toBe(true);
         });
     });
 

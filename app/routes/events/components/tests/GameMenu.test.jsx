@@ -1,7 +1,12 @@
-import { render, screen, fireEvent } from "@/utils/test-utils";
+import { MemoryRouter } from "react-router";
+import { render as baseRender, screen, fireEvent } from "@/utils/test-utils";
 import * as modalHooks from "@/hooks/useModal";
 
 import GameMenu from "../GameMenu";
+
+// Custom render helper for this file to provide Router context
+const render = (ui, options) =>
+    baseRender(<MemoryRouter>{ui}</MemoryRouter>, options);
 
 // Mock dependencies
 jest.mock("@/hooks/useModal");

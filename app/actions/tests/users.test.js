@@ -186,8 +186,7 @@ describe("Users Actions", () => {
             createDocument.mockResolvedValue({ $id: "temp-uuid" });
 
             const result = await createTemporaryPlayer({
-                values: mockValues,
-                teamId,
+                values: { ...mockValues, teamId },
                 eventId,
                 client: mockClient,
             });
@@ -219,8 +218,7 @@ describe("Users Actions", () => {
             hasBadWords.mockResolvedValue(true);
 
             const result = await createTemporaryPlayer({
-                values: { firstName: "BadName" },
-                teamId: "team1",
+                values: { firstName: "BadName", teamId: "team1" },
                 eventId: "event1",
                 client: mockClient,
             });

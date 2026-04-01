@@ -92,10 +92,9 @@ describe("Games Loader", () => {
             expect(result.game.$id).toBe("game1");
             expect(result.managerIds).toContain("user1");
             expect(result.scorekeeperIds).toContain("user1");
-            expect(result.deferredData).toBeDefined();
-            expect(result.deferredData.players).toBeInstanceOf(Promise);
-            expect(result.deferredData.park).toBeInstanceOf(Promise);
-            expect(result.deferredData.logs).toBeInstanceOf(Promise);
+            expect(result.players).toBeInstanceOf(Promise);
+            expect(result.park).toBeInstanceOf(Promise);
+            expect(result.logs).toBeInstanceOf(Promise);
         });
 
         it("gracefully falls back when double-stringified playerChart fails JSON parsing", async () => {

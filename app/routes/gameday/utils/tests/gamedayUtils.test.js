@@ -368,10 +368,10 @@ describe("handleRunnerResults", () => {
 });
 
 describe("parsePlayerChart", () => {
-    it("should return null for null and undefined for undefined/empty input", () => {
+    it("should return null for null, undefined, or empty input", () => {
         expect(parsePlayerChart(null)).toBeNull();
-        expect(parsePlayerChart(undefined)).toBeUndefined();
-        expect(parsePlayerChart("")).toBeUndefined();
+        expect(parsePlayerChart(undefined)).toBeNull();
+        expect(parsePlayerChart("")).toBeNull();
     });
 
     it("should return the array directly if input is already an array", () => {
@@ -393,16 +393,16 @@ describe("parsePlayerChart", () => {
         expect(result[0].$id).toBe("1");
     });
 
-    it("should return undefined and log error for malformed JSON", () => {
+    it("should return null and log error for malformed JSON", () => {
         const spy = jest.spyOn(console, "error").mockImplementation(() => {});
         const result = parsePlayerChart("{ invalid json");
-        expect(result).toBeUndefined();
+        expect(result).toBeNull();
         expect(spy).toHaveBeenCalled();
         spy.mockRestore();
     });
 
-    it("should return undefined if parsed result is not an array", () => {
+    it("should return null if parsed result is not an array", () => {
         const input = JSON.stringify({ not: "an array" });
-        expect(parsePlayerChart(input)).toBeUndefined();
+        expect(parsePlayerChart(input)).toBeNull();
     });
 });

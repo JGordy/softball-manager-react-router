@@ -12,11 +12,15 @@ jest.mock("../SubPlayerDrawer", () => () => (
     <div data-testid="sub-player-modal" />
 ));
 
+// Stable mock objects to avoid infinite re-renders in RR7
+const mockLocation = { hash: "", pathname: "/gameday", search: "" };
+const mockNavigate = jest.fn();
+
 // Mock hooks
 jest.mock("react-router", () => ({
     useFetcher: () => ({ submit: jest.fn(), state: "idle" }),
-    useLocation: () => ({ hash: "", pathname: "/gameday", search: "" }),
-    useNavigate: () => jest.fn(),
+    useLocation: () => mockLocation,
+    useNavigate: () => mockNavigate,
     useParams: () => ({ eventId: "test-event" }),
 }));
 
