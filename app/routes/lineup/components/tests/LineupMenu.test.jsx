@@ -15,6 +15,20 @@ jest.mock("@tabler/icons-react", () => ({
     IconUserMinus: () => <div data-testid="icon-user-minus" />,
     IconTrashX: () => <div data-testid="icon-trash" />,
     IconSparkles: () => <div data-testid="icon-sparkles" />,
+    IconUserStar: () => <div data-testid="icon-user-star" />,
+}));
+
+jest.mock("@/hooks/useModal", () => ({
+    __esModule: true,
+    default: jest.fn(() => ({
+        openModal: jest.fn(),
+        closeModal: jest.fn(),
+    })),
+}));
+
+jest.mock("@/forms/AddGuestPlayer", () => ({
+    __esModule: true,
+    default: () => <div data-testid="add-guest-player-modal" />,
 }));
 
 jest.mock(
@@ -71,6 +85,7 @@ describe("LineupMenu Component", () => {
         await openMenu();
         expect(screen.getByText("Add Players")).toBeInTheDocument();
         expect(screen.getByText("Remove Players")).toBeInTheDocument();
+        expect(screen.getByText("Add Guest Player")).toBeInTheDocument();
         expect(screen.getByText("Delete Chart")).toBeInTheDocument();
         expect(screen.getByText("Generate AI Lineup")).toBeInTheDocument();
     });
@@ -151,5 +166,18 @@ describe("LineupMenu Component", () => {
         fireEvent.click(screen.getByText("Delete Chart"));
 
         expect(screen.getByTestId("delete-lineup-drawer")).toBeInTheDocument();
+    });
+
+    it("opens Add Guest Player modal when clicked", async () => {
+        const { default: useModal } = require("@/hooks/useModal");
+        const openModal = jest.fn();
+        useModal.mockReturnValue({ openModal, closeModal: jest.fn() });
+
+        render(<LineupMenu {...defaultProps} />);
+
+        await openMenu();
+        fireEvent.click(screen.getByText("Add Guest Player"));
+
+        expect(openModal).toHaveBeenCalled();
     });
 });
