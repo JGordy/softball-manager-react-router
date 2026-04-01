@@ -49,7 +49,7 @@ describe("showNotification utility", () => {
                 expect.objectContaining({
                     message: "Success!",
                     title: "Success",
-                    color: "lime",
+                    color: "green",
                 }),
             );
         });
@@ -116,7 +116,7 @@ describe("showNotification utility", () => {
                 expect.objectContaining({
                     message: "Action successful",
                     title: "Success",
-                    color: "lime",
+                    color: "green",
                 }),
             );
         });

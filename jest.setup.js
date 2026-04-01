@@ -133,3 +133,9 @@ class IntersectionObserver {
 }
 
 window.IntersectionObserver = IntersectionObserver;
+
+// Globally mock useNavigation so tests rendering FormWrapper outside a Data Router don't crash
+jest.mock("react-router", () => ({
+    ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
+}));

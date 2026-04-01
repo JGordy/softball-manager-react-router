@@ -1,4 +1,4 @@
-import { Form, useSubmit } from "react-router";
+import { Form, useSubmit, useNavigation } from "react-router";
 
 import { Button, Group } from "@mantine/core";
 
@@ -15,11 +15,17 @@ export default function FormWrapper({
     onCancelClick,
     hideButtons,
     onSubmit,
+    loading,
     ...rest
 }) {
     const { closeAllModals } = useModal();
 
     const submit = useSubmit();
+    const navigation = useNavigation();
+
+    const isSubmitting =
+        navigation.state === "submitting" || navigation.state === "loading";
+    const isLoading = loading || isSubmitting;
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -44,7 +50,8 @@ export default function FormWrapper({
                         color={buttonColor || "lime"}
                         autoContrast
                         size="md"
-                        disabled={confirmDisabled}
+                        loading={isLoading}
+                        disabled={confirmDisabled || isLoading}
                     >
                         {confirmText}
                     </Button>
