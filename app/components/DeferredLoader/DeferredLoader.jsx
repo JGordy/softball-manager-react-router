@@ -27,36 +27,47 @@ export default function DeferredLoader({
     // cacheRef shape: { resolveRef: any|null, promise: Promise|null }
     const cacheRef = useRef({ resolveRef: null, promise: null });
 
-    const shouldRecreate = cacheRef.current.resolveRef !== resolve;
+    const isObject = (val) =>
+        typeof val === "object" && val !== null && !val.then;
+    const prevResolve = cacheRef.current.resolveRef;
+
+    let shouldRecreate = prevResolve !== resolve;
+
+    // Shallow equality check for objects to prevent endless loops from literal object/prop spreads
+    if (shouldRecreate && isObject(prevResolve) && isObject(resolve)) {
+        const prevKeys = Object.keys(prevResolve);
+        const keys = Object.keys(resolve);
+        if (prevKeys.length === keys.length) {
+            shouldRecreate = !keys.every(
+                (key) => prevResolve[key] === resolve[key],
+            );
+        }
+    }
 
     if (shouldRecreate || cacheRef.current.promise == null) {
         let p;
 
         // Array of promises: resolve to an array of results
-        if (Array.isArray(resolve)) {
-            p = Promise.all(resolve);
-
-            // Object of promises: resolve values and reconstruct an object
-            // Guard: if `resolve` itself is a Promise/thenable, treat it as a
-            // single promise. Many promise implementations are objects, so we
-            // must check for a `then` function before assuming a plain object.
+        if (typeof resolve === "function") {
+            p = resolve();
         } else if (resolve && typeof resolve.then === "function") {
-            // thenable/promise: use as-is
             p = resolve;
         } else if (typeof resolve === "object" && resolve !== null) {
             const keys = Object.keys(resolve);
             const promiseArray = Object.values(resolve);
+            const isArray = Array.isArray(resolve);
+
             p = Promise.all(promiseArray).then((results) => {
+                if (isArray) return results;
+
                 const resolvedObject = {};
                 keys.forEach((k, index) => {
                     resolvedObject[k] = results[index];
                 });
                 return resolvedObject;
             });
-
-            // Single promise: use as-is
         } else {
-            p = resolve;
+            p = Promise.resolve(resolve);
         }
 
         cacheRef.current.resolveRef = resolve;
