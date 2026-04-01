@@ -103,10 +103,11 @@ export default function RosterDetails({
                                 />
                             }
                         >
-                            {({ attendance, players }) => {
-                                const { rows } = attendance;
+                            {(data) => {
+                                const { attendance, players } = data || {};
+                                const { rows = [] } = attendance || {};
                                 const playersWithAvailability =
-                                    addPlayerAvailability(rows, players);
+                                    addPlayerAvailability(rows, players || []);
                                 const availablePlayers =
                                     playersWithAvailability.filter(
                                         (p) => p.availability === "accepted",
@@ -202,13 +203,16 @@ export default function RosterDetails({
                         <InlineError message="Unable to load availability data" />
                     }
                 >
-                    {({ attendance, players }) => {
+                    {(data) => {
+                        const { attendance, players } = data || {};
                         return (
                             <AvailablityContainer
-                                attendance={attendance}
+                                attendance={
+                                    attendance || { rows: [], total: 0 }
+                                }
                                 game={game}
                                 managerView={managerView}
-                                players={players}
+                                players={players || []}
                                 team={team}
                             />
                         );

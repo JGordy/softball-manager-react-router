@@ -13,6 +13,8 @@ const EditablePlayerChart = ({
     managerView = false,
     players,
     validationResults,
+    teamId,
+    eventId,
 }) => {
     const [inningPositions, setInningPositions] = useState({});
 
@@ -53,7 +55,7 @@ const EditablePlayerChart = ({
                 const inningKey = `inning${i}`;
                 playerInningPositions.push(
                     inningPositionsForPlayer[inningKey] ||
-                        player.positions[i - 1] ||
+                        player.positions?.[i - 1] ||
                         "Out",
                 );
             }
@@ -183,6 +185,8 @@ const EditablePlayerChart = ({
                                                 handlePositionChange
                                             }
                                             players={players}
+                                            teamId={teamId}
+                                            eventId={eventId}
                                         />
                                     ))}
                                     {provided.placeholder}

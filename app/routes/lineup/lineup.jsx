@@ -1,27 +1,29 @@
 import { useState, useEffect } from "react";
+import { useOutletContext, useParams } from "react-router";
 
 import { Container, Group, Stack, Text, Title } from "@mantine/core";
 import { useListState } from "@mantine/hooks";
 
-import { useOutletContext, useParams } from "react-router";
-
 import { getEventWithPlayerCharts } from "@/loaders/games";
+import { parsePlayerChart } from "@/routes/gameday/utils/gamedayUtils";
 
 import { savePlayerChart } from "@/actions/lineups";
-import { createTemporaryPlayer, updateTemporaryPlayer } from "@/actions/users";
+import {
+    createTemporaryPlayer,
+    updateTemporaryPlayer,
+} from "@/actions/players";
 
 import BackButton from "@/components/BackButton";
 
 import { createSessionClient } from "@/utils/appwrite/server";
+import { formatForViewerDate } from "@/utils/dateTime";
+import addPlayerAvailability from "@/utils/addPlayerAvailability";
 
 import LineupContainer from "./components/LineupContainer";
 import LineupMenu from "./components/LineupMenu";
 import LineupValidationMenu from "./components/LineupValidationMenu";
 
-import addPlayerAvailability from "@/utils/addPlayerAvailability";
 import { validateLineup } from "./utils/validateLineup";
-import { formatForViewerDate } from "@/utils/dateTime";
-import { parsePlayerChart } from "@/routes/gameday/utils/gamedayUtils";
 
 export async function loader({ params, request }) {
     const { eventId } = params;
@@ -37,7 +39,7 @@ export async function action({ request, params }) {
 
     if (_action === "save-chart") {
         const playerChart = parsePlayerChart(values.playerChart);
-        if (playerChart === undefined) {
+        if (playerChart === null || playerChart === undefined) {
             return {
                 success: false,
                 status: 400,
@@ -58,7 +60,7 @@ export async function action({ request, params }) {
     if (_action === "finalize-chart") {
         // Finalize and send notifications to team members
         const playerChart = parsePlayerChart(values.playerChart);
-        if (playerChart === undefined) {
+        if (playerChart === null || playerChart === undefined) {
             return {
                 success: false,
                 status: 400,
@@ -78,12 +80,47 @@ export async function action({ request, params }) {
     }
 
     if (_action === "create-guest-player") {
-        return await createTemporaryPlayer({
+        // 1. Create the guest player
+        const result = await createTemporaryPlayer({
             values,
-            teamId: values.teamId,
             eventId,
             client,
         });
+
+        if (!result.success) return result;
+
+        const event = await getEventWithPlayerCharts({ eventId, client });
+
+        if (!event) {
+            return {
+                success: false,
+                message: "Event could not be re-loaded after player creation.",
+            };
+        }
+
+        const playerChart = parsePlayerChart(event.playerChart) || [];
+        const player = result.response.player;
+
+        // 3. Append new player with correct structure ($id and basic info)
+        const updatedChart = [
+            ...playerChart,
+            {
+                $id: player.$id,
+                firstName: values.firstName,
+                lastName: values.lastName,
+                gender: values.gender,
+                positions: player.positions || Array(7).fill("Out"),
+            },
+        ];
+
+        // 4. Save updated chart
+        await savePlayerChart({
+            values: { playerChart: updatedChart },
+            eventId,
+            client,
+        });
+
+        return result;
     }
 
     if (_action === "update-guest-player") {
@@ -134,6 +171,12 @@ function Lineup({ loaderData, actionData }) {
             trackEvent(actionData.event.name, actionData.event.data);
         }
     }, [actionData]);
+
+    useEffect(() => {
+        if (rest.playerChart) {
+            lineupHandlers.setState(rest.playerChart);
+        }
+    }, [rest.playerChart, lineupHandlers]);
 
     // Use the first team from the teams array
     const team = teams?.[0];
@@ -192,6 +235,8 @@ function Lineup({ loaderData, actionData }) {
             <LineupContainer
                 game={game}
                 teams={teams}
+                teamId={team?.$id}
+                eventId={eventId}
                 managerView={managerView}
                 players={playersWithAvailability}
                 lineupState={lineupState}

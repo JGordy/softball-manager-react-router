@@ -49,12 +49,12 @@ export async function action({ request, params }) {
     }
 }
 
-export async function loader({ params, request }) {
+export const loader = async ({ params, request }) => {
     const { eventId } = params;
     const client = await createSessionClient(request);
 
     return await getEventById({ eventId, client });
-}
+};
 
 export default function EventDetails({ loaderData, actionData }) {
     const [deleteDrawerOpened, deleteDrawerHandlers] = useDisclosure(false);

@@ -104,7 +104,7 @@ const AvailabilityOptionsContainer = ({
         <Card key={player.$id} shadow="sm" radius="md" p="sm" pos="relative">
             <LoadingOverlay
                 data-overlay={`availability-${player.$id}`}
-                visible={fetcher.state === "loading"}
+                visible={fetcher.state !== "idle"}
                 overlayProps={{ blur: 2, radius: "md" }}
                 loaderProps={{ color: "lime", type: "dots", size: "lg" }}
             />

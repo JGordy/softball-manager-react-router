@@ -48,7 +48,7 @@ export const validateLineup = (lineup, team) => {
 
         // Check for duplicates
         lineup.forEach((player) => {
-            const position = player.positions[inningIndex];
+            const position = player.positions?.[inningIndex];
             if (position && position !== "Out") {
                 if (!positionsInInning[position]) {
                     positionsInInning[position] = [];
@@ -89,7 +89,7 @@ export const validateLineup = (lineup, team) => {
                     `Inning ${inningNum}: Missing ${missing.join(", ")}.`,
                 );
                 reportedMissing = missing;
-            } else if (lineup.some((p) => p.positions[inningIndex])) {
+            } else if (lineup.some((p) => p.positions?.[inningIndex])) {
                 summary.push(
                     `Inning ${inningNum}: Missing all field positions.`,
                 );

@@ -27,6 +27,8 @@ export default function LineupContainer({
     setHasBeenEdited,
     validationResults,
     teams,
+    teamId,
+    eventId,
 }) {
     const fetcher = useFetcher();
 
@@ -252,6 +254,8 @@ export default function LineupContainer({
                             managerView={managerView}
                             handleLineupReorder={handleLineupReorder}
                             validationResults={validationResults}
+                            teamId={teamId}
+                            eventId={eventId}
                         />
                     </Card>
 

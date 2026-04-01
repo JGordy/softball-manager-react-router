@@ -35,7 +35,7 @@ export default function LineupMenu({
     const [deleteChartDrawerOpened, deleteChartHandlers] = useDisclosure(false);
     const [aiGenerateDrawerOpened, aiGenerateHandlers] = useDisclosure(false);
 
-    const { openModal, closeModal } = useModal();
+    const { openModal, closeAllModals } = useModal();
 
     const gameDayStatus = getGameDayStatus(game.gameDate, true);
     const gameIsPast = gameDayStatus === "past";
@@ -80,8 +80,9 @@ export default function LineupMenu({
                             <AddGuestPlayer
                                 teamId={team.$id}
                                 eventId={game.$id}
+                                actionRoute={actionUrl}
                                 onSubmit={() => {
-                                    closeModal();
+                                    closeAllModals();
                                     setHasBeenEdited(true);
                                 }}
                             />

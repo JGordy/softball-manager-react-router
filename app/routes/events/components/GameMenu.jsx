@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router";
 import { Text } from "@mantine/core";
 
 import {
@@ -24,6 +25,7 @@ export default function GameMenu({
     team = {},
 }) {
     const { openModal } = useModal();
+    const navigate = useNavigate();
 
     const openGameResultsModal = () =>
         openModal({
@@ -91,8 +93,7 @@ export default function GameMenu({
                 },
                 {
                     key: "lineup",
-                    type: "link",
-                    to: `/events/${game.$id}/lineup`,
+                    onClick: () => navigate(`/events/${game.$id}/lineup`),
                     leftSection: <IconUsersGroup size={14} />,
                     content: <Text>Edit Lineup</Text>,
                 },

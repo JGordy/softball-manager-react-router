@@ -1,8 +1,21 @@
 import React from "react";
 import { Draggable } from "@hello-pangea/dnd";
-import { Badge, Group, Table, Text, ThemeIcon } from "@mantine/core";
-import { IconAlertTriangle, IconGripVertical } from "@tabler/icons-react";
+import {
+    ActionIcon,
+    Badge,
+    Group,
+    Table,
+    Text,
+    ThemeIcon,
+} from "@mantine/core";
+import {
+    IconAlertTriangle,
+    IconGripVertical,
+    IconEdit,
+} from "@tabler/icons-react";
 import PositionSelect from "./PositionSelect";
+import useModal from "@/hooks/useModal";
+import AddGuestPlayer from "@/forms/AddGuestPlayer";
 
 const PlayerChartRow = ({
     row,
@@ -14,7 +27,10 @@ const PlayerChartRow = ({
     fieldingErrors,
     handlePositionChange,
     players,
+    teamId,
+    eventId,
 }) => {
+    const { openModal } = useModal();
     const player = playerLookup[row.playerId];
     const isGuest = player?.isTemporary;
 
@@ -81,6 +97,39 @@ const PlayerChartRow = ({
                                             >
                                                 GUEST
                                             </Badge>
+                                        )}
+                                        {isGuest && managerView && (
+                                            <ActionIcon
+                                                variant="subtle"
+                                                color="gray"
+                                                size="sm"
+                                                onClick={() =>
+                                                    openModal({
+                                                        title: "Edit Guest Player",
+                                                        children: (
+                                                            <AddGuestPlayer
+                                                                action="update-guest-player"
+                                                                teamId={teamId}
+                                                                eventId={
+                                                                    eventId
+                                                                }
+                                                                guestId={
+                                                                    row.playerId
+                                                                }
+                                                                defaults={{
+                                                                    firstName:
+                                                                        player?.firstName,
+                                                                    lastName:
+                                                                        player?.lastName,
+                                                                    gender: player?.gender,
+                                                                }}
+                                                            />
+                                                        ),
+                                                    })
+                                                }
+                                            >
+                                                <IconEdit size={14} />
+                                            </ActionIcon>
                                         )}
                                         {row.hasBattingError && (
                                             <ThemeIcon
