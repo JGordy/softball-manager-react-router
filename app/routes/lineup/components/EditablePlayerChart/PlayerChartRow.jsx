@@ -1,6 +1,6 @@
 import React from "react";
 import { Draggable } from "@hello-pangea/dnd";
-import { Group, Table, Text, ThemeIcon } from "@mantine/core";
+import { Badge, Group, Table, Text, ThemeIcon } from "@mantine/core";
 import { IconAlertTriangle, IconGripVertical } from "@tabler/icons-react";
 import PositionSelect from "./PositionSelect";
 
@@ -15,6 +15,9 @@ const PlayerChartRow = ({
     handlePositionChange,
     players,
 }) => {
+    const player = playerLookup[row.playerId];
+    const isGuest = player?.isTemporary;
+
     return (
         <Draggable key={row.playerId} draggableId={row.playerId} index={index}>
             {(provided) => (
@@ -30,7 +33,6 @@ const PlayerChartRow = ({
                     {columns.map((column) => {
                         if (column.accessor.startsWith("inning")) {
                             const inning = column.accessor;
-                            const player = playerLookup[row.playerId];
 
                             const preferredPositions =
                                 player?.preferredPositions;
@@ -71,6 +73,15 @@ const PlayerChartRow = ({
                                 <Table.Td key={column.accessor}>
                                     <Group gap="xs">
                                         <Text>{row.player}</Text>
+                                        {isGuest && (
+                                            <Badge
+                                                size="xs"
+                                                color="gray"
+                                                variant="light"
+                                            >
+                                                GUEST
+                                            </Badge>
+                                        )}
                                         {row.hasBattingError && (
                                             <ThemeIcon
                                                 color="red"

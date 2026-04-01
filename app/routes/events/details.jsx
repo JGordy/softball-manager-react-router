@@ -57,25 +57,6 @@ export async function loader({ params, request }) {
 }
 
 export default function EventDetails({ loaderData, actionData }) {
-    // console.log("/events/:eventId > ", loaderData);
-
-    // Check if game was deleted
-    if (loaderData?.gameDeleted) {
-        return (
-            <Container size="sm" py="xl">
-                <BackButton mb="xl" />
-                <Box ta="center" py="xl">
-                    <Title order={2} mb="md">
-                        Game Not Found
-                    </Title>
-                    <Text size="lg" c="dimmed">
-                        This game has been removed and is no longer available.
-                    </Text>
-                </Box>
-            </Container>
-        );
-    }
-
     const [deleteDrawerOpened, deleteDrawerHandlers] = useDisclosure(false);
 
     const navigation = useNavigation();
@@ -84,6 +65,32 @@ export default function EventDetails({ loaderData, actionData }) {
 
     const { user } = useOutletContext();
     const currentUserId = user.$id;
+
+    // Run this effect only when actionData changes. Guard so we only
+    // call closeAllModals once for a successful action to avoid a
+    // potential loop if closing modals triggers parent state changes.
+    const handledActionRef = useRef(false);
+
+    useEffect(() => {
+        try {
+            if (actionData?.success && !handledActionRef.current) {
+                handledActionRef.current = true;
+                closeAllModals();
+
+                // If game was deleted, navigate back
+                if (actionData.deleted) {
+                    navigate(-1);
+                }
+            } else if (!actionData) {
+                // reset when there's no action data so future actions can run
+                handledActionRef.current = false;
+            } else if (actionData instanceof Error) {
+                console.error("Error parsing action data:", actionData);
+            }
+        } catch (jsonError) {
+            console.error("Error handling actionData:", jsonError);
+        }
+    }, [actionData, closeAllModals, navigate]);
 
     // During @media print the browser treats the viewport as narrow, so Mantine's
     // visibleFrom="lg" desktop container gets display:none. Force it visible for print.
@@ -115,14 +122,31 @@ export default function EventDetails({ loaderData, actionData }) {
         }
     }, [isDeleting, deleteDrawerHandlers]);
 
+    // Check if game was deleted
+    if (loaderData?.gameDeleted) {
+        return (
+            <Container size="sm" py="xl">
+                <BackButton mb="xl" />
+                <Box ta="center" py="xl">
+                    <Title order={2} mb="md">
+                        Game Not Found
+                    </Title>
+                    <Text size="lg" c="dimmed">
+                        This game has been removed and is no longer available.
+                    </Text>
+                </Box>
+            </Container>
+        );
+    }
+
     const {
         game,
-        deferredData,
         managerIds,
         scorekeeperIds,
         season,
         teams,
         weatherPromise,
+        ...deferredData
     } = loaderData;
 
     const team = teams?.[0];
@@ -134,32 +158,6 @@ export default function EventDetails({ loaderData, actionData }) {
     const gameDayStatus = getGameDayStatus(gameDate, true);
     const gameInProgress = gameDayStatus === "in progress";
     const gameIsPast = gameDayStatus === "past";
-
-    // Run this effect only when actionData changes. Guard so we only
-    // call closeAllModals once for a successful action to avoid a
-    // potential loop if closing modals triggers parent state changes.
-    const handledActionRef = useRef(false);
-
-    useEffect(() => {
-        try {
-            if (actionData?.success && !handledActionRef.current) {
-                handledActionRef.current = true;
-                closeAllModals();
-
-                // If game was deleted, navigate back
-                if (actionData.deleted) {
-                    navigate(-1);
-                }
-            } else if (!actionData) {
-                // reset when there's no action data so future actions can run
-                handledActionRef.current = false;
-            } else if (actionData instanceof Error) {
-                console.error("Error parsing action data:", actionData);
-            }
-        } catch (jsonError) {
-            console.error("Error handling actionData:", jsonError);
-        }
-    }, [actionData, closeAllModals, navigate]);
 
     const sharedViewProps = {
         game,

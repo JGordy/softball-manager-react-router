@@ -3,7 +3,7 @@ export default function addPlayerAvailability(responses, players) {
         const response = responses.find((r) => r.playerId === player.$id);
         const availability = response
             ? response.status || "unknown"
-            : "unknown";
+            : player.availability || "unknown";
         return { ...player, availability };
     });
 }

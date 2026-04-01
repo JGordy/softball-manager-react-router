@@ -271,3 +271,24 @@ export function parsePlayerChart(playerChart) {
         return undefined;
     }
 }
+
+/**
+ * Extracts all unique player IDs from a lineup chart, including substitutions.
+ * @param {Array} playerChart - The parsed player chart array.
+ * @returns {Set<string>} - A set of all player IDs found in the chart.
+ */
+export function getUniquePlayerIdsFromChart(playerChart) {
+    const ids = new Set();
+    if (!playerChart || !Array.isArray(playerChart)) return ids;
+
+    playerChart.forEach((slot) => {
+        if (slot.$id) ids.add(slot.$id);
+        if (slot.substitutions) {
+            slot.substitutions.forEach((sub) => {
+                if (sub.playerId) ids.add(sub.playerId);
+            });
+        }
+    });
+
+    return ids;
+}

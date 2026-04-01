@@ -10,26 +10,31 @@ import { isUserProfileComplete } from "@/utils/users";
 
 import { removeEmptyValues } from "./utils/formUtils";
 
+async function validatePlayerNames({ firstName, lastName }) {
+    if (firstName && (await hasBadWords(firstName))) {
+        return {
+            success: false,
+            status: 400,
+            message:
+                "First name contains inappropriate language. Please use a different name.",
+        };
+    }
+
+    if (lastName && (await hasBadWords(lastName))) {
+        return {
+            success: false,
+            status: 400,
+            message:
+                "Last name contains inappropriate language. Please use a different name.",
+        };
+    }
+    return null;
+}
+
 export async function createPlayer({ values, teamId, userId, client }) {
     try {
-        // Check first and last name for inappropriate language
-        if (values.firstName && (await hasBadWords(values.firstName))) {
-            return {
-                success: false,
-                status: 400,
-                message:
-                    "First name contains inappropriate language. Please use a different name.",
-            };
-        }
-
-        if (values.lastName && (await hasBadWords(values.lastName))) {
-            return {
-                success: false,
-                status: 400,
-                message:
-                    "Last name contains inappropriate language. Please use a different name.",
-            };
-        }
+        const nameError = await validatePlayerNames(values);
+        if (nameError) return nameError;
 
         const _userId = userId || ID.unique(); // Create this now so it's easier to use later
 
@@ -443,5 +448,75 @@ export async function updateUserPrefs({ values, client }) {
             message: error.message || "Failed to update preferences.",
             action: "update-user-prefs",
         };
+    }
+}
+
+export async function createTemporaryPlayer({
+    values,
+    teamId,
+    eventId,
+    client,
+}) {
+    try {
+        const nameError = await validatePlayerNames(values);
+        if (nameError) return nameError;
+
+        const { firstName, lastName, gender } = values;
+
+        const _userId = ID.unique();
+
+        const docPermissions = teamId
+            ? [
+                  Permission.read(Role.any()),
+                  Permission.update(Role.team(teamId, "manager")),
+                  Permission.delete(Role.team(teamId, "manager")),
+              ]
+            : [];
+
+        const player = await createDocument(
+            "users",
+            _userId,
+            {
+                firstName,
+                lastName,
+                gender,
+                userId: _userId,
+                isTemporary: true,
+                createdForEvent: eventId,
+                teamId,
+            },
+            docPermissions,
+            client,
+        );
+
+        return { response: { player }, status: 201, success: true };
+    } catch (error) {
+        console.error("Error creating temporary player:", error);
+        throw error;
+    }
+}
+
+export async function updateTemporaryPlayer({ values, userId, client }) {
+    try {
+        const nameError = await validatePlayerNames(values);
+        if (nameError) return nameError;
+
+        const { firstName, lastName, gender } = values;
+
+        const player = await updateDocument(
+            "users",
+            userId,
+            {
+                firstName,
+                lastName,
+                gender,
+            },
+            client,
+        );
+
+        return { response: { player }, status: 200, success: true };
+    } catch (error) {
+        console.error("Error updating temporary player:", error);
+        throw error;
     }
 }

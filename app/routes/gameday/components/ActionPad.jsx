@@ -7,8 +7,8 @@ const onBase = [
     { label: "2B", color: HIT_COLOR, value: UI_KEYS.DOUBLE },
     { label: "3B", color: HIT_COLOR, value: UI_KEYS.TRIPLE },
     { label: "HR", color: HIT_COLOR, value: UI_KEYS.HOMERUN },
-    { label: "BB", color: "blue", value: UI_KEYS.WALK, variant: "light" },
-    { label: "ERR", color: "orange", value: UI_KEYS.ERROR, variant: "light" },
+    { label: "BB", color: "blue", value: UI_KEYS.WALK },
+    { label: "ERR", color: "orange", value: UI_KEYS.ERROR },
 ];
 
 const OUT_COLOR = "red";
@@ -28,7 +28,6 @@ export default function ActionPad({ onAction, runners, outs: currentOuts }) {
         label: "FC",
         color: "orange",
         value: UI_KEYS.FIELDERS_CHOICE,
-        variant: "light",
         disabled: basesEmpty,
     };
 
@@ -36,7 +35,6 @@ export default function ActionPad({ onAction, runners, outs: currentOuts }) {
         label: "SF",
         color: "orange",
         value: UI_KEYS.SACRIFICE_FLY,
-        variant: "light",
         disabled: basesEmpty || isTwoOuts,
     };
 

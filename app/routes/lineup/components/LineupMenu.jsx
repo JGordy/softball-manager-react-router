@@ -6,6 +6,7 @@ import {
     IconUserMinus,
     IconTrashX,
     IconSparkles,
+    IconUserStar,
 } from "@tabler/icons-react";
 
 import { getGameDayStatus } from "@/utils/dateTime";
@@ -15,6 +16,8 @@ import AILineupDrawer from "./AILineupDrawer";
 import AddPlayersDrawer from "./AddPlayersDrawer";
 import RemovePlayersDrawer from "./RemovePlayersDrawer";
 import DeleteLineupDrawer from "./DeleteLineupDrawer";
+import useModal from "@/hooks/useModal";
+import AddGuestPlayer from "@/forms/AddGuestPlayer";
 
 export default function LineupMenu({
     game,
@@ -31,6 +34,8 @@ export default function LineupMenu({
         useDisclosure(false);
     const [deleteChartDrawerOpened, deleteChartHandlers] = useDisclosure(false);
     const [aiGenerateDrawerOpened, aiGenerateHandlers] = useDisclosure(false);
+
+    const { openModal, closeModal } = useModal();
 
     const gameDayStatus = getGameDayStatus(game.gameDate, true);
     const gameIsPast = gameDayStatus === "past";
@@ -65,6 +70,25 @@ export default function LineupMenu({
                 onClick: addPlayersHandlers.open,
                 leftSection: <IconUserPlus size={20} />,
                 content: <Text>Add Players</Text>,
+            },
+            {
+                key: "add-guest-player",
+                onClick: () =>
+                    openModal({
+                        title: "Add Guest Player",
+                        children: (
+                            <AddGuestPlayer
+                                teamId={team.$id}
+                                eventId={game.$id}
+                                onSubmit={() => {
+                                    closeModal();
+                                    setHasBeenEdited(true);
+                                }}
+                            />
+                        ),
+                    }),
+                leftSection: <IconUserStar size={20} />,
+                content: <Text>Add Guest Player</Text>,
             },
             {
                 key: "remove-players",

@@ -1,6 +1,9 @@
 import { Query } from "node-appwrite";
 import { listDocuments, readDocument } from "@/utils/databases";
-import { parsePlayerChart } from "@/routes/gameday/utils/gamedayUtils";
+import {
+    parsePlayerChart,
+    getUniquePlayerIdsFromChart,
+} from "@/routes/gameday/utils/gamedayUtils";
 import { createAdminClient } from "@/utils/appwrite/server";
 import { DateTime } from "luxon";
 
@@ -377,16 +380,27 @@ export async function getEventById({ eventId, client, ...options }) {
         playerChart,
     } = baseData;
 
+    const parsedChart = parsePlayerChart(playerChart) ?? null;
+    const chartPlayerIds = getUniquePlayerIdsFromChart(parsedChart);
+    const officialUserIdsSet = new Set(userIds.map((u) => u.userId));
+    const guestUserIds = Array.from(chartPlayerIds).filter(
+        (id) => !officialUserIdsSet.has(id),
+    );
+
+    // Combine for deferred resolution
+    const allUserIds = [
+        ...userIds,
+        ...guestUserIds.map((id) => ({ userId: id, role: "guest" })),
+    ];
+
     // Build deferred data object (promises for lazy loading in the UI)
     const deferredData = makeDeferredData({
         eventId,
-        userIds,
+        userIds: allUserIds,
         parkId,
         options: deferredOptions,
         client: client,
     });
-
-    const parsedChart = parsePlayerChart(playerChart) ?? null;
 
     return {
         gameDeleted: false,
@@ -396,7 +410,7 @@ export async function getEventById({ eventId, client, ...options }) {
             playerChart: parsedChart,
         },
         location,
-        userIds,
+        userIds: allUserIds,
         managerIds,
         scorekeeperIds,
         season,
@@ -425,22 +439,75 @@ export async function getEventWithPlayerCharts({ client, eventId }) {
     const { game, teams, userIds, managerIds, scorekeeperIds, playerChart } =
         baseData;
 
-    // Fully resolve the players for the non-deferred path
-    const players = await resolvePlayers(userIds, client);
-
-    const attendance = await getAttendance({
-        eventId,
-        accepted: false,
-        client: client,
-    });
-
     // Use shared defensive parser
     const parsedChart = parsePlayerChart(playerChart) ?? null;
+
+    // Identify guest players already in the chart
+    const chartPlayerIds = getUniquePlayerIdsFromChart(parsedChart);
+    const officialUserIds = new Set(userIds.map((u) => u.userId));
+
+    // Fetch guest players for THIS specific event on THIS team
+    const teamId = teams[0]?.$id;
+    const guestQueries = [Query.equal("isTemporary", true)];
+    if (teamId) {
+        guestQueries.push(Query.equal("teamId", teamId));
+    }
+    guestQueries.push(Query.equal("createdForEvent", eventId));
+
+    const { rows: teamGuestPlayers } = await listDocuments(
+        "users",
+        guestQueries,
+        client,
+    );
+
+    // Identify guest players in the chart that were not fetched by team/event lookup
+    const fetchedGuestIds = new Set(teamGuestPlayers.map((p) => p.$id));
+    const extraChartGuestIds = Array.from(chartPlayerIds).filter(
+        (id) => !officialUserIds.has(id) && !fetchedGuestIds.has(id),
+    );
+
+    let extraChartGuests = [];
+    if (extraChartGuestIds.length > 0) {
+        const { rows: extraRows } = await listDocuments(
+            "users",
+            [Query.equal("$id", extraChartGuestIds)],
+            client,
+        );
+        extraChartGuests = extraRows;
+    }
+
+    // Combine all guest players
+    const allGuestPlayers = [...teamGuestPlayers, ...extraChartGuests];
+
+    // Parallelize official players + attendance
+    const [officialPlayers, attendance] = await Promise.all([
+        resolvePlayers(userIds, client),
+        getAttendance({ eventId, accepted: false, client: client }),
+    ]);
+
+    // Combine for the final players list
+    // Ensure guest players are marked as "accepted" so they show up
+    // Filter to ensure unique player IDs (prevents duplicate key warnings)
+    const players = [
+        ...officialPlayers,
+        ...allGuestPlayers.map((p) => ({
+            ...p,
+            availability: "accepted",
+        })),
+    ].filter(
+        (p, index, self) => index === self.findIndex((t) => t.$id === p.$id),
+    );
+
+    // Add guests to userIds array with regular 'player' role
+    const extendedUserIds = [
+        ...userIds,
+        ...allGuestPlayers.map((g) => ({ userId: g.$id, role: "player" })),
+    ];
 
     return {
         attendance,
         game,
-        userIds,
+        userIds: extendedUserIds,
         managerIds,
         scorekeeperIds,
         teams,

@@ -1,9 +1,10 @@
-import { useFetcher } from "react-router";
+import { useFetcher, useNavigate, useParams } from "react-router";
 import { Text, Group, Button } from "@mantine/core";
 import {
     IconFlag,
     IconPlayerPlay,
     IconArrowsExchange,
+    IconTable,
 } from "@tabler/icons-react";
 
 import MenuContainer from "@/components/MenuContainer";
@@ -16,6 +17,8 @@ export default function GamedayMenu({
     onSubBatter,
 }) {
     const fetcher = useFetcher();
+    const navigate = useNavigate();
+    const { eventId } = useParams();
     const { openModal, closeAllModals } = useModal();
 
     const handleEndGame = () => {
@@ -123,6 +126,20 @@ export default function GamedayMenu({
     }
 
     const sections = [
+        {
+            items: [
+                {
+                    key: "go-to-lineup",
+                    onClick: () => navigate(`/events/${eventId}/lineup`),
+                    leftSection: <IconTable size={14} />,
+                    content: (
+                        <Text fw={500} c="blue">
+                            Edit Lineup
+                        </Text>
+                    ),
+                },
+            ],
+        },
         {
             label: "Game Controls",
             items: gameControls,

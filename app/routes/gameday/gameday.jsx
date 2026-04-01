@@ -1,5 +1,5 @@
 import { useLoaderData, useOutletContext, useActionData } from "react-router";
-import { Container } from "@mantine/core";
+import { Container, Box, Title, Text } from "@mantine/core";
 
 import DeferredLoader from "@/components/DeferredLoader";
 
@@ -44,7 +44,7 @@ export async function action({ request, params }) {
         if (baseState) {
             try {
                 parsedBaseState = JSON.parse(baseState);
-            } catch (e) {
+            } catch (_e) {
                 return {
                     success: false,
                     status: 400,
@@ -117,7 +117,7 @@ export async function action({ request, params }) {
         if (baseState) {
             try {
                 parsedBaseState = JSON.parse(baseState);
-            } catch (e) {
+            } catch (_e) {
                 return {
                     success: false,
                     status: 400,
@@ -230,13 +230,30 @@ export async function action({ request, params }) {
 }
 
 export default function Gameday() {
-    const { game, deferredData, teams, scorekeeperIds } = useLoaderData();
-    const { user, isDesktop } = useOutletContext();
+    const data = useLoaderData();
     const actionData = useActionData();
-
     useResponseNotification(actionData);
 
-    const team = teams?.[0];
+    const { game, teams, scorekeeperIds, gameDeleted, deferredData } = data;
+
+    const { user, isDesktop = false } = useOutletContext();
+
+    if (gameDeleted) {
+        return (
+            <Container size="sm" py="xl">
+                <Box ta="center" py="xl">
+                    <Title order={2} mb="md">
+                        Game Not Found
+                    </Title>
+                    <Text size="lg" c="dimmed">
+                        This game has been removed.
+                    </Text>
+                </Box>
+            </Container>
+        );
+    }
+
+    const team = teams?.[0] || { name: "Our Team" };
     const isScorekeeper = !!(
         user &&
         scorekeeperIds &&
@@ -246,19 +263,22 @@ export default function Gameday() {
     return (
         <Container size="xl" py="xl">
             <DeferredLoader
-                resolve={deferredData}
+                resolve={{
+                    logs: deferredData?.logs,
+                    players: deferredData?.players,
+                }}
                 fallback={<GamedayLoadingSkeleton isDesktop={isDesktop} />}
             >
-                {({ logs, players }) => (
+                {({ logs: resolvedLogs, players: resolvedPlayers }) => (
                     <GamedayContainer
                         game={game}
                         playerChart={game.playerChart || []}
                         team={team}
-                        initialLogs={logs}
+                        initialLogs={resolvedLogs}
                         gameFinal={game.gameFinal}
                         isScorekeeper={isScorekeeper}
                         isDesktop={isDesktop}
-                        players={players || []}
+                        players={resolvedPlayers || []}
                     />
                 )}
             </DeferredLoader>
