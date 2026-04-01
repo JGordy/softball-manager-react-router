@@ -13,6 +13,7 @@ export default function AddGuestPlayer({
     eventId,
     guestId,
     defaults = {},
+    onSubmit,
 }) {
     const actionData = useActionData();
     const { closeAllModals } = useModal();
@@ -26,9 +27,12 @@ export default function AddGuestPlayer({
             actionData !== initialActionData.current &&
             actionData?.response?.player
         ) {
+            if (onSubmit) {
+                onSubmit();
+            }
             closeAllModals();
         }
-    }, [actionData, closeAllModals]);
+    }, [actionData, closeAllModals, onSubmit]);
 
     const isEdit = action === "update-guest-player";
 

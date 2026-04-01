@@ -10,7 +10,6 @@ import Dashboard, { loader, action } from "../dashboard";
 // Mock react-router
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
-    useNavigation: () => ({ state: "idle" }),
     useOutletContext: jest.fn(),
     useNavigation: jest.fn(() => ({ state: "idle" })),
     useFetcher: jest.fn(() => ({

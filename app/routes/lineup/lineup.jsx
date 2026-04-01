@@ -8,6 +8,7 @@ import { useOutletContext, useParams } from "react-router";
 import { getEventWithPlayerCharts } from "@/loaders/games";
 
 import { savePlayerChart } from "@/actions/lineups";
+import { createTemporaryPlayer, updateTemporaryPlayer } from "@/actions/users";
 
 import BackButton from "@/components/BackButton";
 
@@ -73,6 +74,23 @@ export async function action({ request, params }) {
             },
             client,
             sendNotification: true,
+        });
+    }
+
+    if (_action === "create-guest-player") {
+        return await createTemporaryPlayer({
+            values,
+            teamId: values.teamId,
+            eventId,
+            client,
+        });
+    }
+
+    if (_action === "update-guest-player") {
+        return await updateTemporaryPlayer({
+            values,
+            userId: values.userId,
+            client,
         });
     }
 }

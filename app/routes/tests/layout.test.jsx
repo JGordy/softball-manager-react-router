@@ -9,7 +9,6 @@ import Layout, { loader } from "../layout";
 // Mock react-router
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
-    useNavigation: () => ({ state: "idle" }),
     Outlet: jest.fn(() => <div data-testid="outlet" />),
     useNavigation: jest.fn(),
     redirect: jest.fn((url, init) => {

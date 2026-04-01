@@ -16,6 +16,7 @@ jest.mock("@tabler/icons-react", () => ({
     IconTrashX: () => <div data-testid="icon-trash" />,
     IconTrophy: () => <div data-testid="icon-trophy" />,
     IconScoreboard: () => <div data-testid="icon-scoreboard" />,
+    IconUsersGroup: () => <div data-testid="icon-users-group" />,
 }));
 
 // Mock Forms to avoid complex rendering
@@ -83,6 +84,14 @@ describe("GameMenu Component", () => {
                 title: "Update Game Details",
             }),
         );
+    });
+
+    it("renders Edit Lineup link always", async () => {
+        render(<GameMenu {...defaultProps} />);
+
+        await openMenu();
+        const lineupBtn = screen.getByText(/edit lineup/i);
+        expect(lineupBtn).toBeInTheDocument();
     });
 
     it("does NOT render Results option if game is future", async () => {
