@@ -6,6 +6,7 @@ import PlayerStats from "../PlayerStats";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
 }));
 
 jest.mock("@/components/DeferredLoader", () => ({

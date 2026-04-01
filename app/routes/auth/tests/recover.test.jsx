@@ -7,6 +7,7 @@ import Recover, { action } from "../recover";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useActionData: jest.fn(),
     useNavigate: jest.fn(),
     useSearchParams: jest.fn(),

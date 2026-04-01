@@ -2,6 +2,7 @@ import { Permission, Role } from "node-appwrite";
 
 import {
     createPlayer,
+    createTemporaryPlayer,
     updateUser,
     updateAccountInfo,
     updatePassword,
@@ -160,6 +161,67 @@ describe("Users Actions", () => {
             const result = await createPlayer({
                 values: mockValues,
                 teamId: "team1",
+                client: mockClient,
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.status).toBe(400);
+        });
+    });
+
+    describe("createTemporaryPlayer", () => {
+        beforeEach(() => {
+            createSessionClient.mockResolvedValue(mockClient);
+        });
+
+        it("should create temporary player successfully", async () => {
+            const mockValues = {
+                firstName: "Guest",
+                lastName: "Player",
+                gender: "Male",
+            };
+            const teamId = "team1";
+            const eventId = "event1";
+
+            createDocument.mockResolvedValue({ $id: "temp-uuid" });
+
+            const result = await createTemporaryPlayer({
+                values: mockValues,
+                teamId,
+                eventId,
+                client: mockClient,
+            });
+
+            expect(createDocument).toHaveBeenCalledWith(
+                "users",
+                expect.any(String), // Unique ID
+                {
+                    firstName: "Guest",
+                    lastName: "Player",
+                    gender: "Male",
+                    userId: expect.any(String),
+                    isTemporary: true,
+                    createdForEvent: "event1",
+                    teamId: "team1",
+                },
+                [
+                    Permission.read(Role.any()),
+                    Permission.update(Role.team("team1", "manager")),
+                    Permission.delete(Role.team("team1", "manager")),
+                ],
+                expect.any(Object),
+            );
+            expect(result.success).toBe(true);
+            expect(result.status).toBe(201);
+        });
+
+        it("should reject player with bad words in name", async () => {
+            hasBadWords.mockResolvedValue(true);
+
+            const result = await createTemporaryPlayer({
+                values: { firstName: "BadName" },
+                teamId: "team1",
+                eventId: "event1",
                 client: mockClient,
             });
 

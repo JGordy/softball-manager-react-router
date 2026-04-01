@@ -5,6 +5,7 @@ import ManageRolesDrawer from "../ManageRolesDrawer";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useFetcher: jest.fn(),
     useOutletContext: jest.fn(() => ({ isDesktop: false })),
 }));

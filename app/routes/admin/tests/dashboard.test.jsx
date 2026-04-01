@@ -27,6 +27,7 @@ jest.mock("@/utils/umami/server", () => ({
 // Mock react-router hooks
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useLoaderData: jest.fn(),
     useRevalidator: jest.fn(() => ({ state: "idle", revalidate: jest.fn() })),
     redirect: jest.fn((url) => {

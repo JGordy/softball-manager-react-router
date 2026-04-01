@@ -10,6 +10,7 @@ import SeasonDetails, { loader, action } from "../details";
 // Mock react-router
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useNavigation: jest.fn(() => ({ state: "idle" })),
     useOutletContext: jest.fn(() => ({ isDesktop: false })),
 }));

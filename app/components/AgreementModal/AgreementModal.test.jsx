@@ -11,6 +11,7 @@ import { trackEvent } from "@/utils/analytics";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useFetcher: jest.fn(),
     useRevalidator: jest.fn(),
 }));

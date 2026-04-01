@@ -8,6 +8,7 @@ import DesktopNavbar from "./DesktopNavbar";
 // Mock the react-router hooks
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useLocation: jest.fn(),
     useNavigate: jest.fn(),
 }));

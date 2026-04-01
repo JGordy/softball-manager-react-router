@@ -13,6 +13,7 @@ import Login, { loader, action } from "../login";
 // Mock react-router
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     redirect: jest.fn((url, init) => ({ status: 302, url, init })),
     useActionData: jest.fn(),
     useNavigation: jest.fn(() => ({ state: "idle" })),

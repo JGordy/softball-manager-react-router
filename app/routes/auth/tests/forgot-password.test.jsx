@@ -8,6 +8,7 @@ import ForgotPassword, { loader, action } from "../forgot-password";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useActionData: jest.fn(),
     Form: ({ children, ...props }) => <form {...props}>{children}</form>,
     Link: ({ children, to, ...props }) => (

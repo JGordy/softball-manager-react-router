@@ -7,6 +7,7 @@ import NavLinks from "./NavLinks";
 // Mock react-router
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useNavigate: jest.fn(),
     useLocation: jest.fn(),
 }));

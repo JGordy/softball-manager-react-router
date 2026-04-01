@@ -5,6 +5,7 @@ import BackButton from "./BackButton";
 const mockNavigate = jest.fn();
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useNavigate: () => mockNavigate,
 }));
 

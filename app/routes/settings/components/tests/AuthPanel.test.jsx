@@ -8,6 +8,7 @@ import AuthPanel from "../AuthPanel";
 // Mock react-router
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useOutletContext: jest.fn(),
     Form: ({ children }) => <form data-testid="mock-form">{children}</form>,
 }));

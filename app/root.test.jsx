@@ -18,6 +18,7 @@ jest.mock("@mantine/core", () => ({
 // Mock React Router
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useLoaderData: jest.fn(),
     Meta: () => <div data-testid="mock-meta" />,
     Links: () => <div data-testid="mock-links" />,

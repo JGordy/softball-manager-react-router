@@ -6,6 +6,7 @@ import HeroSection from "../components/HeroSection";
 // Mock react-router
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     Form: ({ children, ...props }) => <form {...props}>{children}</form>,
     useSubmit: () => jest.fn(),
     useNavigation: jest.fn(() => ({ state: "idle" })),

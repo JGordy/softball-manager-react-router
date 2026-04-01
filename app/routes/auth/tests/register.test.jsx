@@ -17,6 +17,7 @@ import Register, { loader, action } from "../register";
 // Mock react-router
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     redirect: jest.fn((url, init) => ({ status: 302, url, init })),
     data: jest.fn((payload, init) => ({ payload, ...init })),
     useActionData: jest.fn(),

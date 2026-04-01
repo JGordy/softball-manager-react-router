@@ -15,6 +15,7 @@ import UserProfile, { action, loader } from "../profile";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useNavigate: jest.fn(),
     useLocation: jest.fn(),
     useOutletContext: jest.fn(),

@@ -8,6 +8,7 @@ import AccountPanel from "../AccountPanel";
 // Mock react-router
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useOutletContext: jest.fn(),
 }));
 

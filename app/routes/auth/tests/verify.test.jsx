@@ -7,6 +7,7 @@ import Verify, { loader } from "../verify";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useNavigate: jest.fn(),
 }));
 

@@ -7,6 +7,7 @@ import SeasonDetailsForm from "../SeasonDetailsForm";
 const mockOnSubmit = jest.fn((e) => e.preventDefault());
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     Form: ({ children, ...props }) => (
         <form {...props} role="form" onSubmit={mockOnSubmit}>
             {children}

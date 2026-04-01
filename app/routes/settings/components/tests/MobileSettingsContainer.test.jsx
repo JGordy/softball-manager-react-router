@@ -12,6 +12,7 @@ const mockTeams = [
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useOutletContext: () => ({
         user: {
             $id: "user-123",

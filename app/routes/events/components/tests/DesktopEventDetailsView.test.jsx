@@ -9,6 +9,7 @@ jest.mock("@/components/BackButton", () => () => <button>Back</button>);
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useOutletContext: () => ({ user: { $id: "user1" } }),
     useFetcher: () => ({ state: "idle", submit: jest.fn() }),
 }));

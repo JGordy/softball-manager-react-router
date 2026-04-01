@@ -9,6 +9,7 @@ import UserTeams, { action, loader } from "../teams";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useActionData: jest.fn(),
 }));
 

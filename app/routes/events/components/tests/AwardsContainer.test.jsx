@@ -6,6 +6,7 @@ import AwardsContainer from "../AwardsContainer";
 // Mock dependencies
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useLocation: jest.fn(),
 }));
 

@@ -5,6 +5,7 @@ import TeamLineupContainer from "../TeamLineupContainer";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useFetcher: jest.fn(),
 }));
 

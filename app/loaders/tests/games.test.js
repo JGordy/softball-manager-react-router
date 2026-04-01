@@ -227,6 +227,8 @@ describe("Games Loader", () => {
             // Mock all listDocuments calls in order
             listDocuments
                 .mockResolvedValueOnce({ rows: mockTeams }) // teams
+                .mockResolvedValueOnce({ rows: [] }) // teamGuestPlayers
+                // extraChartGuestIds skipped because chart is empty
                 .mockResolvedValueOnce({ rows: mockUsers }) // users in resolvePlayers
                 .mockResolvedValueOnce({ rows: mockAttendance }); // attendance
 
@@ -240,6 +242,61 @@ describe("Games Loader", () => {
             // Verify enrichment worked: avatarUrl from prefs should be present
             expect(result.players[0].avatarUrl).toBe("http://avatar.url");
             expect(result.attendance).toHaveLength(1);
+        });
+
+        it("should resolve guest players found in the player chart", async () => {
+            const mockGame = {
+                $id: "game1",
+                gameDate: "2023-10-27T10:00:00Z",
+                playerChart: JSON.stringify([
+                    { $id: "user1" },
+                    { $id: "guest1" },
+                ]),
+                seasons: "season1",
+            };
+            const mockSeason = { $id: "season1", teams: ["team1"] };
+            const mockTeams = [{ $id: "team1", name: "Team 1" }];
+            const mockOfficialUsers = [
+                { $id: "user1", firstName: "Team", lastName: "Player" },
+            ];
+            const mockGuestUsers = [
+                { $id: "guest1", firstName: "Guest", lastName: "Player" },
+            ];
+
+            const mockListMemberships = jest.fn().mockResolvedValue({
+                memberships: [{ userId: "user1", roles: ["player"] }],
+            });
+            const mockListUsers = jest.fn().mockResolvedValue({
+                users: [{ $id: "user1", prefs: {} }],
+            });
+            createAdminClient.mockReturnValue({
+                teams: { listMemberships: mockListMemberships },
+                users: { list: mockListUsers },
+            });
+
+            readDocument.mockResolvedValueOnce(mockGame);
+            readDocument.mockResolvedValueOnce(mockSeason);
+
+            listDocuments
+                .mockResolvedValueOnce({ rows: mockTeams }) // baseData -> teams query
+                .mockResolvedValueOnce({ rows: [] }) // teamGuestPlayers
+                .mockResolvedValueOnce({ rows: mockGuestUsers }) // extraChartGuestIds
+                .mockResolvedValueOnce({ rows: mockOfficialUsers }) // resolvePlayers
+                .mockResolvedValueOnce({ rows: [] }); // getAttendance
+
+            const result = await getEventWithPlayerCharts({
+                client: mockSessionClient,
+                eventId: "game1",
+            });
+
+            expect(result.players).toHaveLength(2);
+            const ids = result.players.map((p) => p.$id);
+            expect(ids).toContain("user1");
+            expect(ids).toContain("guest1");
+
+            // Check availability is injected correctly
+            const guestPlayer = result.players.find((p) => p.$id === "guest1");
+            expect(guestPlayer.availability).toBe("accepted");
         });
     });
 });

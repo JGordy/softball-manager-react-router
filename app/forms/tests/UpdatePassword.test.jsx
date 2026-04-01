@@ -5,6 +5,7 @@ import UpdatePassword from "../UpdatePassword";
 const mockSubmit = jest.fn();
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useSubmit: () => mockSubmit,
     Form: ({ children, onSubmit, ...props }) => (
         <form onSubmit={onSubmit} {...props}>

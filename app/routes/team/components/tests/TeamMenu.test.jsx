@@ -7,6 +7,7 @@ import TeamMenu from "../TeamMenu";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useNavigate: jest.fn(),
 }));
 

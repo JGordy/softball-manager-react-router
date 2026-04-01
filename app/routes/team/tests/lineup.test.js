@@ -9,6 +9,7 @@ import TeamLineup, { loader, action } from "../lineup";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useOutletContext: jest.fn(),
     useActionData: jest.fn(),
 }));

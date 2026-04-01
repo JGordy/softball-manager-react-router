@@ -3,6 +3,7 @@ import RemovePlayersDrawer from "../RemovePlayersDrawer";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useOutletContext: jest.fn(() => ({ isDesktop: false })),
 }));
 

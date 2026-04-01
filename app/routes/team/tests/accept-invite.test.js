@@ -11,6 +11,7 @@ import AcceptInvite, { action, clientAction } from "../accept-invite";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useNavigate: jest.fn(),
     useSearchParams: jest.fn(),
     Form: ({ children, onSubmit, ...props }) => (

@@ -7,6 +7,7 @@ import SeasonList from "../SeasonList";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     Link: ({ children, to }) => <a href={to}>{children}</a>,
 }));
 

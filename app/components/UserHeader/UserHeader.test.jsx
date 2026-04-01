@@ -6,6 +6,7 @@ import UserHeader from "./UserHeader";
 // Mock react-router
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useOutletContext: jest.fn(),
     useFetcher: jest.fn(),
 }));

@@ -5,6 +5,7 @@ import PoliciesPanel from "../PoliciesPanel";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useOutletContext: jest.fn(),
 }));
 

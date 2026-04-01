@@ -7,7 +7,10 @@ import GamedayMenu from "../GamedayMenu";
 // Mock react-router
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useFetcher: jest.fn(),
+    useNavigate: jest.fn(),
+    useParams: jest.fn(() => ({ eventId: "test-event" })),
 }));
 
 jest.mock("@/hooks/useModal");
@@ -20,6 +23,7 @@ jest.mock("@tabler/icons-react", () => ({
     IconFlag: () => <div data-testid="icon-flag" />,
     IconPlayerPlay: () => <div data-testid="icon-play" />,
     IconArrowsExchange: () => <div data-testid="icon-arrows-exchange" />,
+    IconTable: () => <div data-testid="icon-table" />,
 }));
 
 describe("GamedayMenu", () => {

@@ -6,6 +6,7 @@ import EventsList, { loader } from "../list";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useOutletContext: jest.fn(),
 }));
 

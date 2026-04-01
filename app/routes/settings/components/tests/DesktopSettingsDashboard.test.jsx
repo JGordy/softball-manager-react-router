@@ -12,6 +12,7 @@ const mockTeams = [
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     Form: ({ children }) => <form data-testid="mock-form">{children}</form>,
     useOutletContext: () => ({
         user: {

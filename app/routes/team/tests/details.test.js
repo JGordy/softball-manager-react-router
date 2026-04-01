@@ -13,6 +13,7 @@ import TeamDetails, { loader, action } from "../details";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
+    useNavigation: () => ({ state: "idle" }),
     useOutletContext: jest.fn(),
     useNavigation: jest.fn(() => ({ state: "idle" })),
 }));

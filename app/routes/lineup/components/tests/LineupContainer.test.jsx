@@ -149,4 +149,34 @@ describe("LineupContainer Component", () => {
 
         expect(createBattingOrder.default).toHaveBeenCalled();
     });
+
+    it("resets the lineup using the playerChart prop when Reset button clicked", () => {
+        const players = Array.from({ length: 8 }, (_, i) => ({
+            $id: `p${i}`,
+            firstName: `P${i}`,
+            availability: "accepted",
+        }));
+
+        const originalChart = [{ $id: "p1", positions: [] }];
+
+        const props = {
+            ...defaultProps,
+            players,
+            playerChart: originalChart,
+            lineupState: [{ $id: "p1", positions: ["1B"] }], // currently edited state
+            hasBeenEdited: true, // Changes made to show Reset button
+            lineupHandlers: { setState: jest.fn() },
+            setHasBeenEdited: jest.fn(),
+        };
+
+        render(<LineupContainer {...props} />);
+
+        // Click the first Reset button
+        fireEvent.click(screen.getAllByRole("button", { name: "Reset" })[0]);
+
+        expect(props.lineupHandlers.setState).toHaveBeenCalledWith(
+            originalChart,
+        );
+        expect(props.setHasBeenEdited).toHaveBeenCalledWith(false);
+    });
 });
