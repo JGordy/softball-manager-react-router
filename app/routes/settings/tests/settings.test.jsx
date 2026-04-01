@@ -10,7 +10,6 @@ import Settings, { loader, action } from "../index";
 // Mock react-router
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
-    useNavigation: () => ({ state: "idle" }),
     useLoaderData: jest.fn(),
     useOutletContext: jest.fn(),
     useNavigation: jest.fn(() => ({ state: "idle" })),

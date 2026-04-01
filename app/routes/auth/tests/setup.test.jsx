@@ -8,7 +8,6 @@ import Setup, { loader, action } from "../setup";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
-    useNavigation: () => ({ state: "idle" }),
     redirect: jest.fn((url) => ({ status: 302, url })),
     useActionData: jest.fn(),
     useNavigation: jest.fn(),
