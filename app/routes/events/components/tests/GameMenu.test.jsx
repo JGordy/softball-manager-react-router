@@ -94,6 +94,22 @@ describe("GameMenu Component", () => {
         );
     });
 
+    it("renders Edit Lineup option always", async () => {
+        render(
+            <MemoryRouter>
+                <GameMenu {...defaultProps} />
+            </MemoryRouter>,
+        );
+
+        await openMenu();
+        const lineupBtn = screen.getByText("Edit Lineup");
+        expect(lineupBtn).toBeInTheDocument();
+        expect(lineupBtn.closest("a")).toHaveAttribute(
+            "href",
+            "/events/game1/lineup",
+        );
+    });
+
     it("does NOT render Results option if game is future", async () => {
         render(
             <MemoryRouter>

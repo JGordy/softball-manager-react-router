@@ -124,4 +124,14 @@ describe("GamedayMenu", () => {
             expect.objectContaining({ title: "Resume Game" }),
         );
     });
+
+    it("renders edit lineup link", async () => {
+        renderMenu();
+        const link = screen.getByText("Edit Lineup");
+        expect(link).toBeInTheDocument();
+        expect(link.closest("button")).toHaveAttribute(
+            "to",
+            "/events/evt1/lineup",
+        );
+    });
 });

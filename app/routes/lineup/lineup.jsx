@@ -160,7 +160,7 @@ function Lineup({ loaderData, actionData }) {
         ) {
             trackEvent(actionData.event.name, actionData.event.data);
         }
-    }, [actionData]);
+    }, [actionData, lineupHandlers, closeAllModals]);
 
     // Use the first team from the teams array
     const team = teams?.[0];
