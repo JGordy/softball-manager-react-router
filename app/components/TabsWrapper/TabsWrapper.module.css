@@ -1,24 +1,39 @@
 .list {
     position: relative;
     display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE 10+ */
     width: fit-content;
+    max-width: 100%;
     margin: 0 auto;
-    gap: 0.5rem;
-    background: light-dark(#f2f4f6, #1a242f);
+    gap: 0.25rem;
+    background: light-dark(#f2f4f6, #1a202a);
     border: 1px solid
-        light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-6));
+        light-dark(var(--mantine-color-gray-4), rgba(255, 255, 255, 0.1));
     border-radius: var(--mantine-radius-xl);
-    padding: 8px;
+    padding: 6px;
+}
+
+.list::-webkit-scrollbar {
+    display: none;
+    /* Safari and Chrome */
 }
 
 .tab {
     position: relative;
-    padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+    padding: 8px 16px;
     cursor: pointer;
     border: none;
     background: transparent;
     transition: color 0.3s ease;
     z-index: 1;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 600;
 }
 
 .tabActive {

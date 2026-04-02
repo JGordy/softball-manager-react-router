@@ -16,6 +16,7 @@ describe("NavLinks Component", () => {
 
     beforeEach(() => {
         useNavigate.mockReturnValue(mockNavigate);
+        useLocation.mockReturnValue({ pathname: "/dashboard" });
     });
 
     afterEach(() => {
@@ -23,40 +24,54 @@ describe("NavLinks Component", () => {
         jest.clearAllMocks();
     });
 
-    it("sets active tab to 'dashboard' by default", () => {
-        useLocation.mockReturnValue({ pathname: "/" });
+    it("renders all expected navigation links", () => {
         render(<NavLinks user={{}} />);
-        expect(screen.getByText("Home")).toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: /Home/i }),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: /Events/i }),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: /Profile/i }),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: /Settings/i }),
+        ).toBeInTheDocument();
+    });
+
+    it("renders admin link for admin users", () => {
+        render(<NavLinks user={{ labels: ["admin"] }} />);
+        expect(
+            screen.getByRole("button", { name: /Admin/i }),
+        ).toBeInTheDocument();
     });
 
     it("initializes active tab based on URL (user profile)", () => {
-        useLocation.mockReturnValue({ pathname: "/user/profile" });
-        render(<NavLinks user={{}} />);
-        expect(screen.getByText("Profile")).toBeInTheDocument();
+        useLocation.mockReturnValue({ pathname: "/user/123" });
+        render(<NavLinks user={{ $id: "123" }} />);
+        const profileButton = screen.getByRole("button", { name: /Profile/i });
+        expect(profileButton.className).toContain("active");
     });
 
-    it("navigates to Dashboard when Dashboard tab is clicked", () => {
-        useLocation.mockReturnValue({ pathname: "/user" }); // Start elsewhere
-        const { container } = render(<NavLinks user={{}} />);
+    it("navigates to Dashboard when Home link is clicked", () => {
+        useLocation.mockReturnValue({ pathname: "/events" });
+        render(<NavLinks user={{}} />);
 
-        // Find by value because text is hidden when inactive
-        const dashboardInput = container.querySelector(
-            'input[value="dashboard"]',
-        );
-        fireEvent.click(dashboardInput);
+        const homeButton = screen.getByRole("button", { name: /Home/i });
+        fireEvent.click(homeButton);
 
         expect(mockNavigate).toHaveBeenCalledWith("/dashboard");
     });
 
-    it("navigates to Settings when Settings tab is clicked", () => {
-        useLocation.mockReturnValue({ pathname: "/" });
-        const { container } = render(<NavLinks user={{}} />);
+    it("navigates to Settings when Settings link is clicked", () => {
+        useLocation.mockReturnValue({ pathname: "/dashboard" });
+        render(<NavLinks user={{}} />);
 
-        // Find by value because text is hidden when inactive
-        const settingsInput = container.querySelector(
-            'input[value="settings"]',
-        );
-        fireEvent.click(settingsInput);
+        const settingsButton = screen.getByRole("button", {
+            name: /Settings/i,
+        });
+        fireEvent.click(settingsButton);
 
         expect(mockNavigate).toHaveBeenCalledWith("/settings");
     });
