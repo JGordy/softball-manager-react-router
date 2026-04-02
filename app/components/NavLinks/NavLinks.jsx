@@ -1,12 +1,7 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router";
-
-import { Center, SegmentedControl } from "@mantine/core";
-
+import { NavLink } from "react-router";
 import {
     IconBallBaseball,
     IconCalendar,
-    // IconHome,
     IconSettings,
     IconUserSquareRounded,
     IconShieldLock,
@@ -14,127 +9,75 @@ import {
 
 import classes from "./NavLinks.module.css";
 
-function Label({ Icon, text }) {
-    return (
-        <Center style={{ gap: 10 }}>
-            <Icon size={24} />
-            <span>{text}</span>
-        </Center>
-    );
-}
-
-function NavLinks({ user, isDesktop }) {
-    const navigate = useNavigate();
-    const location = useLocation();
-
-    const getInitialValue = () => {
-        if (location.pathname.toLowerCase().includes("user")) {
-            return "user";
-        }
-
-        if (location.pathname.toLowerCase().includes("events")) {
-            return "events";
-        }
-
-        if (location.pathname.toLowerCase().includes("settings")) {
-            return "settings";
-        }
-
-        if (location.pathname.toLowerCase().includes("admin")) {
-            return "admin";
-        }
-
-        return "dashboard";
-    };
-
-    const [value, setValue] = useState(getInitialValue());
-
+function NavLinks({ user }) {
     const isAdmin = user?.labels?.includes("admin");
 
     const links = [
         {
-            label: (
-                <Label
-                    Icon={IconBallBaseball}
-                    text={(isDesktop || value === "dashboard") && "Home"}
-                />
-            ),
-            value: "dashboard",
+            label: "Home",
+            icon: IconBallBaseball,
+            path: "/dashboard",
         },
         {
-            label: (
-                <Label
-                    Icon={IconCalendar}
-                    text={(isDesktop || value === "events") && "Events"}
-                />
-            ),
-            value: "events",
+            label: "Events",
+            icon: IconCalendar,
+            path: "/events",
         },
         {
-            label: (
-                <Label
-                    Icon={IconUserSquareRounded}
-                    text={(isDesktop || value === "user") && "Profile"}
-                />
-            ),
-            value: "user",
+            label: "Profile",
+            icon: IconUserSquareRounded,
+            path: `/user/${user?.$id}`,
         },
         ...(isAdmin
             ? [
                   {
-                      label: (
-                          <Label
-                              Icon={IconShieldLock}
-                              text={(isDesktop || value === "admin") && "Admin"}
-                          />
-                      ),
-                      value: "admin",
+                      label: "Admin",
+                      icon: IconShieldLock,
+                      path: "/admin",
                   },
               ]
             : []),
         {
-            label: (
-                <Label
-                    Icon={IconSettings}
-                    text={(isDesktop || value === "settings") && "Settings"}
-                />
-            ),
-            value: "settings",
+            label: "Settings",
+            icon: IconSettings,
+            path: "/settings",
         },
     ];
 
-    useEffect(() => {
-        setValue(getInitialValue()); // Update value when location changes
-    }, [location]);
-
-    const handleNavLinkClick = (newValue) => {
-        setValue(newValue);
-
-        if (newValue === "user") {
-            navigate(`/user/${user?.$id}`);
-        } else if (newValue === "dashboard") {
-            navigate("/dashboard");
-        } else {
-            navigate(`/${newValue}`);
-        }
-    };
-
     return (
-        <div className={classes.navLinksContainer}>
-            <SegmentedControl
-                className={classes.navLinks}
-                color="lime.4"
-                data={links}
-                fullWidth={!isDesktop}
-                onChange={handleNavLinkClick}
-                size="lg"
-                radius="xl"
-                value={value}
-                transitionDuration={500}
-                transitionTimingFunction="linear"
-                withItemsBorders={false}
-            />
-        </div>
+        <nav className={classes.navLinksContainer}>
+            <div className={classes.navLinks}>
+                {links.map((link) => {
+                    const Icon = link.icon;
+
+                    return (
+                        <NavLink
+                            key={link.path}
+                            to={link.path}
+                            end={link.path === "/dashboard"}
+                            className={({ isActive }) =>
+                                `${classes.navLink} ${isActive ? classes.active : ""}`
+                            }
+                            aria-label={link.label}
+                        >
+                            {({ isActive }) => (
+                                <>
+                                    <div className={classes.iconWrapper}>
+                                        <Icon
+                                            size={24}
+                                            stroke={isActive ? 2.5 : 1.5}
+                                        />
+                                    </div>
+                                    <span className={classes.linkLabel}>
+                                        {link.label}
+                                    </span>
+                                </>
+                            )}
+                        </NavLink>
+                    );
+                })}
+            </div>
+        </nav>
     );
 }
 

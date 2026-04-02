@@ -187,7 +187,7 @@ export default function MobileGamedayContainer({
                             )}
 
                             {logs.length > 0 && isOurBatting && (
-                                <Box mt="auto" pt="md">
+                                <Box>
                                     <LastPlayCard
                                         lastLog={logs[logs.length - 1]}
                                         onUndo={isScorekeeper ? undoLast : null}

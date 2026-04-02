@@ -41,7 +41,7 @@ export default function ActionPad({ onAction, runners, outs: currentOuts }) {
     };
 
     return (
-        <SimpleGrid cols={2} spacing="md" align="flex-start" mb="md">
+        <SimpleGrid cols={2} spacing="md" align="flex-start">
             <Stack gap="xs">
                 <Text size="xs" fw={700} c="dimmed" mb={-5} tt="uppercase">
                     ON BASE

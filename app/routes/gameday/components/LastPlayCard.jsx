@@ -15,7 +15,6 @@ export default function LastPlayCard({
             withBorder
             p="sm"
             radius="md"
-            mt="auto"
             w="100%"
             style={{
                 borderLeft: "6px solid var(--mantine-color-lime-4)",
