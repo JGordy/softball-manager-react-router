@@ -138,20 +138,10 @@ export default function MobileGamedayContainer({
                     onChange={handleTabChange}
                     mt={0}
                 >
-                    {!gameFinal && (
-                        <Tabs.Tab value="live" size="xs">
-                            Live
-                        </Tabs.Tab>
-                    )}
-                    <Tabs.Tab value="plays" size="xs">
-                        Plays
-                    </Tabs.Tab>
-                    <Tabs.Tab value="boxscore" size="xs">
-                        Box Score
-                    </Tabs.Tab>
-                    <Tabs.Tab value="spray" size="xs">
-                        Spray Chart
-                    </Tabs.Tab>
+                    {!gameFinal && <Tabs.Tab value="live">Live</Tabs.Tab>}
+                    <Tabs.Tab value="plays">Plays</Tabs.Tab>
+                    <Tabs.Tab value="boxscore">Box Score</Tabs.Tab>
+                    <Tabs.Tab value="spray">Spray Chart</Tabs.Tab>
 
                     <Tabs.Panel value="live" pt="md">
                         <Stack gap="md">
