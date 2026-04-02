@@ -255,5 +255,62 @@ describe("Games Loader", () => {
             expect(result.players[0].avatarUrl).toBe("http://avatar.url");
             expect(result.attendance).toHaveLength(1);
         });
+
+        it("should extract and resolve extra players from the chart", async () => {
+            const mockGame = {
+                $id: "game1",
+                gameDate: "2023-10-27T10:00:00Z",
+                playerChart: JSON.stringify(
+                    JSON.stringify([
+                        {
+                            $id: "guest-starter",
+                            substitutions: [{ playerId: "guest-sub" }],
+                        },
+                    ]),
+                ),
+                seasons: "season1",
+            };
+            const mockSeason = { $id: "season1", teams: ["team1"] };
+
+            // Mock loadGameBase
+            readDocument.mockResolvedValueOnce(mockGame);
+            readDocument.mockResolvedValueOnce(mockSeason);
+            listDocuments.mockResolvedValueOnce({
+                rows: [{ $id: "team1", name: "Team 1" }],
+            });
+
+            // Mock memberships
+            createAdminClient.mockReturnValue({
+                teams: {
+                    listMemberships: jest
+                        .fn()
+                        .mockResolvedValue({ memberships: [] }),
+                },
+                users: {
+                    list: jest.fn().mockResolvedValue({ users: [] }),
+                },
+            });
+
+            // resolvePlayers will be called with guest-starter and guest-sub.
+            // Mock listDocuments for resolvePlayers to return these users.
+            listDocuments.mockResolvedValueOnce({
+                rows: [
+                    { $id: "guest-starter", name: "Guest Starter" },
+                    { $id: "guest-sub", name: "Guest Sub" },
+                ],
+            });
+
+            // Mock getAttendance
+            listDocuments.mockResolvedValueOnce({ rows: [] });
+
+            const result = await getEventWithPlayerCharts({
+                client: mockSessionClient,
+                eventId: "game1",
+            });
+
+            expect(result.players).toHaveLength(2);
+            expect(result.players.map((p) => p.$id)).toContain("guest-starter");
+            expect(result.players.map((p) => p.$id)).toContain("guest-sub");
+        });
     });
 });

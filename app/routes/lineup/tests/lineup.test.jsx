@@ -23,7 +23,12 @@ jest.mock("@/actions/lineups");
 jest.mock("@/utils/addPlayerAvailability");
 jest.mock("../utils/validateLineup");
 jest.mock("@/utils/appwrite/server", () => ({
-    createSessionClient: jest.fn().mockResolvedValue({}),
+    createSessionClient: jest.fn().mockResolvedValue({
+        account: { get: jest.fn().mockResolvedValue({ $id: "user123" }) },
+    }),
+}));
+jest.mock("@/actions/users", () => ({
+    createTemporaryPlayer: jest.fn(),
 }));
 
 // Mock child components
@@ -169,6 +174,38 @@ describe("Lineup Route", () => {
             expect(result.status).toBe(400);
             expect(result.message).toMatch(/Invalid playerChart JSON/);
             expect(lineupsActions.savePlayerChart).not.toHaveBeenCalled();
+        });
+
+        it("handles create-guest-player action", async () => {
+            const { createTemporaryPlayer } = require("@/actions/users");
+            createTemporaryPlayer.mockResolvedValue({ success: true });
+            gamesLoaders.getEventById.mockResolvedValue({
+                teams: [{ $id: "team1" }],
+            });
+
+            const formData = new FormData();
+            formData.append("_action", "create-guest-player");
+            formData.append("firstName", "Guest");
+            formData.append("lastName", "Player");
+
+            await action({
+                request: { formData: () => Promise.resolve(formData) },
+                params: { eventId: "evt1" },
+            });
+
+            expect(gamesLoaders.getEventById).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    eventId: "evt1",
+                    includePlayers: false,
+                }),
+            );
+            expect(createTemporaryPlayer).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    values: expect.objectContaining({ firstName: "Guest" }),
+                    teamId: "team1",
+                    eventId: "evt1",
+                }),
+            );
         });
     });
 

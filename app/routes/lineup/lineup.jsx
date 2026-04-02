@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useOutletContext, useParams, Link } from "react-router";
 
 import { Container, Group, Stack, Text, Title, Button } from "@mantine/core";
@@ -6,7 +6,7 @@ import { useListState } from "@mantine/hooks";
 
 import { IconDeviceAnalytics } from "@tabler/icons-react";
 
-import { getEventWithPlayerCharts } from "@/loaders/games";
+import { getEventById, getEventWithPlayerCharts } from "@/loaders/games";
 
 import { savePlayerChart } from "@/actions/lineups";
 
@@ -86,7 +86,17 @@ export async function action({ request, params }) {
         const { account } = client;
         const [user, eventData] = await Promise.all([
             account.get(),
-            getEventWithPlayerCharts({ eventId, client }),
+            getEventById({
+                eventId,
+                client,
+                includePlayers: false,
+                includeAttendance: false,
+                includePark: false,
+                includeAwards: false,
+                includeVotes: false,
+                includeLogs: false,
+                includeWeather: false,
+            }),
         ]);
 
         const teamId = eventData.teams?.[0]?.$id;
@@ -133,6 +143,7 @@ function Lineup({ loaderData, actionData }) {
     const [lineupState, lineupHandlers] = useListState(rest.playerChart);
     const [hasBeenEdited, setHasBeenEdited] = useState(false);
     const { closeAllModals } = useModal();
+    const processedActionIdRef = useRef(null);
 
     const playersNotInLineup = playersWithAvailability?.filter((p) => {
         const isInLineup = lineupState?.some((lp) => lp.$id === p.$id);
@@ -140,27 +151,37 @@ function Lineup({ loaderData, actionData }) {
     });
 
     useEffect(() => {
+        // Only process actionData if it's new and successful
         if (actionData?.success && actionData?.response?.player) {
             const newPlayer = actionData.response.player;
-            lineupHandlers.append({
-                $id: newPlayer.$id,
-                firstName: newPlayer.firstName,
-                lastName: newPlayer.lastName,
-                gender: newPlayer.gender,
-                positions: [],
-            });
-            setHasBeenEdited(true);
-            closeAllModals();
-        }
 
-        if (
-            actionData?.success &&
-            actionData?.event &&
-            Object.keys(actionData.event).length
-        ) {
-            trackEvent(actionData.event.name, actionData.event.data);
+            // Use the player's unique ID to ensure we only process once per successful action
+            if (processedActionIdRef.current !== newPlayer.$id) {
+                processedActionIdRef.current = newPlayer.$id;
+
+                lineupHandlers.append({
+                    $id: newPlayer.$id,
+                    firstName: newPlayer.firstName,
+                    lastName: newPlayer.lastName,
+                    gender: newPlayer.gender,
+                    positions: [],
+                });
+
+                setHasBeenEdited(true);
+                closeAllModals();
+
+                trackEvent("add_guest_player_success", {
+                    eventId,
+                    playerId: newPlayer.$id,
+                });
+
+                // Handle server-side events if present
+                if (actionData.event && Object.keys(actionData.event).length) {
+                    trackEvent(actionData.event.name, actionData.event.data);
+                }
+            }
         }
-    }, [actionData, lineupHandlers, closeAllModals]);
+    }, [actionData, eventId, lineupHandlers, closeAllModals]);
 
     // Use the first team from the teams array
     const team = teams?.[0];
