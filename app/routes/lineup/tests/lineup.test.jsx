@@ -16,6 +16,10 @@ jest.mock("react-router", () => ({
     Form: ({ children, ...props }) => <form {...props}>{children}</form>,
 }));
 
+jest.mock("@/utils/showNotification", () => ({
+    useResponseNotification: jest.fn(),
+}));
+
 jest.mock("@/components/BackButton", () => () => <button>Back</button>);
 
 jest.mock("@/loaders/games");
@@ -180,6 +184,7 @@ describe("Lineup Route", () => {
             const { createTemporaryPlayer } = require("@/actions/users");
             createTemporaryPlayer.mockResolvedValue({ success: true });
             gamesLoaders.getEventById.mockResolvedValue({
+                game: { $id: "evt1" },
                 teams: [{ $id: "team1" }],
             });
 
@@ -207,12 +212,38 @@ describe("Lineup Route", () => {
                 }),
             );
         });
+
+        it("returns 404 for deleted game in create-guest-player", async () => {
+            gamesLoaders.getEventById.mockResolvedValue({
+                gameDeleted: true,
+                game: null,
+                teams: [],
+            });
+
+            const formData = new FormData();
+            formData.append("_action", "create-guest-player");
+
+            const result = await action({
+                request: { formData: () => Promise.resolve(formData) },
+                params: { eventId: "evt1" },
+            });
+
+            expect(result.status).toBe(404);
+            expect(result.message).toBe("This event has been deleted.");
+        });
     });
 
     describe("Component", () => {
         it("renders main components when data is present", () => {
-            render(<Lineup loaderData={mockLoaderData} />);
+            const {
+                useResponseNotification,
+            } = require("@/utils/showNotification");
+            const actionData = { success: true };
+            render(
+                <Lineup loaderData={mockLoaderData} actionData={actionData} />,
+            );
 
+            expect(useResponseNotification).toHaveBeenCalledWith(actionData);
             expect(screen.getByText("Back")).toBeInTheDocument();
             expect(screen.getByTestId("lineup-container")).toBeInTheDocument();
 

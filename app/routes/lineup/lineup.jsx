@@ -20,6 +20,7 @@ import { formatForViewerDate, getGameDayStatus } from "@/utils/dateTime";
 import { parsePlayerChart } from "@/routes/gameday/utils/gamedayUtils";
 import { createTemporaryPlayer } from "@/actions/users";
 import { trackEvent } from "@/utils/analytics";
+import { useResponseNotification } from "@/utils/showNotification";
 import useModal from "@/hooks/useModal";
 
 import LineupContainer from "./components/LineupContainer";
@@ -95,6 +96,14 @@ export async function action({ request, params }) {
             includeWeather: false,
         });
 
+        if (eventData.gameDeleted || !eventData.game) {
+            return {
+                success: false,
+                status: 404,
+                message: "This event has been deleted.",
+            };
+        }
+
         const teamId = eventData.teams?.[0]?.$id;
         if (!teamId) {
             return {
@@ -119,6 +128,8 @@ function Lineup({ loaderData, actionData }) {
     const { user } = useOutletContext();
     const { eventId } = useParams();
     const currentUserId = user.$id;
+
+    useResponseNotification(actionData);
 
     const {
         game,
