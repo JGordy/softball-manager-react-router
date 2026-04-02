@@ -83,7 +83,7 @@ export function MobileGamedayLoadingSkeleton() {
             </Card>
 
             {/* Current Batter Card */}
-            <Card withBorder radius="lg" p="md" bg="blue.6">
+            <Card withBorder radius="lg" p="md">
                 <Group wrap="nowrap" gap="md" justify="space-between">
                     <Group wrap="nowrap" gap="md" style={{ flex: 1 }}>
                         <Skeleton height={60} width={60} radius="xl" />
@@ -147,25 +147,6 @@ export function MobileGamedayLoadingSkeleton() {
                         </Box>
                     </Stack>
                 </Group>
-
-                {/* Last Play Card at the bottom */}
-                <Card
-                    withBorder
-                    radius="md"
-                    p="sm"
-                    style={{
-                        borderLeft: "6px solid var(--mantine-color-lime-4)",
-                    }}
-                >
-                    <Group justify="space-between" align="center" wrap="nowrap">
-                        <Stack gap={4} style={{ flex: 1 }}>
-                            <Skeleton height={10} width={60} />
-                            <Skeleton height={20} width="90%" />
-                            <Skeleton height={12} width="50%" />
-                        </Stack>
-                        <Skeleton height={40} width={80} radius="xl" />
-                    </Group>
-                </Card>
             </Stack>
         </Stack>
     );
