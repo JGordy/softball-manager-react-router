@@ -24,8 +24,21 @@ describe("Games Loader", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         jest.spyOn(console, "error").mockImplementation(() => {});
+        jest.spyOn(console, "warn").mockImplementation(() => {});
         const { createSessionClient } = require("@/utils/appwrite/server");
         createSessionClient.mockResolvedValue(mockSessionClient);
+
+        // Default mock for admin client to avoid issues with resolvePlayers enrichment
+        createAdminClient.mockReturnValue({
+            users: {
+                list: jest.fn().mockResolvedValue({ users: [], total: 0 }),
+            },
+            teams: {
+                listMemberships: jest
+                    .fn()
+                    .mockResolvedValue({ memberships: [] }),
+            },
+        });
 
         // Default mock for fetch to prevent errors
         global.fetch.mockResolvedValue({
@@ -36,6 +49,7 @@ describe("Games Loader", () => {
 
     afterEach(() => {
         console.error.mockRestore();
+        console.warn.mockRestore();
     });
 
     describe("getEventById", () => {
