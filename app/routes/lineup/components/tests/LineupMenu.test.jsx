@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from "@/utils/test-utils";
+import { render, screen, fireEvent } from "@/utils/test-utils";
 import { MemoryRouter } from "react-router";
 import * as dateTimeUtils from "@/utils/dateTime";
 import * as modalHooks from "@/hooks/useModal";
@@ -18,7 +18,6 @@ jest.mock("@tabler/icons-react", () => ({
     IconUserMinus: () => <div data-testid="icon-user-minus" />,
     IconTrashX: () => <div data-testid="icon-trash" />,
     IconSparkles: () => <div data-testid="icon-sparkles" />,
-    IconUserQuestion: () => <div data-testid="icon-user-question" />,
 }));
 
 jest.mock(

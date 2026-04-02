@@ -16,11 +16,9 @@ import { createSessionClient } from "@/utils/appwrite/server";
 
 import addPlayerAvailability from "@/utils/addPlayerAvailability";
 
-import { formatForViewerDate } from "@/utils/dateTime";
+import { formatForViewerDate, getGameDayStatus } from "@/utils/dateTime";
 import { parsePlayerChart } from "@/routes/gameday/utils/gamedayUtils";
 import { createTemporaryPlayer } from "@/actions/users";
-
-import { getGameDayStatus } from "@/utils/dateTime";
 import { trackEvent } from "@/utils/analytics";
 import useModal from "@/hooks/useModal";
 
@@ -86,11 +84,24 @@ export async function action({ request, params }) {
 
     if (_action === "create-guest-player") {
         const { account } = client;
-        const user = await account.get();
+        const [user, eventData] = await Promise.all([
+            account.get(),
+            getEventWithPlayerCharts({ eventId, client }),
+        ]);
+
+        const teamId = eventData.teams?.[0]?.$id;
+        if (!teamId) {
+            return {
+                success: false,
+                status: 400,
+                message: "Could not determine team for this event.",
+            };
+        }
+
         return await createTemporaryPlayer({
             values,
-            teamId: values.teamId,
-            eventId: values.eventId,
+            teamId,
+            eventId,
             client,
             creatorUserId: user.$id,
         });
@@ -155,6 +166,9 @@ function Lineup({ loaderData, actionData }) {
     const team = teams?.[0];
 
     const validationResults = validateLineup(lineupState, team);
+    const gameDayStatus = getGameDayStatus(game?.gameDate, true);
+    const isGameActive =
+        gameDayStatus === "in progress" || gameDayStatus === "today";
 
     return (
         <Container size="xl" p="md">
@@ -163,10 +177,7 @@ function Lineup({ loaderData, actionData }) {
                     <BackButton text="Back to event details" />
                     {managerView && (
                         <Group gap="lg" visibleFrom="sm">
-                            {(getGameDayStatus(game?.gameDate, true) ===
-                                "in progress" ||
-                                getGameDayStatus(game?.gameDate, true) ===
-                                    "today") && (
+                            {isGameActive && (
                                 <Button
                                     variant="light"
                                     component={Link}
@@ -195,10 +206,7 @@ function Lineup({ loaderData, actionData }) {
                     )}
                     {managerView && (
                         <Group gap="xs" hiddenFrom="sm">
-                            {(getGameDayStatus(game?.gameDate, true) ===
-                                "in progress" ||
-                                getGameDayStatus(game?.gameDate, true) ===
-                                    "today") && (
+                            {isGameActive && (
                                 <Button
                                     variant="light"
                                     component={Link}

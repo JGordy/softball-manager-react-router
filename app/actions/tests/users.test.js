@@ -685,8 +685,8 @@ describe("Users Actions", () => {
                     Permission.read(Role.any()),
                     Permission.update(Role.user(creatorUserId)),
                     Permission.delete(Role.user(creatorUserId)),
-                    Permission.update(Role.team(teamId)),
-                    Permission.delete(Role.team(teamId)),
+                    Permission.update(Role.team(teamId, "scorekeeper")),
+                    Permission.delete(Role.team(teamId, "scorekeeper")),
                 ],
                 mockClient,
             );

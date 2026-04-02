@@ -429,13 +429,43 @@ export async function getEventWithPlayerCharts({ client, eventId }) {
     // Use shared defensive parser
     const parsedChart = parsePlayerChart(playerChart) ?? null;
 
-    // Extract unique player IDs from the chart that might not be in the team roster (Guest Players)
-    const extraPlayerIds = (parsedChart || [])
-        .map((p) => p.playerId)
-        .filter(
-            (id) =>
-                id && id.trim() !== "" && !userIds.some((u) => u.userId === id),
-        );
+    const extraPlayerIdSet = new Set();
+
+    (parsedChart || []).forEach((slot) => {
+        if (!slot || typeof slot !== "object") {
+            return;
+        }
+
+        // Starter ID is stored on $id
+        const starterId = slot.$id;
+        if (
+            typeof starterId === "string" &&
+            starterId.trim() !== "" &&
+            !userIds.some((u) => u.userId === starterId)
+        ) {
+            extraPlayerIdSet.add(starterId);
+        }
+
+        // Substitution IDs are stored on substitutions[].playerId
+        if (Array.isArray(slot.substitutions)) {
+            slot.substitutions.forEach((sub) => {
+                if (!sub || typeof sub !== "object") {
+                    return;
+                }
+
+                const subId = sub.playerId;
+                if (
+                    typeof subId === "string" &&
+                    subId.trim() !== "" &&
+                    !userIds.some((u) => u.userId === subId)
+                ) {
+                    extraPlayerIdSet.add(subId);
+                }
+            });
+        }
+    });
+
+    const extraPlayerIds = Array.from(extraPlayerIdSet);
 
     const allUserIds = [...userIds];
     extraPlayerIds.forEach((id) => {

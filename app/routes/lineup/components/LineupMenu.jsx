@@ -6,7 +6,6 @@ import {
     IconUserMinus,
     IconTrashX,
     IconSparkles,
-    IconUserQuestion,
 } from "@tabler/icons-react";
 
 import { getGameDayStatus } from "@/utils/dateTime";
@@ -86,7 +85,7 @@ export default function LineupMenu({
                             />
                         ),
                     }),
-                leftSection: <IconUserQuestion size={20} />,
+                leftSection: <IconUserPlus size={20} />,
                 content: <Text>Add Guest Player</Text>,
             },
             {
