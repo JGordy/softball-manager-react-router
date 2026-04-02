@@ -15,18 +15,14 @@ export default function MenuContainer({
     menuProps = {},
     target,
 }) {
-    const renderItem = (item, key) => (
-        <Menu.Item
-            key={item.key ?? key}
-            onClick={item.onClick}
-            leftSection={item.leftSection}
-            color={item.color}
-            disabled={item.disabled}
-            style={item.style}
-        >
-            {item.content ?? (item.text ? <Text>{item.text}</Text> : null)}
-        </Menu.Item>
-    );
+    const renderItem = (item, key) => {
+        const { key: itemKey, content, text, ...rest } = item;
+        return (
+            <Menu.Item key={itemKey ?? key} {...rest}>
+                {content ?? (text ? <Text>{text}</Text> : null)}
+            </Menu.Item>
+        );
+    };
 
     return (
         <Menu shadow="md" radius="lg" withArrow offset={0} {...menuProps}>

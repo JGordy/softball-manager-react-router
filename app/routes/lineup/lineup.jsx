@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
+import { useOutletContext, useParams, Link } from "react-router";
 
-import { Container, Group, Stack, Text, Title } from "@mantine/core";
+import { Container, Group, Stack, Text, Title, Button } from "@mantine/core";
 import { useListState } from "@mantine/hooks";
 
-import { useOutletContext, useParams } from "react-router";
+import { IconDeviceAnalytics } from "@tabler/icons-react";
 
 import { getEventWithPlayerCharts } from "@/loaders/games";
 
@@ -13,14 +14,21 @@ import BackButton from "@/components/BackButton";
 
 import { createSessionClient } from "@/utils/appwrite/server";
 
+import addPlayerAvailability from "@/utils/addPlayerAvailability";
+
+import { formatForViewerDate } from "@/utils/dateTime";
+import { parsePlayerChart } from "@/routes/gameday/utils/gamedayUtils";
+import { createTemporaryPlayer } from "@/actions/users";
+
+import { getGameDayStatus } from "@/utils/dateTime";
+import { trackEvent } from "@/utils/analytics";
+import useModal from "@/hooks/useModal";
+
 import LineupContainer from "./components/LineupContainer";
 import LineupMenu from "./components/LineupMenu";
 import LineupValidationMenu from "./components/LineupValidationMenu";
 
-import addPlayerAvailability from "@/utils/addPlayerAvailability";
 import { validateLineup } from "./utils/validateLineup";
-import { formatForViewerDate } from "@/utils/dateTime";
-import { parsePlayerChart } from "@/routes/gameday/utils/gamedayUtils";
 
 export async function loader({ params, request }) {
     const { eventId } = params;
@@ -75,6 +83,18 @@ export async function action({ request, params }) {
             sendNotification: true,
         });
     }
+
+    if (_action === "create-guest-player") {
+        const { account } = client;
+        const user = await account.get();
+        return await createTemporaryPlayer({
+            values,
+            teamId: values.teamId,
+            eventId: values.eventId,
+            client,
+            creatorUserId: user.$id,
+        });
+    }
 }
 
 function Lineup({ loaderData, actionData }) {
@@ -101,6 +121,7 @@ function Lineup({ loaderData, actionData }) {
 
     const [lineupState, lineupHandlers] = useListState(rest.playerChart);
     const [hasBeenEdited, setHasBeenEdited] = useState(false);
+    const { closeAllModals } = useModal();
 
     const playersNotInLineup = playersWithAvailability?.filter((p) => {
         const isInLineup = lineupState?.some((lp) => lp.$id === p.$id);
@@ -108,6 +129,19 @@ function Lineup({ loaderData, actionData }) {
     });
 
     useEffect(() => {
+        if (actionData?.success && actionData?.response?.player) {
+            const newPlayer = actionData.response.player;
+            lineupHandlers.append({
+                $id: newPlayer.$id,
+                firstName: newPlayer.firstName,
+                lastName: newPlayer.lastName,
+                gender: newPlayer.gender,
+                positions: [],
+            });
+            setHasBeenEdited(true);
+            closeAllModals();
+        }
+
         if (
             actionData?.success &&
             actionData?.event &&
@@ -129,6 +163,21 @@ function Lineup({ loaderData, actionData }) {
                     <BackButton text="Back to event details" />
                     {managerView && (
                         <Group gap="lg" visibleFrom="sm">
+                            {(getGameDayStatus(game?.gameDate, true) ===
+                                "in progress" ||
+                                getGameDayStatus(game?.gameDate, true) ===
+                                    "today") && (
+                                <Button
+                                    variant="light"
+                                    component={Link}
+                                    to={`/events/${eventId}/gameday`}
+                                    leftSection={
+                                        <IconDeviceAnalytics size={16} />
+                                    }
+                                >
+                                    Go to Live Scoring
+                                </Button>
+                            )}
                             <LineupValidationMenu
                                 validationResults={validationResults}
                             />
@@ -146,6 +195,21 @@ function Lineup({ loaderData, actionData }) {
                     )}
                     {managerView && (
                         <Group gap="xs" hiddenFrom="sm">
+                            {(getGameDayStatus(game?.gameDate, true) ===
+                                "in progress" ||
+                                getGameDayStatus(game?.gameDate, true) ===
+                                    "today") && (
+                                <Button
+                                    variant="light"
+                                    component={Link}
+                                    to={`/events/${eventId}/gameday`}
+                                    leftSection={
+                                        <IconDeviceAnalytics size={16} />
+                                    }
+                                >
+                                    Scoring
+                                </Button>
+                            )}
                             <LineupValidationMenu
                                 validationResults={validationResults}
                             />
