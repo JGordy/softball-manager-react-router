@@ -92,10 +92,6 @@ describe("AddGuestPlayerModal", () => {
         const { useNavigation } = require("react-router");
         useNavigation.mockReturnValue({
             state: "submitting",
-            formData: new FormData(),
-        });
-        useNavigation.mockReturnValue({
-            state: "submitting",
             formData: {
                 get: (key) =>
                     key === "_action" ? "create-guest-player" : null,
