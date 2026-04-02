@@ -648,7 +648,6 @@ describe("Users Actions", () => {
     describe("createTemporaryPlayer", () => {
         const teamId = "team1";
         const eventId = "event1";
-        const creatorUserId = "creator1";
 
         it("should create a temporary player successfully", async () => {
             const mockValues = {
