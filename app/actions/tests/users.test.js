@@ -7,6 +7,7 @@ import {
     updatePassword,
     resetPassword,
     updateUserPrefs,
+    createTemporaryPlayer,
 } from "../users";
 import {
     createDocument,
@@ -364,6 +365,7 @@ describe("Users Actions", () => {
                 values: mockValues,
                 userId,
                 client: mockClient,
+                creatorUserId: "test-user", // Passed if manager is updating
             });
 
             expect(result.event).toEqual({
@@ -640,6 +642,76 @@ describe("Users Actions", () => {
             expect(result.success).toBe(false);
             expect(result.status).toBe(500);
             expect(result.action).toBe("update-user-prefs");
+        });
+    });
+
+    describe("createTemporaryPlayer", () => {
+        const teamId = "team1";
+        const eventId = "event1";
+        const creatorUserId = "creator1";
+
+        it("should create a temporary player successfully", async () => {
+            const mockValues = {
+                firstName: "Guest",
+                lastName: "Player",
+                gender: "Male",
+            };
+
+            createDocument.mockResolvedValue({ $id: "guest1", ...mockValues });
+
+            const result = await createTemporaryPlayer({
+                values: mockValues,
+                teamId,
+                eventId,
+                client: mockClient,
+                creatorUserId,
+            });
+
+            expect(createDocument).toHaveBeenCalledWith(
+                "users",
+                "unique-id",
+                {
+                    firstName: "Guest",
+                    lastName: "Player",
+                    gender: "Male",
+                    isTemporary: true,
+                    createdForEvent: eventId,
+                    teamId: teamId,
+                    userId: "unique-id",
+                    preferredPositions: [],
+                    dislikedPositions: [],
+                },
+                [
+                    Permission.read(Role.any()),
+                    Permission.update(Role.user(creatorUserId)),
+                    Permission.delete(Role.user(creatorUserId)),
+                    Permission.update(Role.team(teamId)),
+                    Permission.delete(Role.team(teamId)),
+                ],
+                mockClient,
+            );
+
+            expect(result.success).toBe(true);
+            expect(result.status).toBe(201);
+        });
+
+        it("should reject guest player with bad words in first name", async () => {
+            hasBadWords.mockResolvedValue(true);
+
+            const result = await createTemporaryPlayer({
+                values: {
+                    firstName: "BadWord",
+                    lastName: "Guest",
+                    gender: "Male",
+                },
+                teamId,
+                eventId,
+                client: mockClient,
+                creatorUserId,
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.status).toBe(400);
         });
     });
 });
