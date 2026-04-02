@@ -1,4 +1,4 @@
-import { useNavigate, useLocation } from "react-router";
+import { NavLink } from "react-router";
 import {
     IconBallBaseball,
     IconCalendar,
@@ -9,21 +9,7 @@ import {
 
 import classes from "./NavLinks.module.css";
 
-function NavLinks({ user, isDesktop }) {
-    const navigate = useNavigate();
-    const location = useLocation();
-
-    const isActive = (pathname) => {
-        const currentPath = location.pathname.toLowerCase();
-        const targetPath = pathname.toLowerCase();
-
-        if (targetPath === "/dashboard" && currentPath === "/dashboard")
-            return true;
-        if (targetPath !== "/dashboard" && currentPath.includes(targetPath))
-            return true;
-        return false;
-    };
-
+function NavLinks({ user }) {
     const isAdmin = user?.labels?.includes("admin");
 
     const links = [
@@ -58,31 +44,36 @@ function NavLinks({ user, isDesktop }) {
         },
     ];
 
-    const handleNavLinkClick = (path) => {
-        navigate(path);
-    };
-
     return (
         <nav className={classes.navLinksContainer}>
             <div className={classes.navLinks}>
                 {links.map((link) => {
-                    const active = isActive(link.path);
                     const Icon = link.icon;
 
                     return (
-                        <button
+                        <NavLink
                             key={link.path}
-                            className={`${classes.navLink} ${active ? classes.active : ""}`}
-                            onClick={() => handleNavLinkClick(link.path)}
+                            to={link.path}
+                            end={link.path === "/dashboard"}
+                            className={({ isActive }) =>
+                                `${classes.navLink} ${isActive ? classes.active : ""}`
+                            }
                             aria-label={link.label}
                         >
-                            <div className={classes.iconWrapper}>
-                                <Icon size={24} stroke={active ? 2.5 : 1.5} />
-                            </div>
-                            <span className={classes.linkLabel}>
-                                {link.label}
-                            </span>
-                        </button>
+                            {({ isActive }) => (
+                                <>
+                                    <div className={classes.iconWrapper}>
+                                        <Icon
+                                            size={24}
+                                            stroke={isActive ? 2.5 : 1.5}
+                                        />
+                                    </div>
+                                    <span className={classes.linkLabel}>
+                                        {link.label}
+                                    </span>
+                                </>
+                            )}
+                        </NavLink>
                     );
                 })}
             </div>
