@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from "@/utils/test-utils";
+import { MemoryRouter } from "react-router";
 import * as modalHooks from "@/hooks/useModal";
 
 import GameMenu from "../GameMenu";
@@ -14,8 +15,8 @@ jest.mock("@tabler/icons-react", () => ({
     IconDots: () => <div data-testid="icon-dots" />,
     IconEdit: () => <div data-testid="icon-edit" />,
     IconTrashX: () => <div data-testid="icon-trash" />,
-    IconTrophy: () => <div data-testid="icon-trophy" />,
     IconScoreboard: () => <div data-testid="icon-scoreboard" />,
+    IconClipboardList: () => <div data-testid="icon-clipboard-list" />,
 }));
 
 // Mock Forms to avoid complex rendering
@@ -59,7 +60,11 @@ describe("GameMenu Component", () => {
     };
 
     it("renders Danger Zone with Delete option always", async () => {
-        render(<GameMenu {...defaultProps} />);
+        render(
+            <MemoryRouter>
+                <GameMenu {...defaultProps} />
+            </MemoryRouter>,
+        );
 
         await openMenu();
         const deleteBtn = screen.getByText("Delete Game");
@@ -70,7 +75,11 @@ describe("GameMenu Component", () => {
     });
 
     it("renders Edit Game Details option always", async () => {
-        render(<GameMenu {...defaultProps} />);
+        render(
+            <MemoryRouter>
+                <GameMenu {...defaultProps} />
+            </MemoryRouter>,
+        );
 
         await openMenu();
         const editBtn = screen.getByText("Edit Game Details");
@@ -86,7 +95,11 @@ describe("GameMenu Component", () => {
     });
 
     it("does NOT render Results option if game is future", async () => {
-        render(<GameMenu {...defaultProps} gameIsPast={false} />);
+        render(
+            <MemoryRouter>
+                <GameMenu {...defaultProps} gameIsPast={false} />
+            </MemoryRouter>,
+        );
 
         const trigger = screen.getByTestId("icon-dots");
         fireEvent.click(trigger);
@@ -95,7 +108,11 @@ describe("GameMenu Component", () => {
     });
 
     it("renders Results option if game is past and handles click", async () => {
-        render(<GameMenu {...defaultProps} gameIsPast={true} />);
+        render(
+            <MemoryRouter>
+                <GameMenu {...defaultProps} gameIsPast={true} />
+            </MemoryRouter>,
+        );
 
         await openMenu();
         const resultsBtn = screen.getByText("Add game results");
@@ -110,7 +127,11 @@ describe("GameMenu Component", () => {
     });
 
     it("shows 'Update game results' text when result exists", async () => {
-        render(<GameMenu {...defaultProps} gameIsPast={true} result="won" />);
+        render(
+            <MemoryRouter>
+                <GameMenu {...defaultProps} gameIsPast={true} result="won" />
+            </MemoryRouter>,
+        );
         await openMenu();
         expect(screen.getByText("Update game results")).toBeInTheDocument();
     });

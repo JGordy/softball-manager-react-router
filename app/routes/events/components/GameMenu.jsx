@@ -1,6 +1,12 @@
 import { Text } from "@mantine/core";
+import { Link } from "react-router";
 
-import { IconEdit, IconScoreboard, IconTrashX } from "@tabler/icons-react";
+import {
+    IconEdit,
+    IconScoreboard,
+    IconTrashX,
+    IconClipboardList,
+} from "@tabler/icons-react";
 
 import AddGameResults from "@/forms/AddGameResults";
 import AddSingleGame from "@/forms/AddSingleGame";
@@ -83,6 +89,13 @@ export default function GameMenu({
                     onClick: openEditGameModal,
                     leftSection: <IconEdit size={14} />,
                     content: <Text>Edit Game Details</Text>,
+                },
+                {
+                    key: "edit-lineup",
+                    component: Link,
+                    to: `/events/${game.$id}/lineup`,
+                    leftSection: <IconClipboardList size={14} />,
+                    content: <Text>Edit Lineup</Text>,
                 },
             ],
         },

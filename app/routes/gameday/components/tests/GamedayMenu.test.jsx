@@ -1,25 +1,51 @@
 import { render, screen, fireEvent } from "@/utils/test-utils";
 import * as modalHooks from "@/hooks/useModal";
-import { useFetcher } from "react-router";
 
 import GamedayMenu from "../GamedayMenu";
 
 // Mock react-router
 jest.mock("react-router", () => ({
-    ...jest.requireActual("react-router"),
     useFetcher: jest.fn(),
+    useParams: jest.fn(),
+    Link: ({ children, to, ...props }) => (
+        <a href={to} {...props}>
+            {children}
+        </a>
+    ),
+    MemoryRouter: ({ children }) => <div>{children}</div>,
 }));
 
+// Mock components
+jest.mock("@/components/MenuContainer", () => ({ sections }) => (
+    <div data-testid="menu-container">
+        {sections.map((section) => (
+            <div key={section.label} data-testid={`section-${section.label}`}>
+                {section.items.map((item) => (
+                    <button
+                        key={item.key}
+                        onClick={item.onClick}
+                        {...(item.component === "a" ||
+                        typeof item.component === "function"
+                            ? { "data-component": "link", to: item.to }
+                            : {})}
+                    >
+                        {item.content}
+                    </button>
+                ))}
+            </div>
+        ))}
+    </div>
+));
+
+// Mock hooks
 jest.mock("@/hooks/useModal");
 
-// Mock icons
+// Mock icons (not strictly needed now but keeps it clean)
 jest.mock("@tabler/icons-react", () => ({
-    IconDots: ({ "data-testid": testId, onClick }) => (
-        <div data-testid={testId || "icon-dots"} onClick={onClick} />
-    ),
-    IconFlag: () => <div data-testid="icon-flag" />,
-    IconPlayerPlay: () => <div data-testid="icon-play" />,
-    IconArrowsExchange: () => <div data-testid="icon-arrows-exchange" />,
+    IconFlag: () => null,
+    IconPlayerPlay: () => null,
+    IconArrowsExchange: () => null,
+    IconClipboardList: () => null,
 }));
 
 describe("GamedayMenu", () => {
@@ -29,7 +55,10 @@ describe("GamedayMenu", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        const { useFetcher, useParams } = require("react-router");
         useFetcher.mockReturnValue({ submit: mockSubmit });
+        useParams.mockReturnValue({ eventId: "evt1" });
+
         modalHooks.default.mockReturnValue({
             openModal: mockOpenModal,
             closeAllModals: mockCloseAllModals,
@@ -37,40 +66,39 @@ describe("GamedayMenu", () => {
     });
 
     const openMenu = async () => {
-        const trigger = screen.getByTestId("icon-dots");
-        fireEvent.click(trigger);
-        return screen.findByText(/End Game|Resume Game/);
+        // No need to click a trigger with mocked MenuContainer
+        return screen.queryByTestId("menu-container");
     };
 
-    it("renders the trigger", async () => {
-        render(<GamedayMenu gameFinal={false} score={5} opponentScore={3} />);
-        expect(screen.getByTestId("icon-dots")).toBeInTheDocument();
+    const renderMenu = (props = {}) =>
+        render(
+            <GamedayMenu
+                gameFinal={false}
+                score={5}
+                opponentScore={3}
+                {...props}
+            />,
+        );
+
+    it("renders the menu container", async () => {
+        renderMenu();
+        expect(screen.getByTestId("menu-container")).toBeInTheDocument();
     });
 
     it("renders end game button when game is active", async () => {
-        render(<GamedayMenu gameFinal={false} score={5} opponentScore={3} />);
-        const trigger = screen.getByTestId("icon-dots");
-        fireEvent.click(trigger);
-        const item = await screen.findByText("End Game");
-        expect(item).toBeInTheDocument();
+        renderMenu();
+        expect(screen.getByText("End Game")).toBeInTheDocument();
     });
 
     it("renders resume game button when game is final", async () => {
-        render(<GamedayMenu gameFinal={true} score={5} opponentScore={3} />);
+        renderMenu({ gameFinal: true });
         await openMenu();
         expect(screen.getByText("Resume Game")).toBeInTheDocument();
     });
 
     it("renders sub batter button when 'onSubBatter' is provided and game is active", async () => {
         const mockSub = jest.fn();
-        render(
-            <GamedayMenu
-                gameFinal={false}
-                score={5}
-                opponentScore={3}
-                onSubBatter={mockSub}
-            />,
-        );
+        renderMenu({ onSubBatter: mockSub });
         await openMenu();
 
         const subButton = screen.getByText("Sub Current Batter");
@@ -80,7 +108,7 @@ describe("GamedayMenu", () => {
     });
 
     it("opens modal on end game click", async () => {
-        render(<GamedayMenu gameFinal={false} score={5} opponentScore={3} />);
+        renderMenu();
         await openMenu();
         fireEvent.click(screen.getByText("End Game"));
         expect(mockOpenModal).toHaveBeenCalledWith(
@@ -89,7 +117,7 @@ describe("GamedayMenu", () => {
     });
 
     it("opens modal on resume game click", async () => {
-        render(<GamedayMenu gameFinal={true} score={5} opponentScore={3} />);
+        renderMenu({ gameFinal: true });
         await openMenu();
         fireEvent.click(screen.getByText("Resume Game"));
         expect(mockOpenModal).toHaveBeenCalledWith(

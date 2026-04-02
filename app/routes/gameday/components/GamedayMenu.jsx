@@ -1,9 +1,10 @@
-import { useFetcher } from "react-router";
+import { useFetcher, Link, useParams } from "react-router";
 import { Text, Group, Button } from "@mantine/core";
 import {
     IconFlag,
     IconPlayerPlay,
     IconArrowsExchange,
+    IconClipboardList,
 } from "@tabler/icons-react";
 
 import MenuContainer from "@/components/MenuContainer";
@@ -16,6 +17,7 @@ export default function GamedayMenu({
     onSubBatter,
 }) {
     const fetcher = useFetcher();
+    const { eventId } = useParams();
     const { openModal, closeAllModals } = useModal();
 
     const handleEndGame = () => {
@@ -97,19 +99,30 @@ export default function GamedayMenu({
     };
 
     const gameControls = [
-        gameFinal
-            ? {
-                  key: "resume-game",
-                  onClick: handleResumeGame,
-                  leftSection: <IconPlayerPlay size={14} />,
-                  content: <Text>Resume Game</Text>,
-              }
-            : {
-                  key: "end-game",
-                  onClick: handleEndGame,
-                  leftSection: <IconFlag size={14} />,
-                  content: <Text>End Game</Text>,
-              },
+        ...(gameFinal
+            ? [
+                  {
+                      key: "resume-game",
+                      onClick: handleResumeGame,
+                      leftSection: <IconPlayerPlay size={14} />,
+                      content: <Text>Resume Game</Text>,
+                  },
+              ]
+            : [
+                  {
+                      key: "end-game",
+                      onClick: handleEndGame,
+                      leftSection: <IconFlag size={14} />,
+                      content: <Text>End Game</Text>,
+                  },
+              ]),
+        {
+            key: "edit-lineup",
+            component: Link,
+            to: `/events/${eventId}/lineup`,
+            leftSection: <IconClipboardList size={14} />,
+            content: <Text>Edit Lineup</Text>,
+        },
     ];
 
     // Only show Sub Batter when the game is active and a sub callback is provided
