@@ -83,21 +83,17 @@ export async function action({ request, params }) {
     }
 
     if (_action === "create-guest-player") {
-        const { account } = client;
-        const [user, eventData] = await Promise.all([
-            account.get(),
-            getEventById({
-                eventId,
-                client,
-                includePlayers: false,
-                includeAttendance: false,
-                includePark: false,
-                includeAwards: false,
-                includeVotes: false,
-                includeLogs: false,
-                includeWeather: false,
-            }),
-        ]);
+        const eventData = await getEventById({
+            eventId,
+            client,
+            includePlayers: false,
+            includeAttendance: false,
+            includePark: false,
+            includeAwards: false,
+            includeVotes: false,
+            includeLogs: false,
+            includeWeather: false,
+        });
 
         const teamId = eventData.teams?.[0]?.$id;
         if (!teamId) {
@@ -113,7 +109,6 @@ export async function action({ request, params }) {
             teamId,
             eventId,
             client,
-            creatorUserId: user.$id,
         });
     }
 }

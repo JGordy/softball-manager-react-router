@@ -705,7 +705,6 @@ describe("Users Actions", () => {
                 teamId,
                 eventId,
                 client: mockClient,
-                creatorUserId,
             });
 
             expect(result.success).toBe(false);
