@@ -248,11 +248,9 @@ function makeDeferredData({ eventId, userIds, parkId, options = {}, client }) {
     } = options;
 
     // Batch fetch all users in a single query instead of individual queries
-    const userIdList = userIds.map(({ userId }) => userId);
-    const playersPromise =
-        includePlayers && userIdList.length > 0
-            ? resolvePlayers(userIds, client)
-            : Promise.resolve([]);
+    const playersPromise = includePlayers
+        ? resolvePlayers(userIds, client)
+        : Promise.resolve([]);
 
     const parkPromise =
         includePark && parkId
@@ -294,16 +292,19 @@ function makeDeferredData({ eventId, userIds, parkId, options = {}, client }) {
 }
 
 async function resolvePlayers(userIds, client) {
-    // Batch fetch all users in a single query instead of individual queries
-    const userIdList = userIds.map(({ userId }) => userId);
-    if (userIdList.length === 0) {
+    // 1. Fetch documents from the 'users' database collection
+    // Defensive check: Appwrite $id query fails if an array contains an empty string
+    const validUserIdList = userIds
+        .map(({ userId }) => userId)
+        .filter((id) => typeof id === "string" && id.trim() !== "");
+
+    if (validUserIdList.length === 0) {
         return [];
     }
 
-    // 1. Fetch documents from the 'users' database collection
     const result = await listDocuments(
         "users",
-        [Query.equal("$id", userIdList)],
+        [Query.equal("$id", validUserIdList)],
         client,
     );
     const players = result.rows || [];
@@ -313,7 +314,7 @@ async function resolvePlayers(userIds, client) {
     try {
         const { users: adminUsers } = createAdminClient();
         const accountResult = await adminUsers.list([
-            Query.equal("$id", userIdList),
+            Query.equal("$id", validUserIdList),
         ]);
         const accounts = accountResult.users || [];
 
@@ -425,8 +426,56 @@ export async function getEventWithPlayerCharts({ client, eventId }) {
     const { game, teams, userIds, managerIds, scorekeeperIds, playerChart } =
         baseData;
 
+    // Use shared defensive parser
+    const parsedChart = parsePlayerChart(playerChart) ?? null;
+
+    const extraPlayerIdSet = new Set();
+
+    (parsedChart || []).forEach((slot) => {
+        if (!slot || typeof slot !== "object") {
+            return;
+        }
+
+        // Starter ID is stored on $id
+        const starterId = slot.$id;
+        if (
+            typeof starterId === "string" &&
+            starterId.trim() !== "" &&
+            !userIds.some((u) => u.userId === starterId)
+        ) {
+            extraPlayerIdSet.add(starterId);
+        }
+
+        // Substitution IDs are stored on substitutions[].playerId
+        if (Array.isArray(slot.substitutions)) {
+            slot.substitutions.forEach((sub) => {
+                if (!sub || typeof sub !== "object") {
+                    return;
+                }
+
+                const subId = sub.playerId;
+                if (
+                    typeof subId === "string" &&
+                    subId.trim() !== "" &&
+                    !userIds.some((u) => u.userId === subId)
+                ) {
+                    extraPlayerIdSet.add(subId);
+                }
+            });
+        }
+    });
+
+    const extraPlayerIds = Array.from(extraPlayerIdSet);
+
+    const allUserIds = [...userIds];
+    extraPlayerIds.forEach((id) => {
+        if (!allUserIds.some((u) => u.userId === id)) {
+            allUserIds.push({ userId: id, role: "player" });
+        }
+    });
+
     // Fully resolve the players for the non-deferred path
-    const players = await resolvePlayers(userIds, client);
+    const players = await resolvePlayers(allUserIds, client);
 
     const attendance = await getAttendance({
         eventId,
@@ -434,13 +483,10 @@ export async function getEventWithPlayerCharts({ client, eventId }) {
         client: client,
     });
 
-    // Use shared defensive parser
-    const parsedChart = parsePlayerChart(playerChart) ?? null;
-
     return {
         attendance,
         game,
-        userIds,
+        userIds: allUserIds, // Return combined IDs
         managerIds,
         scorekeeperIds,
         teams,

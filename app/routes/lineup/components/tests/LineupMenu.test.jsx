@@ -1,10 +1,13 @@
 import { render, screen, fireEvent } from "@/utils/test-utils";
+import { MemoryRouter } from "react-router";
 import * as dateTimeUtils from "@/utils/dateTime";
+import * as modalHooks from "@/hooks/useModal";
 
 import LineupMenu from "../LineupMenu";
 
 // Mock dependencies
 jest.mock("@/utils/dateTime");
+jest.mock("@/hooks/useModal");
 
 // Mock icons
 jest.mock("@tabler/icons-react", () => ({
@@ -41,6 +44,9 @@ jest.mock(
         ({ opened }) =>
             opened ? <div data-testid="delete-lineup-drawer" /> : null,
 );
+jest.mock("../AddGuestPlayerModal", () => () => (
+    <div data-testid="add-guest-player-modal" />
+));
 
 describe("LineupMenu Component", () => {
     const defaultProps = {
@@ -54,9 +60,15 @@ describe("LineupMenu Component", () => {
         setHasBeenEdited: jest.fn(),
     };
 
+    const mockOpenModal = jest.fn();
+
     beforeEach(() => {
         jest.clearAllMocks();
         dateTimeUtils.getGameDayStatus.mockReturnValue("upcoming");
+        modalHooks.default.mockReturnValue({
+            openModal: mockOpenModal,
+            closeAllModals: jest.fn(),
+        });
     });
 
     const openMenu = async () => {
@@ -66,7 +78,11 @@ describe("LineupMenu Component", () => {
     };
 
     it("renders basic menu items", async () => {
-        render(<LineupMenu {...defaultProps} />);
+        render(
+            <MemoryRouter>
+                <LineupMenu {...defaultProps} />
+            </MemoryRouter>,
+        );
 
         await openMenu();
         expect(screen.getByText("Add Players")).toBeInTheDocument();
@@ -81,7 +97,11 @@ describe("LineupMenu Component", () => {
             lineupState: [],
         };
 
-        render(<LineupMenu {...props} />);
+        render(
+            <MemoryRouter>
+                <LineupMenu {...props} />
+            </MemoryRouter>,
+        );
 
         await openMenu();
         expect(screen.queryByText("Add Players")).not.toBeInTheDocument();
@@ -92,7 +112,11 @@ describe("LineupMenu Component", () => {
     it("hides AI Generate if game is past", async () => {
         dateTimeUtils.getGameDayStatus.mockReturnValue("past");
 
-        render(<LineupMenu {...defaultProps} />);
+        render(
+            <MemoryRouter>
+                <LineupMenu {...defaultProps} />
+            </MemoryRouter>,
+        );
 
         await openMenu();
         expect(
@@ -101,7 +125,11 @@ describe("LineupMenu Component", () => {
     });
 
     it("renders drawers closed by default", () => {
-        render(<LineupMenu {...defaultProps} />);
+        render(
+            <MemoryRouter>
+                <LineupMenu {...defaultProps} />
+            </MemoryRouter>,
+        );
 
         expect(
             screen.queryByTestId("ai-generate-drawer"),
@@ -118,7 +146,11 @@ describe("LineupMenu Component", () => {
     });
 
     it("opens AI drawer when Generate AI Lineup clicked", async () => {
-        render(<LineupMenu {...defaultProps} />);
+        render(
+            <MemoryRouter>
+                <LineupMenu {...defaultProps} />
+            </MemoryRouter>,
+        );
 
         await openMenu();
         fireEvent.click(screen.getByText("Generate AI Lineup"));
@@ -127,7 +159,11 @@ describe("LineupMenu Component", () => {
     });
 
     it("opens Add Players drawer when clicked", async () => {
-        render(<LineupMenu {...defaultProps} />);
+        render(
+            <MemoryRouter>
+                <LineupMenu {...defaultProps} />
+            </MemoryRouter>,
+        );
 
         await openMenu();
         fireEvent.click(screen.getByText("Add Players"));
@@ -136,7 +172,11 @@ describe("LineupMenu Component", () => {
     });
 
     it("opens Remove Players drawer when clicked", async () => {
-        render(<LineupMenu {...defaultProps} />);
+        render(
+            <MemoryRouter>
+                <LineupMenu {...defaultProps} />
+            </MemoryRouter>,
+        );
 
         await openMenu();
         fireEvent.click(screen.getByText("Remove Players"));
@@ -145,11 +185,32 @@ describe("LineupMenu Component", () => {
     });
 
     it("opens Delete Lineup drawer when clicked", async () => {
-        render(<LineupMenu {...defaultProps} />);
+        render(
+            <MemoryRouter>
+                <LineupMenu {...defaultProps} />
+            </MemoryRouter>,
+        );
 
         await openMenu();
         fireEvent.click(screen.getByText("Delete Chart"));
 
         expect(screen.getByTestId("delete-lineup-drawer")).toBeInTheDocument();
+    });
+
+    it("opens Add Guest Player modal when clicked", async () => {
+        render(
+            <MemoryRouter>
+                <LineupMenu {...defaultProps} />
+            </MemoryRouter>,
+        );
+
+        await openMenu();
+        fireEvent.click(screen.getByText("Add Guest Player"));
+
+        expect(mockOpenModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                title: "Add Guest Player",
+            }),
+        );
     });
 });

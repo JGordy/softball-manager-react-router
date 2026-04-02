@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useOutletContext, useParams, Link } from "react-router";
 
-import { Container, Group, Stack, Text, Title } from "@mantine/core";
+import { Container, Group, Stack, Text, Title, Button } from "@mantine/core";
 import { useListState } from "@mantine/hooks";
 
-import { useOutletContext, useParams } from "react-router";
+import { IconDeviceAnalytics } from "@tabler/icons-react";
 
-import { getEventWithPlayerCharts } from "@/loaders/games";
+import { getEventById, getEventWithPlayerCharts } from "@/loaders/games";
 
 import { savePlayerChart } from "@/actions/lineups";
 
@@ -13,14 +14,20 @@ import BackButton from "@/components/BackButton";
 
 import { createSessionClient } from "@/utils/appwrite/server";
 
+import addPlayerAvailability from "@/utils/addPlayerAvailability";
+
+import { formatForViewerDate, getGameDayStatus } from "@/utils/dateTime";
+import { parsePlayerChart } from "@/routes/gameday/utils/gamedayUtils";
+import { createTemporaryPlayer } from "@/actions/users";
+import { trackEvent } from "@/utils/analytics";
+import { useResponseNotification } from "@/utils/showNotification";
+import useModal from "@/hooks/useModal";
+
 import LineupContainer from "./components/LineupContainer";
 import LineupMenu from "./components/LineupMenu";
 import LineupValidationMenu from "./components/LineupValidationMenu";
 
-import addPlayerAvailability from "@/utils/addPlayerAvailability";
 import { validateLineup } from "./utils/validateLineup";
-import { formatForViewerDate } from "@/utils/dateTime";
-import { parsePlayerChart } from "@/routes/gameday/utils/gamedayUtils";
 
 export async function loader({ params, request }) {
     const { eventId } = params;
@@ -75,6 +82,44 @@ export async function action({ request, params }) {
             sendNotification: true,
         });
     }
+
+    if (_action === "create-guest-player") {
+        const eventData = await getEventById({
+            eventId,
+            client,
+            includePlayers: false,
+            includeAttendance: false,
+            includePark: false,
+            includeAwards: false,
+            includeVotes: false,
+            includeLogs: false,
+            includeWeather: false,
+        });
+
+        if (eventData.gameDeleted || !eventData.game) {
+            return {
+                success: false,
+                status: 404,
+                message: "This event has been deleted.",
+            };
+        }
+
+        const teamId = eventData.teams?.[0]?.$id;
+        if (!teamId) {
+            return {
+                success: false,
+                status: 400,
+                message: "Could not determine team for this event.",
+            };
+        }
+
+        return await createTemporaryPlayer({
+            values,
+            teamId,
+            eventId,
+            client,
+        });
+    }
 }
 
 function Lineup({ loaderData, actionData }) {
@@ -83,6 +128,8 @@ function Lineup({ loaderData, actionData }) {
     const { user } = useOutletContext();
     const { eventId } = useParams();
     const currentUserId = user.$id;
+
+    useResponseNotification(actionData);
 
     const {
         game,
@@ -101,6 +148,8 @@ function Lineup({ loaderData, actionData }) {
 
     const [lineupState, lineupHandlers] = useListState(rest.playerChart);
     const [hasBeenEdited, setHasBeenEdited] = useState(false);
+    const { closeAllModals } = useModal();
+    const lastProcessedActionDataRef = useRef(null);
 
     const playersNotInLineup = playersWithAvailability?.filter((p) => {
         const isInLineup = lineupState?.some((lp) => lp.$id === p.$id);
@@ -108,19 +157,48 @@ function Lineup({ loaderData, actionData }) {
     });
 
     useEffect(() => {
+        // Only process actionData if it's new and successful
         if (
             actionData?.success &&
-            actionData?.event &&
-            Object.keys(actionData.event).length
+            actionData !== lastProcessedActionDataRef.current
         ) {
-            trackEvent(actionData.event.name, actionData.event.data);
+            lastProcessedActionDataRef.current = actionData;
+
+            // 1. Handle server-side events if present (save-chart, finalize-chart, etc.)
+            if (actionData.event && Object.keys(actionData.event).length) {
+                trackEvent(actionData.event.name, actionData.event.data);
+            }
+
+            // 2. Handle guest player creation (processed once)
+            if (actionData.response?.player) {
+                const newPlayer = actionData.response.player;
+
+                lineupHandlers.append({
+                    $id: newPlayer.$id,
+                    firstName: newPlayer.firstName,
+                    lastName: newPlayer.lastName,
+                    gender: newPlayer.gender,
+                    positions: [],
+                });
+
+                setHasBeenEdited(true);
+                closeAllModals();
+
+                trackEvent("add_guest_player_success", {
+                    eventId,
+                    playerId: newPlayer.$id,
+                });
+            }
         }
-    }, [actionData]);
+    }, [actionData, eventId, lineupHandlers, closeAllModals]);
 
     // Use the first team from the teams array
     const team = teams?.[0];
 
     const validationResults = validateLineup(lineupState, team);
+    const gameDayStatus = getGameDayStatus(game?.gameDate, true);
+    const isGameActive =
+        gameDayStatus === "in progress" || gameDayStatus === "today";
 
     return (
         <Container size="xl" p="md">
@@ -129,6 +207,18 @@ function Lineup({ loaderData, actionData }) {
                     <BackButton text="Back to event details" />
                     {managerView && (
                         <Group gap="lg" visibleFrom="sm">
+                            {isGameActive && (
+                                <Button
+                                    variant="light"
+                                    component={Link}
+                                    to={`/events/${eventId}/gameday`}
+                                    leftSection={
+                                        <IconDeviceAnalytics size={16} />
+                                    }
+                                >
+                                    Go to Live Scoring
+                                </Button>
+                            )}
                             <LineupValidationMenu
                                 validationResults={validationResults}
                             />
@@ -146,6 +236,18 @@ function Lineup({ loaderData, actionData }) {
                     )}
                     {managerView && (
                         <Group gap="xs" hiddenFrom="sm">
+                            {isGameActive && (
+                                <Button
+                                    variant="light"
+                                    component={Link}
+                                    to={`/events/${eventId}/gameday`}
+                                    leftSection={
+                                        <IconDeviceAnalytics size={16} />
+                                    }
+                                >
+                                    Scoring
+                                </Button>
+                            )}
                             <LineupValidationMenu
                                 validationResults={validationResults}
                             />

@@ -445,3 +445,66 @@ export async function updateUserPrefs({ values, client }) {
         };
     }
 }
+
+export async function createTemporaryPlayer({
+    values,
+    teamId,
+    eventId,
+    client,
+}) {
+    try {
+        // Check first and last name for inappropriate language
+        if (values.firstName && (await hasBadWords(values.firstName))) {
+            return {
+                success: false,
+                status: 400,
+                message:
+                    "First name contains inappropriate language. Please use a different name.",
+            };
+        }
+
+        if (values.lastName && (await hasBadWords(values.lastName))) {
+            return {
+                success: false,
+                status: 400,
+                message:
+                    "Last name contains inappropriate language. Please use a different name.",
+            };
+        }
+
+        const _userId = ID.unique();
+
+        const docPermissions = teamId
+            ? [
+                  Permission.read(Role.any()),
+                  // Minimum permissions for a temporary player, allows scorekeeper and manager roles to edit
+                  Permission.update(Role.team(teamId, "scorekeeper")),
+                  Permission.delete(Role.team(teamId, "scorekeeper")),
+              ]
+            : [];
+
+        // Destructure values to remove internal fields that aren't in the Appwrite schema
+        const { eventId: _eventId, teamId: _teamId, ...playerData } = values;
+
+        const player = await createDocument(
+            "users",
+            _userId,
+            {
+                ...playerData,
+                isTemporary: true,
+                createdForEvent: eventId,
+                teamId,
+                userId: _userId,
+                preferredPositions: [],
+                dislikedPositions: [],
+            },
+            docPermissions,
+            client,
+        );
+
+        return { response: { player }, status: 201, success: true };
+    } catch (error) {
+        console.error("Error creating temporary player:", error);
+        throw error;
+    }
+}

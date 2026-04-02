@@ -78,6 +78,22 @@ describe("badWordsApi", () => {
                 "Bad Words API error (500): Internal Server Error",
             );
         });
+
+        it("should return clean result on 404 response", async () => {
+            fetch.mockResolvedValueOnce({
+                ok: false,
+                status: 404,
+            });
+
+            const result = await badWordsApi.checkBadWords("clean text");
+
+            expect(result).toEqual({
+                bad_words_total: 0,
+                bad_words_list: [],
+                censored_content: "clean text",
+                content: "clean text",
+            });
+        });
     });
 
     describe("hasBadWords", () => {

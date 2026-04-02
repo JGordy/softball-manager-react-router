@@ -17,6 +17,7 @@ jest.mock("react-router", () => ({
     useFetcher: () => ({ submit: jest.fn(), state: "idle" }),
     useLocation: () => ({ hash: "", pathname: "/gameday", search: "" }),
     useNavigate: () => jest.fn(),
+    useParams: () => ({ eventId: "game123" }),
 }));
 
 jest.mock("@/hooks/useGameUpdates");

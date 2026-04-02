@@ -16,6 +16,10 @@ jest.mock("react-router", () => ({
     Form: ({ children, ...props }) => <form {...props}>{children}</form>,
 }));
 
+jest.mock("@/utils/showNotification", () => ({
+    useResponseNotification: jest.fn(),
+}));
+
 jest.mock("@/components/BackButton", () => () => <button>Back</button>);
 
 jest.mock("@/loaders/games");
@@ -23,7 +27,12 @@ jest.mock("@/actions/lineups");
 jest.mock("@/utils/addPlayerAvailability");
 jest.mock("../utils/validateLineup");
 jest.mock("@/utils/appwrite/server", () => ({
-    createSessionClient: jest.fn().mockResolvedValue({}),
+    createSessionClient: jest.fn().mockResolvedValue({
+        account: { get: jest.fn().mockResolvedValue({ $id: "user123" }) },
+    }),
+}));
+jest.mock("@/actions/users", () => ({
+    createTemporaryPlayer: jest.fn(),
 }));
 
 // Mock child components
@@ -170,12 +179,71 @@ describe("Lineup Route", () => {
             expect(result.message).toMatch(/Invalid playerChart JSON/);
             expect(lineupsActions.savePlayerChart).not.toHaveBeenCalled();
         });
+
+        it("handles create-guest-player action", async () => {
+            const { createTemporaryPlayer } = require("@/actions/users");
+            createTemporaryPlayer.mockResolvedValue({ success: true });
+            gamesLoaders.getEventById.mockResolvedValue({
+                game: { $id: "evt1" },
+                teams: [{ $id: "team1" }],
+            });
+
+            const formData = new FormData();
+            formData.append("_action", "create-guest-player");
+            formData.append("firstName", "Guest");
+            formData.append("lastName", "Player");
+
+            await action({
+                request: { formData: () => Promise.resolve(formData) },
+                params: { eventId: "evt1" },
+            });
+
+            expect(gamesLoaders.getEventById).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    eventId: "evt1",
+                    includePlayers: false,
+                }),
+            );
+            expect(createTemporaryPlayer).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    values: expect.objectContaining({ firstName: "Guest" }),
+                    teamId: "team1",
+                    eventId: "evt1",
+                }),
+            );
+        });
+
+        it("returns 404 for deleted game in create-guest-player", async () => {
+            gamesLoaders.getEventById.mockResolvedValue({
+                gameDeleted: true,
+                game: null,
+                teams: [],
+            });
+
+            const formData = new FormData();
+            formData.append("_action", "create-guest-player");
+
+            const result = await action({
+                request: { formData: () => Promise.resolve(formData) },
+                params: { eventId: "evt1" },
+            });
+
+            expect(result.status).toBe(404);
+            expect(result.message).toBe("This event has been deleted.");
+        });
     });
 
     describe("Component", () => {
         it("renders main components when data is present", () => {
-            render(<Lineup loaderData={mockLoaderData} />);
+            const {
+                useResponseNotification,
+            } = require("@/utils/showNotification");
+            const actionData = { success: true };
+            render(
+                <Lineup loaderData={mockLoaderData} actionData={actionData} />,
+            );
 
+            expect(useResponseNotification).toHaveBeenCalledWith(actionData);
             expect(screen.getByText("Back")).toBeInTheDocument();
             expect(screen.getByTestId("lineup-container")).toBeInTheDocument();
 

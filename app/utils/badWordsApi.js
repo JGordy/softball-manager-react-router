@@ -48,6 +48,16 @@ export async function checkBadWords(text, options = {}) {
             },
         );
 
+        // API sends 404 when no bad words are found
+        if (response.status === 404) {
+            return {
+                bad_words_total: 0,
+                bad_words_list: [],
+                censored_content: text,
+                content: text,
+            };
+        }
+
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(
