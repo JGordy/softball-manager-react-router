@@ -143,7 +143,7 @@ function Lineup({ loaderData, actionData }) {
     const [lineupState, lineupHandlers] = useListState(rest.playerChart);
     const [hasBeenEdited, setHasBeenEdited] = useState(false);
     const { closeAllModals } = useModal();
-    const processedActionIdRef = useRef(null);
+    const lastProcessedActionDataRef = useRef(null);
 
     const playersNotInLineup = playersWithAvailability?.filter((p) => {
         const isInLineup = lineupState?.some((lp) => lp.$id === p.$id);
@@ -152,12 +152,20 @@ function Lineup({ loaderData, actionData }) {
 
     useEffect(() => {
         // Only process actionData if it's new and successful
-        if (actionData?.success && actionData?.response?.player) {
-            const newPlayer = actionData.response.player;
+        if (
+            actionData?.success &&
+            actionData !== lastProcessedActionDataRef.current
+        ) {
+            lastProcessedActionDataRef.current = actionData;
 
-            // Use the player's unique ID to ensure we only process once per successful action
-            if (processedActionIdRef.current !== newPlayer.$id) {
-                processedActionIdRef.current = newPlayer.$id;
+            // 1. Handle server-side events if present (save-chart, finalize-chart, etc.)
+            if (actionData.event && Object.keys(actionData.event).length) {
+                trackEvent(actionData.event.name, actionData.event.data);
+            }
+
+            // 2. Handle guest player creation (processed once)
+            if (actionData.response?.player) {
+                const newPlayer = actionData.response.player;
 
                 lineupHandlers.append({
                     $id: newPlayer.$id,
@@ -174,11 +182,6 @@ function Lineup({ loaderData, actionData }) {
                     eventId,
                     playerId: newPlayer.$id,
                 });
-
-                // Handle server-side events if present
-                if (actionData.event && Object.keys(actionData.event).length) {
-                    trackEvent(actionData.event.name, actionData.event.data);
-                }
             }
         }
     }, [actionData, eventId, lineupHandlers, closeAllModals]);

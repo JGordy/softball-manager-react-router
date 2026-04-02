@@ -15,6 +15,7 @@ export default function FormWrapper({
     onCancelClick,
     hideButtons,
     onSubmit,
+    loading = false,
     ...rest
 }) {
     const { closeAllModals } = useModal();
@@ -44,7 +45,8 @@ export default function FormWrapper({
                         color={buttonColor || "lime"}
                         autoContrast
                         size="md"
-                        disabled={confirmDisabled}
+                        disabled={confirmDisabled || loading}
+                        loading={loading}
                     >
                         {confirmText}
                     </Button>

@@ -664,7 +664,6 @@ describe("Users Actions", () => {
                 teamId,
                 eventId,
                 client: mockClient,
-                creatorUserId,
             });
 
             expect(createDocument).toHaveBeenCalledWith(
@@ -683,8 +682,7 @@ describe("Users Actions", () => {
                 },
                 [
                     Permission.read(Role.any()),
-                    Permission.update(Role.user(creatorUserId)),
-                    Permission.delete(Role.user(creatorUserId)),
+                    // Minimum permissions for a temporary player, allows scorekeeper and manager roles to edit
                     Permission.update(Role.team(teamId, "scorekeeper")),
                     Permission.delete(Role.team(teamId, "scorekeeper")),
                 ],

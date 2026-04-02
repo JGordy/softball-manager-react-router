@@ -1,12 +1,19 @@
 import { Group, Radio, Stack, TextInput } from "@mantine/core";
+import { useNavigation } from "react-router";
 import FormWrapper from "@/forms/FormWrapper";
 
 export default function AddGuestPlayerModal({ teamId, eventId, actionRoute }) {
+    const navigation = useNavigation();
+    const isSubmitting =
+        navigation.state !== "idle" &&
+        navigation.formData?.get("_action") === "create-guest-player";
+
     return (
         <FormWrapper
             action="create-guest-player"
             actionRoute={actionRoute}
             confirmText="Add Guest Player"
+            loading={isSubmitting}
         >
             <input type="hidden" name="teamId" value={teamId} />
             <input type="hidden" name="eventId" value={eventId} />

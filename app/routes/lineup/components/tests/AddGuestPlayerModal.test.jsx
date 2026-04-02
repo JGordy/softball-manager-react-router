@@ -2,16 +2,26 @@ import { render, screen } from "@/utils/test-utils";
 import { MemoryRouter } from "react-router";
 import AddGuestPlayerModal from "../AddGuestPlayerModal";
 
+// Mock react-router hooks needed for the modal
+jest.mock("react-router", () => ({
+    ...jest.requireActual("react-router"),
+    useNavigation: jest.fn(() => ({
+        state: "idle",
+        formData: new FormData(),
+    })),
+}));
+
 // Mock FormWrapper to simplify testing the logic of the modal itself
 jest.mock(
     "@/forms/FormWrapper",
     () =>
-        ({ children, action, actionRoute, confirmText }) => (
+        ({ children, action, actionRoute, confirmText, loading }) => (
             <div
                 data-testid="form-wrapper"
                 data-action={action}
                 data-route={actionRoute}
                 data-confirm={confirmText}
+                data-loading={loading}
             >
                 {children}
             </div>
@@ -76,5 +86,29 @@ describe("AddGuestPlayerModal", () => {
 
         const maleRadio = screen.getByLabelText("Male");
         expect(maleRadio).toBeChecked();
+    });
+
+    it("passes loading true to FormWrapper when action is submitting", () => {
+        const { useNavigation } = require("react-router");
+        useNavigation.mockReturnValue({
+            state: "submitting",
+            formData: new FormData(),
+        });
+        useNavigation.mockReturnValue({
+            state: "submitting",
+            formData: {
+                get: (key) =>
+                    key === "_action" ? "create-guest-player" : null,
+            },
+        });
+
+        render(
+            <MemoryRouter>
+                <AddGuestPlayerModal {...defaultProps} />
+            </MemoryRouter>,
+        );
+
+        const formWrapper = screen.getByTestId("form-wrapper");
+        expect(formWrapper.getAttribute("data-loading")).toBe("true");
     });
 });
