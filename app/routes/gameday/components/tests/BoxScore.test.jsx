@@ -72,4 +72,31 @@ describe("BoxScore", () => {
         expect(screen.getByText("John D.")).toBeInTheDocument();
         expect(screen.getByText("John S.")).toBeInTheDocument();
     });
+
+    it("renders player jersey numbers in the table", () => {
+        const jerseyPlayers = [
+            {
+                $id: "p1",
+                firstName: "John",
+                lastName: "Doe",
+                jerseyNumber: "10",
+            },
+            {
+                $id: "p2",
+                firstName: "Jane",
+                lastName: "Smith",
+                substitutions: [
+                    {
+                        playerId: "sub1",
+                        firstName: "Substitute",
+                        lastName: "Player",
+                        jerseyNumber: "99",
+                    },
+                ],
+            },
+        ];
+        render(<BoxScore logs={mockLogs} playerChart={jerseyPlayers} />);
+        expect(screen.getByText("#10")).toBeInTheDocument();
+        expect(screen.getByText("#99")).toBeInTheDocument();
+    });
 });

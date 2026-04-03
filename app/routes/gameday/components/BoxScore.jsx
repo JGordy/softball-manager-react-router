@@ -44,6 +44,9 @@ export default function BoxScore({
         const isCurrentBatter =
             !gameFinal && currentBatter && stat.player.$id === activeId;
 
+        const jersey = stat.player.jerseyNumber
+            ? `#${stat.player.jerseyNumber} `
+            : "";
         const hasDuplicateFirstName =
             firstNameCounts[stat.player.firstName] > 1;
         const displayName = hasDuplicateFirstName
@@ -71,7 +74,20 @@ export default function BoxScore({
                             size="sm"
                             fw={isCurrentBatter ? 700 : isSub ? 400 : 500}
                             c={isSub ? "dimmed" : undefined}
+                            style={{ whiteSpace: "nowrap" }}
+                            truncate="end"
                         >
+                            {jersey && (
+                                <Text
+                                    inherit
+                                    display="inline"
+                                    c="dimmed"
+                                    fw={isCurrentBatter ? 800 : 400}
+                                    mr={2}
+                                >
+                                    {jersey}
+                                </Text>
+                            )}
                             {displayName}
                         </Text>
                     </Group>
