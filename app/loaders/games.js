@@ -3,6 +3,27 @@ import { listDocuments, readDocument } from "@/utils/databases";
 import { parsePlayerChart } from "@/routes/gameday/utils/gamedayUtils";
 import { createAdminClient } from "@/utils/appwrite/server";
 import { DateTime } from "luxon";
+import { verifyManager } from "@/actions/utils/teamAuth";
+
+/**
+ * Enriches a parsed player chart with jersey numbers from team preferences.
+ * Handles both starters and substitutions recursively.
+ */
+function enrichPlayerChartWithJerseyNumbers(parsedChart, teamPrefs) {
+    if (!parsedChart) return null;
+    return parsedChart.map((slot) => {
+        const jersey = teamPrefs?.jerseyNumbers?.[slot.$id] || null;
+        const enrichedSubstitutions = (slot.substitutions || []).map((sub) => ({
+            ...sub,
+            jerseyNumber: teamPrefs?.jerseyNumbers?.[sub.playerId] || null,
+        }));
+        return {
+            ...slot,
+            jerseyNumber: jersey,
+            substitutions: enrichedSubstitutions,
+        };
+    });
+}
 
 const getAttendance = async ({ eventId, accepted = false, client }) => {
     const queries = [Query.equal("gameId", eventId)];
@@ -404,23 +425,10 @@ export async function getEventById({ eventId, client, ...options }) {
     }
 
     // Enrich playerChart with jersey numbers
-    const enrichedChart = parsedChart
-        ? parsedChart.map((slot) => {
-              const jersey = teamPrefs?.jerseyNumbers?.[slot.$id] || null;
-              const enrichedSubstitutions = (slot.substitutions || []).map(
-                  (sub) => ({
-                      ...sub,
-                      jerseyNumber:
-                          teamPrefs?.jerseyNumbers?.[sub.playerId] || null,
-                  }),
-              );
-              return {
-                  ...slot,
-                  jerseyNumber: jersey,
-                  substitutions: enrichedSubstitutions,
-              };
-          })
-        : null;
+    const enrichedChart = enrichPlayerChartWithJerseyNumbers(
+        parsedChart,
+        teamPrefs,
+    );
 
     return {
         gameDeleted: false,
@@ -536,6 +544,12 @@ export async function getEventWithPlayerCharts({ client, eventId }) {
         client: client,
     });
 
+    // Enrich playerChart with jersey numbers
+    const enrichedChart = enrichPlayerChartWithJerseyNumbers(
+        parsedChart,
+        teamPrefs,
+    );
+
     return {
         attendance,
         game,
@@ -543,7 +557,7 @@ export async function getEventWithPlayerCharts({ client, eventId }) {
         managerIds,
         scorekeeperIds,
         teams,
-        playerChart: parsedChart,
+        playerChart: enrichedChart,
         players: enrichedPlayers,
     };
 }

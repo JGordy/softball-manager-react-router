@@ -34,6 +34,7 @@ describe("Games Loader", () => {
                 list: jest.fn().mockResolvedValue({ users: [], total: 0 }),
             },
             teams: {
+                getPrefs: jest.fn().mockResolvedValue({}),
                 listMemberships: jest
                     .fn()
                     .mockResolvedValue({ memberships: [] }),
@@ -84,7 +85,10 @@ describe("Games Loader", () => {
                 memberships: [{ userId: "user1", roles: ["owner", "manager"] }],
             });
             createAdminClient.mockReturnValue({
-                teams: { listMemberships: mockListMemberships },
+                teams: {
+                    listMemberships: mockListMemberships,
+                    getPrefs: jest.fn().mockResolvedValue({}),
+                },
             });
 
             // Mock for loadGameBase
@@ -125,7 +129,10 @@ describe("Games Loader", () => {
                 memberships: [{ userId: "user1", roles: ["owner"] }],
             });
             createAdminClient.mockReturnValue({
-                teams: { listMemberships: mockListMemberships },
+                teams: {
+                    listMemberships: mockListMemberships,
+                    getPrefs: jest.fn().mockResolvedValue({}),
+                },
             });
 
             // Mock loadGameBase
@@ -170,7 +177,10 @@ describe("Games Loader", () => {
                 ],
             });
             createAdminClient.mockReturnValue({
-                teams: { listMemberships: mockListMemberships },
+                teams: {
+                    listMemberships: mockListMemberships,
+                    getPrefs: jest.fn().mockResolvedValue({}),
+                },
             });
 
             readDocument.mockResolvedValueOnce(mockGame);
@@ -230,7 +240,10 @@ describe("Games Loader", () => {
                 ],
             });
             createAdminClient.mockReturnValue({
-                teams: { listMemberships: mockListMemberships },
+                teams: {
+                    listMemberships: mockListMemberships,
+                    getPrefs: jest.fn().mockResolvedValue({}),
+                },
                 users: { list: mockListUsers },
             });
 
@@ -282,6 +295,7 @@ describe("Games Loader", () => {
             // Mock memberships
             createAdminClient.mockReturnValue({
                 teams: {
+                    getPrefs: jest.fn().mockResolvedValue({}),
                     listMemberships: jest
                         .fn()
                         .mockResolvedValue({ memberships: [] }),

@@ -259,10 +259,24 @@ export async function updatePreferences({ teamId, prefs }) {
     return await updateTeamPreferences(teamId, prefs);
 }
 
-export async function updateJerseyNumber({ teamId, playerId, jerseyNumber }) {
-    const { teams: teamsApi } = createAdminClient();
+export async function updateJerseyNumber({
+    teamId,
+    playerId,
+    jerseyNumber,
+    client,
+}) {
+    if (!client) {
+        throw new Error(
+            "A constructed 'client' object is strictly required for authorization.",
+        );
+    }
 
     try {
+        const auth = await verifyManager(teamId, client);
+        if (!auth.success) return auth;
+
+        const { teams: teamsApi } = createAdminClient();
+
         // 1. Get current preferences
         const currentPrefs = await teamsApi.getPrefs(teamId);
 
@@ -312,9 +326,24 @@ export async function updateBulkJerseyNumbers({ teamId, values, client }) {
 
         Object.entries(values).forEach(([key, value]) => {
             if (key.startsWith("jerseyNumber[")) {
-                const userId = key.match(/\[(.*?)\]/)[1];
-                if (userId) {
-                    newJerseyNumbers[userId] = value;
+                const match = key.match(/\[(.*?)\]/);
+                const userId = match?.[1];
+
+                if (!userId) {
+                    return;
+                }
+
+                const normalizedValue = String(value ?? "").trim();
+
+                // If empty string is submitted, remove the jersey number
+                if (normalizedValue === "") {
+                    delete newJerseyNumbers[userId];
+                    return;
+                }
+
+                // If it's a valid digit string, update the jersey number
+                if (/^\d+$/.test(normalizedValue)) {
+                    newJerseyNumbers[userId] = normalizedValue;
                 }
             }
         });
