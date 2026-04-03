@@ -13,6 +13,7 @@ import {
     updateTeam,
     updateMemberRole,
     updatePreferences,
+    updateBulkJerseyNumbers,
 } from "@/actions/teams";
 import { invitePlayersServer } from "@/actions/invitations";
 
@@ -90,6 +91,9 @@ export async function action({ request, params }) {
 
     if (_action === "update-role") {
         return updateMemberRole({ values, teamId, client });
+    }
+    if (_action === "update-bulk-jersey-numbers") {
+        return updateBulkJerseyNumbers({ teamId, values, client });
     }
 }
 

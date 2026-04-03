@@ -329,6 +329,14 @@ export async function getTeamById({ teamId, client }) {
             const { teams } = createAdminClient();
             const prefs = await teams.getPrefs(teamId);
             teamData.prefs = prefs;
+
+            // Enrich players with jersey numbers from team prefs
+            if (prefs.jerseyNumbers) {
+                players = players.map((player) => ({
+                    ...player,
+                    jerseyNumber: prefs.jerseyNumbers[player.$id] || null,
+                }));
+            }
         } catch (e) {
             teamData.prefs = {};
         }
