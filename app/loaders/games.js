@@ -233,6 +233,17 @@ async function loadGameBase({ eventId, client }) {
             console.error("Error fetching team memberships:", teamsApiError);
         }
 
+        // Fetch team preferences for jersey numbers once at the base level
+        let teamPrefs = {};
+        try {
+            teamPrefs = await teamsApi.getPrefs(teamId);
+        } catch (prefsError) {
+            console.warn(
+                `loadGameBase: Failed to fetch team prefs for team ${teamId}:`,
+                prefsError.message,
+            );
+        }
+
         return {
             game,
             season,
@@ -243,6 +254,7 @@ async function loadGameBase({ eventId, client }) {
             managerIds,
             scorekeeperIds,
             playerChart,
+            teamPrefs,
         };
     } catch (error) {
         // Game not found - return null to indicate deletion
@@ -396,6 +408,7 @@ export async function getEventById({ eventId, client, ...options }) {
         managerIds,
         scorekeeperIds,
         playerChart,
+        teamPrefs,
     } = baseData;
 
     // Build deferred data object (promises for lazy loading in the UI)
@@ -409,21 +422,7 @@ export async function getEventById({ eventId, client, ...options }) {
 
     const parsedChart = parsePlayerChart(playerChart) ?? null;
 
-    // Fetch team preferences for jersey numbers in the game view
-    let teamPrefs = {};
-    if (teams.length > 0) {
-        try {
-            const { teams: teamsApi } = createAdminClient();
-            teamPrefs = await teamsApi.getPrefs(teams[0].$id);
-        } catch (e) {
-            console.warn(
-                "getEventById: Failed to fetch team prefs:",
-                e.message,
-            );
-        }
-    }
-
-    // Enrich playerChart with jersey numbers
+    // Enrich playerChart with jersey numbers (using teamPrefs from loadGameBase)
     const enrichedChart = enrichPlayerChartWithJerseyNumbers(
         parsedChart,
         teamPrefs,
@@ -463,8 +462,15 @@ export async function getEventWithPlayerCharts({ client, eventId }) {
         throw new Error(`Game ${eventId} could not be found.`);
     }
 
-    const { game, teams, userIds, managerIds, scorekeeperIds, playerChart } =
-        baseData;
+    const {
+        game,
+        teams,
+        userIds,
+        managerIds,
+        scorekeeperIds,
+        playerChart,
+        teamPrefs,
+    } = baseData;
 
     // Use shared defensive parser
     const parsedChart = parsePlayerChart(playerChart) ?? null;
@@ -517,21 +523,7 @@ export async function getEventWithPlayerCharts({ client, eventId }) {
     // Fully resolve the players for the non-deferred path
     const players = await resolvePlayers(allUserIds, client);
 
-    // Fetch team preferences for jersey numbers
-    let teamPrefs = {};
-    if (teams.length > 0) {
-        try {
-            const { teams: teamsApi } = createAdminClient();
-            teamPrefs = await teamsApi.getPrefs(teams[0].$id);
-        } catch (e) {
-            console.warn(
-                "getEventWithPlayerCharts: Failed to fetch team prefs:",
-                e.message,
-            );
-        }
-    }
-
-    // Enrich players with jersey numbers
+    // Enrich players with jersey numbers (using teamPrefs from loadGameBase)
     const enrichedPlayers = players.map((p) => ({
         ...p,
         jerseyNumber: teamPrefs?.jerseyNumbers?.[p.$id] || null,
