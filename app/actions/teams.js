@@ -280,11 +280,22 @@ export async function updateJerseyNumber({
         // 1. Get current preferences
         const currentPrefs = await teamsApi.getPrefs(teamId);
 
-        // 2. Update jersey numbers map
-        const jerseyNumbers = {
-            ...(currentPrefs.jerseyNumbers || {}),
-            [playerId]: jerseyNumber,
-        };
+        // 2. Normalize and validate the jersey number
+        const normalizedValue = String(jerseyNumber ?? "").trim();
+        const jerseyNumbers = { ...(currentPrefs.jerseyNumbers || {}) };
+
+        // If empty string is submitted, remove the jersey number
+        if (normalizedValue === "") {
+            delete jerseyNumbers[playerId];
+        } else if (/^\d+$/.test(normalizedValue)) {
+            // If it's a valid digit string, update the jersey number
+            jerseyNumbers[playerId] = normalizedValue;
+        } else {
+            return {
+                success: false,
+                message: "Jersey number must contain digits only",
+            };
+        }
 
         // 3. Save back to Appwrite
         await teamsApi.updatePrefs(teamId, {

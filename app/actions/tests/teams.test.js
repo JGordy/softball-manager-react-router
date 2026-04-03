@@ -572,7 +572,7 @@ describe("Teams Actions", () => {
         const playerId = "p1";
         const jerseyNumber = "10";
 
-        it("should update single jersey number successfully with client", async () => {
+        it("should update single jersey number successfully with client and normalization", async () => {
             verifyManager.mockResolvedValue({
                 success: true,
                 user: { $id: "user1" },
@@ -587,11 +587,65 @@ describe("Teams Actions", () => {
             const result = await updateJerseyNumber({
                 teamId,
                 playerId,
-                jerseyNumber,
+                jerseyNumber: " 12 ", // test trim
                 client: mockSessionClient,
             });
 
-            expect(mockTeamsApi.updatePrefs).toHaveBeenCalled();
+            expect(mockTeamsApi.updatePrefs).toHaveBeenCalledWith(
+                teamId,
+                expect.objectContaining({
+                    jerseyNumbers: { p1: "12" },
+                }),
+            );
+            expect(result.success).toBe(true);
+        });
+
+        it("should return error for invalid jersey number", async () => {
+            verifyManager.mockResolvedValue({
+                success: true,
+                user: { $id: "user1" },
+            });
+
+            const result = await updateJerseyNumber({
+                teamId,
+                playerId,
+                jerseyNumber: "abc",
+                client: mockSessionClient,
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.message).toBe(
+                "Jersey number must contain digits only",
+            );
+        });
+
+        it("should remove jersey number if empty string provided", async () => {
+            verifyManager.mockResolvedValue({
+                success: true,
+                user: { $id: "user1" },
+            });
+
+            const mockTeamsApi = {
+                getPrefs: jest.fn().mockResolvedValue({
+                    jerseyNumbers: { p1: "10" },
+                }),
+                updatePrefs: jest.fn().mockResolvedValue({}),
+            };
+            createAdminClient.mockReturnValue({ teams: mockTeamsApi });
+
+            const result = await updateJerseyNumber({
+                teamId,
+                playerId,
+                jerseyNumber: "",
+                client: mockSessionClient,
+            });
+
+            expect(mockTeamsApi.updatePrefs).toHaveBeenCalledWith(
+                teamId,
+                expect.objectContaining({
+                    jerseyNumbers: {},
+                }),
+            );
             expect(result.success).toBe(true);
         });
 

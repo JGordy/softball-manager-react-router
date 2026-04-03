@@ -3,11 +3,10 @@ import { listDocuments, readDocument } from "@/utils/databases";
 import { parsePlayerChart } from "@/routes/gameday/utils/gamedayUtils";
 import { createAdminClient } from "@/utils/appwrite/server";
 import { DateTime } from "luxon";
-import { verifyManager } from "@/actions/utils/teamAuth";
 
 /**
  * Enriches a parsed player chart with jersey numbers from team preferences.
- * Handles both starters and substitutions recursively.
+ * Handles both starters and their direct substitutions.
  */
 function enrichPlayerChartWithJerseyNumbers(parsedChart, teamPrefs) {
     if (!parsedChart) return null;
