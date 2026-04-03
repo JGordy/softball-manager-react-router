@@ -74,6 +74,7 @@ export default function DesktopTeamDetails({
                         managerView={managerView}
                         user={user}
                         teamLogs={teamLogs}
+                        teamId={team.$id}
                     />
                 </Grid.Col>
 

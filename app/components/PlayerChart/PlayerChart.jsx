@@ -34,7 +34,7 @@ const PlayerChart = ({ playerChart }) => {
             const row = {
                 battingOrder: index + 1,
                 playerId: player.$id,
-                player: `${player.firstName} ${player.lastName.charAt(0)}.`,
+                player: `${player.jerseyNumber ? `#${player.jerseyNumber} ` : ""}${player.firstName} ${player.lastName.charAt(0)}.`,
             };
             player.positions.forEach((position, i) => {
                 row[`inning${i + 1}`] = position || "Out";

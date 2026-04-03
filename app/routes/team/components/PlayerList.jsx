@@ -1,14 +1,6 @@
 import { useMemo, useState } from "react";
 
-import {
-    Avatar,
-    Card,
-    Flex,
-    Group,
-    ScrollArea,
-    Text,
-    Tooltip,
-} from "@mantine/core";
+import { Card, Flex, Group, ScrollArea, Text } from "@mantine/core";
 
 import { useDisclosure } from "@mantine/hooks";
 
@@ -23,6 +15,7 @@ export default function PlayerList({
     managerView,
     user,
     teamLogs = [],
+    teamId,
 }) {
     const [selectedPlayerId, setSelectedPlayerId] = useState(null);
     const selectedPlayer = players.find(
@@ -96,6 +89,7 @@ export default function PlayerList({
                 user={user}
                 managerView={managerView}
                 playerHits={playerHits}
+                teamId={teamId}
                 size="xl"
             />
         </>

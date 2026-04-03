@@ -5,7 +5,6 @@ import { IconShieldCheck } from "@tabler/icons-react";
 
 import PlayerDetailsDrawer from "./PlayerDetailsDrawer";
 
-import classes from "@/styles/desktopRosterTable.module.css";
 import PlayerPositions from "./PlayerPositions";
 
 export default function DesktopRosterTable({
@@ -14,6 +13,7 @@ export default function DesktopRosterTable({
     managerView,
     user,
     teamLogs = [],
+    teamId,
 }) {
     const [selectedPlayerId, setSelectedPlayerId] = useState(null);
     const selectedPlayer = players.find((p) => p.$id === selectedPlayerId);
@@ -46,9 +46,13 @@ export default function DesktopRosterTable({
             <Table.Tr
                 key={player.$id}
                 onClick={() => openDrawer(player.$id)}
-                className={classes.tableRow}
                 style={{ cursor: "pointer" }}
             >
+                <Table.Td>
+                    <Text fz="sm" fw={700}>
+                        {player.jerseyNumber ? `#${player.jerseyNumber}` : "--"}
+                    </Text>
+                </Table.Td>
                 <Table.Td>
                     <Group gap="sm">
                         <Avatar
@@ -114,6 +118,7 @@ export default function DesktopRosterTable({
                 >
                     <Table.Thead>
                         <Table.Tr>
+                            <Table.Th w={60}>#</Table.Th>
                             <Table.Th>Name</Table.Th>
                             <Table.Th>Role</Table.Th>
                             <Table.Th>Positions</Table.Th>
@@ -131,6 +136,7 @@ export default function DesktopRosterTable({
                 user={user}
                 managerView={managerView}
                 playerHits={playerHits}
+                teamId={teamId}
             />
         </>
     );

@@ -14,6 +14,7 @@ describe("PlayerDetails Component", () => {
         bats: "Left",
         preferredPositions: ["Pitcher", "Shortstop"],
         dislikedPositions: ["Catcher"],
+        jerseyNumber: "24",
     };
 
     it("renders player throwing and batting info", () => {
@@ -23,6 +24,25 @@ describe("PlayerDetails Component", () => {
         expect(screen.getByText("Right")).toBeInTheDocument();
         expect(screen.getByText("Bats")).toBeInTheDocument();
         expect(screen.getByText("Left")).toBeInTheDocument();
+    });
+
+    it("renders jersey number when teamId is provided", () => {
+        render(<PlayerDetails player={mockPlayer} teamId="team123" />);
+
+        expect(screen.getByText("#24")).toBeInTheDocument();
+    });
+
+    it("renders N/A for jersey when unassigned", () => {
+        const unassignedPlayer = { ...mockPlayer, jerseyNumber: null };
+        render(<PlayerDetails player={unassignedPlayer} teamId="team123" />);
+
+        expect(screen.getByText("N/A")).toBeInTheDocument();
+    });
+
+    it("does NOT render jersey number when teamId is NOT provided", () => {
+        render(<PlayerDetails player={mockPlayer} />);
+
+        expect(screen.queryByText("Jersey")).not.toBeInTheDocument();
     });
 
     it("renders 'Not Listed' when attributes are missing", () => {
