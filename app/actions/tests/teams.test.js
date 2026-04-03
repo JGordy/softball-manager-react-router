@@ -555,15 +555,9 @@ describe("Teams Actions", () => {
                 client: mockSessionClient,
             });
 
-            expect(mockTeamsApi.updatePrefs).toHaveBeenCalledWith(
-                "team123",
-                expect.objectContaining({
-                    jerseyNumbers: expect.objectContaining({
-                        p1: "10",
-                    }),
-                }),
-            );
-            expect(result.success).toBe(true);
+            expect(mockTeamsApi.updatePrefs).not.toHaveBeenCalled();
+            expect(result.success).toBe(false);
+            expect(result.message).toContain("invalid");
         });
     });
 

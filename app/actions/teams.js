@@ -334,6 +334,7 @@ export async function updateBulkJerseyNumbers({ teamId, values, client }) {
 
         // 4. Extract jersey numbers from values
         const newJerseyNumbers = { ...(currentPrefs.jerseyNumbers || {}) };
+        const errors = [];
 
         Object.entries(values).forEach(([key, value]) => {
             if (key.startsWith("jerseyNumber[")) {
@@ -349,15 +350,23 @@ export async function updateBulkJerseyNumbers({ teamId, values, client }) {
                 // If empty string is submitted, remove the jersey number
                 if (normalizedValue === "") {
                     delete newJerseyNumbers[userId];
-                    return;
-                }
-
-                // If it's a valid digit string, update the jersey number
-                if (/^\d+$/.test(normalizedValue)) {
+                } else if (/^\d+$/.test(normalizedValue)) {
+                    // If it's a valid digit string, update the jersey number
                     newJerseyNumbers[userId] = normalizedValue;
+                } else {
+                    // Invalid entry found
+                    errors.push(userId);
                 }
             }
         });
+
+        if (errors.length > 0) {
+            return {
+                success: false,
+                message:
+                    "Some jersey numbers were invalid (digits only are allowed). No changes were saved.",
+            };
+        }
 
         // 5. Save back to Appwrite
         await teamsApi.updatePrefs(teamId, {

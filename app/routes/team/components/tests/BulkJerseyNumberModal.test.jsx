@@ -2,11 +2,32 @@ import { render, screen, fireEvent } from "@/utils/test-utils";
 import BulkJerseyNumberModal from "../BulkJerseyNumberModal";
 
 // Mock FormWrapper since it's a layout component we want to avoid deep testing here
-jest.mock("@/forms/FormWrapper", () => ({ children, ...props }) => (
-    <form data-testid="form-wrapper" method="post" {...props}>
-        {children}
-    </form>
-));
+jest.mock(
+    "@/forms/FormWrapper",
+    () =>
+        ({
+            children,
+            method = "post",
+            action,
+            onSubmit,
+            className,
+            "data-testid": dataTestId,
+            // Destructure and ignore non-DOM props to avoid React warnings
+            confirmText,
+            actionRoute,
+            buttonColor,
+        }) => (
+            <form
+                data-testid={dataTestId || "form-wrapper"}
+                method={method}
+                action={action}
+                onSubmit={onSubmit}
+                className={className}
+            >
+                {children}
+            </form>
+        ),
+);
 
 const mockPlayers = [
     { $id: "p1", firstName: "Zebra", lastName: "Last" },
