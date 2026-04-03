@@ -42,7 +42,7 @@ describe("PlayerDetails Component", () => {
     it("does NOT render jersey number when teamId is NOT provided", () => {
         render(<PlayerDetails player={mockPlayer} />);
 
-        expect(screen.queryByText("Jersey")).not.toBeInTheDocument();
+        expect(screen.queryByText("#24")).not.toBeInTheDocument();
     });
 
     it("renders 'Not Listed' when attributes are missing", () => {

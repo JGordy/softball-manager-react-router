@@ -5,6 +5,7 @@ import { IconShieldCheck } from "@tabler/icons-react";
 
 import PlayerDetailsDrawer from "./PlayerDetailsDrawer";
 
+import classes from "@/styles/desktopRosterTable.module.css";
 import PlayerPositions from "./PlayerPositions";
 
 export default function DesktopRosterTable({
@@ -46,6 +47,7 @@ export default function DesktopRosterTable({
             <Table.Tr
                 key={player.$id}
                 onClick={() => openDrawer(player.$id)}
+                className={classes.tableRow}
                 style={{ cursor: "pointer" }}
             >
                 <Table.Td>

@@ -339,9 +339,9 @@ export async function updateBulkJerseyNumbers({ teamId, values, client }) {
         Object.entries(values).forEach(([key, value]) => {
             if (key.startsWith("jerseyNumber[")) {
                 const match = key.match(/\[(.*?)\]/);
-                const userId = match?.[1];
+                const playerId = match?.[1];
 
-                if (!userId) {
+                if (!playerId) {
                     return;
                 }
 
@@ -349,13 +349,13 @@ export async function updateBulkJerseyNumbers({ teamId, values, client }) {
 
                 // If empty string is submitted, remove the jersey number
                 if (normalizedValue === "") {
-                    delete newJerseyNumbers[userId];
+                    delete newJerseyNumbers[playerId];
                 } else if (/^\d+$/.test(normalizedValue)) {
                     // If it's a valid digit string, update the jersey number
-                    newJerseyNumbers[userId] = normalizedValue;
+                    newJerseyNumbers[playerId] = normalizedValue;
                 } else {
                     // Invalid entry found
-                    errors.push(userId);
+                    errors.push(playerId);
                 }
             }
         });
