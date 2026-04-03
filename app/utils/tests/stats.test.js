@@ -6,15 +6,29 @@ import {
 
 describe("calculateGameStats", () => {
     const mockPlayerChart = [
-        { $id: "player1", firstName: "John", lastName: "Doe" },
-        { $id: "player2", firstName: "Jane", lastName: "Smith" },
+        {
+            $id: "player1",
+            firstName: "John",
+            lastName: "Doe",
+            jerseyNumber: "10",
+        },
+        {
+            $id: "player2",
+            firstName: "Jane",
+            lastName: "Smith",
+            jerseyNumber: "22",
+        },
         { $id: "player3", firstName: "Bob", lastName: "Jones" },
     ];
 
-    it("should initialize stats for all players in lineup with zero values", () => {
+    it("should initialize stats for all players in lineup with zero values and preserve jerseyNumber", () => {
         const stats = calculateGameStats([], mockPlayerChart);
 
         expect(stats).toHaveLength(3);
+        expect(stats[0].player.jerseyNumber).toBe("10");
+        expect(stats[1].player.jerseyNumber).toBe("22");
+        expect(stats[2].player.jerseyNumber).toBeUndefined();
+
         stats.forEach((stat) => {
             expect(stat.PA).toBe(0);
             expect(stat.AB).toBe(0);
@@ -29,14 +43,20 @@ describe("calculateGameStats", () => {
         });
     });
 
-    it("should initialize stats for substitutes by tracking the substitutions array", () => {
+    it("should initialize stats for substitutes by tracking the substitutions array and preserve jerseyNumber", () => {
         const mockPlayerChartWithSub = [
             {
                 $id: "player1",
                 firstName: "John",
                 lastName: "Doe",
+                jerseyNumber: "10",
                 substitutions: [
-                    { playerId: "sub1", firstName: "Bench", lastName: "Guy" },
+                    {
+                        playerId: "sub1",
+                        firstName: "Bench",
+                        lastName: "Guy",
+                        jerseyNumber: "99",
+                    },
                 ],
             },
         ];
@@ -44,8 +64,10 @@ describe("calculateGameStats", () => {
 
         expect(stats).toHaveLength(2);
         expect(stats[0].player.$id).toBe("player1");
+        expect(stats[0].player.jerseyNumber).toBe("10");
         expect(stats[1].player.$id).toBe("sub1");
         expect(stats[1].player.firstName).toBe("Bench");
+        expect(stats[1].player.jerseyNumber).toBe("99");
     });
 
     it("should correctly count hits and calculate batting average", () => {

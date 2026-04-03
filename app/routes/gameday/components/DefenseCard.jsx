@@ -18,7 +18,7 @@ export default function DefenseCard({ teamName, dueUpBatters }) {
                         <Text size="xs" fw={700} c="dimmed">
                             DUE UP
                         </Text>
-                        <Group justify="space-between" gap="md">
+                        <Group gap="md" wrap="nowrap">
                             {dueUpBatters.map((batter, index) => (
                                 <Badge
                                     key={batter.$id || index}
@@ -27,7 +27,7 @@ export default function DefenseCard({ teamName, dueUpBatters }) {
                                     variant="filled"
                                     color="blue"
                                 >
-                                    {index + 1}. {batter.firstName}{" "}
+                                    {batter.firstName}{" "}
                                     {batter.lastName
                                         ? `${batter.lastName.charAt(0)}.`
                                         : ""}
