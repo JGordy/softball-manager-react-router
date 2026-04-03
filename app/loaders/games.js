@@ -389,12 +389,45 @@ export async function getEventById({ eventId, client, ...options }) {
 
     const parsedChart = parsePlayerChart(playerChart) ?? null;
 
+    // Fetch team preferences for jersey numbers in the game view
+    let teamPrefs = {};
+    if (teams.length > 0) {
+        try {
+            const { teams: teamsApi } = createAdminClient();
+            teamPrefs = await teamsApi.getPrefs(teams[0].$id);
+        } catch (e) {
+            console.warn(
+                "getEventById: Failed to fetch team prefs:",
+                e.message,
+            );
+        }
+    }
+
+    // Enrich playerChart with jersey numbers
+    const enrichedChart = parsedChart
+        ? parsedChart.map((slot) => {
+              const jersey = teamPrefs?.jerseyNumbers?.[slot.$id] || null;
+              const enrichedSubstitutions = (slot.substitutions || []).map(
+                  (sub) => ({
+                      ...sub,
+                      jerseyNumber:
+                          teamPrefs?.jerseyNumbers?.[sub.playerId] || null,
+                  }),
+              );
+              return {
+                  ...slot,
+                  jerseyNumber: jersey,
+                  substitutions: enrichedSubstitutions,
+              };
+          })
+        : null;
+
     return {
         gameDeleted: false,
         deferredData,
         game: {
             ...game,
-            playerChart: parsedChart,
+            playerChart: enrichedChart,
         },
         location,
         userIds,
@@ -477,6 +510,26 @@ export async function getEventWithPlayerCharts({ client, eventId }) {
     // Fully resolve the players for the non-deferred path
     const players = await resolvePlayers(allUserIds, client);
 
+    // Fetch team preferences for jersey numbers
+    let teamPrefs = {};
+    if (teams.length > 0) {
+        try {
+            const { teams: teamsApi } = createAdminClient();
+            teamPrefs = await teamsApi.getPrefs(teams[0].$id);
+        } catch (e) {
+            console.warn(
+                "getEventWithPlayerCharts: Failed to fetch team prefs:",
+                e.message,
+            );
+        }
+    }
+
+    // Enrich players with jersey numbers
+    const enrichedPlayers = players.map((p) => ({
+        ...p,
+        jerseyNumber: teamPrefs?.jerseyNumbers?.[p.$id] || null,
+    }));
+
     const attendance = await getAttendance({
         eventId,
         accepted: false,
@@ -491,6 +544,6 @@ export async function getEventWithPlayerCharts({ client, eventId }) {
         scorekeeperIds,
         teams,
         playerChart: parsedChart,
-        players,
+        players: enrichedPlayers,
     };
 }

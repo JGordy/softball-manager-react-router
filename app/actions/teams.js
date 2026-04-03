@@ -1,4 +1,5 @@
 import { ID, Permission, Role } from "node-appwrite";
+import { createAdminClient } from "@/utils/appwrite/server";
 import { createDocument, updateDocument } from "@/utils/databases.js";
 import {
     createAppwriteTeam,
@@ -12,6 +13,7 @@ import {
 import { hasBadWords } from "@/utils/badWordsApi";
 
 import { removeEmptyValues } from "./utils/formUtils";
+import { verifyManager } from "./utils/teamAuth.js";
 
 export async function createTeam({ values, userId, client }) {
     const teamData = removeEmptyValues({ values });
@@ -255,4 +257,83 @@ export async function updateMemberRole({ values, teamId, client }) {
 
 export async function updatePreferences({ teamId, prefs }) {
     return await updateTeamPreferences(teamId, prefs);
+}
+
+export async function updateJerseyNumber({ teamId, playerId, jerseyNumber }) {
+    const { teams: teamsApi } = createAdminClient();
+
+    try {
+        // 1. Get current preferences
+        const currentPrefs = await teamsApi.getPrefs(teamId);
+
+        // 2. Update jersey numbers map
+        const jerseyNumbers = {
+            ...(currentPrefs.jerseyNumbers || {}),
+            [playerId]: jerseyNumber,
+        };
+
+        // 3. Save back to Appwrite
+        await teamsApi.updatePrefs(teamId, {
+            ...currentPrefs,
+            jerseyNumbers,
+        });
+
+        return {
+            success: true,
+            message: "Jersey number updated successfully",
+        };
+    } catch (error) {
+        console.error("Error updating jersey number:", error);
+        return {
+            success: false,
+            message: error.message || "Failed to update jersey number",
+        };
+    }
+}
+
+export async function updateBulkJerseyNumbers({ teamId, values, client }) {
+    if (!client) {
+        throw new Error(
+            "A constructed 'client' object is strictly required for authorization.",
+        );
+    }
+
+    try {
+        const auth = await verifyManager(teamId, client);
+        if (!auth.success) return auth;
+
+        const { teams: teamsApi } = createAdminClient();
+
+        // 3. Get current preferences
+        const currentPrefs = await teamsApi.getPrefs(teamId);
+
+        // 4. Extract jersey numbers from values
+        const newJerseyNumbers = { ...(currentPrefs.jerseyNumbers || {}) };
+
+        Object.entries(values).forEach(([key, value]) => {
+            if (key.startsWith("jerseyNumber[")) {
+                const userId = key.match(/\[(.*?)\]/)[1];
+                if (userId) {
+                    newJerseyNumbers[userId] = value;
+                }
+            }
+        });
+
+        // 5. Save back to Appwrite
+        await teamsApi.updatePrefs(teamId, {
+            ...currentPrefs,
+            jerseyNumbers: newJerseyNumbers,
+        });
+
+        return {
+            success: true,
+            message: "Jersey numbers updated successfully",
+        };
+    } catch (error) {
+        console.error("Error updating bulk jersey numbers:", error);
+        return {
+            success: false,
+            message: "Failed to update jersey numbers",
+        };
+    }
 }
