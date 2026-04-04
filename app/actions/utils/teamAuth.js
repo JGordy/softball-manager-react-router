@@ -1,3 +1,4 @@
+import { Query } from "node-appwrite";
 import { getTeamMembers } from "@/utils/teams.js";
 
 /**
@@ -17,10 +18,14 @@ export async function verifyManager(teamId, client) {
     try {
         const { account } = client;
         const user = await account.get();
-        const memberships = await getTeamMembers({ teamId });
-        const userMembership = memberships.memberships.find(
-            (m) => m.userId === user.$id,
-        );
+
+        // Optimize: Query specifically for the current user's membership
+        // This is faster and avoids pagination issues in large teams
+        const memberships = await getTeamMembers({
+            teamId,
+            queries: [Query.equal("userId", [user.$id])],
+        });
+        const userMembership = memberships.memberships[0];
 
         const isManager =
             userMembership?.roles.includes("manager") ||

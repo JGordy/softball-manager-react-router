@@ -153,6 +153,49 @@ describe("Games Loader", () => {
             expect(result.game.playerChart).toBeNull();
         });
 
+        it("enriches playerChart with jersey numbers from team preferences", async () => {
+            const mockChart = [
+                {
+                    $id: "p1",
+                    substitutions: [{ playerId: "p2", inning: 3 }],
+                },
+            ];
+            const mockGameWithChart = {
+                $id: "game1",
+                gameDate: "2023-10-27T10:00:00Z",
+                playerChart: JSON.stringify(JSON.stringify(mockChart)),
+                seasons: "season1",
+            };
+            const mockSeason = { $id: "season1", teams: ["team1"] };
+
+            createAdminClient.mockReturnValue({
+                teams: {
+                    listMemberships: jest.fn().mockResolvedValue({
+                        memberships: [{ userId: "user1", roles: ["owner"] }],
+                    }),
+                    getPrefs: jest.fn().mockResolvedValue({
+                        jerseyNumbers: { p1: "10", p2: "22" },
+                    }),
+                },
+            });
+
+            readDocument.mockResolvedValueOnce(mockGameWithChart);
+            readDocument.mockResolvedValueOnce(mockSeason);
+            listDocuments.mockResolvedValue({
+                rows: [{ $id: "team1", name: "Team 1" }],
+            });
+
+            const result = await getEventById({
+                eventId: "game1",
+                client: mockSessionClient,
+            });
+
+            expect(result.game.playerChart[0].jerseyNumber).toBe("10");
+            expect(
+                result.game.playerChart[0].substitutions[0].jerseyNumber,
+            ).toBe("22");
+        });
+
         it("should correctly identify scorekeepers", async () => {
             const mockGame = {
                 $id: "game1",
