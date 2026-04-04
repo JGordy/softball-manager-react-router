@@ -99,6 +99,13 @@ export default function GamedayMenu({
     };
 
     const gameControls = [
+        {
+            key: "edit-lineup",
+            component: Link,
+            to: `/events/${eventId}/lineup`,
+            leftSection: <IconClipboardList size={14} />,
+            content: <Text>Edit Lineup</Text>,
+        },
         ...(gameFinal
             ? [
                   {
@@ -116,13 +123,6 @@ export default function GamedayMenu({
                       content: <Text>End Game</Text>,
                   },
               ]),
-        {
-            key: "edit-lineup",
-            component: Link,
-            to: `/events/${eventId}/lineup`,
-            leftSection: <IconClipboardList size={14} />,
-            content: <Text>Edit Lineup</Text>,
-        },
     ];
 
     // Only show Sub Batter when the game is active and a sub callback is provided
