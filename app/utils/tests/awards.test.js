@@ -1,4 +1,3 @@
-import { describe, it, expect } from "vitest";
 import { calculateWinners, isUserAwardWinner } from "../awards";
 
 describe("awards utility", () => {
