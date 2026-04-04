@@ -152,7 +152,7 @@ export default function WinnerDisplay({
     user,
     votes,
 }) {
-    const { winnerIds: currentWinnerIds, maxVotes } = useMemo(
+    const { winnerIds, maxVotes: max } = useMemo(
         () => calculateWinners(votes, activeAward),
         [votes, activeAward],
     );
@@ -182,7 +182,7 @@ export default function WinnerDisplay({
         confettiDebounceRef.current = setTimeout(() => {
             const userIdRaw = user?.$id;
             const userId = userIdRaw != null ? String(userIdRaw) : null;
-            const winnerIdStrings = currentWinnerIds.map((id) => String(id));
+            const winnerIdStrings = winnerIds.map((id) => String(id));
 
             if (userId && winnerIdStrings.includes(userId)) {
                 startConfetti({ entries, user });
@@ -216,11 +216,6 @@ export default function WinnerDisplay({
             </Card>
         );
     }
-
-    const { winnerIds, maxVotes: max } = useMemo(
-        () => calculateWinners(votes, activeAward),
-        [votes, activeAward],
-    );
 
     const winnerPlayers = winnerIds
         .map((id) => players.find((p) => p.$id === id))
