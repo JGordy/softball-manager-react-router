@@ -12,12 +12,12 @@ export function calculateWinners(votes, awardType) {
     }
 
     // Tally votes for the specific award
-    const tallies = {};
+    const tallies = Object.create(null);
     votes.rows.forEach((v) => {
         if (v.reason !== awardType) return;
         const nominatedId = v.nominated_user_id || v.nominatedUserId; // Handle both camel and snake case
         if (!nominatedId) return;
-        tallies[nominatedId] = (tallies[nominatedId] || 0) + 1;
+        tallies[nominatedId] = (tallies[nominatedId] ?? 0) + 1;
     });
 
     const entries = Object.entries(tallies);

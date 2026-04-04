@@ -70,17 +70,7 @@ describe("awards utility", () => {
             );
         });
 
-        it("should NOT identify as winner if not in awards and not highest votes", () => {
-            const lowVotes = {
-                rows: [
-                    { reason: "mvp", nominated_user_id: "user-1" },
-                    { reason: "mvp", nominated_user_id: "user-2" },
-                ],
-            };
-            // user-2 has 1 vote, user-1 has 1 vote (Tie). Wait.
-            const results = calculateWinners(lowVotes, "mvp");
-            expect(results.winnerIds).toContain("user-2"); // user-2 IS a tied winner here
-
+        it("should NOT identify as winner if they have fewer votes than the leader", () => {
             const singleWinnerVotes = {
                 rows: [
                     { reason: "mvp", nominated_user_id: "user-1" },
@@ -92,6 +82,19 @@ describe("awards utility", () => {
             expect(
                 isUserAwardWinner("user-2", mockAwards, singleWinnerVotes),
             ).toBe(false);
+        });
+
+        it("should identify as winner if they are in a tie, even if not in awards collection", () => {
+            const tieVotes = {
+                rows: [
+                    { reason: "mvp", nominated_user_id: "user-1" },
+                    { reason: "mvp", nominated_user_id: "user-2" },
+                ],
+            };
+            // user-2 has 1 vote, user-1 has 1 vote (Tie).
+            expect(isUserAwardWinner("user-2", mockAwards, tieVotes)).toBe(
+                true,
+            );
         });
     });
 });

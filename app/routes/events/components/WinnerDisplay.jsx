@@ -159,11 +159,11 @@ export default function WinnerDisplay({
 
     const entries = useMemo(() => {
         if (!votes?.rows) return [];
-        const map = {};
+        const map = Object.create(null);
         votes.rows.forEach((v) => {
             if (v.reason !== activeAward) return;
             const id = v.nominated_user_id || v.nominatedUserId;
-            if (id) map[id] = (map[id] || 0) + 1;
+            if (id) map[id] = (map[id] ?? 0) + 1;
         });
         return Object.entries(map);
     }, [votes, activeAward]);
