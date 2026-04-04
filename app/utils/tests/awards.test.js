@@ -1,4 +1,8 @@
-import { calculateWinners, isUserAwardWinner } from "../awards";
+import {
+    calculateWinners,
+    calculateAllWinners,
+    isUserAwardWinner,
+} from "../awards";
 
 describe("awards utility", () => {
     const mockVotes = {
@@ -12,10 +16,14 @@ describe("awards utility", () => {
     };
 
     describe("calculateWinners", () => {
-        it("should calculate a single winner correctly", () => {
-            const { winnerIds, maxVotes } = calculateWinners(mockVotes, "mvp");
+        it("should calculate a single winner and return tallies correctly", () => {
+            const { winnerIds, maxVotes, tallies } = calculateWinners(
+                mockVotes,
+                "mvp",
+            );
             expect(winnerIds).toEqual(["user-1"]);
             expect(maxVotes).toBe(2);
+            expect(tallies).toEqual({ "user-1": 2, "user-2": 1 });
         });
 
         it("should calculate a tie correctly", () => {
@@ -48,6 +56,24 @@ describe("awards utility", () => {
             const { winnerIds, maxVotes } = calculateWinners(mixedVotes, "mvp");
             expect(winnerIds).toEqual(["user-1"]);
             expect(maxVotes).toBe(2);
+        });
+    });
+
+    describe("calculateAllWinners", () => {
+        it("should calculate winners for all types in a single pass", () => {
+            const results = calculateAllWinners(mockVotes);
+            expect(results.mvp.winnerIds).toEqual(["user-1"]);
+            expect(results.mvp.maxVotes).toBe(2);
+            expect(results.clutch.winnerIds).toContain("user-2");
+            expect(results.clutch.winnerIds).toContain("user-3");
+            expect(results.clutch.maxVotes).toBe(1);
+        });
+
+        it("should return an empty object for no votes", () => {
+            expect(calculateAllWinners(null)).toEqual(Object.create(null));
+            expect(calculateAllWinners({ rows: [] })).toEqual(
+                Object.create(null),
+            );
         });
     });
 

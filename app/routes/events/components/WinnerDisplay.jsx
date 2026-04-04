@@ -152,21 +152,18 @@ export default function WinnerDisplay({
     user,
     votes,
 }) {
-    const { winnerIds, maxVotes: max } = useMemo(
+    const {
+        winnerIds,
+        maxVotes: max,
+        tallies,
+    } = useMemo(
         () => calculateWinners(votes, activeAward),
         [votes, activeAward],
     );
 
     const entries = useMemo(() => {
-        if (!votes?.rows) return [];
-        const map = Object.create(null);
-        votes.rows.forEach((v) => {
-            if (v.reason !== activeAward) return;
-            const id = v.nominated_user_id || v.nominatedUserId;
-            if (id) map[id] = (map[id] ?? 0) + 1;
-        });
-        return Object.entries(map);
-    }, [votes, activeAward]);
+        return Object.entries(tallies);
+    }, [tallies]);
 
     const startConfetti = useWinnerConfetti(team);
     const confettiDebounceRef = useRef(null);

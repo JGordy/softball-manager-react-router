@@ -1,14 +1,14 @@
 /**
  * Utility to calculate winners for a specific award based on votes.
- * Handles ties and returns an array of winner user IDs.
+ * Handles ties and returns an array of winner user IDs and the tally map.
  *
  * @param {Object} votes - The votes collection object (with rows/total)
  * @param {string} awardType - The type/reason of the award to calculate for
- * @returns {Object} result - { winnerIds: string[], maxVotes: number }
+ * @returns {Object} result - { winnerIds: string[], maxVotes: number, tallies: Object }
  */
 export function calculateWinners(votes, awardType) {
     if (!votes || !votes.rows || votes.rows.length === 0) {
-        return { winnerIds: [], maxVotes: 0 };
+        return { winnerIds: [], maxVotes: 0, tallies: Object.create(null) };
     }
 
     // Tally votes for the specific award
@@ -22,7 +22,7 @@ export function calculateWinners(votes, awardType) {
 
     const entries = Object.entries(tallies);
     if (entries.length === 0) {
-        return { winnerIds: [], maxVotes: 0 };
+        return { winnerIds: [], maxVotes: 0, tallies };
     }
 
     // Find the maximum vote count
@@ -33,7 +33,51 @@ export function calculateWinners(votes, awardType) {
         .filter(([, count]) => count === maxVotes)
         .map(([id]) => id);
 
-    return { winnerIds, maxVotes };
+    return { winnerIds, maxVotes, tallies };
+}
+
+/**
+ * Aggregates all votes in a single pass and identifies winners for every award type found.
+ * Fixes O(awardTypes * votes) performance issue.
+ *
+ * @param {Object} votes - The votes collection object
+ * @returns {Object} results - A map of { [awardType]: { winnerIds: string[], maxVotes: number } }
+ */
+export function calculateAllWinners(votes) {
+    if (!votes || !votes.rows || votes.rows.length === 0) {
+        return Object.create(null);
+    }
+
+    // 1. Single pass: Tally everyone by award type
+    const awardTallies = Object.create(null); // { [awardType]: { [userId]: count } }
+    votes.rows.forEach((v) => {
+        const type = v.reason;
+        if (!type) return;
+
+        const nominatedId = v.nominated_user_id || v.nominatedUserId;
+        if (!nominatedId) return;
+
+        if (!awardTallies[type]) {
+            awardTallies[type] = Object.create(null);
+        }
+        awardTallies[type][nominatedId] =
+            (awardTallies[type][nominatedId] ?? 0) + 1;
+    });
+
+    // 2. Finalize winners for each type
+    const finalResults = Object.create(null);
+    for (const type in awardTallies) {
+        const tallies = awardTallies[type];
+        const entries = Object.entries(tallies);
+        const maxVotes = Math.max(...entries.map(([, count]) => count));
+        const winnerIds = entries
+            .filter(([, count]) => count === maxVotes)
+            .map(([id]) => id);
+
+        finalResults[type] = { winnerIds, maxVotes };
+    }
+
+    return finalResults;
 }
 
 /**
@@ -53,15 +97,12 @@ export function isUserAwardWinner(userId, awards, votes) {
         return true;
     }
 
-    // 2. Fallback: Dynamic calculation from votes for all award types
-    // This is useful for recognizing ties where the awards collection might be incomplete.
-    // We only do this if awards have been "finalized" (indicated by having at least one doc)
+    // 2. Fallback: Single-pass dynamic calculation from votes
     if (awards?.total > 0 && votes?.rows) {
-        const awardTypes = [...new Set(votes.rows.map((v) => v.reason))];
-        return awardTypes.some((type) => {
-            const { winnerIds } = calculateWinners(votes, type);
-            return winnerIds.includes(userId);
-        });
+        const allResults = calculateAllWinners(votes);
+        return Object.values(allResults).some((res) =>
+            res.winnerIds.includes(userId),
+        );
     }
 
     return false;
