@@ -8,6 +8,7 @@ import {
     IconShieldLock,
     IconClipboardList,
     IconSettings,
+    IconShirtSport,
 } from "@tabler/icons-react";
 
 import AddTeam from "@/forms/AddTeam";
@@ -22,6 +23,7 @@ import useModal from "@/hooks/useModal";
 import MenuContainer from "@/components/MenuContainer";
 import ManageRolesDrawer from "./ManageRolesDrawer";
 import PreferencesDrawer from "./PreferencesDrawer";
+import BulkJerseyNumberModal from "./BulkJerseyNumberModal";
 
 export default function TeamMenu({ userId, team, ownerView, players }) {
     const navigate = useNavigate();
@@ -100,6 +102,18 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
             ),
         });
 
+    const openBulkJerseyModal = () =>
+        openModal({
+            title: "Assign Jersey Numbers",
+            children: (
+                <BulkJerseyNumberModal
+                    players={players}
+                    teamId={teamId}
+                    primaryColor={primaryColor}
+                />
+            ),
+        });
+
     const sections = [
         {
             label: "Team Options",
@@ -144,6 +158,12 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                     onClick: openInvitePlayerModal,
                     leftSection: <IconMailFast size={18} />,
                     content: <Text>Invite Players</Text>,
+                },
+                {
+                    key: "bulk-jersey-numbers",
+                    onClick: openBulkJerseyModal,
+                    leftSection: <IconShirtSport size={18} />,
+                    content: <Text>Assign Numbers</Text>,
                 },
             ],
         },

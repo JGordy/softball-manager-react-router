@@ -71,10 +71,19 @@ describe("CurrentBatterCard", () => {
         expect(screen.getByText("2 RBI")).toBeInTheDocument();
     });
 
-    it("renders avatar image with the provided URL", () => {
+    it("renders jersey number if provided", () => {
+        const batterWithJersey = { ...mockBatter, jerseyNumber: "42" };
+        render(
+            <CurrentBatterCard currentBatter={batterWithJersey} logs={[]} />,
+        );
+        expect(screen.getByText("#42")).toBeInTheDocument();
+    });
+
+    it("renders avatar image with the provided URL and jersey number", () => {
         const batterWithAvatar = {
             ...mockBatter,
             avatarUrl: "http://avatar.url",
+            jerseyNumber: "42",
         };
         render(
             <CurrentBatterCard currentBatter={batterWithAvatar} logs={[]} />,

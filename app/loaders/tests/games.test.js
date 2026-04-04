@@ -34,6 +34,7 @@ describe("Games Loader", () => {
                 list: jest.fn().mockResolvedValue({ users: [], total: 0 }),
             },
             teams: {
+                getPrefs: jest.fn().mockResolvedValue({}),
                 listMemberships: jest
                     .fn()
                     .mockResolvedValue({ memberships: [] }),
@@ -84,7 +85,10 @@ describe("Games Loader", () => {
                 memberships: [{ userId: "user1", roles: ["owner", "manager"] }],
             });
             createAdminClient.mockReturnValue({
-                teams: { listMemberships: mockListMemberships },
+                teams: {
+                    listMemberships: mockListMemberships,
+                    getPrefs: jest.fn().mockResolvedValue({}),
+                },
             });
 
             // Mock for loadGameBase
@@ -125,7 +129,10 @@ describe("Games Loader", () => {
                 memberships: [{ userId: "user1", roles: ["owner"] }],
             });
             createAdminClient.mockReturnValue({
-                teams: { listMemberships: mockListMemberships },
+                teams: {
+                    listMemberships: mockListMemberships,
+                    getPrefs: jest.fn().mockResolvedValue({}),
+                },
             });
 
             // Mock loadGameBase
@@ -144,6 +151,49 @@ describe("Games Loader", () => {
             expect(result.gameDeleted).toBe(false);
             // It should fall back to null if parse fails
             expect(result.game.playerChart).toBeNull();
+        });
+
+        it("enriches playerChart with jersey numbers from team preferences", async () => {
+            const mockChart = [
+                {
+                    $id: "p1",
+                    substitutions: [{ playerId: "p2", inning: 3 }],
+                },
+            ];
+            const mockGameWithChart = {
+                $id: "game1",
+                gameDate: "2023-10-27T10:00:00Z",
+                playerChart: JSON.stringify(JSON.stringify(mockChart)),
+                seasons: "season1",
+            };
+            const mockSeason = { $id: "season1", teams: ["team1"] };
+
+            createAdminClient.mockReturnValue({
+                teams: {
+                    listMemberships: jest.fn().mockResolvedValue({
+                        memberships: [{ userId: "user1", roles: ["owner"] }],
+                    }),
+                    getPrefs: jest.fn().mockResolvedValue({
+                        jerseyNumbers: { p1: "10", p2: "22" },
+                    }),
+                },
+            });
+
+            readDocument.mockResolvedValueOnce(mockGameWithChart);
+            readDocument.mockResolvedValueOnce(mockSeason);
+            listDocuments.mockResolvedValue({
+                rows: [{ $id: "team1", name: "Team 1" }],
+            });
+
+            const result = await getEventById({
+                eventId: "game1",
+                client: mockSessionClient,
+            });
+
+            expect(result.game.playerChart[0].jerseyNumber).toBe("10");
+            expect(
+                result.game.playerChart[0].substitutions[0].jerseyNumber,
+            ).toBe("22");
         });
 
         it("should correctly identify scorekeepers", async () => {
@@ -170,7 +220,10 @@ describe("Games Loader", () => {
                 ],
             });
             createAdminClient.mockReturnValue({
-                teams: { listMemberships: mockListMemberships },
+                teams: {
+                    listMemberships: mockListMemberships,
+                    getPrefs: jest.fn().mockResolvedValue({}),
+                },
             });
 
             readDocument.mockResolvedValueOnce(mockGame);
@@ -230,7 +283,10 @@ describe("Games Loader", () => {
                 ],
             });
             createAdminClient.mockReturnValue({
-                teams: { listMemberships: mockListMemberships },
+                teams: {
+                    listMemberships: mockListMemberships,
+                    getPrefs: jest.fn().mockResolvedValue({}),
+                },
                 users: { list: mockListUsers },
             });
 
@@ -282,6 +338,7 @@ describe("Games Loader", () => {
             // Mock memberships
             createAdminClient.mockReturnValue({
                 teams: {
+                    getPrefs: jest.fn().mockResolvedValue({}),
                     listMemberships: jest
                         .fn()
                         .mockResolvedValue({ memberships: [] }),

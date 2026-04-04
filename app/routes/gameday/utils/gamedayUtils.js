@@ -24,18 +24,20 @@ export const getPlayerName = (playerId, playerChart) => {
     if (!playerId || !playerChart) return "Runner";
     for (const slot of playerChart) {
         if (slot.$id === playerId) {
+            const jersey = slot.jerseyNumber ? `#${slot.jerseyNumber} ` : "";
             const lastInitial = slot.lastName
                 ? ` ${slot.lastName.charAt(0)}.`
                 : "";
-            return `${slot.firstName}${lastInitial}`;
+            return `${jersey}${slot.firstName}${lastInitial}`;
         }
         if (slot.substitutions) {
             const sub = slot.substitutions.find((s) => s.playerId === playerId);
             if (sub) {
+                const jersey = sub.jerseyNumber ? `#${sub.jerseyNumber} ` : "";
                 const lastInitial = sub.lastName
                     ? ` ${sub.lastName.charAt(0)}.`
                     : "";
-                return `${sub.firstName}${lastInitial}`;
+                return `${jersey}${sub.firstName}${lastInitial}`;
             }
         }
     }

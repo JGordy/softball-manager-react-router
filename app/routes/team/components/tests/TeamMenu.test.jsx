@@ -18,6 +18,9 @@ jest.mock("../ManageRolesDrawer", () => () => (
 jest.mock("../PreferencesDrawer", () => () => (
     <div data-testid="preferences-drawer" />
 ));
+jest.mock("../BulkJerseyNumberModal", () => () => (
+    <div data-testid="bulk-jersey-modal" />
+));
 
 describe("TeamMenu Component", () => {
     const mockNavigate = jest.fn();
@@ -74,6 +77,18 @@ describe("TeamMenu Component", () => {
         expect(mockOpenModal).toHaveBeenCalledWith(
             expect.objectContaining({
                 title: "Invite Player by Email",
+            }),
+        );
+    });
+
+    it("opens Assign Numbers modal", async () => {
+        render(<TeamMenu userId="u1" team={mockTeam} players={mockPlayers} />);
+        fireEvent.click(screen.getByRole("button")); // Open menu
+        expect(await screen.findByText("Assign Numbers")).toBeInTheDocument();
+        fireEvent.click(screen.getByText("Assign Numbers"));
+        expect(mockOpenModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                title: "Assign Jersey Numbers",
             }),
         );
     });

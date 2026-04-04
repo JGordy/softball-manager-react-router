@@ -77,6 +77,16 @@ export default function CurrentBatterCard({ currentBatter, logs, ...props }) {
                             style={{ lineHeight: 1.1 }}
                             truncate="end"
                         >
+                            {activePlayer.jerseyNumber && (
+                                <Text
+                                    inherit
+                                    display="inline"
+                                    c="lime.4"
+                                    mr={4}
+                                >
+                                    #{activePlayer.jerseyNumber}
+                                </Text>
+                            )}
                             {activePlayer.firstName}
                             {activePlayer.lastName
                                 ? ` ${activePlayer.lastName}`

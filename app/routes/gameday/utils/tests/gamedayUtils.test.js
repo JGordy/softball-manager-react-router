@@ -14,20 +14,34 @@ describe("getPlayerName", () => {
             $id: "p1",
             firstName: "Mike",
             lastName: "Trout",
+            jerseyNumber: "27",
             substitutions: [
-                { playerId: "sub1", firstName: "Shohei", lastName: "Ohtani" },
+                {
+                    playerId: "sub1",
+                    firstName: "Shohei",
+                    lastName: "Ohtani",
+                    jerseyNumber: "17",
+                },
             ],
         },
-        { $id: "p2", firstName: "Mookie", lastName: "Betts" },
+        {
+            $id: "p2",
+            firstName: "Mookie",
+            lastName: "Betts",
+            jerseyNumber: null,
+        },
     ];
 
-    it("should resolve starter name by ID", () => {
-        expect(getPlayerName("p1", mockPlayerChart)).toBe("Mike T.");
+    it("should resolve starter name by ID with jersey prefix", () => {
+        expect(getPlayerName("p1", mockPlayerChart)).toBe("#27 Mike T.");
+    });
+
+    it("should resolve starter name without jersey number", () => {
         expect(getPlayerName("p2", mockPlayerChart)).toBe("Mookie B.");
     });
 
-    it("should resolve substitute name by ID", () => {
-        expect(getPlayerName("sub1", mockPlayerChart)).toBe("Shohei O.");
+    it("should resolve substitute name by ID with jersey prefix", () => {
+        expect(getPlayerName("sub1", mockPlayerChart)).toBe("#17 Shohei O.");
     });
 
     it("should return 'Runner' for unknown IDs", () => {

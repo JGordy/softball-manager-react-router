@@ -44,6 +44,7 @@ export const calculateGameStats = (logs = [], playerChart = []) => {
                     $id: sub.playerId,
                     firstName: sub.firstName,
                     lastName: sub.lastName,
+                    jerseyNumber: sub.jerseyNumber,
                 };
                 statsMap[sub.playerId] = initStats(subPlayer);
             }

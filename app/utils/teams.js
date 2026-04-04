@@ -234,7 +234,11 @@ export async function getNotifiableTeamMembers(teamId) {
 export async function updateTeamPreferences(teamId, prefs) {
     const { teams } = createAdminClient();
     try {
-        await teams.updatePrefs(teamId, prefs);
+        const currentPrefs = await teams.getPrefs(teamId);
+        await teams.updatePrefs(teamId, {
+            ...currentPrefs,
+            ...prefs,
+        });
         return { success: true };
     } catch (error) {
         console.error("Error updating team prefs:", error);

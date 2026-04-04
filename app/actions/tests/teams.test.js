@@ -1,10 +1,7 @@
 import {
-    createTeam,
-    updateTeam,
-    addPlayerToTeam,
-    updateMemberRole,
-    updatePreferences,
-} from "../teams";
+    createAdminClient,
+    createSessionClient,
+} from "@/utils/appwrite/server";
 import { createDocument, updateDocument } from "@/utils/databases";
 import { hasBadWords } from "@/utils/badWordsApi";
 import {
@@ -15,6 +12,17 @@ import {
     updateMembershipRoles,
     updateTeamPreferences,
 } from "@/utils/teams";
+
+import {
+    createTeam,
+    updateTeam,
+    addPlayerToTeam,
+    updateMemberRole,
+    updateBulkJerseyNumbers,
+    updateJerseyNumber,
+    updatePreferences,
+} from "../teams";
+import { verifyManager } from "../utils/teamAuth.js";
 
 // Mock dependencies
 jest.mock("@/utils/databases", () => ({
@@ -37,6 +45,16 @@ jest.mock("@/utils/teams", () => ({
 
 jest.mock("@/utils/appwrite/server", () => ({
     createSessionClient: jest.fn(),
+    createAdminClient: jest.fn(() => ({
+        teams: {
+            getPrefs: jest.fn(),
+            updatePrefs: jest.fn(),
+        },
+    })),
+}));
+
+jest.mock("../utils/teamAuth.js", () => ({
+    verifyManager: jest.fn(),
 }));
 
 describe("Teams Actions", () => {
@@ -49,7 +67,6 @@ describe("Teams Actions", () => {
         jest.clearAllMocks();
         jest.spyOn(console, "error").mockImplementation(() => {});
         hasBadWords.mockResolvedValue(false);
-        const { createSessionClient } = require("@/utils/appwrite/server");
         createSessionClient.mockResolvedValue(mockSessionClient);
     });
 
@@ -229,15 +246,9 @@ describe("Teams Actions", () => {
             mockSessionClient.account = mockAccount;
 
             // Mock createSessionClient
-            mockCreateSessionClient = jest.fn().mockResolvedValue({
+            createSessionClient.mockResolvedValue({
                 account: mockAccount,
             });
-
-            // Override the hoisted mock specifically for this suite
-            const server = require("@/utils/appwrite/server");
-            server.createSessionClient.mockImplementation(
-                mockCreateSessionClient,
-            );
         });
 
         it("should update role to owner", async () => {
@@ -467,6 +478,192 @@ describe("Teams Actions", () => {
             expect(result.success).toBe(false);
             expect(result.message).toContain("last owner");
             expect(updateMembershipRoles).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("updateBulkJerseyNumbers", () => {
+        const teamId = "team123";
+        const mockValues = {
+            "jerseyNumber[p1]": "10",
+            "jerseyNumber[p2]": "22",
+        };
+
+        it("should update bulk jersey numbers successfully with manager permission", async () => {
+            verifyManager.mockResolvedValue({
+                success: true,
+                user: { $id: "user1" },
+            });
+
+            const mockTeamsApi = {
+                getPrefs: jest.fn().mockResolvedValue({}),
+                updatePrefs: jest.fn().mockResolvedValue({}),
+            };
+            createAdminClient.mockReturnValue({ teams: mockTeamsApi });
+
+            const result = await updateBulkJerseyNumbers({
+                teamId,
+                values: mockValues,
+                client: mockSessionClient,
+            });
+
+            expect(mockTeamsApi.updatePrefs).toHaveBeenCalledWith(teamId, {
+                jerseyNumbers: {
+                    p1: "10",
+                    p2: "22",
+                },
+            });
+            expect(result.success).toBe(true);
+        });
+
+        it("should return error if verifyManager fails", async () => {
+            verifyManager.mockResolvedValue({
+                success: false,
+                message: "No permission",
+            });
+
+            const result = await updateBulkJerseyNumbers({
+                teamId,
+                values: mockValues,
+                client: mockSessionClient,
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.message).toBe("No permission");
+        });
+
+        it("should normalize and validate jersey numbers (trim, digits only)", async () => {
+            verifyManager.mockResolvedValue({
+                success: true,
+                user: { $id: "user1" },
+            });
+
+            const mockTeamsApi = {
+                getPrefs: jest.fn().mockResolvedValue({
+                    jerseyNumbers: { existing: "5" },
+                }),
+                updatePrefs: jest.fn().mockResolvedValue({}),
+            };
+            createAdminClient.mockReturnValue({ teams: mockTeamsApi });
+
+            const result = await updateBulkJerseyNumbers({
+                teamId: "team123",
+                values: {
+                    "jerseyNumber[p1]": " 10 ", // trim
+                    "jerseyNumber[p2]": "abc", // invalid
+                    "jerseyNumber[p3]": "", // delete
+                },
+                client: mockSessionClient,
+            });
+
+            expect(mockTeamsApi.updatePrefs).not.toHaveBeenCalled();
+            expect(result.success).toBe(false);
+            expect(result.message).toContain("invalid");
+        });
+    });
+
+    describe("updateJerseyNumber", () => {
+        const teamId = "team123";
+        const playerId = "p1";
+        const jerseyNumber = "10";
+
+        it("should update single jersey number successfully with client and normalization", async () => {
+            verifyManager.mockResolvedValue({
+                success: true,
+                user: { $id: "user1" },
+            });
+
+            const mockTeamsApi = {
+                getPrefs: jest.fn().mockResolvedValue({}),
+                updatePrefs: jest.fn().mockResolvedValue({}),
+            };
+            createAdminClient.mockReturnValue({ teams: mockTeamsApi });
+
+            const result = await updateJerseyNumber({
+                teamId,
+                playerId,
+                jerseyNumber: " 12 ", // test trim
+                client: mockSessionClient,
+            });
+
+            expect(mockTeamsApi.updatePrefs).toHaveBeenCalledWith(
+                teamId,
+                expect.objectContaining({
+                    jerseyNumbers: { p1: "12" },
+                }),
+            );
+            expect(result.success).toBe(true);
+        });
+
+        it("should return error for invalid jersey number", async () => {
+            verifyManager.mockResolvedValue({
+                success: true,
+                user: { $id: "user1" },
+            });
+
+            const result = await updateJerseyNumber({
+                teamId,
+                playerId,
+                jerseyNumber: "abc",
+                client: mockSessionClient,
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.message).toBe(
+                "Jersey number must contain digits only",
+            );
+        });
+
+        it("should remove jersey number if empty string provided", async () => {
+            verifyManager.mockResolvedValue({
+                success: true,
+                user: { $id: "user1" },
+            });
+
+            const mockTeamsApi = {
+                getPrefs: jest.fn().mockResolvedValue({
+                    jerseyNumbers: { p1: "10" },
+                }),
+                updatePrefs: jest.fn().mockResolvedValue({}),
+            };
+            createAdminClient.mockReturnValue({ teams: mockTeamsApi });
+
+            const result = await updateJerseyNumber({
+                teamId,
+                playerId,
+                jerseyNumber: "",
+                client: mockSessionClient,
+            });
+
+            expect(mockTeamsApi.updatePrefs).toHaveBeenCalledWith(
+                teamId,
+                expect.objectContaining({
+                    jerseyNumbers: {},
+                }),
+            );
+            expect(result.success).toBe(true);
+        });
+
+        it("should throw if client is missing", async () => {
+            await expect(
+                updateJerseyNumber({ teamId, playerId, jerseyNumber }),
+            ).rejects.toThrow("strictly required");
+        });
+
+        it("should return error if not a manager", async () => {
+            verifyManager.mockResolvedValue({
+                success: false,
+                message: "No permission",
+            });
+
+            const result = await updateJerseyNumber({
+                teamId,
+                playerId,
+                jerseyNumber,
+                client: mockSessionClient,
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.message).toBe("No permission");
         });
     });
 

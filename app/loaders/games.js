@@ -4,6 +4,26 @@ import { parsePlayerChart } from "@/routes/gameday/utils/gamedayUtils";
 import { createAdminClient } from "@/utils/appwrite/server";
 import { DateTime } from "luxon";
 
+/**
+ * Enriches a parsed player chart with jersey numbers from team preferences.
+ * Handles both starters and their direct substitutions.
+ */
+function enrichPlayerChartWithJerseyNumbers(parsedChart, teamPrefs) {
+    if (!parsedChart) return null;
+    return parsedChart.map((slot) => {
+        const jersey = teamPrefs?.jerseyNumbers?.[slot.$id] || null;
+        const enrichedSubstitutions = (slot.substitutions || []).map((sub) => ({
+            ...sub,
+            jerseyNumber: teamPrefs?.jerseyNumbers?.[sub.playerId] || null,
+        }));
+        return {
+            ...slot,
+            jerseyNumber: jersey,
+            substitutions: enrichedSubstitutions,
+        };
+    });
+}
+
 const getAttendance = async ({ eventId, accepted = false, client }) => {
     const queries = [Query.equal("gameId", eventId)];
 
@@ -213,6 +233,17 @@ async function loadGameBase({ eventId, client }) {
             console.error("Error fetching team memberships:", teamsApiError);
         }
 
+        // Fetch team preferences for jersey numbers once at the base level
+        let teamPrefs = {};
+        try {
+            teamPrefs = await teamsApi.getPrefs(teamId);
+        } catch (prefsError) {
+            console.warn(
+                `loadGameBase: Failed to fetch team prefs for team ${teamId}:`,
+                prefsError.message,
+            );
+        }
+
         return {
             game,
             season,
@@ -223,6 +254,7 @@ async function loadGameBase({ eventId, client }) {
             managerIds,
             scorekeeperIds,
             playerChart,
+            teamPrefs,
         };
     } catch (error) {
         // Game not found - return null to indicate deletion
@@ -376,6 +408,7 @@ export async function getEventById({ eventId, client, ...options }) {
         managerIds,
         scorekeeperIds,
         playerChart,
+        teamPrefs,
     } = baseData;
 
     // Build deferred data object (promises for lazy loading in the UI)
@@ -389,12 +422,18 @@ export async function getEventById({ eventId, client, ...options }) {
 
     const parsedChart = parsePlayerChart(playerChart) ?? null;
 
+    // Enrich playerChart with jersey numbers (using teamPrefs from loadGameBase)
+    const enrichedChart = enrichPlayerChartWithJerseyNumbers(
+        parsedChart,
+        teamPrefs,
+    );
+
     return {
         gameDeleted: false,
         deferredData,
         game: {
             ...game,
-            playerChart: parsedChart,
+            playerChart: enrichedChart,
         },
         location,
         userIds,
@@ -423,8 +462,15 @@ export async function getEventWithPlayerCharts({ client, eventId }) {
         throw new Error(`Game ${eventId} could not be found.`);
     }
 
-    const { game, teams, userIds, managerIds, scorekeeperIds, playerChart } =
-        baseData;
+    const {
+        game,
+        teams,
+        userIds,
+        managerIds,
+        scorekeeperIds,
+        playerChart,
+        teamPrefs,
+    } = baseData;
 
     // Use shared defensive parser
     const parsedChart = parsePlayerChart(playerChart) ?? null;
@@ -477,11 +523,23 @@ export async function getEventWithPlayerCharts({ client, eventId }) {
     // Fully resolve the players for the non-deferred path
     const players = await resolvePlayers(allUserIds, client);
 
+    // Enrich players with jersey numbers (using teamPrefs from loadGameBase)
+    const enrichedPlayers = players.map((p) => ({
+        ...p,
+        jerseyNumber: teamPrefs?.jerseyNumbers?.[p.$id] || null,
+    }));
+
     const attendance = await getAttendance({
         eventId,
         accepted: false,
         client: client,
     });
+
+    // Enrich playerChart with jersey numbers
+    const enrichedChart = enrichPlayerChartWithJerseyNumbers(
+        parsedChart,
+        teamPrefs,
+    );
 
     return {
         attendance,
@@ -490,7 +548,7 @@ export async function getEventWithPlayerCharts({ client, eventId }) {
         managerIds,
         scorekeeperIds,
         teams,
-        playerChart: parsedChart,
-        players,
+        playerChart: enrichedChart,
+        players: enrichedPlayers,
     };
 }

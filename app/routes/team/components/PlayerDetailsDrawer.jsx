@@ -19,6 +19,7 @@ export default function PlayerDetailsDrawer({
     user,
     managerView,
     playerHits,
+    teamId,
     size,
 }) {
     if (!selectedPlayer) return null;
@@ -55,7 +56,7 @@ export default function PlayerDetailsDrawer({
                 )}
 
                 <Tabs.Panel value="player">
-                    <PlayerDetails player={selectedPlayer} />
+                    <PlayerDetails player={selectedPlayer} teamId={teamId} />
                 </Tabs.Panel>
 
                 <Tabs.Panel value="personal">

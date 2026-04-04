@@ -7,6 +7,7 @@ import {
     Image,
     Text,
 } from "@mantine/core";
+import { IconShirtSport } from "@tabler/icons-react";
 
 import fieldPositions from "@/constants/positions";
 import images from "@/constants/images";
@@ -43,12 +44,28 @@ function FieldPosition({ position, initials, isPreferred, isDisliked }) {
     );
 }
 
-function PlayerDetails({ player }) {
-    const { throws, bats, preferredPositions, dislikedPositions } = player;
+function PlayerDetails({ player, teamId }) {
+    const {
+        throws,
+        bats,
+        preferredPositions,
+        dislikedPositions,
+        jerseyNumber,
+    } = player;
 
     return (
         <Card shadow="sm" padding="lg" radius="lg" mt="md" withBorder>
             <Group>
+                {teamId && (
+                    <Group gap="4px">
+                        <Group gap="xs">
+                            <IconShirtSport size={20} />
+                        </Group>
+                        <Text fw={700} c={jerseyNumber ? "lime" : "dimmed"}>
+                            {jerseyNumber ? `#${jerseyNumber}` : "N/A"}
+                        </Text>
+                    </Group>
+                )}
                 <Group gap="4px">
                     <Text>Throws</Text>
                     <Text fw={700} c={throws ? "lime" : "red"}>

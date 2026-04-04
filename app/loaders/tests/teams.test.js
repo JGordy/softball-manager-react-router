@@ -175,9 +175,10 @@ describe("Teams Loader", () => {
                     listMemberships: jest
                         .fn()
                         .mockResolvedValue(mockMemberships),
-                    getPrefs: jest
-                        .fn()
-                        .mockResolvedValue({ maxMaleBatters: 3 }),
+                    getPrefs: jest.fn().mockResolvedValue({
+                        maxMaleBatters: 3,
+                        jerseyNumbers: { user1: "10" },
+                    }),
                 },
             });
 
@@ -194,9 +195,17 @@ describe("Teams Loader", () => {
 
             expect(result.teamData.$id).toBe("team1");
             expect(result.teamData.displayName).toBe("T1");
-            expect(result.teamData.prefs).toEqual({ maxMaleBatters: 3 });
+            expect(result.teamData.prefs.jerseyNumbers).toEqual({
+                user1: "10",
+            });
             expect(result.managerIds).toContain("user1");
             expect(result.players).toHaveLength(2);
+            expect(
+                result.players.find((p) => p.$id === "user1").jerseyNumber,
+            ).toBe("10");
+            expect(
+                result.players.find((p) => p.$id === "user2").jerseyNumber,
+            ).toBe(null);
             expect(result.teamData.seasons[0].games[0].displayName).toBe("T1");
         });
 

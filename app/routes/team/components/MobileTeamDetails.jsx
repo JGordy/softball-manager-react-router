@@ -48,6 +48,7 @@ export default function MobileTeamDetails({
                     managerView={managerView}
                     user={user}
                     teamLogs={teamLogs}
+                    teamId={team.$id}
                 />
             </Tabs.Panel>
 
