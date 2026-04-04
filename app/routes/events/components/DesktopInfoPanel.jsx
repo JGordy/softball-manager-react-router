@@ -26,6 +26,7 @@ import { formatGameTime } from "@/utils/dateTime";
 import CalendarDetails from "./CalendarDetails";
 import ParkDetailsDrawer from "./ParkDetailsDrawer";
 import AwardsDrawerContents from "./AwardsDrawerContents";
+import { isUserAwardWinner } from "@/utils/awards";
 
 export default function DesktopInfoPanel({
     game,
@@ -201,13 +202,11 @@ export default function DesktopInfoPanel({
                                             const votesTotal =
                                                 votes?.total ?? 0;
                                             const userId = user?.$id;
-                                            const userAward =
-                                                userId &&
-                                                awards?.rows?.some(
-                                                    (doc) =>
-                                                        doc.winner_user_id ===
-                                                        userId,
-                                                );
+                                            const userAward = isUserAwardWinner(
+                                                userId,
+                                                awards,
+                                                votes,
+                                            );
 
                                             let message = "Awards unavailable";
                                             let color = "dimmed";

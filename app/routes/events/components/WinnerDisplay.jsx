@@ -1,15 +1,16 @@
 import { useMemo, useEffect, useRef } from "react";
 
 import {
-    Avatar,
-    Badge,
     Card,
     Center,
-    Group,
+    Stack,
     Text,
     Title,
-    Stack,
+    Group,
+    Avatar,
+    Badge,
 } from "@mantine/core";
+import { calculateWinners } from "@/utils/awards";
 
 // Hook returns a startConfetti function. Caller should call it when the active award
 // changes and the caller determines it's the right time to run confetti.
@@ -151,28 +152,21 @@ export default function WinnerDisplay({
     user,
     votes,
 }) {
-    const counts = useMemo(() => {
+    const { winnerIds: currentWinnerIds, maxVotes } = useMemo(
+        () => calculateWinners(votes, activeAward),
+        [votes, activeAward],
+    );
+
+    const entries = useMemo(() => {
+        if (!votes?.rows) return [];
         const map = {};
-        if (!votes?.rows) return map;
-
-        votes.rows.forEach((vote) => {
-            if (vote.reason !== activeAward) return;
-            const playerId = vote.nominated_user_id;
-            if (!playerId) return;
-            map[playerId] = (map[playerId] || 0) + 1;
+        votes.rows.forEach((v) => {
+            if (v.reason !== activeAward) return;
+            const id = v.nominated_user_id || v.nominatedUserId;
+            if (id) map[id] = (map[id] || 0) + 1;
         });
-
-        return map;
+        return Object.entries(map);
     }, [votes, activeAward]);
-
-    const entries = Object.entries(counts);
-
-    // compute winners synchronously from entries for the current render
-    const maxVotes =
-        entries.length > 0 ? Math.max(...entries.map(([, c]) => c)) : 0;
-    const currentWinnerIds = entries
-        .filter(([, c]) => c === maxVotes)
-        .map(([id]) => id);
 
     const startConfetti = useWinnerConfetti(team);
     const confettiDebounceRef = useRef(null);
@@ -223,8 +217,10 @@ export default function WinnerDisplay({
         );
     }
 
-    const max = Math.max(...entries.map(([, c]) => c));
-    const winnerIds = entries.filter(([, c]) => c === max).map(([id]) => id);
+    const { winnerIds, maxVotes: max } = useMemo(
+        () => calculateWinners(votes, activeAward),
+        [votes, activeAward],
+    );
 
     const winnerPlayers = winnerIds
         .map((id) => players.find((p) => p.$id === id))
