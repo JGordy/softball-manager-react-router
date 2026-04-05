@@ -11,6 +11,7 @@ import InlineError from "@/components/InlineError";
 
 import CardSection from "./CardSection";
 import AwardsDrawerContents from "./AwardsDrawerContents";
+import { isUserAwardWinner } from "@/utils/awards";
 
 export default function AwardsContainer({ game, team, deferredData, user }) {
     const [awardsDrawerOpened, awardsDrawerHandlers] = useDisclosure(false);
@@ -131,14 +132,12 @@ export default function AwardsContainer({ game, team, deferredData, user }) {
                                 let message = "Awards unavailable at this time";
                                 let color = "dimmed";
 
-                                // If the current user appears as a winner in any awards document,
-                                // show a personalized message.
                                 const userId = user?.$id;
-                                const userAward =
-                                    userId &&
-                                    awards?.rows?.some(
-                                        (doc) => doc.winner_user_id === userId,
-                                    );
+                                const userAward = isUserAwardWinner(
+                                    userId,
+                                    awards,
+                                    votes,
+                                );
 
                                 if (userAward) {
                                     message = "You've received an award!";

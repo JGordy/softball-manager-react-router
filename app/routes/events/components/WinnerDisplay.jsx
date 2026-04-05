@@ -1,15 +1,16 @@
 import { useMemo, useEffect, useRef } from "react";
 
 import {
-    Avatar,
-    Badge,
     Card,
     Center,
-    Group,
+    Stack,
     Text,
     Title,
-    Stack,
+    Group,
+    Avatar,
+    Badge,
 } from "@mantine/core";
+import { calculateWinners } from "@/utils/awards";
 
 // Hook returns a startConfetti function. Caller should call it when the active award
 // changes and the caller determines it's the right time to run confetti.
@@ -151,28 +152,18 @@ export default function WinnerDisplay({
     user,
     votes,
 }) {
-    const counts = useMemo(() => {
-        const map = {};
-        if (!votes?.rows) return map;
+    const {
+        winnerIds,
+        maxVotes: max,
+        tallies,
+    } = useMemo(
+        () => calculateWinners(votes, activeAward),
+        [votes, activeAward],
+    );
 
-        votes.rows.forEach((vote) => {
-            if (vote.reason !== activeAward) return;
-            const playerId = vote.nominated_user_id;
-            if (!playerId) return;
-            map[playerId] = (map[playerId] || 0) + 1;
-        });
-
-        return map;
-    }, [votes, activeAward]);
-
-    const entries = Object.entries(counts);
-
-    // compute winners synchronously from entries for the current render
-    const maxVotes =
-        entries.length > 0 ? Math.max(...entries.map(([, c]) => c)) : 0;
-    const currentWinnerIds = entries
-        .filter(([, c]) => c === maxVotes)
-        .map(([id]) => id);
+    const entries = useMemo(() => {
+        return Object.entries(tallies);
+    }, [tallies]);
 
     const startConfetti = useWinnerConfetti(team);
     const confettiDebounceRef = useRef(null);
@@ -188,7 +179,7 @@ export default function WinnerDisplay({
         confettiDebounceRef.current = setTimeout(() => {
             const userIdRaw = user?.$id;
             const userId = userIdRaw != null ? String(userIdRaw) : null;
-            const winnerIdStrings = currentWinnerIds.map((id) => String(id));
+            const winnerIdStrings = winnerIds.map((id) => String(id));
 
             if (userId && winnerIdStrings.includes(userId)) {
                 startConfetti({ entries, user });
@@ -222,9 +213,6 @@ export default function WinnerDisplay({
             </Card>
         );
     }
-
-    const max = Math.max(...entries.map(([, c]) => c));
-    const winnerIds = entries.filter(([, c]) => c === max).map(([id]) => id);
 
     const winnerPlayers = winnerIds
         .map((id) => players.find((p) => p.$id === id))
