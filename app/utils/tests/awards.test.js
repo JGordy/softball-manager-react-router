@@ -23,7 +23,10 @@ describe("awards utility", () => {
             );
             expect(winnerIds).toEqual(["user-1"]);
             expect(maxVotes).toBe(2);
-            expect(tallies).toEqual({ "user-1": 2, "user-2": 1 });
+            expect(Object.fromEntries(Object.entries(tallies))).toEqual({
+                "user-1": 2,
+                "user-2": 1,
+            });
         });
 
         it("should calculate a tie correctly", () => {
