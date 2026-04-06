@@ -109,7 +109,6 @@ export default function LineupContainer({
     const handleStartFromScratch = () => {
         trackEvent("lineup_start_from_scratch", { gameId: game?.$id });
         lineupHandlers.setState([]);
-        handleOnSave([]);
         createLineupHandlers.close();
         onOpenAddPlayers();
     };

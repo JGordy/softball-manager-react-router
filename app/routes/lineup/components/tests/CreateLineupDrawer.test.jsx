@@ -91,10 +91,10 @@ describe("CreateLineupDrawer", () => {
             ).toBeDisabled();
         });
 
-        it("shows a message when no players have accepted", () => {
+        it("shows a message when no players are available", () => {
             renderDrawer({ availablePlayers: [] });
             expect(
-                screen.getByText(/No players have accepted yet/i),
+                screen.getByText(/No players are available yet/i),
             ).toBeInTheDocument();
         });
 

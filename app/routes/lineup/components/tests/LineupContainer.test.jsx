@@ -197,6 +197,16 @@ describe("LineupContainer Component", () => {
         });
     });
 
+    it("does not persist to server when Start from Scratch is chosen", () => {
+        render(<LineupContainer {...defaultProps} lineupState={null} />);
+        fireEvent.click(screen.getByRole("button", { name: /Create Lineup/i }));
+        fireEvent.click(
+            screen.getByRole("button", { name: "Start from Scratch" }),
+        );
+
+        expect(mockFetcher.submit).not.toHaveBeenCalled();
+    });
+
     it("tracks lineup_create_with_available when Create with Available is chosen", () => {
         render(<LineupContainer {...defaultProps} lineupState={null} />);
         fireEvent.click(screen.getByRole("button", { name: /Create Lineup/i }));

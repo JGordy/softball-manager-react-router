@@ -315,12 +315,10 @@ function Lineup({ loaderData, actionData }) {
             <AddPlayersDrawer
                 opened={addPlayersDrawerOpened}
                 onClose={() => {
+                    if (lineupStateRef.current?.length === 0) {
+                        lineupHandlers.setState(null);
+                    }
                     addPlayersHandlers.close();
-                    setTimeout(() => {
-                        if (lineupStateRef.current?.length === 0) {
-                            lineupHandlers.setState(null);
-                        }
-                    }, 0);
                 }}
                 playersNotInLineup={playersNotInLineup}
                 lineupState={lineupState ?? []}
