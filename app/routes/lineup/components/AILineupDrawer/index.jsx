@@ -12,8 +12,8 @@ import InitialView from "./InitialView";
 import LoadingView from "./LoadingView";
 import ResultsView from "./ResultsView";
 
-// Need at least 10 players to fill all fielding positions and generate a meaningful batting order
-const MIN_PLAYERS_FOR_AI_LINEUP = 10;
+// Need at least 9 players to generate a meaningful batting order and fielding chart
+const MIN_PLAYERS_FOR_AI_LINEUP = 9;
 
 const LOADING_MESSAGES = [
     "AI is warming up in the bullpen to generate your lineup...",
@@ -332,6 +332,9 @@ export default function AILineupDrawer({
                         onGenerate={handleGenerateAILineup}
                         generationsUsed={generationsUsed}
                         maxGenerations={MAX_AI_GENERATIONS_PER_GAME}
+                        notEnoughPlayers={
+                            availablePlayers.length < MIN_PLAYERS_FOR_AI_LINEUP
+                        }
                     />
                 )
             ) : (

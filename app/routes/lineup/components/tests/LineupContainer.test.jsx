@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from "@/utils/test-utils";
 import * as dateTimeUtils from "@/utils/dateTime";
+import { trackEvent } from "@/utils/analytics";
 import * as createBattingOrder from "../../utils/createBattingOrder";
 import * as createFieldingChart from "../../utils/createFieldingChart";
 
@@ -8,14 +9,41 @@ import LineupContainer from "../LineupContainer";
 // Mock dependencies
 jest.mock("react-router", () => ({
     useFetcher: jest.fn(),
+    useOutletContext: jest.fn(() => ({ isDesktop: false })),
     Form: ({ children, ...props }) => <form {...props}>{children}</form>,
 }));
+
+jest.mock(
+    "../CreateLineupDrawer",
+    () =>
+        function MockCreateLineupDrawer({
+            opened,
+            onStartFromScratch,
+            onCreateWithAvailable,
+            onOpenAiDrawer,
+        }) {
+            if (!opened) return null;
+            return (
+                <div data-testid="create-lineup-drawer">
+                    <button onClick={onStartFromScratch}>
+                        Start from Scratch
+                    </button>
+                    <button onClick={onCreateWithAvailable}>
+                        Create with Available
+                    </button>
+                    <button onClick={onOpenAiDrawer}>Generate AI Lineup</button>
+                </div>
+            );
+        },
+);
 
 jest.mock("@/utils/dateTime");
 jest.mock("../../utils/createBattingOrder");
 jest.mock("../../utils/createFieldingChart");
+jest.mock("@/utils/analytics", () => ({ trackEvent: jest.fn() }));
 
 // Mock child components
+// eslint-disable-next-line react/display-name
 jest.mock("../EditablePlayerChart", () => ({ playerChart }) => (
     <div data-testid="editable-player-chart">
         {playerChart?.length || 0} players
@@ -55,6 +83,8 @@ describe("LineupContainer Component", () => {
         setHasBeenEdited: jest.fn(),
         validationResults: {},
         teams: [{ id: "team1", idealLineup: [] }],
+        onOpenAiDrawer: jest.fn(),
+        onOpenAddPlayers: jest.fn(),
     };
 
     beforeEach(() => {
@@ -65,40 +95,38 @@ describe("LineupContainer Component", () => {
         createFieldingChart.default.mockReturnValue([]);
     });
 
-    it("renders waiting message when not enough players", () => {
+    it("renders Create Lineup button for manager when no lineup exists", () => {
         const props = {
             ...defaultProps,
-            players: [], // No players
-            lineupState: null, // Ensure lineupState is explicitly null to trigger the "no chart" view
+            players: [],
+            lineupState: null,
         };
 
         render(<LineupContainer {...props} />);
 
         expect(
-            screen.getByText(/There aren't enough available players/),
+            screen.getByRole("button", { name: /Create Lineup/i }),
         ).toBeInTheDocument();
     });
 
-    it("renders create charts button when no chart exists", () => {
-        // Mock enough players
+    it("renders Create Lineup button when no chart exists", () => {
         const players = Array.from({ length: 8 }, (_, i) => ({
             $id: `p${i}`,
             firstName: `P${i}`,
             availability: "accepted",
         }));
 
-        // When lineupState is null/undefined (not initialized yet)
         const props = {
             ...defaultProps,
             players,
-            lineupState: null, // Force null to test the condition
+            lineupState: null,
             playerChart: null,
         };
 
         render(<LineupContainer {...props} />);
 
         expect(
-            screen.getByText("Create Batting and Fielding Charts"),
+            screen.getByRole("button", { name: /Create Lineup/i }),
         ).toBeInTheDocument();
     });
 
@@ -130,23 +158,79 @@ describe("LineupContainer Component", () => {
         expect(savePublishButtons).toHaveLength(2);
     });
 
-    it("calls handleCreateCharts when create button clicked", () => {
-        const players = Array.from({ length: 8 }, (_, i) => ({
-            $id: `p${i}`,
-            firstName: `P${i}`,
-            availability: "accepted",
-        }));
-
+    it("opens CreateLineupDrawer when Create Lineup button is clicked", () => {
         const props = {
             ...defaultProps,
-            players,
             lineupState: null,
         };
 
         render(<LineupContainer {...props} />);
 
-        fireEvent.click(screen.getByText("Create Batting and Fielding Charts"));
+        expect(
+            screen.queryByTestId("create-lineup-drawer"),
+        ).not.toBeInTheDocument();
 
-        expect(createBattingOrder.default).toHaveBeenCalled();
+        fireEvent.click(screen.getByRole("button", { name: /Create Lineup/i }));
+
+        expect(screen.getByTestId("create-lineup-drawer")).toBeInTheDocument();
+    });
+
+    it("tracks lineup_open_create_drawer when Create Lineup button is clicked", () => {
+        render(<LineupContainer {...defaultProps} lineupState={null} />);
+
+        fireEvent.click(screen.getByRole("button", { name: /Create Lineup/i }));
+
+        expect(trackEvent).toHaveBeenCalledWith("lineup_open_create_drawer", {
+            gameId: "game1",
+        });
+    });
+
+    it("tracks lineup_start_from_scratch when Start from Scratch is chosen", () => {
+        render(<LineupContainer {...defaultProps} lineupState={null} />);
+        fireEvent.click(screen.getByRole("button", { name: /Create Lineup/i }));
+        fireEvent.click(
+            screen.getByRole("button", { name: "Start from Scratch" }),
+        );
+
+        expect(trackEvent).toHaveBeenCalledWith("lineup_start_from_scratch", {
+            gameId: "game1",
+        });
+    });
+
+    it("does not persist to server when Start from Scratch is chosen", () => {
+        render(<LineupContainer {...defaultProps} lineupState={null} />);
+        fireEvent.click(screen.getByRole("button", { name: /Create Lineup/i }));
+        fireEvent.click(
+            screen.getByRole("button", { name: "Start from Scratch" }),
+        );
+
+        expect(mockFetcher.submit).not.toHaveBeenCalled();
+    });
+
+    it("tracks lineup_create_with_available when Create with Available is chosen", () => {
+        render(<LineupContainer {...defaultProps} lineupState={null} />);
+        fireEvent.click(screen.getByRole("button", { name: /Create Lineup/i }));
+        fireEvent.click(
+            screen.getByRole("button", { name: "Create with Available" }),
+        );
+
+        expect(trackEvent).toHaveBeenCalledWith(
+            "lineup_create_with_available",
+            {
+                gameId: "game1",
+            },
+        );
+    });
+
+    it("tracks lineup_open_ai_drawer when Generate AI Lineup is chosen", () => {
+        render(<LineupContainer {...defaultProps} lineupState={null} />);
+        fireEvent.click(screen.getByRole("button", { name: /Create Lineup/i }));
+        fireEvent.click(
+            screen.getByRole("button", { name: "Generate AI Lineup" }),
+        );
+
+        expect(trackEvent).toHaveBeenCalledWith("lineup_open_ai_drawer", {
+            gameId: "game1",
+        });
     });
 });

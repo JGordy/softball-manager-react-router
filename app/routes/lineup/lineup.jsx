@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useOutletContext, useParams, Link } from "react-router";
 
 import { Container, Group, Stack, Text, Title, Button } from "@mantine/core";
-import { useListState } from "@mantine/hooks";
+import { useListState, useDisclosure } from "@mantine/hooks";
 
 import { IconDeviceAnalytics } from "@tabler/icons-react";
 
@@ -26,6 +26,8 @@ import useModal from "@/hooks/useModal";
 import LineupContainer from "./components/LineupContainer";
 import LineupMenu from "./components/LineupMenu";
 import LineupValidationMenu from "./components/LineupValidationMenu";
+import AILineupDrawer from "./components/AILineupDrawer";
+import AddPlayersDrawer from "./components/AddPlayersDrawer";
 
 import { validateLineup } from "./utils/validateLineup";
 
@@ -148,8 +150,17 @@ function Lineup({ loaderData, actionData }) {
 
     const [lineupState, lineupHandlers] = useListState(rest.playerChart);
     const [hasBeenEdited, setHasBeenEdited] = useState(false);
+    const [aiDrawerOpened, aiDrawerHandlers] = useDisclosure(false);
+    const [addPlayersDrawerOpened, addPlayersHandlers] = useDisclosure(false);
+    const lineupStateRef = useRef(null);
     const { closeAllModals } = useModal();
     const lastProcessedActionDataRef = useRef(null);
+
+    // Keep a ref in sync so the AddPlayersDrawer onClose handler always reads
+    // the latest lineupState without a stale closure.
+    useEffect(() => {
+        lineupStateRef.current = lineupState;
+    }, [lineupState]);
 
     const playersNotInLineup = playersWithAvailability?.filter((p) => {
         const isInLineup = lineupState?.some((lp) => lp.$id === p.$id);
@@ -181,6 +192,7 @@ function Lineup({ loaderData, actionData }) {
                     positions: [],
                 });
 
+                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setHasBeenEdited(true);
                 closeAllModals();
 
@@ -226,11 +238,12 @@ function Lineup({ loaderData, actionData }) {
                                 game={game}
                                 team={team}
                                 actionUrl={`/events/${eventId}/lineup`}
-                                playersNotInLineup={playersNotInLineup}
                                 players={playersWithAvailability}
                                 lineupState={lineupState}
                                 lineupHandlers={lineupHandlers}
                                 setHasBeenEdited={setHasBeenEdited}
+                                onOpenAiDrawer={aiDrawerHandlers.open}
+                                onOpenAddPlayers={addPlayersHandlers.open}
                             />
                         </Group>
                     )}
@@ -255,11 +268,12 @@ function Lineup({ loaderData, actionData }) {
                                 game={game}
                                 team={team}
                                 actionUrl={`/events/${eventId}/lineup`}
-                                playersNotInLineup={playersNotInLineup}
                                 players={playersWithAvailability}
                                 lineupState={lineupState}
                                 lineupHandlers={lineupHandlers}
                                 setHasBeenEdited={setHasBeenEdited}
+                                onOpenAiDrawer={aiDrawerHandlers.open}
+                                onOpenAddPlayers={addPlayersHandlers.open}
                             />
                         </Group>
                     )}
@@ -283,7 +297,33 @@ function Lineup({ loaderData, actionData }) {
                 hasBeenEdited={hasBeenEdited}
                 setHasBeenEdited={setHasBeenEdited}
                 validationResults={validationResults}
+                onOpenAiDrawer={aiDrawerHandlers.open}
+                onOpenAddPlayers={addPlayersHandlers.open}
                 {...rest}
+            />
+
+            <AILineupDrawer
+                opened={aiDrawerOpened}
+                onClose={aiDrawerHandlers.close}
+                game={game}
+                team={team}
+                players={playersWithAvailability}
+                lineupHandlers={lineupHandlers}
+                setHasBeenEdited={setHasBeenEdited}
+            />
+
+            <AddPlayersDrawer
+                opened={addPlayersDrawerOpened}
+                onClose={() => {
+                    if (lineupStateRef.current?.length === 0) {
+                        lineupHandlers.setState(null);
+                    }
+                    addPlayersHandlers.close();
+                }}
+                playersNotInLineup={playersNotInLineup}
+                lineupState={lineupState ?? []}
+                lineupHandlers={lineupHandlers}
+                setHasBeenEdited={setHasBeenEdited}
             />
         </Container>
     );

@@ -1,17 +1,19 @@
 import { useFetcher } from "react-router";
 
-import { Alert, Box, Button, Card, Group, Text } from "@mantine/core";
+import { Box, Button, Card, Group, Text } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 
 import {
     IconArrowBackUp,
     IconBellRinging,
     IconDeviceFloppy,
-    IconInfoCircle,
 } from "@tabler/icons-react";
 
 import { getGameDayStatus } from "@/utils/dateTime";
+import { trackEvent } from "@/utils/analytics";
 
 import EditablePlayerChart from "./EditablePlayerChart";
+import CreateLineupDrawer from "./CreateLineupDrawer";
 
 import createBattingOrder from "../utils/createBattingOrder";
 import createFieldingChart from "../utils/createFieldingChart";
@@ -27,27 +29,18 @@ export default function LineupContainer({
     setHasBeenEdited,
     validationResults,
     teams,
+    onOpenAiDrawer,
+    onOpenAddPlayers,
 }) {
     const fetcher = useFetcher();
+    const [createLineupOpened, createLineupHandlers] = useDisclosure(false);
 
     // Get the team data for ideal lineup/positioning
     const team = teams?.[0] || game?.team;
 
     const availablePlayers = players?.filter(
-        (p) => p.availability === "accepted",
+        (p) => p.availability === "accepted" || p.availability === "tentative",
     );
-    // console.log('/event/:eventId > LineupContainer: ', { availablePlayers, lineupState, players });
-
-    // NOTE: Most leagues require at least 8 players in the field to allow the teams to take the field
-    // TODO: Add a database field for minimum number of players?
-    const hasEnoughPlayers = availablePlayers?.length > 7;
-
-    let message =
-        "Charts for this game have not yet been created. You can create them below.";
-
-    if (!hasEnoughPlayers) {
-        message = `There aren't enough available players to create a lineup. A minimum of 8 players is required (${availablePlayers.length} available).`;
-    }
 
     const handleOnSave = (chart) => {
         try {
@@ -93,24 +86,42 @@ export default function LineupContainer({
 
     // NOTE: Uses an algorithm I created to generate a lineup and fielding chart
     // Team-level idealLineup and idealPositioning take precedence over player preferences
-    const handleCreateCharts = () => {
-        if (hasEnoughPlayers) {
-            const batting = createBattingOrder(availablePlayers, {
-                idealLineup: team?.idealLineup,
+    const handleCreateWithAvailable = () => {
+        trackEvent("lineup_create_with_available", { gameId: game?.$id });
+        const batting = createBattingOrder(availablePlayers, {
+            idealLineup: team?.idealLineup,
+        });
+
+        if (batting?.length > 0) {
+            const fieldingChart = createFieldingChart(batting, {
+                idealPositioning: team?.idealPositioning,
             });
 
-            if (batting?.length > 0) {
-                const fieldingChart = createFieldingChart(batting, {
-                    idealPositioning: team?.idealPositioning,
-                });
-
-                if (fieldingChart?.length > 0) {
-                    lineupHandlers.setState(fieldingChart);
-                }
-
-                handleOnSave(fieldingChart);
+            if (fieldingChart?.length > 0) {
+                lineupHandlers.setState(fieldingChart);
             }
+
+            handleOnSave(fieldingChart);
         }
+        createLineupHandlers.close();
+    };
+
+    const handleStartFromScratch = () => {
+        trackEvent("lineup_start_from_scratch", { gameId: game?.$id });
+        lineupHandlers.setState([]);
+        createLineupHandlers.close();
+        onOpenAddPlayers();
+    };
+
+    const handleOpenAiDrawer = () => {
+        trackEvent("lineup_open_ai_drawer", { gameId: game?.$id });
+        createLineupHandlers.close();
+        onOpenAiDrawer();
+    };
+
+    const handleOpenCreateLineup = () => {
+        trackEvent("lineup_open_create_drawer", { gameId: game?.$id });
+        createLineupHandlers.open();
     };
 
     const handleEditChart = (position, playerId, inning) => {
@@ -136,28 +147,35 @@ export default function LineupContainer({
             <>
                 {managerView ? (
                     <>
-                        <Alert
-                            title={
-                                hasEnoughPlayers
-                                    ? "Charts not yet created"
-                                    : "Not enough players"
-                            }
-                            variant="light"
-                            color={hasEnoughPlayers ? "yellow" : "red"}
-                            icon={<IconInfoCircle size={18} />}
-                        >
-                            {message}
-                        </Alert>
-                        {hasEnoughPlayers && (
-                            <Button
-                                mt="sm"
-                                onClick={handleCreateCharts}
-                                fullWidth
-                            >
-                                Create Batting and Fielding Charts
-                            </Button>
-                        )}
+                        <Button onClick={handleOpenCreateLineup} fullWidth>
+                            Create Lineup
+                        </Button>
+                        <CreateLineupDrawer
+                            opened={createLineupOpened}
+                            onClose={createLineupHandlers.close}
+                            availablePlayers={availablePlayers}
+                            onStartFromScratch={handleStartFromScratch}
+                            onCreateWithAvailable={handleCreateWithAvailable}
+                            onOpenAiDrawer={handleOpenAiDrawer}
+                        />
                     </>
+                ) : (
+                    <Text>
+                        Batting Lineup and Fielding Chart have not yet been
+                        created. Come back later.
+                    </Text>
+                )}
+            </>
+        );
+    }
+
+    if (lineupState.length === 0) {
+        return (
+            <>
+                {managerView ? (
+                    <Button onClick={onOpenAddPlayers} fullWidth>
+                        Add Players to Lineup
+                    </Button>
                 ) : (
                     <Text>
                         Batting Lineup and Fielding Chart have not yet been
