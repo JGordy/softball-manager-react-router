@@ -82,7 +82,7 @@ export default function CreateLineupDrawer({
                     description={
                         canCreateWithAvailable
                             ? `Auto-generate a batting order and fielding chart from your ${availableCount} available player${availableCount === 1 ? "" : "s"}.`
-                            : "No players have accepted yet. Check back once players have responded."
+                            : "No players are available yet. Check back once players have responded."
                     }
                     onClick={onCreateWithAvailable}
                     disabled={!canCreateWithAvailable}

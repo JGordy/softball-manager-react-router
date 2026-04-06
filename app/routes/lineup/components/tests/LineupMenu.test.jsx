@@ -42,11 +42,10 @@ jest.mock("../AddGuestPlayerModal", () => () => (
 describe("LineupMenu Component", () => {
     const defaultProps = {
         game: { gameDate: "2023-01-01" },
-        team: { id: "team1" },
+        team: { $id: "team1" },
         actionUrl: "/events/evt1/lineup",
         lineupState: [{ $id: "p1" }],
         lineupHandlers: {},
-        playersNotInLineup: [],
         players: [{ $id: "p1" }],
         setHasBeenEdited: jest.fn(),
         onOpenAiDrawer: jest.fn(),

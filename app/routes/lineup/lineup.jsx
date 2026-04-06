@@ -160,7 +160,7 @@ function Lineup({ loaderData, actionData }) {
     // the latest lineupState without a stale closure.
     useEffect(() => {
         lineupStateRef.current = lineupState;
-    });
+    }, [lineupState]);
 
     const playersNotInLineup = playersWithAvailability?.filter((p) => {
         const isInLineup = lineupState?.some((lp) => lp.$id === p.$id);
