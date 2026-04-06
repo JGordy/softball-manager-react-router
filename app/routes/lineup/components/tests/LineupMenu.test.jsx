@@ -21,29 +21,20 @@ jest.mock("@tabler/icons-react", () => ({
 }));
 
 jest.mock(
-    "../AILineupDrawer",
-    () =>
-        ({ opened }) =>
-            opened ? <div data-testid="ai-generate-drawer" /> : null,
-);
-jest.mock(
-    "../AddPlayersDrawer",
-    () =>
-        ({ opened }) =>
-            opened ? <div data-testid="add-players-drawer" /> : null,
-);
-jest.mock(
     "../RemovePlayersDrawer",
     () =>
+        // eslint-disable-next-line react/display-name
         ({ opened }) =>
             opened ? <div data-testid="remove-players-drawer" /> : null,
 );
 jest.mock(
     "../DeleteLineupDrawer",
     () =>
+        // eslint-disable-next-line react/display-name
         ({ opened }) =>
             opened ? <div data-testid="delete-lineup-drawer" /> : null,
 );
+// eslint-disable-next-line react/display-name
 jest.mock("../AddGuestPlayerModal", () => () => (
     <div data-testid="add-guest-player-modal" />
 ));
@@ -58,6 +49,8 @@ describe("LineupMenu Component", () => {
         playersNotInLineup: [],
         players: [{ $id: "p1" }],
         setHasBeenEdited: jest.fn(),
+        onOpenAiDrawer: jest.fn(),
+        onOpenAddPlayers: jest.fn(),
     };
 
     const mockOpenModal = jest.fn();
@@ -94,7 +87,7 @@ describe("LineupMenu Component", () => {
     it("hides Add/Remove players if no lineup", async () => {
         const props = {
             ...defaultProps,
-            lineupState: [],
+            lineupState: null,
         };
 
         render(
@@ -132,12 +125,6 @@ describe("LineupMenu Component", () => {
         );
 
         expect(
-            screen.queryByTestId("ai-generate-drawer"),
-        ).not.toBeInTheDocument();
-        expect(
-            screen.queryByTestId("add-players-drawer"),
-        ).not.toBeInTheDocument();
-        expect(
             screen.queryByTestId("remove-players-drawer"),
         ).not.toBeInTheDocument();
         expect(
@@ -145,7 +132,7 @@ describe("LineupMenu Component", () => {
         ).not.toBeInTheDocument();
     });
 
-    it("opens AI drawer when Generate AI Lineup clicked", async () => {
+    it("calls onOpenAiDrawer when Generate AI Lineup clicked", async () => {
         render(
             <MemoryRouter>
                 <LineupMenu {...defaultProps} />
@@ -155,10 +142,10 @@ describe("LineupMenu Component", () => {
         await openMenu();
         fireEvent.click(screen.getByText("Generate AI Lineup"));
 
-        expect(screen.getByTestId("ai-generate-drawer")).toBeInTheDocument();
+        expect(defaultProps.onOpenAiDrawer).toHaveBeenCalledTimes(1);
     });
 
-    it("opens Add Players drawer when clicked", async () => {
+    it("calls onOpenAddPlayers when Add Players clicked", async () => {
         render(
             <MemoryRouter>
                 <LineupMenu {...defaultProps} />
@@ -168,7 +155,7 @@ describe("LineupMenu Component", () => {
         await openMenu();
         fireEvent.click(screen.getByText("Add Players"));
 
-        expect(screen.getByTestId("add-players-drawer")).toBeInTheDocument();
+        expect(defaultProps.onOpenAddPlayers).toHaveBeenCalledTimes(1);
     });
 
     it("opens Remove Players drawer when clicked", async () => {

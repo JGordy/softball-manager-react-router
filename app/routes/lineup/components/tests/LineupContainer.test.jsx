@@ -8,14 +8,24 @@ import LineupContainer from "../LineupContainer";
 // Mock dependencies
 jest.mock("react-router", () => ({
     useFetcher: jest.fn(),
+    useOutletContext: jest.fn(() => ({ isDesktop: false })),
     Form: ({ children, ...props }) => <form {...props}>{children}</form>,
 }));
+
+jest.mock(
+    "../CreateLineupDrawer",
+    () =>
+        function MockCreateLineupDrawer({ opened }) {
+            return opened ? <div data-testid="create-lineup-drawer" /> : null;
+        },
+);
 
 jest.mock("@/utils/dateTime");
 jest.mock("../../utils/createBattingOrder");
 jest.mock("../../utils/createFieldingChart");
 
 // Mock child components
+// eslint-disable-next-line react/display-name
 jest.mock("../EditablePlayerChart", () => ({ playerChart }) => (
     <div data-testid="editable-player-chart">
         {playerChart?.length || 0} players
@@ -55,6 +65,8 @@ describe("LineupContainer Component", () => {
         setHasBeenEdited: jest.fn(),
         validationResults: {},
         teams: [{ id: "team1", idealLineup: [] }],
+        onOpenAiDrawer: jest.fn(),
+        onOpenAddPlayers: jest.fn(),
     };
 
     beforeEach(() => {
@@ -65,40 +77,38 @@ describe("LineupContainer Component", () => {
         createFieldingChart.default.mockReturnValue([]);
     });
 
-    it("renders waiting message when not enough players", () => {
+    it("renders Create Lineup button for manager when no lineup exists", () => {
         const props = {
             ...defaultProps,
-            players: [], // No players
-            lineupState: null, // Ensure lineupState is explicitly null to trigger the "no chart" view
+            players: [],
+            lineupState: null,
         };
 
         render(<LineupContainer {...props} />);
 
         expect(
-            screen.getByText(/There aren't enough available players/),
+            screen.getByRole("button", { name: /Create Lineup/i }),
         ).toBeInTheDocument();
     });
 
-    it("renders create charts button when no chart exists", () => {
-        // Mock enough players
+    it("renders Create Lineup button when no chart exists", () => {
         const players = Array.from({ length: 8 }, (_, i) => ({
             $id: `p${i}`,
             firstName: `P${i}`,
             availability: "accepted",
         }));
 
-        // When lineupState is null/undefined (not initialized yet)
         const props = {
             ...defaultProps,
             players,
-            lineupState: null, // Force null to test the condition
+            lineupState: null,
             playerChart: null,
         };
 
         render(<LineupContainer {...props} />);
 
         expect(
-            screen.getByText("Create Batting and Fielding Charts"),
+            screen.getByRole("button", { name: /Create Lineup/i }),
         ).toBeInTheDocument();
     });
 
@@ -130,23 +140,20 @@ describe("LineupContainer Component", () => {
         expect(savePublishButtons).toHaveLength(2);
     });
 
-    it("calls handleCreateCharts when create button clicked", () => {
-        const players = Array.from({ length: 8 }, (_, i) => ({
-            $id: `p${i}`,
-            firstName: `P${i}`,
-            availability: "accepted",
-        }));
-
+    it("opens CreateLineupDrawer when Create Lineup button is clicked", () => {
         const props = {
             ...defaultProps,
-            players,
             lineupState: null,
         };
 
         render(<LineupContainer {...props} />);
 
-        fireEvent.click(screen.getByText("Create Batting and Fielding Charts"));
+        expect(
+            screen.queryByTestId("create-lineup-drawer"),
+        ).not.toBeInTheDocument();
 
-        expect(createBattingOrder.default).toHaveBeenCalled();
+        fireEvent.click(screen.getByRole("button", { name: /Create Lineup/i }));
+
+        expect(screen.getByTestId("create-lineup-drawer")).toBeInTheDocument();
     });
 });

@@ -192,4 +192,66 @@ describe("AILineupDrawer Client Integration", () => {
             // Or "Server error details" if we expose it
         });
     });
+
+    describe("notEnoughPlayers", () => {
+        const fewerPlayersProps = {
+            ...defaultProps,
+            players: Array(4)
+                .fill(0)
+                .map((_, i) => ({
+                    $id: `p${i}`,
+                    firstName: "Player",
+                    lastName: `${i}`,
+                    availability: "accepted",
+                })),
+        };
+
+        it("disables the Generate Lineup button when fewer than 9 players are available", () => {
+            render(
+                <MantineProvider>
+                    <AILineupDrawer {...fewerPlayersProps} />
+                </MantineProvider>,
+            );
+            expect(
+                screen.getByRole("button", { name: /Not Enough Players/i }),
+            ).toBeDisabled();
+        });
+
+        it("shows the not enough players alert when fewer than 9 players are available", () => {
+            render(
+                <MantineProvider>
+                    <AILineupDrawer {...fewerPlayersProps} />
+                </MantineProvider>,
+            );
+            expect(
+                screen.getByText(
+                    /A minimum of 9 available players is required/i,
+                ),
+            ).toBeInTheDocument();
+        });
+
+        it("enables the Generate Lineup button when 9 or more players are available", () => {
+            render(
+                <MantineProvider>
+                    <AILineupDrawer {...defaultProps} />
+                </MantineProvider>,
+            );
+            expect(
+                screen.getByRole("button", { name: /Generate Lineup/i }),
+            ).not.toBeDisabled();
+        });
+
+        it("does not show the not enough players alert when 9 or more players are available", () => {
+            render(
+                <MantineProvider>
+                    <AILineupDrawer {...defaultProps} />
+                </MantineProvider>,
+            );
+            expect(
+                screen.queryByText(
+                    /A minimum of 9 available players is required/i,
+                ),
+            ).not.toBeInTheDocument();
+        });
+    });
 });
