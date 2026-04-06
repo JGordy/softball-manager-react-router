@@ -58,9 +58,9 @@ export default function CreateLineupDrawer({
 }) {
     const { isDesktop } = useOutletContext();
 
-    const acceptedCount = availablePlayers?.length ?? 0;
-    const canCreateWithAvailable = acceptedCount >= 1;
-    const canGenerateAI = acceptedCount >= 9;
+    const availableCount = availablePlayers?.length ?? 0;
+    const canCreateWithAvailable = availableCount >= 1;
+    const canGenerateAI = availableCount >= 9;
 
     return (
         <DrawerContainer
@@ -81,7 +81,7 @@ export default function CreateLineupDrawer({
                     title="Create with Available Players"
                     description={
                         canCreateWithAvailable
-                            ? `Auto-generate a batting order and fielding chart from your ${acceptedCount} available player${acceptedCount === 1 ? "" : "s"}.`
+                            ? `Auto-generate a batting order and fielding chart from your ${availableCount} available player${availableCount === 1 ? "" : "s"}.`
                             : "No players have accepted yet. Check back once players have responded."
                     }
                     onClick={onCreateWithAvailable}
@@ -93,7 +93,7 @@ export default function CreateLineupDrawer({
                     description={
                         canGenerateAI
                             ? "Use AI to generate an optimized lineup based on player stats and preferences."
-                            : `Requires 9 or more available players (${acceptedCount} available).`
+                            : `Requires 9 or more available players (${availableCount} available).`
                     }
                     onClick={onOpenAiDrawer}
                     gradient
