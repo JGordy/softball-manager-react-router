@@ -38,7 +38,7 @@ export default function LineupContainer({
     const team = teams?.[0] || game?.team;
 
     const availablePlayers = players?.filter(
-        (p) => p.availability === "accepted",
+        (p) => p.availability === "accepted" || p.availability === "tentative",
     );
 
     const handleOnSave = (chart) => {

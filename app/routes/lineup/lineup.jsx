@@ -152,8 +152,15 @@ function Lineup({ loaderData, actionData }) {
     const [hasBeenEdited, setHasBeenEdited] = useState(false);
     const [aiDrawerOpened, aiDrawerHandlers] = useDisclosure(false);
     const [addPlayersDrawerOpened, addPlayersHandlers] = useDisclosure(false);
+    const lineupStateRef = useRef(null);
     const { closeAllModals } = useModal();
     const lastProcessedActionDataRef = useRef(null);
+
+    // Keep a ref in sync so the AddPlayersDrawer onClose handler always reads
+    // the latest lineupState without a stale closure.
+    useEffect(() => {
+        lineupStateRef.current = lineupState;
+    });
 
     const playersNotInLineup = playersWithAvailability?.filter((p) => {
         const isInLineup = lineupState?.some((lp) => lp.$id === p.$id);
@@ -231,7 +238,6 @@ function Lineup({ loaderData, actionData }) {
                                 game={game}
                                 team={team}
                                 actionUrl={`/events/${eventId}/lineup`}
-                                playersNotInLineup={playersNotInLineup}
                                 players={playersWithAvailability}
                                 lineupState={lineupState}
                                 lineupHandlers={lineupHandlers}
@@ -262,7 +268,6 @@ function Lineup({ loaderData, actionData }) {
                                 game={game}
                                 team={team}
                                 actionUrl={`/events/${eventId}/lineup`}
-                                playersNotInLineup={playersNotInLineup}
                                 players={playersWithAvailability}
                                 lineupState={lineupState}
                                 lineupHandlers={lineupHandlers}
@@ -310,7 +315,7 @@ function Lineup({ loaderData, actionData }) {
             <AddPlayersDrawer
                 opened={addPlayersDrawerOpened}
                 onClose={() => {
-                    if (lineupState?.length === 0) {
+                    if (lineupStateRef.current?.length === 0) {
                         lineupHandlers.setState(null);
                     }
                     addPlayersHandlers.close();
