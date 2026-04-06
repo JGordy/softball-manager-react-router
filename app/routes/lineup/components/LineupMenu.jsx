@@ -13,8 +13,6 @@ import { getGameDayStatus } from "@/utils/dateTime";
 import MenuContainer from "@/components/MenuContainer";
 import useModal from "@/hooks/useModal";
 
-import AILineupDrawer from "./AILineupDrawer";
-import AddPlayersDrawer from "./AddPlayersDrawer";
 import RemovePlayersDrawer from "./RemovePlayersDrawer";
 import DeleteLineupDrawer from "./DeleteLineupDrawer";
 import AddGuestPlayerModal from "./AddGuestPlayerModal";
@@ -25,15 +23,14 @@ export default function LineupMenu({
     actionUrl,
     lineupState,
     lineupHandlers,
-    playersNotInLineup,
     players,
     setHasBeenEdited,
+    onOpenAiDrawer,
+    onOpenAddPlayers,
 }) {
-    const [addPlayersDrawerOpened, addPlayersHandlers] = useDisclosure(false);
     const [removePlayersDrawerOpened, removePlayersHandlers] =
         useDisclosure(false);
     const [deleteChartDrawerOpened, deleteChartHandlers] = useDisclosure(false);
-    const [aiGenerateDrawerOpened, aiGenerateHandlers] = useDisclosure(false);
 
     const { openModal } = useModal();
 
@@ -46,7 +43,7 @@ export default function LineupMenu({
     if (!gameIsPast && players && players.length > 0) {
         lineupItems.push({
             key: "generate-ai-lineup",
-            onClick: aiGenerateHandlers.open,
+            onClick: onOpenAiDrawer,
             style: {
                 backgroundImage: "linear-gradient(90deg, #228be6, #15aabf)",
                 borderRadius: "var(--mantine-radius-md)",
@@ -62,12 +59,12 @@ export default function LineupMenu({
         });
     }
 
-    // Only show Add/Remove Players if there's a player chart
-    if (lineupState && lineupState.length > 0) {
+    // Show Add/Remove Players once a chart exists (even if empty — e.g. after "Start from Scratch")
+    if (Array.isArray(lineupState)) {
         lineupItems.push(
             {
                 key: "add-players",
-                onClick: addPlayersHandlers.open,
+                onClick: onOpenAddPlayers,
                 leftSection: <IconUserPlus size={20} />,
                 content: <Text>Add Players</Text>,
             },
@@ -124,15 +121,6 @@ export default function LineupMenu({
         <>
             <MenuContainer sections={sections} />
 
-            <AddPlayersDrawer
-                opened={addPlayersDrawerOpened}
-                onClose={addPlayersHandlers.close}
-                playersNotInLineup={playersNotInLineup}
-                lineupState={lineupState}
-                lineupHandlers={lineupHandlers}
-                setHasBeenEdited={setHasBeenEdited}
-            />
-
             <RemovePlayersDrawer
                 opened={removePlayersDrawerOpened}
                 onClose={removePlayersHandlers.close}
@@ -146,16 +134,6 @@ export default function LineupMenu({
                 onClose={deleteChartHandlers.close}
                 game={game}
                 actionUrl={actionUrl}
-                lineupHandlers={lineupHandlers}
-                setHasBeenEdited={setHasBeenEdited}
-            />
-
-            <AILineupDrawer
-                opened={aiGenerateDrawerOpened}
-                onClose={aiGenerateHandlers.close}
-                game={game}
-                team={team}
-                players={players}
                 lineupHandlers={lineupHandlers}
                 setHasBeenEdited={setHasBeenEdited}
             />
