@@ -7,6 +7,7 @@ export default function InitialView({
     onGenerate,
     generationsUsed = 0,
     maxGenerations = 3,
+    notEnoughPlayers = false,
 }) {
     const remaining = Math.max(0, maxGenerations - generationsUsed);
     const isLimitReached = generationsUsed >= maxGenerations;
@@ -37,6 +38,18 @@ export default function InitialView({
                 Only players who have accepted or are tentative will be included
                 in the lineup.
             </Text>
+            {notEnoughPlayers && (
+                <Alert
+                    icon={<IconInfoCircle size={16} />}
+                    title="Not enough players"
+                    color="orange"
+                    variant="light"
+                >
+                    A minimum of 9 available players is required to generate an
+                    AI lineup. Have players mark their availability and try
+                    again.
+                </Alert>
+            )}
             {aiError && (
                 <Alert
                     icon={<IconInfoCircle size={16} />}
@@ -59,10 +72,14 @@ export default function InitialView({
                         deg: 90,
                     }}
                     onClick={onGenerate}
-                    disabled={isLimitReached}
+                    disabled={isLimitReached || notEnoughPlayers}
                     leftSection={<IconSparkles size={18} />}
                 >
-                    {isLimitReached ? "Limit Reached" : "Generate Lineup"}
+                    {isLimitReached
+                        ? "Limit Reached"
+                        : notEnoughPlayers
+                          ? "Not Enough Players"
+                          : "Generate Lineup"}
                 </Button>
             </Group>
         </Stack>
