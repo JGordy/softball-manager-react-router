@@ -10,6 +10,7 @@ import {
 } from "@tabler/icons-react";
 
 import { getGameDayStatus } from "@/utils/dateTime";
+import { trackEvent } from "@/utils/analytics";
 
 import EditablePlayerChart from "./EditablePlayerChart";
 import CreateLineupDrawer from "./CreateLineupDrawer";
@@ -86,6 +87,7 @@ export default function LineupContainer({
     // NOTE: Uses an algorithm I created to generate a lineup and fielding chart
     // Team-level idealLineup and idealPositioning take precedence over player preferences
     const handleCreateWithAvailable = () => {
+        trackEvent("lineup_create_with_available", { gameId: game?.$id });
         const batting = createBattingOrder(availablePlayers, {
             idealLineup: team?.idealLineup,
         });
@@ -105,6 +107,7 @@ export default function LineupContainer({
     };
 
     const handleStartFromScratch = () => {
+        trackEvent("lineup_start_from_scratch", { gameId: game?.$id });
         lineupHandlers.setState([]);
         handleOnSave([]);
         createLineupHandlers.close();
@@ -112,8 +115,14 @@ export default function LineupContainer({
     };
 
     const handleOpenAiDrawer = () => {
+        trackEvent("lineup_open_ai_drawer", { gameId: game?.$id });
         createLineupHandlers.close();
         onOpenAiDrawer();
+    };
+
+    const handleOpenCreateLineup = () => {
+        trackEvent("lineup_open_create_drawer", { gameId: game?.$id });
+        createLineupHandlers.open();
     };
 
     const handleEditChart = (position, playerId, inning) => {
@@ -139,7 +148,7 @@ export default function LineupContainer({
             <>
                 {managerView ? (
                     <>
-                        <Button onClick={createLineupHandlers.open} fullWidth>
+                        <Button onClick={handleOpenCreateLineup} fullWidth>
                             Create Lineup
                         </Button>
                         <CreateLineupDrawer

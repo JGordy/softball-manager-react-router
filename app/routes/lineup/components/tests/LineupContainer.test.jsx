@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from "@/utils/test-utils";
 import * as dateTimeUtils from "@/utils/dateTime";
+import { trackEvent } from "@/utils/analytics";
 import * as createBattingOrder from "../../utils/createBattingOrder";
 import * as createFieldingChart from "../../utils/createFieldingChart";
 
@@ -15,14 +16,31 @@ jest.mock("react-router", () => ({
 jest.mock(
     "../CreateLineupDrawer",
     () =>
-        function MockCreateLineupDrawer({ opened }) {
-            return opened ? <div data-testid="create-lineup-drawer" /> : null;
+        function MockCreateLineupDrawer({
+            opened,
+            onStartFromScratch,
+            onCreateWithAvailable,
+            onOpenAiDrawer,
+        }) {
+            if (!opened) return null;
+            return (
+                <div data-testid="create-lineup-drawer">
+                    <button onClick={onStartFromScratch}>
+                        Start from Scratch
+                    </button>
+                    <button onClick={onCreateWithAvailable}>
+                        Create with Available
+                    </button>
+                    <button onClick={onOpenAiDrawer}>Generate AI Lineup</button>
+                </div>
+            );
         },
 );
 
 jest.mock("@/utils/dateTime");
 jest.mock("../../utils/createBattingOrder");
 jest.mock("../../utils/createFieldingChart");
+jest.mock("@/utils/analytics", () => ({ trackEvent: jest.fn() }));
 
 // Mock child components
 // eslint-disable-next-line react/display-name
@@ -155,5 +173,54 @@ describe("LineupContainer Component", () => {
         fireEvent.click(screen.getByRole("button", { name: /Create Lineup/i }));
 
         expect(screen.getByTestId("create-lineup-drawer")).toBeInTheDocument();
+    });
+
+    it("tracks lineup_open_create_drawer when Create Lineup button is clicked", () => {
+        render(<LineupContainer {...defaultProps} lineupState={null} />);
+
+        fireEvent.click(screen.getByRole("button", { name: /Create Lineup/i }));
+
+        expect(trackEvent).toHaveBeenCalledWith("lineup_open_create_drawer", {
+            gameId: "game1",
+        });
+    });
+
+    it("tracks lineup_start_from_scratch when Start from Scratch is chosen", () => {
+        render(<LineupContainer {...defaultProps} lineupState={null} />);
+        fireEvent.click(screen.getByRole("button", { name: /Create Lineup/i }));
+        fireEvent.click(
+            screen.getByRole("button", { name: "Start from Scratch" }),
+        );
+
+        expect(trackEvent).toHaveBeenCalledWith("lineup_start_from_scratch", {
+            gameId: "game1",
+        });
+    });
+
+    it("tracks lineup_create_with_available when Create with Available is chosen", () => {
+        render(<LineupContainer {...defaultProps} lineupState={null} />);
+        fireEvent.click(screen.getByRole("button", { name: /Create Lineup/i }));
+        fireEvent.click(
+            screen.getByRole("button", { name: "Create with Available" }),
+        );
+
+        expect(trackEvent).toHaveBeenCalledWith(
+            "lineup_create_with_available",
+            {
+                gameId: "game1",
+            },
+        );
+    });
+
+    it("tracks lineup_open_ai_drawer when Generate AI Lineup is chosen", () => {
+        render(<LineupContainer {...defaultProps} lineupState={null} />);
+        fireEvent.click(screen.getByRole("button", { name: /Create Lineup/i }));
+        fireEvent.click(
+            screen.getByRole("button", { name: "Generate AI Lineup" }),
+        );
+
+        expect(trackEvent).toHaveBeenCalledWith("lineup_open_ai_drawer", {
+            gameId: "game1",
+        });
     });
 });
