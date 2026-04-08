@@ -23,6 +23,8 @@ import { createSessionClient } from "@/utils/appwrite/server";
 import { getGameDayStatus } from "@/utils/dateTime";
 
 import useModal from "@/hooks/useModal";
+import { usePrintVisibility } from "./hooks/usePrintVisibility";
+import { useAvailabilityPrompt } from "./hooks/useAvailabilityPrompt";
 
 import GameMenu from "./components/GameMenu";
 import Scoreboard from "./components/Scoreboard";
@@ -73,24 +75,8 @@ export default function EventDetails({ loaderData, actionData }) {
 
     const hasPromptedRef = useRef(false);
 
-    // During @media print the browser treats the viewport as narrow, so Mantine's
-    // visibleFrom="lg" desktop container gets display:none. Force it visible for print.
-    useEffect(() => {
-        const show = () => {
-            const el = document.querySelector("[data-desktop-view]");
-            if (el) el.style.setProperty("display", "block", "important");
-        };
-        const restore = () => {
-            const el = document.querySelector("[data-desktop-view]");
-            if (el) el.style.removeProperty("display");
-        };
-        window.addEventListener("beforeprint", show);
-        window.addEventListener("afterprint", restore);
-        return () => {
-            window.removeEventListener("beforeprint", show);
-            window.removeEventListener("afterprint", restore);
-        };
-    }, []);
+    // Force visibility of desktop container for print media
+    usePrintVisibility();
 
     const isDeleting =
         navigation.state === "submitting" &&
@@ -114,31 +100,13 @@ export default function EventDetails({ loaderData, actionData }) {
     } = loaderData || {};
 
     // Automatically prompt for availability if user hasn't responded
-    useEffect(() => {
-        if (
-            loaderData?.gameDeleted ||
-            !deferredData?.attendance ||
-            hasPromptedRef.current ||
-            !currentUserId
-        )
-            return;
-
-        deferredData.attendance.then((result) => {
-            const attendance = result.rows || [];
-            const userAttendance = attendance.find(
-                (a) => a.userId === currentUserId,
-            );
-            if (!userAttendance || userAttendance.status === "unknown") {
-                promptDrawerHandlers.open();
-                hasPromptedRef.current = true;
-            }
-        });
-    }, [
-        deferredData?.attendance,
+    useAvailabilityPrompt({
+        deferredData,
+        hasPromptedRef,
         currentUserId,
-        promptDrawerHandlers,
-        loaderData?.gameDeleted,
-    ]);
+        onOpen: promptDrawerHandlers.open,
+        gameDeleted: loaderData?.gameDeleted,
+    });
 
     // Run this effect only when actionData changes. Guard so we only
     // call closeAllModals once for a successful action to avoid a
