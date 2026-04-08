@@ -108,7 +108,7 @@ function Layout({ loaderData }) {
             </AppShell.Header>
 
             <AppShell.Main>
-                <Container px={0} mih="90vh" size="xl" pb="5rem">
+                <Container px={0} mih="90vh" size="xl" pb="7rem">
                     <Outlet context={{ ...loaderData, isDesktop }} />
                 </Container>
 
