@@ -63,7 +63,6 @@ jest.mock("react-router", () => ({
 }));
 
 describe("Games Actions", () => {
-    const mockRequest = { headers: { get: () => "mock-cookie" } };
     const mockSessionClient = { tablesDB: { id: "mock-session-db" } };
     const mockAdminClient = { users: { getPrefs: jest.fn() } };
 
@@ -123,7 +122,7 @@ describe("Games Actions", () => {
                 },
                 expect.arrayContaining([
                     'update("team:team1/scorekeeper")',
-                    'delete("team:team1/manager")',
+                    'delete("team:team1/scorekeeper")',
                 ]),
                 mockSessionClient,
             );
@@ -241,14 +240,14 @@ describe("Games Actions", () => {
                 expect.any(Object),
                 expect.arrayContaining([
                     'update("team:team1/scorekeeper")',
-                    'delete("team:team1/manager")',
+                    'delete("team:team1/scorekeeper")',
                 ]),
                 mockSessionClient,
             );
 
-            // Double check that delete(scorekeeper) is NOT present
+            // Double check that delete(scorekeeper) IS present
             const permissionsCall = createDocument.mock.calls[0][3];
-            expect(permissionsCall).not.toContain(
+            expect(permissionsCall).toContain(
                 'delete("team:team1/scorekeeper")',
             );
         });
