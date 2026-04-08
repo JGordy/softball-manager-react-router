@@ -275,7 +275,7 @@ describe("EventDetails Route", () => {
         describe("Availability Prompt", () => {
             it("opens the prompt if user attendance is unknown", async () => {
                 const attendance = Promise.resolve({
-                    rows: [{ userId: "user123", status: "unknown" }],
+                    rows: [{ playerId: "user123", status: "unknown" }],
                 });
 
                 const dataWithMissingAttendance = {
@@ -294,7 +294,7 @@ describe("EventDetails Route", () => {
 
             it("opens the prompt if user is not in attendance list", async () => {
                 const attendance = Promise.resolve({
-                    rows: [{ userId: "otherUser", status: "accepted" }],
+                    rows: [{ playerId: "otherUser", status: "accepted" }],
                 });
 
                 const dataWithOtherAttendance = {
@@ -311,7 +311,7 @@ describe("EventDetails Route", () => {
 
             it("does NOT open the prompt if user is already attending", async () => {
                 const attendance = Promise.resolve({
-                    rows: [{ userId: "user123", status: "accepted" }],
+                    rows: [{ playerId: "user123", status: "accepted" }],
                 });
 
                 const dataAttending = {

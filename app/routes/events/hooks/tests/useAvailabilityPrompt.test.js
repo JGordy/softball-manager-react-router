@@ -12,7 +12,7 @@ describe("useAvailabilityPrompt", () => {
     it("should open the prompt if user attendance is unknown", async () => {
         const hasPromptedRef = { current: false };
         const attendancePromise = Promise.resolve({
-            rows: [{ userId: "user123", status: "unknown" }],
+            rows: [{ playerId: "user123", status: "unknown" }],
         });
 
         renderHook(() =>
@@ -31,7 +31,7 @@ describe("useAvailabilityPrompt", () => {
     it("should open the prompt if user is missing from attendance", async () => {
         const hasPromptedRef = { current: false };
         const attendancePromise = Promise.resolve({
-            rows: [{ userId: "otherUser", status: "accepted" }],
+            rows: [{ playerId: "otherUser", status: "accepted" }],
         });
 
         renderHook(() =>
@@ -50,7 +50,7 @@ describe("useAvailabilityPrompt", () => {
     it("should NOT open if user is already accepted", async () => {
         const hasPromptedRef = { current: false };
         const attendancePromise = Promise.resolve({
-            rows: [{ userId: "user123", status: "accepted" }],
+            rows: [{ playerId: "user123", status: "accepted" }],
         });
 
         renderHook(() =>
@@ -62,8 +62,11 @@ describe("useAvailabilityPrompt", () => {
             }),
         );
 
-        // Wait a bit to ensure it doesn't fire
-        await new Promise((r) => setTimeout(r, 10));
+        // Await the promise to ensure logic has had time to run
+        await attendancePromise;
+        // Wait a microtask to be sure
+        await new Promise((r) => setTimeout(r, 0));
+
         expect(mockOnOpen).not.toHaveBeenCalled();
         expect(hasPromptedRef.current).toBe(false);
     });
@@ -71,7 +74,7 @@ describe("useAvailabilityPrompt", () => {
     it("should NOT open if hasPromptedRef is already true", async () => {
         const hasPromptedRef = { current: true };
         const attendancePromise = Promise.resolve({
-            rows: [{ userId: "user123", status: "unknown" }],
+            rows: [{ playerId: "user123", status: "unknown" }],
         });
 
         renderHook(() =>
@@ -83,14 +86,14 @@ describe("useAvailabilityPrompt", () => {
             }),
         );
 
-        await new Promise((r) => setTimeout(r, 10));
+        await attendancePromise;
         expect(mockOnOpen).not.toHaveBeenCalled();
     });
 
     it("should NOT open if gameDeleted is true", async () => {
         const hasPromptedRef = { current: false };
         const attendancePromise = Promise.resolve({
-            rows: [{ userId: "user123", status: "unknown" }],
+            rows: [{ playerId: "user123", status: "unknown" }],
         });
 
         renderHook(() =>
@@ -103,7 +106,7 @@ describe("useAvailabilityPrompt", () => {
             }),
         );
 
-        await new Promise((r) => setTimeout(r, 10));
+        await attendancePromise;
         expect(mockOnOpen).not.toHaveBeenCalled();
     });
 });
