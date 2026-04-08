@@ -58,11 +58,10 @@ export default function AvailabilityPromptDrawer({
 
     // Reset selected state when the drawer is closed
     useEffect(() => {
-        if (!opened && selected !== null) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
+        if (!opened) {
             setSelected(null);
         }
-    }, [opened, selected]);
+    }, [opened]);
 
     useEffect(() => {
         if (fetcher.state === "idle" && fetcher.data?.success) {
