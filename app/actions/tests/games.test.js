@@ -121,7 +121,7 @@ describe("Games Actions", () => {
                     timeZone: "America/New_York",
                 },
                 expect.arrayContaining([
-                    'update("team:team1/manager")',
+                    'update("team:team1/scorekeeper")',
                     'delete("team:team1/manager")',
                 ]),
                 mockSessionClient,
@@ -239,7 +239,7 @@ describe("Games Actions", () => {
                 "unique-id",
                 expect.any(Object),
                 expect.arrayContaining([
-                    'update("team:team1/manager")',
+                    'update("team:team1/scorekeeper")',
                     'delete("team:team1/manager")',
                 ]),
                 mockSessionClient,
