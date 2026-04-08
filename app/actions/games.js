@@ -66,7 +66,7 @@ async function initializeDefaultAttendance(gameId, teamId) {
                 if (typeof defaultAvailability === "string") {
                     try {
                         defaultAvailability = JSON.parse(defaultAvailability);
-                    } catch (e) {
+                    } catch (_e) {
                         defaultAvailability = {};
                     }
                 }
@@ -182,8 +182,8 @@ export async function createSingleGame({
         const permissions = teamId
             ? [
                   Permission.read(Role.team(teamId)), // Team members can read
-                  Permission.update(Role.team(teamId, "scorekeeper")), // Scorekeepers, Managers, and Owners can update
-                  Permission.delete(Role.team(teamId, "manager")), // Managers and Owners can delete
+                  Permission.update(Role.team(teamId, "scorekeeper")), //  Scorekeepers, Managers, and Owners can update
+                  Permission.delete(Role.team(teamId, "manager")), // Managers, and Owners can delete
               ]
             : [];
 
@@ -251,8 +251,8 @@ export async function createGames({ values, client }) {
         const permissions = teamId
             ? [
                   Permission.read(Role.team(teamId)), // Team members can read
-                  Permission.update(Role.team(teamId, "scorekeeper")), // Scorekeepers, Managers, and Owners can update
-                  Permission.delete(Role.team(teamId, "manager")), // Managers and Owners can delete
+                  Permission.update(Role.team(teamId, "scorekeeper")), //  Scorekeepers, Managers, and Owners can update
+                  Permission.delete(Role.team(teamId, "manager")), // Managers, and Owners can delete
               ]
             : [];
 
@@ -389,7 +389,7 @@ export async function updateGame({ values, eventId, client }) {
 
     // Ensure score and opponentScore are strings that represent valid integers
     ["score", "opponentScore"].forEach((key) => {
-        if (dataToUpdate.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(dataToUpdate, key)) {
             const value = dataToUpdate[key];
 
             const trimmedValue = String(value).trim();
@@ -404,8 +404,8 @@ export async function updateGame({ values, eventId, client }) {
 
     // If both scores are present, compute and set the result
     if (
-        dataToUpdate.hasOwnProperty("score") &&
-        dataToUpdate.hasOwnProperty("opponentScore")
+        Object.prototype.hasOwnProperty.call(dataToUpdate, "score") &&
+        Object.prototype.hasOwnProperty.call(dataToUpdate, "opponentScore")
     ) {
         const result = computeResult(
             dataToUpdate.score,
@@ -458,8 +458,8 @@ export async function updateGame({ values, eventId, client }) {
         // Send notification if game is finalized or score is updated
         const isSetFinal = dataToUpdate.gameFinal === true;
         const scoresProvided =
-            dataToUpdate.hasOwnProperty("score") &&
-            dataToUpdate.hasOwnProperty("opponentScore");
+            Object.prototype.hasOwnProperty.call(dataToUpdate, "score") &&
+            Object.prototype.hasOwnProperty.call(dataToUpdate, "opponentScore");
 
         if (isSetFinal || scoresProvided) {
             try {
@@ -619,7 +619,7 @@ export async function deleteGames({ values, client }) {
         };
     } catch (error) {
         console.error("Error deleting games:", error);
-        console.log("Errors array:", errors);
+        console.warn("Errors array:", errors);
         throw error;
     }
 }

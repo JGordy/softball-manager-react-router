@@ -47,7 +47,7 @@ export async function createTeam({ values, userId, client }) {
         await addExistingUserToTeam({
             teamId,
             userId,
-            roles: ["owner", "manager"],
+            roles: ["owner", "manager", "scorekeeper", "player"], // Owner has all roles
         });
 
         // 3. Create database record for custom team data with permissions

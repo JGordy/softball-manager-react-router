@@ -1,3 +1,4 @@
+/* eslint-disable react/display-name */
 import { render, screen, fireEvent } from "@/utils/test-utils";
 
 import * as gamesActions from "@/actions/games";
@@ -48,6 +49,11 @@ jest.mock("../components/DesktopEventDetailsView", () => () => (
 ));
 jest.mock("../components/GameMenu", () => ({ openDeleteDrawer }) => (
     <button onClick={openDeleteDrawer}>Open Delete Drawer</button>
+));
+jest.mock("../components/AvailabilityPromptDrawer", () => (props) => (
+    <div data-testid="availability-prompt-drawer">
+        {props.opened ? "Prompt Opened" : "Prompt Closed"}
+    </div>
 ));
 jest.mock("../components/Scoreboard", () => () => (
     <div data-testid="scoreboard" />
@@ -264,6 +270,62 @@ describe("EventDetails Route", () => {
 
             expect(mockCloseAllModals).toHaveBeenCalled();
             expect(mockNavigate).toHaveBeenCalledWith(-1);
+        });
+
+        describe("Availability Prompt", () => {
+            it("opens the prompt if user attendance is unknown", async () => {
+                const attendance = Promise.resolve({
+                    rows: [{ playerId: "user123", status: "unknown" }],
+                });
+
+                const dataWithMissingAttendance = {
+                    ...mockLoaderData,
+                    deferredData: { attendance },
+                };
+
+                render(<EventDetails loaderData={dataWithMissingAttendance} />);
+
+                // Wait for the prompt to open. waitFor handles act() internally
+                // for the state changes triggered by the resolved promise.
+                await expect(
+                    screen.findByText("Prompt Opened"),
+                ).resolves.toBeInTheDocument();
+            });
+
+            it("opens the prompt if user is not in attendance list", async () => {
+                const attendance = Promise.resolve({
+                    rows: [{ playerId: "otherUser", status: "accepted" }],
+                });
+
+                const dataWithOtherAttendance = {
+                    ...mockLoaderData,
+                    deferredData: { attendance },
+                };
+
+                render(<EventDetails loaderData={dataWithOtherAttendance} />);
+
+                await expect(
+                    screen.findByText("Prompt Opened"),
+                ).resolves.toBeInTheDocument();
+            });
+
+            it("does NOT open the prompt if user is already attending", async () => {
+                const attendance = Promise.resolve({
+                    rows: [{ playerId: "user123", status: "accepted" }],
+                });
+
+                const dataAttending = {
+                    ...mockLoaderData,
+                    deferredData: { attendance },
+                };
+
+                render(<EventDetails loaderData={dataAttending} />);
+
+                // Manually wait for the attendance promise to ensure effects have had time to run
+                await attendance;
+                // Since findByText would fail here if it doesn't appear, we check for Closed
+                expect(screen.getByText("Prompt Closed")).toBeInTheDocument();
+            });
         });
     });
 });
