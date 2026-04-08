@@ -28,6 +28,7 @@ import GameMenu from "./components/GameMenu";
 import Scoreboard from "./components/Scoreboard";
 import MobileEventDetailsView from "./components/MobileEventDetailsView";
 import DesktopEventDetailsView from "./components/DesktopEventDetailsView";
+import AvailabilityPromptDrawer from "./components/AvailabilityPromptDrawer";
 
 export async function action({ request, params }) {
     const { eventId } = params;
@@ -59,31 +60,18 @@ export async function loader({ params, request }) {
 export default function EventDetails({ loaderData, actionData }) {
     // console.log("/events/:eventId > ", loaderData);
 
-    // Check if game was deleted
-    if (loaderData?.gameDeleted) {
-        return (
-            <Container size="sm" py="xl">
-                <BackButton mb="xl" />
-                <Box ta="center" py="xl">
-                    <Title order={2} mb="md">
-                        Game Not Found
-                    </Title>
-                    <Text size="lg" c="dimmed">
-                        This game has been removed and is no longer available.
-                    </Text>
-                </Box>
-            </Container>
-        );
-    }
-
     const [deleteDrawerOpened, deleteDrawerHandlers] = useDisclosure(false);
+    const [promptDrawerOpened, promptDrawerHandlers] = useDisclosure(false);
 
     const navigation = useNavigation();
     const navigate = useNavigate();
     const { closeAllModals } = useModal();
 
-    const { user } = useOutletContext();
-    const currentUserId = user.$id;
+    const outletContext = useOutletContext();
+    const user = outletContext?.user;
+    const currentUserId = user?.$id;
+
+    const hasPromptedRef = useRef(false);
 
     // During @media print the browser treats the viewport as narrow, so Mantine's
     // visibleFrom="lg" desktop container gets display:none. Force it visible for print.
@@ -118,22 +106,39 @@ export default function EventDetails({ loaderData, actionData }) {
     const {
         game,
         deferredData,
-        managerIds,
-        scorekeeperIds,
+        managerIds = [],
+        scorekeeperIds = [],
         season,
         teams,
         weatherPromise,
-    } = loaderData;
+    } = loaderData || {};
 
-    const team = teams?.[0];
-    const managerView = managerIds.includes(currentUserId);
-    const isScorekeeper = scorekeeperIds.includes(currentUserId);
+    // Automatically prompt for availability if user hasn't responded
+    useEffect(() => {
+        if (
+            loaderData?.gameDeleted ||
+            !deferredData?.attendance ||
+            hasPromptedRef.current ||
+            !currentUserId
+        )
+            return;
 
-    const { gameDate, playerChart, result } = game;
-
-    const gameDayStatus = getGameDayStatus(gameDate, true);
-    const gameInProgress = gameDayStatus === "in progress";
-    const gameIsPast = gameDayStatus === "past";
+        deferredData.attendance.then((result) => {
+            const attendance = result.rows || [];
+            const userAttendance = attendance.find(
+                (a) => a.userId === currentUserId,
+            );
+            if (!userAttendance || userAttendance.status === "unknown") {
+                promptDrawerHandlers.open();
+                hasPromptedRef.current = true;
+            }
+        });
+    }, [
+        deferredData?.attendance,
+        currentUserId,
+        promptDrawerHandlers,
+        loaderData?.gameDeleted,
+    ]);
 
     // Run this effect only when actionData changes. Guard so we only
     // call closeAllModals once for a successful action to avoid a
@@ -141,6 +146,8 @@ export default function EventDetails({ loaderData, actionData }) {
     const handledActionRef = useRef(false);
 
     useEffect(() => {
+        if (loaderData?.gameDeleted) return;
+
         try {
             if (actionData?.success && !handledActionRef.current) {
                 handledActionRef.current = true;
@@ -159,7 +166,34 @@ export default function EventDetails({ loaderData, actionData }) {
         } catch (jsonError) {
             console.error("Error handling actionData:", jsonError);
         }
-    }, [actionData, closeAllModals, navigate]);
+    }, [actionData, closeAllModals, navigate, loaderData?.gameDeleted]);
+
+    // Check if game was deleted
+    if (loaderData?.gameDeleted) {
+        return (
+            <Container size="sm" py="xl">
+                <BackButton mb="xl" />
+                <Box ta="center" py="xl">
+                    <Title order={2} mb="md">
+                        Game Not Found
+                    </Title>
+                    <Text size="lg" c="dimmed">
+                        This game has been removed and is no longer available.
+                    </Text>
+                </Box>
+            </Container>
+        );
+    }
+
+    const team = teams?.[0];
+    const managerView = (managerIds || []).includes(currentUserId);
+    const isScorekeeper = (scorekeeperIds || []).includes(currentUserId);
+
+    const { gameDate, playerChart, result } = game || {};
+
+    const gameDayStatus = getGameDayStatus(gameDate, true);
+    const gameInProgress = gameDayStatus === "in progress";
+    const gameIsPast = gameDayStatus === "past";
 
     const sharedViewProps = {
         game,
@@ -213,6 +247,14 @@ export default function EventDetails({ loaderData, actionData }) {
                     </Title>
                 )}
             </Box>
+
+            <AvailabilityPromptDrawer
+                opened={promptDrawerOpened}
+                onClose={promptDrawerHandlers.close}
+                game={game}
+                player={user}
+                teamId={team?.$id}
+            />
 
             <Box hiddenFrom="lg">
                 <MobileEventDetailsView {...sharedViewProps} />
