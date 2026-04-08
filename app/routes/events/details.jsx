@@ -99,12 +99,19 @@ export default function EventDetails({ loaderData, actionData }) {
         weatherPromise,
     } = loaderData || {};
 
-    // Automatically prompt for availability if user hasn't responded
+    const { gameDate, playerChart, result } = game || {};
+
+    const gameDayStatus = getGameDayStatus(gameDate, true);
+    const gameInProgress = gameDayStatus === "in progress";
+    const gameIsPast = gameDayStatus === "past";
+
+    // Automatically prompt for availability if user hasn't responded,
+    // but never for games that are already in the past.
     useAvailabilityPrompt({
         deferredData,
         hasPromptedRef,
         currentUserId,
-        onOpen: promptDrawerHandlers.open,
+        onOpen: gameIsPast ? () => {} : promptDrawerHandlers.open,
         gameDeleted: loaderData?.gameDeleted,
     });
 
@@ -156,12 +163,6 @@ export default function EventDetails({ loaderData, actionData }) {
     const team = teams?.[0];
     const managerView = (managerIds || []).includes(currentUserId);
     const isScorekeeper = (scorekeeperIds || []).includes(currentUserId);
-
-    const { gameDate, playerChart, result } = game || {};
-
-    const gameDayStatus = getGameDayStatus(gameDate, true);
-    const gameInProgress = gameDayStatus === "in progress";
-    const gameIsPast = gameDayStatus === "past";
 
     const sharedViewProps = {
         game,
