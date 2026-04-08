@@ -105,7 +105,7 @@ describe("Teams Actions", () => {
             expect(addExistingUserToTeam).toHaveBeenCalledWith({
                 teamId: "unique-id",
                 userId,
-                roles: ["owner", "manager"],
+                roles: ["owner", "manager", "scorekeeper", "player"],
             });
 
             // Should create database record with permissions
@@ -230,14 +230,9 @@ describe("Teams Actions", () => {
     });
 
     describe("updateMemberRole", () => {
-        let mockRequest;
         let mockAccount;
-        let mockCreateSessionClient;
 
         beforeEach(async () => {
-            // Mock the request object
-            mockRequest = { headers: { get: () => "mock-cookie" } };
-
             // Mock the account.get() response
             mockAccount = {
                 get: jest.fn().mockResolvedValue({ $id: "owner-user-id" }),
