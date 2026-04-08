@@ -101,7 +101,7 @@ export default function EventDetails({ loaderData, actionData }) {
 
     const { gameDate, playerChart, result } = game || {};
 
-    const gameDayStatus = getGameDayStatus(gameDate, true);
+    const gameDayStatus = gameDate ? getGameDayStatus(gameDate, true) : null;
     const gameInProgress = gameDayStatus === "in progress";
     const gameIsPast = gameDayStatus === "past";
 
@@ -111,8 +111,9 @@ export default function EventDetails({ loaderData, actionData }) {
         deferredData,
         hasPromptedRef,
         currentUserId,
-        onOpen: gameIsPast ? () => {} : promptDrawerHandlers.open,
+        onOpen: promptDrawerHandlers.open,
         gameDeleted: loaderData?.gameDeleted,
+        enabled: !gameIsPast,
     });
 
     // Run this effect only when actionData changes. Guard so we only

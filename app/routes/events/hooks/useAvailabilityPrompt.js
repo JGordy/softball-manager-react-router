@@ -9,9 +9,11 @@ export function useAvailabilityPrompt({
     currentUserId,
     onOpen,
     gameDeleted = false,
+    enabled = true,
 }) {
     useEffect(() => {
         if (
+            !enabled ||
             gameDeleted ||
             !deferredData?.attendance ||
             hasPromptedRef.current ||
@@ -23,7 +25,7 @@ export function useAvailabilityPrompt({
 
         deferredData.attendance
             .then((result) => {
-                if (cancelled) return;
+                if (cancelled || hasPromptedRef.current) return;
 
                 const attendance = result.rows || [];
                 const userAttendance = attendance.find(
@@ -48,5 +50,6 @@ export function useAvailabilityPrompt({
         onOpen,
         gameDeleted,
         hasPromptedRef,
+        enabled,
     ]);
 }
