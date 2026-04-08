@@ -121,8 +121,8 @@ describe("Games Actions", () => {
                     timeZone: "America/New_York",
                 },
                 expect.arrayContaining([
-                    'update("team:team1/scorekeeper")',
-                    'delete("team:team1/scorekeeper")',
+                    'update("team:team1/manager")',
+                    'delete("team:team1/manager")',
                 ]),
                 mockSessionClient,
             );
@@ -219,7 +219,7 @@ describe("Games Actions", () => {
             );
         });
 
-        it("should set correct permissions including scorekeeper", async () => {
+        it("should set correct permissions including manager", async () => {
             const mockValues = {
                 gameDate: "2024-01-01",
                 gameTime: "10:00",
@@ -239,17 +239,15 @@ describe("Games Actions", () => {
                 "unique-id",
                 expect.any(Object),
                 expect.arrayContaining([
-                    'update("team:team1/scorekeeper")',
-                    'delete("team:team1/scorekeeper")',
+                    'update("team:team1/manager")',
+                    'delete("team:team1/manager")',
                 ]),
                 mockSessionClient,
             );
 
-            // Double check that delete(scorekeeper) IS present
+            // Double check that delete(manager) IS present
             const permissionsCall = createDocument.mock.calls[0][3];
-            expect(permissionsCall).toContain(
-                'delete("team:team1/scorekeeper")',
-            );
+            expect(permissionsCall).toContain('delete("team:team1/manager")');
         });
 
         it("should reject games with bad words in opponent name", async () => {

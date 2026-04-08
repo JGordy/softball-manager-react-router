@@ -182,8 +182,8 @@ export async function createSingleGame({
         const permissions = teamId
             ? [
                   Permission.read(Role.team(teamId)), // Team members can read
-                  Permission.update(Role.team(teamId, "scorekeeper")), // Scorekeepers, Managers, and Owners can update
-                  Permission.delete(Role.team(teamId, "scorekeeper")), // Scorekeepers, Managers, and Owners can delete
+                  Permission.update(Role.team(teamId, "manager")), // Managers, and Owners can update
+                  Permission.delete(Role.team(teamId, "manager")), // Managers, and Owners can delete
               ]
             : [];
 
@@ -251,8 +251,8 @@ export async function createGames({ values, client }) {
         const permissions = teamId
             ? [
                   Permission.read(Role.team(teamId)), // Team members can read
-                  Permission.update(Role.team(teamId, "scorekeeper")), // Scorekeepers, Managers, and Owners can update
-                  Permission.delete(Role.team(teamId, "scorekeeper")), // Scorekeepers, Managers, and Owners can delete
+                  Permission.update(Role.team(teamId, "manager")), // Managers, and Owners can update
+                  Permission.delete(Role.team(teamId, "manager")), // Managers, and Owners can delete
               ]
             : [];
 
