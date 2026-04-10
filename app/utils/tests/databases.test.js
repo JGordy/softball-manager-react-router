@@ -1,15 +1,4 @@
-import {
-    createDocument,
-    listDocuments,
-    readDocument,
-    updateDocument,
-    deleteDocument,
-    createTransaction,
-    createOperations,
-    commitTransaction,
-    rollbackTransaction,
-    collections,
-} from "../databases";
+let createDocument, listDocuments, readDocument, updateDocument, deleteDocument, createTransaction, createOperations, commitTransaction, rollbackTransaction, collections;
 
 const mockTablesDB = {
     createRow: jest.fn(),
@@ -28,8 +17,28 @@ jest.mock("@/utils/appwrite/server", () => ({
     })),
 }));
 
+// Mock environment variables before tests
+process.env.APPWRITE_ACHIEVEMENTS_COLLECTION_ID = "achievements-id";
+process.env.APPWRITE_USER_ACHIEVEMENTS_COLLECTION_ID = "user-achievements-id";
+process.env.APPWRITE_DATABASE_ID = "db-id";
+process.env.APPWRITE_USERS_COLLECTION_ID = "users-id";
+
 describe("databases utility", () => {
-    const dbId = process.env.APPWRITE_DATABASE_ID;
+    beforeAll(() => {
+        const db = require("../databases");
+        createDocument = db.createDocument;
+        listDocuments = db.listDocuments;
+        readDocument = db.readDocument;
+        updateDocument = db.updateDocument;
+        deleteDocument = db.deleteDocument;
+        createTransaction = db.createTransaction;
+        createOperations = db.createOperations;
+        commitTransaction = db.commitTransaction;
+        rollbackTransaction = db.rollbackTransaction;
+        collections = db.collections;
+    });
+
+    const dbId = "db-id";
 
     const mockClient = { tablesDB: mockTablesDB };
 

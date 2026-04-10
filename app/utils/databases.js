@@ -15,6 +15,8 @@ export const collections = {
     awards: process.env.APPWRITE_GAME_AWARDS_COLLECTION_ID,
     votes: process.env.APPWRITE_GAME_VOTES_COLLECTION_ID,
     game_logs: process.env.APPWRITE_GAME_LOGS_COLLECTION_ID,
+    achievements: process.env.APPWRITE_ACHIEVEMENTS_COLLECTION_ID,
+    user_achievements: process.env.APPWRITE_USER_ACHIEVEMENTS_COLLECTION_ID,
 };
 
 // Helper function to create a document

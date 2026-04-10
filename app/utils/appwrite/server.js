@@ -6,6 +6,7 @@ import {
     Teams,
     Users,
     Messaging,
+    Functions,
 } from "node-appwrite";
 import { appwriteConfig } from "./config.js";
 
@@ -86,6 +87,9 @@ export async function createSessionClient(request) {
         get messaging() {
             return new Messaging(client);
         },
+        get functions() {
+            return new Functions(client);
+        },
     };
 }
 
@@ -120,6 +124,9 @@ export function createSessionClientFromSecret(secret) {
         get messaging() {
             return new Messaging(client);
         },
+        get functions() {
+            return new Functions(client);
+        },
     };
 }
 
@@ -153,6 +160,9 @@ export function createAdminClient() {
         },
         get messaging() {
             return new Messaging(client);
+        },
+        get functions() {
+            return new Functions(client);
         },
     };
 }

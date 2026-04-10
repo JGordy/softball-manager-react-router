@@ -5,7 +5,7 @@ import {
     createSessionClientFromSecret,
     createAdminClient,
 } from "./server";
-import { Client, Account, Databases, TablesDB } from "node-appwrite";
+import { Client, Account, Databases, TablesDB, Functions } from "node-appwrite";
 import { appwriteConfig } from "./config";
 
 jest.mock("./config", () => ({
@@ -98,6 +98,7 @@ describe("appwrite server utility", () => {
             expect(client.account).toBeInstanceOf(Account);
             expect(client.databases).toBeInstanceOf(Databases);
             expect(client.tablesDB).toBeInstanceOf(TablesDB);
+            expect(client.functions).toBeInstanceOf(Functions);
         });
 
         it("should create client without session if cookie missing", async () => {
@@ -133,6 +134,7 @@ describe("appwrite server utility", () => {
             expect(client.account).toBeInstanceOf(Account);
             expect(client.databases).toBeInstanceOf(Databases);
             expect(client.tablesDB).toBeInstanceOf(TablesDB);
+            expect(client.functions).toBeInstanceOf(Functions);
         });
     });
 
@@ -153,6 +155,7 @@ describe("appwrite server utility", () => {
             expect(client.account).toBeInstanceOf(Account);
             expect(client.databases).toBeInstanceOf(Databases);
             expect(client.tablesDB).toBeInstanceOf(TablesDB);
+            expect(client.functions).toBeInstanceOf(Functions);
         });
     });
 });

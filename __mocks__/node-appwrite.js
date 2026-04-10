@@ -5,6 +5,7 @@ module.exports = {
     Databases: jest.fn(),
     TablesDB: jest.fn(),
     Messaging: jest.fn(),
+    Functions: jest.fn(),
     ID: {
         unique: jest.fn(() => "unique-id"),
     },
