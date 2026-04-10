@@ -7,8 +7,12 @@ import {
     Tabs,
     Text,
     Title,
+    SimpleGrid,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { IconTrophy } from "@tabler/icons-react";
+
+import AchievementCard from "@/components/AchievementCard";
 
 import TabsWrapper from "@/components/TabsWrapper";
 import BackButton from "@/components/BackButton";
@@ -37,6 +41,8 @@ export default function MobileGamedayContainer({
     gameFinal = false,
     isScorekeeper = false,
     players = [],
+    user,
+    achievements = [],
 }) {
     const {
         logs,
@@ -141,7 +147,12 @@ export default function MobileGamedayContainer({
                     {!gameFinal && <Tabs.Tab value="live">Live</Tabs.Tab>}
                     <Tabs.Tab value="plays">Plays</Tabs.Tab>
                     <Tabs.Tab value="boxscore">Box Score</Tabs.Tab>
-                    <Tabs.Tab value="spray">Spray Chart</Tabs.Tab>
+                    <Tabs.Tab value="spray">Spray</Tabs.Tab>
+                    {gameFinal && achievements.length > 0 && (
+                        <Tabs.Tab value="achievements">
+                            Achievements
+                        </Tabs.Tab>
+                    )}
 
                     <Tabs.Panel value="live" pt="md">
                         <Stack gap="md">
@@ -239,6 +250,43 @@ export default function MobileGamedayContainer({
                             batters={batters}
                         />
                     </Tabs.Panel>
+
+                    {gameFinal && (
+                        <Tabs.Panel value="achievements" pt="md">
+                            <Stack gap="md">
+                                <Group gap="xs">
+                                    <IconTrophy size={18} />
+                                    <Title order={4} size="h4">Game Achievements</Title>
+                                </Group>
+                                <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+                                    {[...achievements]
+                                        .filter(ua => ua.achievement)
+                                        .sort((a, b) => {
+                                            const weights = { legendary: 5, epic: 4, rare: 3, uncommon: 2, common: 1 };
+                                            const weightA = weights[a.achievement.rarity?.toLowerCase()] || 0;
+                                            const weightB = weights[b.achievement.rarity?.toLowerCase()] || 0;
+                                            if (weightA !== weightB) return weightB - weightA;
+                                            return new Date(b.$createdAt) - new Date(a.$createdAt);
+                                        })
+                                        .map((ua) => {
+                                            const player = players.find(p => p.playerId === ua.userId);
+                                            const playerName = player?.name || "Player";
+                                            const isMe = ua.userId === user?.$id;
+
+                                            return (
+                                                <AchievementCard
+                                                    key={ua.$id}
+                                                    achievement={ua.achievement}
+                                                    unlockedAt={ua.$createdAt}
+                                                    playerName={isMe ? "YOU" : playerName}
+                                                    isMe={isMe}
+                                                />
+                                            );
+                                        })}
+                                </SimpleGrid>
+                            </Stack>
+                        </Tabs.Panel>
+                    )}
                 </TabsWrapper>
             </Box>
 

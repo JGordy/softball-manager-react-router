@@ -76,6 +76,7 @@ export default function BoxScore({
                             c={isSub ? "dimmed" : undefined}
                             style={{ whiteSpace: "nowrap" }}
                             truncate="end"
+                            component="div"
                         >
                             {jersey && (
                                 <Text
@@ -84,6 +85,7 @@ export default function BoxScore({
                                     c="dimmed"
                                     fw={isCurrentBatter ? 800 : 400}
                                     mr={2}
+                                    component="span"
                                 >
                                     {jersey}
                                 </Text>
