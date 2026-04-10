@@ -1,8 +1,10 @@
 import { Query } from "node-appwrite";
+import { DateTime } from "luxon";
+
 import { listDocuments, readDocument } from "@/utils/databases";
 import { parsePlayerChart } from "@/routes/gameday/utils/gamedayUtils";
 import { createAdminClient } from "@/utils/appwrite/server";
-import { DateTime } from "luxon";
+import { joinAchievements } from "@/utils/achievements";
 
 /**
  * Enriches a parsed player chart with jersey numbers from team preferences.
@@ -315,8 +317,14 @@ function makeDeferredData({ eventId, userIds, parkId, options = {}, client }) {
         : Promise.resolve([]);
 
     const achievementsPromise = includeAchievements
-        ? listDocuments("user_achievements", [Query.equal("gameId", eventId), Query.limit(100)], client)
-            .then(async (result) => await joinAchievements(result.rows || [], client))
+        ? listDocuments(
+              "user_achievements",
+              [Query.equal("gameId", eventId), Query.limit(100)],
+              client,
+          ).then(
+              async (result) =>
+                  await joinAchievements(result.rows || [], client),
+          )
         : Promise.resolve([]);
 
     return {
