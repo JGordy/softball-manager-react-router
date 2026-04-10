@@ -1,10 +1,14 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 
-import { Card, Center, Image, Stack, Text } from "@mantine/core";
+import { Card, Center, Image, Stack, Text, SimpleGrid, Box, Alert, Tabs } from "@mantine/core";
 import { Carousel } from "@mantine/carousel";
+import { IconTrophy } from "@tabler/icons-react";
 
 import images from "@/constants/images";
 import awardsMap from "@/constants/awards";
+
+import AchievementCard from "@/components/AchievementCard";
+import TabsWrapper from "@/components/TabsWrapper";
 
 import VotesContainer from "./VotesContainer";
 import WinnerDisplay from "./WinnerDisplay";
@@ -17,12 +21,29 @@ export default function AwardsDrawerContents({
     players,
     user,
     votes,
+    achievements,
 }) {
     const [activeAward, setActiveAward] = useState("mvp");
     const [embla, setEmbla] = useState(null);
 
     const awardsList = useMemo(() => Object.keys(awardsMap), []);
     const scrolledRef = useRef(false);
+
+    const validAchievements = useMemo(() => {
+        const list = (achievements || []).filter((ua) => ua.achievement);
+        const weights = { legendary: 5, epic: 4, rare: 3, uncommon: 2, common: 1 };
+
+        return [...list].sort((a, b) => {
+            const weightA = weights[a.achievement.rarity?.toLowerCase()] || 0;
+            const weightB = weights[b.achievement.rarity?.toLowerCase()] || 0;
+
+            // Sort by rarity first
+            if (weightA !== weightB) return weightB - weightA;
+
+            // Then by date
+            return new Date(b.$createdAt) - new Date(a.$createdAt);
+        });
+    }, [achievements]);
 
     // If the awards documents indicate the current user was awarded something,
     // automatically scroll the carousel to the first matching award.
@@ -60,7 +81,7 @@ export default function AwardsDrawerContents({
         scrolledRef.current = false;
     }, [awards?.rows?.length, awards?.total]);
 
-    return (
+    const awardsContent = (
         <Stack justify="center" align="stretch">
             <Carousel
                 controlsOffset="xs"
@@ -115,5 +136,56 @@ export default function AwardsDrawerContents({
                 />
             )}
         </Stack>
+    );
+
+    const achievementsContent = validAchievements.length > 0 ? (
+        <Stack mt="md" gap="md">
+            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+                {validAchievements.map((ua) => {
+                    const player = (players || []).find(p => p.playerId === ua.userId);
+                    const playerName = player?.name || "Player";
+                    const isMe = ua.userId === user?.$id;
+
+                    return (
+                        <AchievementCard
+                            key={ua.$id}
+                            achievement={ua.achievement}
+                            unlockedAt={ua.$createdAt}
+                            playerName={isMe ? "YOU" : playerName}
+                            isMe={isMe}
+                        />
+                    );
+                })}
+            </SimpleGrid>
+        </Stack>
+    ) : (
+        <Box py="xl">
+            <Alert
+                icon={<IconTrophy size={16} />}
+                title="No Achievements Earned"
+                color="gray"
+                radius="md"
+            >
+                No achievements were unlocked in this game. Keep playing to earn trophies for you and your teammates!
+            </Alert>
+        </Box>
+    );
+
+
+
+    return (
+        <TabsWrapper defaultValue="awards" mt="xs">
+            <Tabs.Tab value="awards">Voting & Awards</Tabs.Tab>
+            <Tabs.Tab value="achievements">
+                Achievements
+            </Tabs.Tab>
+
+            <Tabs.Panel value="awards" pt="md">
+                {awardsContent}
+            </Tabs.Panel>
+            <Tabs.Panel value="achievements" pt="md">
+                {achievementsContent}
+            </Tabs.Panel>
+        </TabsWrapper>
     );
 }

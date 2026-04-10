@@ -40,12 +40,14 @@ export default function MobileEventDetailsView({
                 />
             )}
             {game.eventType !== "practice" && gameIsPast ? (
-                <AwardsContainer
-                    game={game}
-                    team={team}
-                    user={user}
-                    deferredData={deferredData}
-                />
+                <>
+                    <AwardsContainer
+                        game={game}
+                        team={team}
+                        user={user}
+                        deferredData={deferredData}
+                    />
+                </>
             ) : (
                 !gameIsPast && (
                     <WeatherCard

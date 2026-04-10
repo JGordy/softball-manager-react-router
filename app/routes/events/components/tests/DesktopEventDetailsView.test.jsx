@@ -1,6 +1,8 @@
-import { render, screen } from "@/utils/test-utils";
 import { MemoryRouter } from "react-router";
 import { MantineProvider } from "@mantine/core";
+
+import { render, screen } from "@/utils/test-utils";
+
 import theme from "@/theme";
 import DesktopEventDetailsView from "../DesktopEventDetailsView";
 
