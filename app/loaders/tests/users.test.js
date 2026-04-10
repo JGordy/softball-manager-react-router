@@ -5,6 +5,7 @@ import {
     getAttendanceByUserId,
     getAwardsByUserId,
     getStatsByUserId,
+    getAchievementsByUserId,
 } from "../users";
 import { Query } from "node-appwrite";
 
@@ -183,6 +184,56 @@ describe("Users Loader", () => {
             listDocuments.mockResolvedValue({ rows: [] });
 
             const result = await getAwardsByUserId({
+                userId: "user1",
+                client: mockClient,
+            });
+
+            expect(result).toEqual([]);
+        });
+    });
+
+    describe("getAchievementsByUserId", () => {
+        it("should return joined achievements documents", async () => {
+            const mockUserAchievements = [
+                { $id: "ua1", achievementId: "ach1", userId: "user1" },
+            ];
+            const mockBaseAchievements = [
+                { $id: "ach1", name: "Multi HR Game", rarity: "Gold" },
+                { $id: "ach2", name: "Cycle", rarity: "Legendary" },
+            ];
+
+            listDocuments
+                .mockResolvedValueOnce({ rows: mockUserAchievements })
+                .mockResolvedValueOnce({ rows: mockBaseAchievements });
+
+            const result = await getAchievementsByUserId({
+                userId: "user1",
+                client: mockClient,
+            });
+
+            expect(listDocuments).toHaveBeenCalledWith(
+                "user_achievements",
+                expect.any(Array),
+                mockClient,
+            );
+            expect(listDocuments).toHaveBeenCalledWith(
+                "achievements",
+                ['limit(100)'],
+                mockClient,
+            );
+
+            expect(result).toEqual([
+                {
+                    ...mockUserAchievements[0],
+                    achievement: mockBaseAchievements[0],
+                },
+            ]);
+        });
+
+        it("should return empty array if no user achievements", async () => {
+            listDocuments.mockResolvedValueOnce({ rows: [] });
+
+            const result = await getAchievementsByUserId({
                 userId: "user1",
                 client: mockClient,
             });

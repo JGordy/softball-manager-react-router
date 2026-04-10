@@ -20,6 +20,29 @@ export async function getAttendanceByUserId({ userId, client }) {
     }
 }
 
+export async function getAchievementsByUserId({ userId, client }) {
+    try {
+        const result = await listDocuments(
+            "user_achievements",
+            [Query.equal("userId", userId)],
+            client
+        );
+        const uaRows = result.rows || [];
+        if (uaRows.length === 0) return [];
+
+        const baseRows = await listDocuments("achievements", [Query.limit(100)], client);
+        const baseMap = new Map((baseRows.rows || []).map(a => [a.$id, a]));
+
+        return uaRows.map(ua => ({
+            ...ua,
+            achievement: baseMap.get(ua.achievementId) || null
+        }));
+    } catch (e) {
+        console.error("Error fetching user achievements:", e);
+        return [];
+    }
+}
+
 export async function getAwardsByUserId({ userId, client }) {
     const awards = await listDocuments(
         "awards",

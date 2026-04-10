@@ -277,6 +277,7 @@ function makeDeferredData({ eventId, userIds, parkId, options = {}, client }) {
         includeAwards = true,
         includeVotes = true,
         includeLogs = true,
+        includeAchievements = true,
     } = options;
 
     // Batch fetch all users in a single query instead of individual queries
@@ -313,6 +314,26 @@ function makeDeferredData({ eventId, userIds, parkId, options = {}, client }) {
           ).then((result) => result.rows || [])
         : Promise.resolve([]);
 
+    const achievementsPromise = includeAchievements
+        ? listDocuments("user_achievements", [Query.equal("gameId", eventId)], client)
+              .then(async (result) => {
+                  const uaRows = result.rows || [];
+                  if (uaRows.length === 0) return [];
+                  
+                  // Fetch the base achievements to map icon/rarity/name
+                  const baseRows = await listDocuments("achievements", [Query.limit(100)], client);
+                  const baseMap = new Map((baseRows.rows || []).map(a => [a.$id, a]));
+                  
+                  return uaRows.map(ua => ({
+                      ...ua,
+                      achievement: baseMap.get(ua.achievementId) || null
+                  }));
+              }).catch(err => {
+                  console.error("Error fetching achievements for game:", err);
+                  return [];
+              })
+        : Promise.resolve([]);
+
     return {
         players: playersPromise,
         park: parkPromise,
@@ -320,6 +341,7 @@ function makeDeferredData({ eventId, userIds, parkId, options = {}, client }) {
         awards: awardsPromise,
         votes: votesPromise,
         logs: logsPromise,
+        achievements: achievementsPromise,
     };
 }
 
