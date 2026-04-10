@@ -71,7 +71,11 @@ export default function MobileProfileView({
             </Tabs.Panel>
 
             <Tabs.Panel value="achievements" mt="md">
-                <PlayerAchievements achievementsPromise={achievementsPromise} />
+                <PlayerAchievements 
+                    achievementsPromise={achievementsPromise}
+                    playerName={player.firstName}
+                    isMe={loggedInUser?.$id === player?.$id}
+                />
             </Tabs.Panel>
         </TabsWrapper>
     );

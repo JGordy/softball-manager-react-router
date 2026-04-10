@@ -10,6 +10,8 @@ import awardsMap from "@/constants/awards";
 import AchievementCard from "@/components/AchievementCard";
 import TabsWrapper from "@/components/TabsWrapper";
 
+import { sortAchievements } from "@/utils/achievements";
+
 import VotesContainer from "./VotesContainer";
 import WinnerDisplay from "./WinnerDisplay";
 
@@ -31,18 +33,7 @@ export default function AwardsDrawerContents({
 
     const validAchievements = useMemo(() => {
         const list = (achievements || []).filter((ua) => ua.achievement);
-        const weights = { legendary: 5, epic: 4, rare: 3, uncommon: 2, common: 1 };
-
-        return [...list].sort((a, b) => {
-            const weightA = weights[a.achievement.rarity?.toLowerCase()] || 0;
-            const weightB = weights[b.achievement.rarity?.toLowerCase()] || 0;
-
-            // Sort by rarity first
-            if (weightA !== weightB) return weightB - weightA;
-
-            // Then by date
-            return new Date(b.$createdAt) - new Date(a.$createdAt);
-        });
+        return sortAchievements(list);
     }, [achievements]);
 
     // If the awards documents indicate the current user was awarded something,
@@ -142,8 +133,10 @@ export default function AwardsDrawerContents({
         <Stack mt="md" gap="md">
             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
                 {validAchievements.map((ua) => {
-                    const player = (players || []).find(p => p.playerId === ua.userId);
-                    const playerName = player?.name || "Player";
+                    const player = (players || []).find(p => p.$id === ua.userId);
+                    const playerName = player
+                        ? [player.firstName, player.lastName].filter(Boolean).join(" ").trim() || "Player"
+                        : "Player";
                     const isMe = ua.userId === user?.$id;
 
                     return (

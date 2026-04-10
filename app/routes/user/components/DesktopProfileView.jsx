@@ -109,6 +109,8 @@ export default function DesktopProfileView({
                     <Tabs.Panel value="achievements" pt="xl">
                         <PlayerAchievements
                             achievementsPromise={achievementsPromise}
+                            playerName={player.firstName}
+                            isMe={loggedInUser?.$id === player?.$id}
                         />
                     </Tabs.Panel>
                 </TabsWrapper>

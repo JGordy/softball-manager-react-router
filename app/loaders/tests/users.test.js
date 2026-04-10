@@ -213,12 +213,12 @@ describe("Users Loader", () => {
 
             expect(listDocuments).toHaveBeenCalledWith(
                 "user_achievements",
-                expect.any(Array),
+                ['equal("userId", "user1")', "limit(100)"],
                 mockClient,
             );
             expect(listDocuments).toHaveBeenCalledWith(
                 "achievements",
-                ['limit(100)'],
+                ['equal("$id", "ach1")'],
                 mockClient,
             );
 

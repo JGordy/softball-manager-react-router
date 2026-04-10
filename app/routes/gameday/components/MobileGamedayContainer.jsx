@@ -10,13 +10,15 @@ import {
     SimpleGrid,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+
 import { IconTrophy } from "@tabler/icons-react";
 
 import AchievementCard from "@/components/AchievementCard";
-
 import TabsWrapper from "@/components/TabsWrapper";
 import BackButton from "@/components/BackButton";
 import ContactSprayChart from "@/components/ContactSprayChart";
+
+import { sortAchievements } from "@/utils/achievements";
 
 import { useGamedayController } from "../hooks/useGamedayController";
 
@@ -259,18 +261,12 @@ export default function MobileGamedayContainer({
                                     <Title order={4} size="h4">Game Achievements</Title>
                                 </Group>
                                 <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-                                    {[...achievements]
-                                        .filter(ua => ua.achievement)
-                                        .sort((a, b) => {
-                                            const weights = { legendary: 5, epic: 4, rare: 3, uncommon: 2, common: 1 };
-                                            const weightA = weights[a.achievement.rarity?.toLowerCase()] || 0;
-                                            const weightB = weights[b.achievement.rarity?.toLowerCase()] || 0;
-                                            if (weightA !== weightB) return weightB - weightA;
-                                            return new Date(b.$createdAt) - new Date(a.$createdAt);
-                                        })
+                                    {sortAchievements(achievements.filter(ua => ua.achievement))
                                         .map((ua) => {
-                                            const player = players.find(p => p.playerId === ua.userId);
-                                            const playerName = player?.name || "Player";
+                                            const player = players.find(p => p.$id === ua.userId);
+                                            const playerName = player
+                                                ? [player.firstName, player.lastName].filter(Boolean).join(" ").trim() || "Player"
+                                                : "Player";
                                             const isMe = ua.userId === user?.$id;
 
                                             return (

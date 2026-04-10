@@ -315,14 +315,19 @@ function makeDeferredData({ eventId, userIds, parkId, options = {}, client }) {
         : Promise.resolve([]);
 
     const achievementsPromise = includeAchievements
-        ? listDocuments("user_achievements", [Query.equal("gameId", eventId)], client)
+        ? listDocuments("user_achievements", [Query.equal("gameId", eventId), Query.limit(100)], client)
               .then(async (result) => {
                   const uaRows = result.rows || [];
                   if (uaRows.length === 0) return [];
                   
-                  // Fetch the base achievements to map icon/rarity/name
-                  const baseRows = await listDocuments("achievements", [Query.limit(100)], client);
-                  const baseMap = new Map((baseRows.rows || []).map(a => [a.$id, a]));
+                  // Extract unique achievement IDs to fetch only what we need
+                  const achievementIds = [...new Set(uaRows.map(ua => ua.achievementId).filter(Boolean))];
+                  let baseMap = new Map();
+                  
+                  if (achievementIds.length > 0) {
+                      const baseRows = await listDocuments("achievements", [Query.equal("$id", achievementIds)], client);
+                      baseMap = new Map((baseRows.rows || []).map(a => [a.$id, a]));
+                  }
                   
                   return uaRows.map(ua => ({
                       ...ua,

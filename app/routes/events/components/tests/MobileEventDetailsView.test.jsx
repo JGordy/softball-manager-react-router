@@ -34,12 +34,9 @@ describe("MobileEventDetailsView", () => {
         expect(
             screen.queryByTestId("awards-container"),
         ).not.toBeInTheDocument();
-        expect(
-            screen.queryByTestId("achievements-container"),
-        ).not.toBeInTheDocument();
     });
 
-    it("renders AwardsContainer and AchievementsContainer instead of WeatherCard for past games", () => {
+    it("renders AwardsContainer instead of WeatherCard for past games", () => {
         render(<MobileEventDetailsView {...defaultProps} gameIsPast={true} />);
 
         expect(screen.getByTestId("awards-container")).toBeInTheDocument();
