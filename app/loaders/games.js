@@ -316,27 +316,7 @@ function makeDeferredData({ eventId, userIds, parkId, options = {}, client }) {
 
     const achievementsPromise = includeAchievements
         ? listDocuments("user_achievements", [Query.equal("gameId", eventId), Query.limit(100)], client)
-              .then(async (result) => {
-                  const uaRows = result.rows || [];
-                  if (uaRows.length === 0) return [];
-                  
-                  // Extract unique achievement IDs to fetch only what we need
-                  const achievementIds = [...new Set(uaRows.map(ua => ua.achievementId).filter(Boolean))];
-                  let baseMap = new Map();
-                  
-                  if (achievementIds.length > 0) {
-                      const baseRows = await listDocuments("achievements", [Query.equal("$id", achievementIds)], client);
-                      baseMap = new Map((baseRows.rows || []).map(a => [a.$id, a]));
-                  }
-                  
-                  return uaRows.map(ua => ({
-                      ...ua,
-                      achievement: baseMap.get(ua.achievementId) || null
-                  }));
-              }).catch(err => {
-                  console.error("Error fetching achievements for game:", err);
-                  return [];
-              })
+            .then(async (result) => await joinAchievements(result.rows || [], client))
         : Promise.resolve([]);
 
     return {

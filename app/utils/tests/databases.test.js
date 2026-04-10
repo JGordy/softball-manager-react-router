@@ -17,14 +17,19 @@ jest.mock("@/utils/appwrite/server", () => ({
     })),
 }));
 
-// Mock environment variables before tests
-process.env.APPWRITE_ACHIEVEMENTS_COLLECTION_ID = "achievements-id";
-process.env.APPWRITE_USER_ACHIEVEMENTS_COLLECTION_ID = "user-achievements-id";
-process.env.APPWRITE_DATABASE_ID = "db-id";
-process.env.APPWRITE_USERS_COLLECTION_ID = "users-id";
+let originalEnv;
 
 describe("databases utility", () => {
     beforeAll(() => {
+        // Save original environment
+        originalEnv = { ...process.env };
+
+        // Mock environment variables
+        process.env.APPWRITE_ACHIEVEMENTS_COLLECTION_ID = "achievements-id";
+        process.env.APPWRITE_USER_ACHIEVEMENTS_COLLECTION_ID = "user-achievements-id";
+        process.env.APPWRITE_DATABASE_ID = "db-id";
+        process.env.APPWRITE_USERS_COLLECTION_ID = "users-id";
+
         const db = require("../databases");
         createDocument = db.createDocument;
         listDocuments = db.listDocuments;
@@ -36,6 +41,10 @@ describe("databases utility", () => {
         commitTransaction = db.commitTransaction;
         rollbackTransaction = db.rollbackTransaction;
         collections = db.collections;
+    });
+
+    afterAll(() => {
+        process.env = originalEnv;
     });
 
     const dbId = "db-id";

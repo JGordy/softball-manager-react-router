@@ -1,5 +1,6 @@
 import { Query } from "node-appwrite";
 import { readDocument, listDocuments } from "@/utils/databases";
+import { joinAchievements } from "@/utils/achievements";
 
 export async function getUserById({ userId, client }) {
     return await readDocument("users", userId, [], client);
@@ -27,23 +28,8 @@ export async function getAchievementsByUserId({ userId, client }) {
             [Query.equal("userId", userId), Query.limit(100)],
             client
         );
-        const uaRows = result.rows || [];
-        if (uaRows.length === 0) return [];
-
-        // Extract unique achievement IDs to fetch only what we need
-        const achievementIds = [...new Set(uaRows.map(ua => ua.achievementId).filter(Boolean))];
-        let baseMap = new Map();
         
-        if (achievementIds.length > 0) {
-            // Fetch only the base achievements that this user has earned
-            const baseRows = await listDocuments("achievements", [Query.equal("$id", achievementIds)], client);
-            baseMap = new Map((baseRows.rows || []).map(a => [a.$id, a]));
-        }
-
-        return uaRows.map(ua => ({
-            ...ua,
-            achievement: baseMap.get(ua.achievementId) || null
-        }));
+        return await joinAchievements(result.rows || [], client);
     } catch (e) {
         console.error("Error fetching user achievements:", e);
         return [];
