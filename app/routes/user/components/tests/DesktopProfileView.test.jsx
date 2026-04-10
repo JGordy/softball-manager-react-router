@@ -35,6 +35,7 @@ describe("DesktopProfileView", () => {
         awardsPromise: Promise.resolve([]),
         attendancePromise: Promise.resolve([]),
         statsPromise: Promise.resolve({ logs: [], games: [], teams: [] }),
+        achievementsPromise: Promise.resolve([]),
     };
 
     it("renders PersonalDetails and PlayerDetails", () => {
@@ -58,6 +59,11 @@ describe("DesktopProfileView", () => {
         expect(
             screen.getByText("No attendance records found."),
         ).toBeInTheDocument();
+    });
+
+    it("renders PlayerAchievements when tab is achievements", () => {
+        render(<DesktopProfileView {...mockProps} tab="achievements" />);
+        expect(screen.getByText(/no achievements yet/i)).toBeInTheDocument();
     });
 
     it("renders Alert when stats are private and user is not owner", () => {
