@@ -4,7 +4,7 @@ import { DateTime } from "luxon";
 import { listDocuments, readDocument } from "@/utils/databases";
 import { parsePlayerChart } from "@/routes/gameday/utils/gamedayUtils";
 import { createAdminClient } from "@/utils/appwrite/server";
-import { joinAchievements } from "@/utils/achievements";
+import { joinAchievements } from "@/utils/achievements.server";
 
 /**
  * Enriches a parsed player chart with jersey numbers from team preferences.
