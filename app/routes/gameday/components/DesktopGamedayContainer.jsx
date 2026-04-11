@@ -202,7 +202,7 @@ export default function DesktopGamedayContainer({
                             <Tabs.Tab value="plays">Plays</Tabs.Tab>
                             <Tabs.Tab value="boxscore">Box Score</Tabs.Tab>
                             <Tabs.Tab value="spray">Spray Chart</Tabs.Tab>
-                            {gameFinal && achievements.length > 0 && (
+                            {gameFinal && (
                                 <Tabs.Tab value="achievements">
                                     Achievements
                                 </Tabs.Tab>
@@ -241,27 +241,93 @@ export default function DesktopGamedayContainer({
                                     <Stack gap="md">
                                         <Group gap="xs">
                                             <IconTrophy size={18} />
-                                            <Title order={4} size="h4">Game Achievements</Title>
+                                            <Title order={4} size="h4">
+                                                Game Achievements
+                                            </Title>
                                         </Group>
                                         <SimpleGrid cols={1} spacing="md">
-                                            {sortAchievements(achievements.filter(ua => ua.achievement))
-                                                .map((ua) => {
-                                                    const player = players.find(p => p.$id === ua.userId);
+                                            {achievements.filter(
+                                                (ua) => ua.achievement,
+                                            ).length > 0 ? (
+                                                sortAchievements(
+                                                    achievements.filter(
+                                                        (ua) => ua.achievement,
+                                                    ),
+                                                ).map((ua) => {
+                                                    const player = players.find(
+                                                        (p) =>
+                                                            p.$id === ua.userId,
+                                                    );
                                                     const playerName = player
-                                                        ? [player.firstName, player.lastName].filter(Boolean).join(" ").trim() || "Player"
+                                                        ? [
+                                                              player.firstName,
+                                                              player.lastName,
+                                                          ]
+                                                              .filter(Boolean)
+                                                              .join(" ")
+                                                              .trim() ||
+                                                          "Player"
                                                         : "Player";
-                                                    const isMe = ua.userId === user?.$id;
+                                                    const isMe =
+                                                        ua.userId === user?.$id;
 
                                                     return (
                                                         <AchievementCard
                                                             key={ua.$id}
-                                                            achievement={ua.achievement}
-                                                            unlockedAt={ua.$createdAt}
-                                                            playerName={isMe ? "YOU" : playerName}
+                                                            achievement={
+                                                                ua.achievement
+                                                            }
+                                                            unlockedAt={
+                                                                ua.$createdAt
+                                                            }
+                                                            playerName={
+                                                                isMe
+                                                                    ? "YOU"
+                                                                    : playerName
+                                                            }
                                                             isMe={isMe}
                                                         />
                                                     );
-                                                })}
+                                                })
+                                            ) : (
+                                                <Card
+                                                    p="xl"
+                                                    radius="md"
+                                                    withBorder
+                                                    style={{
+                                                        borderStyle: "dashed",
+                                                    }}
+                                                >
+                                                    <Stack
+                                                        align="center"
+                                                        gap="xs"
+                                                    >
+                                                        <IconTrophy
+                                                            size={48}
+                                                            stroke={1.5}
+                                                            color="var(--mantine-color-dimmed)"
+                                                        />
+                                                        <Text
+                                                            fw={500}
+                                                            size="lg"
+                                                        >
+                                                            No achievements
+                                                            earned yet
+                                                        </Text>
+                                                        <Text
+                                                            size="sm"
+                                                            color="dimmed"
+                                                            ta="center"
+                                                        >
+                                                            Trophies will appear
+                                                            here as players
+                                                            complete outstanding
+                                                            feats during the
+                                                            game.
+                                                        </Text>
+                                                    </Stack>
+                                                </Card>
+                                            )}
                                         </SimpleGrid>
                                     </Stack>
                                 </Tabs.Panel>

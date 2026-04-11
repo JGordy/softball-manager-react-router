@@ -198,8 +198,8 @@ describe("Users Loader", () => {
                 { $id: "ua1", achievementId: "ach1", userId: "user1" },
             ];
             const mockBaseAchievements = [
-                { $id: "ach1", name: "Multi HR Game", rarity: "Gold" },
-                { $id: "ach2", name: "Cycle", rarity: "Legendary" },
+                { $id: "ach1", name: "Multi HR Game", rarity: "rare" },
+                { $id: "ach2", name: "Cycle", rarity: "legendary" },
             ];
 
             listDocuments

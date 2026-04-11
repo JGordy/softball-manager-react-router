@@ -150,10 +150,8 @@ export default function MobileGamedayContainer({
                     <Tabs.Tab value="plays">Plays</Tabs.Tab>
                     <Tabs.Tab value="boxscore">Box Score</Tabs.Tab>
                     <Tabs.Tab value="spray">Spray</Tabs.Tab>
-                    {gameFinal && achievements.length > 0 && (
-                        <Tabs.Tab value="achievements">
-                            Achievements
-                        </Tabs.Tab>
+                    {gameFinal && (
+                        <Tabs.Tab value="achievements">Achievements</Tabs.Tab>
                     )}
 
                     <Tabs.Panel value="live" pt="md">
@@ -258,27 +256,78 @@ export default function MobileGamedayContainer({
                             <Stack gap="md">
                                 <Group gap="xs">
                                     <IconTrophy size={18} />
-                                    <Title order={4} size="h4">Game Achievements</Title>
+                                    <Title order={4} size="h4">
+                                        Game Achievements
+                                    </Title>
                                 </Group>
-                                <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-                                    {sortAchievements(achievements.filter(ua => ua.achievement))
-                                        .map((ua) => {
-                                            const player = players.find(p => p.$id === ua.userId);
+                                <SimpleGrid
+                                    cols={{ base: 1, sm: 2 }}
+                                    spacing="md"
+                                >
+                                    {achievements.filter((ua) => ua.achievement)
+                                        .length > 0 ? (
+                                        sortAchievements(
+                                            achievements.filter(
+                                                (ua) => ua.achievement,
+                                            ),
+                                        ).map((ua) => {
+                                            const player = players.find(
+                                                (p) => p.$id === ua.userId,
+                                            );
                                             const playerName = player
-                                                ? [player.firstName, player.lastName].filter(Boolean).join(" ").trim() || "Player"
+                                                ? [
+                                                      player.firstName,
+                                                      player.lastName,
+                                                  ]
+                                                      .filter(Boolean)
+                                                      .join(" ")
+                                                      .trim() || "Player"
                                                 : "Player";
-                                            const isMe = ua.userId === user?.$id;
+                                            const isMe =
+                                                ua.userId === user?.$id;
 
                                             return (
                                                 <AchievementCard
                                                     key={ua.$id}
                                                     achievement={ua.achievement}
                                                     unlockedAt={ua.$createdAt}
-                                                    playerName={isMe ? "YOU" : playerName}
+                                                    playerName={
+                                                        isMe
+                                                            ? "YOU"
+                                                            : playerName
+                                                    }
                                                     isMe={isMe}
                                                 />
                                             );
-                                        })}
+                                        })
+                                    ) : (
+                                        <Card
+                                            p="xl"
+                                            radius="md"
+                                            withBorder
+                                            style={{ borderStyle: "dashed" }}
+                                        >
+                                            <Stack align="center" gap="xs">
+                                                <IconTrophy
+                                                    size={40}
+                                                    stroke={1.5}
+                                                    color="var(--mantine-color-dimmed)"
+                                                />
+                                                <Text fw={500} size="sm">
+                                                    No achievements earned yet
+                                                </Text>
+                                                <Text
+                                                    size="xs"
+                                                    color="dimmed"
+                                                    ta="center"
+                                                >
+                                                    Trophies appear here as
+                                                    players complete outstanding
+                                                    feats.
+                                                </Text>
+                                            </Stack>
+                                        </Card>
+                                    )}
                                 </SimpleGrid>
                             </Stack>
                         </Tabs.Panel>

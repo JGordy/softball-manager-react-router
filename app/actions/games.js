@@ -462,20 +462,28 @@ export async function updateGame({ values, eventId, client }) {
             Object.prototype.hasOwnProperty.call(dataToUpdate, "opponentScore");
 
         if (isSetFinal || scoresProvided) {
-            if (isSetFinal && process.env.APPWRITE_GAME_AWARD_TALLY_FUNCTION_ID) {
+            if (
+                isSetFinal &&
+                process.env.APPWRITE_GAME_AWARD_TALLY_FUNCTION_ID
+            ) {
                 try {
                     const adminClient = createAdminClient();
                     await adminClient.functions.createExecution(
                         process.env.APPWRITE_GAME_AWARD_TALLY_FUNCTION_ID,
-                        JSON.stringify({ 
-                            action: 'evaluate_achievements', 
-                            gameId: eventId 
+                        JSON.stringify({
+                            action: "evaluate_achievements",
+                            gameId: eventId,
                         }),
-                        false // Asynchronous execution
+                        true, // Asynchronous execution
                     );
-                    console.log(`Triggered achievement tally function async for game ${eventId}`);
+                    console.log(
+                        `Triggered achievement tally function async for game ${eventId}`,
+                    );
                 } catch (funcError) {
-                    console.error("Error triggering evaluate_achievements function:", funcError);
+                    console.error(
+                        "Error triggering evaluate_achievements function:",
+                        funcError,
+                    );
                 }
             }
 
