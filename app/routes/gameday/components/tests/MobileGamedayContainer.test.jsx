@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent } from "@/utils/test-utils";
+import { render, screen, waitFor, fireEvent, within } from "@/utils/test-utils";
 import * as gameUpdatesHook from "@/hooks/useGameUpdates";
 import * as gameStateHook from "../../hooks/useGameState";
 
@@ -199,8 +199,9 @@ describe("MobileGamedayContainer", () => {
             fireEvent.click(screen.getByText("Achievements"));
 
             await waitFor(() => {
-                expect(screen.getByText("Power Hitter")).toBeVisible();
-                expect(screen.getByText("Alice Smith")).toBeVisible();
+                const panel = screen.getByRole("tabpanel");
+                expect(within(panel).getByText("Power Hitter")).toBeVisible();
+                expect(within(panel).getByText("Alice Smith")).toBeVisible();
             });
         });
     });
