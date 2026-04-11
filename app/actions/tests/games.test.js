@@ -64,7 +64,10 @@ jest.mock("react-router", () => ({
 
 describe("Games Actions", () => {
     const mockSessionClient = { tablesDB: { id: "mock-session-db" } };
-    const mockAdminClient = { users: { getPrefs: jest.fn() } };
+    const mockAdminClient = {
+        users: { getPrefs: jest.fn() },
+        functions: { createExecution: jest.fn().mockResolvedValue({}) },
+    };
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -80,6 +83,7 @@ describe("Games Actions", () => {
         createSessionClient.mockResolvedValue(mockSessionClient);
         getTeamMembers.mockResolvedValue({ memberships: [] });
         getNotifiableTeamMembers.mockResolvedValue(["user1"]);
+        process.env.APPWRITE_GAME_AWARD_TALLY_FUNCTION_ID = "tally-function-id";
     });
 
     afterEach(() => {
@@ -580,6 +584,17 @@ describe("Games Actions", () => {
                 opponent: "Tigers",
                 score: "won 12 - 4",
             });
+
+            expect(
+                mockAdminClient.functions.createExecution,
+            ).toHaveBeenCalledWith(
+                process.env.APPWRITE_GAME_AWARD_TALLY_FUNCTION_ID,
+                JSON.stringify({
+                    action: "evaluate_achievements",
+                    gameId: "game1",
+                }),
+                true,
+            );
 
             // Fast-forward 5.5 seconds
             jest.advanceTimersByTime(5500);

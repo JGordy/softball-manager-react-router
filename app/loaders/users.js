@@ -1,5 +1,6 @@
 import { Query } from "node-appwrite";
 import { readDocument, listDocuments } from "@/utils/databases";
+import { joinAchievements } from "@/utils/achievements.server";
 
 export async function getUserById({ userId, client }) {
     return await readDocument("users", userId, [], client);
@@ -16,6 +17,21 @@ export async function getAttendanceByUserId({ userId, client }) {
         return attendance.rows || [];
     } catch (e) {
         console.error("Error fetching attendance:", e);
+        return [];
+    }
+}
+
+export async function getAchievementsByUserId({ userId, client }) {
+    try {
+        const result = await listDocuments(
+            "user_achievements",
+            [Query.equal("userId", userId), Query.limit(100)],
+            client,
+        );
+
+        return await joinAchievements(result.rows || [], client);
+    } catch (e) {
+        console.error("Error fetching user achievements:", e);
         return [];
     }
 }

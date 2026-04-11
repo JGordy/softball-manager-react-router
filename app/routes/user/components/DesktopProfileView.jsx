@@ -4,6 +4,7 @@ import {
     IconCalendarCheck,
     IconClipboardData,
     IconLock,
+    IconTrophy,
 } from "@tabler/icons-react";
 
 import TabsWrapper from "@/components/TabsWrapper";
@@ -14,6 +15,7 @@ import PlayerDetails from "@/components/PlayerDetails";
 import PlayerStats from "./PlayerStats";
 import PlayerAwards from "./PlayerAwards";
 import PlayerAttendance from "./PlayerAttendance";
+import PlayerAchievements from "./PlayerAchievements";
 import { canViewStats } from "@/utils/users";
 
 export default function DesktopProfileView({
@@ -24,6 +26,7 @@ export default function DesktopProfileView({
     awardsPromise,
     attendancePromise,
     statsPromise,
+    achievementsPromise,
 }) {
     return (
         <Grid gutter="xl" mt="xl">
@@ -61,6 +64,12 @@ export default function DesktopProfileView({
                     >
                         Attendance
                     </Tabs.Tab>
+                    <Tabs.Tab
+                        value="achievements"
+                        leftSection={<IconTrophy size={16} />}
+                    >
+                        Achievements
+                    </Tabs.Tab>
 
                     <Tabs.Panel value="stats" pt="xl">
                         {canViewStats(player, loggedInUser) ? (
@@ -94,6 +103,14 @@ export default function DesktopProfileView({
                     <Tabs.Panel value="attendance" pt="xl">
                         <PlayerAttendance
                             attendancePromise={attendancePromise}
+                        />
+                    </Tabs.Panel>
+
+                    <Tabs.Panel value="achievements" pt="xl">
+                        <PlayerAchievements
+                            achievementsPromise={achievementsPromise}
+                            playerName={player.firstName}
+                            isMe={loggedInUser?.$id === player?.$id}
                         />
                     </Tabs.Panel>
                 </TabsWrapper>

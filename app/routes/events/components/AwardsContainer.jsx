@@ -125,7 +125,8 @@ export default function AwardsContainer({ game, team, deferredData, user }) {
                                 />
                             }
                         >
-                            {({ awards, votes }) => {
+                            {({ awards, votes, achievements }) => {
+                                const achievementsTotal = achievements?.length ?? 0;
                                 const awardsTotal = awards?.total ?? 0;
                                 const votesTotal = votes?.total ?? 0;
 
@@ -138,10 +139,17 @@ export default function AwardsContainer({ game, team, deferredData, user }) {
                                     awards,
                                     votes,
                                 );
+                                const userAchievement = achievements?.some(ua => ua.userId === userId);
 
                                 if (userAward) {
                                     message = "You've received an award!";
                                     color = "orange";
+                                } else if (userAchievement) {
+                                    message = "Achievement unlocked!";
+                                    color = "lime";
+                                } else if (achievementsTotal > 0) {
+                                    message = `${achievementsTotal} achievement${achievementsTotal === 1 ? "" : "s"} unlocked`;
+                                    color = "lime";
                                 } else if (awardsTotal > 0) {
                                     message = "Awards ready for view";
                                     color = "yellow";

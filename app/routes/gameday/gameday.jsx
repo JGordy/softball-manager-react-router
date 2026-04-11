@@ -249,7 +249,7 @@ export default function Gameday() {
                 resolve={deferredData}
                 fallback={<GamedayLoadingSkeleton isDesktop={isDesktop} />}
             >
-                {({ logs, players }) => (
+                {({ logs, players, achievements }) => (
                     <GamedayContainer
                         game={game}
                         playerChart={game.playerChart || []}
@@ -258,7 +258,9 @@ export default function Gameday() {
                         gameFinal={game.gameFinal}
                         isScorekeeper={isScorekeeper}
                         isDesktop={isDesktop}
+                        user={user}
                         players={players || []}
+                        achievements={achievements || []}
                     />
                 )}
             </DeferredLoader>

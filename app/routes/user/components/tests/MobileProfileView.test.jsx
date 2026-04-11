@@ -34,6 +34,7 @@ describe("MobileProfileView", () => {
         loggedInUser: { $id: "player1" },
         awardsPromise: Promise.resolve([]),
         statsPromise: Promise.resolve({ logs: [], games: [], teams: [] }),
+        achievementsPromise: Promise.resolve([]),
     };
 
     it("renders PersonalDetails and PlayerDetails when tab is player", () => {
@@ -50,6 +51,11 @@ describe("MobileProfileView", () => {
     it("renders PlayerAwards when tab is awards", () => {
         render(<MobileProfileView {...mockProps} tab="awards" />);
         expect(screen.getByText(/awards yet/i)).toBeInTheDocument();
+    });
+
+    it("renders PlayerAchievements when tab is achievements", () => {
+        render(<MobileProfileView {...mockProps} tab="achievements" />);
+        expect(screen.getByText(/no achievements yet/i)).toBeInTheDocument();
     });
 
     it("renders Alert when stats are private and user is not owner", () => {

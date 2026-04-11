@@ -1,0 +1,134 @@
+.root {
+    position: relative;
+    border-radius: var(--mantine-radius-md);
+    transition: transform 0.3s ease;
+    padding: 0;
+    width: 100%;
+}
+
+.haloContainer {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--mantine-radius-md);
+    width: 100%;
+}
+
+.locked {
+    filter: grayscale(0.8) opacity(0.7);
+    cursor: default;
+}
+
+.haloContainerWithEffect {
+    padding: 2px;
+}
+
+.rootWithEffect {
+    padding: 0;
+}
+
+.root:hover:not(.locked) {
+    transform: translateY(-4px);
+}
+
+.halo {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(from 0deg,
+            transparent 0%,
+            var(--rarity-color) 25%,
+            transparent 50%,
+            var(--rarity-color) 75%,
+            transparent 100%);
+    animation: rotate 4s cubic-bezier(0.5, 0.79, 0.71, 0.5) infinite;
+    z-index: 1;
+}
+
+.card {
+    position: relative;
+    z-index: 2;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.cardWithEffect {
+    border-color: transparent !important;
+    box-shadow: 0 0 20px color-mix(in srgb, var(--rarity-color), transparent 85%);
+}
+
+.root:hover .cardWithEffect {
+    box-shadow: 0 10px 25px color-mix(in srgb, var(--rarity-color), transparent 70%);
+}
+
+.innerBox {
+    background-color: light-dark(var(--mantine-color-gray-1), #0A0E14);
+    border-radius: var(--mantine-radius-sm);
+    padding: 6px 12px;
+    margin-top: 8px;
+}
+
+.statLabel {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--mantine-color-dimmed);
+    letter-spacing: 0.5px;
+}
+
+.statValue {
+    font-size: 13px;
+    font-weight: 800;
+    color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
+}
+
+/* Fallback border for light mode if halo is too faint */
+@media (prefers-color-scheme: light) {
+    .cardWithEffect {
+        border-color: color-mix(in srgb, var(--rarity-color), transparent 60%) !important;
+    }
+}
+
+.icon {
+    flex-shrink: 0;
+    background-color: color-mix(in srgb, var(--rarity-color), transparent 80%);
+    color: var(--rarity-color);
+}
+
+.title {
+    line-height: 1.2;
+    color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
+}
+
+.titleLocked {
+    color: var(--mantine-color-dimmed);
+}
+
+.description {
+    line-height: 1.4;
+    color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-gray-4));
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes glow {
+    0% {
+        opacity: 0.6;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0.6;
+    }
+}

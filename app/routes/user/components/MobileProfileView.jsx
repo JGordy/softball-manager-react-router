@@ -1,10 +1,6 @@
-import { Alert, Group, Tabs } from "@mantine/core";
-import {
-    IconAward,
-    IconClipboardData,
-    IconLock,
-    IconUserSquareRounded,
-} from "@tabler/icons-react";
+import { Alert, Tabs } from "@mantine/core";
+
+import { IconLock } from "@tabler/icons-react";
 
 import { canViewStats } from "@/utils/users";
 
@@ -14,6 +10,7 @@ import PlayerDetails from "@/components/PlayerDetails";
 
 import PlayerStats from "./PlayerStats";
 import PlayerAwards from "./PlayerAwards";
+import PlayerAchievements from "./PlayerAchievements";
 
 export default function MobileProfileView({
     tab,
@@ -22,28 +19,23 @@ export default function MobileProfileView({
     loggedInUser,
     awardsPromise,
     statsPromise,
+    achievementsPromise,
 }) {
     const activeTab = tab === "attendance" ? "player" : tab;
 
     return (
         <TabsWrapper value={activeTab} onChange={handleTabChange}>
             <Tabs.Tab value="player">
-                <Group gap="xs" align="center" justify="center">
-                    <IconUserSquareRounded size={16} />
-                    Details
-                </Group>
+                Details
             </Tabs.Tab>
             <Tabs.Tab value="stats">
-                <Group gap="xs" align="center" justify="center">
-                    <IconClipboardData size={16} />
-                    Stats
-                </Group>
+                Stats
             </Tabs.Tab>
             <Tabs.Tab value="awards">
-                <Group gap="xs" align="center" justify="center">
-                    <IconAward size={16} />
-                    Awards
-                </Group>
+                Awards
+            </Tabs.Tab>
+            <Tabs.Tab value="achievements">
+                Achievements
             </Tabs.Tab>
 
             <Tabs.Panel value="player">
@@ -75,6 +67,14 @@ export default function MobileProfileView({
                 <PlayerAwards
                     awardsPromise={awardsPromise}
                     statsPromise={statsPromise}
+                />
+            </Tabs.Panel>
+
+            <Tabs.Panel value="achievements" mt="md">
+                <PlayerAchievements 
+                    achievementsPromise={achievementsPromise}
+                    playerName={player.firstName}
+                    isMe={loggedInUser?.$id === player?.$id}
                 />
             </Tabs.Panel>
         </TabsWrapper>

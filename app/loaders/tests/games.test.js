@@ -114,6 +114,7 @@ describe("Games Loader", () => {
             expect(result.deferredData.players).toBeInstanceOf(Promise);
             expect(result.deferredData.park).toBeInstanceOf(Promise);
             expect(result.deferredData.logs).toBeInstanceOf(Promise);
+            expect(result.deferredData.achievements).toBeInstanceOf(Promise);
         });
 
         it("gracefully falls back when double-stringified playerChart fails JSON parsing", async () => {

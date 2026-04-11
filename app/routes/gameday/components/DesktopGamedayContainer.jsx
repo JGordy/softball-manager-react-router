@@ -8,12 +8,18 @@ import {
     Tabs,
     Text,
     Title,
+    SimpleGrid,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
+import { IconTrophy } from "@tabler/icons-react";
+
+import AchievementCard from "@/components/AchievementCard";
 import BackButton from "@/components/BackButton";
 import TabsWrapper from "@/components/TabsWrapper";
 import ContactSprayChart from "@/components/ContactSprayChart";
+
+import { sortAchievements } from "@/utils/achievements";
 
 import { useGamedayController } from "../hooks/useGamedayController";
 
@@ -27,6 +33,7 @@ import FieldingControls from "./FieldingControls";
 import DesktopPlayActionDrawer from "./DesktopPlayActionDrawer";
 import SubPlayerDrawer from "./SubPlayerDrawer";
 import GamedayMenu from "./GamedayMenu";
+import AchievementsList from "./AchievementsList";
 
 export default function DesktopGamedayContainer({
     game,
@@ -36,6 +43,8 @@ export default function DesktopGamedayContainer({
     gameFinal = false,
     isScorekeeper = false,
     players = [],
+    user,
+    achievements = [],
 }) {
     const {
         logs,
@@ -194,6 +203,11 @@ export default function DesktopGamedayContainer({
                             <Tabs.Tab value="plays">Plays</Tabs.Tab>
                             <Tabs.Tab value="boxscore">Box Score</Tabs.Tab>
                             <Tabs.Tab value="spray">Spray Chart</Tabs.Tab>
+                            {gameFinal && (
+                                <Tabs.Tab value="achievements">
+                                    Achievements
+                                </Tabs.Tab>
+                            )}
 
                             <Tabs.Panel value="plays" pt="md">
                                 <Stack gap="md">
@@ -222,6 +236,16 @@ export default function DesktopGamedayContainer({
                                     batters={batters}
                                 />
                             </Tabs.Panel>
+
+                            {gameFinal && (
+                                <Tabs.Panel value="achievements" pt="md">
+                                    <AchievementsList
+                                        achievements={achievements}
+                                        players={players}
+                                        user={user}
+                                    />
+                                </Tabs.Panel>
+                            )}
                         </TabsWrapper>
                     </Grid.Col>
                 </Grid>

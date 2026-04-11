@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent } from "@/utils/test-utils";
+import { render, screen, waitFor, fireEvent, within } from "@/utils/test-utils";
 import * as gameUpdatesHook from "@/hooks/useGameUpdates";
 import * as gameStateHook from "../../hooks/useGameState";
 
@@ -121,6 +121,80 @@ describe("DesktopGamedayContainer", () => {
 
         await waitFor(() => {
             expect(screen.getByText("Legend")).toBeVisible();
+        });
+    });
+
+    describe("Achievements integration", () => {
+        const mockAchievements = [
+            {
+                $id: "ua1",
+                userId: "p1",
+                achievementId: "ach1",
+                $createdAt: "2024-01-01T12:00:00Z",
+                achievement: {
+                    name: "Power Hitter",
+                    rarity: "epic",
+                    description: "Hit a HR",
+                },
+            },
+        ];
+
+        it("shows Achievements tab when game is final", () => {
+            render(
+                <DesktopGamedayContainer
+                    game={mockGame}
+                    gameFinal={true}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    achievements={[]}
+                />,
+            );
+
+            expect(screen.getByText("Achievements")).toBeInTheDocument();
+        });
+
+        it("renders empty state when no achievements were earned", async () => {
+            render(
+                <DesktopGamedayContainer
+                    game={mockGame}
+                    gameFinal={true}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    achievements={[]}
+                />,
+            );
+
+            fireEvent.click(screen.getByText("Achievements"));
+
+            await waitFor(() => {
+                expect(
+                    screen.getByText(/No achievements earned yet/i),
+                ).toBeVisible();
+            });
+        });
+
+        it("renders achievement cards with player names", async () => {
+            render(
+                <DesktopGamedayContainer
+                    game={mockGame}
+                    gameFinal={true}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    achievements={mockAchievements}
+                    players={mockPlayerChart}
+                />,
+            );
+
+            fireEvent.click(screen.getByText("Achievements"));
+
+            await waitFor(() => {
+                const panel = screen.getByRole("tabpanel");
+                expect(within(panel).getByText("Power Hitter")).toBeVisible();
+                expect(within(panel).getByText("Alice Smith")).toBeVisible();
+            });
         });
     });
 });

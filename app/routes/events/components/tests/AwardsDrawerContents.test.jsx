@@ -80,16 +80,50 @@ describe("AwardsDrawerContents", () => {
 
     it("updates active award when carousel slide changes", async () => {
         renderComponent({ awards: { total: 0, rows: [] } });
-
+ 
         // Initial state: activeAward = 'mvp' (first key in actual constant)
         const votesContainer = screen.getByTestId("votes-container");
         expect(votesContainer).toHaveAttribute("data-active-award", "mvp");
-
+ 
         // Change slide to index 1 ('clutch' is the second key in actual constant)
         const slide1Button = screen.getByText("Slide 1");
         fireEvent.click(slide1Button);
-
+ 
         // Verify prop update
         expect(votesContainer).toHaveAttribute("data-active-award", "clutch");
+    });
+ 
+    it("renders both Voting and Achievements tabs", () => {
+        const mockAchievements = [
+            { $id: "ua1", achievement: { name: "Legendary Win", rarity: "Legendary" }, $createdAt: "2024-01-01" },
+            { $id: "ua2", achievement: { name: "Rare Hit", rarity: "Rare" }, $createdAt: "2024-01-01" }
+        ];
+        renderComponent({ achievements: mockAchievements });
+ 
+        expect(screen.getByText("Voting & Awards")).toBeInTheDocument();
+        expect(screen.getByText("Achievements")).toBeInTheDocument();
+    });
+ 
+    it("sorts achievements by rarity (Legendary above Rare)", () => {
+        const mockAchievements = [
+            { $id: "ua2", userId: "user1", achievement: { name: "Rare Hit", rarity: "Rare" }, $createdAt: "2024-01-01" },
+            { $id: "ua1", userId: "user1", achievement: { name: "Legendary Win", rarity: "Legendary" }, $createdAt: "2024-01-01" }
+        ];
+        renderComponent({ achievements: mockAchievements });
+ 
+        // Click Achievements tab
+        fireEvent.click(screen.getByText("Achievements"));
+ 
+        const titles = screen.getAllByText(/Legendary Win|Rare Hit/);
+        // Legendary should be first due to weights (Legendary: 5, Rare: 3)
+        expect(titles[0]).toHaveTextContent("Legendary Win");
+        expect(titles[1]).toHaveTextContent("Rare Hit");
+    });
+ 
+    it("shows empty state alert in Achievements tab when no trophies", () => {
+        renderComponent({ achievements: [] });
+ 
+        fireEvent.click(screen.getByText("Achievements"));
+        expect(screen.getByText(/No achievements were unlocked in this game/i)).toBeInTheDocument();
     });
 });

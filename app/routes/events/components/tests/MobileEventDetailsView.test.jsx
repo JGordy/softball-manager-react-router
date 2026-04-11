@@ -57,6 +57,9 @@ describe("MobileEventDetailsView", () => {
         expect(
             screen.queryByTestId("awards-container"),
         ).not.toBeInTheDocument();
+        expect(
+            screen.queryByTestId("achievements-container"),
+        ).not.toBeInTheDocument();
     });
 
     it("still renders weather-card for future practice", () => {
