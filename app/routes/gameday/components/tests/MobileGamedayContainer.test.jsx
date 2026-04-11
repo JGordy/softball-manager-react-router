@@ -131,4 +131,74 @@ describe("MobileGamedayContainer", () => {
             expect(screen.getByText("TOTALS")).toBeVisible();
         });
     });
+
+    describe("Achievements integration", () => {
+        const mockAchievements = [
+            {
+                $id: "ua1",
+                userId: "p1",
+                achievementId: "ach1",
+                $createdAt: "2024-01-01T12:00:00Z",
+                achievement: {
+                    name: "Power Hitter",
+                    rarity: "epic",
+                    description: "Hit a HR",
+                },
+            },
+        ];
+
+        it("shows Achievements tab when game is final", () => {
+            render(
+                <MobileGamedayContainer
+                    game={{ ...mockGame, gameFinal: true }}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    achievements={[]}
+                />,
+            );
+
+            expect(screen.getByText("Achievements")).toBeInTheDocument();
+        });
+
+        it("renders empty state when no achievements were earned", async () => {
+            render(
+                <MobileGamedayContainer
+                    game={{ ...mockGame, gameFinal: true }}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    achievements={[]}
+                />,
+            );
+
+            fireEvent.click(screen.getByText("Achievements"));
+
+            await waitFor(() => {
+                expect(
+                    screen.getByText(/No achievements earned yet/i),
+                ).toBeVisible();
+            });
+        });
+
+        it("renders achievement cards with player names", async () => {
+            render(
+                <MobileGamedayContainer
+                    game={{ ...mockGame, gameFinal: true }}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    achievements={mockAchievements}
+                    players={mockPlayerChart}
+                />,
+            );
+
+            fireEvent.click(screen.getByText("Achievements"));
+
+            await waitFor(() => {
+                expect(screen.getByText("Power Hitter")).toBeVisible();
+                expect(screen.getByText("Alice Smith")).toBeVisible();
+            });
+        });
+    });
 });
