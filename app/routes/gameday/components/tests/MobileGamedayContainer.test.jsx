@@ -150,7 +150,8 @@ describe("MobileGamedayContainer", () => {
         it("shows Achievements tab when game is final", () => {
             render(
                 <MobileGamedayContainer
-                    game={{ ...mockGame, gameFinal: true }}
+                    game={mockGame}
+                    gameFinal={true}
                     playerChart={mockPlayerChart}
                     team={mockTeam}
                     initialLogs={[]}
@@ -164,7 +165,8 @@ describe("MobileGamedayContainer", () => {
         it("renders empty state when no achievements were earned", async () => {
             render(
                 <MobileGamedayContainer
-                    game={{ ...mockGame, gameFinal: true }}
+                    game={mockGame}
+                    gameFinal={true}
                     playerChart={mockPlayerChart}
                     team={mockTeam}
                     initialLogs={[]}

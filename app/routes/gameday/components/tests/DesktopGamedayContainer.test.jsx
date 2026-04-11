@@ -142,7 +142,8 @@ describe("DesktopGamedayContainer", () => {
         it("shows Achievements tab when game is final", () => {
             render(
                 <DesktopGamedayContainer
-                    game={{ ...mockGame, gameFinal: true }}
+                    game={mockGame}
+                    gameFinal={true}
                     playerChart={mockPlayerChart}
                     team={mockTeam}
                     initialLogs={[]}
@@ -156,7 +157,8 @@ describe("DesktopGamedayContainer", () => {
         it("renders empty state when no achievements were earned", async () => {
             render(
                 <DesktopGamedayContainer
-                    game={{ ...mockGame, gameFinal: true }}
+                    game={mockGame}
+                    gameFinal={true}
                     playerChart={mockPlayerChart}
                     team={mockTeam}
                     initialLogs={[]}
