@@ -33,6 +33,7 @@ import FieldingControls from "./FieldingControls";
 import DesktopPlayActionDrawer from "./DesktopPlayActionDrawer";
 import SubPlayerDrawer from "./SubPlayerDrawer";
 import GamedayMenu from "./GamedayMenu";
+import AchievementsList from "./AchievementsList";
 
 export default function DesktopGamedayContainer({
     game,
@@ -238,98 +239,11 @@ export default function DesktopGamedayContainer({
 
                             {gameFinal && (
                                 <Tabs.Panel value="achievements" pt="md">
-                                    <Stack gap="md">
-                                        <Group gap="xs">
-                                            <IconTrophy size={18} />
-                                            <Title order={4} size="h4">
-                                                Game Achievements
-                                            </Title>
-                                        </Group>
-                                        <SimpleGrid cols={1} spacing="md">
-                                            {achievements.filter(
-                                                (ua) => ua.achievement,
-                                            ).length > 0 ? (
-                                                sortAchievements(
-                                                    achievements.filter(
-                                                        (ua) => ua.achievement,
-                                                    ),
-                                                ).map((ua) => {
-                                                    const player = players.find(
-                                                        (p) =>
-                                                            p.$id === ua.userId,
-                                                    );
-                                                    const playerName = player
-                                                        ? [
-                                                              player.firstName,
-                                                              player.lastName,
-                                                          ]
-                                                              .filter(Boolean)
-                                                              .join(" ")
-                                                              .trim() ||
-                                                          "Player"
-                                                        : "Player";
-                                                    const isMe =
-                                                        ua.userId === user?.$id;
-
-                                                    return (
-                                                        <AchievementCard
-                                                            key={ua.$id}
-                                                            achievement={
-                                                                ua.achievement
-                                                            }
-                                                            unlockedAt={
-                                                                ua.$createdAt
-                                                            }
-                                                            playerName={
-                                                                isMe
-                                                                    ? "YOU"
-                                                                    : playerName
-                                                            }
-                                                            isMe={isMe}
-                                                        />
-                                                    );
-                                                })
-                                            ) : (
-                                                <Card
-                                                    p="xl"
-                                                    radius="md"
-                                                    withBorder
-                                                    style={{
-                                                        borderStyle: "dashed",
-                                                    }}
-                                                >
-                                                    <Stack
-                                                        align="center"
-                                                        gap="xs"
-                                                    >
-                                                        <IconTrophy
-                                                            size={48}
-                                                            stroke={1.5}
-                                                            color="var(--mantine-color-dimmed)"
-                                                        />
-                                                        <Text
-                                                            fw={500}
-                                                            size="lg"
-                                                        >
-                                                            No achievements
-                                                            earned yet
-                                                        </Text>
-                                                        <Text
-                                                            size="sm"
-                                                            color="dimmed"
-                                                            ta="center"
-                                                        >
-                                                            Trophies will appear
-                                                            here as players
-                                                            complete outstanding
-                                                            feats during the
-                                                            game.
-                                                        </Text>
-                                                    </Stack>
-                                                </Card>
-                                            )}
-                                        </SimpleGrid>
-                                    </Stack>
+                                    <AchievementsList
+                                        achievements={achievements}
+                                        players={players}
+                                        user={user}
+                                    />
                                 </Tabs.Panel>
                             )}
                         </TabsWrapper>
