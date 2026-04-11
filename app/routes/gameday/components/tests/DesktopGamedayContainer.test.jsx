@@ -176,7 +176,8 @@ describe("DesktopGamedayContainer", () => {
         it("renders achievement cards with player names", async () => {
             render(
                 <DesktopGamedayContainer
-                    game={{ ...mockGame, gameFinal: true }}
+                    game={mockGame}
+                    gameFinal={true}
                     playerChart={mockPlayerChart}
                     team={mockTeam}
                     initialLogs={[]}
