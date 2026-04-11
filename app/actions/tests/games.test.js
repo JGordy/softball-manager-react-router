@@ -585,13 +585,15 @@ describe("Games Actions", () => {
                 score: "won 12 - 4",
             });
 
-            expect(mockAdminClient.functions.createExecution).toHaveBeenCalledWith(
+            expect(
+                mockAdminClient.functions.createExecution,
+            ).toHaveBeenCalledWith(
                 process.env.APPWRITE_GAME_AWARD_TALLY_FUNCTION_ID,
                 JSON.stringify({
                     action: "evaluate_achievements",
                     gameId: "game1",
                 }),
-                false,
+                true,
             );
 
             // Fast-forward 5.5 seconds
