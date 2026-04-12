@@ -73,19 +73,26 @@ export default function DesktopRosterTable({
                     </Group>
                 </Table.Td>
                 <Table.Td>
-                    {isManager ? (
-                        <Badge
-                            color="blue"
-                            variant="light"
-                            leftSection={<IconShieldCheck size={12} />}
-                        >
-                            Manager
-                        </Badge>
-                    ) : (
-                        <Badge color="gray" variant="light">
-                            Player
-                        </Badge>
-                    )}
+                    <Group gap="xs">
+                        {isManager ? (
+                            <Badge
+                                color="blue"
+                                variant="light"
+                                leftSection={<IconShieldCheck size={12} />}
+                            >
+                                Manager
+                            </Badge>
+                        ) : (
+                            <Badge color="gray" variant="light">
+                                Player
+                            </Badge>
+                        )}
+                        {player.status === "unverified" && (
+                            <Badge color="orange" variant="filled">
+                                Invited
+                            </Badge>
+                        )}
+                    </Group>
                 </Table.Td>
                 <Table.Td>
                     <PlayerPositions

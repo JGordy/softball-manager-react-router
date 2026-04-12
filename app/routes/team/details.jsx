@@ -15,7 +15,10 @@ import {
     updatePreferences,
     updateBulkJerseyNumbers,
 } from "@/actions/teams";
-import { invitePlayersServer } from "@/actions/invitations";
+import {
+    invitePlayersServer,
+    syncInvitedPlayersServer,
+} from "@/actions/invitations";
 
 import { getTeamById } from "@/loaders/teams";
 
@@ -40,8 +43,22 @@ export async function loader({ params, request }) {
 
 export async function action({ request, params }) {
     const { teamId } = params;
-    const formData = await request.formData();
-    const { _action, ...values } = Object.fromEntries(formData);
+    const contentType = (request.headers && typeof request.headers.get === "function") 
+        ? request.headers.get("Content-Type") 
+        : undefined;
+    let _action, values, formData;
+
+    if (contentType && contentType.indexOf("application/json") !== -1) {
+        values = await request.json();
+        const url = new URL(request.url);
+        _action = values._action || url.searchParams.get("_action");
+    } else {
+        formData = await request.formData();
+        const data = Object.fromEntries(formData);
+        _action = data._action;
+        values = data;
+    }
+
     const client = await createSessionClient(request);
 
     if (_action === "add-player") {
@@ -77,6 +94,24 @@ export async function action({ request, params }) {
         });
     }
 
+    if (_action === "invite-player-sync") {
+        if (values.error) {
+            return {
+                success: false,
+                message: values.error,
+            };
+        }
+
+        const players = typeof values.players === "string" 
+            ? JSON.parse(values.players) 
+            : values.players;
+            
+        return syncInvitedPlayersServer({
+            players,
+            teamId,
+        });
+    }
+
     if (_action === "add-season") {
         return createSeason({ values, teamId, client });
     }
@@ -109,8 +144,9 @@ export default function TeamDetails({ actionData, loaderData }) {
 
     const { user } = useOutletContext();
 
-    const managerView = managerIds.includes(user?.$id);
-    const ownerView = ownerIds?.includes(user?.$id);
+    const userId = user && user.$id;
+    const managerView = managerIds.indexOf(userId) !== -1;
+    const ownerView = ownerIds && ownerIds.indexOf(userId) !== -1;
 
     useResponseNotification(actionData);
 
