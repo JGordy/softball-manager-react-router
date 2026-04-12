@@ -458,53 +458,11 @@ describe("Invitations Actions", () => {
             expect(result.message).toContain("You do not have permission");
         });
 
-        it("should auto-add existing users via Admin Client", async () => {
-            // User exists
-            mockAdminUsers.list.mockResolvedValue({
-                total: 1,
-                users: [{ $id: "existing-u1", email: "test@example.com" }],
-            });
-            // User not in team yet
-            mockAdminTeams.listMemberships.mockResolvedValue({
-                total: 0,
-                memberships: [],
-            });
-            // Add success
-            mockAdminTeams.createMembership.mockResolvedValue({});
-
-            const result = await invitePlayersServer({
-                players,
-                teamId,
-                url,
-                client: {
-                    teams: mockSessionTeams,
-                    account: mockSessionAccount,
-                },
-            });
-
-            expect(mockAdminUsers.list).toHaveBeenCalled();
-            expect(mockAdminTeams.createMembership).toHaveBeenCalledWith(
-                teamId,
-                ["player"],
-                undefined,
-                "existing-u1",
-            );
-            expect(result.success).toBe(true);
-            expect(result.message).toContain(
-                "Successfully invited/added 1 player",
-            );
-        });
-
-        it("should handle error if user already in team", async () => {
-            // User exists
-            mockAdminUsers.list.mockResolvedValue({
-                total: 1,
-                users: [{ $id: "existing-u1", email: "test@example.com" }],
-            });
-            // User matches confirm true
-            mockAdminTeams.listMemberships.mockResolvedValue({
-                total: 1,
-                memberships: [{ confirm: true }],
+        it("should handle error if user already in team (409 Conflict)", async () => {
+            // Mock createMembership to fail with 409
+            mockSessionTeams.createMembership.mockRejectedValue({
+                code: 409,
+                message: "Player is already a member",
             });
 
             const result = await invitePlayersServer({
