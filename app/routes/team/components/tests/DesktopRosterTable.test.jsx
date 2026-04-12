@@ -1,3 +1,4 @@
+/* eslint-disable react/display-name */
 import { render, screen, fireEvent } from "@/utils/test-utils";
 import DesktopRosterTable from "../DesktopRosterTable";
 
@@ -94,5 +95,26 @@ describe("DesktopRosterTable Component", () => {
         expect(screen.getByTestId("drawer-container")).toBeInTheDocument();
         expect(screen.getByText("John's Details")).toBeInTheDocument();
         expect(screen.getByTestId("player-details")).toBeInTheDocument();
+    });
+
+    it("shows Invited badge for unverified players", () => {
+        const playersWithUnverified = [
+            ...mockPlayers,
+            {
+                $id: "p3",
+                firstName: "Invited",
+                lastName: "Player",
+                email: "invited@test.com",
+                preferredPositions: [],
+                status: "unverified",
+            },
+        ];
+        render(
+            <DesktopRosterTable
+                {...mockProps}
+                players={playersWithUnverified}
+            />,
+        );
+        expect(screen.getByText("Invited")).toBeInTheDocument();
     });
 });
