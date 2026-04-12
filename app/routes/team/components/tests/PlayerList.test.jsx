@@ -1,3 +1,4 @@
+/* eslint-disable react/display-name */
 import { render, screen, fireEvent } from "@/utils/test-utils";
 
 import PlayerList from "../PlayerList";
@@ -104,5 +105,25 @@ describe("PlayerList Component", () => {
         fireEvent.click(screen.getByText("Charts"));
 
         expect(screen.getByTestId("spray-chart")).toBeInTheDocument();
+    });
+
+    it("shows INVITED indicator for unverified players", () => {
+        const playersWithUnverified = [
+            ...mockPlayers,
+            {
+                $id: "p3",
+                firstName: "Invited",
+                lastName: "Player",
+                preferredPositions: [],
+                status: "unverified",
+            },
+        ];
+        render(
+            <PlayerList
+                players={playersWithUnverified}
+                managerIds={mockManagerIds}
+            />,
+        );
+        expect(screen.getByText("INVITED")).toBeInTheDocument();
     });
 });

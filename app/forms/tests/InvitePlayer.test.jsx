@@ -3,10 +3,10 @@ import { trackEvent } from "@/utils/analytics";
 
 import InvitePlayer from "../InvitePlayer";
 
-const mockSubmit = jest.fn();
+const mockFetcherSubmit = jest.fn();
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
-    useSubmit: () => mockSubmit,
+    useFetcher: jest.fn(),
     Form: ({ children, onSubmit, ...props }) => (
         <form onSubmit={onSubmit} {...props}>
             {children}
@@ -26,9 +26,17 @@ jest.mock("@/utils/analytics", () => ({
     trackEvent: jest.fn(),
 }));
 
+const mockInvitePlayersBrowser = jest.fn();
+jest.mock("@/actions/invitations", () => ({
+    invitePlayersBrowser: (...args) => mockInvitePlayersBrowser(...args),
+}));
+
 describe("InvitePlayer", () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        require("react-router").useFetcher.mockReturnValue({
+            submit: mockFetcherSubmit,
+        });
     });
 
     it("renders initial single invite row", () => {
@@ -97,7 +105,12 @@ describe("InvitePlayer", () => {
         ).toHaveValue("test3@example.com");
     });
 
-    it("tracks event on submission and calls submit", () => {
+    it("tracks event on submission and calls fetcher.submit for sync", async () => {
+        mockInvitePlayersBrowser.mockResolvedValue({
+            success: true,
+            results: [{ email: "test@example.com", userId: "user1" }],
+        });
+
         render(<InvitePlayer teamId="team1" teamName="Team A" />);
 
         // Fill one email
@@ -105,22 +118,27 @@ describe("InvitePlayer", () => {
             target: { value: "test@example.com" },
         });
 
-        // Submit form
-        fireEvent.click(
-            screen.getByRole("button", { name: /send invitations/i }),
-        );
+        await act(async () => {
+            fireEvent.click(
+                screen.getByRole("button", { name: /send invitations/i }),
+            );
+        });
 
         expect(trackEvent).toHaveBeenCalledWith("invite-player", {
             teamId: "team1",
             count: 1,
         });
 
-        expect(mockSubmit).toHaveBeenCalledWith(expect.any(FormData), {
-            action: undefined,
-            method: "post",
-        });
-
-        const formData = mockSubmit.mock.calls[0][0];
-        expect(formData.getAll("email")).toContain("test@example.com");
+        expect(mockFetcherSubmit).toHaveBeenCalledWith(
+            {
+                _action: "invite-player-sync",
+                players: [{ email: "test@example.com", userId: "user1" }],
+            },
+            {
+                method: "post",
+                encType: "application/json",
+                action: "/team/team1",
+            },
+        );
     });
 });

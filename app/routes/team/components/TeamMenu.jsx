@@ -1,5 +1,8 @@
+import { useNavigate } from "react-router";
+
 import { Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+
 import {
     IconBallBaseball,
     IconCalendar,
@@ -14,13 +17,12 @@ import {
 import AddTeam from "@/forms/AddTeam";
 import AddSingleGame from "@/forms/AddSingleGame";
 import AddSeason from "@/forms/AddSeason";
-import AddPlayer from "@/forms/AddPlayer";
 import InvitePlayer from "@/forms/InvitePlayer";
-import { useNavigate } from "react-router";
 
 import useModal from "@/hooks/useModal";
 
 import MenuContainer from "@/components/MenuContainer";
+
 import ManageRolesDrawer from "./ManageRolesDrawer";
 import PreferencesDrawer from "./PreferencesDrawer";
 import BulkJerseyNumberModal from "./BulkJerseyNumberModal";
@@ -50,24 +52,11 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
             ),
         });
 
-    const openAddPlayerModal = () =>
-        openModal({
-            title: "Add a New Player",
-            children: (
-                <AddPlayer
-                    actionRoute={`/team/${teamId}`}
-                    buttonColor={primaryColor}
-                    inputsToDisplay={["name", "gender", "contact", "positions"]}
-                />
-            ),
-        });
-
     const openInvitePlayerModal = () =>
         openModal({
             title: "Invite Player by Email",
             children: (
                 <InvitePlayer
-                    actionRoute={`/team/${teamId}`}
                     buttonColor={primaryColor}
                     teamId={teamId}
                     teamName={teamName}

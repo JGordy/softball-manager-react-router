@@ -2,6 +2,7 @@ import {
     invitePlayerByEmail,
     invitePlayers,
     invitePlayersServer,
+    syncInvitedPlayersServer,
     acceptTeamInvitation,
     setPasswordForInvitedUser,
 } from "../invitations";
@@ -11,7 +12,7 @@ global.fetch = jest.fn();
 
 // Mock cookie module
 jest.mock("cookie", () => ({
-    serialize: jest.fn((name, value, options) => `${name}=${value}; HttpOnly`),
+    serialize: jest.fn((name, value) => `${name}=${value}; HttpOnly`),
 }));
 
 // Note: This test needs custom Users class mock, so can't use __mocks__/node-appwrite.js
@@ -373,11 +374,6 @@ describe("Invitations Actions", () => {
         const teamId = "team-123";
         const url = "http://localhost/accept";
         const players = [{ email: "test@example.com", name: "Test User" }];
-        const request = {
-            headers: {
-                get: jest.fn().mockReturnValue("appwrite-session=s1"),
-            },
-        };
 
         let mockSessionTeams, mockSessionAccount;
         let mockAdminTeams, mockAdminUsers;
@@ -458,53 +454,11 @@ describe("Invitations Actions", () => {
             expect(result.message).toContain("You do not have permission");
         });
 
-        it("should auto-add existing users via Admin Client", async () => {
-            // User exists
-            mockAdminUsers.list.mockResolvedValue({
-                total: 1,
-                users: [{ $id: "existing-u1", email: "test@example.com" }],
-            });
-            // User not in team yet
-            mockAdminTeams.listMemberships.mockResolvedValue({
-                total: 0,
-                memberships: [],
-            });
-            // Add success
-            mockAdminTeams.createMembership.mockResolvedValue({});
-
-            const result = await invitePlayersServer({
-                players,
-                teamId,
-                url,
-                client: {
-                    teams: mockSessionTeams,
-                    account: mockSessionAccount,
-                },
-            });
-
-            expect(mockAdminUsers.list).toHaveBeenCalled();
-            expect(mockAdminTeams.createMembership).toHaveBeenCalledWith(
-                teamId,
-                ["player"],
-                undefined,
-                "existing-u1",
-            );
-            expect(result.success).toBe(true);
-            expect(result.message).toContain(
-                "Successfully invited/added 1 player",
-            );
-        });
-
-        it("should handle error if user already in team", async () => {
-            // User exists
-            mockAdminUsers.list.mockResolvedValue({
-                total: 1,
-                users: [{ $id: "existing-u1", email: "test@example.com" }],
-            });
-            // User matches confirm true
-            mockAdminTeams.listMemberships.mockResolvedValue({
-                total: 1,
-                memberships: [{ confirm: true }],
+        it("should handle error if user already in team (409 Conflict)", async () => {
+            // Mock createMembership to fail with 409
+            mockSessionTeams.createMembership.mockRejectedValue({
+                code: 409,
+                message: "Player is already a member",
             });
 
             const result = await invitePlayersServer({
@@ -542,6 +496,102 @@ describe("Invitations Actions", () => {
             });
 
             expect(mockSessionTeams.createMembership).toHaveBeenCalled();
+            expect(result.success).toBe(true);
+        });
+    });
+
+    describe("syncInvitedPlayersServer", () => {
+        const teamId = "team-123";
+
+        let mockAdminUsers, mockAdminTeams;
+
+        beforeEach(() => {
+            mockAdminUsers = { list: jest.fn() };
+            mockAdminTeams = { listMemberships: jest.fn() };
+            mockCreateAdminClient.mockReturnValue({
+                users: mockAdminUsers,
+                teams: mockAdminTeams,
+            });
+        });
+
+        it("returns error when players is not an array", async () => {
+            const result = await syncInvitedPlayersServer({
+                players: null,
+                teamId,
+            });
+            expect(result).toEqual({
+                success: false,
+                message: "No players to sync",
+            });
+        });
+
+        it("creates shadow record when user doc does not exist", async () => {
+            const {
+                createDocument,
+                readDocument,
+            } = require("@/utils/databases");
+            readDocument.mockRejectedValue({
+                code: 404,
+                message: "Document with the requested ID could not be found.",
+            });
+
+            const players = [
+                { email: "new@test.com", name: "New User", userId: "u1" },
+            ];
+            const result = await syncInvitedPlayersServer({ players, teamId });
+
+            expect(createDocument).toHaveBeenCalledWith(
+                "users",
+                "u1",
+                expect.objectContaining({
+                    email: "new@test.com",
+                    firstName: "New",
+                    lastName: "User",
+                    userId: "u1",
+                    status: "unverified",
+                }),
+                expect.any(Array),
+                expect.any(Object),
+            );
+            expect(result.success).toBe(true);
+        });
+
+        it("skips shadow record creation when user doc already exists", async () => {
+            const {
+                createDocument,
+                readDocument,
+            } = require("@/utils/databases");
+            readDocument.mockResolvedValue({
+                $id: "u1",
+                email: "existing@test.com",
+            });
+
+            const players = [
+                {
+                    email: "existing@test.com",
+                    name: "Existing User",
+                    userId: "u1",
+                },
+            ];
+            const result = await syncInvitedPlayersServer({ players, teamId });
+
+            expect(createDocument).not.toHaveBeenCalled();
+            expect(result.success).toBe(true);
+        });
+
+        it("uses email->userId fallback when userId is missing", async () => {
+            const { readDocument } = require("@/utils/databases");
+            readDocument.mockResolvedValue({ $id: "u2" });
+
+            mockAdminUsers.list.mockResolvedValue({
+                total: 1,
+                users: [{ $id: "u2" }],
+            });
+
+            const players = [{ email: "found@test.com", name: "Found User" }];
+            const result = await syncInvitedPlayersServer({ players, teamId });
+
+            expect(mockAdminUsers.list).toHaveBeenCalled();
             expect(result.success).toBe(true);
         });
     });

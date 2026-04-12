@@ -270,12 +270,14 @@ export async function getTeamById({ teamId, client }) {
         const scorekeeperIds = [];
         const userIds = [];
         const userRoles = {};
+        let firstMemberships = null;
 
         // Try to get memberships from Appwrite Teams API first (for new teams)
         try {
             // Use Admin client to bypass permission checks for listing team members
             const { teams } = createAdminClient();
             const memberships = await teams.listMemberships(teamId);
+            firstMemberships = memberships;
 
             // Extract user IDs and categorize by role
             for (const membership of memberships.memberships) {
@@ -317,10 +319,41 @@ export async function getTeamById({ teamId, client }) {
                 [Query.equal("$id", userIds)],
                 client,
             );
-            players = result.rows.map((player) => ({
-                ...player,
-                roles: userRoles[player.$id] || [],
-            }));
+
+            const dbPlayersMap = new Map(result.rows.map((p) => [p.$id, p]));
+
+            // Reuse memberships already fetched above to build membershipMap
+            const membershipMap = firstMemberships
+                ? new Map(
+                      firstMemberships.memberships.map((m) => [m.userId, m]),
+                  )
+                : new Map();
+
+            // Map all IDs to either a DB record or a virtual player
+            players = userIds.map((id) => {
+                const dbPlayer = dbPlayersMap.get(id);
+                if (dbPlayer) {
+                    return {
+                        ...dbPlayer,
+                        roles: userRoles[id] || [],
+                    };
+                }
+
+                // Virtual player for unverified/invited users
+                const member = membershipMap.get(id);
+                return {
+                    $id: id,
+                    userId: id,
+                    firstName:
+                        member?.userName ||
+                        member?.userEmail?.split("@")[0] ||
+                        "Invited",
+                    lastName: member?.userName ? "" : "Player",
+                    email: member?.userEmail || "",
+                    roles: userRoles[id] || [],
+                    status: "unverified",
+                };
+            });
         }
 
         const teamData = await readDocument("teams", teamId, [], client);
@@ -337,7 +370,7 @@ export async function getTeamById({ teamId, client }) {
                     jerseyNumber: prefs.jerseyNumbers[player.$id] || null,
                 }));
             }
-        } catch (e) {
+        } catch (_e) {
             teamData.prefs = {};
         }
 

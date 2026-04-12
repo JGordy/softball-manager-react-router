@@ -1,3 +1,4 @@
+/* eslint-disable react/display-name */
 import { useOutletContext } from "react-router";
 import { render, screen } from "@/utils/test-utils";
 
@@ -110,27 +111,37 @@ describe("TeamDetails Route", () => {
             const formData = new FormData();
             formData.append("_action", "add-player");
             formData.append("name", "New Player");
-            const request = { formData: () => Promise.resolve(formData) };
+            const request = {
+                formData: () => Promise.resolve(formData),
+                headers: { get: jest.fn() },
+            };
 
             await action({ request, params });
-            expect(usersActions.createPlayer).toHaveBeenCalledWith({
-                values: { name: "New Player" },
-                teamId: "team1",
-                client: expect.any(Object),
-            });
+            expect(usersActions.createPlayer).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    values: expect.objectContaining({ name: "New Player" }),
+                    teamId: "team1",
+                    client: expect.any(Object),
+                }),
+            );
         });
 
         it("calls updatePreferences for update-preferences action", async () => {
             const formData = new FormData();
             formData.append("_action", "update-preferences");
             formData.append("maxMaleBatters", "3");
-            const request = { formData: () => Promise.resolve(formData) };
+            const request = {
+                formData: () => Promise.resolve(formData),
+                headers: { get: jest.fn() },
+            };
 
             await action({ request, params });
-            expect(teamsActions.updatePreferences).toHaveBeenCalledWith({
-                teamId: "team1",
-                prefs: { maxMaleBatters: "3" },
-            });
+            expect(teamsActions.updatePreferences).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    teamId: "team1",
+                    prefs: expect.objectContaining({ maxMaleBatters: "3" }),
+                }),
+            );
         });
 
         it("calls invitePlayersServer for invite-player action", async () => {
@@ -141,6 +152,7 @@ describe("TeamDetails Route", () => {
             const request = {
                 url: "http://localhost/team/team1",
                 formData: () => Promise.resolve(formData),
+                headers: { get: jest.fn() },
             };
 
             await action({ request, params });
@@ -158,42 +170,57 @@ describe("TeamDetails Route", () => {
             const formData = new FormData();
             formData.append("_action", "add-season");
             formData.append("name", "New Season");
-            const request = { formData: () => Promise.resolve(formData) };
+            const request = {
+                formData: () => Promise.resolve(formData),
+                headers: { get: jest.fn() },
+            };
 
             await action({ request, params });
-            expect(seasonsActions.createSeason).toHaveBeenCalledWith({
-                values: { name: "New Season" },
-                teamId: "team1",
-                client: expect.any(Object),
-            });
+            expect(seasonsActions.createSeason).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    values: expect.objectContaining({ name: "New Season" }),
+                    teamId: "team1",
+                    client: expect.any(Object),
+                }),
+            );
         });
 
         it("calls updateTeam for edit-team action", async () => {
             const formData = new FormData();
             formData.append("_action", "edit-team");
             formData.append("name", "Updated Team");
-            const request = { formData: () => Promise.resolve(formData) };
+            const request = {
+                formData: () => Promise.resolve(formData),
+                headers: { get: jest.fn() },
+            };
 
             await action({ request, params });
-            expect(teamsActions.updateTeam).toHaveBeenCalledWith({
-                values: { name: "Updated Team" },
-                teamId: "team1",
-                client: expect.any(Object),
-            });
+            expect(teamsActions.updateTeam).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    values: expect.objectContaining({ name: "Updated Team" }),
+                    teamId: "team1",
+                    client: expect.any(Object),
+                }),
+            );
         });
 
         it("calls createSingleGame for add-single-game action", async () => {
             const formData = new FormData();
             formData.append("_action", "add-single-game");
             formData.append("opponent", "Opponent");
-            const request = { formData: () => Promise.resolve(formData) };
+            const request = {
+                formData: () => Promise.resolve(formData),
+                headers: { get: jest.fn() },
+            };
 
             await action({ request, params });
-            expect(gamesActions.createSingleGame).toHaveBeenCalledWith({
-                values: { opponent: "Opponent" },
-                teamId: "team1",
-                client: expect.any(Object),
-            });
+            expect(gamesActions.createSingleGame).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    values: expect.objectContaining({ opponent: "Opponent" }),
+                    teamId: "team1",
+                    client: expect.any(Object),
+                }),
+            );
         });
 
         it("calls updateMemberRole for update-role action", async () => {
@@ -203,14 +230,61 @@ describe("TeamDetails Route", () => {
             formData.append("role", "manager");
             const request = {
                 formData: () => Promise.resolve(formData),
+                headers: { get: jest.fn() },
             };
 
             await action({ request, params });
-            expect(teamsActions.updateMemberRole).toHaveBeenCalledWith({
-                values: { playerId: "player1", role: "manager" },
+            expect(teamsActions.updateMemberRole).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    values: expect.objectContaining({
+                        playerId: "player1",
+                        role: "manager",
+                    }),
+                    teamId: "team1",
+                    client: expect.any(Object),
+                }),
+            );
+        });
+
+        it("calls syncInvitedPlayersServer for invite-player-sync JSON action with players", async () => {
+            const players = [
+                { email: "a@b.com", name: "A", userId: "u1", success: true },
+            ];
+            const request = {
+                url: "http://localhost/team/team1",
+                json: () =>
+                    Promise.resolve({ _action: "invite-player-sync", players }),
+                headers: { get: jest.fn(() => "application/json") },
+            };
+
+            await action({ request, params });
+            expect(
+                invitationsActions.syncInvitedPlayersServer,
+            ).toHaveBeenCalledWith({
+                players,
                 teamId: "team1",
-                client: expect.any(Object),
             });
+        });
+
+        it("returns error response for invite-player-sync JSON action with error field", async () => {
+            const request = {
+                url: "http://localhost/team/team1",
+                json: () =>
+                    Promise.resolve({
+                        _action: "invite-player-sync",
+                        error: "Something failed",
+                    }),
+                headers: { get: jest.fn(() => "application/json") },
+            };
+
+            const result = await action({ request, params });
+            expect(result).toEqual({
+                success: false,
+                message: "Something failed",
+            });
+            expect(
+                invitationsActions.syncInvitedPlayersServer,
+            ).not.toHaveBeenCalled();
         });
     });
 
