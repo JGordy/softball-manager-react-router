@@ -1,4 +1,4 @@
-import { Client, Databases, Account } from "appwrite";
+import { Client, Databases, Account, Teams } from "appwrite";
 
 const client = new Client();
 
@@ -17,4 +17,5 @@ if (endpoint && projectId) {
 
 export const databases = new Databases(client);
 export const account = new Account(client);
+export const teams = new Teams(client);
 export { client };
