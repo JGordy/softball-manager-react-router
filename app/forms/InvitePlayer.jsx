@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useFetcher } from "react-router";
 
 import {
     Stack,
@@ -12,20 +13,14 @@ import { IconPlus, IconTrash } from "@tabler/icons-react";
 
 import { trackEvent } from "@/utils/analytics";
 import { client } from "@/utils/appwrite/client";
-import { useSubmit } from "react-router";
+import useModal from "@/hooks/useModal";
+import { showNotification } from "@/utils/showNotification";
 
 import classes from "@/styles/inputs.module.css";
 
-import FormWrapper from "./FormWrapper";
-
 const MAX_INVITES = 20;
 
-export default function InvitePlayer({
-    actionRoute,
-    buttonColor,
-    teamId,
-    teamName,
-}) {
+export default function InvitePlayer({ buttonColor, teamId, teamName }) {
     const [invites, setInvites] = useState([
         { email: "", name: "", key: crypto.randomUUID() },
     ]);
@@ -89,7 +84,8 @@ export default function InvitePlayer({
         }
     };
 
-    const submit = useSubmit();
+    const { closeAllModals } = useModal();
+    const fetcher = useFetcher();
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
@@ -99,54 +95,60 @@ export default function InvitePlayer({
         if (playersToInvite.length === 0) return;
 
         setLoading(true);
+        try {
+            trackEvent("invite-player", {
+                teamId,
+                count: playersToInvite.length,
+            });
 
-        trackEvent("invite-player", {
-            teamId,
-            count: playersToInvite.length,
-        });
-
-        const { invitePlayersBrowser } = await import("@/actions/invitations");
-        const result = await invitePlayersBrowser({
-            teamId,
-            players: playersToInvite,
-            client,
-        });
-
-        if (result.success) {
-            submit(
-                {
-                    _action: "invite-player-sync",
-                    players: JSON.stringify(result.results),
-                },
-                {
-                    method: "post",
-                    encType: "application/json",
-                },
+            const { invitePlayersBrowser } = await import(
+                "@/actions/invitations"
             );
-        } else {
-            // Even if browser invite fails, submit to action so hook shows error
-            submit(
-                {
-                    _action: "invite-player-sync",
-                    error: result.message,
-                },
-                {
-                    method: "post",
-                    encType: "application/json",
-                },
-            );
+            const result = await invitePlayersBrowser({
+                teamId,
+                players: playersToInvite,
+                client,
+            });
+
+            if (result.success) {
+                // Submit via fetcher BEFORE closing modal so the component is
+                // still mounted. React Router will revalidate the loader after
+                // the action completes, showing the new player without refresh.
+                fetcher.submit(
+                    { _action: "invite-player-sync", players: result.results },
+                    {
+                        method: "post",
+                        encType: "application/json",
+                        action: `/team/${teamId}`,
+                    },
+                );
+
+                closeAllModals();
+                showNotification({
+                    variant: "success",
+                    message: `Successfully invited ${result.results.length} player(s).`,
+                });
+            } else {
+                showNotification({
+                    variant: "error",
+                    message: result.message,
+                });
+            }
+        } catch (error) {
+            showNotification({
+                variant: "error",
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to send invitations.",
+            });
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <FormWrapper
-            action="invite-player-sync"
-            actionRoute={actionRoute}
-            buttonColor={buttonColor}
-            confirmText="Send Invitations"
-            onSubmit={handleSubmit}
-            loading={loading}
-        >
+        <form onSubmit={handleSubmit}>
             <Stack gap="md">
                 <Text size="sm" c="dimmed">
                     Add players to {teamName} by email. Paste a comma-separated
@@ -222,6 +224,26 @@ export default function InvitePlayer({
                 {/* Hidden field to pass teamId */}
                 <input type="hidden" name="teamId" value={teamId} />
             </Stack>
-        </FormWrapper>
+            <Group justify="flex-end" mt="xl" mb="sm">
+                <Button
+                    type="submit"
+                    color={buttonColor || "lime"}
+                    autoContrast
+                    size="md"
+                    disabled={loading}
+                    loading={loading}
+                >
+                    Send Invitations
+                </Button>
+                <Button
+                    variant="outline"
+                    color="gray"
+                    onClick={closeAllModals}
+                    size="md"
+                >
+                    Cancel
+                </Button>
+            </Group>
+        </form>
     );
 }
