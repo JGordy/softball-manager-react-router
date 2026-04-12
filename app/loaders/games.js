@@ -212,6 +212,8 @@ async function loadGameBase({ eventId, client }) {
                 return {
                     userId: m.userId,
                     role,
+                    name: m.userName,
+                    email: m.userEmail,
                 };
             });
 
@@ -354,7 +356,24 @@ async function resolvePlayers(userIds, client) {
         [Query.equal("$id", validUserIdList)],
         client,
     );
-    const players = result.rows || [];
+    const dbPlayersMap = new Map((result.rows || []).map((p) => [p.$id, p]));
+
+    const players = userIds.map(({ userId, name, email }) => {
+        const dbPlayer = dbPlayersMap.get(userId);
+        if (dbPlayer) return dbPlayer;
+
+        // Virtual player for unverified/invited users
+        return {
+            $id: userId,
+            userId: userId,
+            firstName: name || email?.split("@")[0] || "Invited",
+            lastName: name ? "" : "Player",
+            email: email || "",
+            status: "unverified",
+            preferredPositions: [],
+            dislikedPositions: [],
+        };
+    });
 
     // 2. Fetch associated account information (specifically preferences) from the Users management API
     // This requires an admin client to read preferences of other users.

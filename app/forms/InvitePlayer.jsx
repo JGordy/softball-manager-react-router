@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import {
     Stack,
     Text,
@@ -9,8 +10,11 @@ import {
 } from "@mantine/core";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 
-import classes from "@/styles/inputs.module.css";
 import { trackEvent } from "@/utils/analytics";
+import { client } from "@/utils/appwrite/client";
+import { useSubmit } from "react-router";
+
+import classes from "@/styles/inputs.module.css";
 
 import FormWrapper from "./FormWrapper";
 
@@ -85,18 +89,63 @@ export default function InvitePlayer({
         }
     };
 
+    const submit = useSubmit();
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const playersToInvite = invites.filter((p) => p.email.trim() !== "");
+
+        if (playersToInvite.length === 0) return;
+
+        setLoading(true);
+
+        trackEvent("invite-player", {
+            teamId,
+            count: playersToInvite.length,
+        });
+
+        const { invitePlayersBrowser } = await import("@/actions/invitations");
+        const result = await invitePlayersBrowser({
+            teamId,
+            players: playersToInvite,
+            client,
+        });
+
+        if (result.success) {
+            submit(
+                {
+                    _action: "invite-player-sync",
+                    players: JSON.stringify(result.results),
+                },
+                {
+                    method: "post",
+                    encType: "application/json",
+                },
+            );
+        } else {
+            // Even if browser invite fails, submit to action so hook shows error
+            submit(
+                {
+                    _action: "invite-player-sync",
+                    error: result.message,
+                },
+                {
+                    method: "post",
+                    encType: "application/json",
+                },
+            );
+        }
+    };
+
     return (
         <FormWrapper
-            action="invite-player"
+            action="invite-player-sync"
             actionRoute={actionRoute}
             buttonColor={buttonColor}
             confirmText="Send Invitations"
-            onSubmit={() =>
-                trackEvent("invite-player", {
-                    teamId,
-                    count: invites.length,
-                })
-            }
+            onSubmit={handleSubmit}
+            loading={loading}
         >
             <Stack gap="md">
                 <Text size="sm" c="dimmed">

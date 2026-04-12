@@ -317,10 +317,41 @@ export async function getTeamById({ teamId, client }) {
                 [Query.equal("$id", userIds)],
                 client,
             );
-            players = result.rows.map((player) => ({
-                ...player,
-                roles: userRoles[player.$id] || [],
-            }));
+
+            const dbPlayersMap = new Map(result.rows.map((p) => [p.$id, p]));
+
+            // Try to get more member info from memberships if needed
+            const { teams } = createAdminClient();
+            const memberships = await teams.listMemberships(teamId);
+            const membershipMap = new Map(
+                memberships.memberships.map((m) => [m.userId, m]),
+            );
+
+            // Map all IDs to either a DB record or a virtual player
+            players = userIds.map((id) => {
+                const dbPlayer = dbPlayersMap.get(id);
+                if (dbPlayer) {
+                    return {
+                        ...dbPlayer,
+                        roles: userRoles[id] || [],
+                    };
+                }
+
+                // Virtual player for unverified/invited users
+                const member = membershipMap.get(id);
+                return {
+                    $id: id,
+                    userId: id,
+                    firstName:
+                        member?.userName ||
+                        member?.userEmail?.split("@")[0] ||
+                        "Invited",
+                    lastName: member?.userName ? "" : "Player",
+                    email: member?.userEmail || "",
+                    roles: userRoles[id] || [],
+                    status: "unverified",
+                };
+            });
         }
 
         const teamData = await readDocument("teams", teamId, [], client);

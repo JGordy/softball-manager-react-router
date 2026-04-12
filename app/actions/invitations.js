@@ -1,9 +1,84 @@
 /**
- * CLIENT-SIDE ACTION
- * Invite a player to join a team by email using Appwrite Teams API
- *
- * Uses injected `client.teams` API directly exposing Server Actions dynamically.
- * Appwrite automatically handles user lookup, account creation, and email sending.
+ * BROWSER-ONLY ACTION
+ * Orchestrates the full invitation flow from the client:
+ * 1. Hydrates the Appwrite Client with a session JWT.
+ * 2. Sends email invitations via Client SDK (triggering emails).
+ * 3. Syncs shadow records to the database on the server.
+ */
+export async function invitePlayersBrowser({ teamId, players, client }) {
+    if (!players || !Array.isArray(players) || players.length === 0) {
+        return { success: true, message: "No players to invite" };
+    }
+
+    try {
+        // 1. Prepare Session (JWT handoff)
+        const sessionResponse = await fetch("/api/session");
+        const { jwt } = await sessionResponse.json();
+        if (jwt) {
+            client.setJWT(jwt);
+        } else {
+            throw new Error("Could not retrieve authentication session.");
+        }
+
+        const { Teams } = await import("appwrite");
+        const teamsService = new Teams(client);
+
+        const inviteUrl = `${window.location.origin}/team/${teamId}/accept-invite`;
+        const results = [];
+
+        // 2. Perform invitations via Client SDK
+        for (const player of players) {
+            try {
+                const response = await teamsService.createMembership(
+                    teamId,
+                    ["player"],
+                    player.email,
+                    undefined, // userId MUST be undefined for invitation emails
+                    undefined, // phone
+                    inviteUrl,
+                    player.name,
+                );
+
+                results.push({
+                    email: player.email,
+                    name: player.name,
+                    userId: response.userId,
+                    success: true,
+                });
+            } catch (error) {
+                // Handle 409 Conflict (User/Membership already exists)
+                if (error.code === 409) {
+                    results.push({
+                        email: player.email,
+                        name: player.name,
+                        success: true, // Treat as success for syncing purposes
+                        alreadyExists: true,
+                    });
+                } else {
+                    throw error;
+                }
+            }
+        }
+
+        const syncResponse = { results };
+
+        return {
+            success: true,
+            results,
+            message: `Successfully invited ${results.length} player(s).`,
+        };
+    } catch (error) {
+        console.error("Browser invitation flow failed:", error);
+        return {
+            success: false,
+            message: error.message || "Failed to send invitations.",
+        };
+    }
+}
+
+/**
+ * SHARED UTILITY
+ * Low-level invite call. Best used via invitePlayersBrowser or invitePlayersServer.
  */
 export async function invitePlayerByEmail({
     email,
@@ -14,7 +89,7 @@ export async function invitePlayerByEmail({
     client,
 }) {
     try {
-        if (!client?.teams) {
+        if (!client || !client.teams) {
             throw new Error(
                 "Missing or invalid Appwrite client provided to invitePlayerByEmail.",
             );
@@ -52,9 +127,9 @@ export async function invitePlayerByEmail({
 }
 
 /**
- * CLIENT-SIDE ACTION
- * Bulk invite players by email
- * Wrapper around invitePlayerByEmail to handle multiple invites
+ * SESSION-BASED ACTION
+ * Bulk invite players by email.
+ * Wrapper around invitePlayerByEmail to handle multiple invites.
  */
 export async function invitePlayers({ players, teamId, url, client }) {
     if (!players || !Array.isArray(players) || players.length === 0) {
@@ -96,8 +171,8 @@ export async function invitePlayers({ players, teamId, url, client }) {
             message: "Failed to send any invitations",
             errors: failed.map(
                 (f) =>
-                    f.reason?.message ||
-                    f.value?.message ||
+                    (f.reason && f.reason.message) ||
+                    (f.value && f.value.message) ||
                     "Unknown error occurred",
             ),
         };
@@ -113,8 +188,8 @@ export async function invitePlayers({ players, teamId, url, client }) {
 
 /**
  * CLIENT-SIDE ACTION
- * Accept a team invitation using the Client SDK
- * This must use Client SDK because updateMembershipStatus requires public scope
+ * Accept a team invitation using the Client SDK.
+ * This MUST run on the client browser because updateMembershipStatus requires the user's IP/browser context.
  */
 export async function acceptTeamInvitation({
     teamId,
@@ -178,7 +253,9 @@ export async function setPasswordForInvitedUser({
 }) {
     const { Users } = await import("node-appwrite");
     const { createAdminClient } = await import("@/utils/appwrite/server");
-    const { createDocument, readDocument } = await import("@/utils/databases");
+    const { createDocument, readDocument, updateDocument } = await import(
+        "@/utils/databases"
+    );
 
     const { Permission, Role } = await import("node-appwrite");
     const cookie = await import("cookie");
@@ -235,10 +312,19 @@ export async function setPasswordForInvitedUser({
                     firstName,
                     lastName,
                     userId, // Store the Auth userId for reference
+                    status: "verified",
                     preferredPositions: [],
                     dislikedPositions: [],
                 },
                 docPermissions,
+                adminClient,
+            );
+        } else {
+            // Document exists, update status to verified if it was unverified
+            await updateDocument(
+                "users",
+                userId,
+                { status: "verified" },
                 adminClient,
             );
         }
@@ -277,18 +363,18 @@ export async function setPasswordForInvitedUser({
 }
 
 /**
- * SERVER-SIDE ACTION
- * Invite players to a team.
+ * SERVER-SIDE ONLY ACTION
+ * Main entry point for inviting players to a team from a route action.
  * Hybrid approach:
- * - If user exists in project: Automatically add them to team (Admin Client)
- * - If user is new: Send invitation email (Session Client)
+ * - Uses individual invites to ensure standard Appwrite verification flow.
+ * - Always creates/updates shadow records in the database.
  */
 export async function invitePlayersServer({ players, teamId, url, client }) {
     const { Query } = await import("node-appwrite");
     const { createAdminClient } = await import("@/utils/appwrite/server");
 
     // 1. Verify permissions
-    if (!client?.teams || !client?.account) {
+    if (!client || !client.teams || !client.account) {
         return {
             success: false,
             message:
@@ -309,7 +395,7 @@ export async function invitePlayersServer({ players, teamId, url, client }) {
 
         const membership =
             membershipList.total > 0 ? membershipList.memberships[0] : null;
-        const isOwner = membership?.roles?.includes("owner") || false;
+        const isOwner = (membership && membership.roles && membership.roles.indexOf("owner") !== -1) || false;
 
         if (!membership || !isOwner) {
             return {
@@ -331,70 +417,77 @@ export async function invitePlayersServer({ players, teamId, url, client }) {
         const { email, name } = player;
 
         try {
-            // Check if user exists in the project
-            // We use Admin Client to search all users
-            const userList = await adminUsers.list([
-                Query.equal("email", email),
-            ]);
+            // IMPORTANT: Use the sessionClient (manager's session)
+            // DO NOT provide a userId. This forces an invitation email.
+            const membersClient = client.teams;
+            const membership = await membersClient.createMembership(
+                teamId,
+                ["player"],
+                email,
+                undefined, // userId MUST be undefined for invitation emails
+                undefined, // phone
+                url,
+                name,
+            );
 
-            const existingUser = userList.total > 0 ? userList.users[0] : null;
+            const currentUserId = membership.userId;
 
-            if (existingUser) {
-                // User exists - Add them directly (Auto-join)
-                // First check if they are already in the team to avoid 409
+            // Sync shadow record in database (Admin Client)
+            try {
+                const { createDocument, readDocument } = await import(
+                    "@/utils/databases"
+                );
+                const { Permission, Role } = await import("node-appwrite");
+
+                // Check if doc exists
                 try {
-                    const membershipList = await adminTeams.listMemberships(
-                        teamId,
-                        [Query.equal("userId", existingUser.$id)],
+                    await readDocument(
+                        "users",
+                        currentUserId,
+                        [],
+                        createAdminClient(),
                     );
+                } catch (e) {
+                    // Create it if missing
+                    const docPermissions = [
+                        Permission.read(Role.any()),
+                        Permission.update(Role.user(currentUserId)),
+                        Permission.update(Role.team(teamId, "manager")),
+                        Permission.update(Role.team(teamId, "owner")),
+                        Permission.delete(Role.user(currentUserId)),
+                    ];
 
-                    if (membershipList.total > 0) {
-                        const membership = membershipList.memberships[0];
-                        if (membership.confirm) {
-                            return {
-                                success: false,
-                                reason: "Player is already a member",
-                            };
-                        } else {
-                            return {
-                                success: false,
-                                reason: "Player has already been invited",
-                            };
-                        }
+                    let firstName = "";
+                    let lastName = "";
+                    if (name) {
+                        const parts = name.trim().split(" ");
+                        firstName = parts[0] || "";
+                        lastName = parts.slice(1).join(" ") || "";
                     }
 
-                    // Add to team
-                    await adminTeams.createMembership(
-                        teamId,
-                        ["player"],
-                        undefined, // email (not needed if userId provided)
-                        existingUser.$id,
-                    );
-
-                    return { success: true, message: "Added to team" };
-                } catch (addError) {
-                    throw new Error(
-                        addError.message || "Failed to add existing user",
+                    await createDocument(
+                        "users",
+                        currentUserId,
+                        {
+                            email,
+                            firstName,
+                            lastName,
+                            userId: currentUserId,
+                            status: "unverified",
+                            preferredPositions: [],
+                            dislikedPositions: [],
+                        },
+                        docPermissions,
+                        createAdminClient(),
                     );
                 }
-            } else {
-                // User does not exist - Send invite via Client API (simulated)
-                const result = await invitePlayerByEmail({
-                    email,
-                    teamId,
-                    name,
-                    url,
-                    client,
-                });
-
-                if (result.success) {
-                    return { success: true, message: "Invitation sent" };
-                } else {
-                    return { success: false, reason: result.message };
-                }
+            } catch (shadowError) {
+                console.error("Shadow sync failed:", shadowError);
             }
+
+            return { success: true };
         } catch (error) {
-            // Return failure for this player
+            console.error(`Invite failed for ${email}:`, error);
             return { success: false, reason: error.message };
         }
     };
@@ -418,14 +511,17 @@ export async function invitePlayersServer({ players, teamId, url, client }) {
 
     if (successful.length === 0) {
         const firstError =
-            failed[0].value?.reason ||
-            failed[0].reason?.message ||
+            (failed[0].value && failed[0].value.reason) ||
+            (failed[0].reason && failed[0].reason.message) ||
             "Unknown error";
         return {
             success: false,
             message: `Failed to invite players: ${firstError}`,
             errors: failed.map(
-                (f) => f.value?.reason || f.reason?.message || "Unknown error",
+                (f) =>
+                    (f.value && f.value.reason) ||
+                    (f.reason && f.reason.message) ||
+                    "Unknown error",
             ),
         };
     }
@@ -435,5 +531,122 @@ export async function invitePlayersServer({ players, teamId, url, client }) {
         success: true,
         message: `Processed ${successful.length} player${successful.length !== 1 ? "s" : ""}. Failed: ${failed.length}.`,
         warning: true,
+    };
+}
+
+/**
+ * SERVER-SIDE ACTION
+ * Sync database shadow records for players who were just invited via the client SDK.
+ */
+export async function syncInvitedPlayersServer({ players, teamId }) {
+    if (!players || !Array.isArray(players)) {
+        return { success: false, reason: "No players to sync" };
+    }
+
+    const { createAdminClient } = await import("@/utils/appwrite/server");
+    const { Query } = await import("node-appwrite");
+
+    const processPlayer = async (player) => {
+        const { email, name, userId } = player;
+
+        try {
+            const { createDocument, readDocument } = await import(
+                "@/utils/databases"
+            );
+            const { Permission, Role } = await import("node-appwrite");
+
+            let currentUserId = userId;
+
+            // Deep Search: Fallback to finding existing IDs if not provided
+            if (!currentUserId) {
+                const { users, teams } = createAdminClient();
+                const userList = await users.list([Query.equal("email", email)]);
+                
+                if (userList.total > 0) {
+                    currentUserId = userList.users[0].$id;
+                } else {
+                    // Search memberships manually - emails aren't directly queryable here
+                    try {
+                        const members = await teams.listMemberships(teamId);
+                        const match = members.memberships.find(m => 
+                            m.userEmail.toLowerCase() === email.toLowerCase()
+                        );
+                        
+                        if (match) {
+                            currentUserId = match.userId;
+                        }
+                    } catch (memberErr) {
+                        console.error(`[Sync] Membership search failed:`, memberErr.message);
+                    }
+                }
+            }
+
+            if (!currentUserId) {
+                throw new Error("Could not determine userId for shadow record");
+            }
+
+            // Check if doc exists
+            try {
+                const existing = await readDocument(
+                    "users",
+                    currentUserId,
+                    [],
+                    createAdminClient(),
+                );
+                // If exists but was unverified/partial, we don't need to do anything
+                // but we could update it here if needed.
+            } catch (e) {
+                // Only proceed if it's a 404/Not Found
+                if (e.code !== 404 && !(e.message && e.message.indexOf("not be found") !== -1)) {
+                    console.error("Unexpected error checking user doc:", e);
+                    throw e;
+                }
+                
+                const docPermissions = [
+                    Permission.read(Role.any()),
+                    Permission.update(Role.user(currentUserId)),
+                    Permission.update(Role.team(teamId, "manager")),
+                    Permission.update(Role.team(teamId, "owner")),
+                    Permission.delete(Role.user(currentUserId)),
+                ];
+
+                let firstName = "";
+                let lastName = "";
+                if (name) {
+                    const parts = name.trim().split(" ");
+                    firstName = parts[0] || "";
+                    lastName = parts.slice(1).join(" ") || "";
+                }
+
+                await createDocument(
+                    "users",
+                    currentUserId,
+                    {
+                        email,
+                        firstName,
+                        lastName,
+                        userId: currentUserId,
+                        status: "unverified",
+                        preferredPositions: [],
+                        dislikedPositions: [],
+                    },
+                    docPermissions,
+                    createAdminClient(),
+                );
+            }
+            return { success: true };
+        } catch (error) {
+            return { success: false, reason: error.message };
+        }
+    };
+
+    const results = await Promise.allSettled(players.map(processPlayer));
+    const successfulCount = results.filter(
+        (r) => r.status === "fulfilled" && r.value.success,
+    ).length;
+
+    return {
+        success: true,
+        message: `Synced ${successfulCount} shadow records.`,
     };
 }

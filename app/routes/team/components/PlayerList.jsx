@@ -62,8 +62,25 @@ export default function PlayerList({
                                             {player.firstName} {player.lastName}
                                         </Text>
                                         {managerIds.includes(player.$id) && (
-                                            <Text>
+                                            <Text component="span">
                                                 <IconClipboardCheck size={20} />
+                                            </Text>
+                                        )}
+                                        {player.status === "unverified" && (
+                                            <Text
+                                                size="xs"
+                                                c="orange"
+                                                fw={400}
+                                                ml="xs"
+                                                style={{
+                                                    backgroundColor:
+                                                        "rgba(255, 165, 0, 0.1)",
+                                                    padding: "2px 6px",
+                                                    borderRadius: "4px",
+                                                    border: "1px solid orange",
+                                                }}
+                                            >
+                                                INVITED
                                             </Text>
                                         )}
                                     </Group>
