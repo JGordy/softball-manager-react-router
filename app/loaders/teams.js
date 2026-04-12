@@ -270,12 +270,14 @@ export async function getTeamById({ teamId, client }) {
         const scorekeeperIds = [];
         const userIds = [];
         const userRoles = {};
+        let firstMemberships = null;
 
         // Try to get memberships from Appwrite Teams API first (for new teams)
         try {
             // Use Admin client to bypass permission checks for listing team members
             const { teams } = createAdminClient();
             const memberships = await teams.listMemberships(teamId);
+            firstMemberships = memberships;
 
             // Extract user IDs and categorize by role
             for (const membership of memberships.memberships) {
@@ -320,12 +322,12 @@ export async function getTeamById({ teamId, client }) {
 
             const dbPlayersMap = new Map(result.rows.map((p) => [p.$id, p]));
 
-            // Try to get more member info from memberships if needed
-            const { teams } = createAdminClient();
-            const memberships = await teams.listMemberships(teamId);
-            const membershipMap = new Map(
-                memberships.memberships.map((m) => [m.userId, m]),
-            );
+            // Reuse memberships already fetched above to build membershipMap
+            const membershipMap = firstMemberships
+                ? new Map(
+                      firstMemberships.memberships.map((m) => [m.userId, m]),
+                  )
+                : new Map();
 
             // Map all IDs to either a DB record or a virtual player
             players = userIds.map((id) => {
@@ -368,7 +370,7 @@ export async function getTeamById({ teamId, client }) {
                     jerseyNumber: prefs.jerseyNumbers[player.$id] || null,
                 }));
             }
-        } catch (e) {
+        } catch (_e) {
             teamData.prefs = {};
         }
 

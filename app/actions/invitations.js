@@ -60,8 +60,6 @@ export async function invitePlayersBrowser({ teamId, players, client }) {
             }
         }
 
-        const syncResponse = { results };
-
         return {
             success: true,
             results,
@@ -281,7 +279,7 @@ export async function setPasswordForInvitedUser({
         try {
             await readDocument("users", userId, [], adminClient);
             userDocExists = true;
-        } catch (error) {
+        } catch (_error) {
             // Document doesn't exist, we'll create it
             userDocExists = false;
         }
@@ -395,7 +393,11 @@ export async function invitePlayersServer({ players, teamId, url, client }) {
 
         const membership =
             membershipList.total > 0 ? membershipList.memberships[0] : null;
-        const isOwner = (membership && membership.roles && membership.roles.indexOf("owner") !== -1) || false;
+        const isOwner =
+            (membership &&
+                membership.roles &&
+                membership.roles.indexOf("owner") !== -1) ||
+            false;
 
         if (!membership || !isOwner) {
             return {
@@ -412,7 +414,7 @@ export async function invitePlayersServer({ players, teamId, url, client }) {
         };
     }
 
-    const { teams: adminTeams, users: adminUsers } = createAdminClient();
+    const adminClient = createAdminClient();
     const processPlayer = async (player) => {
         const { email, name } = player;
 
@@ -441,13 +443,8 @@ export async function invitePlayersServer({ players, teamId, url, client }) {
 
                 // Check if doc exists
                 try {
-                    await readDocument(
-                        "users",
-                        currentUserId,
-                        [],
-                        createAdminClient(),
-                    );
-                } catch (e) {
+                    await readDocument("users", currentUserId, [], adminClient);
+                } catch (_e) {
                     // Create it if missing
                     const docPermissions = [
                         Permission.read(Role.any()),
@@ -478,7 +475,7 @@ export async function invitePlayersServer({ players, teamId, url, client }) {
                             dislikedPositions: [],
                         },
                         docPermissions,
-                        createAdminClient(),
+                        adminClient,
                     );
                 }
             } catch (shadowError) {
@@ -540,11 +537,12 @@ export async function invitePlayersServer({ players, teamId, url, client }) {
  */
 export async function syncInvitedPlayersServer({ players, teamId }) {
     if (!players || !Array.isArray(players)) {
-        return { success: false, reason: "No players to sync" };
+        return { success: false, message: "No players to sync" };
     }
 
     const { createAdminClient } = await import("@/utils/appwrite/server");
     const { Query } = await import("node-appwrite");
+    const adminClient = createAdminClient();
 
     const processPlayer = async (player) => {
         const { email, name, userId } = player;
@@ -559,24 +557,31 @@ export async function syncInvitedPlayersServer({ players, teamId }) {
 
             // Deep Search: Fallback to finding existing IDs if not provided
             if (!currentUserId) {
-                const { users, teams } = createAdminClient();
-                const userList = await users.list([Query.equal("email", email)]);
-                
+                const { users, teams } = adminClient;
+                const userList = await users.list([
+                    Query.equal("email", email),
+                ]);
+
                 if (userList.total > 0) {
                     currentUserId = userList.users[0].$id;
                 } else {
                     // Search memberships manually - emails aren't directly queryable here
                     try {
                         const members = await teams.listMemberships(teamId);
-                        const match = members.memberships.find(m => 
-                            m.userEmail.toLowerCase() === email.toLowerCase()
+                        const match = members.memberships.find(
+                            (m) =>
+                                m.userEmail.toLowerCase() ===
+                                email.toLowerCase(),
                         );
-                        
+
                         if (match) {
                             currentUserId = match.userId;
                         }
                     } catch (memberErr) {
-                        console.error(`[Sync] Membership search failed:`, memberErr.message);
+                        console.error(
+                            `[Sync] Membership search failed:`,
+                            memberErr.message,
+                        );
                     }
                 }
             }
@@ -587,21 +592,19 @@ export async function syncInvitedPlayersServer({ players, teamId }) {
 
             // Check if doc exists
             try {
-                const existing = await readDocument(
-                    "users",
-                    currentUserId,
-                    [],
-                    createAdminClient(),
-                );
+                await readDocument("users", currentUserId, [], adminClient);
                 // If exists but was unverified/partial, we don't need to do anything
                 // but we could update it here if needed.
             } catch (e) {
                 // Only proceed if it's a 404/Not Found
-                if (e.code !== 404 && !(e.message && e.message.indexOf("not be found") !== -1)) {
+                if (
+                    e.code !== 404 &&
+                    !(e.message && e.message.indexOf("not be found") !== -1)
+                ) {
                     console.error("Unexpected error checking user doc:", e);
                     throw e;
                 }
-                
+
                 const docPermissions = [
                     Permission.read(Role.any()),
                     Permission.update(Role.user(currentUserId)),
@@ -631,12 +634,12 @@ export async function syncInvitedPlayersServer({ players, teamId }) {
                         dislikedPositions: [],
                     },
                     docPermissions,
-                    createAdminClient(),
+                    adminClient,
                 );
             }
             return { success: true };
         } catch (error) {
-            return { success: false, reason: error.message };
+            return { success: false, message: error.message };
         }
     };
 

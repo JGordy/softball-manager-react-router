@@ -43,20 +43,24 @@ export async function loader({ params, request }) {
 
 export async function action({ request, params }) {
     const { teamId } = params;
-    const contentType = (request.headers && typeof request.headers.get === "function") 
-        ? request.headers.get("Content-Type") 
-        : undefined;
+    const contentType =
+        request.headers && typeof request.headers.get === "function"
+            ? request.headers.get("Content-Type")
+            : undefined;
     let _action, values, formData;
 
     if (contentType && contentType.indexOf("application/json") !== -1) {
-        values = await request.json();
+        const data = await request.json();
         const url = new URL(request.url);
-        _action = values._action || url.searchParams.get("_action");
+        _action = data._action || url.searchParams.get("_action");
+        const { _action: _ignored, ...sanitizedValues } = data;
+        values = sanitizedValues;
     } else {
         formData = await request.formData();
         const data = Object.fromEntries(formData);
         _action = data._action;
-        values = data;
+        const { _action: _ignored, ...sanitizedValues } = data;
+        values = sanitizedValues;
     }
 
     const client = await createSessionClient(request);
@@ -102,10 +106,11 @@ export async function action({ request, params }) {
             };
         }
 
-        const players = typeof values.players === "string" 
-            ? JSON.parse(values.players) 
-            : values.players;
-            
+        const players =
+            typeof values.players === "string"
+                ? JSON.parse(values.players)
+                : values.players;
+
         return syncInvitedPlayersServer({
             players,
             teamId,
