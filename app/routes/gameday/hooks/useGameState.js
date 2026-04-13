@@ -23,11 +23,6 @@ export function useGameState({ logs, game, playerChart }) {
         // Safety check: ensure playerChart exists
         if (!playerChart || playerChart.length === 0) return;
 
-        // Skip sync if we have no logs or if we've already synced this latest log
-        const latestLogId =
-            logs.length > 0 ? logs[logs.length - 1].$id : "empty";
-        if (latestLogId === lastSyncLogId.current) return;
-
         // 1. Current Batter Index
         // Calculate based on the last logged batter to handle undo correctly
         if (logs.length > 0) {
@@ -65,11 +60,24 @@ export function useGameState({ logs, game, playerChart }) {
         }
 
         // 2. Score Calculation
-        // Now that we persist score to the database, just use that value
-        setScore(Number(game.score || 0));
+        // Favor calculated score from logs to ensure UI consistency and avoid document staleness.
+        // If logs exist, they are the source of truth for the batting team's score.
+        const logBasedScore = logs.reduce(
+            (acc, l) => acc + (Number(l.rbi) || 0),
+            0,
+        );
+        const finalScore =
+            logs.length > 0
+                ? logBasedScore
+                : Math.max(logBasedScore, Number(game.score || 0));
+
+        setScore(finalScore);
         setOpponentScore(Number(game.opponentScore || 0));
 
         // 3. Game State (Inning, Half, Outs, Runners)
+        const latestLogId =
+            logs.length > 0 ? logs[logs.length - 1].$id : "empty";
+        if (latestLogId === lastSyncLogId.current) return;
         if (logs.length > 0) {
             const lastLog = logs[logs.length - 1];
             let currentInning = parseInt(lastLog.inning, 10) || 1;
