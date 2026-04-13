@@ -4,9 +4,155 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Box, Text, Paper, Badge, Group, Stack } from "@mantine/core";
 
 import { BASE_POSITIONS } from "@/constants/basePositions";
+
 import { getRelativePointerCoordinates } from "../utils/fieldMapping";
-import fieldStyles from "./GamedayField.module.css";
 import { getPlayerName } from "../utils/gamedayUtils";
+
+import fieldStyles from "./GamedayField.module.css";
+
+// --- INTERNAL HELPERS ---
+
+function BaseTargetContent({ id, activeDraggableId, isHovered, snapshot }) {
+    const isActuallyHovered =
+        isHovered || (snapshot && snapshot.isDraggingOver);
+    return (
+        <>
+            {id === "base-home" && (
+                <svg
+                    viewBox="0 0 24 24"
+                    style={{
+                        width: 22,
+                        height: 22,
+                        stroke: "white",
+                        strokeWidth: 0.5,
+                        color: isActuallyHovered
+                            ? "white"
+                            : "rgba(255,255,255,0.6)",
+                        opacity: 0.7,
+                    }}
+                >
+                    <path
+                        d="M1,1 L23,1 L23,12 L12,23 L1,12 Z"
+                        fill="currentColor"
+                    />
+                </svg>
+            )}
+            {id === "out-zone" && (
+                <Stack gap={0} align="center">
+                    {activeDraggableId && (
+                        <Text
+                            size="8px"
+                            fw={700}
+                            c="white"
+                            style={{ opacity: 0.8 }}
+                        >
+                            DRAG TO
+                        </Text>
+                    )}
+                    <Text
+                        size={activeDraggableId ? "14px" : "10px"}
+                        fw={900}
+                        c="white"
+                        style={{
+                            textShadow: "0 1px 2px rgba(0,0,0,0.5)",
+                        }}
+                    >
+                        OUT
+                    </Text>
+                </Stack>
+            )}
+        </>
+    );
+}
+
+function BaseTarget({
+    id,
+    pos,
+    activeDraggableId,
+    isHovered,
+    isAllowed,
+    snapshot,
+    provided,
+    children,
+}) {
+    const isActuallyHovered =
+        isHovered || (snapshot && snapshot.isDraggingOver);
+    const targetClasses = [
+        fieldStyles.baseTarget,
+        id === "out-zone" ? fieldStyles.outZone : "",
+        activeDraggableId && isAllowed
+            ? id === "out-zone"
+                ? fieldStyles.outZoneActive
+                : fieldStyles.baseTargetActive
+            : "",
+        isActuallyHovered && isAllowed ? fieldStyles.baseTargetHovered : "",
+        isActuallyHovered && !isAllowed ? fieldStyles.baseTargetBlocked : "",
+    ]
+        .filter(Boolean)
+        .join(" ");
+
+    const baseOpacity =
+        id === "out-zone" || isAllowed || isActuallyHovered ? 1 : 0.2;
+    const rotation = id === "base-home" || id === "out-zone" ? "0deg" : "45deg";
+
+    return (
+        <Box
+            {...(provided ? provided.droppableProps : {})}
+            ref={provided ? provided.innerRef : null}
+            style={{
+                position: "absolute",
+                left: `${pos.x}%`,
+                top: `${pos.y}%`,
+                width: provided ? 100 : 80,
+                height: provided ? 120 : 80,
+                transform: "translate(-50%, -50%)",
+                zIndex: 1,
+            }}
+        >
+            <Box
+                style={{ position: "relative", width: "100%", height: "100%" }}
+            >
+                <Paper
+                    className={targetClasses}
+                    style={{
+                        "--base-rotation": rotation,
+                        opacity: baseOpacity,
+                    }}
+                >
+                    <BaseTargetContent
+                        id={id}
+                        activeDraggableId={activeDraggableId}
+                        isHovered={isHovered}
+                        snapshot={snapshot}
+                    />
+                </Paper>
+
+                <Box
+                    style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        zIndex: 50,
+                        pointerEvents: "none",
+                        display: "flex",
+                        flexDirection:
+                            id === "base-home" ? "column-reverse" : "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 4,
+                    }}
+                >
+                    {children}
+                </Box>
+            </Box>
+            {provided && provided.placeholder}
+        </Box>
+    );
+}
+
+// --- MAIN COMPONENT ---
 
 export default function RunnerAdvancementDND({
     runners,
@@ -627,7 +773,6 @@ export default function RunnerAdvancementDND({
                     {renderGhostTrail()}
                     {renderGhostBadge()}
 
-                    {/* Render Base Targets for Mobile with CSS Module */}
                     {Object.entries(BASE_POSITIONS).map(([id, pos]) => {
                         const rules = activeDraggableId
                             ? checkMovementRules(
@@ -638,180 +783,83 @@ export default function RunnerAdvancementDND({
                             : { allowed: true };
                         const isHovered =
                             hoveredBaseId === id && activeDraggableId;
-                        const isAllowed = rules.allowed;
-
-                        const targetClasses = [
-                            fieldStyles.baseTarget,
-                            id === "out-zone" ? fieldStyles.outZone : "",
-                            isHovered && isAllowed
-                                ? fieldStyles.baseTargetHovered
-                                : "",
-                            isHovered && !isAllowed
-                                ? fieldStyles.baseTargetBlocked
-                                : "",
-                        ]
-                            .filter(Boolean)
-                            .join(" ");
-
-                        const baseOpacity =
-                            id === "out-zone" || isAllowed || isHovered
-                                ? 1
-                                : 0.2;
 
                         return (
-                            <Box
+                            <BaseTarget
                                 key={id}
-                                style={{
-                                    position: "absolute",
-                                    left: `${pos.x}%`,
-                                    top: `${pos.y}%`,
-                                    width: 80,
-                                    height: 80,
-                                    transform: "translate(-50%, -50%)",
-                                    zIndex: 1,
-                                    opacity: baseOpacity,
-                                }}
+                                id={id}
+                                pos={pos}
+                                activeDraggableId={activeDraggableId}
+                                isHovered={isHovered}
+                                isAllowed={rules.allowed}
                             >
-                                <Paper
-                                    className={targetClasses}
-                                    style={{
-                                        "--base-rotation":
-                                            id === "base-home" ||
-                                            id === "out-zone"
-                                                ? "0deg"
-                                                : "45deg",
-                                    }}
-                                >
-                                    {id === "base-home" && (
-                                        <svg
-                                            viewBox="0 0 24 24"
+                                {draggablesByBase[id].map((p) => {
+                                    const isBeingDragged =
+                                        activeDraggableId === p.id;
+
+                                    // On mobile, only hide the source badge if we've dragged a significant amount
+                                    let isVisuallyGone = isBeingDragged;
+                                    if (
+                                        isBeingDragged &&
+                                        isMobile &&
+                                        currentPointerPos
+                                    ) {
+                                        const dist = Math.sqrt(
+                                            Math.pow(
+                                                currentPointerPos.x - pos.x,
+                                                2,
+                                            ) +
+                                                Math.pow(
+                                                    currentPointerPos.y - pos.y,
+                                                    2,
+                                                ),
+                                        );
+                                        if (dist < 5) isVisuallyGone = false;
+                                    }
+
+                                    const playerName =
+                                        p.id === "Batter" || p.id === batterId
+                                            ? batterName || "Batter"
+                                            : p.name;
+
+                                    return (
+                                        <Box
+                                            key={p.id}
                                             style={{
-                                                width: 22,
-                                                height: 22,
-                                                stroke: "white",
-                                                strokeWidth: 0.5,
-                                                color: isHovered
-                                                    ? "white"
-                                                    : "rgba(255,255,255,0.6)",
-                                                opacity: 0.7,
+                                                pointerEvents: "auto",
+                                                opacity: isVisuallyGone ? 0 : 1,
+                                            }}
+                                            onPointerDown={(e) => {
+                                                e.stopPropagation();
+                                                handlePointerDown(e, p.id, id);
                                             }}
                                         >
-                                            <path
-                                                d="M1,1 L23,1 L23,12 L12,23 L1,12 Z"
-                                                fill="currentColor"
-                                            />
-                                        </svg>
-                                    )}
-                                    {id === "out-zone" && (
-                                        <Stack gap={0} align="center">
-                                            <Text
-                                                size="10px"
-                                                fw={900}
-                                                c="white"
+                                            <Badge
+                                                size="xl"
+                                                radius="sm"
+                                                color="blue"
+                                                variant="filled"
+                                                className={`${fieldStyles.runnerBadge} ${isBeingDragged ? fieldStyles.runnerBadgeDragging : ""}`}
                                                 style={{
-                                                    textShadow:
-                                                        "0 1px 2px rgba(0,0,0,0.5)",
+                                                    padding: "0 10px",
+                                                    height: 32,
+                                                    minWidth: 60,
+                                                }}
+                                                styles={{
+                                                    label: {
+                                                        textTransform: "none",
+                                                        overflow: "visible",
+                                                    },
                                                 }}
                                             >
-                                                OUT
-                                            </Text>
-                                        </Stack>
-                                    )}
-                                </Paper>
-                            </Box>
+                                                {playerName}
+                                            </Badge>
+                                        </Box>
+                                    );
+                                })}
+                            </BaseTarget>
                         );
                     })}
-
-                    {/* Render Manual Pointer Badges directly */}
-                    {Object.entries(BASE_POSITIONS).map(([id, pos]) => (
-                        <Box
-                            key={id}
-                            style={{
-                                position: "absolute",
-                                left: `${pos.x}%`,
-                                top: `${pos.y}%`,
-                                width: 100,
-                                height: 120,
-                                transform: "translate(-50%, -50%)",
-                                zIndex: 50,
-                                pointerEvents: "none",
-                                display: "flex",
-                                flexDirection:
-                                    id === "base-home"
-                                        ? "column-reverse"
-                                        : "column",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: 4,
-                            }}
-                        >
-                            {draggablesByBase[id].map((p) => {
-                                const isBeingDragged =
-                                    activeDraggableId === p.id;
-
-                                // On mobile, only hide the source badge if we've dragged a significant amount
-                                let isVisuallyGone = isBeingDragged;
-                                if (
-                                    isBeingDragged &&
-                                    isMobile &&
-                                    currentPointerPos
-                                ) {
-                                    const dist = Math.sqrt(
-                                        Math.pow(
-                                            currentPointerPos.x - pos.x,
-                                            2,
-                                        ) +
-                                            Math.pow(
-                                                currentPointerPos.y - pos.y,
-                                                2,
-                                            ),
-                                    );
-                                    if (dist < 5) isVisuallyGone = false; // Stay visible for the first 5% of drag
-                                }
-
-                                const playerName =
-                                    p.id === "Batter" || p.id === batterId
-                                        ? batterName || "Batter"
-                                        : p.name;
-
-                                return (
-                                    <Box
-                                        key={p.id}
-                                        style={{ pointerEvents: "auto" }}
-                                        onPointerDown={(e) => {
-                                            e.stopPropagation();
-                                            handlePointerDown(e, p.id, id);
-                                        }}
-                                    >
-                                        <Badge
-                                            size="xl"
-                                            radius="sm"
-                                            color="blue"
-                                            variant="filled"
-                                            className={`${fieldStyles.runnerBadge} ${isBeingDragged ? fieldStyles.runnerBadgeDragging : ""}`}
-                                            style={{
-                                                opacity: isVisuallyGone ? 0 : 1,
-                                                padding: "0 10px",
-                                                height: 32,
-                                                minWidth: 60,
-                                            }}
-                                            styles={{
-                                                label: {
-                                                    textTransform: "none",
-                                                    overflow: "visible",
-                                                    color: "white",
-                                                    textShadow:
-                                                        "0 1px 2px rgba(0,0,0,0.5)",
-                                                },
-                                            }}
-                                        >
-                                            {playerName}
-                                        </Badge>
-                                    </Box>
-                                );
-                            })}
-                        </Box>
-                    ))}
                 </Box>
             ) : (
                 <DragDropContext
@@ -840,216 +888,114 @@ export default function RunnerAdvancementDND({
                                 }
                             >
                                 {(provided, snapshot) => {
-                                    const isAllowed = activeDraggableId
+                                    const rules = activeDraggableId
                                         ? checkMovementRules(
                                               activeDraggableId,
                                               dragSourceId,
                                               id,
-                                          ).allowed
-                                        : true;
-                                    const targetClasses = [
-                                        fieldStyles.baseTarget,
-                                        id === "out-zone"
-                                            ? fieldStyles.outZone
-                                            : "",
-                                        snapshot.isDraggingOver && isAllowed
-                                            ? fieldStyles.baseTargetHovered
-                                            : "",
-                                        snapshot.isDraggingOver && !isAllowed
-                                            ? fieldStyles.baseTargetBlocked
-                                            : "",
-                                    ]
-                                        .filter(Boolean)
-                                        .join(" ");
+                                          )
+                                        : { allowed: true };
 
                                     return (
-                                        <Box
-                                            {...provided.droppableProps}
-                                            ref={provided.innerRef}
-                                            style={{
-                                                position: "absolute",
-                                                left: `${BASE_POSITIONS[id].x}%`,
-                                                top: `${BASE_POSITIONS[id].y}%`,
-                                                width: 100,
-                                                height: 120,
-                                                transform:
-                                                    "translate(-50%, -50%)",
-                                                zIndex: 1,
-                                            }}
+                                        <BaseTarget
+                                            id={id}
+                                            pos={BASE_POSITIONS[id]}
+                                            activeDraggableId={
+                                                activeDraggableId
+                                            }
+                                            isAllowed={rules.allowed}
+                                            snapshot={snapshot}
+                                            provided={provided}
                                         >
-                                            {/* Target Base visual */}
-                                            <Box
-                                                style={{
-                                                    position: "relative",
-                                                    width: "100%",
-                                                    height: "100%",
-                                                    opacity: isAllowed
-                                                        ? 1
-                                                        : 0.2,
-                                                }}
-                                            >
-                                                <Paper
-                                                    className={targetClasses}
-                                                    style={{
-                                                        "--base-rotation":
-                                                            id ===
-                                                                "base-home" ||
-                                                            id === "out-zone"
-                                                                ? "0deg"
-                                                                : "45deg",
-                                                    }}
-                                                >
-                                                    {id === "base-home" && (
-                                                        <svg
-                                                            viewBox="0 0 24 24"
-                                                            style={{
-                                                                width: 22,
-                                                                height: 22,
-                                                                color: snapshot.isDraggingOver
-                                                                    ? "white"
-                                                                    : "var(--mantine-color-dark-3)",
-                                                            }}
-                                                        >
-                                                            <path
-                                                                d="M1,1 L23,1 L23,12 L12,23 L1,12 Z"
-                                                                fill="currentColor"
-                                                            />
-                                                        </svg>
-                                                    )}
-                                                    {id === "out-zone" && (
-                                                        <Stack
-                                                            gap={0}
-                                                            align="center"
-                                                        >
-                                                            <Text
-                                                                size="10px"
-                                                                fw={900}
-                                                                c="white"
-                                                            >
-                                                                OUT
-                                                            </Text>
-                                                        </Stack>
-                                                    )}
-                                                </Paper>
-
-                                                {/* Players for this base (STRICTLY NESTED INSIDE DROPPABLE) */}
-                                                <Box
-                                                    style={{
-                                                        position: "absolute",
-                                                        top: 0,
-                                                        left: 0,
-                                                        width: "100%",
-                                                        height: "100%",
-                                                        zIndex: 50,
-                                                        pointerEvents: "none",
-                                                        display: "flex",
-                                                        flexDirection:
-                                                            id === "base-home"
-                                                                ? "column-reverse"
-                                                                : "column",
-                                                        alignItems: "center",
-                                                        justifyContent:
-                                                            "center",
-                                                        gap: 4,
-                                                    }}
-                                                >
-                                                    {draggablesByBase[id].map(
-                                                        (p, index) => (
-                                                            <Draggable
-                                                                key={p.id}
-                                                                draggableId={
-                                                                    p.id
-                                                                }
-                                                                index={index}
-                                                            >
-                                                                {(
-                                                                    draggableProvided,
-                                                                    dSnapshot,
-                                                                ) => {
-                                                                    const child =
-                                                                        (
-                                                                            <div
-                                                                                ref={
-                                                                                    draggableProvided.innerRef
-                                                                                }
-                                                                                {...draggableProvided.draggableProps}
-                                                                                {...draggableProvided.dragHandleProps}
-                                                                                onContextMenu={(
-                                                                                    e,
-                                                                                ) =>
-                                                                                    e.preventDefault()
-                                                                                }
-                                                                                className={`${fieldStyles.runnerBadge} ${dSnapshot.isDragging ? fieldStyles.runnerBadgeDragging : ""}`}
-                                                                                style={{
-                                                                                    ...draggableProvided
-                                                                                        .draggableProps
-                                                                                        .style,
-                                                                                    touchAction:
-                                                                                        "none",
-                                                                                    zIndex: dSnapshot.isDragging
-                                                                                        ? 10000
-                                                                                        : 20,
-                                                                                    pointerEvents:
-                                                                                        "auto",
-                                                                                    padding:
-                                                                                        "0 10px",
-                                                                                    height: 32,
-                                                                                    minWidth: 60,
-                                                                                    display:
-                                                                                        "flex",
-                                                                                    alignItems:
-                                                                                        "center",
-                                                                                    justifyContent:
-                                                                                        "center",
-                                                                                }}
-                                                                                onPointerDown={(
-                                                                                    e,
-                                                                                ) => {
-                                                                                    e.stopPropagation();
-                                                                                    handlePointerDown(
-                                                                                        e,
-                                                                                        p.id,
-                                                                                        id,
-                                                                                    );
-                                                                                }}
-                                                                            >
-                                                                                <Text
-                                                                                    size="sm"
-                                                                                    fw={
-                                                                                        800
-                                                                                    }
-                                                                                    c="white"
-                                                                                    style={{
-                                                                                        textShadow:
-                                                                                            "0 1px 2px rgba(0,0,0,0.5)",
-                                                                                        whiteSpace:
-                                                                                            "nowrap",
-                                                                                    }}
-                                                                                >
-                                                                                    {p.id ===
-                                                                                        "Batter" ||
-                                                                                    p.id ===
-                                                                                        batterId
-                                                                                        ? batterName ||
-                                                                                          "Batter"
-                                                                                        : p.name}
-                                                                                </Text>
-                                                                            </div>
+                                            {draggablesByBase[id].map(
+                                                (p, index) => (
+                                                    <Draggable
+                                                        key={p.id}
+                                                        draggableId={p.id}
+                                                        index={index}
+                                                    >
+                                                        {(
+                                                            draggableProvided,
+                                                            dSnapshot,
+                                                        ) => {
+                                                            const child = (
+                                                                <div
+                                                                    ref={
+                                                                        draggableProvided.innerRef
+                                                                    }
+                                                                    {...draggableProvided.draggableProps}
+                                                                    {...draggableProvided.dragHandleProps}
+                                                                    onContextMenu={(
+                                                                        e,
+                                                                    ) =>
+                                                                        e.preventDefault()
+                                                                    }
+                                                                    className={`${fieldStyles.runnerBadge} ${dSnapshot.isDragging ? fieldStyles.runnerBadgeDragging : ""}`}
+                                                                    style={{
+                                                                        ...draggableProvided
+                                                                            .draggableProps
+                                                                            .style,
+                                                                        touchAction:
+                                                                            "none",
+                                                                        zIndex: dSnapshot.isDragging
+                                                                            ? 10000
+                                                                            : 20,
+                                                                        pointerEvents:
+                                                                            "auto",
+                                                                        padding:
+                                                                            "0 10px",
+                                                                        height: 32,
+                                                                        minWidth: 60,
+                                                                        display:
+                                                                            "flex",
+                                                                        alignItems:
+                                                                            "center",
+                                                                        justifyContent:
+                                                                            "center",
+                                                                    }}
+                                                                    onPointerDown={(
+                                                                        e,
+                                                                    ) => {
+                                                                        e.stopPropagation();
+                                                                        handlePointerDown(
+                                                                            e,
+                                                                            p.id,
+                                                                            id,
                                                                         );
-                                                                    return dSnapshot.isDragging
-                                                                        ? createPortal(
-                                                                              child,
-                                                                              document.body,
-                                                                          )
-                                                                        : child;
-                                                                }}
-                                                            </Draggable>
-                                                        ),
-                                                    )}
-                                                </Box>
-                                            </Box>
-                                            {provided.placeholder}
-                                        </Box>
+                                                                    }}
+                                                                >
+                                                                    <Text
+                                                                        size="sm"
+                                                                        fw={800}
+                                                                        c="white"
+                                                                        style={{
+                                                                            textShadow:
+                                                                                "0 1px 2px rgba(0,0,0,0.5)",
+                                                                            whiteSpace:
+                                                                                "nowrap",
+                                                                        }}
+                                                                    >
+                                                                        {p.id ===
+                                                                            "Batter" ||
+                                                                        p.id ===
+                                                                            batterId
+                                                                            ? batterName ||
+                                                                              "Batter"
+                                                                            : p.name}
+                                                                    </Text>
+                                                                </div>
+                                                            );
+                                                            return dSnapshot.isDragging
+                                                                ? createPortal(
+                                                                      child,
+                                                                      document.body,
+                                                                  )
+                                                                : child;
+                                                        }}
+                                                    </Draggable>
+                                                ),
+                                            )}
+                                        </BaseTarget>
                                     );
                                 }}
                             </Droppable>
