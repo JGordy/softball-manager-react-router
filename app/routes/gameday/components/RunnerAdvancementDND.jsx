@@ -106,7 +106,7 @@ function BaseTarget({
                 width: provided ? 100 : 80,
                 height: provided ? 120 : 80,
                 transform: "translate(-50%, -50%)",
-                zIndex: provided ? 1 : 1,
+                zIndex: 1,
                 opacity: baseOpacity,
             }}
         >
