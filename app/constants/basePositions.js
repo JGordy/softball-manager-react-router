@@ -8,5 +8,5 @@ export const BASE_POSITIONS = {
     "base-1": { x: 91, y: 50 },
     "base-2": { x: 50, y: 9 },
     "base-3": { x: 9, y: 50 },
-    "out-zone": { x: 85, y: 85 },
+    "out-zone": { x: 50, y: 50 },
 };

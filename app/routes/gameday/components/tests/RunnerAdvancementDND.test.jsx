@@ -125,5 +125,8 @@ describe("RunnerAdvancementDND", () => {
             expect(box.style.left).toMatch(/%/);
             expect(box.style.top).toMatch(/%/);
         }
+
+        // Verify "DRAG TO" hint is now visible
+        expect(screen.getByText("DRAG TO")).toBeInTheDocument();
     });
 });

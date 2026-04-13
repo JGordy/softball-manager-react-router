@@ -643,6 +643,9 @@ export default function RunnerAdvancementDND({
                         const targetClasses = [
                             fieldStyles.baseTarget,
                             id === "out-zone" ? fieldStyles.outZone : "",
+                            id === "out-zone" && activeDraggableId
+                                ? fieldStyles.outZoneActive
+                                : "",
                             isHovered && isAllowed
                                 ? fieldStyles.baseTargetHovered
                                 : "",
@@ -704,8 +707,22 @@ export default function RunnerAdvancementDND({
                                     )}
                                     {id === "out-zone" && (
                                         <Stack gap={0} align="center">
+                                            {activeDraggableId && (
+                                                <Text
+                                                    size="8px"
+                                                    fw={700}
+                                                    c="white"
+                                                    style={{ opacity: 0.8 }}
+                                                >
+                                                    DRAG TO
+                                                </Text>
+                                            )}
                                             <Text
-                                                size="10px"
+                                                size={
+                                                    activeDraggableId
+                                                        ? "14px"
+                                                        : "10px"
+                                                }
                                                 fw={900}
                                                 c="white"
                                                 style={{
@@ -852,6 +869,9 @@ export default function RunnerAdvancementDND({
                                         id === "out-zone"
                                             ? fieldStyles.outZone
                                             : "",
+                                        id === "out-zone" && activeDraggableId
+                                            ? fieldStyles.outZoneActive
+                                            : "",
                                         snapshot.isDraggingOver && isAllowed
                                             ? fieldStyles.baseTargetHovered
                                             : "",
@@ -921,8 +941,24 @@ export default function RunnerAdvancementDND({
                                                             gap={0}
                                                             align="center"
                                                         >
+                                                            {activeDraggableId && (
+                                                                <Text
+                                                                    size="8px"
+                                                                    fw={700}
+                                                                    c="white"
+                                                                    style={{
+                                                                        opacity: 0.8,
+                                                                    }}
+                                                                >
+                                                                    DRAG TO
+                                                                </Text>
+                                                            )}
                                                             <Text
-                                                                size="10px"
+                                                                size={
+                                                                    activeDraggableId
+                                                                        ? "14px"
+                                                                        : "10px"
+                                                                }
                                                                 fw={900}
                                                                 c="white"
                                                             >
