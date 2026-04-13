@@ -65,7 +65,7 @@
     animation: pulse 1.5s infinite;
     background-color: rgba(201, 42, 42, 1);
     box-shadow: 0 0 20px 6px rgba(250, 82, 82, 0.8);
-    transform: translate(-50%, -50%) scale(1.1);
+    --base-scale: 1.1;
 }
 
 @keyframes pulse {
