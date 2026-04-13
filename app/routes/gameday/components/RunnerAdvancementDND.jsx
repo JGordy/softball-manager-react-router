@@ -80,7 +80,11 @@ function BaseTarget({
     const targetClasses = [
         fieldStyles.baseTarget,
         id === "out-zone" ? fieldStyles.outZone : "",
-        id === "out-zone" && activeDraggableId ? fieldStyles.outZoneActive : "",
+        activeDraggableId && isAllowed
+            ? id === "out-zone"
+                ? fieldStyles.outZoneActive
+                : fieldStyles.baseTargetActive
+            : "",
         isActuallyHovered && isAllowed ? fieldStyles.baseTargetHovered : "",
         isActuallyHovered && !isAllowed ? fieldStyles.baseTargetBlocked : "",
     ]

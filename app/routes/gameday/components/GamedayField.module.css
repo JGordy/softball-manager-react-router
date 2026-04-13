@@ -61,14 +61,34 @@
     border: 2px solid white;
 }
 
-.outZoneActive {
-    animation: pulse 1.5s infinite;
-    background-color: rgba(201, 42, 42, 1);
-    box-shadow: 0 0 20px 6px rgba(250, 82, 82, 0.8);
-    --base-scale: 1.1;
+.baseTargetActive {
+    animation: pulseBase 1.5s infinite;
+    --base-scale: 1.12;
+    background-color: rgba(255, 255, 255, 0.35) !important;
+    border: 2px solid white !important;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
 }
 
-@keyframes pulse {
+.outZoneActive {
+    animation: pulseOut 1.5s infinite;
+    background-color: rgba(201, 42, 42, 1);
+    box-shadow: 0 0 20px 6px rgba(250, 82, 82, 0.8);
+    --base-scale: 1.15;
+}
+
+@keyframes pulseBase {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.6);
+    }
+    70% {
+        box-shadow: 0 0 0 15px rgba(255, 255, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+    }
+}
+
+@keyframes pulseOut {
     0% {
         box-shadow: 0 0 0 0 rgba(250, 82, 82, 0.7);
     }
