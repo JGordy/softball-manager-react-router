@@ -82,7 +82,7 @@ A critical distinction in this project is the separation between Appwrite's buil
 
 ---
 
-## 4. Error Handling & UI Patterns
+## 5. Error Handling & UI Patterns
 
 Handle common Appwrite errors (400, 401) using the project's notification system.
 

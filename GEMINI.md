@@ -28,7 +28,7 @@ This document serves as the "Source of Truth" for AI agents and developers worki
 
 - **Component Style**: Use **Functional Components with Hooks**. Avoid class components.
 - **Data Flow**: Leverage React Router's `loader` for data fetching and `action` for mutations. Use `Form`, `useFetcher`, and `useLoaderData` extensively. For data streaming, return raw promises directly from loaders (React Router v7 handles these automatically without `defer`).
-- **Typography**: Primary font is `Lexend`. Use Mantine's `Title` and `Text` components with specified design tokens.
+- **Typography**: The app currently loads Inter/Roboto in `app/root.jsx`, and the Mantine theme `fontFamily` is set to `"Open Sans, sans-serif"`. Keep documentation and theme settings aligned when making typography changes. Use Mantine's `Title` and `Text` components with specified design tokens.
 - **File Structure**:
     - `app/routes/`: Route definitions and page components.
     - `app/components/`: Reusable UI components.
@@ -43,7 +43,7 @@ This document serves as the "Source of Truth" for AI agents and developers worki
 
 The project uses Appwrite for Auth, Database, and Storage.
 
-- **Client Side**: Use `app/utils/appwrite/client.js` and `AppwriteProvider` (context) for client-side interactions and real-time subscriptions.
+- **Client Side**: Use `@/utils/appwrite/context` to initialize or retrieve the Appwrite client from SSR context, and use `app/utils/appwrite/client.js` for browser SDK services, client-side interactions, and real-time subscriptions.
 - **Server Side**:
     - Use `createSessionClient(request)` in loaders/actions to act on behalf of the logged-in user.
     - Use `createAdminClient()` sparingly for system-level operations requiring an API Key.
@@ -54,7 +54,9 @@ The project uses Appwrite for Auth, Database, and Storage.
 - **Workflow**: Continuous Deployment via GitHub.
 - **Build Command**: `npm run build`
 - **Start Command**: `npm run start` (uses `react-router-serve`)
-- **Environment**: All `APPWRITE_*` and `SENTRY_DSN` variables must be configured in the Render Dashboard.
+- **Environment**: All required `APPWRITE_*` variables must be configured in the Render Dashboard, along with both Sentry DSNs:
+    - `VITE_SENTRY_DSN` for client-side/browser Sentry initialization.
+    - `SENTRY_DSN` for server-side instrumentation.
 
 ---
 
