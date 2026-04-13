@@ -107,7 +107,6 @@ function BaseTarget({
                 height: provided ? 120 : 80,
                 transform: "translate(-50%, -50%)",
                 zIndex: 1,
-                opacity: baseOpacity,
             }}
         >
             <Box
@@ -115,7 +114,10 @@ function BaseTarget({
             >
                 <Paper
                     className={targetClasses}
-                    style={{ "--base-rotation": rotation }}
+                    style={{
+                        "--base-rotation": rotation,
+                        opacity: baseOpacity,
+                    }}
                 >
                     <BaseTargetContent
                         id={id}
