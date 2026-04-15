@@ -7,7 +7,11 @@ import { getEventById } from "@/loaders/games";
 
 import { updateGame } from "@/actions/games";
 
-import { logGameEvent, undoGameEvent } from "@/actions/gameLogs";
+import {
+    logGameEvent,
+    undoGameEvent,
+    updateGameEvent,
+} from "@/actions/gameLogs";
 import { savePlayerChart } from "@/actions/lineups";
 
 import { useResponseNotification } from "@/utils/showNotification";
@@ -100,6 +104,15 @@ export async function action({ request, params }) {
         }
 
         return undoResponse;
+    }
+    if (_action === "update-game-event") {
+        const { logId, propagate, ...logData } = values;
+        return await updateGameEvent({
+            logId,
+            newData: logData,
+            client,
+            propagate: propagate === "true",
+        });
     }
     if (_action === "update-game-score") {
         return updateGame({ values, eventId, client });

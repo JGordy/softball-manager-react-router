@@ -180,6 +180,64 @@ describe("Gameday Route", () => {
             });
         });
 
+        it("handles update-game-event action and delegates to updateGameEvent", async () => {
+            const formData = new FormData();
+            formData.append("_action", "update-game-event");
+            formData.append("logId", "log789");
+            formData.append("eventType", "double");
+            formData.append("rbi", "1");
+            formData.append("propagate", "true");
+            formData.append(
+                "baseState",
+                JSON.stringify({
+                    first: null,
+                    second: "p1",
+                    third: null,
+                    scored: [],
+                }),
+            );
+            formData.append(
+                "runnerResults",
+                JSON.stringify({ batter: "second" }),
+            );
+
+            const request = { formData: () => Promise.resolve(formData) };
+            const params = { eventId: "game123" };
+
+            gameLogActions.updateGameEvent.mockResolvedValue({ success: true });
+
+            await action({ request, params });
+
+            expect(gameLogActions.updateGameEvent).toHaveBeenCalledWith({
+                logId: "log789",
+                newData: expect.objectContaining({
+                    eventType: "double",
+                    rbi: "1",
+                }),
+                client: expect.any(Object),
+                propagate: true,
+            });
+        });
+
+        it("passes propagate=false when not set in update-game-event", async () => {
+            const formData = new FormData();
+            formData.append("_action", "update-game-event");
+            formData.append("logId", "log789");
+            formData.append("eventType", "single");
+            formData.append("rbi", "0");
+
+            const request = { formData: () => Promise.resolve(formData) };
+            const params = { eventId: "game123" };
+
+            gameLogActions.updateGameEvent.mockResolvedValue({ success: true });
+
+            await action({ request, params });
+
+            expect(gameLogActions.updateGameEvent).toHaveBeenCalledWith(
+                expect.objectContaining({ propagate: false }),
+            );
+        });
+
         it("handles substitute-player action", async () => {
             const formData = new FormData();
             formData.append("_action", "substitute-player");
