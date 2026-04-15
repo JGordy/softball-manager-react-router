@@ -80,7 +80,7 @@ export default function CurrentBatterCard({ currentBatter, logs, ...props }) {
                             {activePlayer.jerseyNumber && (
                                 <Text
                                     inherit
-                                    display="inline"
+                                    component="span"
                                     c="lime.4"
                                     mr={4}
                                 >

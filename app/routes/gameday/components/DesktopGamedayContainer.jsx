@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import {
     Box,
     Card,
@@ -8,18 +9,13 @@ import {
     Tabs,
     Text,
     Title,
-    SimpleGrid,
+    Modal,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
-import { IconTrophy } from "@tabler/icons-react";
-
-import AchievementCard from "@/components/AchievementCard";
 import BackButton from "@/components/BackButton";
 import TabsWrapper from "@/components/TabsWrapper";
 import ContactSprayChart from "@/components/ContactSprayChart";
-
-import { sortAchievements } from "@/utils/achievements";
 
 import { useGamedayController } from "../hooks/useGamedayController";
 
@@ -34,6 +30,7 @@ import DesktopPlayActionDrawer from "./DesktopPlayActionDrawer";
 import SubPlayerDrawer from "./SubPlayerDrawer";
 import GamedayMenu from "./GamedayMenu";
 import AchievementsList from "./AchievementsList";
+import EditPlayDrawer from "./EditPlayDrawer";
 
 export default function DesktopGamedayContainer({
     game,
@@ -76,6 +73,7 @@ export default function DesktopGamedayContainer({
         eligibleSubstitutes,
         playerChart,
         undoLast,
+        updateAction,
     } = useGamedayController({
         game,
         playerChart: initialPlayerChart,
@@ -88,6 +86,9 @@ export default function DesktopGamedayContainer({
     });
 
     const [subModalOpened, { open: openSubModal, close: closeSubModal }] =
+        useDisclosure(false);
+    const [editLog, setEditLog] = useState(null);
+    const [editDrawerOpened, { open: openEditDrawer, close: closeEditDrawer }] =
         useDisclosure(false);
 
     if (playerChart.length === 0) {
@@ -102,6 +103,23 @@ export default function DesktopGamedayContainer({
             </Card>
         );
     }
+
+    const handleEditPlay = (log) => {
+        setEditLog(log);
+        openEditDrawer();
+    };
+
+    const handleSaveEdit = (logId, updatedData) => {
+        updateAction(logId, updatedData);
+        closeEditDrawer();
+        setEditLog(null);
+    };
+
+    const previousLog = useMemo(() => {
+        if (!editLog) return null;
+        const idx = logs.findIndex((l) => l.$id === editLog.$id);
+        return idx > 0 ? logs[idx - 1] : null;
+    }, [editLog, logs]);
 
     return (
         <Stack gap="md">
@@ -215,6 +233,8 @@ export default function DesktopGamedayContainer({
                                         <PlayHistoryList
                                             logs={logs}
                                             playerChart={playerChart}
+                                            isScorekeeper={isScorekeeper}
+                                            onEditPlay={handleEditPlay}
                                         />
                                     </Card>
                                 </Stack>
@@ -268,6 +288,16 @@ export default function DesktopGamedayContainer({
                 currentSlot={currentBatter}
                 eligibleSubstitutes={eligibleSubstitutes}
                 onConfirmSub={handleSubCurrentBatter}
+            />
+
+            <EditPlayDrawer
+                opened={editDrawerOpened}
+                onClose={closeEditDrawer}
+                log={editLog}
+                previousLog={previousLog}
+                playerChart={playerChart}
+                onSave={handleSaveEdit}
+                isSubmitting={isSubmitting}
             />
         </Stack>
     );

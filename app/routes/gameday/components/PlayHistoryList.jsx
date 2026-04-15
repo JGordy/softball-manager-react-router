@@ -1,12 +1,27 @@
-import { Text, Group, Stack, Paper, Badge } from "@mantine/core";
+import {
+    ActionIcon,
+    Tooltip,
+    Text,
+    Group,
+    Stack,
+    Paper,
+    Badge,
+} from "@mantine/core";
 import {
     IconCaretUpFilled,
     IconCaretDownFilled,
     IconArrowsExchange,
+    IconPencil,
 } from "@tabler/icons-react";
+
 import { getRunnerMovement } from "../utils/gamedayUtils";
 
-export default function PlayHistoryList({ logs, playerChart }) {
+export default function PlayHistoryList({
+    logs,
+    playerChart,
+    isScorekeeper,
+    onEditPlay,
+}) {
     if (!logs.length) {
         return (
             <Paper withBorder p="md" radius="md">
@@ -29,8 +44,7 @@ export default function PlayHistoryList({ logs, playerChart }) {
                             p="xs"
                             radius="md"
                             style={{
-                                borderColor:
-                                    "var(--mantine-color-orange-4)",
+                                borderColor: "var(--mantine-color-orange-4)",
                                 borderStyle: "dashed",
                             }}
                         >
@@ -78,11 +92,7 @@ export default function PlayHistoryList({ logs, playerChart }) {
                     <Paper key={log.$id} withBorder p="xs" radius="md">
                         <Stack gap={4}>
                             <Group justify="space-between" wrap="nowrap">
-                                <Text
-                                    size="sm"
-                                    fw={700}
-                                    style={{ flex: 1 }}
-                                >
+                                <Text size="sm" fw={700} style={{ flex: 1 }}>
                                     {log.description}
                                 </Text>
                                 <Group gap={5} wrap="nowrap">
@@ -107,6 +117,22 @@ export default function PlayHistoryList({ logs, playerChart }) {
                                                 ? "Out"
                                                 : "Outs"}
                                         </Badge>
+                                    )}
+                                    {isScorekeeper && (
+                                        <Tooltip label="Edit Play" withArrow>
+                                            <ActionIcon
+                                                variant="subtle"
+                                                color="gray"
+                                                size="sm"
+                                                onClick={() =>
+                                                    onEditPlay &&
+                                                    onEditPlay(log)
+                                                }
+                                                aria-label="Edit play"
+                                            >
+                                                <IconPencil size={14} />
+                                            </ActionIcon>
+                                        </Tooltip>
                                     )}
                                 </Group>
                             </Group>
