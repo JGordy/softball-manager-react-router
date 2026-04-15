@@ -123,4 +123,91 @@ describe("useGamedayActions", () => {
             { method: "post" },
         );
     });
+
+    describe("updateAction", () => {
+        it("submits update-game-event with the correct logId and payload", () => {
+            const { result } = renderHook(() =>
+                useGamedayActions(defaultProps),
+            );
+
+            act(() => {
+                result.current.updateAction("log99", {
+                    eventType: "double",
+                    rbi: 1,
+                    description: "Gordy doubles",
+                });
+            });
+
+            expect(mockSubmit).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    _action: "update-game-event",
+                    logId: "log99",
+                    eventType: "double",
+                    rbi: 1,
+                    propagate: "true",
+                }),
+                { method: "post" },
+            );
+        });
+
+        it("serializes object baseState to a JSON string before submitting", () => {
+            const { result } = renderHook(() =>
+                useGamedayActions(defaultProps),
+            );
+            const baseState = {
+                first: null,
+                second: "p1",
+                third: null,
+                scored: [],
+            };
+
+            act(() => {
+                result.current.updateAction("log99", { baseState });
+            });
+
+            const [submitted] = mockSubmit.mock.calls[0];
+            expect(submitted.baseState).toBe(JSON.stringify(baseState));
+        });
+
+        it("serializes object runnerResults to a JSON string before submitting", () => {
+            const { result } = renderHook(() =>
+                useGamedayActions(defaultProps),
+            );
+            const runnerResults = { batter: "second", first: null };
+
+            act(() => {
+                result.current.updateAction("log99", { runnerResults });
+            });
+
+            const [submitted] = mockSubmit.mock.calls[0];
+            expect(submitted.runnerResults).toBe(JSON.stringify(runnerResults));
+        });
+
+        it("passes propagate=false as a string when explicitly set", () => {
+            const { result } = renderHook(() =>
+                useGamedayActions(defaultProps),
+            );
+
+            act(() => {
+                result.current.updateAction("log99", { eventType: "K" }, false);
+            });
+
+            expect(mockSubmit).toHaveBeenCalledWith(
+                expect.objectContaining({ propagate: "false" }),
+                { method: "post" },
+            );
+        });
+
+        it("does nothing if isScorekeeper is false", () => {
+            const { result } = renderHook(() =>
+                useGamedayActions({ ...defaultProps, isScorekeeper: false }),
+            );
+
+            act(() => {
+                result.current.updateAction("log99", { eventType: "K" });
+            });
+
+            expect(mockSubmit).not.toHaveBeenCalled();
+        });
+    });
 });

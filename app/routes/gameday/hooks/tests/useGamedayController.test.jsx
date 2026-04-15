@@ -230,4 +230,22 @@ describe("useGamedayController", () => {
         const janeSlot = result.current.playerChart.find((s) => s.$id === "p2");
         expect(janeSlot.avatarUrl).toBe("http://avatar.url/p2");
     });
+
+    it("returns updateAction from useGamedayActions", () => {
+        const mockUpdateAction = jest.fn();
+        useGamedayActions.mockReturnValue({
+            updateAction: mockUpdateAction,
+            fetcher: { data: null, state: "idle" },
+        });
+
+        const { result } = renderHook(() =>
+            useGamedayController({
+                game: mockGame,
+                playerChart: mockPlayerChart,
+                team: mockTeam,
+            }),
+        );
+
+        expect(result.current.updateAction).toBe(mockUpdateAction);
+    });
 });

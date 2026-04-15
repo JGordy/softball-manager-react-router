@@ -294,6 +294,31 @@ export function useGamedayActions({
         [isScorekeeper, fetcher, logs],
     );
 
+    const updateAction = useCallback(
+        (logId, updatedData, propagate = true) => {
+            if (!isScorekeeper) return;
+            fetcher.submit(
+                {
+                    _action: "update-game-event",
+                    logId,
+                    propagate: String(propagate),
+                    ...updatedData,
+                    baseState:
+                        typeof updatedData.baseState === "object"
+                            ? JSON.stringify(updatedData.baseState)
+                            : updatedData.baseState,
+                    runnerResults:
+                        updatedData.runnerResults &&
+                        typeof updatedData.runnerResults === "object"
+                            ? JSON.stringify(updatedData.runnerResults)
+                            : updatedData.runnerResults,
+                },
+                { method: "post" },
+            );
+        },
+        [isScorekeeper, fetcher],
+    );
+
     return {
         pendingAction,
         drawerOpened,
@@ -306,6 +331,7 @@ export function useGamedayActions({
         completeAction,
         handleSubCurrentBatter,
         undoLast,
+        updateAction,
         isSubmitting,
         fetcher,
     };
