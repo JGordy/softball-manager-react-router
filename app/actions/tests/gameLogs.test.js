@@ -402,10 +402,12 @@ describe("gameLogs actions", () => {
         };
 
         it("parses hitX and hitY as floats before sending to Appwrite (Direct Update)", async () => {
-            // Unchanged RBI (0 -> 0) results in direct updateDocument
-            readDocument
-                .mockResolvedValueOnce({ $id: "log1", gameId: "game1", rbi: 0 })
-                .mockResolvedValueOnce({ $id: "game1", score: "2" });
+            // Unchanged RBI (0 -> 0) results in direct updateDocument; game is not fetched
+            readDocument.mockResolvedValueOnce({
+                $id: "log1",
+                gameId: "game1",
+                rbi: 0,
+            });
             updateDocument.mockResolvedValue({ $id: "log1" });
 
             const dataNoRBIChange = { ...baseNewData, rbi: "0" };
@@ -460,9 +462,12 @@ describe("gameLogs actions", () => {
         });
 
         it("parses runnerResults JSON string into the bundled baseState", async () => {
-            readDocument
-                .mockResolvedValueOnce({ $id: "log1", gameId: "game1", rbi: 0 })
-                .mockResolvedValueOnce({ $id: "game1", score: "2" });
+            // Unchanged RBI (0 -> 0) results in direct updateDocument; game is not fetched
+            readDocument.mockResolvedValueOnce({
+                $id: "log1",
+                gameId: "game1",
+                rbi: 0,
+            });
             updateDocument.mockResolvedValue({ $id: "log1" });
 
             const dataNoRBIChange = { ...baseNewData, rbi: "0" };
