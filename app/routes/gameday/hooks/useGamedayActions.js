@@ -294,7 +294,7 @@ export function useGamedayActions({
     );
 
     const updateAction = useCallback(
-        (logId, updatedData, propagate = true) => {
+        (logId, updatedData, propagate = false) => {
             if (!isScorekeeper) return;
             const { baseState, runnerResults, ...rest } = updatedData;
             const payload = {

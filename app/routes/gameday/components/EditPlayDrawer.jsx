@@ -64,14 +64,34 @@ export default function EditPlayDrawer({
                 return parsed.runnerResults;
             } else if (parsed) {
                 const derived = {};
+                const scored = Array.isArray(parsed.scored)
+                    ? parsed.scored
+                    : typeof parsed.scored === "string" && parsed.scored
+                      ? (() => {
+                            try {
+                                const s = JSON.parse(parsed.scored);
+                                return Array.isArray(s) ? s : [parsed.scored];
+                            } catch {
+                                return [parsed.scored];
+                            }
+                        })()
+                      : [];
+
                 if (parsed.first === log.playerId) derived.batter = "first";
                 else if (parsed.second === log.playerId)
                     derived.batter = "second";
                 else if (parsed.third === log.playerId)
                     derived.batter = "third";
+                else if (scored.includes(log.playerId))
+                    derived.batter = "score";
+                else derived.batter = "out";
+
                 ["first", "second", "third"].forEach((base) => {
-                    if (parsed[base] && parsed[base] !== log.playerId)
-                        derived[base] = "stay";
+                    if (parsed[base] && parsed[base] !== log.playerId) {
+                        derived[base] = scored.includes(parsed[base])
+                            ? "score"
+                            : "stay";
+                    }
                 });
                 return derived;
             }
@@ -80,6 +100,7 @@ export default function EditPlayDrawer({
         }
         return {};
     });
+    const [runnersModified, setRunnersModified] = useState(false);
 
     // Location State
     const [hitCoordinates, setHitCoordinates] = useState(() =>
@@ -153,6 +174,11 @@ export default function EditPlayDrawer({
         }
     }, [previousLog]);
 
+    const handleRunnerResultsChange = (newResults) => {
+        setRunnerResults(newResults);
+        setRunnersModified(true);
+    };
+
     const handleActionChange = (newType) => {
         setEventType(newType);
         const isHit = ["1B", "2B", "3B", "HR", "E", "FC"].includes(newType);
@@ -193,7 +219,7 @@ export default function EditPlayDrawer({
             if (startingRunners.second) results.second = "score";
             if (startingRunners.third) results.third = "score";
         }
-        setRunnerResults(results);
+        handleRunnerResultsChange(results);
         setActiveStep("menu");
     };
 
@@ -267,8 +293,8 @@ export default function EditPlayDrawer({
 
         onSave(log.$id, {
             eventType: EVENT_TYPE_MAP[eventType] || eventType,
-            rbi: runsScored,
-            outsOnPlay: outsRecorded,
+            rbi: runnersModified ? runsScored : log.rbi,
+            outsOnPlay: runnersModified ? outsRecorded : log.outsOnPlay,
             description,
             baseState: derivedBaseState,
             runnerResults,
@@ -563,7 +589,7 @@ export default function EditPlayDrawer({
                     runners={startingRunners}
                     runnerResults={runnerResults}
                     setRunnerResults={(results) => {
-                        setRunnerResults(results);
+                        handleRunnerResultsChange(results);
                     }}
                     runsScored={runsScored}
                     outsRecorded={outsRecorded}

@@ -430,14 +430,14 @@ describe("gameLogs actions", () => {
         });
 
         it("parses hitX and hitY as floats before sending to Appwrite (Transaction)", async () => {
-            // Changed RBI (0 -> 1) results in transaction
+            // Changed RBI (0 -> 1) results in score-first update path
             readDocument
                 .mockResolvedValueOnce({ $id: "log1", gameId: "game1", rbi: 0 })
                 .mockResolvedValueOnce({ $id: "game1", score: "2" });
 
             updateDocument
-                .mockResolvedValueOnce({ $id: "log1" })
-                .mockResolvedValueOnce({ $id: "game1" });
+                .mockResolvedValueOnce({ $id: "game1" }) // game score first
+                .mockResolvedValueOnce({ $id: "log1" }); // log second
 
             await updateGameEvent({
                 logId: "log1",
@@ -491,8 +491,8 @@ describe("gameLogs actions", () => {
                 .mockResolvedValueOnce({ $id: "game1", score: "3" });
 
             updateDocument
-                .mockResolvedValueOnce({ $id: "log1" })
-                .mockResolvedValueOnce({ $id: "game1" });
+                .mockResolvedValueOnce({ $id: "game1" }) // game score updated first
+                .mockResolvedValueOnce({ $id: "log1" }); // log updated second
 
             await updateGameEvent({
                 logId: "log1",
@@ -501,7 +501,9 @@ describe("gameLogs actions", () => {
             });
 
             expect(createTransaction).not.toHaveBeenCalled();
-            expect(updateDocument).toHaveBeenCalledWith(
+            // Score is updated first
+            expect(updateDocument).toHaveBeenNthCalledWith(
+                1,
                 "games",
                 "game1",
                 { score: "4" },
@@ -533,15 +535,15 @@ describe("gameLogs actions", () => {
             );
         });
 
-        it("rolls back the log and returns error if the game score update fails", async () => {
+        it("rolls back the game score if the log update fails after the score was already updated", async () => {
             readDocument
                 .mockResolvedValueOnce({ $id: "log1", gameId: "game1", rbi: 0 })
                 .mockResolvedValueOnce({ $id: "game1", score: "3" });
 
             updateDocument
-                .mockResolvedValueOnce({ $id: "log1" }) // log update succeeds
-                .mockRejectedValueOnce(new Error("DB write failed")) // game score fails
-                .mockResolvedValueOnce({}); // rollback succeeds
+                .mockResolvedValueOnce({ $id: "game1" }) // game score update succeeds
+                .mockRejectedValueOnce(new Error("DB write failed")) // log update fails
+                .mockResolvedValueOnce({}); // score rollback succeeds
 
             const result = await updateGameEvent({
                 logId: "log1",
@@ -551,9 +553,9 @@ describe("gameLogs actions", () => {
 
             expect(updateDocument).toHaveBeenCalledTimes(3);
             expect(updateDocument).toHaveBeenLastCalledWith(
-                "game_logs",
-                "log1",
-                { rbi: 0 },
+                "games",
+                "game1",
+                { score: "3" },
                 mockClient,
             );
             expect(result.success).toBe(false);

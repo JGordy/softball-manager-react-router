@@ -84,15 +84,39 @@ export const logGameEvent = async ({
         ];
 
         // Validate baseState before use
+        const safeBaseState =
+            baseState != null && typeof baseState === "object"
+                ? baseState
+                : typeof baseState === "string"
+                  ? (() => {
+                        try {
+                            return JSON.parse(baseState) ?? {};
+                        } catch {
+                            return {};
+                        }
+                    })()
+                  : {};
+
+        // Validate that safeBaseState is serializable
+        let serializedBaseState;
         try {
-            JSON.stringify(baseState);
+            serializedBaseState = JSON.stringify(safeBaseState);
         } catch (stringifyError) {
-            console.error("Failed to stringify baseState:", stringifyError);
             return {
                 success: false,
                 message: `Invalid baseState data: ${stringifyError.message}`,
                 error: stringifyError.message,
             };
+        }
+
+        // Parse runnerResults if provided as a JSON string (e.g. from FormData)
+        let parsedRunnerResults = runnerResults;
+        if (typeof runnerResults === "string" && runnerResults) {
+            try {
+                parsedRunnerResults = JSON.parse(runnerResults);
+            } catch {
+                parsedRunnerResults = null;
+            }
         }
 
         // Create log payload
@@ -107,10 +131,12 @@ export const logGameEvent = async ({
             rbi: runs,
             outsOnPlay: parseInt(outsOnPlay, 10),
             description,
-            baseState: JSON.stringify({
-                ...baseState,
-                ...(runnerResults && { runnerResults }),
-            }),
+            baseState: parsedRunnerResults
+                ? JSON.stringify({
+                      ...JSON.parse(serializedBaseState),
+                      runnerResults: parsedRunnerResults,
+                  })
+                : serializedBaseState,
             hitX: normalizeOptionalField(hitX, parseFloat),
             hitY: normalizeOptionalField(hitY, parseFloat),
             hitLocation: normalizeOptionalField(hitLocation),
@@ -357,30 +383,31 @@ export const updateGameEvent = async ({
             const currentScore = parseInt(game.score || 0, 10);
             const newScore = Math.max(0, currentScore + rbiDelta);
 
-            await updateDocument("game_logs", logId, logPayload, client);
+            // Update game score first; if it fails, the log is untouched (no rollback needed)
+            await updateDocument(
+                "games",
+                gameId,
+                { score: String(newScore) },
+                client,
+            );
             try {
-                await updateDocument(
-                    "games",
-                    gameId,
-                    { score: String(newScore) },
-                    client,
-                );
-            } catch (scoreErr) {
+                await updateDocument("game_logs", logId, logPayload, client);
+            } catch (logErr) {
                 console.error(
-                    "Game score update failed; attempting log rollback:",
-                    scoreErr,
+                    "Log update failed after score update; attempting score rollback:",
+                    logErr,
                 );
                 try {
                     await updateDocument(
-                        "game_logs",
-                        logId,
-                        { rbi: oldRbi },
+                        "games",
+                        gameId,
+                        { score: String(currentScore) },
                         client,
                     );
                 } catch (rollbackErr) {
-                    console.error("Log rollback failed:", rollbackErr);
+                    console.error("Score rollback failed:", rollbackErr);
                 }
-                throw scoreErr;
+                throw logErr;
             }
         } else {
             await updateDocument("game_logs", logId, logPayload, client);
