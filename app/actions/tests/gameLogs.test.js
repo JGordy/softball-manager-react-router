@@ -435,10 +435,9 @@ describe("gameLogs actions", () => {
                 .mockResolvedValueOnce({ $id: "log1", gameId: "game1", rbi: 0 })
                 .mockResolvedValueOnce({ $id: "game1", score: "2" });
 
-            const mockTransaction = { $id: "txn-1" };
-            createTransaction.mockResolvedValue(mockTransaction);
-            createOperations.mockResolvedValue({});
-            commitTransaction.mockResolvedValue({});
+            updateDocument
+                .mockResolvedValueOnce({ $id: "log1" })
+                .mockResolvedValueOnce({ $id: "game1" });
 
             await updateGameEvent({
                 logId: "log1",
@@ -446,18 +445,15 @@ describe("gameLogs actions", () => {
                 client: mockClient,
             });
 
-            expect(createOperations).toHaveBeenCalledWith(
-                "txn-1",
-                expect.arrayContaining([
-                    expect.objectContaining({
-                        action: "update",
-                        tableId: "GAME_LOGS_COLLECTION_ID",
-                        data: expect.objectContaining({
-                            hitX: 75.63,
-                            hitY: 40.02,
-                        }),
-                    }),
-                ]),
+            expect(createTransaction).not.toHaveBeenCalled();
+            expect(updateDocument).toHaveBeenCalledWith(
+                "game_logs",
+                "log1",
+                expect.objectContaining({
+                    hitX: 75.63,
+                    hitY: 40.02,
+                }),
+                mockClient,
             );
         });
 
@@ -488,16 +484,15 @@ describe("gameLogs actions", () => {
             );
         });
 
-        it("uses a transaction when the RBI changes", async () => {
+        it("updates the log and game score without a transaction when RBI changes", async () => {
             // Old log has rbi: 0, new payload has rbi: "1" → delta = 1
             readDocument
                 .mockResolvedValueOnce({ $id: "log1", gameId: "game1", rbi: 0 })
                 .mockResolvedValueOnce({ $id: "game1", score: "3" });
 
-            const mockTransaction = { $id: "txn-update" };
-            createTransaction.mockResolvedValue(mockTransaction);
-            createOperations.mockResolvedValue({});
-            commitTransaction.mockResolvedValue({});
+            updateDocument
+                .mockResolvedValueOnce({ $id: "log1" })
+                .mockResolvedValueOnce({ $id: "game1" });
 
             await updateGameEvent({
                 logId: "log1",
@@ -505,25 +500,22 @@ describe("gameLogs actions", () => {
                 client: mockClient,
             });
 
-            expect(createTransaction).toHaveBeenCalled();
-            expect(createOperations).toHaveBeenCalledWith(
-                "txn-update",
-                expect.arrayContaining([
-                    expect.objectContaining({
-                        action: "update",
-                        tableId: "GAMES_COLLECTION_ID",
-                        data: { score: "4" },
-                    }),
-                ]),
+            expect(createTransaction).not.toHaveBeenCalled();
+            expect(updateDocument).toHaveBeenCalledWith(
+                "games",
+                "game1",
+                { score: "4" },
+                mockClient,
             );
-            expect(commitTransaction).toHaveBeenCalledWith("txn-update");
         });
 
         it("updates the log directly without a transaction when RBI is unchanged", async () => {
             // Old log has rbi: 1, new payload has rbi: "1" → delta = 0
-            readDocument
-                .mockResolvedValueOnce({ $id: "log1", gameId: "game1", rbi: 1 })
-                .mockResolvedValueOnce({ $id: "game1", score: "3" });
+            readDocument.mockResolvedValueOnce({
+                $id: "log1",
+                gameId: "game1",
+                rbi: 1,
+            });
             updateDocument.mockResolvedValue({ $id: "log1" });
 
             await updateGameEvent({
@@ -541,15 +533,15 @@ describe("gameLogs actions", () => {
             );
         });
 
-        it("rolls back and returns error if the transaction fails", async () => {
+        it("rolls back the log and returns error if the game score update fails", async () => {
             readDocument
                 .mockResolvedValueOnce({ $id: "log1", gameId: "game1", rbi: 0 })
                 .mockResolvedValueOnce({ $id: "game1", score: "3" });
 
-            const mockTransaction = { $id: "txn-update" };
-            createTransaction.mockResolvedValue(mockTransaction);
-            createOperations.mockRejectedValue(new Error("DB write failed"));
-            rollbackTransaction.mockResolvedValue({});
+            updateDocument
+                .mockResolvedValueOnce({ $id: "log1" }) // log update succeeds
+                .mockRejectedValueOnce(new Error("DB write failed")) // game score fails
+                .mockResolvedValueOnce({}); // rollback succeeds
 
             const result = await updateGameEvent({
                 logId: "log1",
@@ -557,7 +549,13 @@ describe("gameLogs actions", () => {
                 client: mockClient,
             });
 
-            expect(rollbackTransaction).toHaveBeenCalledWith("txn-update");
+            expect(updateDocument).toHaveBeenCalledTimes(3);
+            expect(updateDocument).toHaveBeenLastCalledWith(
+                "game_logs",
+                "log1",
+                { rbi: 0 },
+                mockClient,
+            );
             expect(result.success).toBe(false);
         });
 

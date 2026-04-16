@@ -33,7 +33,6 @@ export function useGamedayActions({
     setHalfInning,
     outs,
     setOuts,
-    score,
     setScore,
     opponentScore,
     setOpponentScore,
@@ -297,24 +296,26 @@ export function useGamedayActions({
     const updateAction = useCallback(
         (logId, updatedData, propagate = true) => {
             if (!isScorekeeper) return;
-            fetcher.submit(
-                {
-                    _action: "update-game-event",
-                    logId,
-                    propagate: String(propagate),
-                    ...updatedData,
-                    baseState:
-                        typeof updatedData.baseState === "object"
-                            ? JSON.stringify(updatedData.baseState)
-                            : updatedData.baseState,
-                    runnerResults:
-                        updatedData.runnerResults &&
-                        typeof updatedData.runnerResults === "object"
-                            ? JSON.stringify(updatedData.runnerResults)
-                            : updatedData.runnerResults,
-                },
-                { method: "post" },
-            );
+            const { baseState, runnerResults, ...rest } = updatedData;
+            const payload = {
+                _action: "update-game-event",
+                logId,
+                propagate: String(propagate),
+                ...rest,
+            };
+            if (baseState !== undefined) {
+                payload.baseState =
+                    typeof baseState === "object"
+                        ? JSON.stringify(baseState)
+                        : baseState;
+            }
+            if (runnerResults !== undefined) {
+                payload.runnerResults =
+                    typeof runnerResults === "object"
+                        ? JSON.stringify(runnerResults)
+                        : runnerResults;
+            }
+            fetcher.submit(payload, { method: "post" });
         },
         [isScorekeeper, fetcher],
     );

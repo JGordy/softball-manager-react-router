@@ -273,15 +273,14 @@ export const updateGameEvent = async ({
         };
     }
 
-    let transaction = null;
-
     try {
         // 1. Fetch the original log
         const oldLog = await readDocument("game_logs", logId, [], client);
         const gameId = oldLog.gameId;
 
         const oldRbi = parseInt(oldLog.rbi || 0, 10);
-        const newRbi = parseInt(newData.rbi || 0, 10);
+        const newRbi =
+            "rbi" in newData ? parseInt(newData.rbi || 0, 10) : oldRbi;
         const rbiDelta = newRbi - oldRbi;
 
         // Parse and validate baseState — fall back to existing log if omitted
@@ -319,20 +318,27 @@ export const updateGameEvent = async ({
         const logPayload = {
             ...newData,
             rbi: newRbi,
-            outsOnPlay: parseInt(newData.outsOnPlay || 0, 10),
+            outsOnPlay:
+                "outsOnPlay" in newData
+                    ? parseInt(newData.outsOnPlay || 0, 10)
+                    : parseInt(oldLog.outsOnPlay || 0, 10),
             inning: parseInt(newData.inning || oldLog.inning, 10),
             hitX:
-                newData.hitX != null &&
-                newData.hitX !== "" &&
-                newData.hitX !== "null"
-                    ? parseFloat(newData.hitX)
-                    : null,
+                "hitX" in newData
+                    ? newData.hitX != null &&
+                      newData.hitX !== "" &&
+                      newData.hitX !== "null"
+                        ? parseFloat(newData.hitX)
+                        : null
+                    : oldLog.hitX,
             hitY:
-                newData.hitY != null &&
-                newData.hitY !== "" &&
-                newData.hitY !== "null"
-                    ? parseFloat(newData.hitY)
-                    : null,
+                "hitY" in newData
+                    ? newData.hitY != null &&
+                      newData.hitY !== "" &&
+                      newData.hitY !== "null"
+                        ? parseFloat(newData.hitY)
+                        : null
+                    : oldLog.hitY,
             // Bundle runnerResults into baseState for storage
             baseState: JSON.stringify({
                 ...parsedBase,
@@ -344,35 +350,38 @@ export const updateGameEvent = async ({
         // Remove runnerResults from payload as it's not a root attribute
         delete logPayload.runnerResults;
 
-        // 4. Update with Transaction if score changed
+        // 4. Update log and game score using the user-scoped client
         if (rbiDelta !== 0) {
             // Only fetch game when score update is needed
             const game = await readDocument("games", gameId, [], client);
-            transaction = await createTransaction();
             const currentScore = parseInt(game.score || 0, 10);
             const newScore = Math.max(0, currentScore + rbiDelta);
 
-            const operations = [
-                {
-                    action: "update",
-                    databaseId,
-                    tableId: collections.game_logs,
-                    rowId: logId,
-                    data: logPayload,
-                },
-                {
-                    action: "update",
-                    databaseId,
-                    tableId: collections.games,
-                    rowId: gameId,
-                    data: {
-                        score: String(newScore),
-                    },
-                },
-            ];
-
-            await createOperations(transaction.$id, operations);
-            await commitTransaction(transaction.$id);
+            await updateDocument("game_logs", logId, logPayload, client);
+            try {
+                await updateDocument(
+                    "games",
+                    gameId,
+                    { score: String(newScore) },
+                    client,
+                );
+            } catch (scoreErr) {
+                console.error(
+                    "Game score update failed; attempting log rollback:",
+                    scoreErr,
+                );
+                try {
+                    await updateDocument(
+                        "game_logs",
+                        logId,
+                        { rbi: oldRbi },
+                        client,
+                    );
+                } catch (rollbackErr) {
+                    console.error("Log rollback failed:", rollbackErr);
+                }
+                throw scoreErr;
+            }
         } else {
             await updateDocument("game_logs", logId, logPayload, client);
         }
@@ -392,13 +401,6 @@ export const updateGameEvent = async ({
         return { success: true };
     } catch (error) {
         console.error("Error updating game event:", error);
-        if (transaction) {
-            try {
-                await rollbackTransaction(transaction.$id);
-            } catch (rErr) {
-                console.error("Rollback failed:", rErr);
-            }
-        }
         return {
             success: false,
             message: "Failed to update event.",

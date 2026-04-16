@@ -296,11 +296,7 @@ export default function EditPlayDrawer({
                 p="md"
                 radius="md"
                 onClick={() => setActiveStep("result")}
-                style={{
-                    cursor: "pointer",
-                    backgroundColor: "#1F2937",
-                    borderColor: "var(--mantine-color-dark-4)",
-                }}
+                style={{ cursor: "pointer" }}
             >
                 <Group justify="space-between">
                     <Group>
@@ -326,11 +322,7 @@ export default function EditPlayDrawer({
                 p="md"
                 radius="md"
                 onClick={() => setActiveStep("location")}
-                style={{
-                    cursor: "pointer",
-                    backgroundColor: "#1F2937",
-                    borderColor: "var(--mantine-color-dark-4)",
-                }}
+                style={{ cursor: "pointer" }}
             >
                 <Group justify="space-between">
                     <Group>
@@ -360,11 +352,7 @@ export default function EditPlayDrawer({
                 p="md"
                 radius="md"
                 onClick={() => setActiveStep("runners")}
-                style={{
-                    cursor: "pointer",
-                    backgroundColor: "#1F2937",
-                    borderColor: "var(--mantine-color-dark-4)",
-                }}
+                style={{ cursor: "pointer" }}
             >
                 <Group justify="space-between">
                     <Group>
