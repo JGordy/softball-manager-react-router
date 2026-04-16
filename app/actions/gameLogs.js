@@ -284,6 +284,37 @@ export const updateGameEvent = async ({
         const newRbi = parseInt(newData.rbi || 0, 10);
         const rbiDelta = newRbi - oldRbi;
 
+        // Parse and validate baseState — fall back to existing log if omitted
+        let parsedBase;
+        try {
+            const raw = newData.baseState ?? oldLog.baseState;
+            parsedBase =
+                typeof raw === "string" ? JSON.parse(raw) : (raw ?? {});
+        } catch {
+            return {
+                success: false,
+                status: 400,
+                message: "Invalid baseState JSON.",
+            };
+        }
+
+        // Parse and validate runnerResults
+        let parsedRunnerResults = null;
+        if (newData.runnerResults != null) {
+            try {
+                parsedRunnerResults =
+                    typeof newData.runnerResults === "string"
+                        ? JSON.parse(newData.runnerResults)
+                        : newData.runnerResults;
+            } catch {
+                return {
+                    success: false,
+                    status: 400,
+                    message: "Invalid runnerResults JSON.",
+                };
+            }
+        }
+
         // 2. Prepare log payload
         const logPayload = {
             ...newData,
@@ -304,14 +335,9 @@ export const updateGameEvent = async ({
                     : null,
             // Bundle runnerResults into baseState for storage
             baseState: JSON.stringify({
-                ...(typeof newData.baseState === "string"
-                    ? JSON.parse(newData.baseState)
-                    : newData.baseState),
-                ...(newData.runnerResults && {
-                    runnerResults:
-                        typeof newData.runnerResults === "string"
-                            ? JSON.parse(newData.runnerResults)
-                            : newData.runnerResults,
+                ...parsedBase,
+                ...(parsedRunnerResults && {
+                    runnerResults: parsedRunnerResults,
                 }),
             }),
         };
@@ -411,7 +437,7 @@ async function propagateBaseStateChange(
                 client,
             );
 
-            const nextLog = nextLogRes.documents?.[0];
+            const nextLog = nextLogRes.rows?.[0];
             if (!nextLog) return;
 
             // Identity propagation: only overwrite if the next log's baseState
