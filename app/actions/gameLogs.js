@@ -357,6 +357,7 @@ export const updateGameEvent = async ({
             await propagateBaseStateChange(
                 gameId,
                 logId,
+                oldLog.baseState,
                 logPayload.baseState,
                 client,
             );
@@ -381,55 +382,52 @@ export const updateGameEvent = async ({
 };
 
 /**
- * Propagates a baseState change to the immediately following log if appropriate.
+ * Propagates a baseState change to subsequent logs if appropriate.
  * Highly experimental "best effort" to maintain game state consistency.
+ * Uses an iterative approach to avoid O(n²) queries.
  */
 async function propagateBaseStateChange(
     gameId,
     changedLogId,
+    previousBaseState,
     newBaseState,
     client,
 ) {
     try {
-        // Fetch all logs for the game to find the next one
-        const logsRes = await listDocuments(
-            "game_logs",
-            [
-                Query.equal("gameId", gameId),
-                Query.orderAsc("inning"),
-                Query.orderAsc("$createdAt"),
-            ],
-            client,
-        );
+        let currentLogId = changedLogId;
+        let expectedPreviousState = previousBaseState;
 
-        const logs = logsRes.documents || [];
-        const changedIdx = logs.findIndex((l) => l.$id === changedLogId);
-        if (changedIdx === -1 || changedIdx === logs.length - 1) return;
+        while (currentLogId) {
+            // Fetch only the immediately next log after the current one
+            const nextLogRes = await listDocuments(
+                "game_logs",
+                [
+                    Query.equal("gameId", gameId),
+                    Query.orderAsc("inning"),
+                    Query.orderAsc("$createdAt"),
+                    Query.cursorAfter(currentLogId),
+                    Query.limit(1),
+                ],
+                client,
+            );
 
-        const nextLog = logs[changedIdx + 1];
+            const nextLog = nextLogRes.documents?.[0];
+            if (!nextLog) return;
 
-        // SIMPLE PROPAGATION: If the next play was "static" (e.g. Strikeout, simple flyout)
-        // we might just be able to overwrite its baseState if nothing moved.
-        // However, it's safer to just inform the user or do it only if certain.
+            // Identity propagation: only overwrite if the next log's baseState
+            // matches the old value (i.e. it was a direct copy with no movement)
+            if (nextLog.baseState !== expectedPreviousState) return;
 
-        // For now, let's just implement the "Identity" propagation:
-        // if oldLog.baseState === nextLog.baseState, it likely meant no movement.
-        // In that case, nextLog.baseState should now be newBaseState.
-        const oldLog = logs[changedIdx];
-        if (oldLog.baseState === nextLog.baseState) {
             await updateDocument(
                 "game_logs",
                 nextLog.$id,
                 { baseState: newBaseState },
                 client,
             );
-            // Recursively attempt to propagate if we just changed the next one too
-            await propagateBaseStateChange(
-                gameId,
-                nextLog.$id,
-                newBaseState,
-                client,
-            );
+
+            // Advance forward — the next log's old state was expectedPreviousState
+            expectedPreviousState = nextLog.baseState;
+            currentLogId = nextLog.$id;
         }
     } catch (e) {
         console.warn("Failed to propagate base state change:", e);

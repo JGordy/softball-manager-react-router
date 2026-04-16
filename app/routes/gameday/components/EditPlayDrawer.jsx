@@ -155,18 +155,29 @@ export default function EditPlayDrawer({
 
     const handleActionChange = (newType) => {
         setEventType(newType);
-        // Step automatically back to menu? No, user might want to stay.
-        // But the user requested a "projection reset"
         const isHit = ["1B", "2B", "3B", "HR", "E", "FC"].includes(newType);
+        const isWalk = newType === "BB";
         const results = {
-            first: startingRunners.first ? (isHit ? "second" : "stay") : null,
-            second: startingRunners.second ? (isHit ? "third" : "stay") : null,
+            first: startingRunners.first
+                ? isHit
+                    ? "second"
+                    : isWalk
+                      ? "second"
+                      : "stay"
+                : null,
+            second: startingRunners.second
+                ? isHit || isWalk
+                    ? "third"
+                    : "stay"
+                : null,
             third: startingRunners.third
                 ? isHit || newType === "SF"
                     ? "score"
-                    : "stay"
+                    : isWalk
+                      ? "score"
+                      : "stay"
                 : null,
-            batter: isHit ? "first" : "out",
+            batter: isHit || isWalk ? "first" : "out",
         };
         if (newType === "2B") {
             results.batter = "second";
@@ -272,9 +283,11 @@ export default function EditPlayDrawer({
     const renderMenu = () => (
         <Stack gap="md">
             <Group justify="space-between" align="center" px="md" gap="xs">
-                {runsScored > 0 && <Badge color="blue">{runsScored} RBI</Badge>}
+                {runsScored > 0 && (
+                    <StatBadge color="blue">{runsScored} RBI</StatBadge>
+                )}
                 {outsRecorded > 0 && (
-                    <Badge color="red">{outsRecorded} OUT</Badge>
+                    <StatBadge color="red">{outsRecorded} OUT</StatBadge>
                 )}
             </Group>
 
@@ -635,7 +648,7 @@ export default function EditPlayDrawer({
     );
 }
 
-const Badge = ({ children, color }) => (
+const StatBadge = ({ children, color }) => (
     <Paper
         px={8}
         py={2}
