@@ -9,7 +9,6 @@ import {
     Tabs,
     Text,
     Title,
-    Modal,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
@@ -91,6 +90,12 @@ export default function DesktopGamedayContainer({
     const [editDrawerOpened, { open: openEditDrawer, close: closeEditDrawer }] =
         useDisclosure(false);
 
+    const previousLog = useMemo(() => {
+        if (!editLog) return null;
+        const idx = logs.findIndex((l) => l.$id === editLog.$id);
+        return idx > 0 ? logs[idx - 1] : null;
+    }, [editLog, logs]);
+
     if (playerChart.length === 0) {
         return (
             <Card p="xl" withBorder radius="lg" ta="center">
@@ -114,12 +119,6 @@ export default function DesktopGamedayContainer({
         closeEditDrawer();
         setEditLog(null);
     };
-
-    const previousLog = useMemo(() => {
-        if (!editLog) return null;
-        const idx = logs.findIndex((l) => l.$id === editLog.$id);
-        return idx > 0 ? logs[idx - 1] : null;
-    }, [editLog, logs]);
 
     return (
         <Stack gap="md">
@@ -291,6 +290,7 @@ export default function DesktopGamedayContainer({
             />
 
             <EditPlayDrawer
+                key={editLog?.$id}
                 opened={editDrawerOpened}
                 onClose={closeEditDrawer}
                 log={editLog}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useMemo, useRef } from "react";
 import {
     Stack,
     Group,
@@ -6,7 +6,6 @@ import {
     Button,
     Divider,
     Box,
-    UnstyledButton,
     Paper,
     Image,
     Avatar,
@@ -20,18 +19,13 @@ import {
     IconUsers,
     IconWriting,
 } from "@tabler/icons-react";
-import {
-    UI_KEYS,
-    getUILabel,
-    RESULT_COLORS,
-    EVENT_TYPE_MAP,
-} from "@/constants/scoring";
+import { getUILabel, EVENT_TYPE_MAP } from "@/constants/scoring";
 import POSITIONS from "@/constants/positions";
 import images from "@/constants/images";
-import styles from "@/styles/positionPicker.module.css";
-import fieldStyles from "./GamedayField.module.css";
 
-import { getEventDescription, getPlayerName } from "../utils/gamedayUtils";
+import styles from "@/styles/positionPicker.module.css";
+
+import { getEventDescription } from "../utils/gamedayUtils";
 import {
     getFieldZone,
     getClampedCoordinates,
@@ -39,7 +33,7 @@ import {
 } from "../utils/fieldMapping";
 
 import DrawerContainer from "@/components/DrawerContainer/DrawerContainer";
-import { ScrollArea } from "@mantine/core";
+
 import ActionPad from "./ActionPad";
 import FieldHighlight from "./FieldHighlight";
 import RunnerAdvancementDND from "./RunnerAdvancementDND";
@@ -56,18 +50,47 @@ export default function EditPlayDrawer({
     const [activeStep, setActiveStep] = useState("menu");
 
     // Core State
-    const [eventType, setEventType] = useState("");
-    const [baseState, setBaseState] = useState({
-        first: null,
-        second: null,
-        third: null,
+    const [eventType, setEventType] = useState(() =>
+        log ? getUILabel(log.eventType) : "",
+    );
+    const [runnerResults, setRunnerResults] = useState(() => {
+        if (!log) return {};
+        try {
+            const parsed =
+                typeof log.baseState === "string"
+                    ? JSON.parse(log.baseState)
+                    : log.baseState;
+            if (parsed && parsed.runnerResults) {
+                return parsed.runnerResults;
+            } else if (parsed) {
+                const derived = {};
+                if (parsed.first === log.playerId) derived.batter = "first";
+                else if (parsed.second === log.playerId)
+                    derived.batter = "second";
+                else if (parsed.third === log.playerId)
+                    derived.batter = "third";
+                ["first", "second", "third"].forEach((base) => {
+                    if (parsed[base] && parsed[base] !== log.playerId)
+                        derived[base] = "stay";
+                });
+                return derived;
+            }
+        } catch (_e) {
+            // ignore
+        }
+        return {};
     });
-    const [runnerResults, setRunnerResults] = useState({});
 
     // Location State
-    const [hitCoordinates, setHitCoordinates] = useState({ x: null, y: null });
-    const [selectedPosition, setSelectedPosition] = useState(null);
-    const [battingSide, setBattingSide] = useState("right");
+    const [hitCoordinates, setHitCoordinates] = useState(() =>
+        log ? { x: log.hitX, y: log.hitY } : { x: null, y: null },
+    );
+    const [selectedPosition, setSelectedPosition] = useState(
+        () => log?.hitLocation ?? null,
+    );
+    const [battingSide, setBattingSide] = useState(
+        () => log?.battingSide || "right",
+    );
     const [isDragging, setIsDragging] = useState(false);
     const fieldRef = useRef(null);
 
@@ -97,7 +120,7 @@ export default function EditPlayDrawer({
 
     // Full zone string derived from coordinates (e.g. "deep right-center gap")
     const hitLocation = useMemo(() => {
-        if (!hitCoordinates.x || !hitCoordinates.y) return null;
+        if (hitCoordinates.x == null || hitCoordinates.y == null) return null;
         const zone = getFieldZone(
             hitCoordinates.x,
             hitCoordinates.y,
@@ -118,46 +141,6 @@ export default function EditPlayDrawer({
         );
     }, [eventType, selectedPosition, runnerResults, batterName, hitLocation]);
 
-    // Initialization
-    useEffect(() => {
-        if (log && opened) {
-            setEventType(getUILabel(log.eventType));
-            setHitCoordinates({ x: log.hitX, y: log.hitY });
-            setSelectedPosition(log.hitLocation);
-            setBattingSide(log.battingSide || "right");
-            setActiveStep("menu");
-
-            try {
-                const parsed =
-                    typeof log.baseState === "string"
-                        ? JSON.parse(log.baseState)
-                        : log.baseState;
-
-                if (parsed && parsed.runnerResults) {
-                    setRunnerResults(parsed.runnerResults);
-                    const { runnerResults: _, ...pureBaseState } = parsed;
-                    setBaseState(pureBaseState);
-                } else if (parsed) {
-                    const derived = {};
-                    if (parsed.first === log.playerId) derived.batter = "first";
-                    else if (parsed.second === log.playerId)
-                        derived.batter = "second";
-                    else if (parsed.third === log.playerId)
-                        derived.batter = "third";
-                    ["first", "second", "third"].forEach((base) => {
-                        if (parsed[base] && parsed[base] !== log.playerId)
-                            derived[base] = "stay";
-                    });
-                    setRunnerResults(derived);
-                    setBaseState(parsed);
-                }
-            } catch (e) {
-                setBaseState({ first: null, second: null, third: null });
-                setRunnerResults({});
-            }
-        }
-    }, [log, opened]);
-
     // Starting runners (Pre-play)
     const startingRunners = useMemo(() => {
         if (!previousLog) return { first: null, second: null, third: null };
@@ -165,7 +148,7 @@ export default function EditPlayDrawer({
             return typeof previousLog.baseState === "string"
                 ? JSON.parse(previousLog.baseState)
                 : previousLog.baseState;
-        } catch (e) {
+        } catch (_e) {
             return { first: null, second: null, third: null };
         }
     }, [previousLog]);
@@ -222,7 +205,7 @@ export default function EditPlayDrawer({
         // Nearest position snap
         let nearestPos = null;
         let minDistance = Infinity;
-        const positions = Object.entries(POSITIONS).map(([key, pos]) => ({
+        const positions = Object.entries(POSITIONS).map(([, pos]) => ({
             label: pos.initials,
             value: pos.initials,
             centroid: { x: pos.x, y: pos.y },
@@ -241,6 +224,7 @@ export default function EditPlayDrawer({
     };
 
     const handleSave = () => {
+        if (!log) return;
         // Always derive the final baseState from runnerResults + startingRunners
         // so it's correct regardless of whether the user visited the Runners step.
         const derivedBaseState = {
@@ -510,7 +494,7 @@ export default function EditPlayDrawer({
                         </div>
                     ))}
 
-                    {hitCoordinates.x &&
+                    {hitCoordinates.x != null &&
                         (() => {
                             const zone = getFieldZone(
                                 hitCoordinates.x,
@@ -547,7 +531,7 @@ export default function EditPlayDrawer({
             </Paper>
             {/* Persistent zone label — always visible below the field */}
             <Text size="xs" ta="center" c="dimmed">
-                {hitCoordinates.x
+                {hitCoordinates.x != null
                     ? getFieldZone(
                           hitCoordinates.x,
                           hitCoordinates.y,
@@ -579,34 +563,6 @@ export default function EditPlayDrawer({
                     runnerResults={runnerResults}
                     setRunnerResults={(results) => {
                         setRunnerResults(results);
-                        const newBase = {
-                            first: null,
-                            second: null,
-                            third: null,
-                            scored: [],
-                        };
-                        if (
-                            results.batter &&
-                            ["first", "second", "third"].includes(
-                                results.batter,
-                            )
-                        ) {
-                            newBase[results.batter] = log.playerId;
-                        }
-                        ["first", "second", "third"].forEach((base) => {
-                            const pId = startingRunners[base];
-                            if (
-                                pId &&
-                                ["first", "second", "third"].includes(
-                                    results[base],
-                                )
-                            ) {
-                                newBase[results[base]] = pId;
-                            } else if (pId && results[base] === "stay") {
-                                newBase[base] = pId;
-                            }
-                        });
-                        setBaseState(newBase);
                     }}
                     runsScored={runsScored}
                     outsRecorded={outsRecorded}

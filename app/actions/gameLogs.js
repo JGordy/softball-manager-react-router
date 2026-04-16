@@ -284,10 +284,7 @@ export const updateGameEvent = async ({
         const newRbi = parseInt(newData.rbi || 0, 10);
         const rbiDelta = newRbi - oldRbi;
 
-        // 2. Fetch game for score update in transaction
-        const game = await readDocument("games", gameId, [], client);
-
-        // 3. Prepare log payload
+        // 2. Prepare log payload
         const logPayload = {
             ...newData,
             rbi: newRbi,
@@ -323,6 +320,8 @@ export const updateGameEvent = async ({
 
         // 4. Update with Transaction if score changed
         if (rbiDelta !== 0) {
+            // Only fetch game when score update is needed
+            const game = await readDocument("games", gameId, [], client);
             transaction = await createTransaction();
             const currentScore = parseInt(game.score || 0, 10);
             const newScore = Math.max(0, currentScore + rbiDelta);
@@ -353,12 +352,12 @@ export const updateGameEvent = async ({
         }
 
         // 5. Experimental Propagation logic:
-        // If the base state changed and propagate is true, try to fix the next log
-        if (propagate && newData.baseState !== oldLog.baseState) {
+        // If the stored base state changed and propagate is true, try to fix the next log
+        if (propagate && logPayload.baseState !== oldLog.baseState) {
             await propagateBaseStateChange(
                 gameId,
                 logId,
-                newData.baseState,
+                logPayload.baseState,
                 client,
             );
         }
