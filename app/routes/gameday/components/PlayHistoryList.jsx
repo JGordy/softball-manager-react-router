@@ -118,22 +118,28 @@ export default function PlayHistoryList({
                                                 : "Outs"}
                                         </Badge>
                                     )}
-                                    {isScorekeeper && (
-                                        <Tooltip label="Edit Play" withArrow>
-                                            <ActionIcon
-                                                variant="subtle"
-                                                color="gray"
-                                                size="sm"
-                                                onClick={() =>
-                                                    onEditPlay &&
-                                                    onEditPlay(log)
-                                                }
-                                                aria-label="Edit play"
+                                    {isScorekeeper &&
+                                        log.eventType !== "SUB" && (
+                                            <Tooltip
+                                                label="Edit Play"
+                                                withArrow
                                             >
-                                                <IconPencil size={14} />
-                                            </ActionIcon>
-                                        </Tooltip>
-                                    )}
+                                                <ActionIcon
+                                                    variant="subtle"
+                                                    color="gray"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        onEditPlay &&
+                                                        onEditPlay(log)
+                                                    }
+                                                    aria-label="Edit play"
+                                                >
+                                                    <IconPencil
+                                                        size={14}
+                                                    />
+                                                </ActionIcon>
+                                            </Tooltip>
+                                        )}
                                 </Group>
                             </Group>
                             <Group justify="space-between" wrap="nowrap">
