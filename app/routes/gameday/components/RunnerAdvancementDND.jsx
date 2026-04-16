@@ -188,7 +188,7 @@ export default function RunnerAdvancementDND({
                 return batterName || "Batter";
             return getPlayerName(id, playerChart);
         },
-        [batterId, batterName, playerChart],
+        [batterId, batterName, getPlayerName, playerChart],
     );
 
     // Each zone is an array because Home (Score) and the OUT zone support multiple runners
