@@ -313,8 +313,14 @@ export const updateGameEvent = async ({
         let parsedBase;
         try {
             const raw = newData.baseState ?? oldLog.baseState;
-            parsedBase =
+            const candidate =
                 typeof raw === "string" ? JSON.parse(raw) : (raw ?? {});
+            parsedBase =
+                candidate &&
+                typeof candidate === "object" &&
+                !Array.isArray(candidate)
+                    ? candidate
+                    : {};
         } catch {
             return {
                 success: false,
@@ -351,19 +357,21 @@ export const updateGameEvent = async ({
             inning: parseInt(newData.inning || oldLog.inning, 10),
             hitX:
                 "hitX" in newData
-                    ? newData.hitX != null &&
-                      newData.hitX !== "" &&
-                      newData.hitX !== "null"
-                        ? parseFloat(newData.hitX)
-                        : null
+                    ? normalizeOptionalField(newData.hitX, (value) => {
+                          const parsedValue = parseFloat(value);
+                          return Number.isFinite(parsedValue)
+                              ? parsedValue
+                              : null;
+                      })
                     : oldLog.hitX,
             hitY:
                 "hitY" in newData
-                    ? newData.hitY != null &&
-                      newData.hitY !== "" &&
-                      newData.hitY !== "null"
-                        ? parseFloat(newData.hitY)
-                        : null
+                    ? normalizeOptionalField(newData.hitY, (value) => {
+                          const parsedValue = parseFloat(value);
+                          return Number.isFinite(parsedValue)
+                              ? parsedValue
+                              : null;
+                      })
                     : oldLog.hitY,
             // Bundle runnerResults into baseState for storage
             baseState: JSON.stringify({

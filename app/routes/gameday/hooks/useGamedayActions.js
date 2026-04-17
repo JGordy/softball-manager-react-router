@@ -156,6 +156,9 @@ export function useGamedayActions({
                     hitLocation,
                     battingSide,
                     baseState: JSON.stringify(newRunners),
+                    ...(runnerResults
+                        ? { runnerResults: JSON.stringify(runnerResults) }
+                        : {}),
                 },
                 { method: "post" },
             );
