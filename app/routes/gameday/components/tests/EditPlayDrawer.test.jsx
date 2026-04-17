@@ -44,6 +44,8 @@ const mockLog = {
     $id: "log1",
     playerId: "player1",
     eventType: "single",
+    rbi: 0,
+    outsOnPlay: 0,
     description: "Joseph Gordy singles to RF",
     hitX: 75.0,
     hitY: 40.0,

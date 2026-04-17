@@ -144,7 +144,7 @@ describe("useGamedayActions", () => {
                     logId: "log99",
                     eventType: "double",
                     rbi: 1,
-                    propagate: "true",
+                    propagate: "false",
                 }),
                 { method: "post" },
             );
