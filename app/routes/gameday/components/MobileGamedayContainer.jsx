@@ -114,6 +114,11 @@ export default function MobileGamedayContainer({
         openEditDrawer();
     };
 
+    const handleCloseEditDrawer = () => {
+        closeEditDrawer();
+        setEditLog(null);
+    };
+
     const handleSaveEdit = (logId, updatedData) => {
         updateAction(logId, updatedData);
         closeEditDrawer();
@@ -305,7 +310,7 @@ export default function MobileGamedayContainer({
             <EditPlayDrawer
                 key={editLog?.$id}
                 opened={editDrawerOpened}
-                onClose={closeEditDrawer}
+                onClose={handleCloseEditDrawer}
                 log={editLog}
                 previousLog={previousLog}
                 playerChart={playerChart}

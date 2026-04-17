@@ -114,6 +114,11 @@ export default function DesktopGamedayContainer({
         openEditDrawer();
     };
 
+    const handleCloseEditDrawer = () => {
+        closeEditDrawer();
+        setEditLog(null);
+    };
+
     const handleSaveEdit = (logId, updatedData) => {
         updateAction(logId, updatedData);
         closeEditDrawer();
@@ -292,7 +297,7 @@ export default function DesktopGamedayContainer({
             <EditPlayDrawer
                 key={editLog?.$id}
                 opened={editDrawerOpened}
-                onClose={closeEditDrawer}
+                onClose={handleCloseEditDrawer}
                 log={editLog}
                 previousLog={previousLog}
                 playerChart={playerChart}
