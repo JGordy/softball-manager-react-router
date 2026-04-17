@@ -347,8 +347,18 @@ export const updateGameEvent = async ({
         }
 
         // 2. Prepare log payload
+        // Normalize optional string fields that can arrive as the literal string "null" from fetcher.submit
+        const sanitizedNewData = { ...newData };
+        for (const field of ["hitLocation", "battingSide"]) {
+            if (field in sanitizedNewData) {
+                sanitizedNewData[field] = normalizeOptionalField(
+                    sanitizedNewData[field],
+                );
+            }
+        }
+
         const logPayload = {
-            ...newData,
+            ...sanitizedNewData,
             rbi: newRbi,
             outsOnPlay:
                 "outsOnPlay" in newData
@@ -456,11 +466,21 @@ async function propagateBaseStateChange(
     newBaseState,
     client,
 ) {
+    const MAX_PROPAGATION_STEPS = 10;
+
     try {
         let currentLogId = changedLogId;
         let expectedPreviousState = previousBaseState;
+        let steps = 0;
 
         while (currentLogId) {
+            if (steps >= MAX_PROPAGATION_STEPS) {
+                console.warn(
+                    `propagateBaseStateChange: hit max iteration cap (${MAX_PROPAGATION_STEPS}) for game ${gameId}`,
+                );
+                return;
+            }
+            steps++;
             // Fetch only the immediately next log after the current one
             const nextLogRes = await listDocuments(
                 "game_logs",
