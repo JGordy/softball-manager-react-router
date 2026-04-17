@@ -429,7 +429,7 @@ describe("gameLogs actions", () => {
             );
         });
 
-        it("parses hitX and hitY as floats before sending to Appwrite (Transaction)", async () => {
+        it("parses hitX and hitY as floats before sending to Appwrite (RBI change / score update path)", async () => {
             // Changed RBI (0 -> 1) results in score-first update path
             readDocument
                 .mockResolvedValueOnce({ $id: "log1", gameId: "game1", rbi: 0 })

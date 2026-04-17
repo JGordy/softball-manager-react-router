@@ -1,3 +1,4 @@
+/* eslint-disable react/display-name */
 import { render, screen, waitFor, fireEvent, within } from "@/utils/test-utils";
 import * as gameUpdatesHook from "@/hooks/useGameUpdates";
 import * as gameStateHook from "../../hooks/useGameState";
@@ -11,6 +12,13 @@ jest.mock("../MobilePlayActionDrawer", () => () => (
 jest.mock("../SubPlayerDrawer", () => () => (
     <div data-testid="sub-player-modal" />
 ));
+
+jest.mock(
+    "../EditPlayDrawer",
+    () =>
+        ({ opened }) =>
+            opened ? <div data-testid="edit-play-drawer">Edit Play</div> : null,
+);
 
 // Mock hooks
 jest.mock("react-router", () => ({

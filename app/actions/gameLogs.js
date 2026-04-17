@@ -486,7 +486,6 @@ async function propagateBaseStateChange(
                 "game_logs",
                 [
                     Query.equal("gameId", gameId),
-                    Query.orderAsc("inning"),
                     Query.orderAsc("$createdAt"),
                     Query.cursorAfter(currentLogId),
                     Query.limit(1),

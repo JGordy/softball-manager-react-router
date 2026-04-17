@@ -251,6 +251,17 @@ export default function EditPlayDrawer({
         setActiveStep("menu");
     };
 
+    // Precomputed once — avoids rebuilding on every pointer move
+    const positionCentroids = useMemo(
+        () =>
+            Object.entries(POSITIONS).map(([, pos]) => ({
+                label: pos.initials,
+                value: pos.initials,
+                centroid: { x: pos.x, y: pos.y },
+            })),
+        [],
+    );
+
     const handlePointerEvent = (e) => {
         if (!fieldRef.current) return;
         const { x, y } = getRelativePointerCoordinates(e, fieldRef.current);
@@ -270,13 +281,8 @@ export default function EditPlayDrawer({
         // Nearest position snap
         let nearestPos = null;
         let minDistance = Infinity;
-        const positions = Object.entries(POSITIONS).map(([, pos]) => ({
-            label: pos.initials,
-            value: pos.initials,
-            centroid: { x: pos.x, y: pos.y },
-        }));
 
-        positions.forEach((pos) => {
+        positionCentroids.forEach((pos) => {
             const dx = finalX - pos.centroid.x;
             const dy = finalY - pos.centroid.y;
             const dist = dx * dx + dy * dy;
