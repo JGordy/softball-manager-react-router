@@ -129,4 +129,16 @@ describe("RunnerAdvancementDND", () => {
         // Verify "DRAG TO" hint is now visible
         expect(screen.getByText("DRAG TO")).toBeInTheDocument();
     });
+
+    it("correctly resolves the batter name when given the 'Batter' sentinel ID", () => {
+        const props = {
+            ...defaultProps,
+            runners: { first: null, second: null, third: null },
+            batterName: "Custom Batter Name",
+        };
+        render(<RunnerAdvancementDND {...props} />);
+
+        // The component should render the batterName for the batter badge
+        expect(screen.getByText("Custom Batter Name")).toBeInTheDocument();
+    });
 });

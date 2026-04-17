@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import {
     Box,
     Card,
@@ -7,18 +8,12 @@ import {
     Tabs,
     Text,
     Title,
-    SimpleGrid,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
-import { IconTrophy } from "@tabler/icons-react";
-
-import AchievementCard from "@/components/AchievementCard";
 import TabsWrapper from "@/components/TabsWrapper";
 import BackButton from "@/components/BackButton";
 import ContactSprayChart from "@/components/ContactSprayChart";
-
-import { sortAchievements } from "@/utils/achievements";
 
 import { useGamedayController } from "../hooks/useGamedayController";
 
@@ -35,6 +30,7 @@ import UpNextCard from "./UpNextCard";
 import SubPlayerDrawer from "./SubPlayerDrawer";
 import GamedayMenu from "./GamedayMenu";
 import AchievementsList from "./AchievementsList";
+import EditPlayDrawer from "./EditPlayDrawer";
 
 export default function MobileGamedayContainer({
     game,
@@ -77,6 +73,7 @@ export default function MobileGamedayContainer({
         eligibleSubstitutes,
         playerChart,
         undoLast,
+        updateAction,
     } = useGamedayController({
         game,
         playerChart: initialPlayerChart,
@@ -89,6 +86,15 @@ export default function MobileGamedayContainer({
 
     const [subModalOpened, { open: openSubModal, close: closeSubModal }] =
         useDisclosure(false);
+    const [editLog, setEditLog] = useState(null);
+    const [editDrawerOpened, { open: openEditDrawer, close: closeEditDrawer }] =
+        useDisclosure(false);
+
+    const previousLog = useMemo(() => {
+        if (!editLog) return null;
+        const idx = logs.findIndex((l) => l.$id === editLog.$id);
+        return idx > 0 ? logs[idx - 1] : null;
+    }, [editLog, logs]);
 
     if (playerChart.length === 0) {
         return (
@@ -102,6 +108,22 @@ export default function MobileGamedayContainer({
             </Card>
         );
     }
+
+    const handleEditPlay = (log) => {
+        setEditLog(log);
+        openEditDrawer();
+    };
+
+    const handleCloseEditDrawer = () => {
+        closeEditDrawer();
+        setEditLog(null);
+    };
+
+    const handleSaveEdit = (logId, updatedData) => {
+        updateAction(logId, updatedData);
+        closeEditDrawer();
+        setEditLog(null);
+    };
 
     return (
         <Stack gap="md">
@@ -231,6 +253,8 @@ export default function MobileGamedayContainer({
                             <PlayHistoryList
                                 logs={logs}
                                 playerChart={playerChart}
+                                isScorekeeper={isScorekeeper}
+                                onEditPlay={handleEditPlay}
                             />
                         </Stack>
                     </Tabs.Panel>
@@ -281,6 +305,17 @@ export default function MobileGamedayContainer({
                 currentSlot={currentBatter}
                 eligibleSubstitutes={eligibleSubstitutes}
                 onConfirmSub={handleSubCurrentBatter}
+            />
+
+            <EditPlayDrawer
+                key={editLog?.$id}
+                opened={editDrawerOpened}
+                onClose={handleCloseEditDrawer}
+                log={editLog}
+                previousLog={previousLog}
+                playerChart={playerChart}
+                onSave={handleSaveEdit}
+                isSubmitting={isSubmitting}
             />
         </Stack>
     );

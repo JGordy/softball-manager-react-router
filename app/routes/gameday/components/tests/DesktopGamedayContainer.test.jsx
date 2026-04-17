@@ -1,3 +1,4 @@
+/* eslint-disable react/display-name */
 import { render, screen, waitFor, fireEvent, within } from "@/utils/test-utils";
 import * as gameUpdatesHook from "@/hooks/useGameUpdates";
 import * as gameStateHook from "../../hooks/useGameState";
@@ -11,6 +12,13 @@ jest.mock("../DesktopPlayActionDrawer", () => () => (
 jest.mock("../SubPlayerDrawer", () => () => (
     <div data-testid="sub-player-modal" />
 ));
+
+jest.mock(
+    "../EditPlayDrawer",
+    () =>
+        ({ opened }) =>
+            opened ? <div data-testid="edit-play-drawer">Edit Play</div> : null,
+);
 
 // Mock hooks
 jest.mock("react-router", () => ({
@@ -195,6 +203,45 @@ describe("DesktopGamedayContainer", () => {
                 expect(within(panel).getByText("Power Hitter")).toBeVisible();
                 expect(within(panel).getByText("Alice Smith")).toBeVisible();
             });
+        });
+    });
+
+    describe("Edit Play integration", () => {
+        const mockLogs = [
+            {
+                $id: "log1",
+                description: "Alice Smith singles",
+                eventType: "single",
+                rbi: 0,
+                outsOnPlay: 0,
+                inning: 1,
+                halfInning: "top",
+                baseState: "{}",
+            },
+        ];
+
+        it("opens the EditPlayDrawer when onEditPlay is triggered from history list", async () => {
+            render(
+                <DesktopGamedayContainer
+                    game={mockGame}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={mockLogs}
+                    isScorekeeper={true}
+                />,
+            );
+
+            // Go to Plays tab
+            fireEvent.click(screen.getByText("Plays"));
+
+            // Find the edit button (pencil icon)
+            const editBtn = await screen.findByRole("button", {
+                name: /edit play/i,
+            });
+            fireEvent.click(editBtn);
+
+            // Verify drawer content (title is in EditPlayDrawer)
+            expect(await screen.findByText("Edit Play")).toBeInTheDocument();
         });
     });
 });

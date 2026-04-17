@@ -1,9 +1,11 @@
-import { ID, Permission, Role } from "node-appwrite";
+import { ID, Permission, Role, Query } from "node-appwrite";
 
 import {
     createDocument,
     deleteDocument,
     readDocument,
+    updateDocument,
+    listDocuments,
     createTransaction,
     createOperations,
     commitTransaction,
@@ -48,6 +50,7 @@ export const logGameEvent = async ({
     hitY,
     hitLocation,
     battingSide,
+    runnerResults,
     client,
 }) => {
     if (!client) {
@@ -80,12 +83,25 @@ export const logGameEvent = async ({
             Permission.delete(Role.team(teamId, "scorekeeper")),
         ];
 
-        // Validate baseState before stringify
-        let baseStateStr;
+        // Validate baseState before use
+        const safeBaseState =
+            baseState != null && typeof baseState === "object"
+                ? baseState
+                : typeof baseState === "string"
+                  ? (() => {
+                        try {
+                            return JSON.parse(baseState) ?? {};
+                        } catch {
+                            return {};
+                        }
+                    })()
+                  : {};
+
+        // Validate that safeBaseState is serializable
+        let serializedBaseState;
         try {
-            baseStateStr = JSON.stringify(baseState);
+            serializedBaseState = JSON.stringify(safeBaseState);
         } catch (stringifyError) {
-            console.error("Failed to stringify baseState:", stringifyError);
             return {
                 success: false,
                 message: `Invalid baseState data: ${stringifyError.message}`,
@@ -93,7 +109,19 @@ export const logGameEvent = async ({
             };
         }
 
+        // Parse runnerResults if provided as a JSON string (e.g. from FormData)
+        let parsedRunnerResults = runnerResults;
+        if (typeof runnerResults === "string" && runnerResults) {
+            try {
+                parsedRunnerResults = JSON.parse(runnerResults);
+            } catch {
+                parsedRunnerResults = null;
+            }
+        }
+
         // Create log payload
+        // Note: runnerResults is bundled into baseState to avoid schema errors
+        // while preserving movement intent data.
         const logPayload = {
             gameId,
             inning: parseInt(inning, 10),
@@ -103,7 +131,12 @@ export const logGameEvent = async ({
             rbi: runs,
             outsOnPlay: parseInt(outsOnPlay, 10),
             description,
-            baseState: baseStateStr,
+            baseState: parsedRunnerResults
+                ? JSON.stringify({
+                      ...JSON.parse(serializedBaseState),
+                      runnerResults: parsedRunnerResults,
+                  })
+                : serializedBaseState,
             hitX: normalizeOptionalField(hitX, parseFloat),
             hitY: normalizeOptionalField(hitY, parseFloat),
             hitLocation: normalizeOptionalField(hitLocation),
@@ -249,3 +282,236 @@ export const undoGameEvent = async ({ logId, client }) => {
         };
     }
 };
+
+export const updateGameEvent = async ({
+    logId,
+    newData,
+    client,
+    propagate = false,
+}) => {
+    if (!client) {
+        return {
+            success: false,
+            status: 400,
+            message:
+                "Missing or invalid Appwrite client provided to updateGameEvent.",
+            action: "update-game-event",
+        };
+    }
+
+    try {
+        // 1. Fetch the original log
+        const oldLog = await readDocument("game_logs", logId, [], client);
+        const gameId = oldLog.gameId;
+
+        const oldRbi = parseInt(oldLog.rbi || 0, 10);
+        const newRbi =
+            "rbi" in newData ? parseInt(newData.rbi || 0, 10) : oldRbi;
+        const rbiDelta = newRbi - oldRbi;
+
+        // Parse and validate baseState — fall back to existing log if omitted
+        let parsedBase;
+        try {
+            const raw = newData.baseState ?? oldLog.baseState;
+            const candidate =
+                typeof raw === "string" ? JSON.parse(raw) : (raw ?? {});
+            parsedBase =
+                candidate &&
+                typeof candidate === "object" &&
+                !Array.isArray(candidate)
+                    ? candidate
+                    : {};
+        } catch {
+            return {
+                success: false,
+                status: 400,
+                message: "Invalid baseState JSON.",
+            };
+        }
+
+        // Parse and validate runnerResults
+        let parsedRunnerResults = null;
+        if (newData.runnerResults != null) {
+            try {
+                parsedRunnerResults =
+                    typeof newData.runnerResults === "string"
+                        ? JSON.parse(newData.runnerResults)
+                        : newData.runnerResults;
+            } catch {
+                return {
+                    success: false,
+                    status: 400,
+                    message: "Invalid runnerResults JSON.",
+                };
+            }
+        }
+
+        // 2. Prepare log payload
+        // Normalize optional string fields that can arrive as the literal string "null" from fetcher.submit
+        const sanitizedNewData = { ...newData };
+        for (const field of ["hitLocation", "battingSide"]) {
+            if (field in sanitizedNewData) {
+                sanitizedNewData[field] = normalizeOptionalField(
+                    sanitizedNewData[field],
+                );
+            }
+        }
+
+        const logPayload = {
+            ...sanitizedNewData,
+            rbi: newRbi,
+            outsOnPlay:
+                "outsOnPlay" in newData
+                    ? parseInt(newData.outsOnPlay || 0, 10)
+                    : parseInt(oldLog.outsOnPlay || 0, 10),
+            inning: parseInt(newData.inning || oldLog.inning, 10),
+            hitX:
+                "hitX" in newData
+                    ? normalizeOptionalField(newData.hitX, (value) => {
+                          const parsedValue = parseFloat(value);
+                          return Number.isFinite(parsedValue)
+                              ? parsedValue
+                              : null;
+                      })
+                    : oldLog.hitX,
+            hitY:
+                "hitY" in newData
+                    ? normalizeOptionalField(newData.hitY, (value) => {
+                          const parsedValue = parseFloat(value);
+                          return Number.isFinite(parsedValue)
+                              ? parsedValue
+                              : null;
+                      })
+                    : oldLog.hitY,
+            // Bundle runnerResults into baseState for storage
+            baseState: JSON.stringify({
+                ...parsedBase,
+                ...(parsedRunnerResults && {
+                    runnerResults: parsedRunnerResults,
+                }),
+            }),
+        };
+        // Remove runnerResults from payload as it's not a root attribute
+        delete logPayload.runnerResults;
+
+        // 4. Update log and game score using the user-scoped client
+        if (rbiDelta !== 0) {
+            // Only fetch game when score update is needed
+            const game = await readDocument("games", gameId, [], client);
+            const currentScore = parseInt(game.score || 0, 10);
+            const newScore = Math.max(0, currentScore + rbiDelta);
+
+            // Update game score first; if it fails, the log is untouched (no rollback needed)
+            await updateDocument(
+                "games",
+                gameId,
+                { score: String(newScore) },
+                client,
+            );
+            try {
+                await updateDocument("game_logs", logId, logPayload, client);
+            } catch (logErr) {
+                console.error(
+                    "Log update failed after score update; attempting score rollback:",
+                    logErr,
+                );
+                try {
+                    await updateDocument(
+                        "games",
+                        gameId,
+                        { score: String(currentScore) },
+                        client,
+                    );
+                } catch (rollbackErr) {
+                    console.error("Score rollback failed:", rollbackErr);
+                }
+                throw logErr;
+            }
+        } else {
+            await updateDocument("game_logs", logId, logPayload, client);
+        }
+
+        // 5. Experimental Propagation logic:
+        // If the stored base state changed and propagate is true, try to fix the next log
+        if (propagate && logPayload.baseState !== oldLog.baseState) {
+            await propagateBaseStateChange(
+                gameId,
+                logId,
+                oldLog.baseState,
+                logPayload.baseState,
+                client,
+            );
+        }
+
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating game event:", error);
+        return {
+            success: false,
+            message: "Failed to update event.",
+            error: error.message,
+        };
+    }
+};
+
+/**
+ * Propagates a baseState change to subsequent logs if appropriate.
+ * Highly experimental "best effort" to maintain game state consistency.
+ * Uses an iterative approach to avoid O(n²) queries.
+ */
+async function propagateBaseStateChange(
+    gameId,
+    changedLogId,
+    previousBaseState,
+    newBaseState,
+    client,
+) {
+    const MAX_PROPAGATION_STEPS = 10;
+
+    try {
+        let currentLogId = changedLogId;
+        let expectedPreviousState = previousBaseState;
+        let steps = 0;
+
+        while (currentLogId) {
+            if (steps >= MAX_PROPAGATION_STEPS) {
+                console.warn(
+                    `propagateBaseStateChange: hit max iteration cap (${MAX_PROPAGATION_STEPS}) for game ${gameId}`,
+                );
+                return;
+            }
+            steps++;
+            // Fetch only the immediately next log after the current one
+            const nextLogRes = await listDocuments(
+                "game_logs",
+                [
+                    Query.equal("gameId", gameId),
+                    Query.orderAsc("$createdAt"),
+                    Query.cursorAfter(currentLogId),
+                    Query.limit(1),
+                ],
+                client,
+            );
+
+            const nextLog = nextLogRes.rows?.[0];
+            if (!nextLog) return;
+
+            // Identity propagation: only overwrite if the next log's baseState
+            // matches the old value (i.e. it was a direct copy with no movement)
+            if (nextLog.baseState !== expectedPreviousState) return;
+
+            await updateDocument(
+                "game_logs",
+                nextLog.$id,
+                { baseState: newBaseState },
+                client,
+            );
+
+            // Advance forward — the next log's old state was expectedPreviousState
+            expectedPreviousState = nextLog.baseState;
+            currentLogId = nextLog.$id;
+        }
+    } catch (e) {
+        console.warn("Failed to propagate base state change:", e);
+    }
+}

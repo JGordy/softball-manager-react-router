@@ -104,6 +104,7 @@ export function useGamedayController({
         completeAction,
         handleSubCurrentBatter: handleSubAction,
         undoLast,
+        updateAction,
         isSubmitting,
         fetcher,
     } = useGamedayActions({
@@ -298,5 +299,6 @@ export function useGamedayController({
         eligibleSubstitutes,
         playerChart,
         undoLast: handleUndoLast,
+        updateAction,
     };
 }

@@ -1,4 +1,4 @@
-import { render, screen } from "@/utils/test-utils";
+import { render, screen, fireEvent } from "@/utils/test-utils";
 import * as gamedayUtils from "../../utils/gamedayUtils";
 
 import PlayHistoryList from "../PlayHistoryList";
@@ -71,10 +71,73 @@ describe("PlayHistoryList", () => {
         render(
             <PlayHistoryList logs={[...mockLogs, subLog]} playerChart={[]} />,
         );
-
-        // Assert it explicitly renders the sub text
         expect(
             screen.getByText("Jane D. enters for Joseph G. in slot 3"),
         ).toBeInTheDocument();
+    });
+
+    describe("edit play button", () => {
+        it("does not show the edit button when isScorekeeper is false", () => {
+            render(
+                <PlayHistoryList
+                    logs={mockLogs}
+                    playerChart={[]}
+                    isScorekeeper={false}
+                    onEditPlay={jest.fn()}
+                />,
+            );
+            expect(
+                screen.queryByRole("button", { name: /edit play/i }),
+            ).not.toBeInTheDocument();
+        });
+
+        it("shows an edit button for each non-SUB log when isScorekeeper is true", () => {
+            render(
+                <PlayHistoryList
+                    logs={mockLogs}
+                    playerChart={[]}
+                    isScorekeeper={true}
+                    onEditPlay={jest.fn()}
+                />,
+            );
+            const editButtons = screen.getAllByRole("button", {
+                name: /edit play/i,
+            });
+            expect(editButtons).toHaveLength(mockLogs.length);
+        });
+
+        it("calls onEditPlay with the correct log when the edit button is clicked", () => {
+            const mockOnEditPlay = jest.fn();
+            render(
+                <PlayHistoryList
+                    logs={[mockLogs[0]]}
+                    playerChart={[]}
+                    isScorekeeper={true}
+                    onEditPlay={mockOnEditPlay}
+                />,
+            );
+            fireEvent.click(screen.getByRole("button", { name: /edit play/i }));
+            expect(mockOnEditPlay).toHaveBeenCalledTimes(1);
+            expect(mockOnEditPlay).toHaveBeenCalledWith(mockLogs[0]);
+        });
+
+        it("does not show edit button on SUB log rows even for scorekeepers", () => {
+            const subLog = {
+                $id: "log-sub",
+                description: "Jane D. enters for Joseph G. in slot 3",
+                eventType: "SUB",
+            };
+            render(
+                <PlayHistoryList
+                    logs={[subLog]}
+                    playerChart={[]}
+                    isScorekeeper={true}
+                    onEditPlay={jest.fn()}
+                />,
+            );
+            expect(
+                screen.queryByRole("button", { name: /edit play/i }),
+            ).not.toBeInTheDocument();
+        });
     });
 });

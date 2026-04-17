@@ -1,6 +1,8 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
+
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+
 import { Box, Text, Paper, Badge, Group, Stack } from "@mantine/core";
 
 import { BASE_POSITIONS } from "@/constants/basePositions";
@@ -182,11 +184,11 @@ export default function RunnerAdvancementDND({
     const getRunnerName = useCallback(
         (id) => {
             if (!id) return "";
-            if (id === batterId && batterName && batterName !== "Batter")
-                return batterName;
+            if (id === batterId || id === "Batter")
+                return batterName || "Batter";
             return getPlayerName(id, playerChart);
         },
-        [batterId, batterName, playerChart, getPlayerName],
+        [batterId, batterName, getPlayerName, playerChart],
     );
 
     // Each zone is an array because Home (Score) and the OUT zone support multiple runners

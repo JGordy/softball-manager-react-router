@@ -15,6 +15,22 @@ export const UI_KEYS = {
     SACRIFICE_FLY: "SF",
 };
 
+export const SCORING_ACTIONS = [
+    { label: "Single", type: UI_KEYS.SINGLE },
+    { label: "Double", type: UI_KEYS.DOUBLE },
+    { label: "Triple", type: UI_KEYS.TRIPLE },
+    { label: "Home Run", type: UI_KEYS.HOMERUN },
+    { label: "Walk", type: UI_KEYS.WALK },
+    { label: "Strikeout", type: UI_KEYS.STRIKEOUT },
+    { label: "Ground Out", type: UI_KEYS.GROUND_OUT },
+    { label: "Fly Out", type: UI_KEYS.FLY_OUT },
+    { label: "Line Out", type: UI_KEYS.LINE_OUT },
+    { label: "Pop Out", type: UI_KEYS.POP_OUT },
+    { label: "Error", type: UI_KEYS.ERROR },
+    { label: "Fielder's Choice", type: UI_KEYS.FIELDERS_CHOICE },
+    { label: "Sacrifice Fly", type: UI_KEYS.SACRIFICE_FLY },
+];
+
 // Mapping between UI action types and database eventType values
 export const EVENT_TYPE_MAP = {
     [UI_KEYS.SINGLE]: "single",
