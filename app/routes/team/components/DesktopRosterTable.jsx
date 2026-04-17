@@ -32,7 +32,7 @@ export default function DesktopRosterTable({
 
     if (!players?.length) {
         return (
-            <Card withBorder radius="md">
+            <Card radius="md">
                 <Text c="dimmed">
                     No players currently listed for this team.
                 </Text>
@@ -118,7 +118,7 @@ export default function DesktopRosterTable({
 
     return (
         <>
-            <Card withBorder radius="md" p={0} bg="var(--mantine-color-body)">
+            <Card radius="md" p={0} bg="var(--mantine-color-body)">
                 <Table
                     verticalSpacing="md"
                     horizontalSpacing="lg"

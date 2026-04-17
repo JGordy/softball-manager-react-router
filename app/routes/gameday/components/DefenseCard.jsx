@@ -3,7 +3,7 @@ import { Badge, Card, Divider, Group, Stack, Text } from "@mantine/core";
 export default function DefenseCard({ teamName, dueUpBatters }) {
     return (
         <>
-            <Card withBorder p="sm" radius="md">
+            <Card p="sm" radius="md">
                 <Stack gap={0}>
                     <Text size="xs" fw={700} c="dimmed">
                         ON DEFENSE

@@ -48,7 +48,6 @@ export default function AchievementsList({
                 <Card
                     p="xl"
                     radius="md"
-                    withBorder
                     style={{
                         borderStyle: "dashed",
                     }}

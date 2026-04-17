@@ -254,7 +254,7 @@ export default function ContactSprayChart({
                 </Group>
 
                 <Collapse in={opened}>
-                    <Card withBorder p="xs" radius="lg">
+                    <Card p="xs" radius="lg">
                         <Stack gap="xs">
                             <Group grow>
                                 {batters.length > 0 && (
@@ -317,13 +317,7 @@ export default function ContactSprayChart({
                 </Collapse>
             </Stack>
 
-            <Card
-                className={styles.mapContainer}
-                radius="lg"
-                withBorder
-                p="0px"
-                mt="md"
-            >
+            <Card className={styles.mapContainer} radius="lg" p="0px" mt="md">
                 <Image
                     src={images.fieldSrc}
                     alt="Softball Field"
@@ -400,7 +394,7 @@ export default function ContactSprayChart({
                 })}
             </Card>
 
-            <Card withBorder radius="lg" p="sm" mt="md">
+            <Card radius="lg" p="sm" mt="md">
                 <Group justify="space-between" mb="xs">
                     <Text size="xs" fw={700} c="dimmed" tt="uppercase">
                         Legend

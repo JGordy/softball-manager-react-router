@@ -135,7 +135,6 @@ export default function BattingOrderEditor({
         <Droppable droppableId={listId}>
             {(provided, snapshot) => (
                 <Card
-                    withBorder
                     mt="md"
                     radius="lg"
                     p="xs"

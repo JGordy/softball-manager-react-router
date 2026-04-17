@@ -81,7 +81,6 @@ export default function BulkDeleteGames({
                                                 value={game.$id}
                                                 radius="md"
                                                 p="sm"
-                                                withBorder
                                             >
                                                 <Group
                                                     wrap="nowrap"

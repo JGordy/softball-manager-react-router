@@ -60,7 +60,7 @@ function WeatherStatRow({ value, label, color, icon }) {
 // Stand-alone weather forecast card — used both inline and in the Weather tab
 function WeatherForecastCard({ weatherPromise, gameDate }) {
     return (
-        <Card withBorder radius="lg" p="xl">
+        <Card radius="lg" p="xl">
             <Text size="xs" tt="uppercase" fw={600} c="dimmed" ls={1} mb="md">
                 Gameday Forecast
             </Text>
@@ -261,7 +261,6 @@ export default function DesktopGamedayPanel({
         <Stack gap="md" data-testid="desktop-gameday-panel">
             {/* Gameday Hub tile */}
             <Card
-                withBorder
                 radius="lg"
                 p="xl"
                 bg={

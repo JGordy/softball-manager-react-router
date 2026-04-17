@@ -8,12 +8,7 @@ import DrawerContainer from "@/components/DrawerContainer";
 
 function OptionCard({ icon, title, description, onClick, disabled, gradient }) {
     return (
-        <Card
-            withBorder
-            radius="md"
-            p="md"
-            style={{ opacity: disabled ? 0.5 : 1 }}
-        >
+        <Card radius="md" p="md" style={{ opacity: disabled ? 0.5 : 1 }}>
             <Group gap="md" align="flex-start" wrap="nowrap">
                 <ThemeIcon
                     variant={gradient ? "gradient" : "light"}

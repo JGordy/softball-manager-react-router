@@ -54,7 +54,7 @@ function PlayerDetails({ player, teamId }) {
     } = player;
 
     return (
-        <Card shadow="sm" padding="lg" radius="lg" mt="md" withBorder>
+        <Card shadow="sm" padding="lg" radius="lg" mt="md">
             <Group>
                 {teamId && (
                     <Group gap="4px">

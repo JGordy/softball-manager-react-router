@@ -36,7 +36,7 @@ export default function LoadingView({
                 </Text>
             </Stack>
 
-            <Card withBorder p="md" radius="md">
+            <Card p="md" radius="md">
                 <Stack gap="md">
                     <Text fw={700} size="sm" mb="xs">
                         Batting Order Preview

@@ -51,7 +51,6 @@ export default function PlayerList({
                                 mt="sm"
                                 radius="md"
                                 padding="sm"
-                                withBorder
                                 onClick={() =>
                                     openPlayerDetailsDrawer(player.$id)
                                 }

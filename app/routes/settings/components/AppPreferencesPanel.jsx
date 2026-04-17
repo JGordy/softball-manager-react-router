@@ -252,7 +252,7 @@ export default function AppPreferencesPanel({ teams = [] }) {
     }
 
     return (
-        <Card withBorder radius="lg" p="xl" shadow="sm">
+        <Card radius="lg" p="xl" shadow="sm">
             <Group mb="md">
                 <IconSettings size={24} color="var(--mantine-color-blue-5)" />
                 <Title order={3}>App Preferences</Title>

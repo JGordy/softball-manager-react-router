@@ -76,7 +76,6 @@ function PlayerSelector({ players, onSelect, onClose, activePosition }) {
                             <Card
                                 key={p.$id}
                                 p="xs"
-                                withBorder
                                 style={{
                                     borderColor: prefCfg.cssVar,
                                 }}
@@ -266,7 +265,7 @@ function FielderDragList({
     return (
         <Droppable droppableId={`fielding-${activePosition}`}>
             {(provided) => (
-                <Card withBorder radius="lg" p="xs">
+                <Card radius="lg" p="xs">
                     <Stack
                         {...provided.droppableProps}
                         ref={provided.innerRef}
@@ -420,7 +419,7 @@ export default function DesktopFieldingDepthChart({
                         </Stack>
 
                         {activeList.length === 0 ? (
-                            <Card withBorder radius="lg" p="xl">
+                            <Card radius="lg" p="xl">
                                 <Text c="dimmed" ta="center">
                                     No players assigned to {activePosition}.
                                 </Text>

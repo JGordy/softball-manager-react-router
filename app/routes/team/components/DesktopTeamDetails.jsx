@@ -85,13 +85,13 @@ export default function DesktopTeamDetails({
                                 Games Schedule
                             </Title>
                             {[...futureGames, ...pastGames].length > 0 ? (
-                                <Card withBorder radius="md">
+                                <Card radius="md">
                                     <GameCalendarRow
                                         games={[...futureGames, ...pastGames]}
                                     />
                                 </Card>
                             ) : (
-                                <Card withBorder radius="md">
+                                <Card radius="md">
                                     <Text c="dimmed">
                                         No games scheduled yet.
                                     </Text>
@@ -123,7 +123,7 @@ export default function DesktopTeamDetails({
                                     ))}
                                 </Stack>
                             ) : (
-                                <Card withBorder radius="md">
+                                <Card radius="md">
                                     <Text c="dimmed">No past games found.</Text>
                                 </Card>
                             )}
@@ -138,7 +138,6 @@ export default function DesktopTeamDetails({
                                     {sortedSeasons.map((s) => (
                                         <Card
                                             key={s.$id}
-                                            withBorder
                                             radius="md"
                                             p="sm"
                                             component={Link}

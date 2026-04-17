@@ -37,7 +37,6 @@ export default function GamedayCard({ gameId, isLive, isPast, isScorekeeper }) {
 
     return (
         <Card
-            withBorder
             radius="lg"
             mx="md"
             mt="md"

@@ -192,7 +192,7 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
 
     return (
         <>
-            <Card withBorder radius="xl" mt="md" mx="md" py="5px">
+            <Card radius="xl" mt="md" mx="md" py="5px">
                 <CardSection
                     onClick={weatherDrawerHandlers.open}
                     heading="Gameday Forecast"

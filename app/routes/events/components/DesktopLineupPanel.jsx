@@ -62,12 +62,7 @@ export default function DesktopLineupPanel({ game, managerView, playerChart }) {
 
     return (
         <>
-            <Card
-                withBorder
-                radius="lg"
-                p="xl"
-                data-testid="desktop-lineup-panel"
-            >
+            <Card radius="lg" p="xl" data-testid="desktop-lineup-panel">
                 <Group justify="space-between" align="center" mb="md">
                     <Group gap="xs">
                         <IconClipboardList

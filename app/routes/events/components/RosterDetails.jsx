@@ -41,7 +41,7 @@ export default function RosterDetails({
 
     return (
         <>
-            <Card withBorder radius="lg" mt="md" mx="md" py="5px">
+            <Card radius="lg" mt="md" mx="md" py="5px">
                 <Text size="sm" mt="xs">
                     Roster & Availability Details
                 </Text>

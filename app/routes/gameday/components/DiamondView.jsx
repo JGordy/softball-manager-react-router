@@ -9,7 +9,6 @@ export default function DiamondView({ runners, withTitle = true }) {
                 </Text>
             )}
             <Card
-                withBorder
                 radius="lg"
                 style={{
                     position: "relative",

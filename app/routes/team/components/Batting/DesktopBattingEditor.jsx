@@ -106,7 +106,6 @@ function BattingList({
         <Droppable droppableId={listId}>
             {(provided, snapshot) => (
                 <Card
-                    withBorder
                     radius="lg"
                     p="xs"
                     style={{
@@ -221,7 +220,6 @@ export default function DesktopBattingEditor({
                 {/* Lineup card — two internal droppable columns */}
                 <Grid.Col span={8}>
                     <Card
-                        withBorder
                         radius="lg"
                         p="xs"
                         style={{ display: "flex", flexDirection: "column" }}

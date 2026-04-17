@@ -16,7 +16,7 @@ export default function DesktopGamedayLoadingSkeleton() {
                     <Grid.Col span={{ base: 12, md: 4 }}>
                         <Stack gap="md">
                             {/* CompactMatchupCard Skeleton */}
-                            <Card withBorder radius="lg" p="md">
+                            <Card radius="lg" p="md">
                                 <Group
                                     justify="space-between"
                                     align="center"
@@ -115,7 +115,6 @@ export default function DesktopGamedayLoadingSkeleton() {
 
                             {/* LastPlayCard Skeleton */}
                             <Card
-                                withBorder
                                 radius="md"
                                 p="sm"
                                 style={{
@@ -146,7 +145,7 @@ export default function DesktopGamedayLoadingSkeleton() {
                     {/* COLUMN 2: Action Pad (DefenseCard & ActionPad & FieldingControls) */}
                     <Grid.Col span={{ base: 12, md: 4 }}>
                         <Stack gap="md">
-                            <Card withBorder radius="lg" p="md">
+                            <Card radius="lg" p="md">
                                 <Group grow gap="md" align="flex-start">
                                     {/* ON BASE Column */}
                                     <Stack gap="xs">
@@ -199,7 +198,7 @@ export default function DesktopGamedayLoadingSkeleton() {
                     {/* COLUMN 3: Tabs & Content (Spray Chart / Box Score) */}
                     <Grid.Col span={{ base: 12, md: 4 }}>
                         {/* Tabs Skeleton */}
-                        <Card withBorder radius="xl" p={4} mb="md">
+                        <Card radius="xl" p={4} mb="md">
                             <Group gap={0} grow>
                                 <Skeleton height={32} radius="xl" />
                                 <Skeleton height={32} radius="xl" />
@@ -208,7 +207,7 @@ export default function DesktopGamedayLoadingSkeleton() {
                         </Card>
 
                         {/* Large Chart/List Skeleton */}
-                        <Card withBorder radius="lg" p="md">
+                        <Card radius="lg" p="md">
                             <Skeleton height={400} width="100%" radius="md" />
                         </Card>
                     </Grid.Col>

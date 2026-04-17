@@ -75,7 +75,6 @@ export default function DesktopScorePanel({
 
     return (
         <Card
-            withBorder
             radius="lg"
             py="sm"
             px="xl"
