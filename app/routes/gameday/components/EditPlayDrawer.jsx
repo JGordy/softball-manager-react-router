@@ -38,6 +38,45 @@ import ActionPad from "./ActionPad";
 import FieldHighlight from "./FieldHighlight";
 import RunnerAdvancementDND from "./RunnerAdvancementDND";
 
+// ---------------------------------------------------------------------------
+// Helpers for deriving runnerResults from stored baseState
+// ---------------------------------------------------------------------------
+
+function parseBaseState(baseState) {
+    if (!baseState) return null;
+    if (typeof baseState === "string") {
+        try {
+            return JSON.parse(baseState);
+        } catch {
+            return null;
+        }
+    }
+    return baseState;
+}
+
+function getScoredRunners(baseState) {
+    if (!baseState) return [];
+    if (Array.isArray(baseState.scored)) return baseState.scored;
+    if (typeof baseState.scored === "string" && baseState.scored) {
+        try {
+            const parsed = JSON.parse(baseState.scored);
+            return Array.isArray(parsed) ? parsed : [baseState.scored];
+        } catch {
+            return [baseState.scored];
+        }
+    }
+    return [];
+}
+
+function getRunnerDestination(runnerId, postPlayState, scored) {
+    if (!runnerId || !postPlayState) return null;
+    if (postPlayState.first === runnerId) return "first";
+    if (postPlayState.second === runnerId) return "second";
+    if (postPlayState.third === runnerId) return "third";
+    if (scored.includes(runnerId)) return "score";
+    return "out";
+}
+
 export default function EditPlayDrawer({
     opened,
     onClose,
@@ -55,50 +94,39 @@ export default function EditPlayDrawer({
     );
     const [runnerResults, setRunnerResults] = useState(() => {
         if (!log) return {};
-        try {
-            const parsed =
-                typeof log.baseState === "string"
-                    ? JSON.parse(log.baseState)
-                    : log.baseState;
-            if (parsed && parsed.runnerResults) {
-                return parsed.runnerResults;
-            } else if (parsed) {
-                const derived = {};
-                const scored = Array.isArray(parsed.scored)
-                    ? parsed.scored
-                    : typeof parsed.scored === "string" && parsed.scored
-                      ? (() => {
-                            try {
-                                const s = JSON.parse(parsed.scored);
-                                return Array.isArray(s) ? s : [parsed.scored];
-                            } catch {
-                                return [parsed.scored];
-                            }
-                        })()
-                      : [];
 
-                if (parsed.first === log.playerId) derived.batter = "first";
-                else if (parsed.second === log.playerId)
-                    derived.batter = "second";
-                else if (parsed.third === log.playerId)
-                    derived.batter = "third";
-                else if (scored.includes(log.playerId))
-                    derived.batter = "score";
-                else derived.batter = "out";
+        const postPlay = parseBaseState(log.baseState);
+        if (!postPlay) return {};
 
-                ["first", "second", "third"].forEach((base) => {
-                    if (parsed[base] && parsed[base] !== log.playerId) {
-                        derived[base] = scored.includes(parsed[base])
-                            ? "score"
-                            : "stay";
-                    }
-                });
-                return derived;
-            }
-        } catch (_e) {
-            // ignore
+        // If runnerResults was already stored, use it directly
+        if (postPlay.runnerResults) {
+            return postPlay.runnerResults;
         }
-        return {};
+
+        // Derive from diff: previousLog.baseState (pre-play) → log.baseState (post-play)
+        const derived = {};
+        const scored = getScoredRunners(postPlay);
+
+        // Batter destination
+        derived.batter = getRunnerDestination(log.playerId, postPlay, scored);
+
+        // Starting runners: use previousLog.baseState so we iterate the runners
+        // that were on base *before* this play, not the post-play positions
+        const prePlay = parseBaseState(previousLog?.baseState);
+        if (prePlay) {
+            ["first", "second", "third"].forEach((base) => {
+                const startingRunnerId = prePlay[base];
+                if (startingRunnerId && startingRunnerId !== log.playerId) {
+                    derived[base] = getRunnerDestination(
+                        startingRunnerId,
+                        postPlay,
+                        scored,
+                    );
+                }
+            });
+        }
+
+        return derived;
     });
     const [runnersModified, setRunnersModified] = useState(false);
 
