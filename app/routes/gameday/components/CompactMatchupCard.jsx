@@ -24,7 +24,7 @@ export default function CompactMatchupCard({
     logs,
 }) {
     return (
-        <Card withBorder p="md" radius="lg">
+        <Card p="md" radius="lg">
             <Stack gap="md">
                 {/* Scoreboard Row */}
                 <Group justify="space-between" align="center" wrap="nowrap">

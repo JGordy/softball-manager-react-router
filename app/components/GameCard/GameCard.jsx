@@ -161,7 +161,7 @@ export default function GameCard({
             to={`/events/${$id}`}
             style={{ textDecoration: "none", color: "inherit" }}
         >
-            <Card className="game-card" mb="md" radius="md" p="xs" withBorder>
+            <Card className="game-card" mb="md" radius="md" p="xs">
                 <Flex align="stretch" gap="xs">
                     {/* Left Column: Team Branding & Date Inset */}
                     <Stack

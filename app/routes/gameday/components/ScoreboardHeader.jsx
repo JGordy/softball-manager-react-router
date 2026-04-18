@@ -35,7 +35,7 @@ export default function ScoreboardHeader({
     runners = { first: false, second: false, third: false },
 }) {
     return (
-        <Card withBorder p={{ base: "md", lg: "sm" }} radius="lg">
+        <Card p={{ base: "md", lg: "sm" }} radius="lg">
             <Group justify="space-between" align="center">
                 <Stack gap={0} align="center" style={{ flex: 1 }}>
                     <Text size="xs" fw={700} c="dimmed" ta="center">

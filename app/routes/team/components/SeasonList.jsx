@@ -109,14 +109,7 @@ export default function SeasonList({
 
     const renderSeason = (season) => (
         <Link to={`/season/${season.$id}`} key={season.$id}>
-            <Card
-                key={season.$id}
-                mt="sm"
-                radius="md"
-                p="sm"
-                py="md"
-                withBorder
-            >
+            <Card key={season.$id} mt="sm" radius="md" p="sm" py="md">
                 <Group justify="space-between">
                     <Text size="lg">{season.seasonName}</Text>
                     <Group>

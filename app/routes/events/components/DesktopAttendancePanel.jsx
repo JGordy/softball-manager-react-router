@@ -177,12 +177,7 @@ export default function DesktopAttendancePanel({
         typeof propGameIsPast === "boolean" ? propGameIsPast : gameDt < now;
 
     return (
-        <Card
-            withBorder
-            radius="lg"
-            p="xl"
-            data-testid="desktop-attendance-panel"
-        >
+        <Card radius="lg" p="xl" data-testid="desktop-attendance-panel">
             <Group gap="xs" mb="md">
                 <IconUsersGroup size={18} color="var(--mantine-color-lime-5)" />
                 <Text size="xs" tt="uppercase" fw={600} c="dimmed" ls={1}>

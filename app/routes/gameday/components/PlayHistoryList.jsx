@@ -1,10 +1,10 @@
 import {
     ActionIcon,
+    Card,
     Tooltip,
     Text,
     Group,
     Stack,
-    Paper,
     Badge,
 } from "@mantine/core";
 import {
@@ -24,11 +24,11 @@ export default function PlayHistoryList({
 }) {
     if (!logs.length) {
         return (
-            <Paper withBorder p="md" radius="md">
+            <Card p="md" radius="md">
                 <Text size="sm" c="dimmed" ta="center">
                     No plays logged yet for this game.
                 </Text>
-            </Paper>
+            </Card>
         );
     }
 
@@ -38,9 +38,8 @@ export default function PlayHistoryList({
                 // Render substitution events with a distinct visual style
                 if (log.eventType === "SUB") {
                     return (
-                        <Paper
+                        <Card
                             key={log.$id}
-                            withBorder
                             p="xs"
                             radius="md"
                             style={{
@@ -79,7 +78,7 @@ export default function PlayHistoryList({
                                     </Text>
                                 </Group>
                             </Group>
-                        </Paper>
+                        </Card>
                     );
                 }
 
@@ -89,7 +88,7 @@ export default function PlayHistoryList({
                 );
 
                 return (
-                    <Paper key={log.$id} withBorder p="xs" radius="md">
+                    <Card key={log.$id} p="xs" radius="md">
                         <Stack gap={4}>
                             <Group justify="space-between" wrap="nowrap">
                                 <Text size="sm" fw={700} style={{ flex: 1 }}>
@@ -134,9 +133,7 @@ export default function PlayHistoryList({
                                                     }
                                                     aria-label="Edit play"
                                                 >
-                                                    <IconPencil
-                                                        size={14}
-                                                    />
+                                                    <IconPencil size={14} />
                                                 </ActionIcon>
                                             </Tooltip>
                                         )}
@@ -174,7 +171,7 @@ export default function PlayHistoryList({
                                 )}
                             </Group>
                         </Stack>
-                    </Paper>
+                    </Card>
                 );
             })}
         </Stack>

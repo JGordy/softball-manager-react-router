@@ -22,7 +22,7 @@ export default function PlayerAttendance({ attendancePromise }) {
 
                 if (!total) {
                     return (
-                        <Card radius="md" mt="xs" withBorder>
+                        <Card radius="md" mt="xs">
                             <Text ta="center" c="dimmed" size="md">
                                 No attendance records found.
                             </Text>
@@ -55,7 +55,7 @@ export default function PlayerAttendance({ attendancePromise }) {
 
                 return (
                     <Stack gap="md">
-                        <Card shadow="sm" padding="lg" radius="lg" withBorder>
+                        <Card shadow="sm" padding="lg" radius="lg">
                             <Group justify="center" align="center" gap="xl">
                                 <RingProgress
                                     size={160}

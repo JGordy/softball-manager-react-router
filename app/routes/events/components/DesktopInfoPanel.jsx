@@ -45,12 +45,7 @@ export default function DesktopInfoPanel({
 
     return (
         <>
-            <Card
-                withBorder
-                radius="lg"
-                p="xl"
-                data-testid="desktop-info-panel"
-            >
+            <Card radius="lg" p="xl" data-testid="desktop-info-panel">
                 <Text
                     size="xs"
                     tt="uppercase"

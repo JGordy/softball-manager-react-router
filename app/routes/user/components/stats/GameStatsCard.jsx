@@ -19,7 +19,7 @@ export default function GameStatsCard({ game, logs, onClick }) {
 
     return (
         <UnstyledButton onClick={onClick} style={{ width: "100%" }}>
-            <Card withBorder radius="md" py="xs">
+            <Card radius="md" py="xs">
                 <Group justify="space-between" mb="xs">
                     <Text fw={700} size="md">
                         {game.team.displayName || game.team.name} vs{" "}

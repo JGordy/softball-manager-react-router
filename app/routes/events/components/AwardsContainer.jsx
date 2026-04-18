@@ -94,7 +94,6 @@ export default function AwardsContainer({ game, team, deferredData, user }) {
     return (
         <>
             <Card
-                withBorder
                 radius="xl"
                 mt="md"
                 mx="md"
@@ -126,7 +125,8 @@ export default function AwardsContainer({ game, team, deferredData, user }) {
                             }
                         >
                             {({ awards, votes, achievements }) => {
-                                const achievementsTotal = achievements?.length ?? 0;
+                                const achievementsTotal =
+                                    achievements?.length ?? 0;
                                 const awardsTotal = awards?.total ?? 0;
                                 const votesTotal = votes?.total ?? 0;
 
@@ -139,7 +139,9 @@ export default function AwardsContainer({ game, team, deferredData, user }) {
                                     awards,
                                     votes,
                                 );
-                                const userAchievement = achievements?.some(ua => ua.userId === userId);
+                                const userAchievement = achievements?.some(
+                                    (ua) => ua.userId === userId,
+                                );
 
                                 if (userAward) {
                                     message = "You've received an award!";

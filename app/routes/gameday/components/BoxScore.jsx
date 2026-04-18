@@ -135,7 +135,7 @@ export default function BoxScore({
     });
 
     return (
-        <Card p={0} withBorder radius="md">
+        <Card p={0} radius="md">
             <ScrollArea>
                 <Table striped highlightOnHover verticalSpacing="xs">
                     <Table.Thead>

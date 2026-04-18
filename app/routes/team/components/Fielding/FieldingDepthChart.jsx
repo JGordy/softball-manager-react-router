@@ -73,7 +73,6 @@ const PlayerSelector = ({ players, onSelect, onClose, activePosition }) => {
                             <Card
                                 key={p.$id}
                                 p="xs"
-                                withBorder
                                 style={{
                                     borderColor: prefCfg.cssVar,
                                 }}
@@ -307,7 +306,6 @@ export default function FieldingDepthChart({
                             <Card
                                 shadow="sm"
                                 radius="lg"
-                                withBorder
                                 display="flex"
                                 style={{
                                     justifyContent: "center",
@@ -344,7 +342,7 @@ export default function FieldingDepthChart({
                     <DragDropContext onDragEnd={onDragEnd}>
                         <Droppable droppableId={`droppable-${activePosition}`}>
                             {(provided) => (
-                                <Card withBorder radius="lg" p="xs">
+                                <Card radius="lg" p="xs">
                                     <Stack
                                         {...provided.droppableProps}
                                         ref={provided.innerRef}

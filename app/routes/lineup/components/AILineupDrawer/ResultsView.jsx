@@ -43,7 +43,7 @@ export default function ResultsView({
                         use it.
                     </Alert>
 
-                    <Card withBorder p="md">
+                    <Card p="md">
                         <Text fw={700} size="sm" mb="xs">
                             Batting Order Preview
                         </Text>
@@ -78,11 +78,7 @@ export default function ResultsView({
 
                 <Tabs.Panel value="reasoning" pt="md">
                     {aiReasoning ? (
-                        <Card
-                            withBorder
-                            p="md"
-                            bg="var(--mantine-color-blue-light)"
-                        >
+                        <Card p="md" bg="var(--mantine-color-blue-light)">
                             <Text fw={700} size="sm" mb="md">
                                 AI Analysis
                             </Text>

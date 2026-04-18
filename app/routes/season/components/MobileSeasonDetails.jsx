@@ -25,7 +25,6 @@ function DetailCard({ icon: Icon, label, value, color, href, rightSection }) {
 
     return (
         <Card
-            withBorder
             radius="md"
             component={Component}
             href={href}

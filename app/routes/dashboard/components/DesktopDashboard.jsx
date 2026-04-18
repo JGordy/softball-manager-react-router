@@ -36,7 +36,7 @@ export default function DesktopDashboard({
     return (
         <Box mt="xl">
             {!teamList?.length ? (
-                <Card withBorder radius="md" p="xl" ta="center">
+                <Card radius="md" p="xl" ta="center">
                     <Text size="lg" mb="md">
                         You don't have any teams yet.
                     </Text>
@@ -65,7 +65,7 @@ export default function DesktopDashboard({
                                 games={[...futureGames, ...pastGames]}
                             />
                         ) : (
-                            <Card withBorder radius="md">
+                            <Card radius="md">
                                 <Text c="dimmed">
                                     No season schedule found.
                                 </Text>
@@ -85,7 +85,7 @@ export default function DesktopDashboard({
                                     ))}
                                 </SimpleGrid>
                             ) : (
-                                <Card withBorder radius="md">
+                                <Card radius="md">
                                     <Text c="dimmed">
                                         No upcoming games scheduled.
                                     </Text>
@@ -104,7 +104,7 @@ export default function DesktopDashboard({
                                     ))}
                                 </Stack>
                             ) : (
-                                <Card withBorder radius="md">
+                                <Card radius="md">
                                     <Text c="dimmed">No past games found.</Text>
                                 </Card>
                             )}

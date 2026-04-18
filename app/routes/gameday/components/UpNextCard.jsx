@@ -5,13 +5,7 @@ export default function UpNextCard({ upcomingBatters = [], ...props }) {
     if (!upcomingBatters || upcomingBatters.length === 0) return null;
 
     return (
-        <Card
-            withBorder
-            p="xs"
-            radius="md"
-            bg="var(--mantine-color-body)"
-            {...props}
-        >
+        <Card p="xs" radius="md" {...props}>
             <Group justify="space-between" gap="sm" wrap="nowrap">
                 <Group
                     gap="xs"

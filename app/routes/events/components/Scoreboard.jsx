@@ -21,7 +21,6 @@ export default function Scoreboard({
                 radius="lg"
                 p="xs"
                 maw="30%"
-                withBorder
                 mx="auto"
             >
                 <Group justify="center" align="center">

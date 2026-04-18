@@ -12,7 +12,6 @@ export default function LastPlayCard({
 
     return (
         <Card
-            withBorder
             p="sm"
             radius="md"
             w="100%"

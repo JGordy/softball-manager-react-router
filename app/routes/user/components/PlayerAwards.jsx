@@ -109,7 +109,7 @@ export default function PlayerAwards({ awardsPromise, statsPromise }) {
 
                     if (!awardsForType.length) {
                         return (
-                            <Card radius="md" mt="xs" withBorder>
+                            <Card radius="md" mt="xs">
                                 <Text ta="center" c="dimmed" size="md">
                                     No{" "}
                                     {awardsMap[activeAward]?.label ||
@@ -158,7 +158,6 @@ export default function PlayerAwards({ awardsPromise, statsPromise }) {
                                 type="button"
                                 radius="md"
                                 my="xs"
-                                withBorder
                                 className="winner-card"
                                 style={{ cursor: "pointer", width: "100%" }}
                                 onClick={() => handleAwardClick(award.game_id)}

@@ -215,7 +215,7 @@ export default function MobileDashboard({ teamList, openAddTeamModal }) {
                         )}
 
                     {!nextGame && !mostRecentGame && (
-                        <Card radius="md" withBorder>
+                        <Card radius="md">
                             <Text ta="center">
                                 No scheduled events for this team.
                             </Text>

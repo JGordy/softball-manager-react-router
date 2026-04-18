@@ -98,7 +98,7 @@ export default function MobileGamedayContainer({
 
     if (playerChart.length === 0) {
         return (
-            <Card p="xl" withBorder radius="lg" ta="center">
+            <Card p="xl" radius="lg" ta="center">
                 <Text fw={700} mb="xs">
                     Lineup Required
                 </Text>

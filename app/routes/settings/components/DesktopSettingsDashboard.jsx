@@ -45,7 +45,7 @@ function DashboardCard({
     children,
 }) {
     return (
-        <Card withBorder radius="lg" p="xl" shadow="sm">
+        <Card radius="lg" p="xl" shadow="sm">
             <Group mb="md">
                 <Icon size={24} color={`var(--mantine-color-${iconColor}-5)`} />
                 <Title order={3}>{title}</Title>

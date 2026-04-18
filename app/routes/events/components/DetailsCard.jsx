@@ -23,7 +23,7 @@ export default function DetailsCard({ game, deferredData, season, team }) {
 
     return (
         <>
-            <Card withBorder radius="lg" mt="-12%" mx="md" py="5px">
+            <Card radius="lg" mt="-12%" mx="md" py="5px">
                 <Text size="sm" mt="xs">
                     Date & Location Details
                 </Text>

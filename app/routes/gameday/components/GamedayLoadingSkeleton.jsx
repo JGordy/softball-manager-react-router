@@ -12,7 +12,7 @@ export function MobileGamedayLoadingSkeleton() {
             </Group>
 
             {/* Scoreboard */}
-            <Card withBorder radius="lg" p="md">
+            <Card radius="lg" p="md">
                 <Group justify="space-between" align="center" wrap="nowrap">
                     <Stack gap={0} align="center" style={{ flex: 1 }}>
                         <Skeleton height={10} width={40} mb={4} />
@@ -73,7 +73,7 @@ export function MobileGamedayLoadingSkeleton() {
             </Card>
 
             {/* Tabs */}
-            <Card withBorder radius="xl" p={4}>
+            <Card radius="xl" p={4}>
                 <Group gap={0} grow>
                     <Skeleton height={32} radius="xl" />
                     <Skeleton height={32} radius="xl" />
@@ -83,7 +83,7 @@ export function MobileGamedayLoadingSkeleton() {
             </Card>
 
             {/* Current Batter Card */}
-            <Card withBorder radius="lg" p="md">
+            <Card radius="lg" p="md">
                 <Group wrap="nowrap" gap="md" justify="space-between">
                     <Group wrap="nowrap" gap="md" style={{ flex: 1 }}>
                         <Skeleton height={60} width={60} radius="xl" />
@@ -100,7 +100,7 @@ export function MobileGamedayLoadingSkeleton() {
             </Card>
 
             {/* Up Next Card */}
-            <Card withBorder p="xs" radius="md">
+            <Card p="xs" radius="md">
                 <Group justify="space-between" wrap="nowrap">
                     <Skeleton height={12} width={60} />
                     <Skeleton height={16} width="60%" />

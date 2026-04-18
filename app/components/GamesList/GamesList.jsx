@@ -11,7 +11,7 @@ export default function GamesList({
 }) {
     if (!games.length) {
         return (
-            <Card withBorder padding="lg" radius="md" mt="md">
+            <Card padding="lg" radius="md" mt="md">
                 <Center>
                     <Text>No games currently listed.</Text>
                 </Center>

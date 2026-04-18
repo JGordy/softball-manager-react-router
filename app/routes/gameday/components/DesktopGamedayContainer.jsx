@@ -98,7 +98,7 @@ export default function DesktopGamedayContainer({
 
     if (playerChart.length === 0) {
         return (
-            <Card p="xl" withBorder radius="lg" ta="center">
+            <Card p="xl" radius="lg" ta="center">
                 <Text fw={700} mb="xs">
                     Lineup Required
                 </Text>
@@ -188,7 +188,7 @@ export default function DesktopGamedayContainer({
                             {!gameFinal &&
                                 (isOurBatting ? (
                                     isScorekeeper && (
-                                        <Card radius="lg" withBorder>
+                                        <Card radius="lg">
                                             <ActionPad
                                                 onAction={initiateAction}
                                                 runners={runners}
@@ -233,7 +233,7 @@ export default function DesktopGamedayContainer({
 
                             <Tabs.Panel value="plays" pt="md">
                                 <Stack gap="md">
-                                    <Card withBorder radius="md" p="xs">
+                                    <Card radius="md" p="xs">
                                         <PlayHistoryList
                                             logs={logs}
                                             playerChart={playerChart}
