@@ -58,7 +58,7 @@ export default function GamesTable({
     ));
 
     return (
-        <Card withBorder>
+        <Card>
             <ScrollArea maw="100vw" mah="50vh">
                 <Table layout={variant} striped={striped} withColumnBorders>
                     <Table.Thead>
