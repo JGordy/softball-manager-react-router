@@ -1,5 +1,13 @@
-# Run checks only on staged files using lint-staged
-if ! npx lint-staged; then
-    printf "\033[0;31mCommit aborted: lint-staged checks failed. Fix the reported issues (for example, run 'npx lint-staged') and stage the changes.\033[0m\n"
-    exit 1
+#!/usr/bin/env sh
+
+# Load NVM
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+
+# Use .nvmrc or default
+if command -v nvm >/dev/null; then
+  nvm use --silent 2>/dev/null || nvm use default --silent 2>/dev/null
 fi
+
+# Run lint-staged
+npx lint-staged

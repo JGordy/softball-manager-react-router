@@ -1,1 +1,12 @@
+#!/usr/bin/env sh
+
+# Load NVM for GUI clients
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+
+# Try to use .nvmrc version, but don't fail if it's not installed
+if command -v nvm >/dev/null; then
+  nvm use --silent 2>/dev/null || nvm use default --silent 2>/dev/null
+fi
+
 npm run test
