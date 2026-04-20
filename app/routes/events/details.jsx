@@ -157,26 +157,9 @@ export default function EventDetails({ loaderData, actionData }) {
             const preservedHash = hash && hash !== "awards" ? `#${hash}` : "";
             const newUrl = `${location.pathname}${search ? `?${search}` : ""}${preservedHash}`;
 
-            if (
-                typeof window !== "undefined" &&
-                window.history &&
-                window.history.replaceState
-            ) {
-                try {
-                    window.history.replaceState(
-                        window.history.state,
-                        "",
-                        newUrl,
-                    );
-                } catch (e) {
-                    console.warn(
-                        "replaceState failed, URL may update with navigation",
-                        e,
-                    );
-                }
-            }
+            navigate(newUrl, { replace: true });
         }
-    }, [awardsDrawerHandlers, location]);
+    }, [awardsDrawerHandlers, location, navigate]);
 
     // Run this effect only when actionData changes. Guard so we only
     // call closeAllModals once for a successful action to avoid a

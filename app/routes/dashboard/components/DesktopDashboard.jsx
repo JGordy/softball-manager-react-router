@@ -29,9 +29,26 @@ export default function DesktopDashboard({
         teamId: activeTeamId,
     });
 
-    // We can show more games on desktop
-    const upcomingGames = futureGames?.slice(0, 4) || [];
-    const recentGames = pastGames?.slice(0, 4) || [];
+    // Find if there's a live game across both buckets
+    const liveGame = [...(futureGames || []), ...(pastGames || [])].find(
+        (g) => getGameDayStatus(g.gameDate, true) === "in progress",
+    );
+
+    // If we have a live game, promote it to the top of upcoming games
+    // regardless of which bucket getGames put it in.
+    let upcomingGames = futureGames?.slice(0, 4) || [];
+    if (liveGame) {
+        upcomingGames = [
+            liveGame,
+            ...futureGames.filter((g) => g.$id !== liveGame.$id).slice(0, 3),
+        ];
+    }
+
+    // Recent games should exclude the promoted live game to avoid duplicates
+    const recentGames =
+        pastGames
+            ?.filter((g) => !liveGame || g.$id !== liveGame.$id)
+            .slice(0, 4) || [];
 
     return (
         <Box mt="xl">

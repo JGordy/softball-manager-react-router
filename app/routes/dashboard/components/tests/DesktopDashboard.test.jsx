@@ -79,7 +79,7 @@ describe("DesktopDashboard Component", () => {
                 {
                     $id: "in-progress-1",
                     opponent: "Live Opponent",
-                    gameDate: "2025-01-01",
+                    gameDate: "2025-01-02",
                     hasLineup: true,
                     eventType: "game",
                 },
@@ -88,9 +88,10 @@ describe("DesktopDashboard Component", () => {
         });
 
         // Mock the second game as in-progress
-        dateTimeUtils.getGameDayStatus
-            .mockReturnValueOnce("future")
-            .mockReturnValueOnce("in progress");
+        dateTimeUtils.getGameDayStatus.mockImplementation((date) => {
+            if (date === "2025-01-02") return "in progress";
+            return "future";
+        });
 
         renderDashboard();
 
@@ -100,7 +101,7 @@ describe("DesktopDashboard Component", () => {
 
         expect(screen.getByText(/Live Opponent/i)).toBeInTheDocument();
         expect(screen.getByText("Edit Lineup")).toBeInTheDocument();
-        expect(screen.getByText("Go Live")).toBeInTheDocument();
+        expect(screen.getAllByText("Go Live")[0]).toBeInTheDocument();
     });
 
     it("displays recent results with appropriate actions", () => {

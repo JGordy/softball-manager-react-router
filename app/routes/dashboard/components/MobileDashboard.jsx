@@ -54,8 +54,17 @@ export default function MobileDashboard({ teamList, openAddTeamModal }) {
         teamId: activeTeamId,
     });
 
-    const nextGame = futureGames?.slice(0, 1)?.[0];
-    const mostRecentGame = pastGames?.slice(0, 1)?.[0];
+    // Find if there's a live game across both buckets
+    const liveGame = [...(futureGames || []), ...(pastGames || [])].find(
+        (g) => getGameDayStatus(g.gameDate, true) === "in progress",
+    );
+
+    const nextGame = liveGame || futureGames?.[0];
+    const rawMostRecent = pastGames?.[0];
+    const mostRecentGame =
+        liveGame && rawMostRecent?.$id === liveGame.$id
+            ? pastGames?.[1]
+            : rawMostRecent;
 
     // reset/initialize active index if team list changes
     useEffect(() => {

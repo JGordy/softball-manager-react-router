@@ -434,10 +434,9 @@ describe("EventDetails Route", () => {
                     fireEvent.click(closeButton);
                 });
 
-                expect(window.history.replaceState).toHaveBeenCalledWith(
-                    null,
-                    "",
+                expect(mockNavigate).toHaveBeenCalledWith(
                     "/events/game123?other=param",
+                    { replace: true },
                 );
             });
         });
