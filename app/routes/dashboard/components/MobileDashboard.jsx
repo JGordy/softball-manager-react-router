@@ -195,39 +195,41 @@ export default function MobileDashboard({ teamList, openAddTeamModal }) {
                             <Card radius="md" p={0} bg="transparent">
                                 <GameCard {...nextGame} />
                                 <Group justify="end" pt={5} mt="-8px" grow>
-                                    {activeTeam?.isManager && (
-                                        <Button
-                                            component={Link}
-                                            to={`/events/${nextGame.$id}/lineup`}
-                                            variant="light"
-                                            color={
-                                                getGameDayStatus(
-                                                    nextGame.gameDate,
-                                                    true,
-                                                ) === "in progress"
-                                                    ? "blue"
-                                                    : "lime"
-                                            }
-                                            radius="xl"
-                                        >
-                                            {nextGame.hasLineup
-                                                ? "Edit Lineup"
-                                                : "Create Lineup"}
-                                        </Button>
-                                    )}
-                                    {getGameDayStatus(
-                                        nextGame.gameDate,
-                                        true,
-                                    ) === "in progress" && (
-                                        <Button
-                                            component={Link}
-                                            to={`/events/${nextGame.$id}/gameday`}
-                                            radius="xl"
-                                            variant="light"
-                                        >
-                                            Go Live
-                                        </Button>
-                                    )}
+                                    {activeTeam?.isManager &&
+                                        nextGame?.eventType !== "practice" && (
+                                            <Button
+                                                component={Link}
+                                                to={`/events/${nextGame.$id}/lineup`}
+                                                variant="light"
+                                                color={
+                                                    getGameDayStatus(
+                                                        nextGame.gameDate,
+                                                        true,
+                                                    ) === "in progress"
+                                                        ? "blue"
+                                                        : "lime"
+                                                }
+                                                radius="xl"
+                                            >
+                                                {nextGame.hasLineup
+                                                    ? "Edit Lineup"
+                                                    : "Create Lineup"}
+                                            </Button>
+                                        )}
+                                    {nextGame?.eventType !== "practice" &&
+                                        getGameDayStatus(
+                                            nextGame.gameDate,
+                                            true,
+                                        ) === "in progress" && (
+                                            <Button
+                                                component={Link}
+                                                to={`/events/${nextGame.$id}/gameday`}
+                                                radius="xl"
+                                                variant="light"
+                                            >
+                                                Go Live
+                                            </Button>
+                                        )}
                                 </Group>
                             </Card>
                         </Box>
@@ -242,25 +244,33 @@ export default function MobileDashboard({ teamList, openAddTeamModal }) {
                                 </Title>
                                 <Card radius="md" p={0} bg="transparent">
                                     <GameCard {...mostRecentGame} />
-                                    <Group justify="end" pt={5} mt="-8px" grow>
-                                        <Button
-                                            component={Link}
-                                            to={`/events/${mostRecentGame.$id}?open=awards`}
-                                            variant="light"
-                                            radius="xl"
-                                            color="blue"
+                                    {mostRecentGame.eventType !==
+                                        "practice" && (
+                                        <Group
+                                            justify="end"
+                                            pt={5}
+                                            mt="-8px"
+                                            grow
                                         >
-                                            See Awards
-                                        </Button>
-                                        <Button
-                                            component={Link}
-                                            to={`/events/${mostRecentGame.$id}/gameday`}
-                                            variant="light"
-                                            radius="xl"
-                                        >
-                                            Recap
-                                        </Button>
-                                    </Group>
+                                            <Button
+                                                component={Link}
+                                                to={`/events/${mostRecentGame.$id}?open=awards`}
+                                                variant="light"
+                                                radius="xl"
+                                                color="blue"
+                                            >
+                                                See Awards
+                                            </Button>
+                                            <Button
+                                                component={Link}
+                                                to={`/events/${mostRecentGame.$id}/gameday`}
+                                                variant="light"
+                                                radius="xl"
+                                            >
+                                                Recap
+                                            </Button>
+                                        </Group>
+                                    )}
                                 </Card>
                             </Box>
                         )}

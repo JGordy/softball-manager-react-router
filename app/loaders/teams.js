@@ -165,6 +165,7 @@ export async function getUserTeams({ client, isDashboard = false }) {
                             timeZone,
                             seasons,
                             hasLineup,
+                            eventType: game.eventType,
                         };
                     };
 

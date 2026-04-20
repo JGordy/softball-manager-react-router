@@ -82,31 +82,35 @@ export default function DesktopDashboard({
                                                 pt={5}
                                                 mt="-8px"
                                             >
-                                                {activeTeam?.isManager && (
-                                                    <Button
-                                                        component={Link}
-                                                        to={`/events/${game.$id}/lineup`}
-                                                        variant="light"
-                                                        radius="xl"
-                                                    >
-                                                        {game.hasLineup
-                                                            ? "Edit Lineup"
-                                                            : "Create Lineup"}
-                                                    </Button>
-                                                )}
-                                                {getGameDayStatus(
-                                                    game.gameDate,
-                                                    true,
-                                                ) === "in progress" && (
-                                                    <Button
-                                                        component={Link}
-                                                        to={`/events/${game.$id}/gameday`}
-                                                        variant="light"
-                                                        radius="xl"
-                                                    >
-                                                        Go Live
-                                                    </Button>
-                                                )}
+                                                {activeTeam?.isManager &&
+                                                    game.eventType !==
+                                                        "practice" && (
+                                                        <Button
+                                                            component={Link}
+                                                            to={`/events/${game.$id}/lineup`}
+                                                            variant="light"
+                                                            radius="xl"
+                                                        >
+                                                            {game.hasLineup
+                                                                ? "Edit Lineup"
+                                                                : "Create Lineup"}
+                                                        </Button>
+                                                    )}
+                                                {game.eventType !==
+                                                    "practice" &&
+                                                    getGameDayStatus(
+                                                        game.gameDate,
+                                                        true,
+                                                    ) === "in progress" && (
+                                                        <Button
+                                                            component={Link}
+                                                            to={`/events/${game.$id}/gameday`}
+                                                            variant="light"
+                                                            radius="xl"
+                                                        >
+                                                            Go Live
+                                                        </Button>
+                                                    )}
                                             </Group>
                                         </Card>
                                     ))}
@@ -135,29 +139,31 @@ export default function DesktopDashboard({
                                             bg="transparent"
                                         >
                                             <GameCard {...game} />
-                                            <Group
-                                                justify="end"
-                                                pt={5}
-                                                mt="-8px"
-                                            >
-                                                <Button
-                                                    component={Link}
-                                                    to={`/events/${game.$id}?open=awards`}
-                                                    variant="light"
-                                                    radius="xl"
-                                                    color="blue"
+                                            {game.eventType !== "practice" && (
+                                                <Group
+                                                    justify="end"
+                                                    pt={5}
+                                                    mt="-8px"
                                                 >
-                                                    See Awards
-                                                </Button>
-                                                <Button
-                                                    component={Link}
-                                                    to={`/events/${game.$id}/gameday`}
-                                                    variant="light"
-                                                    radius="xl"
-                                                >
-                                                    Recap
-                                                </Button>
-                                            </Group>
+                                                    <Button
+                                                        component={Link}
+                                                        to={`/events/${game.$id}?open=awards`}
+                                                        variant="light"
+                                                        radius="xl"
+                                                        color="blue"
+                                                    >
+                                                        See Awards
+                                                    </Button>
+                                                    <Button
+                                                        component={Link}
+                                                        to={`/events/${game.$id}/gameday`}
+                                                        variant="light"
+                                                        radius="xl"
+                                                    >
+                                                        Recap
+                                                    </Button>
+                                                </Group>
+                                            )}
                                         </Card>
                                     ))}
                                 </Stack>
