@@ -145,6 +145,7 @@ export async function getUserTeams({ client, isDashboard = false }) {
                         timeZone,
                         seasons,
                         playerChart,
+                        eventType,
                     }) => {
                         const hasLineup = !!(
                             playerChart &&
@@ -165,7 +166,7 @@ export async function getUserTeams({ client, isDashboard = false }) {
                             timeZone,
                             seasons,
                             hasLineup,
-                            eventType: game.eventType,
+                            eventType,
                         };
                     };
 
