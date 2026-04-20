@@ -13,8 +13,8 @@ import {
 } from "@mantine/core";
 
 import getGames from "@/utils/getGames";
-import GameCalendarRow from "@/components/GameCalendarRow";
 import GameCard from "@/components/GameCard";
+import { getGameDayStatus } from "@/utils/dateTime";
 
 export default function DesktopDashboard({
     teamList,
@@ -29,9 +29,26 @@ export default function DesktopDashboard({
         teamId: activeTeamId,
     });
 
-    // We can show more games on desktop
-    const upcomingGames = futureGames?.slice(0, 4) || [];
-    const recentGames = pastGames?.slice(0, 4) || [];
+    // Find if there's a live game across both buckets
+    const liveGame = [...(futureGames || []), ...(pastGames || [])].find(
+        (g) => getGameDayStatus(g.gameDate, true) === "in progress",
+    );
+
+    // If we have a live game, promote it to the top of upcoming games
+    // regardless of which bucket getGames put it in.
+    let upcomingGames = futureGames?.slice(0, 4) || [];
+    if (liveGame) {
+        upcomingGames = [
+            liveGame,
+            ...futureGames.filter((g) => g.$id !== liveGame.$id).slice(0, 3),
+        ];
+    }
+
+    // Recent games should exclude the promoted live game to avoid duplicates
+    const recentGames =
+        pastGames
+            ?.filter((g) => !liveGame || g.$id !== liveGame.$id)
+            .slice(0, 4) || [];
 
     return (
         <Box mt="xl">
@@ -59,19 +76,7 @@ export default function DesktopDashboard({
                         </Button>
                     </Group>
 
-                    <Box mb="xl">
-                        {[...futureGames, ...pastGames].length > 0 ? (
-                            <GameCalendarRow
-                                games={[...futureGames, ...pastGames]}
-                            />
-                        ) : (
-                            <Card radius="md">
-                                <Text c="dimmed">
-                                    No season schedule found.
-                                </Text>
-                            </Card>
-                        )}
-                    </Box>
+                    {/* Calendar row removed */}
 
                     <Grid gutter="xl">
                         <Grid.Col span={{ base: 12, lg: 7 }}>
@@ -81,7 +86,50 @@ export default function DesktopDashboard({
                             {upcomingGames.length > 0 ? (
                                 <SimpleGrid cols={2} spacing="md">
                                     {upcomingGames.map((game) => (
-                                        <GameCard key={game.$id} {...game} />
+                                        <Card
+                                            key={game.$id}
+                                            radius="md"
+                                            p={0}
+                                            pb="sm"
+                                            bg="transparent"
+                                        >
+                                            <GameCard {...game} />
+                                            <Group
+                                                justify="end"
+                                                pt={5}
+                                                mt="-8px"
+                                            >
+                                                {activeTeam?.isManager &&
+                                                    game.eventType !==
+                                                        "practice" && (
+                                                        <Button
+                                                            component={Link}
+                                                            to={`/events/${game.$id}/lineup`}
+                                                            variant="light"
+                                                            radius="xl"
+                                                        >
+                                                            {game.hasLineup
+                                                                ? "Edit Lineup"
+                                                                : "Create Lineup"}
+                                                        </Button>
+                                                    )}
+                                                {game.eventType !==
+                                                    "practice" &&
+                                                    getGameDayStatus(
+                                                        game.gameDate,
+                                                        true,
+                                                    ) === "in progress" && (
+                                                        <Button
+                                                            component={Link}
+                                                            to={`/events/${game.$id}/gameday`}
+                                                            variant="light"
+                                                            radius="xl"
+                                                        >
+                                                            Go Live
+                                                        </Button>
+                                                    )}
+                                            </Group>
+                                        </Card>
                                     ))}
                                 </SimpleGrid>
                             ) : (
@@ -100,7 +148,40 @@ export default function DesktopDashboard({
                             {recentGames.length > 0 ? (
                                 <Stack gap="md">
                                     {recentGames.map((game) => (
-                                        <GameCard key={game.$id} {...game} />
+                                        <Card
+                                            key={game.$id}
+                                            radius="md"
+                                            p={0}
+                                            pb="sm"
+                                            bg="transparent"
+                                        >
+                                            <GameCard {...game} />
+                                            {game.eventType !== "practice" && (
+                                                <Group
+                                                    justify="end"
+                                                    pt={5}
+                                                    mt="-8px"
+                                                >
+                                                    <Button
+                                                        component={Link}
+                                                        to={`/events/${game.$id}?open=awards`}
+                                                        variant="light"
+                                                        radius="xl"
+                                                        color="blue"
+                                                    >
+                                                        See Awards
+                                                    </Button>
+                                                    <Button
+                                                        component={Link}
+                                                        to={`/events/${game.$id}/gameday`}
+                                                        variant="light"
+                                                        radius="xl"
+                                                    >
+                                                        Recap
+                                                    </Button>
+                                                </Group>
+                                            )}
+                                        </Card>
                                     ))}
                                 </Stack>
                             ) : (

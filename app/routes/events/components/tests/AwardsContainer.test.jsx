@@ -1,24 +1,6 @@
-import * as router from "react-router";
-import { render, screen, fireEvent, act } from "@/utils/test-utils";
+import { render, screen, fireEvent } from "@/utils/test-utils";
 
 import AwardsContainer from "../AwardsContainer";
-
-// Mock dependencies
-jest.mock("react-router", () => ({
-    ...jest.requireActual("react-router"),
-    useLocation: jest.fn(),
-}));
-
-jest.mock(
-    "@/components/DrawerContainer",
-    () =>
-        ({ children, opened, title }) =>
-            opened ? (
-                <div role="dialog" aria-label={title}>
-                    {children}
-                </div>
-            ) : null,
-);
 
 jest.mock("@/components/DeferredLoader");
 
@@ -29,30 +11,15 @@ jest.mock("../CardSection", () => ({ onClick, heading, subHeading }) => (
     </div>
 ));
 
-jest.mock("../AwardsDrawerContents", () => () => (
-    <div data-testid="awards-contents" />
-));
-
 describe("AwardsContainer Component", () => {
     const defaultProps = {
-        game: { $id: "game1" },
-        team: { $id: "team1" },
         deferredData: { awards: { total: 0, rows: [] }, votes: { total: 0 } },
         user: { $id: "user1" },
+        onOpen: jest.fn(),
     };
 
     beforeEach(() => {
         jest.clearAllMocks();
-        router.useLocation.mockReturnValue({
-            pathname: "/events/1",
-            search: "",
-            hash: "",
-        });
-        jest.useFakeTimers();
-    });
-
-    afterEach(() => {
-        jest.useRealTimers();
     });
 
     it("renders default state with 'Awards unavailable'", () => {
@@ -105,51 +72,11 @@ describe("AwardsContainer Component", () => {
         ).toBeInTheDocument();
     });
 
-    it("opens drawer when clicked", () => {
+    it("calls onOpen when clicked", () => {
         render(<AwardsContainer {...defaultProps} />);
 
         fireEvent.click(screen.getByTestId("card-section"));
 
-        expect(
-            screen.getByRole("dialog", { name: "Awards & Recognition" }),
-        ).toBeInTheDocument();
-        expect(screen.getByTestId("awards-contents")).toBeInTheDocument();
-    });
-
-    it("automatically opens drawer if hash is #awards", () => {
-        router.useLocation.mockReturnValue({
-            pathname: "/events/1",
-            search: "",
-            hash: "#awards",
-        });
-
-        render(<AwardsContainer {...defaultProps} />);
-
-        // Timer of 500ms
-        act(() => {
-            jest.advanceTimersByTime(1000);
-        });
-
-        expect(
-            screen.getByRole("dialog", { name: "Awards & Recognition" }),
-        ).toBeInTheDocument();
-    });
-
-    it("automatically opens drawer if query param open=awards", () => {
-        router.useLocation.mockReturnValue({
-            pathname: "/events/1",
-            search: "?open=awards",
-            hash: "",
-        });
-
-        render(<AwardsContainer {...defaultProps} />);
-
-        act(() => {
-            jest.advanceTimersByTime(1000);
-        });
-
-        expect(
-            screen.getByRole("dialog", { name: "Awards & Recognition" }),
-        ).toBeInTheDocument();
+        expect(defaultProps.onOpen).toHaveBeenCalledTimes(1);
     });
 });

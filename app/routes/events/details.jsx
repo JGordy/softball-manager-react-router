@@ -1,7 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import {
     Form,
+    useLocation,
     useNavigate,
     useNavigation,
     useOutletContext,
@@ -12,6 +13,8 @@ import { useDisclosure } from "@mantine/hooks";
 
 import BackButton from "@/components/BackButton";
 import DrawerContainer from "@/components/DrawerContainer";
+import DeferredLoader from "@/components/DeferredLoader";
+import InlineError from "@/components/InlineError";
 
 import { deleteGame, updateGame } from "@/actions/games";
 import { updatePlayerAttendance } from "@/actions/attendance";
@@ -23,6 +26,7 @@ import { createSessionClient } from "@/utils/appwrite/server";
 import { getGameDayStatus } from "@/utils/dateTime";
 
 import useModal from "@/hooks/useModal";
+
 import { usePrintVisibility } from "./hooks/usePrintVisibility";
 import { useAvailabilityPrompt } from "./hooks/useAvailabilityPrompt";
 
@@ -31,6 +35,7 @@ import Scoreboard from "./components/Scoreboard";
 import MobileEventDetailsView from "./components/MobileEventDetailsView";
 import DesktopEventDetailsView from "./components/DesktopEventDetailsView";
 import AvailabilityPromptDrawer from "./components/AvailabilityPromptDrawer";
+import AwardsDrawerContents from "./components/AwardsDrawerContents";
 
 export async function action({ request, params }) {
     const { eventId } = params;
@@ -64,9 +69,11 @@ export default function EventDetails({ loaderData, actionData }) {
 
     const [deleteDrawerOpened, deleteDrawerHandlers] = useDisclosure(false);
     const [promptDrawerOpened, promptDrawerHandlers] = useDisclosure(false);
+    const [awardsDrawerOpened, awardsDrawerHandlers] = useDisclosure(false);
 
     const navigation = useNavigation();
     const navigate = useNavigate();
+    const location = useLocation();
     const { closeAllModals } = useModal();
 
     const outletContext = useOutletContext();
@@ -115,6 +122,44 @@ export default function EventDetails({ loaderData, actionData }) {
         gameDeleted: loaderData?.gameDeleted,
         enabled: !gameIsPast,
     });
+
+    // Open Awards drawer automatically when URL indicates it (either hash #awards
+    // or query ?open=awards).
+    useEffect(() => {
+        const hash = location?.hash?.replace(/^#/, "") || null;
+        const params = new URLSearchParams(location?.search || "");
+        const openParam = params.get("open");
+
+        let timer;
+        if (hash === "awards" || openParam === "awards") {
+            timer = setTimeout(() => {
+                awardsDrawerHandlers.open();
+            }, 500);
+        }
+
+        return () => {
+            if (timer) clearTimeout(timer);
+        };
+    }, [location.search, location.hash, location.key, awardsDrawerHandlers]);
+
+    // Close handler that also removes the hash/query param so the drawer
+    // won't auto-open again when the URL still contains #awards or open=awards.
+    const handleCloseAwards = useCallback(() => {
+        awardsDrawerHandlers.close();
+
+        const hash = location?.hash?.replace(/^#/, "") || null;
+        const params = new URLSearchParams(location?.search || "");
+        const openParam = params.get("open");
+
+        if (hash === "awards" || openParam === "awards") {
+            params.delete("open");
+            const search = params.toString();
+            const preservedHash = hash && hash !== "awards" ? `#${hash}` : "";
+            const newUrl = `${location.pathname}${search ? `?${search}` : ""}${preservedHash}`;
+
+            navigate(newUrl, { replace: true });
+        }
+    }, [awardsDrawerHandlers, location, navigate]);
 
     // Run this effect only when actionData changes. Guard so we only
     // call closeAllModals once for a successful action to avoid a
@@ -180,6 +225,7 @@ export default function EventDetails({ loaderData, actionData }) {
         // for the desktop header row
         result,
         openDeleteDrawer: deleteDrawerHandlers.open,
+        onOpenAwards: awardsDrawerHandlers.open,
     };
 
     return (
@@ -266,6 +312,32 @@ export default function EventDetails({ loaderData, actionData }) {
                             Yes, Delete this Game
                         </Button>
                     </Form>
+                </DrawerContainer>
+            )}
+
+            {game.eventType !== "practice" && gameIsPast && (
+                <DrawerContainer
+                    opened={awardsDrawerOpened}
+                    onClose={handleCloseAwards}
+                    title="Awards & Recognition"
+                    size="95%"
+                >
+                    <DeferredLoader
+                        resolve={deferredData}
+                        fallback={null}
+                        errorElement={
+                            <InlineError message="Error loading content" />
+                        }
+                    >
+                        {(deferred) => (
+                            <AwardsDrawerContents
+                                game={game}
+                                team={team}
+                                user={user}
+                                {...deferred}
+                            />
+                        )}
+                    </DeferredLoader>
                 </DrawerContainer>
             )}
         </>

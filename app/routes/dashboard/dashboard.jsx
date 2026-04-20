@@ -106,7 +106,10 @@ export default function Dashboard({ loaderData, actionData }) {
 
     const teams = loaderData?.teams;
     const stats = loaderData?.stats;
-    const teamList = [...(teams?.managing || []), ...(teams?.playing || [])];
+    const teamList = [
+        ...(teams?.managing?.map((t) => ({ ...t, isManager: true })) || []),
+        ...(teams?.playing?.map((t) => ({ ...t, isManager: false })) || []),
+    ];
 
     const initialTeamId = teamList?.length > 0 ? teamList[0].$id : null;
     const [activeTeamId, setActiveTeamId] = useState(initialTeamId);

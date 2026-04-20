@@ -144,19 +144,31 @@ export async function getUserTeams({ client, isDashboard = false }) {
                         location,
                         timeZone,
                         seasons,
-                    }) => ({
-                        $id,
-                        gameDate,
-                        teamId,
-                        opponent,
-                        score,
-                        opponentScore,
-                        result,
-                        isHomeGame,
-                        location,
-                        timeZone,
-                        seasons,
-                    });
+                        playerChart,
+                        eventType,
+                    }) => {
+                        const hasLineup = !!(
+                            playerChart &&
+                            playerChart !== "null" &&
+                            playerChart !== "[]"
+                        );
+
+                        return {
+                            $id,
+                            gameDate,
+                            teamId,
+                            opponent,
+                            score,
+                            opponentScore,
+                            result,
+                            isHomeGame,
+                            location,
+                            timeZone,
+                            seasons,
+                            hasLineup,
+                            eventType,
+                        };
+                    };
 
                     allGames = [
                         ...(pastGames.rows || []).map(stripGame),

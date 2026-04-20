@@ -3,6 +3,11 @@ import { MemoryRouter } from "react-router";
 import { render, screen, fireEvent } from "@/utils/test-utils";
 
 import DesktopDashboard from "../DesktopDashboard";
+import * as getGamesUtils from "@/utils/getGames";
+import * as dateTimeUtils from "@/utils/dateTime";
+
+jest.mock("@/utils/getGames");
+jest.mock("@/utils/dateTime");
 
 describe("DesktopDashboard Component", () => {
     const mockTeamList = [
@@ -10,29 +15,15 @@ describe("DesktopDashboard Component", () => {
             $id: "team-1",
             name: "Team One",
             primaryColor: "#FF0000",
-            games: [
-                {
-                    $id: "game-1",
-                    teamId: "team-1",
-                    opponent: "Opponent A",
-                    type: "game",
-                    gameDate: new Date(Date.now() + 86400000).toISOString(),
-                },
-            ],
+            isManager: true,
+            games: [],
         },
         {
-            $id: "team-2",
-            name: "Team Two",
+            $id: "team-non-manager",
+            name: "Non-Manager Team",
             primaryColor: "#00FF00",
-            games: [
-                {
-                    $id: "game-2",
-                    teamId: "team-2",
-                    opponent: "Opponent B",
-                    type: "game",
-                    gameDate: new Date(Date.now() + 86400000).toISOString(),
-                },
-            ],
+            isManager: false,
+            games: [],
         },
     ];
 
@@ -66,22 +57,122 @@ describe("DesktopDashboard Component", () => {
         );
     };
 
-    it("displays content for the active team", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        getGamesUtils.default.mockImplementation(({ teams, teamId }) => ({
+            futureGames: [],
+            pastGames: [],
+        }));
+        dateTimeUtils.getGameDayStatus.mockReturnValue("future");
+    });
+
+    it("displays upcoming games with appropriate manager actions", () => {
+        getGamesUtils.default.mockReturnValue({
+            futureGames: [
+                {
+                    $id: "upcoming-1",
+                    opponent: "Upcoming Opponent",
+                    gameDate: "2025-01-01",
+                    hasLineup: false,
+                    eventType: "game",
+                },
+                {
+                    $id: "in-progress-1",
+                    opponent: "Live Opponent",
+                    gameDate: "2025-01-02",
+                    hasLineup: true,
+                    eventType: "game",
+                },
+            ],
+            pastGames: [],
+        });
+
+        // Mock the second game as in-progress
+        dateTimeUtils.getGameDayStatus.mockImplementation((date) => {
+            if (date === "2025-01-02") return "in progress";
+            return "future";
+        });
+
         renderDashboard();
 
-        // Check for title
-        expect(
-            screen.getByText("Season Schedule overview"),
-        ).toBeInTheDocument();
+        expect(screen.getByText("Upcoming Games")).toBeInTheDocument();
+        expect(screen.getByText(/Upcoming Opponent/i)).toBeInTheDocument();
+        expect(screen.getByText("Create Lineup")).toBeInTheDocument();
 
-        // Check for opponent text rendered by GameCard on active team
-        expect(screen.getAllByText(/Opponent A/i).length).toBeGreaterThan(0);
+        expect(screen.getByText(/Live Opponent/i)).toBeInTheDocument();
+        expect(screen.getByText("Edit Lineup")).toBeInTheDocument();
+        expect(screen.getAllByText("Go Live")[0]).toBeInTheDocument();
+    });
 
-        // Opponent B should not be visible
-        expect(screen.queryByText(/Opponent B/i)).not.toBeInTheDocument();
+    it("displays recent results with appropriate actions", () => {
+        getGamesUtils.default.mockReturnValue({
+            futureGames: [],
+            pastGames: [
+                {
+                    $id: "past-1",
+                    opponent: "Past Opponent",
+                    gameDate: "2023-01-01",
+                    eventType: "game",
+                },
+            ],
+        });
 
-        // Check for details button
-        expect(screen.getByText("View Full Team Details")).toBeInTheDocument();
+        renderDashboard();
+
+        expect(screen.getByText("Recent Results")).toBeInTheDocument();
+        expect(screen.getByText(/Past Opponent/i)).toBeInTheDocument();
+        expect(screen.getByText("See Awards")).toBeInTheDocument();
+        expect(screen.getByText("Recap")).toBeInTheDocument();
+    });
+
+    it("hides manager-only actions for non-managers", () => {
+        getGamesUtils.default.mockReturnValue({
+            futureGames: [
+                {
+                    $id: "game-1",
+                    opponent: "Hidden Opponent",
+                    gameDate: "2025-01-01",
+                },
+            ],
+            pastGames: [],
+        });
+
+        renderDashboard([mockTeamList[1]]); // Non-Manager Team
+
+        expect(screen.getByText(/Hidden Opponent/i)).toBeInTheDocument();
+        expect(screen.queryByText("Create Lineup")).not.toBeInTheDocument();
+    });
+
+    it("does NOT display action buttons for practice events", () => {
+        getGamesUtils.default.mockReturnValue({
+            futureGames: [
+                {
+                    $id: "practice-1",
+                    opponent: "Upcoming Practice",
+                    gameDate: "2025-01-01",
+                    hasLineup: false,
+                    eventType: "practice",
+                },
+            ],
+            pastGames: [
+                {
+                    $id: "practice-2",
+                    opponent: "Past Practice",
+                    gameDate: "2020-01-01",
+                    eventType: "practice",
+                },
+            ],
+        });
+
+        renderDashboard();
+
+        // Check upcoming practice
+        expect(screen.queryByText("Create Lineup")).not.toBeInTheDocument();
+        expect(screen.queryByText("Edit Lineup")).not.toBeInTheDocument();
+
+        // Check past practice
+        expect(screen.queryByText("See Awards")).not.toBeInTheDocument();
+        expect(screen.queryByText("Recap")).not.toBeInTheDocument();
     });
 
     it("displays empty state when there are no teams", () => {

@@ -1,5 +1,5 @@
 /* eslint-disable react/display-name */
-import { render, screen, fireEvent } from "@/utils/test-utils";
+import { render, screen, fireEvent, act } from "@/utils/test-utils";
 
 import * as gamesActions from "@/actions/games";
 import * as attendanceActions from "@/actions/attendance";
@@ -15,6 +15,7 @@ jest.mock("react-router", () => ({
     useNavigate: jest.fn(),
     useNavigation: jest.fn(),
     useOutletContext: jest.fn(),
+    useLocation: jest.fn(),
     Form: ({ children, ...props }) => <form {...props}>{children}</form>,
 }));
 
@@ -22,9 +23,10 @@ jest.mock("@/components/BackButton", () => () => <button>Back</button>);
 jest.mock(
     "@/components/DrawerContainer",
     () =>
-        ({ children, opened, title }) =>
+        ({ children, opened, title, onClose }) =>
             opened ? (
                 <div role="dialog" aria-label={title}>
+                    <button onClick={onClose}>Close {title}</button>
                     {children}
                 </div>
             ) : null,
@@ -39,6 +41,15 @@ jest.mock("@/hooks/useModal");
 jest.mock("@/utils/appwrite/server", () => ({
     createSessionClient: jest.fn().mockResolvedValue({ tablesDB: {} }),
 }));
+jest.mock(
+    "@/components/DeferredLoader",
+    () =>
+        ({ children, resolve }) =>
+            children(resolve),
+);
+jest.mock("@/components/InlineError", () => ({ message }) => (
+    <div data-testid="inline-error">{message}</div>
+));
 
 // Mock child components
 jest.mock("../components/MobileEventDetailsView", () => () => (
@@ -58,6 +69,9 @@ jest.mock("../components/AvailabilityPromptDrawer", () => (props) => (
 jest.mock("../components/Scoreboard", () => () => (
     <div data-testid="scoreboard" />
 ));
+jest.mock("../components/AwardsDrawerContents", () => () => (
+    <div data-testid="awards-drawer-contents" />
+));
 
 describe("EventDetails Route", () => {
     const mockNavigate = jest.fn();
@@ -72,10 +86,28 @@ describe("EventDetails Route", () => {
         require("react-router").useOutletContext.mockReturnValue({
             user: mockUser,
         });
+        require("react-router").useLocation.mockReturnValue({
+            hash: "",
+            search: "",
+            pathname: "/events/game123",
+        });
         modalHooks.default.mockReturnValue({
             closeAllModals: mockCloseAllModals,
         });
         dateTimeUtils.getGameDayStatus.mockReturnValue("upcoming");
+
+        // Mock window.history.replaceState
+        if (typeof window !== "undefined") {
+            jest.spyOn(window.history, "replaceState").mockImplementation(
+                () => {},
+            );
+        }
+    });
+
+    afterEach(() => {
+        if (typeof window !== "undefined") {
+            window.history.replaceState.mockRestore();
+        }
     });
 
     const mockLoaderData = {
@@ -325,6 +357,87 @@ describe("EventDetails Route", () => {
                 await attendance;
                 // Since findByText would fail here if it doesn't appear, we check for Closed
                 expect(screen.getByText("Prompt Closed")).toBeInTheDocument();
+            });
+        });
+
+        describe("Awards Drawer Auto-open & Cleanup", () => {
+            beforeEach(() => {
+                jest.useFakeTimers();
+                dateTimeUtils.getGameDayStatus.mockReturnValue("past");
+            });
+
+            afterEach(() => {
+                jest.useRealTimers();
+            });
+
+            it("auto-opens when 'awards' is in location query after 500ms delay", async () => {
+                require("react-router").useLocation.mockReturnValue({
+                    hash: "",
+                    search: "?open=awards",
+                    pathname: "/events/game123",
+                    key: "key1",
+                });
+
+                render(<EventDetails loaderData={mockLoaderData} />);
+
+                // Fast-forward 500ms
+                act(() => {
+                    jest.advanceTimersByTime(500);
+                });
+
+                expect(
+                    screen.getByRole("dialog", {
+                        name: "Awards & Recognition",
+                    }),
+                ).toBeInTheDocument();
+            });
+
+            it("auto-opens when '#awards' is in location hash after 500ms delay", async () => {
+                require("react-router").useLocation.mockReturnValue({
+                    hash: "#awards",
+                    search: "",
+                    pathname: "/events/game123",
+                    key: "key2",
+                });
+
+                render(<EventDetails loaderData={mockLoaderData} />);
+
+                act(() => {
+                    jest.advanceTimersByTime(500);
+                });
+
+                expect(
+                    screen.getByRole("dialog", {
+                        name: "Awards & Recognition",
+                    }),
+                ).toBeInTheDocument();
+            });
+
+            it("cleans up URL when drawer is closed and preserves other hashes", async () => {
+                require("react-router").useLocation.mockReturnValue({
+                    hash: "#awards",
+                    search: "?other=param",
+                    pathname: "/events/game123",
+                    key: "key3",
+                });
+
+                render(<EventDetails loaderData={mockLoaderData} />);
+
+                act(() => {
+                    jest.advanceTimersByTime(500);
+                });
+
+                const closeButton = screen.getByText(
+                    "Close Awards & Recognition",
+                );
+                act(() => {
+                    fireEvent.click(closeButton);
+                });
+
+                expect(mockNavigate).toHaveBeenCalledWith(
+                    "/events/game123?other=param",
+                    { replace: true },
+                );
             });
         });
     });

@@ -25,6 +25,7 @@ export default function DesktopEventDetailsView({
     playerChart,
     result,
     openDeleteDrawer,
+    onOpenAwards,
 }) {
     const defaultTab = gameIsPast ? "awards" : "weather";
 
@@ -157,10 +158,9 @@ export default function DesktopEventDetailsView({
                     {game.eventType !== "practice" && gameIsPast && (
                         <Tabs.Panel value="awards" pt="md">
                             <AwardsContainer
-                                game={game}
-                                team={team}
                                 deferredData={deferredData}
                                 user={user}
+                                onOpen={onOpenAwards}
                             />
                         </Tabs.Panel>
                     )}

@@ -16,8 +16,8 @@ import { Carousel } from "@mantine/carousel";
 import { IconPlus } from "@tabler/icons-react";
 
 import getGames from "@/utils/getGames";
-import GameCalendarRow from "@/components/GameCalendarRow";
 import GameCard from "@/components/GameCard";
+import { getGameDayStatus } from "@/utils/dateTime";
 
 export default function MobileDashboard({ teamList, openAddTeamModal }) {
     // helper to pick white or black text based on background hex color luminance
@@ -44,7 +44,8 @@ export default function MobileDashboard({ teamList, openAddTeamModal }) {
         teamList && teamList.length ? 0 : -1,
     );
 
-    const activeTeamId = teamList?.[activeTeamIndex]?.$id;
+    const activeTeam = teamList?.[activeTeamIndex];
+    const activeTeamId = activeTeam?.$id;
 
     // Compute games only for the active team so the Next/Most Recent cards reflect
     // the team shown in the carousel.
@@ -53,8 +54,17 @@ export default function MobileDashboard({ teamList, openAddTeamModal }) {
         teamId: activeTeamId,
     });
 
-    const nextGame = futureGames?.slice(0, 1)?.[0];
-    const mostRecentGame = pastGames?.slice(0, 1)?.[0];
+    // Find if there's a live game across both buckets
+    const liveGame = [...(futureGames || []), ...(pastGames || [])].find(
+        (g) => getGameDayStatus(g.gameDate, true) === "in progress",
+    );
+
+    const nextGame = liveGame || futureGames?.[0];
+    const rawMostRecent = pastGames?.[0];
+    const mostRecentGame =
+        liveGame && rawMostRecent?.$id === liveGame.$id
+            ? pastGames?.[1]
+            : rawMostRecent;
 
     // reset/initialize active index if team list changes
     useEffect(() => {
@@ -99,7 +109,7 @@ export default function MobileDashboard({ teamList, openAddTeamModal }) {
 
                 {/* Single team: show a simple card and add button */}
                 {teamList?.length === 1 && (
-                    <Card radius="lg" p="0" mt="lg" withBorder>
+                    <Card radius="lg" p="0" mt="lg">
                         <Link to={`/team/${teamList[0].$id}`}>
                             <Card bg={teamList[0].primaryColor} p="lg">
                                 <Text c="white" ta="center">
@@ -181,14 +191,6 @@ export default function MobileDashboard({ teamList, openAddTeamModal }) {
                         })}
                     </Carousel>
                 )}
-
-                {teamList?.length > 0 && (
-                    <Box mt="xl">
-                        <GameCalendarRow
-                            games={[...futureGames, ...pastGames]}
-                        />
-                    </Box>
-                )}
             </Grid.Col>
 
             <Grid.Col span={12} pb="xl">
@@ -199,7 +201,46 @@ export default function MobileDashboard({ teamList, openAddTeamModal }) {
                             <Title order={4} mb="sm">
                                 Upcoming Events
                             </Title>
-                            <GameCard {...nextGame} />
+                            <Card radius="md" p={0} bg="transparent">
+                                <GameCard {...nextGame} />
+                                <Group justify="end" pt={5} mt="-8px" grow>
+                                    {activeTeam?.isManager &&
+                                        nextGame?.eventType !== "practice" && (
+                                            <Button
+                                                component={Link}
+                                                to={`/events/${nextGame.$id}/lineup`}
+                                                variant="light"
+                                                color={
+                                                    getGameDayStatus(
+                                                        nextGame.gameDate,
+                                                        true,
+                                                    ) === "in progress"
+                                                        ? "blue"
+                                                        : "lime"
+                                                }
+                                                radius="xl"
+                                            >
+                                                {nextGame.hasLineup
+                                                    ? "Edit Lineup"
+                                                    : "Create Lineup"}
+                                            </Button>
+                                        )}
+                                    {nextGame?.eventType !== "practice" &&
+                                        getGameDayStatus(
+                                            nextGame.gameDate,
+                                            true,
+                                        ) === "in progress" && (
+                                            <Button
+                                                component={Link}
+                                                to={`/events/${nextGame.$id}/gameday`}
+                                                radius="xl"
+                                                variant="light"
+                                            >
+                                                Go Live
+                                            </Button>
+                                        )}
+                                </Group>
+                            </Card>
                         </Box>
                     )}
 
@@ -210,7 +251,36 @@ export default function MobileDashboard({ teamList, openAddTeamModal }) {
                                 <Title order={4} mb="sm">
                                     Most Recent Game
                                 </Title>
-                                <GameCard {...mostRecentGame} />
+                                <Card radius="md" p={0} bg="transparent">
+                                    <GameCard {...mostRecentGame} />
+                                    {mostRecentGame.eventType !==
+                                        "practice" && (
+                                        <Group
+                                            justify="end"
+                                            pt={5}
+                                            mt="-8px"
+                                            grow
+                                        >
+                                            <Button
+                                                component={Link}
+                                                to={`/events/${mostRecentGame.$id}?open=awards`}
+                                                variant="light"
+                                                radius="xl"
+                                                color="blue"
+                                            >
+                                                See Awards
+                                            </Button>
+                                            <Button
+                                                component={Link}
+                                                to={`/events/${mostRecentGame.$id}/gameday`}
+                                                variant="light"
+                                                radius="xl"
+                                            >
+                                                Recap
+                                            </Button>
+                                        </Group>
+                                    )}
+                                </Card>
                             </Box>
                         )}
 
