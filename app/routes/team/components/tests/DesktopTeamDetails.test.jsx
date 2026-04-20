@@ -4,9 +4,6 @@ import getGames from "@/utils/getGames";
 import DesktopTeamDetails from "../DesktopTeamDetails";
 
 // Mock sub-components and utils
-jest.mock("@/components/GameCalendarRow", () => () => (
-    <div data-testid="game-calendar-row" />
-));
 jest.mock("@/components/GameCard", () => ({ primaryColor }) => (
     <div data-testid="game-card" data-primarycolor={primaryColor} />
 ));
@@ -56,12 +53,6 @@ describe("DesktopTeamDetails Component", () => {
         render(<DesktopTeamDetails {...mockProps} />);
         expect(screen.getByText("Team Roster")).toBeInTheDocument();
         expect(screen.getByTestId("desktop-roster-table")).toBeInTheDocument();
-    });
-
-    it("renders Games Schedule section with GameCalendarRow", () => {
-        render(<DesktopTeamDetails {...mockProps} />);
-        expect(screen.getByText("Games Schedule")).toBeInTheDocument();
-        expect(screen.getByTestId("game-calendar-row")).toBeInTheDocument();
     });
 
     it("renders Upcoming Games and Recent Results sections", () => {

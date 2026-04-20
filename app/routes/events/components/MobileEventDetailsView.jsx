@@ -18,6 +18,7 @@ export default function MobileEventDetailsView({
     weatherPromise,
     // AwardsContainer
     user,
+    onOpenAwards,
     // RosterDetails
     managerView,
     playerChart,
@@ -41,10 +42,9 @@ export default function MobileEventDetailsView({
             )}
             {game.eventType !== "practice" && gameIsPast ? (
                 <AwardsContainer
-                    game={game}
-                    team={team}
-                    user={user}
                     deferredData={deferredData}
+                    user={user}
+                    onOpen={onOpenAwards}
                 />
             ) : (
                 !gameIsPast && (

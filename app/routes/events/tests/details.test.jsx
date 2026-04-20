@@ -15,6 +15,7 @@ jest.mock("react-router", () => ({
     useNavigate: jest.fn(),
     useNavigation: jest.fn(),
     useOutletContext: jest.fn(),
+    useLocation: jest.fn(),
     Form: ({ children, ...props }) => <form {...props}>{children}</form>,
 }));
 
@@ -71,6 +72,11 @@ describe("EventDetails Route", () => {
         require("react-router").useNavigation.mockReturnValue(mockNavigation);
         require("react-router").useOutletContext.mockReturnValue({
             user: mockUser,
+        });
+        require("react-router").useLocation.mockReturnValue({
+            hash: "",
+            search: "",
+            pathname: "/events/game123",
         });
         modalHooks.default.mockReturnValue({
             closeAllModals: mockCloseAllModals,

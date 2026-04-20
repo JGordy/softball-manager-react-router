@@ -2,7 +2,6 @@ import { Grid, Title, Box, Card, Text, Stack, Group } from "@mantine/core";
 import { Link } from "react-router";
 import { DateTime } from "luxon";
 
-import GameCalendarRow from "@/components/GameCalendarRow";
 import GameCard from "@/components/GameCard";
 import getGames from "@/utils/getGames";
 
@@ -80,25 +79,6 @@ export default function DesktopTeamDetails({
 
                 <Grid.Col span={{ base: 12, lg: 5 }}>
                     <Stack gap="xl">
-                        <Box>
-                            <Title order={4} mb="md">
-                                Games Schedule
-                            </Title>
-                            {[...futureGames, ...pastGames].length > 0 ? (
-                                <Card radius="md">
-                                    <GameCalendarRow
-                                        games={[...futureGames, ...pastGames]}
-                                    />
-                                </Card>
-                            ) : (
-                                <Card radius="md">
-                                    <Text c="dimmed">
-                                        No games scheduled yet.
-                                    </Text>
-                                </Card>
-                            )}
-                        </Box>
-
                         {upcomingGames.length > 0 && (
                             <Box>
                                 <Title order={4} mb="md">
