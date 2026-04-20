@@ -13,8 +13,8 @@ import {
 } from "@mantine/core";
 
 import getGames from "@/utils/getGames";
-import GameCalendarRow from "@/components/GameCalendarRow";
 import GameCard from "@/components/GameCard";
+import { getGameDayStatus } from "@/utils/dateTime";
 
 export default function DesktopDashboard({
     teamList,
@@ -59,19 +59,7 @@ export default function DesktopDashboard({
                         </Button>
                     </Group>
 
-                    <Box mb="xl">
-                        {[...futureGames, ...pastGames].length > 0 ? (
-                            <GameCalendarRow
-                                games={[...futureGames, ...pastGames]}
-                            />
-                        ) : (
-                            <Card radius="md">
-                                <Text c="dimmed">
-                                    No season schedule found.
-                                </Text>
-                            </Card>
-                        )}
-                    </Box>
+                    {/* Calendar row removed */}
 
                     <Grid gutter="xl">
                         <Grid.Col span={{ base: 12, lg: 7 }}>
@@ -81,7 +69,31 @@ export default function DesktopDashboard({
                             {upcomingGames.length > 0 ? (
                                 <SimpleGrid cols={2} spacing="md">
                                     {upcomingGames.map((game) => (
-                                        <GameCard key={game.$id} {...game} />
+                                        <Card key={game.$id} radius="md" p={0} pb="sm" bg="transparent">
+                                            <GameCard {...game} />
+                                            <Group justify="end" pt={5} mt="-8px">
+                                                {activeTeam?.isManager && (
+                                                    <Button
+                                                        component={Link}
+                                                        to={`/events/${game.$id}/lineup`}
+                                                        variant="light"
+                                                        radius="xl"
+                                                    >
+                                                        {game.playerChart ? "Edit Lineup" : "Create Lineup"}
+                                                    </Button>
+                                                )}
+                                                {getGameDayStatus(game.gameDate, true) === "in progress" && (
+                                                    <Button
+                                                        component={Link}
+                                                        to={`/events/${game.$id}/gameday`}
+                                                        variant="light"
+                                                        radius="xl"
+                                                    >
+                                                        Go Live
+                                                    </Button>
+                                                )}
+                                            </Group>
+                                        </Card>
                                     ))}
                                 </SimpleGrid>
                             ) : (
@@ -100,7 +112,28 @@ export default function DesktopDashboard({
                             {recentGames.length > 0 ? (
                                 <Stack gap="md">
                                     {recentGames.map((game) => (
-                                        <GameCard key={game.$id} {...game} />
+                                        <Card key={game.$id} radius="md" p={0} pb="sm" bg="transparent">
+                                            <GameCard {...game} />
+                                            <Group justify="end" pt={5} mt="-8px">
+                                                <Button
+                                                    component={Link}
+                                                    to={`/events/${game.$id}?open=awards`}
+                                                    variant="light"
+                                                    radius="xl"
+                                                    color="blue"
+                                                >
+                                                    See Awards
+                                                </Button>
+                                                <Button
+                                                    component={Link}
+                                                    to={`/events/${game.$id}/gameday`}
+                                                    variant="light"
+                                                    radius="xl"
+                                                >
+                                                    Recap
+                                                </Button>
+                                            </Group>
+                                        </Card>
                                     ))}
                                 </Stack>
                             ) : (

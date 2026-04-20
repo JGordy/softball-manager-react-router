@@ -144,6 +144,7 @@ export async function getUserTeams({ client, isDashboard = false }) {
                         location,
                         timeZone,
                         seasons,
+                        playerChart,
                     }) => ({
                         $id,
                         gameDate,
@@ -156,6 +157,7 @@ export async function getUserTeams({ client, isDashboard = false }) {
                         location,
                         timeZone,
                         seasons,
+                        playerChart,
                     });
 
                     allGames = [
