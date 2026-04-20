@@ -154,7 +154,8 @@ export default function EventDetails({ loaderData, actionData }) {
         if (hash === "awards" || openParam === "awards") {
             params.delete("open");
             const search = params.toString();
-            const newUrl = `${location.pathname}${search ? `?${search}` : ""}`;
+            const preservedHash = hash && hash !== "awards" ? `#${hash}` : "";
+            const newUrl = `${location.pathname}${search ? `?${search}` : ""}${preservedHash}`;
 
             if (
                 typeof window !== "undefined" &&
