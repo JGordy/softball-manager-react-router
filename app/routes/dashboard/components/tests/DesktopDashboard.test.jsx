@@ -69,12 +69,22 @@ describe("DesktopDashboard Component", () => {
     it("displays upcoming games with appropriate manager actions", () => {
         getGamesUtils.default.mockReturnValue({
             futureGames: [
-                { $id: "upcoming-1", opponent: "Upcoming Opponent", gameDate: "2025-01-01", playerChart: null },
-                { $id: "in-progress-1", opponent: "Live Opponent", gameDate: "2025-01-01", playerChart: { lineups: [] } }
+                {
+                    $id: "upcoming-1",
+                    opponent: "Upcoming Opponent",
+                    gameDate: "2025-01-01",
+                    hasLineup: false,
+                },
+                {
+                    $id: "in-progress-1",
+                    opponent: "Live Opponent",
+                    gameDate: "2025-01-01",
+                    hasLineup: true,
+                },
             ],
             pastGames: [],
         });
-        
+
         // Mock the second game as in-progress
         dateTimeUtils.getGameDayStatus
             .mockReturnValueOnce("future")
@@ -94,7 +104,13 @@ describe("DesktopDashboard Component", () => {
     it("displays recent results with appropriate actions", () => {
         getGamesUtils.default.mockReturnValue({
             futureGames: [],
-            pastGames: [{ $id: "past-1", opponent: "Past Opponent", gameDate: "2023-01-01" }],
+            pastGames: [
+                {
+                    $id: "past-1",
+                    opponent: "Past Opponent",
+                    gameDate: "2023-01-01",
+                },
+            ],
         });
 
         renderDashboard();
@@ -107,12 +123,18 @@ describe("DesktopDashboard Component", () => {
 
     it("hides manager-only actions for non-managers", () => {
         getGamesUtils.default.mockReturnValue({
-            futureGames: [{ $id: "game-1", opponent: "Hidden Opponent", gameDate: "2025-01-01" }],
+            futureGames: [
+                {
+                    $id: "game-1",
+                    opponent: "Hidden Opponent",
+                    gameDate: "2025-01-01",
+                },
+            ],
             pastGames: [],
         });
 
         renderDashboard([mockTeamList[1]]); // Non-Manager Team
-        
+
         expect(screen.getByText(/Hidden Opponent/i)).toBeInTheDocument();
         expect(screen.queryByText("Create Lineup")).not.toBeInTheDocument();
     });

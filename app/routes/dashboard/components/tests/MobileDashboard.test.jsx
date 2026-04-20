@@ -50,15 +50,24 @@ describe("MobileDashboard Component", () => {
     it("renders team cards in a carousel", () => {
         renderDashboard();
         expect(screen.getAllByText("Team One").length).toBeGreaterThan(0);
-        expect(screen.getAllByText("Non-Manager Team").length).toBeGreaterThan(0);
+        expect(screen.getAllByText("Non-Manager Team").length).toBeGreaterThan(
+            0,
+        );
     });
 
     it("displays content and appropriate manager actions for an upcoming game", () => {
         getGamesUtils.default.mockReturnValue({
-            futureGames: [{ $id: "game-1", opponent: "Upcoming Opponent", gameDate: "2025-01-01", playerChart: null }],
+            futureGames: [
+                {
+                    $id: "game-1",
+                    opponent: "Upcoming Opponent",
+                    gameDate: "2025-01-01",
+                    hasLineup: false,
+                },
+            ],
             pastGames: [],
         });
-        
+
         renderDashboard();
         expect(screen.getByText(/Upcoming Opponent/i)).toBeInTheDocument();
         expect(screen.getByText("Create Lineup")).toBeInTheDocument();
@@ -66,7 +75,14 @@ describe("MobileDashboard Component", () => {
 
     it("displays 'Edit Lineup' when a playerChart exists", () => {
         getGamesUtils.default.mockReturnValue({
-            futureGames: [{ $id: "game-1", opponent: "Upcoming Opponent", gameDate: "2025-01-01", playerChart: { lineups: [] } }],
+            futureGames: [
+                {
+                    $id: "game-1",
+                    opponent: "Upcoming Opponent",
+                    gameDate: "2025-01-01",
+                    hasLineup: true,
+                },
+            ],
             pastGames: [],
         });
 
@@ -76,7 +92,13 @@ describe("MobileDashboard Component", () => {
 
     it("displays 'Go Live' button for in-progress games", () => {
         getGamesUtils.default.mockReturnValue({
-            futureGames: [{ $id: "game-1", opponent: "Live Opponent", gameDate: "2025-01-01" }],
+            futureGames: [
+                {
+                    $id: "game-1",
+                    opponent: "Live Opponent",
+                    gameDate: "2025-01-01",
+                },
+            ],
             pastGames: [],
         });
         dateTimeUtils.getGameDayStatus.mockReturnValue("in progress");
@@ -88,7 +110,13 @@ describe("MobileDashboard Component", () => {
     it("displays 'See Awards' and 'Recap' for past games", () => {
         getGamesUtils.default.mockReturnValue({
             futureGames: [],
-            pastGames: [{ $id: "game-past", opponent: "Past Opponent", gameDate: "2023-01-01" }],
+            pastGames: [
+                {
+                    $id: "game-past",
+                    opponent: "Past Opponent",
+                    gameDate: "2023-01-01",
+                },
+            ],
         });
 
         renderDashboard();
@@ -99,7 +127,13 @@ describe("MobileDashboard Component", () => {
 
     it("hides manager-only actions for non-managers", () => {
         getGamesUtils.default.mockReturnValue({
-            futureGames: [{ $id: "game-1", opponent: "Hidden Opponent", gameDate: "2025-01-01" }],
+            futureGames: [
+                {
+                    $id: "game-1",
+                    opponent: "Hidden Opponent",
+                    gameDate: "2025-01-01",
+                },
+            ],
             pastGames: [],
         });
 
