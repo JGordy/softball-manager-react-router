@@ -200,13 +200,25 @@ export default function MobileDashboard({ teamList, openAddTeamModal }) {
                                             component={Link}
                                             to={`/events/${nextGame.$id}/lineup`}
                                             variant="light"
-                                            color={getGameDayStatus(nextGame.gameDate, true) === "in progress" ? "blue" : "lime"}
+                                            color={
+                                                getGameDayStatus(
+                                                    nextGame.gameDate,
+                                                    true,
+                                                ) === "in progress"
+                                                    ? "blue"
+                                                    : "lime"
+                                            }
                                             radius="xl"
                                         >
-                                            {nextGame.playerChart ? "Edit Lineup" : "Create Lineup"}
+                                            {nextGame.hasLineup
+                                                ? "Edit Lineup"
+                                                : "Create Lineup"}
                                         </Button>
                                     )}
-                                    {getGameDayStatus(nextGame.gameDate, true) === "in progress" && (
+                                    {getGameDayStatus(
+                                        nextGame.gameDate,
+                                        true,
+                                    ) === "in progress" && (
                                         <Button
                                             component={Link}
                                             to={`/events/${nextGame.$id}/gameday`}

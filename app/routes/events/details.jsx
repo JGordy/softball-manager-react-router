@@ -124,7 +124,7 @@ export default function EventDetails({ loaderData, actionData }) {
     });
 
     // Open Awards drawer automatically when URL indicates it (either hash #awards
-    // or query ?open=awards). Run this only once on mount.
+    // or query ?open=awards).
     useEffect(() => {
         const hash = location?.hash?.replace(/^#/, "") || null;
         const params = new URLSearchParams(location?.search || "");
@@ -140,8 +140,7 @@ export default function EventDetails({ loaderData, actionData }) {
         return () => {
             if (timer) clearTimeout(timer);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [location.search, location.hash, location.key, awardsDrawerHandlers]);
 
     // Close handler that also removes the hash/query param so the drawer
     // won't auto-open again when the URL still contains #awards or open=awards.

@@ -69,9 +69,19 @@ export default function DesktopDashboard({
                             {upcomingGames.length > 0 ? (
                                 <SimpleGrid cols={2} spacing="md">
                                     {upcomingGames.map((game) => (
-                                        <Card key={game.$id} radius="md" p={0} pb="sm" bg="transparent">
+                                        <Card
+                                            key={game.$id}
+                                            radius="md"
+                                            p={0}
+                                            pb="sm"
+                                            bg="transparent"
+                                        >
                                             <GameCard {...game} />
-                                            <Group justify="end" pt={5} mt="-8px">
+                                            <Group
+                                                justify="end"
+                                                pt={5}
+                                                mt="-8px"
+                                            >
                                                 {activeTeam?.isManager && (
                                                     <Button
                                                         component={Link}
@@ -79,10 +89,15 @@ export default function DesktopDashboard({
                                                         variant="light"
                                                         radius="xl"
                                                     >
-                                                        {game.playerChart ? "Edit Lineup" : "Create Lineup"}
+                                                        {game.hasLineup
+                                                            ? "Edit Lineup"
+                                                            : "Create Lineup"}
                                                     </Button>
                                                 )}
-                                                {getGameDayStatus(game.gameDate, true) === "in progress" && (
+                                                {getGameDayStatus(
+                                                    game.gameDate,
+                                                    true,
+                                                ) === "in progress" && (
                                                     <Button
                                                         component={Link}
                                                         to={`/events/${game.$id}/gameday`}
@@ -112,9 +127,19 @@ export default function DesktopDashboard({
                             {recentGames.length > 0 ? (
                                 <Stack gap="md">
                                     {recentGames.map((game) => (
-                                        <Card key={game.$id} radius="md" p={0} pb="sm" bg="transparent">
+                                        <Card
+                                            key={game.$id}
+                                            radius="md"
+                                            p={0}
+                                            pb="sm"
+                                            bg="transparent"
+                                        >
                                             <GameCard {...game} />
-                                            <Group justify="end" pt={5} mt="-8px">
+                                            <Group
+                                                justify="end"
+                                                pt={5}
+                                                mt="-8px"
+                                            >
                                                 <Button
                                                     component={Link}
                                                     to={`/events/${game.$id}?open=awards`}
