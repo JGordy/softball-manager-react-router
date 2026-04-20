@@ -63,6 +63,7 @@ describe("MobileDashboard Component", () => {
                     opponent: "Upcoming Opponent",
                     gameDate: "2025-01-01",
                     hasLineup: false,
+                    eventType: "game",
                 },
             ],
             pastGames: [],
@@ -81,6 +82,7 @@ describe("MobileDashboard Component", () => {
                     opponent: "Upcoming Opponent",
                     gameDate: "2025-01-01",
                     hasLineup: true,
+                    eventType: "game",
                 },
             ],
             pastGames: [],
@@ -97,6 +99,7 @@ describe("MobileDashboard Component", () => {
                     $id: "game-1",
                     opponent: "Live Opponent",
                     gameDate: "2025-01-01",
+                    eventType: "game",
                 },
             ],
             pastGames: [],
@@ -115,6 +118,7 @@ describe("MobileDashboard Component", () => {
                     $id: "game-past",
                     opponent: "Past Opponent",
                     gameDate: "2023-01-01",
+                    eventType: "game",
                 },
             ],
         });
@@ -123,6 +127,38 @@ describe("MobileDashboard Component", () => {
         expect(screen.getByText(/Past Opponent/i)).toBeInTheDocument();
         expect(screen.getByText("See Awards")).toBeInTheDocument();
         expect(screen.getByText("Recap")).toBeInTheDocument();
+    });
+
+    it("does NOT display action buttons for practice events", () => {
+        getGamesUtils.default.mockReturnValue({
+            futureGames: [
+                {
+                    $id: "practice-1",
+                    opponent: "Practice Opponent",
+                    gameDate: "2025-01-01",
+                    hasLineup: false,
+                    eventType: "practice",
+                },
+            ],
+            pastGames: [
+                {
+                    $id: "practice-2",
+                    opponent: "Past Practice",
+                    gameDate: "2020-01-01",
+                    eventType: "practice",
+                },
+            ],
+        });
+
+        renderDashboard();
+
+        // Check upcoming practice
+        expect(screen.queryByText("Create Lineup")).not.toBeInTheDocument();
+        expect(screen.queryByText("Edit Lineup")).not.toBeInTheDocument();
+
+        // Check past practice
+        expect(screen.queryByText("See Awards")).not.toBeInTheDocument();
+        expect(screen.queryByText("Recap")).not.toBeInTheDocument();
     });
 
     it("hides manager-only actions for non-managers", () => {

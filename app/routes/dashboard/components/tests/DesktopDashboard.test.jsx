@@ -74,12 +74,14 @@ describe("DesktopDashboard Component", () => {
                     opponent: "Upcoming Opponent",
                     gameDate: "2025-01-01",
                     hasLineup: false,
+                    eventType: "game",
                 },
                 {
                     $id: "in-progress-1",
                     opponent: "Live Opponent",
                     gameDate: "2025-01-01",
                     hasLineup: true,
+                    eventType: "game",
                 },
             ],
             pastGames: [],
@@ -109,6 +111,7 @@ describe("DesktopDashboard Component", () => {
                     $id: "past-1",
                     opponent: "Past Opponent",
                     gameDate: "2023-01-01",
+                    eventType: "game",
                 },
             ],
         });
@@ -137,6 +140,38 @@ describe("DesktopDashboard Component", () => {
 
         expect(screen.getByText(/Hidden Opponent/i)).toBeInTheDocument();
         expect(screen.queryByText("Create Lineup")).not.toBeInTheDocument();
+    });
+
+    it("does NOT display action buttons for practice events", () => {
+        getGamesUtils.default.mockReturnValue({
+            futureGames: [
+                {
+                    $id: "practice-1",
+                    opponent: "Upcoming Practice",
+                    gameDate: "2025-01-01",
+                    hasLineup: false,
+                    eventType: "practice",
+                },
+            ],
+            pastGames: [
+                {
+                    $id: "practice-2",
+                    opponent: "Past Practice",
+                    gameDate: "2020-01-01",
+                    eventType: "practice",
+                },
+            ],
+        });
+
+        renderDashboard();
+
+        // Check upcoming practice
+        expect(screen.queryByText("Create Lineup")).not.toBeInTheDocument();
+        expect(screen.queryByText("Edit Lineup")).not.toBeInTheDocument();
+
+        // Check past practice
+        expect(screen.queryByText("See Awards")).not.toBeInTheDocument();
+        expect(screen.queryByText("Recap")).not.toBeInTheDocument();
     });
 
     it("displays empty state when there are no teams", () => {
