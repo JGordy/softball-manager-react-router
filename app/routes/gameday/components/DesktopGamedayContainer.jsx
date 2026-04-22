@@ -128,11 +128,17 @@ export default function DesktopGamedayContainer({
 
     return (
         <Stack gap="md">
-            {/* Page header — rendered here so menu has access to openSubModal */}
-            <Group justify="space-between" align="center">
-                <BackButton to={`/events/${game.$id}`} />
-                <Title order={3}>Scoring & Stats</Title>
-                <Group gap="xs">
+            {/* Page header — 3-column layout ensures title stays centered */}
+            <Group wrap="nowrap" align="center">
+                <Box flex={1}>
+                    <BackButton to={`/events/${game.$id}`} />
+                </Box>
+
+                <Title order={3} style={{ whiteSpace: "nowrap" }}>
+                    Scoring & Stats
+                </Title>
+
+                <Group flex={1} justify="flex-end" gap="xs" wrap="nowrap">
                     <ShareUrlButton />
                     {isScorekeeper ? (
                         <GamedayMenu
