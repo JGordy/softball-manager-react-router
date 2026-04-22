@@ -13,12 +13,13 @@ export async function getSeasonById({ seasonId, client }) {
 
         // Manually fetch teams since TablesDB doesn't auto-populate relationships
         if (season.teamId) {
-            const teamsResponse = await listDocuments(
+            const team = await readDocument(
                 "teams",
-                [Query.equal("$id", [season.teamId])],
+                season.teamId,
+                [],
                 client,
-            );
-            season.teams = teamsResponse.rows || [];
+            ).catch(() => null);
+            season.teams = team ? [team] : [];
 
             try {
                 // Fetch managers

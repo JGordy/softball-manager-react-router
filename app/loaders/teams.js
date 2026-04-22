@@ -24,10 +24,11 @@ export async function getUserTeams({ client, isDashboard = false }) {
             // Check each team to determine user's role
             for (const team of userTeams.teams) {
                 try {
-                    const memberships = await teams.listMemberships(team.$id);
-                    const userMembership = memberships.memberships.find(
-                        (m) => m.userId === userId,
-                    );
+                    // Query specifically for the current user's membership in this team
+                    const memberships = await teams.listMemberships(team.$id, [
+                        Query.equal("userId", userId),
+                    ]);
+                    const userMembership = memberships.memberships[0];
 
                     if (userMembership) {
                         // Check roles to categorize as manager or player
@@ -39,19 +40,17 @@ export async function getUserTeams({ client, isDashboard = false }) {
                         } else {
                             playerTeamIds.push(team.$id);
                         }
+                    } else {
+                        // Fallback: Default to player if we somehow can't verify the role
+                        playerTeamIds.push(team.$id);
                     }
                 } catch (error) {
-                    console.error(
-                        `Error checking membership for team ${team.$id}:`,
-                        error,
-                    );
+                    // Fallback on error too
+                    playerTeamIds.push(team.$id);
                 }
             }
         } catch (teamsApiError) {
-            console.error(
-                "Error fetching teams from Appwrite Teams API:",
-                teamsApiError,
-            );
+            // Error fetching teams from Appwrite Teams API
         }
 
         // Fetch teams for managers and players
@@ -60,13 +59,14 @@ export async function getUserTeams({ client, isDashboard = false }) {
                 return [];
             }
 
-            // Batch query: fetch all teams in a single request
-            const result = await listDocuments(
-                "teams",
-                [Query.equal("$id", teamIds)],
-                client,
+            // Fetch each team document individually as querying by $id (rowId)
+            // in TablesDB listRows may not return results for all users.
+            const teamPromises = teamIds.map((id) =>
+                readDocument("teams", id, [], client).catch(() => null),
             );
-            const teams = result.rows;
+            const teams = (await Promise.all(teamPromises)).filter(
+                (t) => t !== null,
+            );
 
             // 1. Batch fetch seasons for all teams
             const allTeamIds = teams.map((t) => t.$id);

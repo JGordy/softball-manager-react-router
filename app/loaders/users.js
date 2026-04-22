@@ -68,36 +68,36 @@ export async function getStatsByUserId({ userId, client }) {
     const gameIds = [...new Set(logs.map((log) => log.gameId))];
 
     // 3. Fetch game details for these games
-    const gamesResponse = await listDocuments(
-        "games",
-        [
-            Query.equal("$id", gameIds),
-            Query.select(["gameDate", "opponent", "teamId"]),
-        ],
-        client,
+    const gamePromises = gameIds.map((id) =>
+        readDocument(
+            "games",
+            id,
+            [Query.select(["gameDate", "opponent", "teamId"])],
+            client,
+        ).catch(() => null),
     );
-
-    const games = gamesResponse.rows;
+    const games = (await Promise.all(gamePromises)).filter((g) => g !== null);
 
     // 4. Extract unique team IDs
     const teamIds = [...new Set(games.map((game) => game.teamId))];
 
-    let teamsResponse;
+    let teams = [];
     // 5. Fetch team details for these games
     if (teamIds?.length > 0) {
-        teamsResponse = await listDocuments(
-            "teams",
-            [
-                Query.equal("$id", teamIds),
-                Query.select(["name", "displayName"]),
-            ],
-            client,
+        const teamPromises = teamIds.map((id) =>
+            readDocument(
+                "teams",
+                id,
+                [Query.select(["name", "displayName"])],
+                client,
+            ).catch(() => null),
         );
+        teams = (await Promise.all(teamPromises)).filter((t) => t !== null);
     }
 
     return {
         logs,
-        games: gamesResponse.rows,
-        teams: teamsResponse?.rows || [],
+        games,
+        teams,
     };
 }

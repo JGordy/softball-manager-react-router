@@ -170,20 +170,19 @@ async function loadGameBase({ eventId, client }) {
         // Fetch actual team objects (TablesDB only stores IDs in relationships)
         let teams = [];
         if (teamIds.length > 0) {
-            const teamsResponse = await listDocuments(
-                "teams",
-                [Query.equal("$id", teamIds)],
-                client,
+            const teamPromises = teamIds.map((id) =>
+                readDocument("teams", id, [], client).catch(() => null),
             );
-            teams = teamsResponse.rows || [];
+            teams = (await Promise.all(teamPromises)).filter((t) => t !== null);
         } else if (season.teamId) {
             // Fallback to single teamId if teams array is empty
-            const teamsResponse = await listDocuments(
+            const team = await readDocument(
                 "teams",
-                [Query.equal("$id", [season.teamId])],
+                season.teamId,
+                [],
                 client,
-            );
-            teams = teamsResponse.rows || [];
+            ).catch(() => null);
+            if (team) teams = [team];
         }
 
         if (teams.length === 0) {
@@ -347,16 +346,13 @@ async function resolvePlayers(userIds, client) {
         .map(({ userId }) => userId)
         .filter((id) => typeof id === "string" && id.trim() !== "");
 
-    if (validUserIdList.length === 0) {
-        return [];
-    }
-
-    const result = await listDocuments(
-        "users",
-        [Query.equal("$id", validUserIdList)],
-        client,
+    const playerPromises = validUserIdList.map((id) =>
+        readDocument("users", id, [], client).catch(() => null),
     );
-    const dbPlayersMap = new Map((result.rows || []).map((p) => [p.$id, p]));
+    const resolvedPlayerDocs = (await Promise.all(playerPromises)).filter(
+        (p) => p !== null,
+    );
+    const dbPlayersMap = new Map(resolvedPlayerDocs.map((p) => [p.$id, p]));
 
     const players = userIds.map(({ userId, name, email }) => {
         const dbPlayer = dbPlayersMap.get(userId);
