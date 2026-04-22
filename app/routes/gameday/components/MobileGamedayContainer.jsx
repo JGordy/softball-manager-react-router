@@ -31,6 +31,7 @@ import SubPlayerDrawer from "./SubPlayerDrawer";
 import GamedayMenu from "./GamedayMenu";
 import AchievementsList from "./AchievementsList";
 import EditPlayDrawer from "./EditPlayDrawer";
+import ShareUrlButton from "@/components/ShareUrlButton";
 
 export default function MobileGamedayContainer({
     game,
@@ -127,20 +128,31 @@ export default function MobileGamedayContainer({
 
     return (
         <Stack gap="md">
-            {/* Page header — rendered here so menu has access to openSubModal */}
-            <Group justify="space-between" align="center">
-                <BackButton to={`/events/${game.$id}`} />
-                <Title order={3}>Scoring & Stats</Title>
-                {isScorekeeper ? (
-                    <GamedayMenu
-                        gameFinal={gameFinal}
-                        score={score}
-                        opponentScore={opponentScore}
-                        onSubBatter={isOurBatting ? openSubModal : undefined}
-                    />
-                ) : (
-                    <div style={{ minWidth: 40 }} />
-                )}
+            {/* Page header — 3-column layout ensures title stays centered */}
+            <Group wrap="nowrap" align="center">
+                <Box flex={1}>
+                    <BackButton to={`/events/${game.$id}`} />
+                </Box>
+
+                <Title order={3} style={{ whiteSpace: "nowrap" }}>
+                    Scoring & Stats
+                </Title>
+
+                <Group flex={1} justify="flex-end" gap="xs" wrap="nowrap">
+                    <ShareUrlButton />
+                    {isScorekeeper ? (
+                        <GamedayMenu
+                            gameFinal={gameFinal}
+                            score={score}
+                            opponentScore={opponentScore}
+                            onSubBatter={
+                                isOurBatting ? openSubModal : undefined
+                            }
+                        />
+                    ) : (
+                        <div style={{ minWidth: 40 }} />
+                    )}
+                </Group>
             </Group>
 
             <ScoreboardHeader

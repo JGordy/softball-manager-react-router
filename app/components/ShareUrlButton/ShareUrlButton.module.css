@@ -1,0 +1,4 @@
+.actionIcon {
+    color: var(--brand-accent);
+    background-color: var(--brand-accent-bg) !important;
+}

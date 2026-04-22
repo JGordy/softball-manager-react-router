@@ -41,7 +41,9 @@ describe("DesktopEventDetailsView", () => {
     it("renders the score panel, info panel, and gameday panel", () => {
         renderWithProviders(<DesktopEventDetailsView {...defaultProps} />);
         expect(screen.getByTestId("score-panel-compact")).toBeInTheDocument();
-        // ...
+        expect(
+            screen.getByRole("button", { name: /share page/i }),
+        ).toBeInTheDocument();
     });
 
     it("renders a tab list with Attendance and Lineups tabs", () => {

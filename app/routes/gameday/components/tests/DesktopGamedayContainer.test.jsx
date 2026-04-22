@@ -75,6 +75,9 @@ describe("DesktopGamedayContainer", () => {
 
         expect(screen.getByText("Opponent")).toBeInTheDocument();
         expect(screen.getByTestId("sub-player-modal")).toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: /share page/i }),
+        ).toBeInTheDocument();
         // Since we are batting, we expect ActionPad
         expect(screen.getByText("ON BASE")).toBeInTheDocument();
         expect(screen.queryByText("FIELDING CONTROLS")).not.toBeInTheDocument();

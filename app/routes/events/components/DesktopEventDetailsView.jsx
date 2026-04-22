@@ -10,6 +10,7 @@ import DesktopLineupPanel from "./DesktopLineupPanel";
 import DesktopAttendancePanel from "./DesktopAttendancePanel";
 import AwardsContainer from "./AwardsContainer";
 import GameMenu from "./GameMenu";
+import ShareUrlButton from "@/components/ShareUrlButton";
 
 export default function DesktopEventDetailsView({
     game,
@@ -63,18 +64,19 @@ export default function DesktopEventDetailsView({
                         )}
                     </Box>
 
-                    {managerView ? (
-                        <GameMenu
-                            game={game}
-                            gameIsPast={gameIsPast}
-                            openDeleteDrawer={openDeleteDrawer}
-                            result={result}
-                            season={season}
-                            team={team}
-                        />
-                    ) : (
-                        <Box style={{ width: 40 }} />
-                    )}
+                    <Group gap="xs">
+                        <ShareUrlButton />
+                        {managerView && (
+                            <GameMenu
+                                game={game}
+                                gameIsPast={gameIsPast}
+                                openDeleteDrawer={openDeleteDrawer}
+                                result={result}
+                                season={season}
+                                team={team}
+                            />
+                        )}
+                    </Group>
                 </Group>
             </Grid.Col>
 

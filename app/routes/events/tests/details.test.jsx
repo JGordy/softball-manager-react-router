@@ -224,6 +224,9 @@ describe("EventDetails Route", () => {
             expect(
                 screen.getByTestId("desktop-event-details-view"),
             ).toBeInTheDocument();
+            expect(
+                screen.getByRole("button", { name: /share page/i }),
+            ).toBeInTheDocument();
         });
 
         it("does NOT render scoreboard for practices", () => {
