@@ -232,8 +232,8 @@ export async function getUserTeams({ client, isDashboard = false }) {
             });
         };
 
-        const managerTeams = await fetchTeams(managerTeamIds);
-        const playerTeams = await fetchTeams(playerTeamIds);
+        const managerResults = await fetchTeams(managerTeamIds);
+        const playerResults = await fetchTeams(playerTeamIds);
 
         if (isDashboard) {
             // Fetch additional stats for the dashboard header
@@ -251,18 +251,18 @@ export async function getUserTeams({ client, isDashboard = false }) {
             ]);
 
             return {
-                managing: managerTeams,
-                playing: playerTeams,
+                managing: managerResults,
+                playing: playerResults,
                 userId,
                 stats: {
                     awardsCount: awardsResult.total || 0,
                     gameCount: gameLogsResult.total || 0,
-                    teamCount: managerTeams.length + playerTeams.length,
+                    teamCount: managerResults.length + playerResults.length,
                 },
             };
         }
 
-        return { managing: managerTeams, playing: playerTeams, userId };
+        return { managing: managerResults, playing: playerResults, userId };
     } catch (error) {
         console.error("Error getting teams: ", error);
         throw error;

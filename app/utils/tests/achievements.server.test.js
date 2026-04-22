@@ -1,16 +1,10 @@
-import { Query } from "node-appwrite";
 import { joinAchievements } from "../achievements.server";
-import { listDocuments } from "../databases";
+import { listDocuments, readDocument } from "../databases";
 
 // Mock dependencies
 jest.mock("../databases", () => ({
     listDocuments: jest.fn(),
-}));
-
-jest.mock("node-appwrite", () => ({
-    Query: {
-        equal: jest.fn((field, value) => ({ field, value, type: "equal" })),
-    },
+    readDocument: jest.fn(),
 }));
 
 describe("achievements utility (server)", () => {
@@ -24,7 +18,7 @@ describe("achievements utility (server)", () => {
         it("should return empty array if input is empty", async () => {
             const result = await joinAchievements([], mockClient);
             expect(result).toEqual([]);
-            expect(listDocuments).not.toHaveBeenCalled();
+            expect(readDocument).not.toHaveBeenCalled();
         });
 
         it("should join user achievements with base achievement documents", async () => {
@@ -34,25 +28,27 @@ describe("achievements utility (server)", () => {
                 { $id: "ua3", achievementId: "ach1", userId: "user1" }, // Duplicate achievement ID
             ];
 
-            const baseAchievements = [
-                { $id: "ach1", name: "Achievement 1" },
-                { $id: "ach2", name: "Achievement 2" },
-            ];
+            const baseAchievement1 = { $id: "ach1", name: "Achievement 1" };
+            const baseAchievement2 = { $id: "ach2", name: "Achievement 2" };
 
-            listDocuments.mockResolvedValueOnce({ rows: baseAchievements });
+            readDocument
+                .mockResolvedValueOnce(baseAchievement1)
+                .mockResolvedValueOnce(baseAchievement2);
 
             const result = await joinAchievements(uaRows, mockClient);
 
-            // Verify ID collection (should have unique IDs: ach1, ach2)
-            expect(Query.equal).toHaveBeenCalledWith("$id", ["ach1", "ach2"]);
-            expect(listDocuments).toHaveBeenCalledWith(
+            // Verify readDocument called for unique IDs
+            expect(readDocument).toHaveBeenCalledTimes(2);
+            expect(readDocument).toHaveBeenCalledWith(
                 "achievements",
-                [
-                    expect.objectContaining({
-                        field: "$id",
-                        value: ["ach1", "ach2"],
-                    }),
-                ],
+                "ach1",
+                [],
+                mockClient,
+            );
+            expect(readDocument).toHaveBeenCalledWith(
+                "achievements",
+                "ach2",
+                [],
                 mockClient,
             );
 
@@ -65,7 +61,7 @@ describe("achievements utility (server)", () => {
 
         it("should handle missing base achievements gracefully", async () => {
             const uaRows = [{ $id: "ua1", achievementId: "missing-ach" }];
-            listDocuments.mockResolvedValueOnce({ rows: [] });
+            readDocument.mockRejectedValueOnce({ code: 404 });
 
             const result = await joinAchievements(uaRows, mockClient);
 
@@ -78,7 +74,7 @@ describe("achievements utility (server)", () => {
 
             expect(result).toHaveLength(1);
             expect(result[0].achievement).toBeNull();
-            expect(listDocuments).not.toHaveBeenCalled();
+            expect(readDocument).not.toHaveBeenCalled();
         });
     });
 });
