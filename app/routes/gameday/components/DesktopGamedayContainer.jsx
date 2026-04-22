@@ -30,6 +30,7 @@ import SubPlayerDrawer from "./SubPlayerDrawer";
 import GamedayMenu from "./GamedayMenu";
 import AchievementsList from "./AchievementsList";
 import EditPlayDrawer from "./EditPlayDrawer";
+import ShareUrlButton from "@/components/ShareUrlButton";
 
 export default function DesktopGamedayContainer({
     game,
@@ -131,16 +132,21 @@ export default function DesktopGamedayContainer({
             <Group justify="space-between" align="center">
                 <BackButton to={`/events/${game.$id}`} />
                 <Title order={3}>Scoring & Stats</Title>
-                {isScorekeeper ? (
-                    <GamedayMenu
-                        gameFinal={gameFinal}
-                        score={score}
-                        opponentScore={opponentScore}
-                        onSubBatter={isOurBatting ? openSubModal : undefined}
-                    />
-                ) : (
-                    <div style={{ minWidth: 40 }} />
-                )}
+                <Group gap="xs">
+                    <ShareUrlButton />
+                    {isScorekeeper ? (
+                        <GamedayMenu
+                            gameFinal={gameFinal}
+                            score={score}
+                            opponentScore={opponentScore}
+                            onSubBatter={
+                                isOurBatting ? openSubModal : undefined
+                            }
+                        />
+                    ) : (
+                        <div style={{ minWidth: 40 }} />
+                    )}
+                </Group>
             </Group>
 
             <Box pos="relative">
