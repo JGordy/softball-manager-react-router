@@ -246,6 +246,9 @@ describe("Lineup Route", () => {
             expect(useResponseNotification).toHaveBeenCalledWith(actionData);
             expect(screen.getByText("Back")).toBeInTheDocument();
             expect(screen.getByTestId("lineup-container")).toBeInTheDocument();
+            expect(
+                screen.getByRole("button", { name: /share page/i }),
+            ).toBeInTheDocument();
 
             // Manager view components
             expect(screen.getAllByTestId("lineup-menu")).toHaveLength(2);
