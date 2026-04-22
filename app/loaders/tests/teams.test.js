@@ -58,7 +58,6 @@ describe("Teams Loader", () => {
                     listMemberships: jest
                         .fn()
                         .mockResolvedValueOnce({
-                            // team1 - user is manager
                             memberships: [
                                 {
                                     userId: "user1",
@@ -67,7 +66,6 @@ describe("Teams Loader", () => {
                             ],
                         })
                         .mockResolvedValueOnce({
-                            // team2 - user is player
                             memberships: [
                                 { userId: "user1", roles: ["player"] },
                             ],
@@ -75,18 +73,17 @@ describe("Teams Loader", () => {
                 },
             });
 
-            const mockManagerTeams = [
-                { $id: "team1", name: "Team 1", seasons: [] },
-            ];
-            const mockPlayerTeams = [
-                { $id: "team2", name: "Team 2", seasons: [] },
-            ];
+            const mockManagerTeam = { $id: "team1", name: "Team 1" };
+            const mockPlayerTeam = { $id: "team2", name: "Team 2" };
 
-            // Mock the batch fetch calls for database teams
+            // Mock individual readDocument calls for teams
+            readDocument
+                .mockResolvedValueOnce(mockManagerTeam)
+                .mockResolvedValueOnce(mockPlayerTeam);
+
+            // Mock listDocuments calls for seasons (called once per fetchTeams call)
             listDocuments
-                .mockResolvedValueOnce({ rows: mockManagerTeams }) // manager teams from DB
                 .mockResolvedValueOnce({ rows: [] }) // seasons for manager team
-                .mockResolvedValueOnce({ rows: mockPlayerTeams }) // player teams from DB
                 .mockResolvedValueOnce({ rows: [] }); // seasons for player team
 
             const result = await getUserTeams({
@@ -94,8 +91,8 @@ describe("Teams Loader", () => {
             });
 
             expect(result.userId).toBe("user1");
-            expect(result.managing).toEqual(mockManagerTeams);
-            expect(result.playing).toEqual(mockPlayerTeams);
+            expect(result.managing[0].$id).toBe("team1");
+            expect(result.playing[0].$id).toBe("team2");
         });
 
         it("should return stats when isDashboard is true", async () => {
@@ -114,24 +111,24 @@ describe("Teams Loader", () => {
                 },
             });
 
-            // Mock DB calls in order:
-            // 1. fetchTeams (manager): teams list
-            // 2. fetchTeams (manager): seasons list
-            // 3. fetchTeams (manager): past games
-            // 4. fetchTeams (manager): future games
-            // 5. stats: awards list
-            // 6. stats: game_logs list
-            listDocuments
-                .mockResolvedValueOnce({
-                    rows: [{ $id: "team1", name: "Team 1" }],
-                }) // manager teams
-                .mockResolvedValueOnce({
-                    rows: [{ $id: "season1", teamId: "team1" }],
-                }) // seasons
-                .mockResolvedValueOnce({ rows: [] }) // past games
-                .mockResolvedValueOnce({ rows: [] }) // future games
-                .mockResolvedValueOnce({ total: 5 }) // awards count
-                .mockResolvedValueOnce({ total: 10 }); // game logs count
+            // 1. readDocument (manager team)
+            readDocument.mockResolvedValueOnce({
+                $id: "team1",
+                name: "Team 1",
+                displayName: "T1",
+            });
+            // 2. listDocuments (seasons)
+            listDocuments.mockResolvedValueOnce({
+                rows: [{ $id: "season1", teamId: "team1" }],
+            });
+            // 3. listDocuments (past games)
+            listDocuments.mockResolvedValueOnce({ rows: [] });
+            // 4. listDocuments (future games)
+            listDocuments.mockResolvedValueOnce({ rows: [] });
+            // 5. listDocuments (awards count)
+            listDocuments.mockResolvedValueOnce({ total: 5 });
+            // 6. listDocuments (game logs count)
+            listDocuments.mockResolvedValueOnce({ total: 10 });
 
             const result = await getUserTeams({
                 client: await createSessionClient(),
@@ -141,7 +138,7 @@ describe("Teams Loader", () => {
             expect(result.stats).toEqual({
                 awardsCount: 5,
                 gameCount: 10,
-                teamCount: 1, // 1 manager team + 0 player teams
+                teamCount: 1,
             });
         });
     });
@@ -182,11 +179,17 @@ describe("Teams Loader", () => {
                 },
             });
 
-            listDocuments.mockResolvedValueOnce({ rows: mockUsers }); // users
-            readDocument.mockResolvedValueOnce(mockTeamData); // team data
-            listDocuments.mockResolvedValueOnce({ rows: mockSeasons }); // seasons
-            listDocuments.mockResolvedValueOnce({ rows: mockGames }); // games
-            listDocuments.mockResolvedValueOnce({ rows: [] }); // game logs
+            // ORDER:
+            // 1. listDocuments (users)
+            listDocuments.mockResolvedValueOnce({ rows: mockUsers });
+            // 2. readDocument (team data)
+            readDocument.mockResolvedValueOnce(mockTeamData);
+            // 3. listDocuments (seasons)
+            listDocuments.mockResolvedValueOnce({ rows: mockSeasons });
+            // 4. listDocuments (games)
+            listDocuments.mockResolvedValueOnce({ rows: mockGames });
+            // 5. listDocuments (game logs)
+            listDocuments.mockResolvedValueOnce({ rows: [] });
 
             const result = await getTeamById({
                 teamId: "team1",

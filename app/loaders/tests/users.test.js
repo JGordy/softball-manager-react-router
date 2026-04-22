@@ -50,25 +50,24 @@ describe("Users Loader", () => {
             ];
 
             // Mock first call (logs)
-            listDocuments.mockImplementationOnce(() =>
-                Promise.resolve({ rows: mockLogs }),
-            );
-            // Mock second call (games)
-            listDocuments.mockImplementationOnce(() =>
-                Promise.resolve({ rows: mockGames }),
-            );
-            // Mock third call (teams)
-            listDocuments.mockImplementationOnce(() =>
-                Promise.resolve({ rows: mockTeams }),
-            );
+            listDocuments.mockResolvedValueOnce({ rows: mockLogs });
+
+            // Mock individual readDocument calls for games
+            readDocument
+                .mockResolvedValueOnce(mockGames[0])
+                .mockResolvedValueOnce(mockGames[1]);
+
+            // Mock individual readDocument calls for teams
+            readDocument
+                .mockResolvedValueOnce(mockTeams[0])
+                .mockResolvedValueOnce(mockTeams[1]);
 
             const result = await getStatsByUserId({
                 userId: "user1",
                 client: mockClient,
             });
 
-            expect(listDocuments).toHaveBeenNthCalledWith(
-                1,
+            expect(listDocuments).toHaveBeenCalledWith(
                 "game_logs",
                 expect.arrayContaining([
                     Query.equal("playerId", "user1"),
@@ -77,31 +76,37 @@ describe("Users Loader", () => {
                 mockClient,
             );
 
-            // Check that we requested the correct game IDs
-            expect(listDocuments).toHaveBeenNthCalledWith(
-                2,
+            // Check that we read the games
+            expect(readDocument).toHaveBeenCalledWith(
                 "games",
-                expect.arrayContaining([
-                    Query.equal("$id", ["game1", "game2"]),
-                ]),
+                "game1",
+                expect.any(Array),
+                mockClient,
+            );
+            expect(readDocument).toHaveBeenCalledWith(
+                "games",
+                "game2",
+                expect.any(Array),
                 mockClient,
             );
 
-            // Check that we requested the correct team IDs
-            expect(listDocuments).toHaveBeenNthCalledWith(
-                3,
+            // Check that we read the teams
+            expect(readDocument).toHaveBeenCalledWith(
                 "teams",
-                expect.arrayContaining([
-                    Query.equal("$id", ["team1", "team2"]),
-                ]),
+                "team1",
+                expect.any(Array),
+                mockClient,
+            );
+            expect(readDocument).toHaveBeenCalledWith(
+                "teams",
+                "team2",
+                expect.any(Array),
                 mockClient,
             );
 
-            expect(result).toEqual({
-                logs: mockLogs,
-                games: mockGames,
-                teams: mockTeams,
-            });
+            expect(result.logs).toEqual(mockLogs);
+            expect(result.games).toEqual(mockGames);
+            expect(result.teams).toEqual(mockTeams);
         });
 
         it("should return empty arrays if no logs found", async () => {
@@ -199,12 +204,10 @@ describe("Users Loader", () => {
             ];
             const mockBaseAchievements = [
                 { $id: "ach1", name: "Multi HR Game", rarity: "rare" },
-                { $id: "ach2", name: "Cycle", rarity: "legendary" },
             ];
 
-            listDocuments
-                .mockResolvedValueOnce({ rows: mockUserAchievements })
-                .mockResolvedValueOnce({ rows: mockBaseAchievements });
+            listDocuments.mockResolvedValueOnce({ rows: mockUserAchievements });
+            readDocument.mockResolvedValueOnce(mockBaseAchievements[0]);
 
             const result = await getAchievementsByUserId({
                 userId: "user1",
@@ -216,9 +219,10 @@ describe("Users Loader", () => {
                 ['equal("userId", "user1")', "limit(100)"],
                 mockClient,
             );
-            expect(listDocuments).toHaveBeenCalledWith(
+            expect(readDocument).toHaveBeenCalledWith(
                 "achievements",
-                ['equal("$id", "ach1")'],
+                "ach1",
+                [],
                 mockClient,
             );
 

@@ -43,8 +43,17 @@ describe("Seasons Loader", () => {
 
     describe("getSeasonById", () => {
         it("should return season data when seasonId is provided", async () => {
-            const mockSeason = { $id: "season1", name: "Fall 2023" };
-            readDocument.mockResolvedValue(mockSeason);
+            const mockSeason = {
+                $id: "season1",
+                name: "Fall 2023",
+                teamId: "team1",
+            };
+            const mockTeam = { $id: "team1", name: "Team 1" };
+
+            readDocument
+                .mockResolvedValueOnce(mockSeason) // for season
+                .mockResolvedValueOnce(mockTeam); // for team
+
             listDocuments.mockResolvedValue({ rows: [] }); // Mock games query
 
             const result = await getSeasonById({
@@ -58,7 +67,8 @@ describe("Seasons Loader", () => {
                 [],
                 mockSessionClient,
             );
-            expect(result.season).toEqual(mockSeason);
+            expect(result.season.$id).toBe("season1");
+            expect(result.season.teams[0].$id).toBe("team1");
             expect(Query.equal).toHaveBeenCalledWith("seasons", "season1");
         });
 

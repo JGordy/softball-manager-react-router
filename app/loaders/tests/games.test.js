@@ -94,12 +94,14 @@ describe("Games Loader", () => {
             // Mock for loadGameBase
             readDocument.mockResolvedValueOnce(mockGame); // game
             readDocument.mockResolvedValueOnce(mockSeason); // season
+            readDocument.mockResolvedValueOnce(mockTeams[0]); // team
 
-            // Mock for teams query and deferred data queries (users, attendance, awards, votes)
-            listDocuments.mockResolvedValue({ rows: mockTeams });
+            // Mock for deferred data queries (attendance, awards, votes)
+            listDocuments.mockResolvedValue({ rows: [], total: 0 });
 
-            // Mock for getWeatherData
-            readDocument.mockResolvedValue({ latitude: 0, longitude: 0 });
+            // Mock for resolvePlayers (called in deferredData.players)
+            // Note: deferredData.players is a promise, resolvePlayers uses readDocument now
+            readDocument.mockResolvedValue(mockGame); // Default for other readDocument calls
 
             const result = await getEventById({
                 eventId: "game1",
@@ -139,8 +141,9 @@ describe("Games Loader", () => {
             // Mock loadGameBase
             readDocument.mockResolvedValueOnce(mockGameBadChart);
             readDocument.mockResolvedValueOnce(mockSeason);
-            listDocuments.mockResolvedValue({
-                rows: [{ $id: "team1", name: "Team 1" }],
+            readDocument.mockResolvedValueOnce({
+                $id: "team1",
+                name: "Team 1",
             });
             readDocument.mockResolvedValue({ latitude: 0, longitude: 0 });
 
@@ -182,8 +185,9 @@ describe("Games Loader", () => {
 
             readDocument.mockResolvedValueOnce(mockGameWithChart);
             readDocument.mockResolvedValueOnce(mockSeason);
-            listDocuments.mockResolvedValue({
-                rows: [{ $id: "team1", name: "Team 1" }],
+            readDocument.mockResolvedValueOnce({
+                $id: "team1",
+                name: "Team 1",
             });
 
             const result = await getEventById({
@@ -209,7 +213,6 @@ describe("Games Loader", () => {
                 teams: ["team1"],
                 parkId: "park1",
             };
-            const mockTeams = [{ $id: "team1", name: "Team 1" }];
 
             // Mock Teams API for memberships
             const mockListMemberships = jest.fn().mockResolvedValue({
@@ -229,7 +232,10 @@ describe("Games Loader", () => {
 
             readDocument.mockResolvedValueOnce(mockGame);
             readDocument.mockResolvedValueOnce(mockSeason);
-            listDocuments.mockResolvedValue({ rows: mockTeams });
+            readDocument.mockResolvedValueOnce({
+                $id: "team1",
+                name: "Team 1",
+            });
             readDocument.mockResolvedValue({ latitude: 0, longitude: 0 });
 
             const result = await getEventById({
@@ -272,7 +278,6 @@ describe("Games Loader", () => {
             };
             const mockUsers = [{ $id: "user1", name: "Player 1" }];
             const mockAttendance = [{ $id: "att1" }];
-            const mockTeams = [{ $id: "team1", name: "Team 1" }];
 
             // Mock Teams API and Users API
             const mockListMemberships = jest.fn().mockResolvedValue({
@@ -294,12 +299,16 @@ describe("Games Loader", () => {
             // Mock for loadGameBase
             readDocument.mockResolvedValueOnce(mockGame); // game
             readDocument.mockResolvedValueOnce(mockSeason); // season
+            readDocument.mockResolvedValueOnce({
+                $id: "team1",
+                name: "Team 1",
+            }); // team
 
-            // Mock all listDocuments calls in order
-            listDocuments
-                .mockResolvedValueOnce({ rows: mockTeams }) // teams
-                .mockResolvedValueOnce({ rows: mockUsers }) // users in resolvePlayers
-                .mockResolvedValueOnce({ rows: mockAttendance }); // attendance
+            // Mock individual readDocument call inside resolvePlayers
+            readDocument.mockResolvedValueOnce(mockUsers[0]);
+
+            // Mock for attendance
+            listDocuments.mockResolvedValueOnce({ rows: mockAttendance }); // attendance
 
             const result = await getEventWithPlayerCharts({
                 client: mockSessionClient,
@@ -332,8 +341,9 @@ describe("Games Loader", () => {
             // Mock loadGameBase
             readDocument.mockResolvedValueOnce(mockGame);
             readDocument.mockResolvedValueOnce(mockSeason);
-            listDocuments.mockResolvedValueOnce({
-                rows: [{ $id: "team1", name: "Team 1" }],
+            readDocument.mockResolvedValueOnce({
+                $id: "team1",
+                name: "Team 1",
             });
 
             // Mock memberships
@@ -349,14 +359,13 @@ describe("Games Loader", () => {
                 },
             });
 
-            // resolvePlayers will be called with guest-starter and guest-sub.
-            // Mock listDocuments for resolvePlayers to return these users.
-            listDocuments.mockResolvedValueOnce({
-                rows: [
-                    { $id: "guest-starter", name: "Guest Starter" },
-                    { $id: "guest-sub", name: "Guest Sub" },
-                ],
-            });
+            // Mock individual readDocument calls inside resolvePlayers
+            readDocument
+                .mockResolvedValueOnce({
+                    $id: "guest-starter",
+                    name: "Guest Starter",
+                })
+                .mockResolvedValueOnce({ $id: "guest-sub", name: "Guest Sub" });
 
             // Mock getAttendance
             listDocuments.mockResolvedValueOnce({ rows: [] });
