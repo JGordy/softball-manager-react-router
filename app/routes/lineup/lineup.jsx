@@ -28,6 +28,7 @@ import LineupMenu from "./components/LineupMenu";
 import LineupValidationMenu from "./components/LineupValidationMenu";
 import AILineupDrawer from "./components/AILineupDrawer";
 import AddPlayersDrawer from "./components/AddPlayersDrawer";
+import ShareUrlButton from "@/components/ShareUrlButton";
 
 import { validateLineup } from "./utils/validateLineup";
 
@@ -217,66 +218,69 @@ function Lineup({ loaderData, actionData }) {
             <Stack gap="md" mt="lg" mb="xl">
                 <Group justify="space-between" align="center">
                     <BackButton text="Back to event details" />
-                    {managerView && (
-                        <Group gap="lg" visibleFrom="sm">
-                            {isGameActive && (
-                                <Button
-                                    variant="light"
-                                    component={Link}
-                                    to={`/events/${eventId}/gameday`}
-                                    leftSection={
-                                        <IconDeviceAnalytics size={16} />
-                                    }
-                                >
-                                    Go to Live Scoring
-                                </Button>
-                            )}
-                            <LineupValidationMenu
-                                validationResults={validationResults}
-                            />
-                            <LineupMenu
-                                game={game}
-                                team={team}
-                                actionUrl={`/events/${eventId}/lineup`}
-                                players={playersWithAvailability}
-                                lineupState={lineupState}
-                                lineupHandlers={lineupHandlers}
-                                setHasBeenEdited={setHasBeenEdited}
-                                onOpenAiDrawer={aiDrawerHandlers.open}
-                                onOpenAddPlayers={addPlayersHandlers.open}
-                            />
-                        </Group>
-                    )}
-                    {managerView && (
-                        <Group gap="xs" hiddenFrom="sm">
-                            {isGameActive && (
-                                <Button
-                                    variant="light"
-                                    component={Link}
-                                    to={`/events/${eventId}/gameday`}
-                                    leftSection={
-                                        <IconDeviceAnalytics size={16} />
-                                    }
-                                >
-                                    Scoring
-                                </Button>
-                            )}
-                            <LineupValidationMenu
-                                validationResults={validationResults}
-                            />
-                            <LineupMenu
-                                game={game}
-                                team={team}
-                                actionUrl={`/events/${eventId}/lineup`}
-                                players={playersWithAvailability}
-                                lineupState={lineupState}
-                                lineupHandlers={lineupHandlers}
-                                setHasBeenEdited={setHasBeenEdited}
-                                onOpenAiDrawer={aiDrawerHandlers.open}
-                                onOpenAddPlayers={addPlayersHandlers.open}
-                            />
-                        </Group>
-                    )}
+                    <Group align="center" gap="xs">
+                        <ShareUrlButton />
+                        {managerView && (
+                            <Group gap="lg" visibleFrom="sm">
+                                {isGameActive && (
+                                    <Button
+                                        variant="light"
+                                        component={Link}
+                                        to={`/events/${eventId}/gameday`}
+                                        leftSection={
+                                            <IconDeviceAnalytics size={16} />
+                                        }
+                                    >
+                                        Go to Live Scoring
+                                    </Button>
+                                )}
+                                <LineupValidationMenu
+                                    validationResults={validationResults}
+                                />
+                                <LineupMenu
+                                    game={game}
+                                    team={team}
+                                    actionUrl={`/events/${eventId}/lineup`}
+                                    players={playersWithAvailability}
+                                    lineupState={lineupState}
+                                    lineupHandlers={lineupHandlers}
+                                    setHasBeenEdited={setHasBeenEdited}
+                                    onOpenAiDrawer={aiDrawerHandlers.open}
+                                    onOpenAddPlayers={addPlayersHandlers.open}
+                                />
+                            </Group>
+                        )}
+                        {managerView && (
+                            <Group gap="xs" hiddenFrom="sm">
+                                {isGameActive && (
+                                    <Button
+                                        variant="light"
+                                        component={Link}
+                                        to={`/events/${eventId}/gameday`}
+                                        leftSection={
+                                            <IconDeviceAnalytics size={16} />
+                                        }
+                                    >
+                                        Scoring
+                                    </Button>
+                                )}
+                                <LineupValidationMenu
+                                    validationResults={validationResults}
+                                />
+                                <LineupMenu
+                                    game={game}
+                                    team={team}
+                                    actionUrl={`/events/${eventId}/lineup`}
+                                    players={playersWithAvailability}
+                                    lineupState={lineupState}
+                                    lineupHandlers={lineupHandlers}
+                                    setHasBeenEdited={setHasBeenEdited}
+                                    onOpenAiDrawer={aiDrawerHandlers.open}
+                                    onOpenAddPlayers={addPlayersHandlers.open}
+                                />
+                            </Group>
+                        )}
+                    </Group>
                 </Group>
 
                 <Stack gap={0}>

@@ -36,6 +36,7 @@ import MobileEventDetailsView from "./components/MobileEventDetailsView";
 import DesktopEventDetailsView from "./components/DesktopEventDetailsView";
 import AvailabilityPromptDrawer from "./components/AvailabilityPromptDrawer";
 import AwardsDrawerContents from "./components/AwardsDrawerContents";
+import ShareUrlButton from "@/components/ShareUrlButton";
 
 export async function action({ request, params }) {
     const { eventId } = params;
@@ -239,16 +240,19 @@ export default function EventDetails({ loaderData, actionData }) {
             >
                 <Group justify="space-between" mx="md">
                     <BackButton />
-                    {managerView && (
-                        <GameMenu
-                            game={game}
-                            gameIsPast={gameIsPast}
-                            openDeleteDrawer={deleteDrawerHandlers.open}
-                            result={result}
-                            season={season}
-                            team={team}
-                        />
-                    )}
+                    <Group gap="xs">
+                        <ShareUrlButton />
+                        {managerView && (
+                            <GameMenu
+                                game={game}
+                                gameIsPast={gameIsPast}
+                                openDeleteDrawer={deleteDrawerHandlers.open}
+                                result={result}
+                                season={season}
+                                team={team}
+                            />
+                        )}
+                    </Group>
                 </Group>
                 {game.eventType !== "practice" ? (
                     <Scoreboard
