@@ -1,4 +1,5 @@
-import { readDocument } from "./databases";
+import { Query } from "node-appwrite";
+import { listDocuments } from "./databases";
 
 /**
  * Joins user_achievement rows with their corresponding base achievement documents.
@@ -10,21 +11,29 @@ import { readDocument } from "./databases";
 export async function joinAchievements(uaRows = [], client) {
     if (uaRows.length === 0) return [];
 
-    // Extract unique achievement IDs to fetch only what we need
-    const achievementIds = [
-        ...new Set(uaRows.map((ua) => ua.achievementId).filter(Boolean)),
-    ];
     let baseMap = new Map();
+    const hasAchievementIds = uaRows.some((ua) => ua.achievementId);
 
-    if (achievementIds.length > 0) {
-        // Fetch each base achievement individually as querying by $id
-        // in TablesDB listRows may not return results for all users.
-        const achievementPromises = achievementIds.map((id) =>
-            readDocument("achievements", id, [], client).catch(() => null),
-        );
-        const baseRows = (await Promise.all(achievementPromises)).filter(
-            (a) => a !== null,
-        );
+    if (hasAchievementIds) {
+        // Fetch all base achievements (only 26 total) to avoid problematic $id filters
+        // or expensive individual row lookups in the TablesDB environment.
+        let baseRows = [];
+        try {
+            const result = await listDocuments(
+                "achievements",
+                [Query.limit(500)],
+                client,
+            );
+            baseRows = result.rows || [];
+        } catch (err) {
+            console.error(
+                "[joinAchievements] Failed to fetch base achievements:",
+                err,
+            );
+            // Default to empty array so join still succeeds with null metadata
+            baseRows = [];
+        }
+
         baseMap = new Map(baseRows.map((a) => [a.$id, a]));
     }
 

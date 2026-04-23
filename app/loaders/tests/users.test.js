@@ -7,7 +7,6 @@ import {
     getStatsByUserId,
     getAchievementsByUserId,
 } from "../users";
-import { Query } from "node-appwrite";
 
 // Mock dependencies
 jest.mock("@/utils/databases", () => ({
@@ -70,13 +69,14 @@ describe("Users Loader", () => {
             expect(listDocuments).toHaveBeenCalledWith(
                 "game_logs",
                 expect.arrayContaining([
-                    Query.equal("playerId", "user1"),
-                    Query.orderDesc("$createdAt"),
+                    expect.stringContaining('equal("playerId", "user1")'),
+                    expect.stringContaining('orderDesc("$createdAt")'),
+                    expect.stringContaining("limit(500)"),
                 ]),
                 mockClient,
             );
 
-            // Check that we read the games
+            // Check that we read ALL unique games individually
             expect(readDocument).toHaveBeenCalledWith(
                 "games",
                 "game1",
@@ -90,7 +90,7 @@ describe("Users Loader", () => {
                 mockClient,
             );
 
-            // Check that we read the teams
+            // Check that we read ALL unique teams individually
             expect(readDocument).toHaveBeenCalledWith(
                 "teams",
                 "team1",
@@ -107,6 +107,33 @@ describe("Users Loader", () => {
             expect(result.logs).toEqual(mockLogs);
             expect(result.games).toEqual(mockGames);
             expect(result.teams).toEqual(mockTeams);
+        });
+
+        it("should handle multi-batch processing for large game sets", async () => {
+            // Create 11 unique games (forcing 2 batches of 10)
+            const manyLogs = Array.from({ length: 11 }, (_, i) => ({
+                $id: `log${i}`,
+                gameId: `game${i}`,
+            }));
+            const manyGames = manyLogs.map((log) => ({
+                $id: log.gameId,
+                teamId: "team1",
+            }));
+
+            listDocuments.mockResolvedValueOnce({ rows: manyLogs });
+            manyGames.forEach((game) =>
+                readDocument.mockResolvedValueOnce(game),
+            );
+            readDocument.mockResolvedValue({ $id: "team1", name: "Team 1" });
+
+            const result = await getStatsByUserId({
+                userId: "user1",
+                client: mockClient,
+            });
+
+            expect(result.games).toHaveLength(11);
+            // Verify readDocument was called 11 times for games + 1 for team
+            expect(readDocument).toHaveBeenCalledTimes(12);
         });
 
         it("should return empty arrays if no logs found", async () => {
@@ -154,7 +181,7 @@ describe("Users Loader", () => {
 
             expect(listDocuments).toHaveBeenCalledWith(
                 "attendance",
-                ['equal("playerId", "user1")', "limit(100)"],
+                ['equal("playerId", "user1")', "limit(500)"],
                 mockClient,
             );
             expect(result).toEqual(mockAttendance);
@@ -206,8 +233,10 @@ describe("Users Loader", () => {
                 { $id: "ach1", name: "Multi HR Game", rarity: "rare" },
             ];
 
-            listDocuments.mockResolvedValueOnce({ rows: mockUserAchievements });
-            readDocument.mockResolvedValueOnce(mockBaseAchievements[0]);
+            // First call for user achievements, second call for base achievements
+            listDocuments
+                .mockResolvedValueOnce({ rows: mockUserAchievements })
+                .mockResolvedValueOnce({ rows: mockBaseAchievements });
 
             const result = await getAchievementsByUserId({
                 userId: "user1",
@@ -216,13 +245,13 @@ describe("Users Loader", () => {
 
             expect(listDocuments).toHaveBeenCalledWith(
                 "user_achievements",
-                ['equal("userId", "user1")', "limit(100)"],
+                ['equal("userId", "user1")', "limit(500)"],
                 mockClient,
             );
-            expect(readDocument).toHaveBeenCalledWith(
+
+            expect(listDocuments).toHaveBeenCalledWith(
                 "achievements",
-                "ach1",
-                [],
+                ["limit(500)"],
                 mockClient,
             );
 

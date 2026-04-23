@@ -2,6 +2,7 @@ import { joinAchievements } from "../achievements.server";
 import { listDocuments, readDocument } from "../databases";
 
 // Mock dependencies
+jest.mock("node-appwrite");
 jest.mock("../databases", () => ({
     listDocuments: jest.fn(),
     readDocument: jest.fn(),
@@ -25,30 +26,25 @@ describe("achievements utility (server)", () => {
             const uaRows = [
                 { $id: "ua1", achievementId: "ach1", userId: "user1" },
                 { $id: "ua2", achievementId: "ach2", userId: "user1" },
-                { $id: "ua3", achievementId: "ach1", userId: "user1" }, // Duplicate achievement ID
+                { $id: "ua3", achievementId: "ach1", userId: "user1" },
             ];
 
-            const baseAchievement1 = { $id: "ach1", name: "Achievement 1" };
-            const baseAchievement2 = { $id: "ach2", name: "Achievement 2" };
+            const baseAchievements = [
+                { $id: "ach1", name: "Achievement 1" },
+                { $id: "ach2", name: "Achievement 2" },
+            ];
 
-            readDocument
-                .mockResolvedValueOnce(baseAchievement1)
-                .mockResolvedValueOnce(baseAchievement2);
+            listDocuments.mockResolvedValueOnce({
+                rows: baseAchievements,
+                total: 2,
+            });
 
             const result = await joinAchievements(uaRows, mockClient);
 
-            // Verify readDocument called for unique IDs
-            expect(readDocument).toHaveBeenCalledTimes(2);
-            expect(readDocument).toHaveBeenCalledWith(
+            // Verify listDocuments called correctly
+            expect(listDocuments).toHaveBeenCalledWith(
                 "achievements",
-                "ach1",
-                [],
-                mockClient,
-            );
-            expect(readDocument).toHaveBeenCalledWith(
-                "achievements",
-                "ach2",
-                [],
+                expect.arrayContaining([expect.stringContaining("limit(500)")]),
                 mockClient,
             );
 
@@ -61,20 +57,30 @@ describe("achievements utility (server)", () => {
 
         it("should handle missing base achievements gracefully", async () => {
             const uaRows = [{ $id: "ua1", achievementId: "missing-ach" }];
-            readDocument.mockRejectedValueOnce({ code: 404 });
+            listDocuments.mockResolvedValueOnce({ rows: [], total: 0 });
 
             const result = await joinAchievements(uaRows, mockClient);
 
             expect(result[0].achievement).toBeNull();
         });
 
-        it("should skip base fetch if no achievement IDs exist", async () => {
+        it("should skip base fetch if no rows have an achievementId", async () => {
             const uaRows = [{ $id: "ua1" }]; // Missing achievementId
             const result = await joinAchievements(uaRows, mockClient);
 
             expect(result).toHaveLength(1);
             expect(result[0].achievement).toBeNull();
-            expect(readDocument).not.toHaveBeenCalled();
+            expect(listDocuments).not.toHaveBeenCalled();
+        });
+
+        it("should handle listDocuments rejection gracefully", async () => {
+            const uaRows = [{ $id: "ua1", achievementId: "ach1" }];
+            listDocuments.mockRejectedValueOnce(new Error("Network Error"));
+
+            const result = await joinAchievements(uaRows, mockClient);
+
+            expect(result).toHaveLength(1);
+            expect(result[0].achievement).toBeNull();
         });
     });
 });
