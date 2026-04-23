@@ -22,7 +22,7 @@ This document serves as the "Source of Truth" for AI agents and developers worki
 - **UI Library**: [Mantine UI](https://mantine.dev/) (v8+).
 - **Icons**: Tabler Icons.
 - **Styling**: PostCSS + CSS Modules.
-- **Runtime**: Node.js (SSR focused).
+- **Runtime**: Node.js v24 (See `.nvmrc`). SSR focused.
 
 ### Coding Standards
 
@@ -76,7 +76,7 @@ Code is considered "Complete" only when it meets the following criteria:
 
 ## 5. Tooling & Workflows
 
-- **Local Development**: `npm run dev` starts the React Router dev server on port `5173`.
+- **Local Development**: Always use Node v24 (run `nvm use` to sync with `.nvmrc`). `npm run dev` starts the React Router dev server on port `5173`.
 - **UI Testing**: Always use the **built-in browser tool** to verify:
     - Interactive elements (drag-and-drop, modals).
     - Responsive layouts (Mobile-first).
