@@ -206,8 +206,10 @@ describe("Users Loader", () => {
                 { $id: "ach1", name: "Multi HR Game", rarity: "rare" },
             ];
 
-            listDocuments.mockResolvedValueOnce({ rows: mockUserAchievements });
-            readDocument.mockResolvedValueOnce(mockBaseAchievements[0]);
+            // First call for user achievements, second call for base achievements
+            listDocuments
+                .mockResolvedValueOnce({ rows: mockUserAchievements })
+                .mockResolvedValueOnce({ rows: mockBaseAchievements });
 
             const result = await getAchievementsByUserId({
                 userId: "user1",
@@ -219,10 +221,10 @@ describe("Users Loader", () => {
                 ['equal("userId", "user1")', "limit(500)"],
                 mockClient,
             );
-            expect(readDocument).toHaveBeenCalledWith(
+
+            expect(listDocuments).toHaveBeenCalledWith(
                 "achievements",
-                "ach1",
-                [],
+                ["limit(500)"],
                 mockClient,
             );
 

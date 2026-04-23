@@ -10,7 +10,7 @@ export async function getAttendanceByUserId({ userId, client }) {
     try {
         const attendance = await listDocuments(
             "attendance",
-            [Query.equal("playerId", userId), Query.limit(100)],
+            [Query.equal("playerId", userId), Query.limit(500)],
             client,
         );
 
@@ -47,13 +47,13 @@ export async function getAwardsByUserId({ userId, client }) {
 }
 
 export async function getStatsByUserId({ userId, client }) {
-    // 1. Fetch last 100 game logs for the user
+    // 1. Fetch last 500 game logs for the user
     const logsResponse = await listDocuments(
         "game_logs",
         [
             Query.equal("playerId", userId),
             Query.orderDesc("$createdAt"),
-            Query.limit(100),
+            Query.limit(500),
         ],
         client,
     );
