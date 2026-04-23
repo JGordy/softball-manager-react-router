@@ -1,4 +1,5 @@
-import { readDocument } from "./databases";
+import { Query } from "node-appwrite";
+import { listDocuments } from "./databases";
 
 /**
  * Joins user_achievement rows with their corresponding base achievement documents.
@@ -16,15 +17,22 @@ export async function joinAchievements(uaRows = [], client) {
     ];
     let baseMap = new Map();
 
-    if (achievementIds.length > 0) {
-        // Fetch each base achievement individually as querying by $id
-        // in TablesDB listRows may not return results for all users.
-        const achievementPromises = achievementIds.map((id) =>
-            readDocument("achievements", id, [], client).catch(() => null),
-        );
-        const baseRows = (await Promise.all(achievementPromises)).filter(
-            (a) => a !== null,
-        );
+    if (uaRows.length > 0) {
+        // Fetch all base achievements (only 26 total) to avoid problematic $id filters
+        // or expensive individual row lookups in the TablesDB environment.
+        const result = await listDocuments(
+            "achievements",
+            [Query.limit(500)],
+            client,
+        ).catch((err) => {
+            console.error(
+                "[joinAchievements] Error fetching base achievements:",
+                err,
+            );
+            return { rows: [] };
+        });
+
+        const baseRows = result.rows || [];
         baseMap = new Map(baseRows.map((a) => [a.$id, a]));
     }
 

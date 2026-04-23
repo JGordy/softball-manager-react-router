@@ -25,7 +25,7 @@ export async function getAchievementsByUserId({ userId, client }) {
     try {
         const result = await listDocuments(
             "user_achievements",
-            [Query.equal("userId", userId), Query.limit(100)],
+            [Query.equal("userId", userId), Query.limit(500)],
             client,
         );
 
