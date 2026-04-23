@@ -154,7 +154,7 @@ describe("Users Loader", () => {
 
             expect(listDocuments).toHaveBeenCalledWith(
                 "attendance",
-                ['equal("playerId", "user1")', "limit(100)"],
+                ['equal("playerId", "user1")', "limit(500)"],
                 mockClient,
             );
             expect(result).toEqual(mockAttendance);
@@ -216,7 +216,7 @@ describe("Users Loader", () => {
 
             expect(listDocuments).toHaveBeenCalledWith(
                 "user_achievements",
-                ['equal("userId", "user1")', "limit(100)"],
+                ['equal("userId", "user1")', "limit(500)"],
                 mockClient,
             );
             expect(readDocument).toHaveBeenCalledWith(
