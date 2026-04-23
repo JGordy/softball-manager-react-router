@@ -7,7 +7,6 @@ import {
     getStatsByUserId,
     getAchievementsByUserId,
 } from "../users";
-import { Query } from "node-appwrite";
 
 // Mock dependencies
 jest.mock("@/utils/databases", () => ({
@@ -49,11 +48,18 @@ describe("Users Loader", () => {
                 { $id: "team2", name: "Team B" },
             ];
 
-            // Mock calls in sequence: logs, then games batch, then teams batch
-            listDocuments
-                .mockResolvedValueOnce({ rows: mockLogs })
-                .mockResolvedValueOnce({ rows: mockGames })
-                .mockResolvedValueOnce({ rows: mockTeams });
+            // Mock first call (logs)
+            listDocuments.mockResolvedValueOnce({ rows: mockLogs });
+
+            // Mock individual readDocument calls for games
+            readDocument
+                .mockResolvedValueOnce(mockGames[0])
+                .mockResolvedValueOnce(mockGames[1]);
+
+            // Mock individual readDocument calls for teams
+            readDocument
+                .mockResolvedValueOnce(mockTeams[0])
+                .mockResolvedValueOnce(mockTeams[1]);
 
             const result = await getStatsByUserId({
                 userId: "user1",
@@ -69,27 +75,52 @@ describe("Users Loader", () => {
                 mockClient,
             );
 
-            // Check that we fetched the games via batch
-            expect(listDocuments).toHaveBeenCalledWith(
+            // Check that we read the games individually (reliable pattern)
+            expect(readDocument).toHaveBeenCalledWith(
                 "games",
-                expect.arrayContaining([
-                    expect.stringContaining('equal("$id"'),
-                ]),
+                "game1",
+                expect.any(Array),
                 mockClient,
             );
 
-            // Check that we fetched the teams via batch
-            expect(listDocuments).toHaveBeenCalledWith(
+            // Check that we read the teams individually (reliable pattern)
+            expect(readDocument).toHaveBeenCalledWith(
                 "teams",
-                expect.arrayContaining([
-                    expect.stringContaining('equal("$id"'),
-                ]),
+                "team1",
+                expect.any(Array),
                 mockClient,
             );
 
             expect(result.logs).toEqual(mockLogs);
             expect(result.games).toEqual(mockGames);
             expect(result.teams).toEqual(mockTeams);
+        });
+
+        it("should handle multi-batch processing for large game sets", async () => {
+            // Create 11 unique games (forcing 2 batches of 10)
+            const manyLogs = Array.from({ length: 11 }, (_, i) => ({
+                $id: `log${i}`,
+                gameId: `game${i}`,
+            }));
+            const manyGames = manyLogs.map((log) => ({
+                $id: log.gameId,
+                teamId: "team1",
+            }));
+
+            listDocuments.mockResolvedValueOnce({ rows: manyLogs });
+            manyGames.forEach((game) =>
+                readDocument.mockResolvedValueOnce(game),
+            );
+            readDocument.mockResolvedValue({ $id: "team1", name: "Team 1" });
+
+            const result = await getStatsByUserId({
+                userId: "user1",
+                client: mockClient,
+            });
+
+            expect(result.games).toHaveLength(11);
+            // Verify readDocument was called 11 times for games + 1 for team
+            expect(readDocument).toHaveBeenCalledTimes(12);
         });
 
         it("should return empty arrays if no logs found", async () => {

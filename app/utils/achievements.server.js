@@ -17,13 +17,23 @@ export async function joinAchievements(uaRows = [], client) {
     if (hasAchievementIds) {
         // Fetch all base achievements (only 26 total) to avoid problematic $id filters
         // or expensive individual row lookups in the TablesDB environment.
-        const result = await listDocuments(
-            "achievements",
-            [Query.limit(500)],
-            client,
-        );
+        let baseRows = [];
+        try {
+            const result = await listDocuments(
+                "achievements",
+                [Query.limit(500)],
+                client,
+            );
+            baseRows = result.rows || [];
+        } catch (err) {
+            console.error(
+                "[joinAchievements] Failed to fetch base achievements:",
+                err,
+            );
+            // Default to empty array so join still succeeds with null metadata
+            baseRows = [];
+        }
 
-        const baseRows = result.rows || [];
         baseMap = new Map(baseRows.map((a) => [a.$id, a]));
     }
 

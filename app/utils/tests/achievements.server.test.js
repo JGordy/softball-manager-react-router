@@ -72,5 +72,15 @@ describe("achievements utility (server)", () => {
             expect(result[0].achievement).toBeNull();
             expect(listDocuments).not.toHaveBeenCalled();
         });
+
+        it("should handle listDocuments rejection gracefully", async () => {
+            const uaRows = [{ $id: "ua1", achievementId: "ach1" }];
+            listDocuments.mockRejectedValueOnce(new Error("Network Error"));
+
+            const result = await joinAchievements(uaRows, mockClient);
+
+            expect(result).toHaveLength(1);
+            expect(result[0].achievement).toBeNull();
+        });
     });
 });

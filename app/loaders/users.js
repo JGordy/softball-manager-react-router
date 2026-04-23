@@ -67,24 +67,22 @@ export async function getStatsByUserId({ userId, client }) {
     // 2. Extract unique game IDs
     const gameIds = [...new Set(logs.map((log) => log.gameId))].filter(Boolean);
 
-    // 3. Batch fetch game details
+    // 3. Batch fetch game details using reliable individual reads
+    // We process these in small parallel batches to avoid network flooding
     let games = [];
-    if (gameIds.length > 0) {
-        // Fetch games in batches of 25 to avoid URL length issues
-        const batchSize = 25;
-        for (let i = 0; i < gameIds.length; i += batchSize) {
-            const batchIds = gameIds.slice(i, i + batchSize);
-            const response = await listDocuments(
+    const gameBatchSize = 10;
+    for (let i = 0; i < gameIds.length; i += gameBatchSize) {
+        const batchIds = gameIds.slice(i, i + gameBatchSize);
+        const batchPromises = batchIds.map((id) =>
+            readDocument(
                 "games",
-                [
-                    Query.equal("$id", batchIds),
-                    Query.select(["gameDate", "opponent", "teamId"]),
-                    Query.limit(batchSize),
-                ],
+                id,
+                [Query.select(["gameDate", "opponent", "teamId"])],
                 client,
-            ).catch(() => ({ rows: [] }));
-            games = [...games, ...(response.rows || [])];
-        }
+            ).catch(() => null),
+        );
+        const batchResults = await Promise.all(batchPromises);
+        games = [...games, ...batchResults.filter(Boolean)];
     }
 
     // 4. Extract unique team IDs from fetched games
@@ -92,23 +90,21 @@ export async function getStatsByUserId({ userId, client }) {
         Boolean,
     );
 
-    // 5. Batch fetch team details
+    // 5. Batch fetch team details using reliable individual reads
     let teams = [];
-    if (teamIds.length > 0) {
-        const batchSize = 25;
-        for (let i = 0; i < teamIds.length; i += batchSize) {
-            const batchIds = teamIds.slice(i, i + batchSize);
-            const response = await listDocuments(
+    const teamBatchSize = 10;
+    for (let i = 0; i < teamIds.length; i += teamBatchSize) {
+        const batchIds = teamIds.slice(i, i + teamBatchSize);
+        const batchPromises = batchIds.map((id) =>
+            readDocument(
                 "teams",
-                [
-                    Query.equal("$id", batchIds),
-                    Query.select(["name", "displayName"]),
-                    Query.limit(batchSize),
-                ],
+                id,
+                [Query.select(["name", "displayName"])],
                 client,
-            ).catch(() => ({ rows: [] }));
-            teams = [...teams, ...(response.rows || [])];
-        }
+            ).catch(() => null),
+        );
+        const batchResults = await Promise.all(batchPromises);
+        teams = [...teams, ...batchResults.filter(Boolean)];
     }
 
     return {
