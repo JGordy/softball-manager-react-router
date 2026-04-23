@@ -49,18 +49,11 @@ describe("Users Loader", () => {
                 { $id: "team2", name: "Team B" },
             ];
 
-            // Mock first call (logs)
-            listDocuments.mockResolvedValueOnce({ rows: mockLogs });
-
-            // Mock individual readDocument calls for games
-            readDocument
-                .mockResolvedValueOnce(mockGames[0])
-                .mockResolvedValueOnce(mockGames[1]);
-
-            // Mock individual readDocument calls for teams
-            readDocument
-                .mockResolvedValueOnce(mockTeams[0])
-                .mockResolvedValueOnce(mockTeams[1]);
+            // Mock calls in sequence: logs, then games batch, then teams batch
+            listDocuments
+                .mockResolvedValueOnce({ rows: mockLogs })
+                .mockResolvedValueOnce({ rows: mockGames })
+                .mockResolvedValueOnce({ rows: mockTeams });
 
             const result = await getStatsByUserId({
                 userId: "user1",
@@ -70,37 +63,27 @@ describe("Users Loader", () => {
             expect(listDocuments).toHaveBeenCalledWith(
                 "game_logs",
                 expect.arrayContaining([
-                    Query.equal("playerId", "user1"),
-                    Query.orderDesc("$createdAt"),
+                    expect.stringContaining('equal("playerId", "user1")'),
+                    expect.stringContaining("limit(500)"),
                 ]),
                 mockClient,
             );
 
-            // Check that we read the games
-            expect(readDocument).toHaveBeenCalledWith(
+            // Check that we fetched the games via batch
+            expect(listDocuments).toHaveBeenCalledWith(
                 "games",
-                "game1",
-                expect.any(Array),
-                mockClient,
-            );
-            expect(readDocument).toHaveBeenCalledWith(
-                "games",
-                "game2",
-                expect.any(Array),
+                expect.arrayContaining([
+                    expect.stringContaining('equal("$id"'),
+                ]),
                 mockClient,
             );
 
-            // Check that we read the teams
-            expect(readDocument).toHaveBeenCalledWith(
+            // Check that we fetched the teams via batch
+            expect(listDocuments).toHaveBeenCalledWith(
                 "teams",
-                "team1",
-                expect.any(Array),
-                mockClient,
-            );
-            expect(readDocument).toHaveBeenCalledWith(
-                "teams",
-                "team2",
-                expect.any(Array),
+                expect.arrayContaining([
+                    expect.stringContaining('equal("$id"'),
+                ]),
                 mockClient,
             );
 

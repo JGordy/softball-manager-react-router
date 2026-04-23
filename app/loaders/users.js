@@ -65,34 +65,50 @@ export async function getStatsByUserId({ userId, client }) {
     }
 
     // 2. Extract unique game IDs
-    const gameIds = [...new Set(logs.map((log) => log.gameId))];
+    const gameIds = [...new Set(logs.map((log) => log.gameId))].filter(Boolean);
 
-    // 3. Fetch game details for these games
-    const gamePromises = gameIds.map((id) =>
-        readDocument(
-            "games",
-            id,
-            [Query.select(["gameDate", "opponent", "teamId"])],
-            client,
-        ).catch(() => null),
-    );
-    const games = (await Promise.all(gamePromises)).filter((g) => g !== null);
-
-    // 4. Extract unique team IDs
-    const teamIds = [...new Set(games.map((game) => game.teamId))];
-
-    let teams = [];
-    // 5. Fetch team details for these games
-    if (teamIds?.length > 0) {
-        const teamPromises = teamIds.map((id) =>
-            readDocument(
-                "teams",
-                id,
-                [Query.select(["name", "displayName"])],
+    // 3. Batch fetch game details
+    let games = [];
+    if (gameIds.length > 0) {
+        // Fetch games in batches of 25 to avoid URL length issues
+        const batchSize = 25;
+        for (let i = 0; i < gameIds.length; i += batchSize) {
+            const batchIds = gameIds.slice(i, i + batchSize);
+            const response = await listDocuments(
+                "games",
+                [
+                    Query.equal("$id", batchIds),
+                    Query.select(["gameDate", "opponent", "teamId"]),
+                    Query.limit(batchSize),
+                ],
                 client,
-            ).catch(() => null),
-        );
-        teams = (await Promise.all(teamPromises)).filter((t) => t !== null);
+            ).catch(() => ({ rows: [] }));
+            games = [...games, ...(response.rows || [])];
+        }
+    }
+
+    // 4. Extract unique team IDs from fetched games
+    const teamIds = [...new Set(games.map((game) => game.teamId))].filter(
+        Boolean,
+    );
+
+    // 5. Batch fetch team details
+    let teams = [];
+    if (teamIds.length > 0) {
+        const batchSize = 25;
+        for (let i = 0; i < teamIds.length; i += batchSize) {
+            const batchIds = teamIds.slice(i, i + batchSize);
+            const response = await listDocuments(
+                "teams",
+                [
+                    Query.equal("$id", batchIds),
+                    Query.select(["name", "displayName"]),
+                    Query.limit(batchSize),
+                ],
+                client,
+            ).catch(() => ({ rows: [] }));
+            teams = [...teams, ...(response.rows || [])];
+        }
     }
 
     return {

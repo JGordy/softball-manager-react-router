@@ -2,6 +2,7 @@ import { joinAchievements } from "../achievements.server";
 import { listDocuments, readDocument } from "../databases";
 
 // Mock dependencies
+jest.mock("node-appwrite");
 jest.mock("../databases", () => ({
     listDocuments: jest.fn(),
     readDocument: jest.fn(),
@@ -63,14 +64,13 @@ describe("achievements utility (server)", () => {
             expect(result[0].achievement).toBeNull();
         });
 
-        it("should still fetch base achievements even if current row is missing ID", async () => {
+        it("should skip base fetch if no rows have an achievementId", async () => {
             const uaRows = [{ $id: "ua1" }]; // Missing achievementId
-            listDocuments.mockResolvedValueOnce({ rows: [], total: 0 });
             const result = await joinAchievements(uaRows, mockClient);
 
             expect(result).toHaveLength(1);
             expect(result[0].achievement).toBeNull();
-            expect(listDocuments).toHaveBeenCalled();
+            expect(listDocuments).not.toHaveBeenCalled();
         });
     });
 });
