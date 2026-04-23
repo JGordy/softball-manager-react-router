@@ -70,23 +70,36 @@ describe("Users Loader", () => {
                 "game_logs",
                 expect.arrayContaining([
                     expect.stringContaining('equal("playerId", "user1")'),
+                    expect.stringContaining('orderDesc("$createdAt")'),
                     expect.stringContaining("limit(500)"),
                 ]),
                 mockClient,
             );
 
-            // Check that we read the games individually (reliable pattern)
+            // Check that we read ALL unique games individually
             expect(readDocument).toHaveBeenCalledWith(
                 "games",
                 "game1",
                 expect.any(Array),
                 mockClient,
             );
+            expect(readDocument).toHaveBeenCalledWith(
+                "games",
+                "game2",
+                expect.any(Array),
+                mockClient,
+            );
 
-            // Check that we read the teams individually (reliable pattern)
+            // Check that we read ALL unique teams individually
             expect(readDocument).toHaveBeenCalledWith(
                 "teams",
                 "team1",
+                expect.any(Array),
+                mockClient,
+            );
+            expect(readDocument).toHaveBeenCalledWith(
+                "teams",
+                "team2",
                 expect.any(Array),
                 mockClient,
             );
