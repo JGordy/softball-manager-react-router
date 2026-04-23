@@ -11,10 +11,6 @@ import { listDocuments } from "./databases";
 export async function joinAchievements(uaRows = [], client) {
     if (uaRows.length === 0) return [];
 
-    // Extract unique achievement IDs to fetch only what we need
-    const achievementIds = [
-        ...new Set(uaRows.map((ua) => ua.achievementId).filter(Boolean)),
-    ];
     let baseMap = new Map();
 
     if (uaRows.length > 0) {
