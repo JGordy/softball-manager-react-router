@@ -368,6 +368,7 @@ export async function action({ request }) {
 
         // Initialize the AI model with System Instructions
         const model = createModel({
+            thinking: "low",
             generationConfig: {
                 responseMimeType: "application/json",
                 responseSchema: lineupSchema,
