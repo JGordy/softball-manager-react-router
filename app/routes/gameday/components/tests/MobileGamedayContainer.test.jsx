@@ -26,6 +26,11 @@ jest.mock("react-router", () => ({
     useLocation: () => ({ hash: "", pathname: "/gameday", search: "" }),
     useNavigate: () => jest.fn(),
     useParams: () => ({ eventId: "game123" }),
+    Link: ({ to, children, ...props }) => (
+        <a href={to} {...props}>
+            {children}
+        </a>
+    ),
 }));
 
 jest.mock("@/hooks/useGameUpdates");
@@ -253,6 +258,65 @@ describe("MobileGamedayContainer", () => {
 
             // Verify drawer content (title is in EditPlayDrawer)
             expect(await screen.findByText("Edit Play")).toBeInTheDocument();
+        });
+    });
+
+    describe("Empty lineup UI features", () => {
+        it("renders page header and Lineup Required card, and shows Create Lineup CTA for scorekeepers", () => {
+            render(
+                <MobileGamedayContainer
+                    game={mockGame}
+                    playerChart={[]}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    isScorekeeper={true}
+                />,
+            );
+
+            // Verify header remains visible
+            expect(screen.getByText("Scoring & Stats")).toBeInTheDocument();
+            expect(
+                screen.getByRole("button", { name: "Back" }),
+            ).toBeInTheDocument();
+            expect(
+                screen.getByRole("button", { name: /share page/i }),
+            ).toBeInTheDocument();
+
+            // Verify Lineup Required notice and Create Lineup button
+            expect(screen.getByText("Lineup Required")).toBeInTheDocument();
+            expect(
+                screen.getByText("You must create a lineup before scoring."),
+            ).toBeInTheDocument();
+
+            const createLineupBtn = screen.getByRole("link", {
+                name: /create lineup/i,
+            });
+            expect(createLineupBtn).toBeInTheDocument();
+            expect(createLineupBtn).toHaveAttribute(
+                "href",
+                "/events/game123/lineup",
+            );
+        });
+
+        it("renders page header and Lineup Required card, but hides Create Lineup CTA for non-scorekeepers", () => {
+            render(
+                <MobileGamedayContainer
+                    game={mockGame}
+                    playerChart={[]}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    isScorekeeper={false}
+                />,
+            );
+
+            // Verify header remains visible
+            expect(screen.getByText("Scoring & Stats")).toBeInTheDocument();
+
+            // Verify Lineup Required notice
+            expect(screen.getByText("Lineup Required")).toBeInTheDocument();
+            expect(
+                screen.queryByRole("link", { name: /create lineup/i }),
+            ).not.toBeInTheDocument();
         });
     });
 });
