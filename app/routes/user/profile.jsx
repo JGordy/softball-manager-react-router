@@ -54,7 +54,13 @@ export async function loader({ params, request }) {
     const url = new URL(request.url);
     const hash = url.hash.replace(/^#/, "") || null;
 
-    const validTabs = ["player", "stats", "awards", "attendance", "achievements"];
+    const validTabs = [
+        "player",
+        "stats",
+        "awards",
+        "attendance",
+        "achievements",
+    ];
     const defaultTab = validTabs.includes(hash) ? hash : "player";
 
     const sessionClient = await createSessionClient(request);
@@ -67,7 +73,10 @@ export async function loader({ params, request }) {
             client: sessionClient,
         }),
         statsPromise: getStatsByUserId({ userId, client: sessionClient }),
-        achievementsPromise: getAchievementsByUserId({ userId, client: sessionClient }),
+        achievementsPromise: getAchievementsByUserId({
+            userId,
+            client: sessionClient,
+        }),
         defaultTab,
     };
 }
@@ -98,7 +107,13 @@ export default function UserProfile({ loaderData }) {
 
     useResponseNotification(actionData);
 
-    const validTabs = ["player", "stats", "awards", "attendance", "achievements"];
+    const validTabs = [
+        "player",
+        "stats",
+        "awards",
+        "attendance",
+        "achievements",
+    ];
     const [tab, setTab] = useState(defaultTab);
 
     // Keep tab state in sync when location.hash changes (back/forward navigation)

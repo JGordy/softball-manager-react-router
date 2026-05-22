@@ -36,12 +36,14 @@
     left: -50%;
     width: 200%;
     height: 200%;
-    background: conic-gradient(from 0deg,
-            transparent 0%,
-            var(--rarity-color) 25%,
-            transparent 50%,
-            var(--rarity-color) 75%,
-            transparent 100%);
+    background: conic-gradient(
+        from 0deg,
+        transparent 0%,
+        var(--rarity-color) 25%,
+        transparent 50%,
+        var(--rarity-color) 75%,
+        transparent 100%
+    );
     animation: rotate 4s cubic-bezier(0.5, 0.79, 0.71, 0.5) infinite;
     z-index: 1;
 }
@@ -49,20 +51,24 @@
 .card {
     position: relative;
     z-index: 2;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    transition:
+        border-color 0.3s ease,
+        box-shadow 0.3s ease;
 }
 
 .cardWithEffect {
     border-color: transparent !important;
-    box-shadow: 0 0 20px color-mix(in srgb, var(--rarity-color), transparent 85%);
+    box-shadow: 0 0 20px
+        color-mix(in srgb, var(--rarity-color), transparent 85%);
 }
 
 .root:hover .cardWithEffect {
-    box-shadow: 0 10px 25px color-mix(in srgb, var(--rarity-color), transparent 70%);
+    box-shadow: 0 10px 25px
+        color-mix(in srgb, var(--rarity-color), transparent 70%);
 }
 
 .innerBox {
-    background-color: light-dark(var(--mantine-color-gray-1), #0A0E14);
+    background-color: light-dark(var(--mantine-color-gray-1), #0a0e14);
     border-radius: var(--mantine-radius-sm);
     padding: 6px 12px;
     margin-top: 8px;
@@ -85,7 +91,11 @@
 /* Fallback border for light mode if halo is too faint */
 @media (prefers-color-scheme: light) {
     .cardWithEffect {
-        border-color: color-mix(in srgb, var(--rarity-color), transparent 60%) !important;
+        border-color: color-mix(
+            in srgb,
+            var(--rarity-color),
+            transparent 60%
+        ) !important;
     }
 }
 
