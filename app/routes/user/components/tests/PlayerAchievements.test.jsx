@@ -29,9 +29,7 @@ const renderComponent = (promise) => {
     const routes = [
         {
             path: "/",
-            element: (
-                <PlayerAchievements achievementsPromise={promise} />
-            ),
+            element: <PlayerAchievements achievementsPromise={promise} />,
         },
     ];
 
@@ -44,8 +42,12 @@ describe("PlayerAchievements", () => {
         const promise = Promise.resolve([]);
         renderComponent(promise);
 
-        expect(await screen.findByText(/No Achievements Yet/i)).toBeInTheDocument();
-        expect(screen.getByText(/Keep playing to unlock achievements/i)).toBeInTheDocument();
+        expect(
+            await screen.findByText(/No Achievements Yet/i),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByText(/Keep playing to unlock achievements/i),
+        ).toBeInTheDocument();
     });
 
     it("renders achievement dashboard and list correctly", async () => {
@@ -53,8 +55,12 @@ describe("PlayerAchievements", () => {
         renderComponent(promise);
 
         // Dashboard Stats
-        expect(await screen.findByTestId("rarity-filter-all")).toBeInTheDocument();
-        expect(screen.getByTestId("rarity-filter-legendary")).toBeInTheDocument();
+        expect(
+            await screen.findByTestId("rarity-filter-all"),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByTestId("rarity-filter-legendary"),
+        ).toBeInTheDocument();
         expect(screen.getByTestId("rarity-filter-rare")).toBeInTheDocument();
 
         // Initial list

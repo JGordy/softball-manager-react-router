@@ -25,18 +25,10 @@ export default function MobileProfileView({
 
     return (
         <TabsWrapper value={activeTab} onChange={handleTabChange}>
-            <Tabs.Tab value="player">
-                Details
-            </Tabs.Tab>
-            <Tabs.Tab value="stats">
-                Stats
-            </Tabs.Tab>
-            <Tabs.Tab value="awards">
-                Awards
-            </Tabs.Tab>
-            <Tabs.Tab value="achievements">
-                Achievements
-            </Tabs.Tab>
+            <Tabs.Tab value="player">Details</Tabs.Tab>
+            <Tabs.Tab value="stats">Stats</Tabs.Tab>
+            <Tabs.Tab value="awards">Awards</Tabs.Tab>
+            <Tabs.Tab value="achievements">Achievements</Tabs.Tab>
 
             <Tabs.Panel value="player">
                 <PersonalDetails player={player} user={loggedInUser} />
@@ -71,7 +63,7 @@ export default function MobileProfileView({
             </Tabs.Panel>
 
             <Tabs.Panel value="achievements" mt="md">
-                <PlayerAchievements 
+                <PlayerAchievements
                     achievementsPromise={achievementsPromise}
                     playerName={player.firstName}
                     isMe={loggedInUser?.$id === player?.$id}

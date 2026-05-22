@@ -1,4 +1,13 @@
-let createDocument, listDocuments, readDocument, updateDocument, deleteDocument, createTransaction, createOperations, commitTransaction, rollbackTransaction, collections;
+let createDocument,
+    listDocuments,
+    readDocument,
+    updateDocument,
+    deleteDocument,
+    createTransaction,
+    createOperations,
+    commitTransaction,
+    rollbackTransaction,
+    collections;
 
 const mockTablesDB = {
     createRow: jest.fn(),
@@ -26,7 +35,8 @@ describe("databases utility", () => {
 
         // Mock environment variables
         process.env.APPWRITE_ACHIEVEMENTS_COLLECTION_ID = "achievements-id";
-        process.env.APPWRITE_USER_ACHIEVEMENTS_COLLECTION_ID = "user-achievements-id";
+        process.env.APPWRITE_USER_ACHIEVEMENTS_COLLECTION_ID =
+            "user-achievements-id";
         process.env.APPWRITE_DATABASE_ID = "db-id";
         process.env.APPWRITE_USERS_COLLECTION_ID = "users-id";
 

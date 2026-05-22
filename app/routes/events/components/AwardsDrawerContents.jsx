@@ -1,6 +1,16 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 
-import { Card, Center, Image, Stack, Text, SimpleGrid, Box, Alert, Tabs } from "@mantine/core";
+import {
+    Card,
+    Center,
+    Image,
+    Stack,
+    Text,
+    SimpleGrid,
+    Box,
+    Alert,
+    Tabs,
+} from "@mantine/core";
 import { Carousel } from "@mantine/carousel";
 import { IconTrophy } from "@tabler/icons-react";
 
@@ -129,49 +139,52 @@ export default function AwardsDrawerContents({
         </Stack>
     );
 
-    const achievementsContent = validAchievements.length > 0 ? (
-        <Stack mt="md" gap="md">
-            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-                {validAchievements.map((ua) => {
-                    const player = (players || []).find(p => p.$id === ua.userId);
-                    const playerName = player
-                        ? [player.firstName, player.lastName].filter(Boolean).join(" ").trim() || "Player"
-                        : "Player";
-                    const isMe = ua.userId === user?.$id;
+    const achievementsContent =
+        validAchievements.length > 0 ? (
+            <Stack mt="md" gap="md">
+                <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+                    {validAchievements.map((ua) => {
+                        const player = (players || []).find(
+                            (p) => p.$id === ua.userId,
+                        );
+                        const playerName = player
+                            ? [player.firstName, player.lastName]
+                                  .filter(Boolean)
+                                  .join(" ")
+                                  .trim() || "Player"
+                            : "Player";
+                        const isMe = ua.userId === user?.$id;
 
-                    return (
-                        <AchievementCard
-                            key={ua.$id}
-                            achievement={ua.achievement}
-                            unlockedAt={ua.$createdAt}
-                            playerName={isMe ? "YOU" : playerName}
-                            isMe={isMe}
-                        />
-                    );
-                })}
-            </SimpleGrid>
-        </Stack>
-    ) : (
-        <Box py="xl">
-            <Alert
-                icon={<IconTrophy size={16} />}
-                title="No Achievements Earned"
-                color="gray"
-                radius="md"
-            >
-                No achievements were unlocked in this game. Keep playing to earn trophies for you and your teammates!
-            </Alert>
-        </Box>
-    );
-
-
+                        return (
+                            <AchievementCard
+                                key={ua.$id}
+                                achievement={ua.achievement}
+                                unlockedAt={ua.$createdAt}
+                                playerName={isMe ? "YOU" : playerName}
+                                isMe={isMe}
+                            />
+                        );
+                    })}
+                </SimpleGrid>
+            </Stack>
+        ) : (
+            <Box py="xl">
+                <Alert
+                    icon={<IconTrophy size={16} />}
+                    title="No Achievements Earned"
+                    color="gray"
+                    radius="md"
+                >
+                    No achievements were unlocked in this game. Keep playing to
+                    earn trophies for you and your teammates!
+                </Alert>
+            </Box>
+        );
 
     return (
         <TabsWrapper defaultValue="awards" mt="xs">
             <Tabs.Tab value="awards">Voting & Awards</Tabs.Tab>
-            <Tabs.Tab value="achievements">
-                Achievements
-            </Tabs.Tab>
+            <Tabs.Tab value="achievements">Achievements</Tabs.Tab>
 
             <Tabs.Panel value="awards" pt="md">
                 {awardsContent}
