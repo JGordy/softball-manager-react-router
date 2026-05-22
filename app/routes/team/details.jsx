@@ -14,6 +14,7 @@ import {
     updateMemberRole,
     updatePreferences,
     updateBulkJerseyNumbers,
+    removePlayersFromTeam,
 } from "@/actions/teams";
 import {
     invitePlayersServer,
@@ -132,8 +133,16 @@ export async function action({ request, params }) {
     if (_action === "update-role") {
         return updateMemberRole({ values, teamId, client });
     }
+
     if (_action === "update-bulk-jersey-numbers") {
         return updateBulkJerseyNumbers({ teamId, values, client });
+    }
+
+    if (_action === "remove-players") {
+        const membershipIds = values.membershipIds
+            ? JSON.parse(values.membershipIds)
+            : [];
+        return removePlayersFromTeam({ teamId, membershipIds, client });
     }
 }
 

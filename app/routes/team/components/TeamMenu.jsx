@@ -12,6 +12,7 @@ import {
     IconClipboardList,
     IconSettings,
     IconShirtSport,
+    IconUserMinus,
 } from "@tabler/icons-react";
 
 import AddTeam from "@/forms/AddTeam";
@@ -26,6 +27,7 @@ import MenuContainer from "@/components/MenuContainer";
 import ManageRolesDrawer from "./ManageRolesDrawer";
 import PreferencesDrawer from "./PreferencesDrawer";
 import BulkJerseyNumberModal from "./BulkJerseyNumberModal";
+import RemovePlayersDrawer from "./RemovePlayersDrawer";
 
 export default function TeamMenu({ userId, team, ownerView, players }) {
     const navigate = useNavigate();
@@ -36,6 +38,8 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
         preferencesOpened,
         { open: openPreferences, close: closePreferences },
     ] = useDisclosure(false);
+    const [removeOpened, { open: openRemove, close: closeRemove }] =
+        useDisclosure(false);
 
     const { $id: teamId, name: teamName, seasons, primaryColor } = team;
 
@@ -154,6 +158,12 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                     leftSection: <IconShirtSport size={18} />,
                     content: <Text>Assign Numbers</Text>,
                 },
+                {
+                    key: "remove-players",
+                    onClick: openRemove,
+                    leftSection: <IconUserMinus size={18} />,
+                    content: <Text>Remove Players</Text>,
+                },
             ],
         },
     ];
@@ -192,6 +202,13 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                 opened={preferencesOpened}
                 onClose={closePreferences}
                 team={team}
+            />
+            <RemovePlayersDrawer
+                opened={removeOpened}
+                onClose={closeRemove}
+                players={players}
+                teamId={teamId}
+                userId={userId}
             />
         </>
     );
