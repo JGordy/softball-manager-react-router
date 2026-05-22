@@ -2,7 +2,6 @@ import { joinAchievements } from "../achievements.server";
 import { listDocuments, readDocument } from "../databases";
 
 // Mock dependencies
-jest.mock("node-appwrite");
 jest.mock("../databases", () => ({
     listDocuments: jest.fn(),
     readDocument: jest.fn(),

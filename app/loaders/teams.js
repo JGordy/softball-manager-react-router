@@ -344,18 +344,22 @@ export async function getTeamById({ teamId, client }) {
             // Map all IDs to either a DB record or a virtual player
             players = userIds.map((id) => {
                 const dbPlayer = dbPlayersMap.get(id);
+                const member = membershipMap.get(id);
+                const membershipId = member?.$id;
+
                 if (dbPlayer) {
                     return {
                         ...dbPlayer,
+                        membershipId,
                         roles: userRoles[id] || [],
                     };
                 }
 
                 // Virtual player for unverified/invited users
-                const member = membershipMap.get(id);
                 return {
                     $id: id,
                     userId: id,
+                    membershipId,
                     firstName:
                         member?.userName ||
                         member?.userEmail?.split("@")[0] ||
