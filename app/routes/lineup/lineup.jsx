@@ -318,8 +318,8 @@ function Lineup({ loaderData, actionData }) {
 
             <AddPlayersDrawer
                 opened={addPlayersDrawerOpened}
-                onClose={() => {
-                    if (lineupStateRef.current?.length === 0) {
+                onClose={(submitted = false) => {
+                    if (!submitted && lineupStateRef.current?.length === 0) {
                         lineupHandlers.setState(null);
                     }
                     addPlayersHandlers.close();
