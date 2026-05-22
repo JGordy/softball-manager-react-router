@@ -133,7 +133,7 @@ export default function AddPlayersDrawer({
         lineupHandlers.append(...playersToAdd);
         setSelectedPlayers([]);
         setHasBeenEdited(true);
-        onClose();
+        onClose(true);
     };
 
     return (
