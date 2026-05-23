@@ -74,13 +74,14 @@ export function useGamedayController({
             setLogs((prev) => prev.filter((log) => log.$id !== deletedLogId));
         },
         gameDate: gameData.gameDate,
-        gameFinal,
+        gameFinal: !!gameData.gameFinal,
     });
 
     // Sub-hook: Tab navigation & URL Sync
-    const hasRecapTab = gameFinal && (!!gameData.recap || logs.length > 0);
+    const hasRecapTab =
+        !!gameData.gameFinal && (!!gameData.recap || logs.length > 0);
     const { activeTab, handleTabChange, setActiveTab } = useGamedayTabs({
-        gameFinal,
+        gameFinal: !!gameData.gameFinal,
         isDesktop,
         hasRecapTab,
     });

@@ -21,8 +21,8 @@ export function useGamedayTabs({
             "plays",
             "boxscore",
             "spray",
-            "achievements",
-            "recap",
+            ...(gameFinal ? ["achievements"] : []),
+            ...(hasRecapTab ? ["recap"] : []),
         ];
 
         let normalizedHash = hash;
@@ -48,7 +48,7 @@ export function useGamedayTabs({
         if (gameFinal) return hasRecapTab ? "recap" : "plays";
         if (isDesktop) return "boxscore";
         return "live";
-    }, [location.hash, gameFinal, isDesktop]);
+    }, [location.hash, gameFinal, isDesktop, hasRecapTab]);
 
     const [activeTab, setActiveTab] = useState(() => getInitialTab());
 
@@ -99,8 +99,8 @@ export function useGamedayTabs({
             "plays",
             "boxscore",
             "spray",
-            "achievements",
-            "recap",
+            ...(gameFinal ? ["achievements"] : []),
+            ...(hasRecapTab ? ["recap"] : []),
         ];
 
         let normalizedHash = hash;
@@ -136,6 +136,7 @@ export function useGamedayTabs({
         location.pathname,
         location.search,
         navigate,
+        hasRecapTab,
     ]);
 
     return {

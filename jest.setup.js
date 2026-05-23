@@ -133,9 +133,3 @@ class IntersectionObserver {
 }
 
 window.IntersectionObserver = IntersectionObserver;
-
-jest.mock("react-markdown", () => {
-    return function MockMarkdown({ children }) {
-        return children;
-    };
-});

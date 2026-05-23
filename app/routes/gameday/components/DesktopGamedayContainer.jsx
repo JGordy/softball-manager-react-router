@@ -133,7 +133,7 @@ export default function DesktopGamedayContainer({
                     <ShareUrlButton />
                     {isScorekeeper ? (
                         <GamedayMenu
-                            gameFinal={gameFinal}
+                            gameFinal={game.gameFinal}
                             score={score}
                             opponentScore={opponentScore}
                             onSubBatter={
@@ -187,7 +187,7 @@ export default function DesktopGamedayContainer({
                                     outs={outs}
                                     teamName={team.name}
                                     opponentName={game.opponent}
-                                    gameFinal={gameFinal}
+                                    gameFinal={game.gameFinal}
                                     realtimeStatus={realtimeStatus}
                                     isOurBatting={isOurBatting}
                                     runners={runners}
@@ -197,7 +197,7 @@ export default function DesktopGamedayContainer({
                                 />
                                 {logs.length > 0 &&
                                     isOurBatting &&
-                                    !gameFinal && (
+                                    !game.gameFinal && (
                                         <LastPlayCard
                                             lastLog={logs[logs.length - 1]}
                                             onUndo={
@@ -213,7 +213,7 @@ export default function DesktopGamedayContainer({
                         {/* COLUMN 2: Action Pad */}
                         <Grid.Col span={{ base: 12, md: 4 }}>
                             <Stack gap="md">
-                                {!gameFinal &&
+                                {!game.gameFinal &&
                                     (isOurBatting ? (
                                         isScorekeeper && (
                                             <Card radius="lg">
@@ -250,14 +250,14 @@ export default function DesktopGamedayContainer({
                                 mt={0}
                                 size="sm"
                             >
-                                {gameFinal &&
+                                {game.gameFinal &&
                                     (game.recap || logs.length > 0) && (
                                         <Tabs.Tab value="recap">Recap</Tabs.Tab>
                                     )}
                                 <Tabs.Tab value="plays">Plays</Tabs.Tab>
                                 <Tabs.Tab value="boxscore">Box Score</Tabs.Tab>
                                 <Tabs.Tab value="spray">Spray Chart</Tabs.Tab>
-                                {gameFinal && (
+                                {game.gameFinal && (
                                     <Tabs.Tab value="achievements">
                                         Achievements
                                     </Tabs.Tab>
@@ -281,7 +281,7 @@ export default function DesktopGamedayContainer({
                                         logs={logs}
                                         playerChart={playerChart}
                                         currentBatter={currentBatter}
-                                        gameFinal={gameFinal}
+                                        gameFinal={game.gameFinal}
                                     />
                                 </Tabs.Panel>
 
@@ -293,7 +293,7 @@ export default function DesktopGamedayContainer({
                                     />
                                 </Tabs.Panel>
 
-                                {gameFinal &&
+                                {game.gameFinal &&
                                     (game.recap || logs.length > 0) && (
                                         <Tabs.Panel value="recap" pt="md">
                                             <GameRecapView
@@ -303,7 +303,7 @@ export default function DesktopGamedayContainer({
                                             />
                                         </Tabs.Panel>
                                     )}
-                                {gameFinal && (
+                                {game.gameFinal && (
                                     <Tabs.Panel value="achievements" pt="md">
                                         <AchievementsList
                                             achievements={achievements}

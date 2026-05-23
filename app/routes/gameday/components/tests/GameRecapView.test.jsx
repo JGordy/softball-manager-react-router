@@ -1,6 +1,13 @@
 import { render, screen } from "@/utils/test-utils";
 import GameRecapView from "../GameRecapView";
 
+// Mock react-markdown locally to avoid side-effects in other test files
+jest.mock("react-markdown", () => {
+    return function MockMarkdown({ children }) {
+        return <div>{children}</div>;
+    };
+});
+
 // Mock useFetcher
 const mockForm = ({ children, ...props }) => (
     <form data-testid="fetcher-form" {...props}>
@@ -104,10 +111,10 @@ describe("GameRecapView", () => {
         );
 
         expect(screen.getByText("AI Sports Column")).toBeInTheDocument();
-        expect(screen.getByText(/# Game Recap/)).toBeInTheDocument();
+        expect(screen.getByText(/Game Recap/)).toBeInTheDocument();
         expect(screen.getByText(/Sliders/)).toBeInTheDocument();
         expect(screen.getByText(/win the game!/)).toBeInTheDocument();
-        expect(screen.getByText(/- Play 1/)).toBeInTheDocument();
-        expect(screen.getByText(/- Play 2/)).toBeInTheDocument();
+        expect(screen.getByText(/Play 1/)).toBeInTheDocument();
+        expect(screen.getByText(/Play 2/)).toBeInTheDocument();
     });
 });
