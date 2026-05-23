@@ -34,9 +34,10 @@ import GamedayMenu from "./GamedayMenu";
 import AchievementsList from "./AchievementsList";
 import EditPlayDrawer from "./EditPlayDrawer";
 import ShareUrlButton from "@/components/ShareUrlButton";
+import GameRecapView from "./GameRecapView";
 
 export default function MobileGamedayContainer({
-    game,
+    game: staticGame,
     playerChart: initialPlayerChart,
     team,
     initialLogs = [],
@@ -47,6 +48,7 @@ export default function MobileGamedayContainer({
     achievements = [],
 }) {
     const {
+        game,
         logs,
         realtimeStatus,
         activeTab,
@@ -78,7 +80,7 @@ export default function MobileGamedayContainer({
         undoLast,
         updateAction,
     } = useGamedayController({
-        game,
+        game: staticGame,
         playerChart: initialPlayerChart,
         team,
         initialLogs,
@@ -196,6 +198,9 @@ export default function MobileGamedayContainer({
                             onChange={handleTabChange}
                             mt={0}
                         >
+                            {gameFinal && (game.recap || logs.length > 0) && (
+                                <Tabs.Tab value="recap">Recap</Tabs.Tab>
+                            )}
                             {!gameFinal && (
                                 <Tabs.Tab value="live">Live</Tabs.Tab>
                             )}
@@ -315,6 +320,15 @@ export default function MobileGamedayContainer({
                                 />
                             </Tabs.Panel>
 
+                            {gameFinal && (game.recap || logs.length > 0) && (
+                                <Tabs.Panel value="recap" pt="md">
+                                    <GameRecapView
+                                        recap={game.recap}
+                                        logs={logs}
+                                        isScorekeeper={isScorekeeper}
+                                    />
+                                </Tabs.Panel>
+                            )}
                             {gameFinal && (
                                 <Tabs.Panel value="achievements" pt="md">
                                     <AchievementsList

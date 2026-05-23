@@ -120,6 +120,21 @@ export async function action({ request, params }) {
     if (_action === "end-game") {
         return updateGame({ values, eventId, client });
     }
+    if (_action === "generate-recap") {
+        const { generateGameRecapBackground } = await import(
+            "@/actions/recap.js"
+        );
+        try {
+            await generateGameRecapBackground({ eventId, client });
+            return { success: true, message: "Recap generated successfully!" };
+        } catch (error) {
+            return {
+                success: false,
+                error: true,
+                message: error.message || "Failed to generate recap",
+            };
+        }
+    }
     if (_action === "resume-game") {
         return updateGame({ values, eventId, client });
     }

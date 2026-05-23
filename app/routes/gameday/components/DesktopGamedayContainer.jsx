@@ -33,9 +33,10 @@ import GamedayMenu from "./GamedayMenu";
 import AchievementsList from "./AchievementsList";
 import EditPlayDrawer from "./EditPlayDrawer";
 import ShareUrlButton from "@/components/ShareUrlButton";
+import GameRecapView from "./GameRecapView";
 
 export default function DesktopGamedayContainer({
-    game,
+    game: staticGame,
     playerChart: initialPlayerChart,
     team,
     initialLogs = [],
@@ -46,6 +47,7 @@ export default function DesktopGamedayContainer({
     achievements = [],
 }) {
     const {
+        game,
         logs,
         realtimeStatus,
         activeTab,
@@ -77,7 +79,7 @@ export default function DesktopGamedayContainer({
         undoLast,
         updateAction,
     } = useGamedayController({
-        game,
+        game: staticGame,
         playerChart: initialPlayerChart,
         team,
         initialLogs,
@@ -248,6 +250,10 @@ export default function DesktopGamedayContainer({
                                 mt={0}
                                 size="sm"
                             >
+                                {gameFinal &&
+                                    (game.recap || logs.length > 0) && (
+                                        <Tabs.Tab value="recap">Recap</Tabs.Tab>
+                                    )}
                                 <Tabs.Tab value="plays">Plays</Tabs.Tab>
                                 <Tabs.Tab value="boxscore">Box Score</Tabs.Tab>
                                 <Tabs.Tab value="spray">Spray Chart</Tabs.Tab>
@@ -287,6 +293,16 @@ export default function DesktopGamedayContainer({
                                     />
                                 </Tabs.Panel>
 
+                                {gameFinal &&
+                                    (game.recap || logs.length > 0) && (
+                                        <Tabs.Panel value="recap" pt="md">
+                                            <GameRecapView
+                                                recap={game.recap}
+                                                logs={logs}
+                                                isScorekeeper={isScorekeeper}
+                                            />
+                                        </Tabs.Panel>
+                                    )}
                                 {gameFinal && (
                                     <Tabs.Panel value="achievements" pt="md">
                                         <AchievementsList
