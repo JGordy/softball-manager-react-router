@@ -25,10 +25,15 @@ jest.mock("@/utils/databases", () => ({
     updateDocument: jest.fn(),
     deleteDocument: jest.fn(),
     readDocument: jest.fn(),
+    listDocuments: jest.fn().mockResolvedValue({ total: 0, rows: [] }),
 }));
 
 jest.mock("@/actions/parks", () => ({
     findOrCreatePark: jest.fn(),
+}));
+
+jest.mock("../recap.js", () => ({
+    generateGameRecapBackground: jest.fn().mockResolvedValue({}),
 }));
 
 jest.mock("@/utils/badWordsApi", () => ({
@@ -629,6 +634,80 @@ describe("Games Actions", () => {
             jest.advanceTimersByTime(5500);
             expect(sendAwardVoteNotification).toHaveBeenCalled();
             jest.useRealTimers();
+        });
+
+        it("should trigger background recap generation when game is final and logs are present", async () => {
+            const { listDocuments } = require("@/utils/databases");
+            const { generateGameRecapBackground } = require("../recap.js");
+
+            listDocuments.mockResolvedValueOnce({
+                total: 1,
+                rows: [{ $id: "log1" }],
+            });
+
+            const mockGame = {
+                $id: "game1",
+                teamId: "team1",
+                opponent: "Tigers",
+                score: "12",
+                opponentScore: "4",
+                result: "won",
+                gameFinal: true,
+            };
+            updateDocument.mockResolvedValue(mockGame);
+
+            await updateGame({
+                values: { gameFinal: "true" },
+                eventId: "game1",
+                client: mockSessionClient,
+            });
+
+            // Allow the microtask queue to process
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            expect(listDocuments).toHaveBeenCalledWith(
+                "game_logs",
+                expect.any(Array),
+                mockSessionClient,
+            );
+            expect(generateGameRecapBackground).toHaveBeenCalledWith({
+                eventId: "game1",
+                client: mockSessionClient,
+            });
+        });
+
+        it("should NOT trigger background recap generation when game is final but no logs are present", async () => {
+            const { listDocuments } = require("@/utils/databases");
+            const { generateGameRecapBackground } = require("../recap.js");
+
+            listDocuments.mockResolvedValueOnce({ total: 0, rows: [] });
+
+            const mockGame = {
+                $id: "game1",
+                teamId: "team1",
+                opponent: "Tigers",
+                score: "12",
+                opponentScore: "4",
+                result: "won",
+                gameFinal: true,
+            };
+            updateDocument.mockResolvedValue(mockGame);
+
+            await updateGame({
+                values: { gameFinal: "true" },
+                eventId: "game1",
+                client: mockSessionClient,
+            });
+
+            // Allow the microtask queue to process
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            expect(listDocuments).toHaveBeenCalledWith(
+                "game_logs",
+                expect.any(Array),
+                mockSessionClient,
+            );
+            expect(generateGameRecapBackground).not.toHaveBeenCalled();
         });
     });
 
