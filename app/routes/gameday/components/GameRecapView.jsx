@@ -165,7 +165,7 @@ export default function GameRecapView({
                 >
                     <ReactMarkdown
                         components={{
-                            h1: ({ _node, ...props }) => (
+                            h1: ({ node: _node, ...props }) => (
                                 <Title
                                     order={1}
                                     mt="xs"
@@ -179,7 +179,7 @@ export default function GameRecapView({
                                     {...props}
                                 />
                             ),
-                            h2: ({ _node, ...props }) => (
+                            h2: ({ node: _node, ...props }) => (
                                 <Title
                                     order={2}
                                     mt="xl"
@@ -193,7 +193,7 @@ export default function GameRecapView({
                                     {...props}
                                 />
                             ),
-                            p: ({ _node, ...props }) => (
+                            p: ({ node: _node, ...props }) => (
                                 <p
                                     style={{
                                         marginBottom: "1.2rem",
@@ -202,7 +202,7 @@ export default function GameRecapView({
                                     {...props}
                                 />
                             ),
-                            li: ({ _node, ...props }) => (
+                            li: ({ node: _node, ...props }) => (
                                 <li
                                     style={{
                                         marginBottom: "0.5rem",
@@ -211,7 +211,7 @@ export default function GameRecapView({
                                     {...props}
                                 />
                             ),
-                            strong: ({ _node, ...props }) => (
+                            strong: ({ node: _node, ...props }) => (
                                 <strong
                                     style={{
                                         fontWeight: 700,
