@@ -3,6 +3,7 @@ import { useGamedayTabs } from "./useGamedayTabs";
 import { useGamedayActions } from "./useGamedayActions";
 import { useGameState } from "./useGameState";
 import { useGameUpdates } from "@/hooks/useGameUpdates";
+import { useGameRealtime } from "@/hooks/useGameRealtime";
 
 export function useGamedayController({
     game,
@@ -17,6 +18,16 @@ export function useGamedayController({
     const [logs, setLogs] = useState(initialLogs);
     // Hold playerChart in local state so sub updates reflect immediately
     const [lineup, setLineup] = useState(initialPlayerChart);
+    // Hold game details in local state to allow real-time background recap and final state updates
+    const [gameData, setGameData] = useState(game);
+
+    // Real-time updates for the game document itself (specifically recap and finalized status)
+    useGameRealtime(game.$id, {
+        onGameUpdate: (updatedGame) => {
+            setGameData(updatedGame);
+        },
+        enabled: true,
+    });
 
     // Enrich playerChart with live data (like avatarUrl) from the players (user documents) array
     const playerChart = useMemo(() => {
@@ -44,7 +55,7 @@ export function useGamedayController({
     const setPlayerChart = setLineup;
 
     // Real-time updates for game logs
-    const { status: realtimeStatus } = useGameUpdates(game.$id, {
+    const { status: realtimeStatus } = useGameUpdates(gameData.$id, {
         onNewLog: (newLog) => {
             setLogs((prev) => {
                 const logExists = prev.some((log) => log.$id === newLog.$id);
@@ -62,18 +73,21 @@ export function useGamedayController({
         onDeleteLog: (deletedLogId) => {
             setLogs((prev) => prev.filter((log) => log.$id !== deletedLogId));
         },
-        gameDate: game.gameDate,
-        gameFinal,
+        gameDate: gameData.gameDate,
+        gameFinal: !!gameData.gameFinal,
     });
 
     // Sub-hook: Tab navigation & URL Sync
+    const hasRecapTab =
+        !!gameData.gameFinal && (!!gameData.recap || logs.length > 0);
     const { activeTab, handleTabChange, setActiveTab } = useGamedayTabs({
-        gameFinal,
+        gameFinal: !!gameData.gameFinal,
         isDesktop,
+        hasRecapTab,
     });
 
     // Primary Game Logic State
-    const gameState = useGameState({ logs, game, playerChart });
+    const gameState = useGameState({ logs, game: gameData, playerChart });
     const {
         inning,
         setInning,
@@ -233,6 +247,11 @@ export function useGamedayController({
         }
     }, [fetcher.data, fetcher.state]);
 
+    // Sync initial game data when the prop changes (e.g. from loader revalidation)
+    useEffect(() => {
+        setGameData(game);
+    }, [game]);
+
     // Sync initialLogs when they change
     useEffect(() => {
         setLogs(initialLogs);
@@ -245,7 +264,7 @@ export function useGamedayController({
 
     const isSyncing = fetcher.state !== "idle" || realtimeStatus === "syncing";
 
-    const isOurBatting = game.isHomeGame
+    const isOurBatting = gameData.isHomeGame
         ? halfInning === "bottom"
         : halfInning === "top";
 
@@ -266,6 +285,7 @@ export function useGamedayController({
         .filter(Boolean);
 
     return {
+        game: gameData,
         logs,
         setLogs,
         realtimeStatus,

@@ -1,14 +1,22 @@
-.list {
-    position: relative;
-    display: flex;
-    flex-wrap: nowrap;
+.scrollWrapper {
     overflow-x: auto;
     scrollbar-width: none;
     /* Firefox */
     -ms-overflow-style: none;
     /* IE 10+ */
+    width: 100%;
+}
+
+.scrollWrapper::-webkit-scrollbar {
+    display: none;
+    /* Safari and Chrome */
+}
+
+.list {
+    position: relative;
+    display: flex;
+    flex-wrap: nowrap;
     width: fit-content;
-    max-width: 100%;
     margin: 0 auto;
     gap: 0.25rem;
     background: light-dark(#f2f4f6, #1a202a);
@@ -16,11 +24,6 @@
         light-dark(var(--mantine-color-gray-4), rgba(255, 255, 255, 0.1));
     border-radius: var(--mantine-radius-xl);
     padding: 6px;
-}
-
-.list::-webkit-scrollbar {
-    display: none;
-    /* Safari and Chrome */
 }
 
 .tab {
