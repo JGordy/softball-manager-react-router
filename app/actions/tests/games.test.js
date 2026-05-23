@@ -663,7 +663,7 @@ describe("Games Actions", () => {
             });
 
             // Allow the microtask queue to process
-            await new Promise((resolve) => setTimeout(resolve, 0));
+            await Promise.resolve();
 
             expect(listDocuments).toHaveBeenCalledWith(
                 "game_logs",
@@ -700,7 +700,7 @@ describe("Games Actions", () => {
             });
 
             // Allow the microtask queue to process
-            await new Promise((resolve) => setTimeout(resolve, 0));
+            await Promise.resolve();
 
             expect(listDocuments).toHaveBeenCalledWith(
                 "game_logs",
