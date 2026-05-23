@@ -36,7 +36,7 @@ describe("AI Utilities", () => {
                 modelName: "gemini-3.5-flash",
                 generationConfig: {},
                 systemInstruction: undefined,
-                thinking: "medium",
+                thinking: "low",
             });
         });
 

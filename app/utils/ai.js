@@ -18,14 +18,14 @@ function initializeAI() {
  * @param {string} params.modelName - The name of the model to use (default: "gemini-3.5-flash")
  * @param {Object} params.generationConfig - Configuration for the model generation
  * @param {string} params.systemInstruction - Optional system instructions
- * @param {string} params.thinking - Thinking level for the model (default: "medium")
+ * @param {string} params.thinking - Thinking level for the model (default: "low")
  * @returns {Object} The model configuration container
  */
 export function createModel({
     modelName = "gemini-3.5-flash",
     generationConfig = {},
     systemInstruction,
-    thinking = "medium",
+    thinking = "low",
 } = {}) {
     const ai = initializeAI();
     return {
