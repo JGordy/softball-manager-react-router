@@ -89,7 +89,8 @@ export default function MobileGamedayContainer({
         players,
     });
 
-    const isGameFinal = !!game.gameFinal || gameFinal;
+    const isGameFinal =
+        game.gameFinal !== undefined ? !!game.gameFinal : gameFinal;
 
     const [subModalOpened, { open: openSubModal, close: closeSubModal }] =
         useDisclosure(false);

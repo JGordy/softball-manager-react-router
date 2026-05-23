@@ -28,10 +28,8 @@ export function useGameRealtime(gameId, { onGameUpdate, enabled = true }) {
 
         async function init() {
             const databaseId = import.meta.env.VITE_APPWRITE_DATABASE_ID;
-            // Support both env variable or static database fallback configuration
-            const collectionId =
-                import.meta.env.VITE_APPWRITE_GAMES_COLLECTION_ID ||
-                "67ae35ee0039b87806f6";
+            const collectionId = import.meta.env
+                .VITE_APPWRITE_GAMES_COLLECTION_ID;
 
             if (!databaseId || !collectionId) {
                 console.warn(

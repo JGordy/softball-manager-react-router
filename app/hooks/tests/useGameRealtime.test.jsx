@@ -43,7 +43,7 @@ describe("useGameRealtime Hook", () => {
         expect(client.subscribe).not.toHaveBeenCalled();
     });
 
-    it("should do nothing if disabled is true", () => {
+    it("should do nothing if enabled is false", () => {
         renderHook(() =>
             useGameRealtime("game-123", {
                 onGameUpdate: mockOnGameUpdate,

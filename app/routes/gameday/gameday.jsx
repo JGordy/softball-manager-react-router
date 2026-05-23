@@ -128,10 +128,12 @@ export async function action({ request, params }) {
             await generateGameRecapBackground({ eventId, client });
             return { success: true, message: "Recap generated successfully!" };
         } catch (error) {
+            console.error("Failed to generate game recap:", error);
             return {
                 success: false,
                 error: true,
-                message: error.message || "Failed to generate recap",
+                message:
+                    "Failed to generate recap column. Please check server logs.",
             };
         }
     }
