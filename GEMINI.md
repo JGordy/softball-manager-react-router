@@ -82,3 +82,4 @@ Code is considered "Complete" only when it meets the following criteria:
     - Responsive layouts (Mobile-first).
     - Theme consistency (Velocity Dark tokens).
 - **Deployment Pre-check**: Run `npm run build` locally to ensure SSR bundles are correctly generated before pushing to production.
+- **Full Testing Duration**: Running the full test suite (`npm run test` or during git push hooks) takes **at least 2 minutes (120 seconds)**. AI agents must always set a timer of at least 2 minutes (120 seconds) when waiting for global test suite or git push executions to complete.

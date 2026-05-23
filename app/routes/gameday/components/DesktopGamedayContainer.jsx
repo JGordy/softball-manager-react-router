@@ -89,6 +89,8 @@ export default function DesktopGamedayContainer({
         players,
     });
 
+    const isGameFinal = !!game.gameFinal || gameFinal;
+
     const [subModalOpened, { open: openSubModal, close: closeSubModal }] =
         useDisclosure(false);
     const [editLog, setEditLog] = useState(null);
@@ -133,7 +135,7 @@ export default function DesktopGamedayContainer({
                     <ShareUrlButton />
                     {isScorekeeper ? (
                         <GamedayMenu
-                            gameFinal={game.gameFinal}
+                            gameFinal={isGameFinal}
                             score={score}
                             opponentScore={opponentScore}
                             onSubBatter={
@@ -187,7 +189,7 @@ export default function DesktopGamedayContainer({
                                     outs={outs}
                                     teamName={team.name}
                                     opponentName={game.opponent}
-                                    gameFinal={game.gameFinal}
+                                    gameFinal={isGameFinal}
                                     realtimeStatus={realtimeStatus}
                                     isOurBatting={isOurBatting}
                                     runners={runners}
@@ -197,7 +199,7 @@ export default function DesktopGamedayContainer({
                                 />
                                 {logs.length > 0 &&
                                     isOurBatting &&
-                                    !game.gameFinal && (
+                                    !isGameFinal && (
                                         <LastPlayCard
                                             lastLog={logs[logs.length - 1]}
                                             onUndo={
@@ -213,7 +215,7 @@ export default function DesktopGamedayContainer({
                         {/* COLUMN 2: Action Pad */}
                         <Grid.Col span={{ base: 12, md: 4 }}>
                             <Stack gap="md">
-                                {!game.gameFinal &&
+                                {!isGameFinal &&
                                     (isOurBatting ? (
                                         isScorekeeper && (
                                             <Card radius="lg">
@@ -250,14 +252,14 @@ export default function DesktopGamedayContainer({
                                 mt={0}
                                 size="sm"
                             >
-                                {game.gameFinal &&
+                                {isGameFinal &&
                                     (game.recap || logs.length > 0) && (
                                         <Tabs.Tab value="recap">Recap</Tabs.Tab>
                                     )}
                                 <Tabs.Tab value="plays">Plays</Tabs.Tab>
                                 <Tabs.Tab value="boxscore">Box Score</Tabs.Tab>
                                 <Tabs.Tab value="spray">Spray Chart</Tabs.Tab>
-                                {game.gameFinal && (
+                                {isGameFinal && (
                                     <Tabs.Tab value="achievements">
                                         Achievements
                                     </Tabs.Tab>
@@ -281,7 +283,7 @@ export default function DesktopGamedayContainer({
                                         logs={logs}
                                         playerChart={playerChart}
                                         currentBatter={currentBatter}
-                                        gameFinal={game.gameFinal}
+                                        gameFinal={isGameFinal}
                                     />
                                 </Tabs.Panel>
 
@@ -293,7 +295,7 @@ export default function DesktopGamedayContainer({
                                     />
                                 </Tabs.Panel>
 
-                                {game.gameFinal &&
+                                {isGameFinal &&
                                     (game.recap || logs.length > 0) && (
                                         <Tabs.Panel value="recap" pt="md">
                                             <GameRecapView
@@ -303,7 +305,7 @@ export default function DesktopGamedayContainer({
                                             />
                                         </Tabs.Panel>
                                     )}
-                                {game.gameFinal && (
+                                {isGameFinal && (
                                     <Tabs.Panel value="achievements" pt="md">
                                         <AchievementsList
                                             achievements={achievements}

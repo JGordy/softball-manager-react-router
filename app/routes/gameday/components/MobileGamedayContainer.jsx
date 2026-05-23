@@ -89,6 +89,8 @@ export default function MobileGamedayContainer({
         players,
     });
 
+    const isGameFinal = !!game.gameFinal || gameFinal;
+
     const [subModalOpened, { open: openSubModal, close: closeSubModal }] =
         useDisclosure(false);
     const [editLog, setEditLog] = useState(null);
@@ -133,7 +135,7 @@ export default function MobileGamedayContainer({
                     <ShareUrlButton />
                     {isScorekeeper ? (
                         <GamedayMenu
-                            gameFinal={game.gameFinal}
+                            gameFinal={isGameFinal}
                             score={score}
                             opponentScore={opponentScore}
                             onSubBatter={
@@ -176,7 +178,7 @@ export default function MobileGamedayContainer({
                         outs={outs}
                         teamName={team.name}
                         opponentName={game.opponent}
-                        gameFinal={game.gameFinal}
+                        gameFinal={isGameFinal}
                         realtimeStatus={realtimeStatus}
                         isOurBatting={isOurBatting}
                         runners={runners}
@@ -198,17 +200,16 @@ export default function MobileGamedayContainer({
                             onChange={handleTabChange}
                             mt={0}
                         >
-                            {game.gameFinal &&
-                                (game.recap || logs.length > 0) && (
-                                    <Tabs.Tab value="recap">Recap</Tabs.Tab>
-                                )}
-                            {!game.gameFinal && (
+                            {isGameFinal && (game.recap || logs.length > 0) && (
+                                <Tabs.Tab value="recap">Recap</Tabs.Tab>
+                            )}
+                            {!isGameFinal && (
                                 <Tabs.Tab value="live">Live</Tabs.Tab>
                             )}
                             <Tabs.Tab value="plays">Plays</Tabs.Tab>
                             <Tabs.Tab value="boxscore">Box Score</Tabs.Tab>
                             <Tabs.Tab value="spray">Spray</Tabs.Tab>
-                            {game.gameFinal && (
+                            {isGameFinal && (
                                 <Tabs.Tab value="achievements">
                                     Achievements
                                 </Tabs.Tab>
@@ -216,7 +217,7 @@ export default function MobileGamedayContainer({
 
                             <Tabs.Panel value="live" pt="md">
                                 <Stack gap="md">
-                                    {!game.gameFinal && (
+                                    {!isGameFinal && (
                                         <>
                                             {isOurBatting ? (
                                                 <>
@@ -241,7 +242,7 @@ export default function MobileGamedayContainer({
                                         </>
                                     )}
 
-                                    {isScorekeeper && !game.gameFinal && (
+                                    {isScorekeeper && !isGameFinal && (
                                         <Stack flex={1} gap="md">
                                             {isOurBatting ? (
                                                 <ActionPad
@@ -278,7 +279,7 @@ export default function MobileGamedayContainer({
 
                             <Tabs.Panel value="plays" pt="md">
                                 <Stack gap="md">
-                                    {!game.gameFinal && (
+                                    {!isGameFinal && (
                                         <>
                                             {isOurBatting ? (
                                                 <CurrentBatterCard
@@ -309,7 +310,7 @@ export default function MobileGamedayContainer({
                                     logs={logs}
                                     playerChart={playerChart}
                                     currentBatter={currentBatter}
-                                    gameFinal={game.gameFinal}
+                                    gameFinal={isGameFinal}
                                 />
                             </Tabs.Panel>
 
@@ -321,17 +322,16 @@ export default function MobileGamedayContainer({
                                 />
                             </Tabs.Panel>
 
-                            {game.gameFinal &&
-                                (game.recap || logs.length > 0) && (
-                                    <Tabs.Panel value="recap" pt="md">
-                                        <GameRecapView
-                                            recap={game.recap}
-                                            logs={logs}
-                                            isScorekeeper={isScorekeeper}
-                                        />
-                                    </Tabs.Panel>
-                                )}
-                            {game.gameFinal && (
+                            {isGameFinal && (game.recap || logs.length > 0) && (
+                                <Tabs.Panel value="recap" pt="md">
+                                    <GameRecapView
+                                        recap={game.recap}
+                                        logs={logs}
+                                        isScorekeeper={isScorekeeper}
+                                    />
+                                </Tabs.Panel>
+                            )}
+                            {isGameFinal && (
                                 <Tabs.Panel value="achievements" pt="md">
                                     <AchievementsList
                                         achievements={achievements}
