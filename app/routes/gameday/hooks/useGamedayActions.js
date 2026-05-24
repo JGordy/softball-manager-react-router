@@ -61,14 +61,22 @@ export function useGamedayActions({
         }
     }, [halfInning, setHalfInning, setInning, setOuts, setRunners]);
 
-    const handleOpponentRun = useCallback(() => {
-        setOpponentScore((prev) => prev + 1);
+    const handleOpponentRun = useCallback(
+        (runs = 1) => {
+            const increment =
+                typeof runs === "number" && !isNaN(runs) ? runs : 1;
+            setOpponentScore((prev) => prev + increment);
 
-        fetcher.submit(
-            { _action: "update-game-score", opponentScore: opponentScore + 1 },
-            { method: "post" },
-        );
-    }, [fetcher, opponentScore, setOpponentScore]);
+            fetcher.submit(
+                {
+                    _action: "update-game-score",
+                    opponentScore: opponentScore + increment,
+                },
+                { method: "post" },
+            );
+        },
+        [fetcher, opponentScore, setOpponentScore],
+    );
 
     const handleOpponentOut = useCallback(() => {
         let isInningOver = false;
