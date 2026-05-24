@@ -140,6 +140,7 @@ export function useGamedayController({
         setBattingOrderIndex,
         logs,
         isScorekeeper,
+        game: gameData,
     });
 
     // Derive the list of players eligible to substitute:

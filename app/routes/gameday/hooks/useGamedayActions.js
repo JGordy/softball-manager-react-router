@@ -42,6 +42,7 @@ export function useGamedayActions({
     setBattingOrderIndex,
     logs,
     isScorekeeper = false,
+    game,
 }) {
     const fetcher = useFetcher();
     const [pendingAction, setPendingAction] = useState(null);
@@ -65,17 +66,36 @@ export function useGamedayActions({
         (runs = 1) => {
             const increment =
                 typeof runs === "number" && !isNaN(runs) ? runs : 1;
-            setOpponentScore((prev) => prev + increment);
 
             fetcher.submit(
                 {
-                    _action: "update-game-score",
-                    opponentScore: opponentScore + increment,
+                    _action: "log-game-event",
+                    teamId: team.$id,
+                    inning,
+                    halfInning,
+                    eventType: "opponent_run",
+                    rbi: increment,
+                    outsOnPlay: 0,
+                    description: `${game?.opponent || "Opponent"} scored ${increment} ${increment === 1 ? "run" : "runs"}`,
+                    baseState: JSON.stringify({ isOpponent: true }),
                 },
                 { method: "post" },
             );
+
+            // Update local state ONLY if the user isScorekeeper
+            if (isScorekeeper) {
+                setOpponentScore((prev) => prev + increment);
+            }
         },
-        [fetcher, opponentScore, setOpponentScore],
+        [
+            fetcher,
+            game?.opponent,
+            halfInning,
+            inning,
+            isScorekeeper,
+            setOpponentScore,
+            team.$id,
+        ],
     );
 
     const handleOpponentOut = useCallback(() => {

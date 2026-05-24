@@ -126,4 +126,42 @@ describe("useGameState", () => {
         expect(result.current.score).toBe(5);
         expect(result.current.opponentScore).toBe(3);
     });
+
+    it("handles opponent run events by updating opponent score and ignoring batting index", () => {
+        const game = { score: 5, opponentScore: 3, isHomeGame: true };
+        const logs = [
+            {
+                $id: "log1",
+                playerId: "p1",
+                inning: 1,
+                halfInning: "bottom", // we are batting (home team)
+                outsOnPlay: 1,
+                rbi: 1,
+                baseState: "{}",
+                eventType: "1B",
+            },
+            {
+                $id: "log2",
+                inning: 2,
+                halfInning: "top", // opponent is batting
+                outsOnPlay: 0,
+                rbi: 2,
+                baseState: JSON.stringify({ isOpponent: true }),
+                eventType: "opponent_run",
+            },
+        ];
+
+        const { result } = renderHook(() =>
+            useGameState({ logs, game, playerChart }),
+        );
+
+        // Batting order index should be 1 (after p1), ignoring opponent run
+        expect(result.current.battingOrderIndex).toBe(1);
+
+        // Score should be 1 (logBasedScore: 1)
+        expect(result.current.score).toBe(1);
+
+        // Opponent score should be 2 (logBasedOpponentScore: 2)
+        expect(result.current.opponentScore).toBe(2);
+    });
 });

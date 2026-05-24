@@ -36,6 +36,7 @@ describe("useGamedayActions", () => {
         setBattingOrderIndex: jest.fn(),
         logs: [],
         isScorekeeper: true,
+        game: { $id: "game1", opponent: "Opponent" },
     };
 
     beforeEach(() => {
@@ -63,7 +64,17 @@ describe("useGamedayActions", () => {
         expect(updater(0)).toBe(1);
 
         expect(mockSubmit).toHaveBeenCalledWith(
-            { _action: "update-game-score", opponentScore: 1 },
+            {
+                _action: "log-game-event",
+                teamId: "team1",
+                inning: 1,
+                halfInning: "top",
+                eventType: "opponent_run",
+                rbi: 1,
+                outsOnPlay: 0,
+                description: "Opponent scored 1 run",
+                baseState: JSON.stringify({ isOpponent: true }),
+            },
             { method: "post" },
         );
     });
@@ -82,7 +93,17 @@ describe("useGamedayActions", () => {
         expect(updater(0)).toBe(5);
 
         expect(mockSubmit).toHaveBeenCalledWith(
-            { _action: "update-game-score", opponentScore: 5 },
+            {
+                _action: "log-game-event",
+                teamId: "team1",
+                inning: 1,
+                halfInning: "top",
+                eventType: "opponent_run",
+                rbi: 5,
+                outsOnPlay: 0,
+                description: "Opponent scored 5 runs",
+                baseState: JSON.stringify({ isOpponent: true }),
+            },
             { method: "post" },
         );
     });
