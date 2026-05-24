@@ -143,13 +143,16 @@ export const logGameEvent = async ({
             battingSide: normalizeOptionalField(battingSide),
         };
 
+        const isOpponent = eventType === "opponent_run";
+
         // If runs > 0, use transaction for atomicity
         if (runs > 0) {
             transaction = await createTransaction();
             const logId = ID.unique();
 
             // Read current score to calculate new score
-            const currentScore = parseInt(game.score || 0, 10);
+            const scoreField = isOpponent ? "opponentScore" : "score";
+            const currentScore = parseInt(game[scoreField] || 0, 10);
             const newScore = currentScore + runs;
 
             // Stage operations in transaction
@@ -168,7 +171,7 @@ export const logGameEvent = async ({
                     tableId: collections.games,
                     rowId: gameId,
                     data: {
-                        score: String(newScore),
+                        [scoreField]: String(newScore),
                     },
                 },
             ];
@@ -225,6 +228,7 @@ export const undoGameEvent = async ({ logId, client }) => {
         // 1. Fetch the log to see if we need to revert score
         const log = await readDocument("game_logs", logId, [], client);
         const runs = parseInt(log.rbi || 0, 10);
+        const isOpponent = log.eventType === "opponent_run";
 
         // 2. If the log had runs, use transaction for atomic undo
         if (runs > 0) {
@@ -232,7 +236,8 @@ export const undoGameEvent = async ({ logId, client }) => {
 
             // Read current score to calculate reverted score
             const game = await readDocument("games", log.gameId, [], client);
-            const currentScore = parseInt(game.score || 0, 10);
+            const scoreField = isOpponent ? "opponentScore" : "score";
+            const currentScore = parseInt(game[scoreField] || 0, 10);
             const newScore = Math.max(0, currentScore - runs);
 
             // Stage operations in transaction: update score first, then delete log
@@ -243,7 +248,7 @@ export const undoGameEvent = async ({ logId, client }) => {
                     tableId: collections.games,
                     rowId: log.gameId,
                     data: {
-                        score: String(newScore),
+                        [scoreField]: String(newScore),
                     },
                 },
                 {
@@ -393,19 +398,21 @@ export const updateGameEvent = async ({
         };
         // Remove runnerResults from payload as it's not a root attribute
         delete logPayload.runnerResults;
+        const isOpponent = oldLog.eventType === "opponent_run";
 
         // 4. Update log and game score using the user-scoped client
         if (rbiDelta !== 0) {
             // Only fetch game when score update is needed
             const game = await readDocument("games", gameId, [], client);
-            const currentScore = parseInt(game.score || 0, 10);
+            const scoreField = isOpponent ? "opponentScore" : "score";
+            const currentScore = parseInt(game[scoreField] || 0, 10);
             const newScore = Math.max(0, currentScore + rbiDelta);
 
             // Update game score first; if it fails, the log is untouched (no rollback needed)
             await updateDocument(
                 "games",
                 gameId,
-                { score: String(newScore) },
+                { [scoreField]: String(newScore) },
                 client,
             );
             try {
@@ -419,7 +426,7 @@ export const updateGameEvent = async ({
                     await updateDocument(
                         "games",
                         gameId,
-                        { score: String(currentScore) },
+                        { [scoreField]: String(currentScore) },
                         client,
                     );
                 } catch (rollbackErr) {
