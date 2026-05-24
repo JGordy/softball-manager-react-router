@@ -311,4 +311,73 @@ describe("DesktopGamedayContainer", () => {
             ).not.toBeInTheDocument();
         });
     });
+
+    describe("LastPlayCard rendering", () => {
+        const mockLogs = [
+            {
+                $id: "log1",
+                description: "Alice Smith singles",
+                eventType: "single",
+                rbi: 0,
+                outsOnPlay: 0,
+                inning: 1,
+                halfInning: "top",
+                baseState: "{}",
+            },
+        ];
+
+        it("renders LastPlayCard when batting", () => {
+            gameStateHook.useGameState.mockReturnValue({
+                inning: 1,
+                halfInning: "top",
+                outs: 0,
+                score: 0,
+                opponentScore: 0,
+                runners: { first: null, second: null, third: null },
+                battingOrderIndex: 0,
+            });
+
+            render(
+                <DesktopGamedayContainer
+                    game={mockGame}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={mockLogs}
+                    isScorekeeper={true}
+                />,
+            );
+
+            expect(screen.getByText("LAST PLAY")).toBeInTheDocument();
+            expect(
+                screen.getAllByText("Alice Smith singles").length,
+            ).toBeGreaterThan(0);
+        });
+
+        it("renders LastPlayCard when on defense", () => {
+            gameStateHook.useGameState.mockReturnValue({
+                inning: 1,
+                halfInning: "bottom",
+                outs: 0,
+                score: 0,
+                opponentScore: 0,
+                runners: { first: null, second: null, third: null },
+                battingOrderIndex: 0,
+            });
+
+            render(
+                <DesktopGamedayContainer
+                    game={mockGame}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={mockLogs}
+                    isScorekeeper={true}
+                />,
+            );
+
+            expect(screen.getByText("LAST PLAY")).toBeInTheDocument();
+            expect(
+                screen.getAllByText("Alice Smith singles").length,
+            ).toBeGreaterThan(0);
+        });
+    });
 });

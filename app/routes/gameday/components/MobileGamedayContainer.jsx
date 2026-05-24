@@ -261,7 +261,7 @@ export default function MobileGamedayContainer({
                                         </Stack>
                                     )}
 
-                                    {logs.length > 0 && isOurBatting && (
+                                    {logs.length > 0 && (
                                         <Box>
                                             <LastPlayCard
                                                 lastLog={logs[logs.length - 1]}
@@ -302,6 +302,7 @@ export default function MobileGamedayContainer({
                                         playerChart={playerChart}
                                         isScorekeeper={isScorekeeper}
                                         onEditPlay={handleEditPlay}
+                                        opponentName={game.opponent}
                                     />
                                 </Stack>
                             </Tabs.Panel>
