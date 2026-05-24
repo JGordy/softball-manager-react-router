@@ -139,5 +139,47 @@ describe("PlayHistoryList", () => {
                 screen.queryByRole("button", { name: /edit play/i }),
             ).not.toBeInTheDocument();
         });
+
+        it("does not show edit button on opponent_run log rows even for scorekeepers", () => {
+            const opponentLog = {
+                $id: "log-opp",
+                description: "Trinity Red scored 2 runs",
+                eventType: "opponent_run",
+                rbi: 2,
+                inning: 2,
+                halfInning: "top",
+            };
+            render(
+                <PlayHistoryList
+                    logs={[opponentLog]}
+                    playerChart={[]}
+                    isScorekeeper={true}
+                    onEditPlay={jest.fn()}
+                />,
+            );
+            expect(
+                screen.queryByRole("button", { name: /edit play/i }),
+            ).not.toBeInTheDocument();
+        });
+    });
+
+    it("renders opponent run event cards correctly with custom opponentName", () => {
+        const opponentLog = {
+            $id: "log-opp",
+            eventType: "opponent_run",
+            rbi: 2,
+            inning: 2,
+            halfInning: "top",
+        };
+        render(
+            <PlayHistoryList
+                logs={[opponentLog]}
+                playerChart={[]}
+                opponentName="Trinity Red"
+            />,
+        );
+        expect(
+            screen.getByText("Trinity Red scored 2 runs"),
+        ).toBeInTheDocument();
     });
 });

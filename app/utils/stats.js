@@ -1,4 +1,5 @@
 import { HITS, WALKS, OUTS, EVENT_TYPE_MAP } from "@/constants/scoring";
+import { isOpponentPlay } from "@/routes/gameday/utils/gamedayUtils";
 
 const formatStat = (val) => val.replace(/^0/, "");
 
@@ -53,8 +54,8 @@ export const calculateGameStats = (logs = [], playerChart = []) => {
 
     // 2. Process logs
     logs.forEach((log) => {
-        // Skip substitution events — they are metadata, not at-bats
-        if (log.eventType === "SUB") return;
+        // Skip substitution and opponent events — they are metadata/opponent stats, not our team's at-bats
+        if (log.eventType === "SUB" || isOpponentPlay(log)) return;
 
         const batterId = log.playerId;
         if (!statsMap[batterId]) return; // Skip if player not in chart (shouldn't happen)
@@ -249,6 +250,8 @@ export const calculatePlayerStats = (logs) => {
     };
 
     logs.forEach((log) => {
+        if (log.eventType === "opponent_run" || isOpponentPlay(log)) return;
+
         const eventType = log.eventType;
         const logRbi = log.rbi || 0;
 

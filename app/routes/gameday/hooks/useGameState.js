@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { isOpponentPlay } from "../utils/gamedayUtils";
 
 export function useGameState({ logs, game, playerChart }) {
     const [inning, setInning] = useState(1);
@@ -26,10 +27,13 @@ export function useGameState({ logs, game, playerChart }) {
         // 1. Current Batter Index
         // Calculate based on the last logged batter to handle undo correctly
         if (logs.length > 0) {
-            // Find the last log that was actually an at-bat (not a substitution)
+            // Find the last log that was actually an at-bat (not a substitution or opponent play)
             let lastAtBatLog = null;
             for (let i = logs.length - 1; i >= 0; i--) {
-                if (logs[i].eventType !== "SUB") {
+                if (
+                    logs[i].eventType !== "SUB" &&
+                    !isOpponentPlay(logs[i], game.isHomeGame)
+                ) {
                     lastAtBatLog = logs[i];
                     break;
                 }
@@ -63,7 +67,9 @@ export function useGameState({ logs, game, playerChart }) {
         // Favor calculated score from logs to ensure UI consistency and avoid document staleness.
         // If logs exist, they are the source of truth for the batting team's score.
         const logBasedScore = logs.reduce(
-            (acc, l) => acc + (Number(l.rbi) || 0),
+            (acc, l) =>
+                acc +
+                (isOpponentPlay(l, game.isHomeGame) ? 0 : Number(l.rbi) || 0),
             0,
         );
         const finalScore =
@@ -71,8 +77,19 @@ export function useGameState({ logs, game, playerChart }) {
                 ? logBasedScore
                 : Math.max(logBasedScore, Number(game.score || 0));
 
+        const logBasedOpponentScore = logs.reduce(
+            (acc, l) =>
+                acc +
+                (isOpponentPlay(l, game.isHomeGame) ? Number(l.rbi) || 0 : 0),
+            0,
+        );
+        const finalOpponentScore = Math.max(
+            logBasedOpponentScore,
+            Number(game.opponentScore || 0),
+        );
+
         setScore(finalScore);
-        setOpponentScore(Number(game.opponentScore || 0));
+        setOpponentScore(finalOpponentScore);
 
         // 3. Game State (Inning, Half, Outs, Runners)
         const latestLogId =

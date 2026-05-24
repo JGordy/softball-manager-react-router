@@ -198,18 +198,14 @@ export default function DesktopGamedayContainer({
                                     upcomingBatters={upcomingBatters}
                                     logs={logs}
                                 />
-                                {logs.length > 0 &&
-                                    isOurBatting &&
-                                    !isGameFinal && (
-                                        <LastPlayCard
-                                            lastLog={logs[logs.length - 1]}
-                                            onUndo={
-                                                isScorekeeper ? undoLast : null
-                                            }
-                                            isSubmitting={isSubmitting}
-                                            playerChart={playerChart}
-                                        />
-                                    )}
+                                {logs.length > 0 && !isGameFinal && (
+                                    <LastPlayCard
+                                        lastLog={logs[logs.length - 1]}
+                                        onUndo={isScorekeeper ? undoLast : null}
+                                        isSubmitting={isSubmitting}
+                                        playerChart={playerChart}
+                                    />
+                                )}
                             </Stack>
                         </Grid.Col>
 
@@ -274,6 +270,7 @@ export default function DesktopGamedayContainer({
                                                 playerChart={playerChart}
                                                 isScorekeeper={isScorekeeper}
                                                 onEditPlay={handleEditPlay}
+                                                opponentName={game.opponent}
                                             />
                                         </Card>
                                     </Stack>

@@ -21,6 +21,7 @@ export default function PlayHistoryList({
     playerChart,
     isScorekeeper,
     onEditPlay,
+    opponentName = "Opponent", // For future features (e.g. opponent recaps)
 }) {
     if (!logs.length) {
         return (
@@ -35,6 +36,55 @@ export default function PlayHistoryList({
     return (
         <Stack gap="xs">
             {[...logs].reverse().map((log) => {
+                // Render opponent run events with a distinct visual style aligned to the right
+                if (log.eventType === "opponent_run") {
+                    return (
+                        <Card
+                            key={log.$id}
+                            p="xs"
+                            radius="md"
+                            bg="rgba(229, 115, 115, 0.08)"
+                            style={{
+                                alignSelf: "flex-end",
+                                width: "90%",
+                                borderColor: "rgba(229, 115, 115, 0.2)",
+                            }}
+                        >
+                            <Stack gap={4}>
+                                <Group justify="space-between" wrap="nowrap">
+                                    <Text
+                                        size="sm"
+                                        fw={700}
+                                        style={{ flex: 1 }}
+                                    >
+                                        {log.description ||
+                                            `${opponentName} scored ${log.rbi || 0} run${(log.rbi || 0) === 1 ? "" : "s"}`}
+                                    </Text>
+                                </Group>
+                                <Group
+                                    gap={4}
+                                    aria-label={`${log.halfInning === "top" ? "Top" : "Bottom"} of inning ${log.inning}`}
+                                >
+                                    {log.halfInning === "top" ? (
+                                        <IconCaretUpFilled
+                                            size={12}
+                                            color="var(--mantine-color-blue-9)"
+                                        />
+                                    ) : (
+                                        <IconCaretDownFilled
+                                            size={12}
+                                            color="var(--mantine-color-blue-9)"
+                                        />
+                                    )}
+                                    <Text size="xs" c="dimmed">
+                                        {log.inning}
+                                    </Text>
+                                </Group>
+                            </Stack>
+                        </Card>
+                    );
+                }
+
                 // Render substitution events with a distinct visual style
                 if (log.eventType === "SUB") {
                     return (
