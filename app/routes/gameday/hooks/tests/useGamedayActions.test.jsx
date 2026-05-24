@@ -68,6 +68,25 @@ describe("useGamedayActions", () => {
         );
     });
 
+    it("handles multiple opponent runs correctly", () => {
+        const { result } = renderHook(() => useGamedayActions(defaultProps));
+
+        act(() => {
+            result.current.handleOpponentRun(5);
+        });
+
+        expect(defaultProps.setOpponentScore).toHaveBeenCalledWith(
+            expect.any(Function),
+        );
+        const updater = defaultProps.setOpponentScore.mock.calls[0][0];
+        expect(updater(0)).toBe(5);
+
+        expect(mockSubmit).toHaveBeenCalledWith(
+            { _action: "update-game-score", opponentScore: 5 },
+            { method: "post" },
+        );
+    });
+
     it("handles opponent out with inning advance", () => {
         const propsWith2Outs = { ...defaultProps, outs: 2 };
         const { result } = renderHook(() => useGamedayActions(propsWith2Outs));
