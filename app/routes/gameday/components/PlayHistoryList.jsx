@@ -57,7 +57,8 @@ export default function PlayHistoryList({
                                         fw={700}
                                         style={{ flex: 1 }}
                                     >
-                                        {log.description}
+                                        {log.description ||
+                                            `${opponentName} scored ${log.rbi || 0} run${(log.rbi || 0) === 1 ? "" : "s"}`}
                                     </Text>
                                     {isScorekeeper && (
                                         <Tooltip label="Edit Play" withArrow>

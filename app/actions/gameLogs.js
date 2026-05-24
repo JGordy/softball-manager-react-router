@@ -398,44 +398,123 @@ export const updateGameEvent = async ({
         };
         // Remove runnerResults from payload as it's not a root attribute
         delete logPayload.runnerResults;
-        const isOpponent = oldLog.eventType === "opponent_run";
+        const wasOpponent =
+            oldLog.eventType === "opponent_run" ||
+            (() => {
+                try {
+                    const parsed =
+                        typeof oldLog.baseState === "string"
+                            ? JSON.parse(oldLog.baseState)
+                            : oldLog.baseState;
+                    return !!parsed?.isOpponent;
+                } catch (e) {
+                    return false;
+                }
+            })();
+
+        const isOpponent =
+            (newData.eventType || oldLog.eventType) === "opponent_run" ||
+            (() => {
+                try {
+                    const parsed =
+                        typeof logPayload.baseState === "string"
+                            ? JSON.parse(logPayload.baseState)
+                            : logPayload.baseState;
+                    return !!parsed?.isOpponent;
+                } catch (e) {
+                    return false;
+                }
+            })();
 
         // 4. Update log and game score using the user-scoped client
-        if (rbiDelta !== 0) {
-            // Only fetch game when score update is needed
-            const game = await readDocument("games", gameId, [], client);
-            const scoreField = isOpponent ? "opponentScore" : "score";
-            const currentScore = parseInt(game[scoreField] || 0, 10);
-            const newScore = Math.max(0, currentScore + rbiDelta);
+        if (wasOpponent === isOpponent) {
+            // No type transition: update a single field by rbiDelta if rbiDelta is non-zero
+            if (rbiDelta !== 0) {
+                const game = await readDocument("games", gameId, [], client);
+                const scoreField = isOpponent ? "opponentScore" : "score";
+                const currentScore = parseInt(game[scoreField] || 0, 10);
+                const newScore = Math.max(0, currentScore + rbiDelta);
 
-            // Update game score first; if it fails, the log is untouched (no rollback needed)
+                await updateDocument(
+                    "games",
+                    gameId,
+                    { [scoreField]: String(newScore) },
+                    client,
+                );
+                try {
+                    await updateDocument(
+                        "game_logs",
+                        logId,
+                        logPayload,
+                        client,
+                    );
+                } catch (logErr) {
+                    console.error(
+                        "Log update failed after score update; attempting score rollback:",
+                        logErr,
+                    );
+                    try {
+                        await updateDocument(
+                            "games",
+                            gameId,
+                            { [scoreField]: String(currentScore) },
+                            client,
+                        );
+                    } catch (rollbackErr) {
+                        console.error("Score rollback failed:", rollbackErr);
+                    }
+                    throw logErr;
+                }
+            } else {
+                await updateDocument("game_logs", logId, logPayload, client);
+            }
+        } else {
+            // Type transition!
+            // Deduct oldRbi from old score field, and add newRbi to new score field
+            const game = await readDocument("games", gameId, [], client);
+            const oldScoreField = wasOpponent ? "opponentScore" : "score";
+            const newScoreField = isOpponent ? "opponentScore" : "score";
+
+            const currentOldScore = parseInt(game[oldScoreField] || 0, 10);
+            const currentNewScore = parseInt(game[newScoreField] || 0, 10);
+
+            const nextOldScore = Math.max(0, currentOldScore - oldRbi);
+            const nextNewScore = Math.max(0, currentNewScore + newRbi);
+
             await updateDocument(
                 "games",
                 gameId,
-                { [scoreField]: String(newScore) },
+                {
+                    [oldScoreField]: String(nextOldScore),
+                    [newScoreField]: String(nextNewScore),
+                },
                 client,
             );
             try {
                 await updateDocument("game_logs", logId, logPayload, client);
             } catch (logErr) {
                 console.error(
-                    "Log update failed after score update; attempting score rollback:",
+                    "Log update failed after transition score update; attempting rollback:",
                     logErr,
                 );
                 try {
                     await updateDocument(
                         "games",
                         gameId,
-                        { [scoreField]: String(currentScore) },
+                        {
+                            [oldScoreField]: String(currentOldScore),
+                            [newScoreField]: String(currentNewScore),
+                        },
                         client,
                     );
                 } catch (rollbackErr) {
-                    console.error("Score rollback failed:", rollbackErr);
+                    console.error(
+                        "Score transition rollback failed:",
+                        rollbackErr,
+                    );
                 }
                 throw logErr;
             }
-        } else {
-            await updateDocument("game_logs", logId, logPayload, client);
         }
 
         // 5. Experimental Propagation logic:

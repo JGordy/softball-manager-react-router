@@ -274,6 +274,61 @@ describe("gameLogs actions", () => {
             expect(result.success).toBe(false);
             expect(result.message).toContain("Invalid baseState data");
         });
+
+        it("should successfully log an opponent_run event and update opponentScore using transaction", async () => {
+            const mockPayload = {
+                gameId: "game123",
+                inning: "1",
+                halfInning: "bottom",
+                playerId: "player456",
+                eventType: "opponent_run",
+                rbi: 2,
+                outsOnPlay: 0,
+                description: "Trinity Red scored 2 runs",
+                baseState: { isOpponent: true },
+            };
+
+            const mockTransaction = { $id: "txn-123" };
+            createTransaction.mockResolvedValue(mockTransaction);
+            readDocument.mockResolvedValue({
+                opponentScore: "4",
+                teamId: "team789",
+            });
+            createOperations.mockResolvedValue({});
+            commitTransaction.mockResolvedValue({});
+
+            const result = await logGameEvent({
+                ...mockPayload,
+                client: { mockedClient: true },
+            });
+
+            expect(createTransaction).toHaveBeenCalled();
+            expect(readDocument).toHaveBeenCalledWith("games", "game123", [], {
+                mockedClient: true,
+            });
+            expect(createOperations).toHaveBeenCalledWith(
+                "txn-123",
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        action: "create",
+                        tableId: "GAME_LOGS_COLLECTION_ID",
+                        data: expect.objectContaining({
+                            eventType: "opponent_run",
+                            rbi: 2,
+                            baseState: JSON.stringify(mockPayload.baseState),
+                        }),
+                    }),
+                    expect.objectContaining({
+                        action: "update",
+                        tableId: "GAMES_COLLECTION_ID",
+                        rowId: "game123",
+                        data: { opponentScore: "6" },
+                    }),
+                ]),
+            );
+            expect(commitTransaction).toHaveBeenCalledWith("txn-123");
+            expect(result.success).toBe(true);
+        });
     });
 
     describe("undoGameEvent", () => {
@@ -372,6 +427,55 @@ describe("gameLogs actions", () => {
             expect(result.success).toBe(false);
             expect(result.error).toBe("Fetch error");
             expect(console.error).toHaveBeenCalled();
+        });
+
+        it("should successfully undo an opponent_run event and revert opponentScore using transaction", async () => {
+            const mockLog = {
+                gameId: "game123",
+                eventType: "opponent_run",
+                rbi: 2,
+            };
+
+            const mockTransaction = { $id: "txn-456" };
+            readDocument.mockResolvedValueOnce(mockLog);
+            readDocument.mockResolvedValueOnce({ opponentScore: "8" });
+            createTransaction.mockResolvedValue(mockTransaction);
+            createOperations.mockResolvedValue({});
+            commitTransaction.mockResolvedValue({});
+
+            const result = await undoGameEvent({
+                logId: "log789",
+                client: { mockedClient: true },
+            });
+
+            expect(readDocument).toHaveBeenCalledWith(
+                "game_logs",
+                "log789",
+                [],
+                { mockedClient: true },
+            );
+            expect(readDocument).toHaveBeenCalledWith("games", "game123", [], {
+                mockedClient: true,
+            });
+            expect(createTransaction).toHaveBeenCalled();
+            expect(createOperations).toHaveBeenCalledWith(
+                "txn-456",
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        action: "update",
+                        tableId: "GAMES_COLLECTION_ID",
+                        rowId: "game123",
+                        data: { opponentScore: "6" },
+                    }),
+                    expect.objectContaining({
+                        action: "delete",
+                        tableId: "GAME_LOGS_COLLECTION_ID",
+                        rowId: "log789",
+                    }),
+                ]),
+            );
+            expect(commitTransaction).toHaveBeenCalledWith("txn-456");
+            expect(result.success).toBe(true);
         });
     });
 
@@ -569,6 +673,78 @@ describe("gameLogs actions", () => {
             });
             expect(result.success).toBe(false);
             expect(result.status).toBe(400);
+        });
+
+        it("updates the opponentScore when RBI changes on an opponent_run event", async () => {
+            readDocument
+                .mockResolvedValueOnce({
+                    $id: "log1",
+                    gameId: "game1",
+                    eventType: "opponent_run",
+                    rbi: 1,
+                })
+                .mockResolvedValueOnce({ $id: "game1", opponentScore: "4" });
+
+            updateDocument
+                .mockResolvedValueOnce({ $id: "game1" })
+                .mockResolvedValueOnce({ $id: "log1" });
+
+            const result = await updateGameEvent({
+                logId: "log1",
+                newData: {
+                    ...baseNewData,
+                    rbi: "3",
+                    eventType: "opponent_run",
+                },
+                client: mockClient,
+            });
+
+            expect(updateDocument).toHaveBeenNthCalledWith(
+                1,
+                "games",
+                "game1",
+                { opponentScore: "6" },
+                mockClient,
+            );
+            expect(result.success).toBe(true);
+        });
+
+        it("handles type transition from team play to opponent_run play correctly adjusting both scores", async () => {
+            readDocument
+                .mockResolvedValueOnce({
+                    $id: "log1",
+                    gameId: "game1",
+                    eventType: "single",
+                    rbi: 1,
+                })
+                .mockResolvedValueOnce({
+                    $id: "game1",
+                    score: "4",
+                    opponentScore: "2",
+                });
+
+            updateDocument
+                .mockResolvedValueOnce({ $id: "game1" })
+                .mockResolvedValueOnce({ $id: "log1" });
+
+            const result = await updateGameEvent({
+                logId: "log1",
+                newData: {
+                    ...baseNewData,
+                    rbi: "3",
+                    eventType: "opponent_run",
+                },
+                client: mockClient,
+            });
+
+            expect(updateDocument).toHaveBeenNthCalledWith(
+                1,
+                "games",
+                "game1",
+                { score: "3", opponentScore: "5" },
+                mockClient,
+            );
+            expect(result.success).toBe(true);
         });
     });
 });
