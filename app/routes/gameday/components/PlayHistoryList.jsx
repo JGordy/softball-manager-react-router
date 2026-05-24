@@ -60,22 +60,6 @@ export default function PlayHistoryList({
                                         {log.description ||
                                             `${opponentName} scored ${log.rbi || 0} run${(log.rbi || 0) === 1 ? "" : "s"}`}
                                     </Text>
-                                    {isScorekeeper && (
-                                        <Tooltip label="Edit Play" withArrow>
-                                            <ActionIcon
-                                                variant="subtle"
-                                                color="gray"
-                                                size="sm"
-                                                onClick={() =>
-                                                    onEditPlay &&
-                                                    onEditPlay(log)
-                                                }
-                                                aria-label="Edit play"
-                                            >
-                                                <IconPencil size={14} />
-                                            </ActionIcon>
-                                        </Tooltip>
-                                    )}
                                 </Group>
                                 <Group
                                     gap={4}
