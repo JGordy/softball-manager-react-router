@@ -250,6 +250,8 @@ export const calculatePlayerStats = (logs) => {
     };
 
     logs.forEach((log) => {
+        if (log.eventType === "opponent_run" || isOpponentPlay(log)) return;
+
         const eventType = log.eventType;
         const logRbi = log.rbi || 0;
 

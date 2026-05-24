@@ -83,13 +83,10 @@ export function useGameState({ logs, game, playerChart }) {
                 (isOpponentPlay(l, game.isHomeGame) ? Number(l.rbi) || 0 : 0),
             0,
         );
-        const finalOpponentScore =
-            logs.length > 0
-                ? logBasedOpponentScore
-                : Math.max(
-                      logBasedOpponentScore,
-                      Number(game.opponentScore || 0),
-                  );
+        const finalOpponentScore = Math.max(
+            logBasedOpponentScore,
+            Number(game.opponentScore || 0),
+        );
 
         setScore(finalScore);
         setOpponentScore(finalOpponentScore);

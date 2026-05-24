@@ -445,6 +445,29 @@ describe("calculateGameStats", () => {
         expect(result[0].AVG).toBe(".500");
         expect(result[0].OBP).toBe(".500");
     });
+
+    it("should skip opponent run and play events entirely", () => {
+        const logs = [
+            {
+                playerId: "player1",
+                eventType: "single",
+                rbi: 0,
+                baseState: "{}",
+            },
+            {
+                playerId: "player1",
+                eventType: "opponent_run",
+                rbi: 3,
+                baseState: JSON.stringify({ isOpponent: true }),
+            },
+        ];
+        const stats = calculateGameStats(logs, mockPlayerChart);
+        const player1Stats = stats.find((s) => s.player.$id === "player1");
+        expect(player1Stats.PA).toBe(1);
+        expect(player1Stats.AB).toBe(1);
+        expect(player1Stats.H).toBe(1);
+        expect(player1Stats.RBI).toBe(0);
+    });
 });
 
 describe("calculateTeamTotals", () => {
@@ -790,5 +813,20 @@ describe("calculatePlayerStats", () => {
         expect(stats.ab).toBe(2);
         expect(stats.details.E).toBe(1);
         expect(stats.details.FC).toBe(1);
+    });
+
+    it("should skip opponent run and play events entirely", () => {
+        const logs = [
+            { eventType: "single", rbi: 0 },
+            {
+                eventType: "opponent_run",
+                rbi: 2,
+                baseState: { isOpponent: true },
+            },
+        ];
+        const stats = calculatePlayerStats(logs);
+        expect(stats.ab).toBe(1);
+        expect(stats.hits).toBe(1);
+        expect(stats.rbi).toBe(0);
     });
 });

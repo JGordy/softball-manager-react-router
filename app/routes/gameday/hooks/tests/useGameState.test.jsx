@@ -128,7 +128,7 @@ describe("useGameState", () => {
     });
 
     it("handles opponent run events by updating opponent score and ignoring batting index", () => {
-        const game = { score: 5, opponentScore: 3, isHomeGame: true };
+        const game = { score: 5, opponentScore: 0, isHomeGame: true };
         const logs = [
             {
                 $id: "log1",
