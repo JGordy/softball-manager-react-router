@@ -273,3 +273,38 @@ export function parsePlayerChart(playerChart) {
         return undefined;
     }
 }
+
+/**
+ * Classifies whether a game log represents an opponent play.
+ * Uses explicit indicators or visitor vs home baseball rule as a fallback.
+ *
+ * @param {Object} log - The game log object
+ * @param {boolean} [isHomeGame] - Whether our team is the home team
+ * @returns {boolean} True if the play belongs to the opponent
+ */
+export const isOpponentPlay = (log, isHomeGame) => {
+    if (!log) return false;
+
+    // Explicit eventType check
+    if (log.eventType === "opponent_run") return true;
+
+    // Check custom JSON metadata in baseState
+    if (log.baseState) {
+        try {
+            const parsed =
+                typeof log.baseState === "string"
+                    ? JSON.parse(log.baseState)
+                    : log.baseState;
+            if (parsed?.isOpponent !== undefined) return !!parsed.isOpponent;
+        } catch {}
+    }
+
+    // Rules-based fallback (Visitor bats first, Home bats second)
+    if (isHomeGame !== undefined && isHomeGame !== null) {
+        const isHome = isHomeGame === "true" || isHomeGame === true;
+        const isTop = log.halfInning === "top";
+        return isHome ? isTop : !isTop;
+    }
+
+    return false;
+};
