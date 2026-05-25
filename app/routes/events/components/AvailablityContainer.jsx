@@ -1,24 +1,18 @@
-import { useEffect } from "react";
 import { useOutletContext, useFetcher } from "react-router";
 import { DateTime } from "luxon";
 
 import {
-    ActionIcon,
     Card,
-    Collapse,
     Divider,
     Group,
     LoadingOverlay,
-    Radio,
     ScrollArea,
     SegmentedControl,
     Stack,
     Text,
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
 
 import {
-    IconChevronDown,
     IconCircleCheckFilled,
     IconHelpTriangleFilled,
     IconMessageCircleOff,
@@ -65,6 +59,13 @@ const AvailabilityOptionsContainer = ({
 }) => {
     const fetcher = useFetcher();
 
+    const isSubmitting = fetcher.state !== "idle";
+    const optimisticStatus =
+        isSubmitting && fetcher.formData
+            ? fetcher.formData.get("status")
+            : attendance?.status;
+    const currentStatus = optimisticStatus || "unknown";
+
     const renderToggle =
         (managerView || currentUserId === player.$id) && !isGamePast;
 
@@ -96,7 +97,7 @@ const AvailabilityOptionsContainer = ({
         <Card key={player.$id} shadow="sm" radius="md" p="sm" pos="relative">
             <LoadingOverlay
                 data-overlay={`availability-${player.$id}`}
-                visible={fetcher.state === "loading"}
+                visible={isSubmitting}
                 overlayProps={{ blur: 2, radius: "md" }}
                 loaderProps={{ color: "lime", type: "dots", size: "lg" }}
             />
@@ -120,7 +121,7 @@ const AvailabilityOptionsContainer = ({
                     </Text>
                 </Group>
                 {!renderToggle ? (
-                    availabilityData[attendance?.status || "unknown"].icon
+                    availabilityData[currentStatus].icon
                 ) : (
                     <SegmentedControl
                         data={[
@@ -130,18 +131,15 @@ const AvailabilityOptionsContainer = ({
                         ]}
                         value={
                             ["accepted", "declined", "tentative"].includes(
-                                attendance?.status,
+                                currentStatus,
                             )
-                                ? attendance.status
+                                ? currentStatus
                                 : ""
                         }
                         onChange={(value) =>
                             handleAttendanceChange(value, player.$id)
                         }
-                        color={
-                            availabilityData[attendance?.status]?.color ||
-                            "blue"
-                        }
+                        color={availabilityData[currentStatus]?.color || "blue"}
                         size="xs"
                         style={{ flexShrink: 0 }}
                     />
@@ -165,11 +163,9 @@ export default function AvailabliityContainer({
 
     // Convert stored ISO (UTC) into the event timezone for day comparisons
     const gameDt = DateTime.fromISO(gameDate, { zone: "utc" }).setZone(
-        timeZone || DateTime.local().zoneName,
+        timeZone || "local",
     );
-    const today = DateTime.local().setZone(
-        timeZone || DateTime.local().zoneName,
-    );
+    const today = DateTime.local().setZone(timeZone || "local");
     const isGameToday = gameDt.toISODate() === today.toISODate();
     const isGamePast = gameDt < today && !isGameToday;
 

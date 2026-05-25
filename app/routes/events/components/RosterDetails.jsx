@@ -36,7 +36,7 @@ export default function RosterDetails({
         useDisclosure(false);
 
     const gameDt = DateTime.fromISO(game.gameDate, { zone: "utc" }).setZone(
-        game.timeZone || DateTime.local().zoneName,
+        game.timeZone || "local",
     );
     const dateStr = gameDt.toFormat("M/d");
 

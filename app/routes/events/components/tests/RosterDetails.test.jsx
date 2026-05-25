@@ -68,6 +68,7 @@ describe("RosterDetails Component", () => {
             $id: "game1",
             opponent: "The Eagles",
             gameDate: "2099-06-01T18:00:00Z",
+            timeZone: "UTC",
         },
         managerView: false,
         playerChart: null,
