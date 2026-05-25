@@ -89,43 +89,26 @@ describe("AvailablityContainer", () => {
         renderComponent();
 
         // Icons appear in:
-        // 1. Legend at top
-        // 2. Group Headers (if players in group)
-        // 3. Player Cards (if player in group)
+        // 1. Group Headers (if players in group)
+        // 2. Player Cards (if player in group and they don't have toggle permissions)
 
-        // user1 (accepted): 1 (legend) + 1 (header) + 1 (card) = 3
-        expect(screen.getAllByTestId("icon-check")).toHaveLength(3);
+        // user1 (accepted, toggle enabled): 1 (header) + 0 (card) = 1
+        expect(screen.getAllByTestId("icon-check")).toHaveLength(1);
 
-        // user2 (unknown): 1 (legend) + 1 (header) + 1 (card) = 3
-        expect(screen.getAllByTestId("icon-message-off")).toHaveLength(3);
+        // user2 (unknown, toggle disabled): 1 (header) + 1 (card) = 2
+        expect(screen.getAllByTestId("icon-message-off")).toHaveLength(2);
 
-        // unused statuses (declined, tentative): 1 (legend) only
-        expect(screen.getAllByTestId("icon-x")).toHaveLength(1);
+        // unused statuses (declined, tentative): 0
+        expect(screen.queryByTestId("icon-x")).not.toBeInTheDocument();
     });
 
     it("allows user to update their own availability", async () => {
         renderComponent();
 
         const userCardText = screen.getByText("Test User");
-
         const cardContainer = userCardText.closest(".mantine-Card-root");
 
-        const toggleButton =
-            within(cardContainer).getByTestId(
-                "icon-chevron-down",
-            ).parentElement;
-
-        fireEvent.click(toggleButton);
-
-        await waitFor(() => {
-            expect(
-                within(cardContainer).getByText(
-                    "Will you be attending the game?",
-                ),
-            ).toBeInTheDocument();
-        });
-
-        // Click the "No" option (declined)
+        // Click the "No" option (declined) directly from the SegmentedControl
         const noOption = within(cardContainer).getByText("No");
         fireEvent.click(noOption);
 
@@ -146,25 +129,11 @@ describe("AvailablityContainer", () => {
     it("allows manager to update any player availability", async () => {
         renderComponent({ managerView: true });
 
-        const toggleButtons = screen.getAllByTestId("icon-chevron-down");
-        expect(toggleButtons).toHaveLength(2);
-
-        // Click the second toggle
-        fireEvent.click(toggleButtons[1].parentElement);
-
         const cardContainer = screen
             .getByText("Other Player")
             .closest("div[class*='mantine-Card-root']");
 
-        await waitFor(() => {
-            expect(
-                within(cardContainer).getByText(
-                    "Will you be attending the game?",
-                ),
-            ).toBeInTheDocument();
-        });
-
-        // Click "Yes" inside this card
+        // Click "Yes" inside this card directly from the SegmentedControl
         const yesButton = within(cardContainer).getByText("Yes");
         fireEvent.click(yesButton);
 
@@ -188,8 +157,11 @@ describe("AvailablityContainer", () => {
         };
         renderComponent({ game: pastGame });
 
+        const userCardText = screen.getByText("Test User");
+        const cardContainer = userCardText.closest(".mantine-Card-root");
+
         expect(
-            screen.queryByTestId("icon-chevron-down"),
+            within(cardContainer).queryByText("Yes"),
         ).not.toBeInTheDocument();
     });
 });

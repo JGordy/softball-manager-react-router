@@ -64,7 +64,12 @@ describe("RosterDetails Component", () => {
             attendance: { rows: [] },
             players: [],
         },
-        game: { $id: "game1" },
+        game: {
+            $id: "game1",
+            opponent: "The Eagles",
+            gameDate: "2099-06-01T18:00:00Z",
+            timeZone: "UTC",
+        },
         managerView: false,
         playerChart: null,
         team: { $id: "team1" },
@@ -161,7 +166,7 @@ describe("RosterDetails Component", () => {
         fireEvent.click(screen.getByText("Player Availability"));
 
         expect(
-            screen.getByRole("dialog", { name: "Availability Details" }),
+            screen.getByRole("dialog", { name: "Vs The Eagles on 6/1" }),
         ).toBeInTheDocument();
         expect(
             screen.getByTestId("availability-container"),

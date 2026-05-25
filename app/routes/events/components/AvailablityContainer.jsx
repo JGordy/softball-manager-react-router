@@ -1,23 +1,18 @@
-import { useEffect } from "react";
 import { useOutletContext, useFetcher } from "react-router";
 import { DateTime } from "luxon";
 
 import {
-    ActionIcon,
     Card,
-    Collapse,
     Divider,
     Group,
     LoadingOverlay,
-    Radio,
     ScrollArea,
+    SegmentedControl,
     Stack,
     Text,
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
 
 import {
-    IconChevronDown,
     IconCircleCheckFilled,
     IconHelpTriangleFilled,
     IconMessageCircleOff,
@@ -63,18 +58,16 @@ const AvailabilityOptionsContainer = ({
     teamId,
 }) => {
     const fetcher = useFetcher();
-    const [opened, { close, toggle }] = useDisclosure(false);
+
+    const isSubmitting = fetcher.state !== "idle";
+    const optimisticStatus =
+        isSubmitting && fetcher.formData
+            ? fetcher.formData.get("status")
+            : attendance?.status;
+    const currentStatus = optimisticStatus || "unknown";
 
     const renderToggle =
         (managerView || currentUserId === player.$id) && !isGamePast;
-
-    // This effect will close the collapse after a successful submission.
-    useEffect(() => {
-        // Check for a successful action response from the fetcher
-        if (fetcher.state === "idle" && fetcher.data?.success) {
-            close();
-        }
-    }, [fetcher.state, fetcher.data, close]);
 
     const handleAttendanceChange = (text, playerId) => {
         try {
@@ -104,76 +97,54 @@ const AvailabilityOptionsContainer = ({
         <Card key={player.$id} shadow="sm" radius="md" p="sm" pos="relative">
             <LoadingOverlay
                 data-overlay={`availability-${player.$id}`}
-                visible={fetcher.state === "loading"}
+                visible={isSubmitting}
                 overlayProps={{ blur: 2, radius: "md" }}
                 loaderProps={{ color: "lime", type: "dots", size: "lg" }}
             />
-            <Group justify="space-between">
-                <Group gap="xs" justify="space-between">
+            <Group justify="space-between" wrap="nowrap">
+                <Group
+                    gap="xs"
+                    wrap="nowrap"
+                    style={{ flex: 1, overflow: "hidden", minWidth: 0 }}
+                >
                     <Text c="dimmed" size="sm" miw="1.1rem">
                         {positions[player.preferredPositions?.[0]]?.initials ||
                             "-"}
                     </Text>
                     <Divider orientation="vertical" />
-                    <Text fw={700}>
+                    <Text
+                        fw={700}
+                        truncate="end"
+                        style={{ flex: 1, minWidth: 0 }}
+                    >
                         {player.firstName} {player.lastName}
                     </Text>
                 </Group>
-                <Group>
-                    {availabilityData[attendance?.status || "unknown"].icon}
-                    {renderToggle && (
-                        <>
-                            <Divider orientation="vertical" />
-                            <ActionIcon variant="transparent" onClick={toggle}>
-                                <IconChevronDown
-                                    style={{ width: "70%", height: "70%" }}
-                                    stroke={1.5}
-                                />
-                            </ActionIcon>
-                        </>
-                    )}
-                </Group>
+                {!renderToggle ? (
+                    availabilityData[currentStatus].icon
+                ) : (
+                    <SegmentedControl
+                        data={[
+                            { label: "Yes", value: "accepted" },
+                            { label: "No", value: "declined" },
+                            { label: "Maybe", value: "tentative" },
+                        ]}
+                        value={
+                            ["accepted", "declined", "tentative"].includes(
+                                currentStatus,
+                            )
+                                ? currentStatus
+                                : ""
+                        }
+                        onChange={(value) =>
+                            handleAttendanceChange(value, player.$id)
+                        }
+                        color={availabilityData[currentStatus]?.color || "blue"}
+                        size="xs"
+                        style={{ flexShrink: 0 }}
+                    />
+                )}
             </Group>
-
-            <Collapse in={opened}>
-                <Radio.Group
-                    onChange={(value) =>
-                        handleAttendanceChange(value, player.$id)
-                    }
-                    name="status"
-                    mt="sm"
-                    label="Will you be attending the game?"
-                    // description={`Last updated ${attendance?.$updatedAt}`}
-                    defaultValue={attendance?.status || "unknown"}
-                >
-                    <Group justify="space-between" mt="sm">
-                        {Object.keys(availabilityData).map((key) => {
-                            const item = availabilityData[key];
-                            return (
-                                key !== "unknown" && (
-                                    <Radio.Card
-                                        radius="xl"
-                                        value={key}
-                                        key={`${key}-${player.$id}`}
-                                        maw="30%"
-                                        py="5px"
-                                        style={{ borderColor: item.color }}
-                                    >
-                                        <Group
-                                            wrap="nowrap"
-                                            align="center"
-                                            justify="center"
-                                            gap="5px"
-                                        >
-                                            <Text>{item.label}</Text>
-                                        </Group>
-                                    </Radio.Card>
-                                )
-                            );
-                        })}
-                    </Group>
-                </Radio.Group>
-            </Collapse>
         </Card>
     );
 };
@@ -192,11 +163,9 @@ export default function AvailabliityContainer({
 
     // Convert stored ISO (UTC) into the event timezone for day comparisons
     const gameDt = DateTime.fromISO(gameDate, { zone: "utc" }).setZone(
-        timeZone || DateTime.local().zoneName,
+        timeZone || "local",
     );
-    const today = DateTime.local().setZone(
-        timeZone || DateTime.local().zoneName,
-    );
+    const today = DateTime.local().setZone(timeZone || "local");
     const isGameToday = gameDt.toISODate() === today.toISODate();
     const isGamePast = gameDt < today && !isGameToday;
 
@@ -221,9 +190,12 @@ export default function AvailabliityContainer({
             buckets[status].push({ player, attendance: a });
         });
 
-        // Optional: sort each bucket alphabetically by lastName then firstName
+        // Sort each bucket: current user first, then alphabetically by lastName then firstName
         Object.keys(buckets).forEach((k) => {
             buckets[k].sort((p1, p2) => {
+                if (p1.player.$id === currentUserId) return -1;
+                if (p2.player.$id === currentUserId) return 1;
+
                 const a = p1.player.lastName?.localeCompare(
                     p2.player.lastName || "",
                 );
@@ -276,17 +248,6 @@ export default function AvailabliityContainer({
 
     return (
         <>
-            <Card radius="lg" mb="lg">
-                <Group justify="space-between" wrap="nowrap">
-                    {Object.keys(availabilityData).map((key) => (
-                        <Stack align="center" gap="2px" key={key}>
-                            {availabilityData[key].icon}
-                            <Text size="sm">{availabilityData[key].label}</Text>
-                        </Stack>
-                    ))}
-                </Group>
-            </Card>
-
             <ScrollArea.Autosize scrollbars={false} offsetScrollbars>
                 {players?.length > 0 && renderGroupedAvailability()}
             </ScrollArea.Autosize>

@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import { Button, Card, Divider, Group, Skeleton, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { DateTime } from "luxon";
 
 import {
     IconClipboardList,
@@ -33,6 +34,11 @@ export default function RosterDetails({
     const [lineupDrawerOpened, lineupDrawerHandlers] = useDisclosure(false);
     const [availabilityDrawerOpened, availabilityDrawerHandlers] =
         useDisclosure(false);
+
+    const gameDt = DateTime.fromISO(game.gameDate, { zone: "utc" }).setZone(
+        game.timeZone || "local",
+    );
+    const dateStr = gameDt.toFormat("M/d");
 
     const handlePrintLineup = () => {
         window?.print();
@@ -193,7 +199,7 @@ export default function RosterDetails({
             <DrawerContainer
                 opened={availabilityDrawerOpened}
                 onClose={availabilityDrawerHandlers.close}
-                title="Availability Details"
+                title={`Vs ${game.opponent || "TBD"} on ${dateStr}`}
                 size="95%"
             >
                 <DeferredLoader
