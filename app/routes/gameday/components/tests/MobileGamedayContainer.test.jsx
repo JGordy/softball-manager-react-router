@@ -78,7 +78,7 @@ describe("MobileGamedayContainer", () => {
             />,
         );
 
-        expect(screen.getByText("Tigers")).toBeInTheDocument();
+        expect(screen.getAllByText("Tigers")[0]).toBeInTheDocument();
         expect(screen.getByLabelText("Runner status")).toBeInTheDocument();
         expect(screen.getByTestId("sub-player-modal")).toBeInTheDocument();
         expect(
@@ -102,7 +102,7 @@ describe("MobileGamedayContainer", () => {
 
         render(
             <MobileGamedayContainer
-                game={mockGame}
+                game={{ ...mockGame, opponentScoringMode: "Basic" }}
                 playerChart={mockPlayerChart}
                 team={mockTeam}
                 initialLogs={[]}

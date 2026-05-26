@@ -117,6 +117,9 @@ export async function action({ request, params }) {
     if (_action === "update-game-score") {
         return updateGame({ values, eventId, client });
     }
+    if (_action === "update-opponent-settings") {
+        return updateGame({ values, eventId, client });
+    }
     if (_action === "end-game") {
         return updateGame({ values, eventId, client });
     }

@@ -78,7 +78,7 @@ describe("DesktopGamedayContainer", () => {
             />,
         );
 
-        expect(screen.getByText("Opponent")).toBeInTheDocument();
+        expect(screen.getAllByText("Opponent")[0]).toBeInTheDocument();
         expect(screen.getByTestId("sub-player-modal")).toBeInTheDocument();
         expect(
             screen.getByRole("button", { name: /share page/i }),
@@ -101,7 +101,7 @@ describe("DesktopGamedayContainer", () => {
 
         render(
             <DesktopGamedayContainer
-                game={mockGame}
+                game={{ ...mockGame, opponentScoringMode: "Basic" }}
                 playerChart={mockPlayerChart}
                 team={mockTeam}
                 initialLogs={[]}
