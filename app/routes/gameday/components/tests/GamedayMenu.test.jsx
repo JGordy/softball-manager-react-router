@@ -134,4 +134,39 @@ describe("GamedayMenu", () => {
             "/events/evt1/lineup",
         );
     });
+
+    it("renders opponent controls when game is active and it is opponent batting", async () => {
+        const mockToggle = jest.fn();
+        const mockOpenSelectBatter = jest.fn();
+
+        renderMenu({
+            gameFinal: false,
+            isOurBatting: false,
+            opponentScoringMode: "Basic",
+            onToggleOpponentScoringMode: mockToggle,
+        });
+
+        const toggleButton = screen.getByText("Detailed Scoring");
+        expect(toggleButton).toBeInTheDocument();
+        fireEvent.click(toggleButton);
+        expect(mockToggle).toHaveBeenCalled();
+    });
+
+    it("renders detailed opponent controls like Set Active Batter and Wrap when detailed scoring mode is active", async () => {
+        const mockOpenSelectBatter = jest.fn();
+
+        renderMenu({
+            gameFinal: false,
+            isOurBatting: false,
+            opponentScoringMode: "Detailed",
+            onOpenSelectBatterDrawer: mockOpenSelectBatter,
+        });
+
+        const setBatterButton = screen.getByText("Set Active Batter");
+        expect(setBatterButton).toBeInTheDocument();
+        fireEvent.click(setBatterButton);
+        expect(mockOpenSelectBatter).toHaveBeenCalled();
+
+        expect(screen.getByText("Top of Lineup (Wrap)")).toBeInTheDocument();
+    });
 });

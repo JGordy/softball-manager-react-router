@@ -30,6 +30,7 @@ describe("PlayHistoryList", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         gamedayUtils.getRunnerMovement.mockReturnValue([]);
+        gamedayUtils.isOpponentPlay.mockReturnValue(false);
     });
 
     it("renders logs in reverse order", () => {
@@ -181,5 +182,33 @@ describe("PlayHistoryList", () => {
         expect(
             screen.getByText("Trinity Red scored 2 runs"),
         ).toBeInTheDocument();
+    });
+
+    it("applies opponent styling to normal plays if isOpponentPlay is true", () => {
+        gamedayUtils.isOpponentPlay.mockReturnValue(true);
+        const opponentLog = {
+            $id: "log-opp-play",
+            description: "Batter 2 walks",
+            rbi: 0,
+            inning: 1,
+            halfInning: "top",
+            baseState: "{}",
+        };
+        const { container } = render(
+            <PlayHistoryList
+                logs={[opponentLog]}
+                playerChart={[]}
+                isHomeGame={true}
+            />,
+        );
+
+        const cardElement = container.querySelector(".mantine-Card-root");
+        expect(cardElement).toBeInTheDocument();
+
+        // Assert that the opponent style styles are applied (red border on right)
+        expect(cardElement.style.borderRight).toBe(
+            "1px solid var(--mantine-color-red-6)",
+        );
+        expect(cardElement.style.borderLeft).toBe("");
     });
 });

@@ -22,6 +22,8 @@ export default function CompactMatchupCard({
     currentBatter,
     upcomingBatters,
     logs,
+    opponentScoringMode,
+    onOpponentNotesChange,
 }) {
     return (
         <Card p="md" radius="lg">
@@ -116,11 +118,18 @@ export default function CompactMatchupCard({
                 {/* Batting Information */}
                 {!gameFinal && (
                     <Stack gap="xs">
-                        {isOurBatting && (
+                        {(isOurBatting ||
+                            opponentScoringMode === "Detailed") && (
                             <>
                                 <CurrentBatterCard
                                     currentBatter={currentBatter}
                                     logs={logs}
+                                    isOpponent={!isOurBatting}
+                                    onNotesChange={
+                                        !isOurBatting
+                                            ? onOpponentNotesChange
+                                            : undefined
+                                    }
                                     p="sm"
                                 />
                                 <UpNextCard
