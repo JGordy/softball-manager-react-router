@@ -43,6 +43,8 @@ describe("useGamedayController", () => {
             setRunners: jest.fn(),
             battingOrderIndex: 0,
             setBattingOrderIndex: jest.fn(),
+            opponentOrderIndex: 0,
+            setOpponentOrderIndex: jest.fn(),
         });
 
         useGamedayActions.mockReturnValue({
@@ -106,7 +108,8 @@ describe("useGamedayController", () => {
     it("calculates dueUpBatters correctly based on battingOrderIndex", () => {
         useGameState.mockReturnValue({
             battingOrderIndex: 1, // Jane Smith is up
-            // ... other values
+            halfInning: "top", // Away team bats top
+            opponentOrderIndex: 0,
         });
 
         const { result } = renderHook(() =>

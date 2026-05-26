@@ -37,6 +37,11 @@ describe("useGamedayActions", () => {
         logs: [],
         isScorekeeper: true,
         game: { $id: "game1", opponent: "Opponent" },
+        currentBatter: { $id: "p1", firstName: "Alice", lastName: "Player" },
+        isOurBatting: true,
+        opponentOrderIndex: 0,
+        setOpponentOrderIndex: jest.fn(),
+        opponentChart: [],
     };
 
     beforeEach(() => {
@@ -249,5 +254,29 @@ describe("useGamedayActions", () => {
 
             expect(mockSubmit).not.toHaveBeenCalled();
         });
+    });
+
+    it("handles selecting an active opponent batter slot correctly", () => {
+        const { result } = renderHook(() => useGamedayActions(defaultProps));
+
+        act(() => {
+            result.current.handleSelectOpponentBatter(5); // index 5 represents Batter 6
+        });
+
+        expect(mockSubmit).toHaveBeenCalledWith(
+            {
+                _action: "log-game-event",
+                teamId: "team1",
+                inning: 1,
+                halfInning: "top",
+                eventType: "fielderschoice",
+                playerId: "OPP_BAT_6",
+                rbi: 0,
+                outsOnPlay: 0,
+                description: "Lineup advanced to Batter 6",
+                baseState: JSON.stringify({ isOpponent: true }),
+            },
+            { method: "post" },
+        );
     });
 });
