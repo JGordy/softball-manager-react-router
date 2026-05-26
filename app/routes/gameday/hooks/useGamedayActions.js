@@ -104,6 +104,8 @@ export function useGamedayActions({
     );
     const handleSelectOpponentBatter = useCallback(
         (index) => {
+            if (!isScorekeeper || !team?.$id) return;
+
             fetcher.submit(
                 {
                     _action: "log-game-event",
@@ -119,8 +121,17 @@ export function useGamedayActions({
                 },
                 { method: "post" },
             );
+
+            setOpponentOrderIndex(index);
         },
-        [fetcher, team.$id, inning, halfInning],
+        [
+            fetcher,
+            team?.$id,
+            inning,
+            halfInning,
+            isScorekeeper,
+            setOpponentOrderIndex,
+        ],
     );
 
     const handleOpponentOut = useCallback(() => {

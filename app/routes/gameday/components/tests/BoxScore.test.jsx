@@ -123,8 +123,23 @@ describe("BoxScore", () => {
             />,
         );
 
+        // Expect the opponent's name to be rendered
         expect(screen.getByText("Opponent")).toBeInTheDocument();
-        // The opponent hit a home run, so HR column for OPP_BAT_0 should show 1, and total hits (H) should be 1
-        // (Wait, BoxScore renders standard baseball stats table. Let's make sure the name "Opponent" is in the document and the other player is NOT in the document if they are not in playerChart)
+
+        // The our-team player (p1) is not in mockOpponentChart, so they shouldn't render at all
+        expect(screen.queryByText("John")).not.toBeInTheDocument();
+
+        // Find the table row containing "Opponent" and assert on its stats
+        const row = screen.getByText("Opponent").closest("tr");
+        const cells = Array.from(row.querySelectorAll("td")).map(
+            (cell) => cell.textContent,
+        );
+
+        // Cells format: [Name, AB, H, RBI, R, HR, BB, K, AVG, OBP, OPS]
+        expect(cells[1]).toBe("1"); // AB
+        expect(cells[2]).toBe("1"); // H
+        expect(cells[3]).toBe("2"); // RBI
+        expect(cells[4]).toBe("0"); // R (HR scorer is added to R only if scored array has it, but HR counts as at-bat and hit)
+        expect(cells[5]).toBe("1"); // HR
     });
 });

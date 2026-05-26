@@ -104,7 +104,7 @@ export default function DesktopGamedayContainer({
     const [sprayChartTeam, setSprayChartTeam] = useState("us");
     const [boxScoreTeam, setBoxScoreTeam] = useState("us");
 
-    // Auto-switch tabs to active team when inning changes
+    // Auto-switch tabs to active team when batting side changes
     useEffect(() => {
         setSprayChartTeam(isOurBatting ? "us" : "them");
         setBoxScoreTeam(isOurBatting ? "us" : "them");
