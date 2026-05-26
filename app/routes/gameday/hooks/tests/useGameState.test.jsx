@@ -164,4 +164,59 @@ describe("useGameState", () => {
         // Opponent score should be 2 (logBasedOpponentScore: 2)
         expect(result.current.opponentScore).toBe(2);
     });
+
+    it("calculates opponentOrderIndex correctly based on last opponent at-bat when opponent chart is empty", () => {
+        const game = {
+            score: 0,
+            opponentScore: 0,
+            isHomeGame: true,
+            opponentLineupLocked: false,
+        };
+        const logs = [
+            {
+                $id: "opp_log1",
+                playerId: "OPP_BAT_4",
+                inning: 1,
+                halfInning: "top",
+                outsOnPlay: 1,
+                baseState: JSON.stringify({ isOpponent: true }),
+            },
+        ];
+
+        const { result } = renderHook(() =>
+            useGameState({ logs, game, playerChart, opponentChart: [] }),
+        );
+
+        expect(result.current.opponentOrderIndex).toBe(4);
+    });
+
+    it("calculates next opponentOrderIndex correctly when opponent lineup is locked", () => {
+        const game = {
+            score: 0,
+            opponentScore: 0,
+            isHomeGame: true,
+            opponentLineupLocked: true,
+        };
+        const opponentChart = [
+            { $id: "opp1", firstName: "Opp1" },
+            { $id: "opp2", firstName: "Opp2" },
+        ];
+        const logs = [
+            {
+                $id: "opp_log1",
+                playerId: "opp1",
+                inning: 1,
+                halfInning: "top",
+                outsOnPlay: 1,
+                baseState: JSON.stringify({ isOpponent: true }),
+            },
+        ];
+
+        const { result } = renderHook(() =>
+            useGameState({ logs, game, playerChart, opponentChart }),
+        );
+
+        // Opponent lineup locked: should wrap to index 1 (opp2)
+        expect(result.current.opponentOrderIndex).toBe(1);
+    });
 });
