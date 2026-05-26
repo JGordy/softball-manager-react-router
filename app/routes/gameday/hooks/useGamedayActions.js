@@ -99,6 +99,7 @@ export function useGamedayActions({
             inning,
             isScorekeeper,
             setOpponentScore,
+            team?.$id,
         ],
     );
     const handleSelectOpponentBatter = useCallback(
@@ -109,7 +110,7 @@ export function useGamedayActions({
                     teamId: team.$id,
                     inning,
                     halfInning,
-                    eventType: "fielderschoice",
+                    eventType: "opponent_lineup_pointer",
                     playerId: `OPP_BAT_${index + 1}`,
                     rbi: 0,
                     outsOnPlay: 0,

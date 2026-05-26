@@ -1,5 +1,5 @@
 import { useFetcher, Link, useParams } from "react-router";
-import { Text, Group, Button, Stack } from "@mantine/core";
+import { Text, Group, Button } from "@mantine/core";
 import {
     IconFlag,
     IconPlayerPlay,

@@ -85,7 +85,7 @@ export default function MobileGamedayContainer({
         saveOpponentChart,
         opponentOrderIndex,
         opponentScoringMode,
-        setOpponentScoringMode,
+        toggleOpponentScoringMode,
         undoLast,
         updateAction,
     } = useGamedayController({
@@ -189,11 +189,9 @@ export default function MobileGamedayContainer({
                                 isOurBatting ? openSubModal : undefined
                             }
                             opponentScoringMode={opponentScoringMode}
-                            onToggleOpponentScoringMode={() => {
-                                setOpponentScoringMode((prev) =>
-                                    prev === "Basic" ? "Detailed" : "Basic",
-                                );
-                            }}
+                            onToggleOpponentScoringMode={
+                                toggleOpponentScoringMode
+                            }
                             isOurBatting={isOurBatting}
                             opponentChart={opponentChart}
                             opponentOrderIndex={opponentOrderIndex}

@@ -219,4 +219,30 @@ describe("useGameState", () => {
         // Opponent lineup locked: should wrap to index 1 (opp2)
         expect(result.current.opponentOrderIndex).toBe(1);
     });
+
+    it("sets opponentOrderIndex exactly to selected index without advancing when last log is opponent_lineup_pointer", () => {
+        const game = {
+            score: 0,
+            opponentScore: 0,
+            isHomeGame: true,
+            opponentLineupLocked: false,
+        };
+        const logs = [
+            {
+                $id: "opp_log1",
+                playerId: "OPP_BAT_3",
+                inning: 1,
+                halfInning: "top",
+                eventType: "opponent_lineup_pointer",
+                baseState: JSON.stringify({ isOpponent: true }),
+            },
+        ];
+
+        const { result } = renderHook(() =>
+            useGameState({ logs, game, playerChart, opponentChart: [] }),
+        );
+
+        // opponent_lineup_pointer should set the active batter to index 2 exactly, without incrementing it
+        expect(result.current.opponentOrderIndex).toBe(2);
+    });
 });

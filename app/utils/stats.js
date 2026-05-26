@@ -59,8 +59,12 @@ export const calculateGameStats = (
 
     // 2. Process logs
     logs.forEach((log) => {
-        // Skip substitution events
-        if (log.eventType === "SUB") return;
+        // Skip substitution and lineup pointer events
+        if (
+            log.eventType === "SUB" ||
+            log.eventType === "opponent_lineup_pointer"
+        )
+            return;
 
         // Filter based on whether we are calculating stats for our team or opponent team
         if (isOpponentPlay(log, isHomeGame) !== isOpponent) return;

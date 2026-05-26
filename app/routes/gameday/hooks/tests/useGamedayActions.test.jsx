@@ -269,7 +269,7 @@ describe("useGamedayActions", () => {
                 teamId: "team1",
                 inning: 1,
                 halfInning: "top",
-                eventType: "fielderschoice",
+                eventType: "opponent_lineup_pointer",
                 playerId: "OPP_BAT_6",
                 rbi: 0,
                 outsOnPlay: 0,

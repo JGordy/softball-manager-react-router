@@ -137,7 +137,6 @@ describe("GamedayMenu", () => {
 
     it("renders opponent controls when game is active and it is opponent batting", async () => {
         const mockToggle = jest.fn();
-        const mockOpenSelectBatter = jest.fn();
 
         renderMenu({
             gameFinal: false,

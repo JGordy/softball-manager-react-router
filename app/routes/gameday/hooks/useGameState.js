@@ -75,7 +75,12 @@ export function useGameState({ logs, game, playerChart, opponentChart }) {
                     );
 
                     if (lastOpponentIndex >= 0) {
-                        if (game.opponentLineupLocked) {
+                        if (
+                            lastOpponentAtBatLog.eventType ===
+                            "opponent_lineup_pointer"
+                        ) {
+                            nextOpponentIndex = lastOpponentIndex;
+                        } else if (game.opponentLineupLocked) {
                             nextOpponentIndex =
                                 (lastOpponentIndex + 1) % opponentChart.length;
                         } else {
@@ -87,14 +92,30 @@ export function useGameState({ logs, game, playerChart, opponentChart }) {
                                 /OPP_BAT_(\d+)/,
                             );
                         if (match) {
-                            nextOpponentIndex = parseInt(match[1], 10);
+                            const index = parseInt(match[1], 10) - 1;
+                            if (
+                                lastOpponentAtBatLog.eventType ===
+                                "opponent_lineup_pointer"
+                            ) {
+                                nextOpponentIndex = index;
+                            } else {
+                                nextOpponentIndex = index + 1;
+                            }
                         }
                     }
                 } else {
                     const match =
                         lastOpponentAtBatLog.playerId?.match(/OPP_BAT_(\d+)/);
                     if (match) {
-                        nextOpponentIndex = parseInt(match[1], 10);
+                        const index = parseInt(match[1], 10) - 1;
+                        if (
+                            lastOpponentAtBatLog.eventType ===
+                            "opponent_lineup_pointer"
+                        ) {
+                            nextOpponentIndex = index;
+                        } else {
+                            nextOpponentIndex = index + 1;
+                        }
                     }
                 }
                 setOpponentOrderIndex(nextOpponentIndex);

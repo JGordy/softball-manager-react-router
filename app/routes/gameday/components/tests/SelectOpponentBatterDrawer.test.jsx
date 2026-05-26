@@ -54,9 +54,7 @@ describe("SelectOpponentBatterDrawer", () => {
     });
 
     it("renders nothing when closed", () => {
-        const { container } = render(
-            <SelectOpponentBatterDrawer {...defaultProps} opened={false} />,
-        );
+        render(<SelectOpponentBatterDrawer {...defaultProps} opened={false} />);
         // Drawer container shouldn't render internal children
         expect(
             screen.queryByText("Set Active Opponent Batter"),

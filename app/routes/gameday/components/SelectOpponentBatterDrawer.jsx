@@ -46,7 +46,7 @@ export default function SelectOpponentBatterDrawer({
                                     onSelectOpponentBatter?.(i);
                                     onClose();
                                 }}
-                                styles={(theme) => ({
+                                styles={{
                                     root: {
                                         height: "48px",
                                         borderColor: isSelected
@@ -62,7 +62,7 @@ export default function SelectOpponentBatterDrawer({
                                                 : "rgba(255, 255, 255, 0.08)",
                                         },
                                     },
-                                })}
+                                }}
                             >
                                 Batter {i + 1}
                             </Button>

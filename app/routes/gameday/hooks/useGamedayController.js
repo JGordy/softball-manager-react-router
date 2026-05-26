@@ -23,7 +23,7 @@ export function useGamedayController({
     const [gameData, setGameData] = useState(game);
 
     const parsedOpponentLineup = useMemo(() => {
-        const defaultOpponentLineup = Array.from({ length: 10 }).map(
+        const defaultOpponentLineup = Array.from({ length: 12 }).map(
             (_, i) => ({
                 $id: `OPP_BAT_${i + 1}`,
                 firstName: "Batter",
@@ -41,6 +41,13 @@ export function useGamedayController({
     const [opponentScoringMode, setOpponentScoringMode] = useState(
         gameData.opponentScoringMode || "Detailed",
     );
+
+    // Sync opponentScoringMode with gameData updates from realtime subscription
+    useEffect(() => {
+        if (gameData.opponentScoringMode) {
+            setOpponentScoringMode(gameData.opponentScoringMode);
+        }
+    }, [gameData.opponentScoringMode]);
 
     // Real-time updates for the game document itself (specifically recap and finalized status)
     useGameRealtime(game.$id, {
@@ -269,6 +276,18 @@ export function useGamedayController({
         [fetcher, setOpponentChart],
     );
 
+    const handleToggleOpponentScoringMode = useCallback(() => {
+        const nextMode = opponentScoringMode === "Basic" ? "Detailed" : "Basic";
+        setOpponentScoringMode(nextMode);
+        fetcher.submit(
+            {
+                _action: "update-opponent-settings",
+                opponentScoringMode: nextMode,
+            },
+            { method: "post" },
+        );
+    }, [opponentScoringMode, fetcher]);
+
     const batters = useMemo(() => {
         const batterMap = new Map();
 
@@ -407,7 +426,7 @@ export function useGamedayController({
         saveOpponentChart,
         opponentOrderIndex,
         opponentScoringMode,
-        setOpponentScoringMode,
+        toggleOpponentScoringMode: handleToggleOpponentScoringMode,
         undoLast: handleUndoLast,
         updateAction,
     };
