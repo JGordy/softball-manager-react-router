@@ -10,7 +10,12 @@ const formatStat = (val) => val.replace(/^0/, "");
  * @param {Array} playerChart - Array of player objects (the lineup)
  * @returns {Array} Array of player stats objects
  */
-export const calculateGameStats = (logs = [], playerChart = []) => {
+export const calculateGameStats = (
+    logs = [],
+    playerChart = [],
+    isOpponent = false,
+    isHomeGame = undefined,
+) => {
     // 1. Initialize stats map for all players in lineup
     const statsMap = {};
 
@@ -54,8 +59,11 @@ export const calculateGameStats = (logs = [], playerChart = []) => {
 
     // 2. Process logs
     logs.forEach((log) => {
-        // Skip substitution and opponent events — they are metadata/opponent stats, not our team's at-bats
-        if (log.eventType === "SUB" || isOpponentPlay(log)) return;
+        // Skip substitution events
+        if (log.eventType === "SUB") return;
+
+        // Filter based on whether we are calculating stats for our team or opponent team
+        if (isOpponentPlay(log, isHomeGame) !== isOpponent) return;
 
         const batterId = log.playerId;
         if (!statsMap[batterId]) return; // Skip if player not in chart (shouldn't happen)

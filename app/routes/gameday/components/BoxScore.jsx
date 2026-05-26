@@ -11,12 +11,19 @@ export default function BoxScore({
     playerChart,
     currentBatter,
     gameFinal = false,
+    isOpponent = false,
+    isHomeGame,
 }) {
     const { stats, totals } = useMemo(() => {
-        const stats = calculateGameStats(logs, playerChart);
+        const stats = calculateGameStats(
+            logs,
+            playerChart,
+            isOpponent,
+            isHomeGame,
+        );
         const totals = calculateTeamTotals(stats);
         return { stats, totals };
-    }, [logs, playerChart]);
+    }, [logs, playerChart, isOpponent, isHomeGame]);
 
     // O(1) Lookup Map for Stats
     const statsMap = useMemo(() => {

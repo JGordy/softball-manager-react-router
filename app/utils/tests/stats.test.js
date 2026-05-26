@@ -446,7 +446,7 @@ describe("calculateGameStats", () => {
         expect(result[0].OBP).toBe(".500");
     });
 
-    it("should skip opponent run and play events entirely", () => {
+    it("should skip opponent run and play events entirely when isOpponent is false", () => {
         const logs = [
             {
                 playerId: "player1",
@@ -461,12 +461,44 @@ describe("calculateGameStats", () => {
                 baseState: JSON.stringify({ isOpponent: true }),
             },
         ];
-        const stats = calculateGameStats(logs, mockPlayerChart);
+        const stats = calculateGameStats(logs, mockPlayerChart, false);
         const player1Stats = stats.find((s) => s.player.$id === "player1");
         expect(player1Stats.PA).toBe(1);
         expect(player1Stats.AB).toBe(1);
         expect(player1Stats.H).toBe(1);
         expect(player1Stats.RBI).toBe(0);
+    });
+
+    it("should calculate opponent stats and skip our team's plays when isOpponent is true", () => {
+        const mockOpponentChart = [
+            {
+                $id: "OPP_BAT_0",
+                firstName: "Opponent",
+                lastName: "One",
+            },
+        ];
+        const logs = [
+            {
+                playerId: "player1",
+                eventType: "single",
+                rbi: 0,
+                baseState: "{}",
+            },
+            {
+                playerId: "OPP_BAT_0",
+                eventType: "double",
+                rbi: 2,
+                baseState: JSON.stringify({ isOpponent: true }),
+            },
+        ];
+        // For opponent, it should ignore player1's single (our play) and only calculate the double for OPP_BAT_0
+        const stats = calculateGameStats(logs, mockOpponentChart, true, true);
+        const oppStats = stats.find((s) => s.player.$id === "OPP_BAT_0");
+        expect(oppStats.PA).toBe(1);
+        expect(oppStats.AB).toBe(1);
+        expect(oppStats.H).toBe(1);
+        expect(oppStats["2B"]).toBe(1);
+        expect(oppStats.RBI).toBe(2);
     });
 });
 
