@@ -46,6 +46,8 @@ jest.mock("@tabler/icons-react", () => ({
     IconPlayerPlay: () => null,
     IconArrowsExchange: () => null,
     IconClipboardList: () => null,
+    IconChartBar: () => null,
+    IconRefresh: () => null,
 }));
 
 describe("GamedayMenu", () => {
