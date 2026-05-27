@@ -168,4 +168,50 @@ describe("GamedayMenu", () => {
 
         expect(screen.getByText("Top of Lineup (Wrap)")).toBeInTheDocument();
     });
+
+    it("locks and wraps the opponent lineup with padding if necessary", async () => {
+        const mockOpponentChart = [
+            { $id: "OPP_BAT_1", firstName: "Opponent", lastName: "One" },
+        ];
+
+        renderMenu({
+            gameFinal: false,
+            isOurBatting: false,
+            opponentScoringMode: "Detailed",
+            opponentChart: mockOpponentChart,
+            opponentOrderIndex: 2, // Batter 3, which is larger than current chart length (1)
+        });
+
+        // Trigger wrap lineup click to open modal
+        const wrapButton = screen.getByText("Top of Lineup (Wrap)");
+        fireEvent.click(wrapButton);
+
+        // Expect the modal to be opened
+        expect(mockOpenModal).toHaveBeenCalled();
+
+        // Retrieve modal children callback to render and test it
+        const modalCall = mockOpenModal.mock.calls[0][0];
+        const { render: renderInModal } = require("@/utils/test-utils");
+        const modalScreen = renderInModal(modalCall.children);
+
+        // Click Confirm
+        const confirmButton = modalScreen.getByText("Confirm");
+        fireEvent.click(confirmButton);
+
+        expect(mockSubmit).toHaveBeenCalledWith(
+            expect.objectContaining({
+                _action: "update-opponent-settings",
+                opponentLineupLocked: true,
+            }),
+            expect.anything(),
+        );
+
+        // Parse and check the sent opponentLineup has 3 batters (OPP_BAT_1, OPP_BAT_2, OPP_BAT_3)
+        const submittedData = mockSubmit.mock.calls[0][0];
+        const submittedLineup = JSON.parse(submittedData.opponentLineup);
+        expect(submittedLineup).toHaveLength(3);
+        expect(submittedLineup[0].$id).toBe("OPP_BAT_1");
+        expect(submittedLineup[1].$id).toBe("OPP_BAT_2");
+        expect(submittedLineup[2].$id).toBe("OPP_BAT_3");
+    });
 });

@@ -39,6 +39,26 @@ export const calculateGameStats = (
         OPS: ".000",
     });
 
+    const ensureOpponentBatter = (batterId) => {
+        if (
+            isOpponent &&
+            batterId &&
+            !statsMap[batterId] &&
+            batterId.startsWith("OPP_BAT_")
+        ) {
+            const match = batterId.match(/OPP_BAT_(\d+)/);
+            const batterNum = match ? match[1] : batterId;
+            statsMap[batterId] = initStats({
+                $id: batterId,
+                firstName: "Batter",
+                lastName: batterNum,
+                jerseyNumber: batterNum,
+            });
+            return true;
+        }
+        return false;
+    };
+
     playerChart.forEach((slot) => {
         // Seed entry for the original slot player
         statsMap[slot.$id] = initStats(slot);
@@ -71,16 +91,7 @@ export const calculateGameStats = (
 
         const batterId = log.playerId;
         if (!statsMap[batterId]) {
-            if (isOpponent && batterId && batterId.startsWith("OPP_BAT_")) {
-                const match = batterId.match(/OPP_BAT_(\d+)/);
-                const batterNum = match ? match[1] : batterId;
-                statsMap[batterId] = initStats({
-                    $id: batterId,
-                    firstName: "Batter",
-                    lastName: batterNum,
-                    jerseyNumber: batterNum,
-                });
-            } else {
+            if (!ensureOpponentBatter(batterId)) {
                 return; // Skip if player not in chart (shouldn't happen)
             }
         }
@@ -146,18 +157,7 @@ export const calculateGameStats = (
         // Credit runs to ANY player who scored on this play
         if (baseState.scored && Array.isArray(baseState.scored)) {
             baseState.scored.forEach((scoredPlayerId) => {
-                if (scoredPlayerId && !statsMap[scoredPlayerId]) {
-                    if (isOpponent && scoredPlayerId.startsWith("OPP_BAT_")) {
-                        const match = scoredPlayerId.match(/OPP_BAT_(\d+)/);
-                        const batterNum = match ? match[1] : scoredPlayerId;
-                        statsMap[scoredPlayerId] = initStats({
-                            $id: scoredPlayerId,
-                            firstName: "Batter",
-                            lastName: batterNum,
-                            jerseyNumber: batterNum,
-                        });
-                    }
-                }
+                ensureOpponentBatter(scoredPlayerId);
                 if (statsMap[scoredPlayerId]) {
                     statsMap[scoredPlayerId].R++;
                 }

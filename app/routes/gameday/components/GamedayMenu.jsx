@@ -153,14 +153,39 @@ export default function GamedayMenu({
                         <Button
                             color="blue"
                             onClick={() => {
+                                const targetLength = opponentOrderIndex + 1;
+                                let resolvedOpponentLineup = [...opponentChart];
+                                if (
+                                    resolvedOpponentLineup.length < targetLength
+                                ) {
+                                    const missingCount =
+                                        targetLength -
+                                        resolvedOpponentLineup.length;
+                                    const padding = Array.from({
+                                        length: missingCount,
+                                    }).map((_, i) => {
+                                        const idx =
+                                            resolvedOpponentLineup.length + i;
+                                        return {
+                                            $id: `OPP_BAT_${idx + 1}`,
+                                            firstName: "Batter",
+                                            lastName: `${idx + 1}`,
+                                            substitutions: [],
+                                        };
+                                    });
+                                    resolvedOpponentLineup = [
+                                        ...resolvedOpponentLineup,
+                                        ...padding,
+                                    ];
+                                }
                                 fetcher.submit(
                                     {
                                         _action: "update-opponent-settings",
                                         opponentLineupLocked: true,
                                         opponentLineup: JSON.stringify(
-                                            opponentChart.slice(
+                                            resolvedOpponentLineup.slice(
                                                 0,
-                                                opponentOrderIndex + 1,
+                                                targetLength,
                                             ),
                                         ),
                                     },
