@@ -255,15 +255,23 @@ export default function DesktopGamedayContainer({
                                     onOpponentNotesChange={(notes) => {
                                         if (!isOurBatting) {
                                             const updated = [...opponentChart];
-                                            if (updated[opponentOrderIndex]) {
-                                                updated[opponentOrderIndex] = {
-                                                    ...updated[
-                                                        opponentOrderIndex
-                                                    ],
-                                                    notes,
-                                                };
-                                                saveOpponentChart(updated);
+                                            while (
+                                                updated.length <=
+                                                opponentOrderIndex
+                                            ) {
+                                                const idx = updated.length;
+                                                updated.push({
+                                                    $id: `OPP_BAT_${idx + 1}`,
+                                                    firstName: "Batter",
+                                                    lastName: `${idx + 1}`,
+                                                    substitutions: [],
+                                                });
                                             }
+                                            updated[opponentOrderIndex] = {
+                                                ...updated[opponentOrderIndex],
+                                                notes,
+                                            };
+                                            saveOpponentChart(updated);
                                         }
                                     }}
                                 />

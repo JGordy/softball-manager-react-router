@@ -294,23 +294,34 @@ export default function MobileGamedayContainer({
                                                                     [
                                                                         ...opponentChart,
                                                                     ];
-                                                                if (
-                                                                    updated[
-                                                                        opponentOrderIndex
-                                                                    ]
+                                                                while (
+                                                                    updated.length <=
+                                                                    opponentOrderIndex
                                                                 ) {
-                                                                    updated[
-                                                                        opponentOrderIndex
-                                                                    ] = {
-                                                                        ...updated[
-                                                                            opponentOrderIndex
-                                                                        ],
-                                                                        notes,
-                                                                    };
-                                                                    saveOpponentChart(
-                                                                        updated,
+                                                                    const idx =
+                                                                        updated.length;
+                                                                    updated.push(
+                                                                        {
+                                                                            $id: `OPP_BAT_${idx + 1}`,
+                                                                            firstName:
+                                                                                "Batter",
+                                                                            lastName: `${idx + 1}`,
+                                                                            substitutions:
+                                                                                [],
+                                                                        },
                                                                     );
                                                                 }
+                                                                updated[
+                                                                    opponentOrderIndex
+                                                                ] = {
+                                                                    ...updated[
+                                                                        opponentOrderIndex
+                                                                    ],
+                                                                    notes,
+                                                                };
+                                                                saveOpponentChart(
+                                                                    updated,
+                                                                );
                                                             }
                                                         }}
                                                     />

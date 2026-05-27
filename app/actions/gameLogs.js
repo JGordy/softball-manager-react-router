@@ -143,8 +143,12 @@ export const logGameEvent = async ({
             battingSide: normalizeOptionalField(battingSide),
         };
 
+        const isHomeTeam =
+            game?.isHomeGame === true || game?.isHomeGame === "true";
         const isOpponent =
-            eventType === "opponent_run" || safeBaseState?.isOpponent === true;
+            eventType === "opponent_run" ||
+            (game != null &&
+                (isHomeTeam ? halfInning === "top" : halfInning === "bottom"));
 
         // If runs > 0, use transaction for atomicity
         if (runs > 0) {
@@ -229,18 +233,6 @@ export const undoGameEvent = async ({ logId, client }) => {
         // 1. Fetch the log to see if we need to revert score
         const log = await readDocument("game_logs", logId, [], client);
         const runs = parseInt(log.rbi || 0, 10);
-        let isOpponent = log.eventType === "opponent_run";
-        if (log.baseState) {
-            try {
-                const parsed =
-                    typeof log.baseState === "string"
-                        ? JSON.parse(log.baseState)
-                        : log.baseState;
-                if (parsed?.isOpponent !== undefined) {
-                    isOpponent = !!parsed.isOpponent;
-                }
-            } catch {}
-        }
 
         // 2. If the log had runs, use transaction for atomic undo
         if (runs > 0) {
@@ -248,6 +240,15 @@ export const undoGameEvent = async ({ logId, client }) => {
 
             // Read current score to calculate reverted score
             const game = await readDocument("games", log.gameId, [], client);
+            const isHomeTeam =
+                game?.isHomeGame === true || game?.isHomeGame === "true";
+            const isOpponent =
+                log.eventType === "opponent_run" ||
+                (game != null &&
+                    (isHomeTeam
+                        ? log.halfInning === "top"
+                        : log.halfInning === "bottom"));
+
             const scoreField = isOpponent ? "opponentScore" : "score";
             const currentScore = parseInt(game[scoreField] || 0, 10);
             const newScore = Math.max(0, currentScore - runs);
