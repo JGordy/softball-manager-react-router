@@ -425,6 +425,13 @@ export async function updateGame({ values, eventId, client }) {
             values.countTowardsRecord === true;
     }
 
+    if (Object.prototype.hasOwnProperty.call(values, "opponentLineupLocked")) {
+        dataToUpdate.opponentLineupLocked =
+            values.opponentLineupLocked === "true" ||
+            values.opponentLineupLocked === "on" ||
+            values.opponentLineupLocked === true;
+    }
+
     if (Object.prototype.hasOwnProperty.call(values, "gameFinal")) {
         dataToUpdate.gameFinal =
             values.gameFinal === "true" ||

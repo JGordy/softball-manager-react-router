@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { isOpponentPlay } from "../utils/gamedayUtils";
 
-export function useGameState({ logs, game, playerChart }) {
+export function useGameState({ logs, game, playerChart, opponentChart }) {
     const [inning, setInning] = useState(1);
     const [halfInning, setHalfInning] = useState("top");
     const [outs, setOuts] = useState(0);
@@ -15,6 +15,7 @@ export function useGameState({ logs, game, playerChart }) {
         third: null,
     });
     const [battingOrderIndex, setBattingOrderIndex] = useState(0);
+    const [opponentOrderIndex, setOpponentOrderIndex] = useState(0);
 
     // Use a ref to avoid re-syncing from old data during fetcher submission
     const lastSyncLogId = useRef(null);
@@ -24,43 +25,107 @@ export function useGameState({ logs, game, playerChart }) {
         // Safety check: ensure playerChart exists
         if (!playerChart || playerChart.length === 0) return;
 
-        // 1. Current Batter Index
+        // 1. Current Batter Indexes (Ours and Opponent's)
         // Calculate based on the last logged batter to handle undo correctly
         if (logs.length > 0) {
-            // Find the last log that was actually an at-bat (not a substitution or opponent play)
-            let lastAtBatLog = null;
+            // Find the last log for our team
+            let lastOurAtBatLog = null;
+            // Find the last log for the opponent
+            let lastOpponentAtBatLog = null;
+
             for (let i = logs.length - 1; i >= 0; i--) {
-                if (
-                    logs[i].eventType !== "SUB" &&
-                    !isOpponentPlay(logs[i], game.isHomeGame)
-                ) {
-                    lastAtBatLog = logs[i];
-                    break;
+                const log = logs[i];
+                if (log.eventType !== "SUB") {
+                    if (isOpponentPlay(log, game.isHomeGame)) {
+                        if (!lastOpponentAtBatLog && log.playerId) {
+                            lastOpponentAtBatLog = log;
+                        }
+                    } else {
+                        if (!lastOurAtBatLog) {
+                            lastOurAtBatLog = log;
+                        }
+                    }
                 }
+                if (lastOurAtBatLog && lastOpponentAtBatLog) break;
             }
 
-            if (lastAtBatLog) {
-                // Find the last batter's index in the player chart
+            if (lastOurAtBatLog) {
                 const lastBatterIndex = playerChart.findIndex(
                     (p) =>
-                        p.$id === lastAtBatLog.playerId ||
+                        p.$id === lastOurAtBatLog.playerId ||
                         p.substitutions?.some(
-                            (s) => s.playerId === lastAtBatLog.playerId,
+                            (s) => s.playerId === lastOurAtBatLog.playerId,
                         ),
                 );
-                // Next batter is the one after the last logged batter
                 const nextIndex =
                     lastBatterIndex >= 0
                         ? (lastBatterIndex + 1) % playerChart.length
                         : 0;
                 setBattingOrderIndex(nextIndex);
             } else {
-                // Only subs logged so far, start at first batter
                 setBattingOrderIndex(0);
             }
+
+            if (lastOpponentAtBatLog) {
+                let nextOpponentIndex = 0;
+
+                if (opponentChart && opponentChart.length > 0) {
+                    const lastOpponentIndex = opponentChart.findIndex(
+                        (p) => p.$id === lastOpponentAtBatLog.playerId,
+                    );
+
+                    if (lastOpponentIndex >= 0) {
+                        if (
+                            lastOpponentAtBatLog.eventType ===
+                            "opponent_lineup_pointer"
+                        ) {
+                            nextOpponentIndex = lastOpponentIndex;
+                        } else if (game.opponentLineupLocked) {
+                            nextOpponentIndex =
+                                (lastOpponentIndex + 1) % opponentChart.length;
+                        } else {
+                            nextOpponentIndex = lastOpponentIndex + 1;
+                        }
+                    } else {
+                        const match =
+                            lastOpponentAtBatLog.playerId?.match(
+                                /OPP_BAT_(\d+)/,
+                            );
+                        if (match) {
+                            const index = parseInt(match[1], 10) - 1;
+                            if (
+                                lastOpponentAtBatLog.eventType ===
+                                "opponent_lineup_pointer"
+                            ) {
+                                nextOpponentIndex = index;
+                            } else {
+                                nextOpponentIndex = index + 1;
+                            }
+                        }
+                    }
+                } else {
+                    const match =
+                        lastOpponentAtBatLog.playerId?.match(/OPP_BAT_(\d+)/);
+                    if (match) {
+                        const index = parseInt(match[1], 10) - 1;
+                        if (
+                            lastOpponentAtBatLog.eventType ===
+                            "opponent_lineup_pointer"
+                        ) {
+                            nextOpponentIndex = index;
+                        } else {
+                            nextOpponentIndex = index + 1;
+                        }
+                    }
+                }
+                setOpponentOrderIndex(nextOpponentIndex);
+            } else {
+                setOpponentOrderIndex(0);
+            }
         } else {
-            // No logs yet, start with first batter
+            // No logs yet
             setBattingOrderIndex(0);
+            setOpponentOrderIndex(0);
         }
 
         // 2. Score Calculation
@@ -148,7 +213,15 @@ export function useGameState({ logs, game, playerChart }) {
 
         // Mark this log ID as synced
         lastSyncLogId.current = latestLogId;
-    }, [logs, playerChart, game.score, game.opponentScore]);
+    }, [
+        logs,
+        playerChart,
+        opponentChart,
+        game.isHomeGame,
+        game.opponentLineupLocked,
+        game.score,
+        game.opponentScore,
+    ]);
 
     return {
         inning,
@@ -165,5 +238,7 @@ export function useGameState({ logs, game, playerChart }) {
         setRunners,
         battingOrderIndex,
         setBattingOrderIndex,
+        opponentOrderIndex,
+        setOpponentOrderIndex,
     };
 }

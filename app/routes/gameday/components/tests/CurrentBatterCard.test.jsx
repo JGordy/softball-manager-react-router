@@ -94,4 +94,42 @@ describe("CurrentBatterCard", () => {
         expect(avatarImage).toBeInTheDocument();
         expect(avatarImage).toHaveAttribute("src", "http://avatar.url");
     });
+
+    it("renders notes input for opponents and updates/clears on batter change", () => {
+        const opponentBatter1 = {
+            $id: "opp1",
+            firstName: "Opponent",
+            lastName: "One",
+            notes: "Lefty hitter",
+        };
+        const opponentBatter2 = {
+            $id: "opp2",
+            firstName: "Opponent",
+            lastName: "Two",
+            notes: "",
+        };
+
+        const { rerender } = render(
+            <CurrentBatterCard
+                currentBatter={opponentBatter1}
+                logs={[]}
+                isOpponent={true}
+            />,
+        );
+
+        const input = screen.getByPlaceholderText(/Add notes/);
+        expect(input.value).toBe("Lefty hitter");
+
+        // Rerender with a different opponent batter that has no notes
+        rerender(
+            <CurrentBatterCard
+                currentBatter={opponentBatter2}
+                logs={[]}
+                isOpponent={true}
+            />,
+        );
+
+        const updatedInput = screen.getByPlaceholderText(/Add notes/);
+        expect(updatedInput.value).toBe("");
+    });
 });

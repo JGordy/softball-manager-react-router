@@ -1,9 +1,31 @@
-import { Card, Group, Stack, Text, Badge, Avatar } from "@mantine/core";
+import {
+    Card,
+    Group,
+    Stack,
+    Text,
+    Badge,
+    Avatar,
+    TextInput,
+    Collapse,
+    UnstyledButton,
+} from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
 import { HITS, WALKS, getUILabel } from "@/constants/scoring";
 import { getActivePlayerInSlot } from "../utils/gamedayUtils";
+import MiniSprayChart from "@/components/MiniSprayChart/MiniSprayChart";
 
-export default function CurrentBatterCard({ currentBatter, logs, ...props }) {
+export default function CurrentBatterCard({
+    currentBatter,
+    logs,
+    isOpponent = false,
+    onNotesChange,
+    ...props
+}) {
     if (!currentBatter) return null;
+
+    const [sprayChartOpened, { toggle: toggleSprayChart }] =
+        useDisclosure(false);
 
     // Resolve the currently active player (original or sub) for display
     const activePlayer = getActivePlayerInSlot(currentBatter);
@@ -136,6 +158,64 @@ export default function CurrentBatterCard({ currentBatter, logs, ...props }) {
                     )}
                 </Stack>
             </Group>
+            {isOpponent && (
+                <Stack mt="md" gap="xs">
+                    <TextInput
+                        key={currentBatter.$id}
+                        size="sm"
+                        placeholder="Add notes (e.g. Lefty, fast, #12)"
+                        defaultValue={currentBatter.notes || ""}
+                        onBlur={(e) => onNotesChange?.(e.currentTarget.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                e.preventDefault();
+                                e.currentTarget.blur();
+                            }
+                        }}
+                        styles={{
+                            input: {
+                                backgroundColor: "rgba(0, 0, 0, 0.3)",
+                                color: "white",
+                                border: "1px solid rgba(255, 255, 255, 0.3)",
+                                "&::placeholder": {
+                                    color: "rgba(255, 255, 255, 0.5)",
+                                },
+                            },
+                        }}
+                    />
+                    {hits.length > 0 && (
+                        <>
+                            <UnstyledButton
+                                onClick={toggleSprayChart}
+                                p="xs"
+                                mt="xs"
+                            >
+                                <Group justify="center" gap="xs">
+                                    <Text size="sm" c="blue.2" fw={500}>
+                                        {sprayChartOpened
+                                            ? "Hide Spray Chart"
+                                            : "See Spray Chart"}
+                                    </Text>
+                                    {sprayChartOpened ? (
+                                        <IconChevronUp
+                                            size={16}
+                                            color="var(--mantine-color-blue-2)"
+                                        />
+                                    ) : (
+                                        <IconChevronDown
+                                            size={16}
+                                            color="var(--mantine-color-blue-2)"
+                                        />
+                                    )}
+                                </Group>
+                            </UnstyledButton>
+                            <Collapse in={sprayChartOpened}>
+                                <MiniSprayChart hits={hits} />
+                            </Collapse>
+                        </>
+                    )}
+                </Stack>
+            )}
         </Card>
     );
 }

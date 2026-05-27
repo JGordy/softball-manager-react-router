@@ -14,7 +14,7 @@ import {
     IconPencil,
 } from "@tabler/icons-react";
 
-import { getRunnerMovement } from "../utils/gamedayUtils";
+import { getRunnerMovement, isOpponentPlay } from "../utils/gamedayUtils";
 
 export default function PlayHistoryList({
     logs,
@@ -22,6 +22,7 @@ export default function PlayHistoryList({
     isScorekeeper,
     onEditPlay,
     opponentName = "Opponent", // For future features (e.g. opponent recaps)
+    isHomeGame,
 }) {
     if (!logs.length) {
         return (
@@ -45,9 +46,8 @@ export default function PlayHistoryList({
                             radius="md"
                             bg="rgba(229, 115, 115, 0.08)"
                             style={{
-                                alignSelf: "flex-end",
-                                width: "90%",
-                                borderColor: "rgba(229, 115, 115, 0.2)",
+                                borderRight:
+                                    "1px solid var(--mantine-color-red-6)",
                             }}
                         >
                             <Stack gap={4}>
@@ -137,8 +137,25 @@ export default function PlayHistoryList({
                     playerChart,
                 );
 
+                const isOpponent = isOpponentPlay(log, isHomeGame);
+
                 return (
-                    <Card key={log.$id} p="xs" radius="md">
+                    <Card
+                        key={log.$id}
+                        p="xs"
+                        radius="md"
+                        bg={
+                            isOpponent ? "rgba(229, 115, 115, 0.08)" : undefined
+                        }
+                        style={{
+                            borderLeft: isOpponent
+                                ? undefined
+                                : "1px solid var(--mantine-color-blue-6)",
+                            borderRight: isOpponent
+                                ? "1px solid var(--mantine-color-red-6)"
+                                : undefined,
+                        }}
+                    >
                         <Stack gap={4}>
                             <Group justify="space-between" wrap="nowrap">
                                 <Text size="sm" fw={700} style={{ flex: 1 }}>

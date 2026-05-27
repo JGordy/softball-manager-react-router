@@ -10,7 +10,12 @@ const formatStat = (val) => val.replace(/^0/, "");
  * @param {Array} playerChart - Array of player objects (the lineup)
  * @returns {Array} Array of player stats objects
  */
-export const calculateGameStats = (logs = [], playerChart = []) => {
+export const calculateGameStats = (
+    logs = [],
+    playerChart = [],
+    isOpponent = false,
+    isHomeGame = undefined,
+) => {
     // 1. Initialize stats map for all players in lineup
     const statsMap = {};
 
@@ -34,6 +39,26 @@ export const calculateGameStats = (logs = [], playerChart = []) => {
         OPS: ".000",
     });
 
+    const ensureOpponentBatter = (batterId) => {
+        if (
+            isOpponent &&
+            batterId &&
+            !statsMap[batterId] &&
+            batterId.startsWith("OPP_BAT_")
+        ) {
+            const match = batterId.match(/OPP_BAT_(\d+)/);
+            const batterNum = match ? match[1] : batterId;
+            statsMap[batterId] = initStats({
+                $id: batterId,
+                firstName: "Batter",
+                lastName: batterNum,
+                jerseyNumber: batterNum,
+            });
+            return true;
+        }
+        return false;
+    };
+
     playerChart.forEach((slot) => {
         // Seed entry for the original slot player
         statsMap[slot.$id] = initStats(slot);
@@ -54,11 +79,22 @@ export const calculateGameStats = (logs = [], playerChart = []) => {
 
     // 2. Process logs
     logs.forEach((log) => {
-        // Skip substitution and opponent events — they are metadata/opponent stats, not our team's at-bats
-        if (log.eventType === "SUB" || isOpponentPlay(log)) return;
+        // Skip substitution and lineup pointer events
+        if (
+            log.eventType === "SUB" ||
+            log.eventType === "opponent_lineup_pointer"
+        )
+            return;
+
+        // Filter based on whether we are calculating stats for our team or opponent team
+        if (isOpponentPlay(log, isHomeGame) !== isOpponent) return;
 
         const batterId = log.playerId;
-        if (!statsMap[batterId]) return; // Skip if player not in chart (shouldn't happen)
+        if (!statsMap[batterId]) {
+            if (!ensureOpponentBatter(batterId)) {
+                return; // Skip if player not in chart (shouldn't happen)
+            }
+        }
 
         const batterStats = statsMap[batterId];
         const eventType = log.eventType;
@@ -121,6 +157,7 @@ export const calculateGameStats = (logs = [], playerChart = []) => {
         // Credit runs to ANY player who scored on this play
         if (baseState.scored && Array.isArray(baseState.scored)) {
             baseState.scored.forEach((scoredPlayerId) => {
+                ensureOpponentBatter(scoredPlayerId);
                 if (statsMap[scoredPlayerId]) {
                     statsMap[scoredPlayerId].R++;
                 }

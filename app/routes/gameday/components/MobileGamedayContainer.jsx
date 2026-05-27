@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router";
 import {
     Box,
@@ -6,6 +6,7 @@ import {
     Card,
     Group,
     LoadingOverlay,
+    SegmentedControl,
     Stack,
     Tabs,
     Text,
@@ -16,6 +17,7 @@ import { useDisclosure } from "@mantine/hooks";
 import TabsWrapper from "@/components/TabsWrapper";
 import BackButton from "@/components/BackButton";
 import ContactSprayChart from "@/components/ContactSprayChart";
+import { isOpponentPlay } from "../utils/gamedayUtils";
 
 import { useGamedayController } from "../hooks/useGamedayController";
 
@@ -33,6 +35,7 @@ import SubPlayerDrawer from "./SubPlayerDrawer";
 import GamedayMenu from "./GamedayMenu";
 import AchievementsList from "./AchievementsList";
 import EditPlayDrawer from "./EditPlayDrawer";
+import SelectOpponentBatterDrawer from "./SelectOpponentBatterDrawer";
 import ShareUrlButton from "@/components/ShareUrlButton";
 import GameRecapView from "./GameRecapView";
 
@@ -71,12 +74,18 @@ export default function MobileGamedayContainer({
         closeDrawer,
         handleOpponentRun,
         handleOpponentOut,
+        handleSelectOpponentBatter,
         advanceHalfInning,
         initiateAction,
         completeAction,
         handleSubCurrentBatter,
         eligibleSubstitutes,
         playerChart,
+        opponentChart,
+        saveOpponentChart,
+        opponentOrderIndex,
+        opponentScoringMode,
+        toggleOpponentScoringMode,
         undoLast,
         updateAction,
     } = useGamedayController({
@@ -89,6 +98,39 @@ export default function MobileGamedayContainer({
         players,
     });
 
+    const [sprayChartTeam, setSprayChartTeam] = useState("us");
+    const [boxScoreTeam, setBoxScoreTeam] = useState("us");
+
+    // Auto-switch tabs to active team when batting side changes
+    useEffect(() => {
+        setSprayChartTeam(isOurBatting ? "us" : "them");
+        setBoxScoreTeam(isOurBatting ? "us" : "them");
+    }, [isOurBatting]);
+
+    const sprayHits = useMemo(() => {
+        return logs.filter(
+            (l) =>
+                isOpponentPlay(l, game.isHomeGame) ===
+                (sprayChartTeam === "them"),
+        );
+    }, [logs, sprayChartTeam, game.isHomeGame]);
+
+    const sprayBatters = useMemo(() => {
+        if (sprayChartTeam === "us") {
+            return batters;
+        } else {
+            const batterMap = new Map();
+            opponentChart.forEach((slot, index) => {
+                const label =
+                    slot.firstName || slot.lastName
+                        ? `${slot.firstName || ""} ${slot.lastName || ""}`.trim()
+                        : `Batter ${index + 1}`;
+                batterMap.set(slot.$id, { value: slot.$id, label });
+            });
+            return Array.from(batterMap.values());
+        }
+    }, [sprayChartTeam, batters, opponentChart]);
+
     const isGameFinal =
         game.gameFinal !== undefined ? !!game.gameFinal : gameFinal;
 
@@ -97,6 +139,10 @@ export default function MobileGamedayContainer({
     const [editLog, setEditLog] = useState(null);
     const [editDrawerOpened, { open: openEditDrawer, close: closeEditDrawer }] =
         useDisclosure(false);
+    const [
+        selectBatterOpened,
+        { open: openSelectBatter, close: closeSelectBatter },
+    ] = useDisclosure(false);
 
     const previousLog = useMemo(() => {
         if (!editLog) return null;
@@ -142,6 +188,14 @@ export default function MobileGamedayContainer({
                             onSubBatter={
                                 isOurBatting ? openSubModal : undefined
                             }
+                            opponentScoringMode={opponentScoringMode}
+                            onToggleOpponentScoringMode={
+                                toggleOpponentScoringMode
+                            }
+                            isOurBatting={isOurBatting}
+                            opponentChart={opponentChart}
+                            opponentOrderIndex={opponentOrderIndex}
+                            onOpenSelectBatterDrawer={openSelectBatter}
                         />
                     ) : (
                         <div style={{ minWidth: 40 }} />
@@ -220,13 +274,56 @@ export default function MobileGamedayContainer({
                                 <Stack gap="md">
                                     {!isGameFinal && (
                                         <>
-                                            {isOurBatting ? (
+                                            {isOurBatting ||
+                                            opponentScoringMode ===
+                                                "Detailed" ? (
                                                 <>
                                                     <CurrentBatterCard
                                                         currentBatter={
                                                             currentBatter
                                                         }
                                                         logs={logs}
+                                                        isOpponent={
+                                                            !isOurBatting
+                                                        }
+                                                        onNotesChange={(
+                                                            notes,
+                                                        ) => {
+                                                            if (!isOurBatting) {
+                                                                const updated =
+                                                                    [
+                                                                        ...opponentChart,
+                                                                    ];
+                                                                while (
+                                                                    updated.length <=
+                                                                    opponentOrderIndex
+                                                                ) {
+                                                                    const idx =
+                                                                        updated.length;
+                                                                    updated.push(
+                                                                        {
+                                                                            $id: `OPP_BAT_${idx + 1}`,
+                                                                            firstName:
+                                                                                "Batter",
+                                                                            lastName: `${idx + 1}`,
+                                                                            substitutions:
+                                                                                [],
+                                                                        },
+                                                                    );
+                                                                }
+                                                                updated[
+                                                                    opponentOrderIndex
+                                                                ] = {
+                                                                    ...updated[
+                                                                        opponentOrderIndex
+                                                                    ],
+                                                                    notes,
+                                                                };
+                                                                saveOpponentChart(
+                                                                    updated,
+                                                                );
+                                                            }
+                                                        }}
                                                     />
                                                     <UpNextCard
                                                         upcomingBatters={
@@ -245,7 +342,9 @@ export default function MobileGamedayContainer({
 
                                     {isScorekeeper && !isGameFinal && (
                                         <Stack flex={1} gap="md">
-                                            {isOurBatting ? (
+                                            {isOurBatting ||
+                                            opponentScoringMode ===
+                                                "Detailed" ? (
                                                 <ActionPad
                                                     onAction={initiateAction}
                                                     runners={runners}
@@ -272,6 +371,7 @@ export default function MobileGamedayContainer({
                                                 }
                                                 isSubmitting={isSubmitting}
                                                 playerChart={playerChart}
+                                                isHomeGame={game.isHomeGame}
                                             />
                                         </Box>
                                     )}
@@ -282,12 +382,15 @@ export default function MobileGamedayContainer({
                                 <Stack gap="md">
                                     {!isGameFinal && (
                                         <>
-                                            {isOurBatting ? (
+                                            {isOurBatting ||
+                                            opponentScoringMode ===
+                                                "Detailed" ? (
                                                 <CurrentBatterCard
                                                     currentBatter={
                                                         currentBatter
                                                     }
                                                     logs={logs}
+                                                    isOpponent={!isOurBatting}
                                                 />
                                             ) : (
                                                 <DefenseCard
@@ -303,25 +406,72 @@ export default function MobileGamedayContainer({
                                         isScorekeeper={isScorekeeper}
                                         onEditPlay={handleEditPlay}
                                         opponentName={game.opponent}
+                                        isHomeGame={game.isHomeGame}
                                     />
                                 </Stack>
                             </Tabs.Panel>
 
                             <Tabs.Panel value="boxscore" pt="md">
-                                <BoxScore
-                                    logs={logs}
-                                    playerChart={playerChart}
-                                    currentBatter={currentBatter}
-                                    gameFinal={isGameFinal}
-                                />
+                                <Stack gap="sm">
+                                    <SegmentedControl
+                                        value={boxScoreTeam}
+                                        onChange={setBoxScoreTeam}
+                                        color={
+                                            boxScoreTeam === "us"
+                                                ? "blue"
+                                                : "red"
+                                        }
+                                        data={[
+                                            { label: team.name, value: "us" },
+                                            {
+                                                label:
+                                                    game.opponent || "Opponent",
+                                                value: "them",
+                                            },
+                                        ]}
+                                        fullWidth
+                                    />
+                                    <BoxScore
+                                        logs={logs}
+                                        playerChart={
+                                            boxScoreTeam === "us"
+                                                ? playerChart
+                                                : opponentChart
+                                        }
+                                        currentBatter={currentBatter}
+                                        gameFinal={isGameFinal}
+                                        isOpponent={boxScoreTeam === "them"}
+                                        isHomeGame={game.isHomeGame}
+                                    />
+                                </Stack>
                             </Tabs.Panel>
 
                             <Tabs.Panel value="spray" pt="md">
-                                <ContactSprayChart
-                                    hits={logs}
-                                    showBattingSide={false}
-                                    batters={batters}
-                                />
+                                <Stack gap="sm">
+                                    <SegmentedControl
+                                        value={sprayChartTeam}
+                                        onChange={setSprayChartTeam}
+                                        color={
+                                            sprayChartTeam === "us"
+                                                ? "blue"
+                                                : "red"
+                                        }
+                                        data={[
+                                            { label: team.name, value: "us" },
+                                            {
+                                                label:
+                                                    game.opponent || "Opponent",
+                                                value: "them",
+                                            },
+                                        ]}
+                                        fullWidth
+                                    />
+                                    <ContactSprayChart
+                                        hits={sprayHits}
+                                        showBattingSide={false}
+                                        batters={sprayBatters}
+                                    />
+                                </Stack>
                             </Tabs.Panel>
 
                             {isGameFinal && (game.recap || logs.length > 0) && (
@@ -375,6 +525,14 @@ export default function MobileGamedayContainer({
                 playerChart={playerChart}
                 onSave={handleSaveEdit}
                 isSubmitting={isSubmitting}
+            />
+
+            <SelectOpponentBatterDrawer
+                opened={selectBatterOpened}
+                onClose={closeSelectBatter}
+                opponentOrderIndex={opponentOrderIndex}
+                onSelectOpponentBatter={handleSelectOpponentBatter}
+                opponentChart={opponentChart}
             />
         </Stack>
     );
