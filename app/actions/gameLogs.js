@@ -143,7 +143,8 @@ export const logGameEvent = async ({
             battingSide: normalizeOptionalField(battingSide),
         };
 
-        const isOpponent = eventType === "opponent_run";
+        const isOpponent =
+            eventType === "opponent_run" || safeBaseState?.isOpponent === true;
 
         // If runs > 0, use transaction for atomicity
         if (runs > 0) {
@@ -228,7 +229,18 @@ export const undoGameEvent = async ({ logId, client }) => {
         // 1. Fetch the log to see if we need to revert score
         const log = await readDocument("game_logs", logId, [], client);
         const runs = parseInt(log.rbi || 0, 10);
-        const isOpponent = log.eventType === "opponent_run";
+        let isOpponent = log.eventType === "opponent_run";
+        if (log.baseState) {
+            try {
+                const parsed =
+                    typeof log.baseState === "string"
+                        ? JSON.parse(log.baseState)
+                        : log.baseState;
+                if (parsed?.isOpponent !== undefined) {
+                    isOpponent = !!parsed.isOpponent;
+                }
+            } catch {}
+        }
 
         // 2. If the log had runs, use transaction for atomic undo
         if (runs > 0) {

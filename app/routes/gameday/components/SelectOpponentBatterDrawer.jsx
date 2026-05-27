@@ -8,8 +8,14 @@ export default function SelectOpponentBatterDrawer({
     onClose,
     opponentOrderIndex,
     onSelectOpponentBatter,
+    opponentChart = [],
 }) {
     const isDesktop = useMediaQuery("(min-width: 62em)");
+    const slotsCount = Math.max(
+        12,
+        opponentChart?.length || 0,
+        (opponentOrderIndex || 0) + 1,
+    );
 
     return (
         <DrawerContainer
@@ -34,7 +40,7 @@ export default function SelectOpponentBatterDrawer({
                         gap: "12px",
                     }}
                 >
-                    {Array.from({ length: 12 }).map((_, i) => {
+                    {Array.from({ length: slotsCount }).map((_, i) => {
                         const isSelected = opponentOrderIndex === i;
                         return (
                             <Button

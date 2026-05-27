@@ -479,6 +479,7 @@ export default function DesktopGamedayContainer({
                 onClose={closeSelectBatter}
                 opponentOrderIndex={opponentOrderIndex}
                 onSelectOpponentBatter={handleSelectOpponentBatter}
+                opponentChart={opponentChart}
             />
         </Stack>
     );

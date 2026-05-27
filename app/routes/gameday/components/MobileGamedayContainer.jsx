@@ -521,6 +521,7 @@ export default function MobileGamedayContainer({
                 onClose={closeSelectBatter}
                 opponentOrderIndex={opponentOrderIndex}
                 onSelectOpponentBatter={handleSelectOpponentBatter}
+                opponentChart={opponentChart}
             />
         </Stack>
     );

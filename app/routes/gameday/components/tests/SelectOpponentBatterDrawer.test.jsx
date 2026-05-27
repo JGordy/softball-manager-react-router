@@ -60,4 +60,26 @@ describe("SelectOpponentBatterDrawer", () => {
             screen.queryByText("Set Active Opponent Batter"),
         ).not.toBeInTheDocument();
     });
+
+    it("renders more than 12 slots if opponentChart is larger", () => {
+        const mockOpponentChart = Array.from({ length: 15 }).map((_, i) => ({
+            $id: `OPP_BAT_${i + 1}`,
+            firstName: "Batter",
+            lastName: `${i + 1}`,
+        }));
+
+        render(
+            <SelectOpponentBatterDrawer
+                {...defaultProps}
+                opponentChart={mockOpponentChart}
+            />,
+        );
+
+        // Should render 15 batter buttons
+        for (let i = 1; i <= 15; i++) {
+            expect(
+                screen.getByRole("button", { name: `Batter ${i}` }),
+            ).toBeInTheDocument();
+        }
+    });
 });
