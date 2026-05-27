@@ -256,9 +256,12 @@ export default function DesktopGamedayContainer({
                                         if (!isOurBatting) {
                                             const updated = [...opponentChart];
                                             if (updated[opponentOrderIndex]) {
-                                                updated[
-                                                    opponentOrderIndex
-                                                ].notes = notes;
+                                                updated[opponentOrderIndex] = {
+                                                    ...updated[
+                                                        opponentOrderIndex
+                                                    ],
+                                                    notes,
+                                                };
                                                 saveOpponentChart(updated);
                                             }
                                         }

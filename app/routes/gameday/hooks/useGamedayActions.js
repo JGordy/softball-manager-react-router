@@ -72,10 +72,12 @@ export function useGamedayActions({
             const increment =
                 typeof runs === "number" && !isNaN(runs) ? runs : 1;
 
+            if (!team?.$id) return;
+
             fetcher.submit(
                 {
                     _action: "log-game-event",
-                    teamId: team.$id,
+                    teamId: team?.$id,
                     inning,
                     halfInning,
                     eventType: "opponent_run",
@@ -109,7 +111,7 @@ export function useGamedayActions({
             fetcher.submit(
                 {
                     _action: "log-game-event",
-                    teamId: team.$id,
+                    teamId: team?.$id,
                     inning,
                     halfInning,
                     eventType: "opponent_lineup_pointer",
@@ -208,10 +210,12 @@ export function useGamedayActions({
 
             const { newRunners, runsOnPlay, outsRecorded } = result;
 
+            if (!team?.$id) return;
+
             fetcher.submit(
                 {
                     _action: "log-game-event",
-                    teamId: team.$id,
+                    teamId: team?.$id,
                     inning,
                     halfInning,
                     playerId: activePlayerId,
@@ -285,7 +289,7 @@ export function useGamedayActions({
             setRunners,
             setScore,
             setOpponentScore,
-            team.$id,
+            team?.$id,
             isOurBatting,
             currentBatter,
             opponentChart,
@@ -304,7 +308,7 @@ export function useGamedayActions({
      */
     const handleSubCurrentBatter = useCallback(
         (incomingPlayer, slotIndex, currentPlayerChart, onChartUpdate) => {
-            if (!isScorekeeper) return;
+            if (!isScorekeeper || !team?.$id) return;
 
             const slot = currentPlayerChart[slotIndex];
             const outgoingPlayer = getActivePlayerInSlot(slot);
@@ -337,7 +341,7 @@ export function useGamedayActions({
                 {
                     _action: "substitute-player",
                     playerChart: JSON.stringify(updatedChart),
-                    teamId: team.$id,
+                    teamId: team?.$id,
                     inning,
                     halfInning,
                     playerId: incomingPlayer.$id,
@@ -354,7 +358,7 @@ export function useGamedayActions({
                 { method: "post" },
             );
         },
-        [fetcher, halfInning, inning, isScorekeeper, runners, team.$id],
+        [fetcher, halfInning, inning, isScorekeeper, runners, team?.$id],
     );
 
     const initiateAction = useCallback(

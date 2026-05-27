@@ -301,8 +301,12 @@ export default function MobileGamedayContainer({
                                                                 ) {
                                                                     updated[
                                                                         opponentOrderIndex
-                                                                    ].notes =
-                                                                        notes;
+                                                                    ] = {
+                                                                        ...updated[
+                                                                            opponentOrderIndex
+                                                                        ],
+                                                                        notes,
+                                                                    };
                                                                     saveOpponentChart(
                                                                         updated,
                                                                     );
