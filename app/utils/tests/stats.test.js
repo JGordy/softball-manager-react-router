@@ -472,7 +472,7 @@ describe("calculateGameStats", () => {
     it("should calculate opponent stats and skip our team's plays when isOpponent is true", () => {
         const mockOpponentChart = [
             {
-                $id: "OPP_BAT_0",
+                $id: "OPP_BAT_1",
                 firstName: "Opponent",
                 lastName: "One",
             },
@@ -485,15 +485,15 @@ describe("calculateGameStats", () => {
                 baseState: "{}",
             },
             {
-                playerId: "OPP_BAT_0",
+                playerId: "OPP_BAT_1",
                 eventType: "double",
                 rbi: 2,
                 baseState: JSON.stringify({ isOpponent: true }),
             },
         ];
-        // For opponent, it should ignore player1's single (our play) and only calculate the double for OPP_BAT_0
+        // For opponent, it should ignore player1's single (our play) and only calculate the double for OPP_BAT_1
         const stats = calculateGameStats(logs, mockOpponentChart, true, true);
-        const oppStats = stats.find((s) => s.player.$id === "OPP_BAT_0");
+        const oppStats = stats.find((s) => s.player.$id === "OPP_BAT_1");
         expect(oppStats.PA).toBe(1);
         expect(oppStats.AB).toBe(1);
         expect(oppStats.H).toBe(1);

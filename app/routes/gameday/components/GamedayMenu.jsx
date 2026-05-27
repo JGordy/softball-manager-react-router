@@ -160,7 +160,7 @@ export default function GamedayMenu({
                                         opponentLineup: JSON.stringify(
                                             opponentChart.slice(
                                                 0,
-                                                Math.max(opponentOrderIndex, 1),
+                                                opponentOrderIndex + 1,
                                             ),
                                         ),
                                     },

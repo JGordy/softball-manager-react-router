@@ -108,6 +108,9 @@ export function useGamedayActions({
         (index) => {
             if (!isScorekeeper || !team?.$id) return;
 
+            const opponentId =
+                opponentChart?.[index]?.$id || `OPP_BAT_${index + 1}`;
+
             fetcher.submit(
                 {
                     _action: "log-game-event",
@@ -115,7 +118,7 @@ export function useGamedayActions({
                     inning,
                     halfInning,
                     eventType: "opponent_lineup_pointer",
-                    playerId: `OPP_BAT_${index + 1}`,
+                    playerId: opponentId,
                     rbi: 0,
                     outsOnPlay: 0,
                     description: `Lineup advanced to Batter ${index + 1}`,
@@ -133,6 +136,7 @@ export function useGamedayActions({
             halfInning,
             isScorekeeper,
             setOpponentOrderIndex,
+            opponentChart,
         ],
     );
 
@@ -164,13 +168,10 @@ export function useGamedayActions({
             const battingSide = payload?.battingSide || "right";
 
             // Resolve the active player for this slot (may be a substitute)
-            const activePlayerId = isOurBatting
-                ? (getActivePlayerInSlot(currentBatter).playerId ??
-                  getActivePlayerInSlot(currentBatter).$id)
-                : currentBatter.$id;
             const activePlayer = isOurBatting
                 ? getActivePlayerInSlot(currentBatter)
                 : currentBatter;
+            const activePlayerId = activePlayer.playerId ?? activePlayer.$id;
             const batterName =
                 `${activePlayer.firstName || ""}${activePlayer.lastName ? " " + activePlayer.lastName : ""}`.trim();
 

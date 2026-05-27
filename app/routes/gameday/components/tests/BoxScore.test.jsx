@@ -102,12 +102,12 @@ describe("BoxScore", () => {
 
     it("renders opponent stats correctly when isOpponent is true", () => {
         const mockOpponentChart = [
-            { $id: "OPP_BAT_0", firstName: "Opponent", lastName: "One" },
+            { $id: "OPP_BAT_1", firstName: "Opponent", lastName: "One" },
         ];
         const opponentLogs = [
             { playerId: "p1", eventType: "1B", rbi: 1, runs: 1 }, // our play, should be ignored
             {
-                playerId: "OPP_BAT_0",
+                playerId: "OPP_BAT_1",
                 eventType: "HR",
                 rbi: 2,
                 baseState: JSON.stringify({ isOpponent: true }),
