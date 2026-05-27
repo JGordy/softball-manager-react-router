@@ -347,7 +347,7 @@ describe("DesktopGamedayContainer", () => {
                 />,
             );
 
-            expect(screen.getByText("LAST PLAY")).toBeInTheDocument();
+            expect(screen.getByText("Last Play")).toBeInTheDocument();
             expect(
                 screen.getAllByText("Alice Smith singles").length,
             ).toBeGreaterThan(0);
@@ -374,7 +374,7 @@ describe("DesktopGamedayContainer", () => {
                 />,
             );
 
-            expect(screen.getByText("LAST PLAY")).toBeInTheDocument();
+            expect(screen.getByText("Last Play")).toBeInTheDocument();
             expect(
                 screen.getAllByText("Alice Smith singles").length,
             ).toBeGreaterThan(0);

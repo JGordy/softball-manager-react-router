@@ -360,6 +360,7 @@ export default function MobileGamedayContainer({
                                                 }
                                                 isSubmitting={isSubmitting}
                                                 playerChart={playerChart}
+                                                isHomeGame={game.isHomeGame}
                                             />
                                         </Box>
                                     )}

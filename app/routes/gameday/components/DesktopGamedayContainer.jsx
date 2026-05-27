@@ -273,6 +273,7 @@ export default function DesktopGamedayContainer({
                                         onUndo={isScorekeeper ? undoLast : null}
                                         isSubmitting={isSubmitting}
                                         playerChart={playerChart}
+                                        isHomeGame={game.isHomeGame}
                                     />
                                 )}
                             </Stack>

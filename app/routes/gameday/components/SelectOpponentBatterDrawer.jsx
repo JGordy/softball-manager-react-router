@@ -49,6 +49,9 @@ export default function SelectOpponentBatterDrawer({
                                 styles={{
                                     root: {
                                         height: "48px",
+                                        paddingLeft: "4px",
+                                        paddingRight: "4px",
+                                        fontSize: "14px",
                                         borderColor: isSelected
                                             ? undefined
                                             : "rgba(255, 255, 255, 0.15)",
