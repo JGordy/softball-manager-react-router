@@ -5,16 +5,17 @@ import { useGameState } from "./useGameState";
 import { useGameUpdates } from "@/hooks/useGameUpdates";
 import { useGameRealtime } from "@/hooks/useGameRealtime";
 import { parsePlayerChart } from "../utils/gamedayUtils";
+const EMPTY_ARRAY = [];
 
 export function useGamedayController({
     game,
-    playerChart: initialPlayerChart,
+    playerChart: initialPlayerChart = EMPTY_ARRAY,
     team,
-    initialLogs = [],
+    initialLogs = EMPTY_ARRAY,
     gameFinal = false,
     isScorekeeper = false,
     isDesktop = false,
-    players = [],
+    players = EMPTY_ARRAY,
 }) {
     const [logs, setLogs] = useState(initialLogs);
     // Hold playerChart in local state so sub updates reflect immediately
@@ -352,10 +353,42 @@ export function useGamedayController({
         setPlayerChart(initialPlayerChart);
     }, [initialPlayerChart]);
 
-    // Sync opponentChart when gameData.opponentLineup changes
+    // Sync and dynamically pad opponentChart when lineup, order index, or logs update
     useEffect(() => {
-        setOpponentChart(parsedOpponentLineup);
-    }, [parsedOpponentLineup]);
+        const updated = [...parsedOpponentLineup];
+
+        // 1. Find the highest opponent batter index from active index & logs
+        let maxIndex = opponentOrderIndex;
+        logs.forEach((log) => {
+            if (log.playerId?.startsWith("OPP_BAT_")) {
+                const match = log.playerId.match(/OPP_BAT_(\d+)/);
+                if (match) {
+                    const num = parseInt(match[1], 10) - 1;
+                    if (num > maxIndex) maxIndex = num;
+                }
+            }
+        });
+
+        // 2. Pad updated array with placeholders up to maxIndex
+        while (updated.length <= maxIndex) {
+            const idx = updated.length;
+            updated.push({
+                $id: `OPP_BAT_${idx + 1}`,
+                firstName: "Batter",
+                lastName: `${idx + 1}`,
+                substitutions: [],
+            });
+        }
+
+        // 3. Only update state if the padded chart differs from the current state
+        const isDifferent =
+            updated.length !== opponentChart.length ||
+            updated.some((item, idx) => opponentChart[idx]?.$id !== item.$id);
+
+        if (isDifferent) {
+            setOpponentChart(updated);
+        }
+    }, [parsedOpponentLineup, opponentOrderIndex, logs, opponentChart]);
 
     const isSyncing = fetcher.state !== "idle" || realtimeStatus === "syncing";
 

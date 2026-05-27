@@ -251,4 +251,69 @@ describe("useGamedayController", () => {
 
         expect(result.current.updateAction).toBe(mockUpdateAction);
     });
+
+    it("dynamically pads opponentChart when opponentOrderIndex exceeds default length", () => {
+        useGameState.mockReturnValue({
+            inning: 1,
+            halfInning: "top",
+            outs: 0,
+            score: 0,
+            opponentScore: 0,
+            runners: {},
+            battingOrderIndex: 0,
+            opponentOrderIndex: 12, // 13th batter (past default 12)
+        });
+
+        const { result } = renderHook(() =>
+            useGamedayController({
+                game: mockGame,
+                playerChart: mockPlayerChart,
+                team: mockTeam,
+            }),
+        );
+
+        expect(result.current.opponentChart.length).toBe(13);
+        expect(result.current.opponentChart[12]).toEqual(
+            expect.objectContaining({
+                $id: "OPP_BAT_13",
+                firstName: "Batter",
+                lastName: "13",
+            }),
+        );
+    });
+
+    it("dynamically pads opponentChart based on logs with OPP_BAT_* IDs", () => {
+        useGameState.mockReturnValue({
+            inning: 1,
+            halfInning: "top",
+            outs: 0,
+            score: 0,
+            opponentScore: 0,
+            runners: {},
+            battingOrderIndex: 0,
+            opponentOrderIndex: 0,
+        });
+
+        const initialLogs = [
+            { $id: "log1", playerId: "OPP_BAT_14", eventType: "1B", rbi: 0 },
+        ];
+
+        const { result } = renderHook(() =>
+            useGamedayController({
+                game: mockGame,
+                playerChart: mockPlayerChart,
+                team: mockTeam,
+                initialLogs,
+            }),
+        );
+
+        expect(result.current.opponentChart.length).toBe(14);
+        expect(result.current.opponentChart[13]).toEqual(
+            expect.objectContaining({
+                $id: "OPP_BAT_14",
+                firstName: "Batter",
+                lastName: "14",
+            }),
+        );
+    });
 });
