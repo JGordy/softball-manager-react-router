@@ -55,6 +55,9 @@ export default function MobilePlayActionDrawer({
     // Resolve combined Fly/Pop dynamically based on current coordinates
     const getResolvedActionType = () => {
         if (initialActionType !== UI_KEYS.FLY_POP) return initialActionType;
+        if (hitCoordinates.x == null || hitCoordinates.y == null) {
+            return UI_KEYS.FLY_POP;
+        }
         return resolveFlyPopOut(hitCoordinates.x, hitCoordinates.y);
     };
 

@@ -171,6 +171,9 @@ export default function EditPlayDrawer({
     // Resolve combined Fly/Pop dynamically based on current coordinates
     const resolvedEventType = useMemo(() => {
         if (eventType !== UI_KEYS.FLY_POP) return eventType;
+        if (hitCoordinates.x == null || hitCoordinates.y == null) {
+            return eventType;
+        }
         return resolveFlyPopOut(hitCoordinates.x, hitCoordinates.y);
     }, [eventType, hitCoordinates]);
 
@@ -306,6 +309,10 @@ export default function EditPlayDrawer({
         });
         setSelectedPosition(nearestPos);
     };
+
+    const isSaveDisabled =
+        eventType === UI_KEYS.FLY_POP &&
+        (hitCoordinates.x == null || hitCoordinates.y == null);
 
     const handleSave = () => {
         if (!log) return;
@@ -445,6 +452,12 @@ export default function EditPlayDrawer({
                     />
                 </Group>
             </Paper>
+            {isSaveDisabled && (
+                <Text size="xs" c="orange" fw={600} ta="center" mt="xs">
+                    Please select a hit location to resolve the Fly/Pop Out
+                    before saving.
+                </Text>
+            )}
 
             <Divider mt="sm" />
 
@@ -699,6 +712,7 @@ export default function EditPlayDrawer({
                             fw={800}
                             onClick={handleSave}
                             loading={isSubmitting}
+                            disabled={isSaveDisabled}
                         >
                             Save Changes
                         </Button>
