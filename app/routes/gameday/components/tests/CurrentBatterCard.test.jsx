@@ -143,28 +143,35 @@ describe("CurrentBatterCard", () => {
         const logsWithRbi = [{ playerId: "p1", eventType: "homerun", rbi: 3 }];
 
         it("applies a red card background when isOpponent=true", () => {
-            const { container } = render(
+            render(
                 <CurrentBatterCard
                     currentBatter={batter}
                     logs={[]}
                     isOpponent={true}
+                    data-testid="batter-card"
                 />,
             );
-            // Mantine renders the bg prop as a data attribute on the card root element
-            const card = container.firstElementChild;
-            expect(card).toHaveAttribute("data-bg", "red.9");
+            // Mantine v8 translates bg="red.9" to an inline style:
+            // style="background: var(--mantine-color-red-9);"
+            expect(screen.getByTestId("batter-card")).toHaveStyle(
+                "background: var(--mantine-color-red-9)",
+            );
         });
 
         it("applies a blue card background when isOpponent=false (default)", () => {
-            const { container } = render(
+            render(
                 <CurrentBatterCard
                     currentBatter={batter}
                     logs={[]}
                     isOpponent={false}
+                    data-testid="batter-card"
                 />,
             );
-            const card = container.firstElementChild;
-            expect(card).toHaveAttribute("data-bg", "blue.9");
+            // Mantine v8 translates bg="blue.9" to an inline style:
+            // style="background: var(--mantine-color-blue-9);"
+            expect(screen.getByTestId("batter-card")).toHaveStyle(
+                "background: var(--mantine-color-blue-9)",
+            );
         });
 
         it("shows the notes text input only when isOpponent=true", () => {
@@ -206,11 +213,13 @@ describe("CurrentBatterCard", () => {
                     isOpponent={true}
                 />,
             );
-            const rbiBadge = screen.getByText(/RBI/);
-            // Mantine renders the color prop as a data-color attribute
-            expect(rbiBadge.closest("[data-color]")).toHaveAttribute(
-                "data-color",
-                "red",
+            // Mantine v8 Badge: the label text sits in an inner <span>;
+            // color is applied as CSS variables on the parent badge root element:
+            //   style="--badge-bg: var(--mantine-color-red-filled); ..."
+            const badgeLabel = screen.getByText(/RBI/);
+            const badgeRoot = badgeLabel.closest("[style]");
+            expect(badgeRoot?.getAttribute("style")).toContain(
+                "var(--mantine-color-red-filled)",
             );
         });
 
@@ -222,10 +231,10 @@ describe("CurrentBatterCard", () => {
                     isOpponent={false}
                 />,
             );
-            const rbiBadge = screen.getByText(/RBI/);
-            expect(rbiBadge.closest("[data-color]")).toHaveAttribute(
-                "data-color",
-                "lime",
+            const badgeLabel = screen.getByText(/RBI/);
+            const badgeRoot = badgeLabel.closest("[style]");
+            expect(badgeRoot?.getAttribute("style")).toContain(
+                "var(--mantine-color-lime-filled)",
             );
         });
 
