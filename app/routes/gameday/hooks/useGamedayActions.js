@@ -1,7 +1,8 @@
 import { useState, useCallback } from "react";
 import { useFetcher } from "react-router";
 import { useDisclosure } from "@mantine/hooks";
-import { UI_BATTED_OUTS, UI_WALKS } from "@/constants/scoring";
+import { UI_BATTED_OUTS, UI_WALKS, UI_KEYS } from "@/constants/scoring";
+import { resolveFlyPopOut } from "../utils/fieldMapping";
 import {
     getEventDescription,
     getActivePlayerInSlot,
@@ -34,7 +35,7 @@ export function useGamedayActions({
     outs,
     setOuts,
     setScore,
-    opponentScore,
+    opponentScore: _opponentScore,
     setOpponentScore,
     runners,
     setRunners,
@@ -157,7 +158,7 @@ export function useGamedayActions({
     }, [advanceHalfInning, outs, setOuts]);
 
     const completeAction = useCallback(
-        (actionType, payload = null) => {
+        (actionTypeInput, payload = null) => {
             const position = payload?.position || null;
             const runnerResults = payload?.runnerResults || null;
             const hitCoordinates = payload?.hitCoordinates || {
@@ -166,6 +167,15 @@ export function useGamedayActions({
             };
             const hitLocation = payload?.hitLocation || null;
             const battingSide = payload?.battingSide || "right";
+
+            // Resolve combined Fly/Pop Out
+            let actionType = actionTypeInput;
+            if (actionTypeInput === UI_KEYS.FLY_POP) {
+                actionType = resolveFlyPopOut(
+                    hitCoordinates.x,
+                    hitCoordinates.y,
+                );
+            }
 
             // Resolve the active player for this slot (may be a substitute)
             const activePlayer = isOurBatting

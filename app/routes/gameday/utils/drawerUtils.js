@@ -27,6 +27,8 @@ export function getDrawerTitle(actionType, currentBatter) {
             return `${batterName} lines out to...`;
         case "Pop Out":
             return `${batterName} pops out to...`;
+        case "Fly/Pop Out":
+            return `${batterName} flies/pops out to...`;
         default:
             return `${batterName} - Select Position`;
     }

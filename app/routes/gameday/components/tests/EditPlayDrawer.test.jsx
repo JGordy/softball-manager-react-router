@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@/utils/test-utils";
+import { UI_KEYS } from "@/constants/scoring";
 import EditPlayDrawer from "../EditPlayDrawer";
 
 // Heavy sub-components that have their own test suites
@@ -31,6 +32,9 @@ jest.mock("../ActionPad", () => ({
             <button onClick={() => onAction && onAction("2B")}>2B</button>
             <button onClick={() => onAction && onAction("K")}>K</button>
             <button onClick={() => onAction && onAction("1B")}>1B</button>
+            <button onClick={() => onAction && onAction("Fly/Pop Out")}>
+                Fly/Pop Out
+            </button>
         </div>
     ),
 }));
@@ -257,6 +261,74 @@ describe("EditPlayDrawer", () => {
             const [, payload] = defaultProps.onSave.mock.calls[0];
             expect(typeof payload.hitX).toBe("number");
             expect(typeof payload.hitY).toBe("number");
+        });
+
+        it("resolves Fly/Pop Out to Fly Out (fly_out) for outfield coordinates", () => {
+            const outfieldLog = {
+                ...mockLog,
+                hitX: 50.0,
+                hitY: 20.0, // distance = 58 > 38
+            };
+            const onSaveMock = jest.fn();
+            render(
+                <EditPlayDrawer
+                    {...defaultProps}
+                    log={outfieldLog}
+                    onSave={onSaveMock}
+                />,
+            );
+
+            // Navigate to change result
+            fireEvent.click(screen.getByText("Change Result"));
+            // Click Fly/Pop Out
+            fireEvent.click(
+                screen.getByRole("button", { name: UI_KEYS.FLY_POP }),
+            );
+            // Save Changes
+            fireEvent.click(
+                screen.getByRole("button", { name: /Save Changes/i }),
+            );
+
+            expect(onSaveMock).toHaveBeenCalledTimes(1);
+            const [, payload] = onSaveMock.mock.calls[0];
+            expect(payload.eventType).toBe("fly_out");
+            expect(payload.description).toBe(
+                "Joseph Gordy flies out to deep center field",
+            );
+        });
+
+        it("resolves Fly/Pop Out to Pop Out (pop_out) for infield coordinates", () => {
+            const infieldLog = {
+                ...mockLog,
+                hitX: 50.0,
+                hitY: 65.0, // distance = 13 < 38
+            };
+            const onSaveMock = jest.fn();
+            render(
+                <EditPlayDrawer
+                    {...defaultProps}
+                    log={infieldLog}
+                    onSave={onSaveMock}
+                />,
+            );
+
+            // Navigate to change result
+            fireEvent.click(screen.getByText("Change Result"));
+            // Click Fly/Pop Out
+            fireEvent.click(
+                screen.getByRole("button", { name: UI_KEYS.FLY_POP }),
+            );
+            // Save Changes
+            fireEvent.click(
+                screen.getByRole("button", { name: /Save Changes/i }),
+            );
+
+            expect(onSaveMock).toHaveBeenCalledTimes(1);
+            const [, payload] = onSaveMock.mock.calls[0];
+            expect(payload.eventType).toBe("pop_out");
+            expect(payload.description).toBe(
+                "Joseph Gordy pops out to back to the pitcher",
+            );
         });
 
         it("shows loading state while isSubmitting", () => {

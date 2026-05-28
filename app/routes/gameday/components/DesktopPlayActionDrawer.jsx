@@ -22,10 +22,12 @@ import FieldHighlight from "./FieldHighlight";
 
 import { useRunnerProjection } from "../hooks/useRunnerProjection";
 import { getDrawerTitle, getActionColor } from "../utils/drawerUtils";
+import { UI_KEYS } from "@/constants/scoring";
 import {
     getFieldZone,
     getClampedCoordinates,
     getRelativePointerCoordinates,
+    resolveFlyPopOut,
 } from "../utils/fieldMapping";
 import ConfirmationPanel from "./ConfirmationPanel";
 
@@ -33,7 +35,7 @@ export default function DesktopPlayActionDrawer({
     opened,
     onClose,
     onSelect,
-    actionType,
+    actionType: initialActionType,
     runners,
     playerChart,
     currentBatter,
@@ -50,6 +52,17 @@ export default function DesktopPlayActionDrawer({
     const [isLocked, setIsLocked] = useState(false);
     const [showConfirmation, setShowConfirmation] = useState(false);
     const containerRef = useRef(null);
+
+    // Resolve combined Fly/Pop dynamically based on current coordinates
+    const getResolvedActionType = () => {
+        if (initialActionType !== UI_KEYS.FLY_POP) return initialActionType;
+        if (hitCoordinates.x == null || hitCoordinates.y == null) {
+            return UI_KEYS.FLY_POP;
+        }
+        return resolveFlyPopOut(hitCoordinates.x, hitCoordinates.y);
+    };
+
+    const actionType = getResolvedActionType();
 
     const hitLocation = getFieldZone(
         hitCoordinates.x,
@@ -73,6 +86,7 @@ export default function DesktopPlayActionDrawer({
     }));
 
     // Reset state when drawer closes
+    /* eslint-disable react-hooks/set-state-in-effect */
     useEffect(() => {
         if (!opened) {
             setSelectedPosition(null);
@@ -82,6 +96,7 @@ export default function DesktopPlayActionDrawer({
             setShowConfirmation(false);
         }
     }, [opened, bats]);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     const handleConfirm = () => {
         onSelect({
@@ -102,15 +117,21 @@ export default function DesktopPlayActionDrawer({
         const constrainedX = Math.max(0, Math.min(100, x));
         const constrainedY = Math.max(0, Math.min(100, y));
 
-        // Handle hit boundaries and HR floors
+        // Handle hit boundaries and HR floors (pass initialActionType so Fly/Pop Out allows full range)
         const { x: finalX, y: finalY } = getClampedCoordinates(
             constrainedX,
             constrainedY,
-            actionType,
+            initialActionType,
         );
 
+        // Resolve action type dynamically from pointer coordinates
+        const resolvedType =
+            initialActionType === UI_KEYS.FLY_POP
+                ? resolveFlyPopOut(finalX, finalY)
+                : initialActionType;
+
         // Only update if it's fair territory
-        const location = getFieldZone(finalX, finalY, actionType);
+        const location = getFieldZone(finalX, finalY, resolvedType);
         if (location === "foul ball") return false;
 
         setHitCoordinates({ x: finalX, y: finalY });
@@ -122,7 +143,7 @@ export default function DesktopPlayActionDrawer({
         // For Fly Outs, only outfielders catch them.
         // For Pop Outs and others, anyone can be the fielder.
         const snapPositions =
-            actionType === "Fly Out"
+            resolvedType === "Fly Out"
                 ? positions.filter((p) =>
                       ["LF", "LC", "RC", "RF"].includes(p.value),
                   )

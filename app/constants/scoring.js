@@ -10,6 +10,7 @@ export const UI_KEYS = {
     FLY_OUT: "Fly Out",
     LINE_OUT: "Line Out",
     POP_OUT: "Pop Out",
+    FLY_POP: "Fly/Pop Out",
     ERROR: "E",
     FIELDERS_CHOICE: "FC",
     SACRIFICE_FLY: "SF",

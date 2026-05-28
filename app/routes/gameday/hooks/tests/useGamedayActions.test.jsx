@@ -2,6 +2,7 @@ import { useFetcher } from "react-router";
 import { renderHook, act } from "@testing-library/react";
 
 import { useGamedayActions } from "../useGamedayActions";
+import { UI_KEYS } from "@/constants/scoring";
 
 jest.mock("react-router", () => ({
     useFetcher: jest.fn(),
@@ -151,6 +152,42 @@ describe("useGamedayActions", () => {
 
         expect(defaultProps.setOuts).toHaveBeenCalledWith(1);
         expect(defaultProps.setBattingOrderIndex).toHaveBeenCalledWith(1);
+    });
+
+    it("resolves Fly/Pop Out to Fly Out or Pop Out based on payload coordinates in completeAction", () => {
+        const { result } = renderHook(() => useGamedayActions(defaultProps));
+
+        // 1. Infield coordinates
+        act(() => {
+            result.current.completeAction(UI_KEYS.FLY_POP, {
+                hitCoordinates: { x: 50, y: 65 },
+                hitLocation: "to shortstop",
+            });
+        });
+
+        expect(mockSubmit).toHaveBeenCalledWith(
+            expect.objectContaining({
+                _action: "log-game-event",
+                eventType: "Pop Out",
+            }),
+            { method: "post" },
+        );
+
+        // 2. Outfield coordinates
+        act(() => {
+            result.current.completeAction(UI_KEYS.FLY_POP, {
+                hitCoordinates: { x: 50, y: 20 },
+                hitLocation: "center field",
+            });
+        });
+
+        expect(mockSubmit).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+                _action: "log-game-event",
+                eventType: "Fly Out",
+            }),
+            { method: "post" },
+        );
     });
 
     it("undoLast calls fetcher submit", () => {

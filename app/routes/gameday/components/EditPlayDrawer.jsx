@@ -19,7 +19,7 @@ import {
     IconUsers,
     IconWriting,
 } from "@tabler/icons-react";
-import { getUILabel, EVENT_TYPE_MAP } from "@/constants/scoring";
+import { getUILabel, EVENT_TYPE_MAP, UI_KEYS } from "@/constants/scoring";
 import POSITIONS from "@/constants/positions";
 import images from "@/constants/images";
 
@@ -30,6 +30,7 @@ import {
     getFieldZone,
     getClampedCoordinates,
     getRelativePointerCoordinates,
+    resolveFlyPopOut,
 } from "../utils/fieldMapping";
 
 import DrawerContainer from "@/components/DrawerContainer/DrawerContainer";
@@ -167,28 +168,43 @@ export default function EditPlayDrawer({
         [batter],
     );
 
+    // Resolve combined Fly/Pop dynamically based on current coordinates
+    const resolvedEventType = useMemo(() => {
+        if (eventType !== UI_KEYS.FLY_POP) return eventType;
+        if (hitCoordinates.x == null || hitCoordinates.y == null) {
+            return eventType;
+        }
+        return resolveFlyPopOut(hitCoordinates.x, hitCoordinates.y);
+    }, [eventType, hitCoordinates]);
+
     // Full zone string derived from coordinates (e.g. "deep right-center gap")
     const hitLocation = useMemo(() => {
         if (hitCoordinates.x == null || hitCoordinates.y == null) return null;
         const zone = getFieldZone(
             hitCoordinates.x,
             hitCoordinates.y,
-            eventType,
+            resolvedEventType,
         );
         return zone && zone !== "foul ball" ? zone : null;
-    }, [hitCoordinates, eventType]);
+    }, [hitCoordinates, resolvedEventType]);
 
     // Description is fully derived from current play state
     const description = useMemo(() => {
-        if (!eventType || !batterName) return "";
+        if (!resolvedEventType || !batterName) return "";
         return getEventDescription(
-            eventType,
+            resolvedEventType,
             batterName,
             selectedPosition,
             runnerResults,
             hitLocation,
         );
-    }, [eventType, selectedPosition, runnerResults, batterName, hitLocation]);
+    }, [
+        resolvedEventType,
+        selectedPosition,
+        runnerResults,
+        batterName,
+        hitLocation,
+    ]);
 
     // Starting runners (Pre-play)
     const startingRunners = useMemo(() => {
@@ -294,6 +310,10 @@ export default function EditPlayDrawer({
         setSelectedPosition(nearestPos);
     };
 
+    const isSaveDisabled =
+        eventType === UI_KEYS.FLY_POP &&
+        (hitCoordinates.x == null || hitCoordinates.y == null);
+
     const handleSave = () => {
         if (!log) return;
         // Always derive the final baseState from runnerResults + startingRunners
@@ -326,7 +346,7 @@ export default function EditPlayDrawer({
         });
 
         onSave(log.$id, {
-            eventType: EVENT_TYPE_MAP[eventType] || eventType,
+            eventType: EVENT_TYPE_MAP[resolvedEventType] || resolvedEventType,
             rbi: runnersModified ? runsScored : log.rbi,
             outsOnPlay: runnersModified ? outsRecorded : log.outsOnPlay,
             description,
@@ -432,6 +452,12 @@ export default function EditPlayDrawer({
                     />
                 </Group>
             </Paper>
+            {isSaveDisabled && (
+                <Text size="xs" c="orange" fw={600} ta="center" mt="xs">
+                    Please select a hit location to resolve the Fly/Pop Out
+                    before saving.
+                </Text>
+            )}
 
             <Divider mt="sm" />
 
@@ -686,6 +712,7 @@ export default function EditPlayDrawer({
                             fw={800}
                             onClick={handleSave}
                             loading={isSubmitting}
+                            disabled={isSaveDisabled}
                         >
                             Save Changes
                         </Button>

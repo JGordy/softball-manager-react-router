@@ -15,9 +15,8 @@ const OUT_COLOR = "red";
 const outs = [
     { label: "K", color: OUT_COLOR, value: UI_KEYS.STRIKEOUT },
     { label: "GRD", color: OUT_COLOR, value: UI_KEYS.GROUND_OUT },
-    { label: "FLY", color: OUT_COLOR, value: UI_KEYS.FLY_OUT },
+    { label: "FLY/POP", color: OUT_COLOR, value: UI_KEYS.FLY_POP },
     { label: "LINE", color: OUT_COLOR, value: UI_KEYS.LINE_OUT },
-    { label: "POP", color: OUT_COLOR, value: UI_KEYS.POP_OUT },
 ];
 
 export default function ActionPad({ onAction, runners, outs: currentOuts }) {
@@ -54,6 +53,8 @@ export default function ActionPad({ onAction, runners, outs: currentOuts }) {
                             variant={btn.variant || "filled"}
                             radius="md"
                             onClick={() => onAction(btn.value)}
+                            px={btn.label.length > 4 ? 4 : undefined}
+                            fz={btn.label.length > 4 ? "xs" : "sm"}
                         >
                             {btn.label}
                         </Button>
@@ -74,6 +75,8 @@ export default function ActionPad({ onAction, runners, outs: currentOuts }) {
                             radius="md"
                             onClick={() => onAction(btn.value)}
                             disabled={btn.disabled}
+                            px={btn.label.length > 4 ? 4 : undefined}
+                            fz={btn.label.length > 4 ? "xs" : "sm"}
                         >
                             {btn.label}
                         </Button>
