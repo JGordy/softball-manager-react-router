@@ -31,6 +31,7 @@ import {
     getClampedCoordinates,
     getRelativePointerCoordinates,
 } from "../utils/fieldMapping";
+import { ORIGIN_X, ORIGIN_Y, DEPTH_THRESHOLD } from "@/constants/fieldMapping";
 
 import DrawerContainer from "@/components/DrawerContainer/DrawerContainer";
 
@@ -325,8 +326,22 @@ export default function EditPlayDrawer({
             }
         });
 
+        // Resolve Fly/Pop Out eventType
+        let resolvedEventType = eventType;
+        if (eventType === "Fly/Pop Out" || eventType === "Fly/Pop") {
+            if (hitCoordinates.x !== null && hitCoordinates.y !== null) {
+                const dx = hitCoordinates.x - ORIGIN_X;
+                const dy = ORIGIN_Y - hitCoordinates.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                resolvedEventType =
+                    dist > DEPTH_THRESHOLD.INFIELD ? "Fly Out" : "Pop Out";
+            } else {
+                resolvedEventType = "Fly Out";
+            }
+        }
+
         onSave(log.$id, {
-            eventType: EVENT_TYPE_MAP[eventType] || eventType,
+            eventType: EVENT_TYPE_MAP[resolvedEventType] || resolvedEventType,
             rbi: runnersModified ? runsScored : log.rbi,
             outsOnPlay: runnersModified ? outsRecorded : log.outsOnPlay,
             description,

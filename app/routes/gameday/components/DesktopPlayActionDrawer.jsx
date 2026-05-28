@@ -22,6 +22,7 @@ import FieldHighlight from "./FieldHighlight";
 
 import { useRunnerProjection } from "../hooks/useRunnerProjection";
 import { getDrawerTitle, getActionColor } from "../utils/drawerUtils";
+import { ORIGIN_X, ORIGIN_Y, DEPTH_THRESHOLD } from "@/constants/fieldMapping";
 import {
     getFieldZone,
     getClampedCoordinates,
@@ -33,7 +34,7 @@ export default function DesktopPlayActionDrawer({
     opened,
     onClose,
     onSelect,
-    actionType,
+    actionType: initialActionType,
     runners,
     playerChart,
     currentBatter,
@@ -50,6 +51,20 @@ export default function DesktopPlayActionDrawer({
     const [isLocked, setIsLocked] = useState(false);
     const [showConfirmation, setShowConfirmation] = useState(false);
     const containerRef = useRef(null);
+
+    // Resolve combined Fly/Pop dynamically based on current coordinates
+    const getResolvedActionType = () => {
+        if (initialActionType !== "Fly/Pop Out") return initialActionType;
+        if (hitCoordinates.x === null || hitCoordinates.y === null) {
+            return "Fly Out"; // Default before click/hover
+        }
+        const dx = hitCoordinates.x - ORIGIN_X;
+        const dy = ORIGIN_Y - hitCoordinates.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        return dist > DEPTH_THRESHOLD.INFIELD ? "Fly Out" : "Pop Out";
+    };
+
+    const actionType = getResolvedActionType();
 
     const hitLocation = getFieldZone(
         hitCoordinates.x,
@@ -102,15 +117,26 @@ export default function DesktopPlayActionDrawer({
         const constrainedX = Math.max(0, Math.min(100, x));
         const constrainedY = Math.max(0, Math.min(100, y));
 
-        // Handle hit boundaries and HR floors
+        // Handle hit boundaries and HR floors (pass initialActionType so Fly/Pop Out allows full range)
         const { x: finalX, y: finalY } = getClampedCoordinates(
             constrainedX,
             constrainedY,
-            actionType,
+            initialActionType,
         );
 
+        // Resolve action type dynamically from pointer coordinates
+        const dx = finalX - ORIGIN_X;
+        const dy = ORIGIN_Y - finalY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const resolvedType =
+            initialActionType === "Fly/Pop Out"
+                ? dist > DEPTH_THRESHOLD.INFIELD
+                    ? "Fly Out"
+                    : "Pop Out"
+                : initialActionType;
+
         // Only update if it's fair territory
-        const location = getFieldZone(finalX, finalY, actionType);
+        const location = getFieldZone(finalX, finalY, resolvedType);
         if (location === "foul ball") return false;
 
         setHitCoordinates({ x: finalX, y: finalY });
@@ -122,7 +148,7 @@ export default function DesktopPlayActionDrawer({
         // For Fly Outs, only outfielders catch them.
         // For Pop Outs and others, anyone can be the fielder.
         const snapPositions =
-            actionType === "Fly Out"
+            resolvedType === "Fly Out"
                 ? positions.filter((p) =>
                       ["LF", "LC", "RC", "RF"].includes(p.value),
                   )

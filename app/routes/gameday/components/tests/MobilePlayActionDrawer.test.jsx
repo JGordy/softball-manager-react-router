@@ -129,4 +129,68 @@ describe("MobilePlayActionDrawer", () => {
             }),
         );
     });
+
+    it("resolves Fly/Pop Out to Fly Out or Pop Out based on interaction coordinates on mobile", async () => {
+        const fieldMapping = require("../../utils/fieldMapping");
+
+        // 1. Outfield coordinate
+        fieldMapping.getRelativePointerCoordinates.mockReturnValueOnce({
+            x: 50,
+            y: 20,
+        });
+
+        const mockOnSelectOutfield = jest.fn();
+        const { unmount } = render(
+            <MobilePlayActionDrawer
+                {...defaultProps}
+                actionType="Fly/Pop Out"
+                onSelect={mockOnSelectOutfield}
+            />,
+        );
+
+        const fieldImage = screen.getByAltText(
+            /Interactive softball field diagram/i,
+        );
+        const container = fieldImage.parentElement;
+
+        fireEvent.pointerDown(container, {
+            clientX: 100,
+            clientY: 100,
+            pointerId: 1,
+        });
+        fireEvent.pointerUp(container);
+        fireEvent.click(screen.getByText("Confirm Play"));
+
+        expect(mockOnSelectOutfield).toHaveBeenCalled();
+        unmount();
+
+        // 2. Infield coordinate
+        fieldMapping.getRelativePointerCoordinates.mockReturnValueOnce({
+            x: 50,
+            y: 65,
+        });
+        const mockOnSelectInfield = jest.fn();
+        render(
+            <MobilePlayActionDrawer
+                {...defaultProps}
+                actionType="Fly/Pop Out"
+                onSelect={mockOnSelectInfield}
+            />,
+        );
+
+        const fieldImage2 = screen.getByAltText(
+            /Interactive softball field diagram/i,
+        );
+        const container2 = fieldImage2.parentElement;
+
+        fireEvent.pointerDown(container2, {
+            clientX: 100,
+            clientY: 100,
+            pointerId: 1,
+        });
+        fireEvent.pointerUp(container2);
+        fireEvent.click(screen.getByText("Confirm Play"));
+
+        expect(mockOnSelectInfield).toHaveBeenCalled();
+    });
 });
