@@ -37,11 +37,12 @@ describe("ActionPad", () => {
         );
         expect(screen.getByRole("button", { name: "K" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "GRD" })).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "FLY" })).toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: "FLY/POP" }),
+        ).toBeInTheDocument();
         expect(
             screen.getByRole("button", { name: "LINE" }),
         ).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "POP" })).toBeInTheDocument();
     });
 
     it("calls onAction with correct value when button is clicked", () => {

@@ -179,9 +179,6 @@ export default function DesktopGamedayLoadingSkeleton() {
                                             <Skeleton height={40} radius="md" />
                                             <Skeleton height={40} radius="md" />
                                         </Group>
-                                        <Box w="50%" pr="xs">
-                                            <Skeleton height={40} radius="md" />
-                                        </Box>
                                     </Stack>
                                 </Group>
                             </Card>

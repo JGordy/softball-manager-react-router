@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { useFetcher } from "react-router";
 import { useDisclosure } from "@mantine/hooks";
 import { UI_BATTED_OUTS, UI_WALKS } from "@/constants/scoring";
+import { ORIGIN_X, ORIGIN_Y, DEPTH_THRESHOLD } from "@/constants/fieldMapping";
 import {
     getEventDescription,
     getActivePlayerInSlot,
@@ -157,7 +158,7 @@ export function useGamedayActions({
     }, [advanceHalfInning, outs, setOuts]);
 
     const completeAction = useCallback(
-        (actionType, payload = null) => {
+        (actionTypeInput, payload = null) => {
             const position = payload?.position || null;
             const runnerResults = payload?.runnerResults || null;
             const hitCoordinates = payload?.hitCoordinates || {
@@ -166,6 +167,20 @@ export function useGamedayActions({
             };
             const hitLocation = payload?.hitLocation || null;
             const battingSide = payload?.battingSide || "right";
+
+            // Resolve combined Fly/Pop Out
+            let actionType = actionTypeInput;
+            if (actionTypeInput === "Fly/Pop Out") {
+                if (hitCoordinates.x !== null && hitCoordinates.y !== null) {
+                    const dx = hitCoordinates.x - ORIGIN_X;
+                    const dy = ORIGIN_Y - hitCoordinates.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    actionType =
+                        dist > DEPTH_THRESHOLD.INFIELD ? "Fly Out" : "Pop Out";
+                } else {
+                    actionType = "Fly Out"; // Fallback
+                }
+            }
 
             // Resolve the active player for this slot (may be a substitute)
             const activePlayer = isOurBatting
