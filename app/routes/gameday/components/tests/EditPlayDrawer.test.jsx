@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@/utils/test-utils";
+import { UI_KEYS } from "@/constants/scoring";
 import EditPlayDrawer from "../EditPlayDrawer";
 
 // Heavy sub-components that have their own test suites
@@ -281,7 +282,7 @@ describe("EditPlayDrawer", () => {
             fireEvent.click(screen.getByText("Change Result"));
             // Click Fly/Pop Out
             fireEvent.click(
-                screen.getByRole("button", { name: "Fly/Pop Out" }),
+                screen.getByRole("button", { name: UI_KEYS.FLY_POP }),
             );
             // Save Changes
             fireEvent.click(
@@ -312,7 +313,7 @@ describe("EditPlayDrawer", () => {
             fireEvent.click(screen.getByText("Change Result"));
             // Click Fly/Pop Out
             fireEvent.click(
-                screen.getByRole("button", { name: "Fly/Pop Out" }),
+                screen.getByRole("button", { name: UI_KEYS.FLY_POP }),
             );
             // Save Changes
             fireEvent.click(

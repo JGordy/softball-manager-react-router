@@ -1,4 +1,8 @@
-import { getFieldZone, getClampedCoordinates } from "../fieldMapping";
+import {
+    getFieldZone,
+    getClampedCoordinates,
+    resolveFlyPopOut,
+} from "../fieldMapping";
 
 describe("getFieldZone", () => {
     it("should identify catcher location correctly", () => {
@@ -179,5 +183,29 @@ describe("getClampedCoordinates", () => {
         // Fly Out min is DEPTH_THRESHOLD.INFIELD (38).
         const result = getClampedCoordinates(50, 60, "Fly Out");
         expect(result.y).toBeCloseTo(39.9, 1); // 78 - 38.1 = 39.9
+    });
+});
+
+describe("resolveFlyPopOut", () => {
+    it("should default to 'Fly Out' if either coordinate is null", () => {
+        expect(resolveFlyPopOut(null, null)).toBe("Fly Out");
+        expect(resolveFlyPopOut(50, null)).toBe("Fly Out");
+        expect(resolveFlyPopOut(null, 78)).toBe("Fly Out");
+    });
+
+    it("should resolve to 'Pop Out' if within the infield depth threshold (distance <= 38)", () => {
+        // Click exactly at home plate: dist = 0
+        expect(resolveFlyPopOut(50, 78)).toBe("Pop Out");
+        // Click at pitcher's mound: x=50, y=60 (dist = 18 <= 38)
+        expect(resolveFlyPopOut(50, 60)).toBe("Pop Out");
+        // Click exactly at the infield/outfield boundary: x=50, y=40 (dist = 38 <= 38)
+        expect(resolveFlyPopOut(50, 40)).toBe("Pop Out");
+    });
+
+    it("should resolve to 'Fly Out' if beyond the infield depth threshold (distance > 38)", () => {
+        // Click slightly beyond the boundary: x=50, y=39 (dist = 39 > 38)
+        expect(resolveFlyPopOut(50, 39)).toBe("Fly Out");
+        // Click deep in center field: x=50, y=10 (dist = 68 > 38)
+        expect(resolveFlyPopOut(50, 10)).toBe("Fly Out");
     });
 });

@@ -1,4 +1,6 @@
+/* eslint-disable react/display-name */
 import { render, screen, fireEvent } from "@/utils/test-utils";
+import { UI_KEYS } from "@/constants/scoring";
 
 import * as runnerProjectionHook from "../../hooks/useRunnerProjection";
 import * as drawerUtils from "../../utils/drawerUtils";
@@ -30,6 +32,13 @@ jest.mock("../../utils/fieldMapping", () => ({
     getFieldZone: jest.fn().mockReturnValue("left field"),
     getClampedCoordinates: jest.fn().mockImplementation((x, y) => ({ x, y })),
     getRelativePointerCoordinates: jest.fn().mockReturnValue({ x: 50, y: 50 }),
+    resolveFlyPopOut: jest.fn().mockImplementation((x, y) => {
+        if (x === null || y === null) return "Fly Out";
+        const dx = x - 50;
+        const dy = 78 - y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        return dist > 38 ? "Fly Out" : "Pop Out";
+    }),
 }));
 
 jest.mock("../ConfirmationPanel", () => (props) => (
@@ -150,7 +159,7 @@ describe("DesktopPlayActionDrawer", () => {
         const { unmount } = render(
             <DesktopPlayActionDrawer
                 {...defaultProps}
-                actionType="Fly/Pop Out"
+                actionType={UI_KEYS.FLY_POP}
                 onSelect={mockOnSelectOutfield}
             />,
         );
@@ -180,7 +189,7 @@ describe("DesktopPlayActionDrawer", () => {
         render(
             <DesktopPlayActionDrawer
                 {...defaultProps}
-                actionType="Fly/Pop Out"
+                actionType={UI_KEYS.FLY_POP}
                 onSelect={mockOnSelectInfield}
             />,
         );

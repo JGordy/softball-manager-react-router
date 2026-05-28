@@ -2,6 +2,7 @@ import { useFetcher } from "react-router";
 import { renderHook, act } from "@testing-library/react";
 
 import { useGamedayActions } from "../useGamedayActions";
+import { UI_KEYS } from "@/constants/scoring";
 
 jest.mock("react-router", () => ({
     useFetcher: jest.fn(),
@@ -158,7 +159,7 @@ describe("useGamedayActions", () => {
 
         // 1. Infield coordinates
         act(() => {
-            result.current.completeAction("Fly/Pop Out", {
+            result.current.completeAction(UI_KEYS.FLY_POP, {
                 hitCoordinates: { x: 50, y: 65 },
                 hitLocation: "to shortstop",
             });
@@ -174,7 +175,7 @@ describe("useGamedayActions", () => {
 
         // 2. Outfield coordinates
         act(() => {
-            result.current.completeAction("Fly/Pop Out", {
+            result.current.completeAction(UI_KEYS.FLY_POP, {
                 hitCoordinates: { x: 50, y: 20 },
                 hitLocation: "center field",
             });
