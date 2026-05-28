@@ -1,4 +1,4 @@
-import { render, screen } from "@/utils/test-utils";
+import { render, screen, fireEvent } from "@/utils/test-utils";
 import CurrentBatterCard from "../CurrentBatterCard";
 
 describe("CurrentBatterCard", () => {
@@ -131,5 +131,130 @@ describe("CurrentBatterCard", () => {
 
         const updatedInput = screen.getByPlaceholderText(/Add notes/);
         expect(updatedInput.value).toBe("");
+    });
+
+    describe("dynamic styling based on isOpponent", () => {
+        const batter = {
+            $id: "p1",
+            firstName: "Jane",
+            lastName: "Smith",
+        };
+
+        const logsWithRbi = [{ playerId: "p1", eventType: "homerun", rbi: 3 }];
+
+        it("applies a red card background when isOpponent=true", () => {
+            render(
+                <CurrentBatterCard
+                    currentBatter={batter}
+                    logs={[]}
+                    isOpponent={true}
+                    data-testid="batter-card"
+                />,
+            );
+            // Mantine v8 translates bg="red.9" to an inline style:
+            // style="background: var(--mantine-color-red-9);"
+            expect(screen.getByTestId("batter-card")).toHaveStyle(
+                "background: var(--mantine-color-red-9)",
+            );
+        });
+
+        it("applies a blue card background when isOpponent=false (default)", () => {
+            render(
+                <CurrentBatterCard
+                    currentBatter={batter}
+                    logs={[]}
+                    isOpponent={false}
+                    data-testid="batter-card"
+                />,
+            );
+            // Mantine v8 translates bg="blue.9" to an inline style:
+            // style="background: var(--mantine-color-blue-9);"
+            expect(screen.getByTestId("batter-card")).toHaveStyle(
+                "background: var(--mantine-color-blue-9)",
+            );
+        });
+
+        it("shows the notes text input only when isOpponent=true", () => {
+            const { rerender } = render(
+                <CurrentBatterCard
+                    currentBatter={batter}
+                    logs={[]}
+                    isOpponent={true}
+                />,
+            );
+            expect(
+                screen.getByPlaceholderText(/Add notes/),
+            ).toBeInTheDocument();
+
+            rerender(
+                <CurrentBatterCard
+                    currentBatter={batter}
+                    logs={[]}
+                    isOpponent={false}
+                />,
+            );
+            expect(
+                screen.queryByPlaceholderText(/Add notes/),
+            ).not.toBeInTheDocument();
+        });
+
+        it("does not render notes input by default (isOpponent omitted)", () => {
+            render(<CurrentBatterCard currentBatter={batter} logs={[]} />);
+            expect(
+                screen.queryByPlaceholderText(/Add notes/),
+            ).not.toBeInTheDocument();
+        });
+
+        it("renders red RBI badge when isOpponent=true", () => {
+            render(
+                <CurrentBatterCard
+                    currentBatter={batter}
+                    logs={logsWithRbi}
+                    isOpponent={true}
+                />,
+            );
+            // Mantine v8 Badge: the label text sits in an inner <span>;
+            // color is applied as CSS variables on the parent badge root element:
+            //   style="--badge-bg: var(--mantine-color-red-filled); ..."
+            const badgeLabel = screen.getByText(/RBI/);
+            const badgeRoot = badgeLabel.closest("[style]");
+            expect(badgeRoot?.getAttribute("style")).toContain(
+                "var(--mantine-color-red-filled)",
+            );
+        });
+
+        it("renders lime RBI badge when isOpponent=false", () => {
+            render(
+                <CurrentBatterCard
+                    currentBatter={batter}
+                    logs={logsWithRbi}
+                    isOpponent={false}
+                />,
+            );
+            const badgeLabel = screen.getByText(/RBI/);
+            const badgeRoot = badgeLabel.closest("[style]");
+            expect(badgeRoot?.getAttribute("style")).toContain(
+                "var(--mantine-color-lime-filled)",
+            );
+        });
+
+        it("calls onNotesChange when notes input loses focus (isOpponent=true)", () => {
+            const handleNotesChange = jest.fn();
+
+            render(
+                <CurrentBatterCard
+                    currentBatter={{ ...batter, notes: "" }}
+                    logs={[]}
+                    isOpponent={true}
+                    onNotesChange={handleNotesChange}
+                />,
+            );
+
+            const input = screen.getByPlaceholderText(/Add notes/);
+            fireEvent.change(input, { target: { value: "Lefty" } });
+            fireEvent.blur(input);
+
+            expect(handleNotesChange).toHaveBeenCalledWith("Lefty");
+        });
     });
 });
