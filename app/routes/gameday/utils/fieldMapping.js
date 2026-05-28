@@ -153,7 +153,16 @@ export function getClampedCoordinates(x, y, actionType) {
  * @returns {string} - "Fly Out" or "Pop Out"
  */
 export function resolveFlyPopOut(x, y) {
-    if (x === null || y === null) return "Fly Out";
+    if (
+        x == null ||
+        y == null ||
+        typeof x !== "number" ||
+        typeof y !== "number" ||
+        isNaN(x) ||
+        isNaN(y)
+    ) {
+        return "Fly Out";
+    }
     const dx = x - ORIGIN_X;
     const dy = ORIGIN_Y - y;
     const dist = Math.sqrt(dx * dx + dy * dy);

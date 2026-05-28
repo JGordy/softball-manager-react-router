@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useRef, useEffect } from "react";
 import {
     Avatar,
@@ -83,6 +82,7 @@ export default function MobilePlayActionDrawer({
     }));
 
     // Reset local state when drawer closes
+    /* eslint-disable react-hooks/set-state-in-effect */
     useEffect(() => {
         if (!opened) {
             setSelectedPosition(null);
@@ -90,6 +90,7 @@ export default function MobilePlayActionDrawer({
             setBattingSide(bats || "right");
         }
     }, [opened, bats]);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     const handleConfirm = () => {
         onSelect({

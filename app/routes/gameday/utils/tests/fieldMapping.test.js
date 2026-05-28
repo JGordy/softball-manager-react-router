@@ -187,10 +187,16 @@ describe("getClampedCoordinates", () => {
 });
 
 describe("resolveFlyPopOut", () => {
-    it("should default to 'Fly Out' if either coordinate is null", () => {
+    it("should default to 'Fly Out' if coordinates are null, undefined, non-numeric, or NaN", () => {
         expect(resolveFlyPopOut(null, null)).toBe("Fly Out");
         expect(resolveFlyPopOut(50, null)).toBe("Fly Out");
         expect(resolveFlyPopOut(null, 78)).toBe("Fly Out");
+        expect(resolveFlyPopOut(undefined, undefined)).toBe("Fly Out");
+        expect(resolveFlyPopOut(50, undefined)).toBe("Fly Out");
+        expect(resolveFlyPopOut("50", 78)).toBe("Fly Out");
+        expect(resolveFlyPopOut(50, "78")).toBe("Fly Out");
+        expect(resolveFlyPopOut(NaN, 78)).toBe("Fly Out");
+        expect(resolveFlyPopOut(50, NaN)).toBe("Fly Out");
     });
 
     it("should resolve to 'Pop Out' if within the infield depth threshold (distance <= 38)", () => {
