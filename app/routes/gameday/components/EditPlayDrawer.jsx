@@ -19,7 +19,7 @@ import {
     IconUsers,
     IconWriting,
 } from "@tabler/icons-react";
-import { getUILabel, EVENT_TYPE_MAP } from "@/constants/scoring";
+import { getUILabel, EVENT_TYPE_MAP, UI_KEYS } from "@/constants/scoring";
 import POSITIONS from "@/constants/positions";
 import images from "@/constants/images";
 
@@ -30,8 +30,8 @@ import {
     getFieldZone,
     getClampedCoordinates,
     getRelativePointerCoordinates,
+    resolveFlyPopOut,
 } from "../utils/fieldMapping";
-import { ORIGIN_X, ORIGIN_Y, DEPTH_THRESHOLD } from "@/constants/fieldMapping";
 
 import DrawerContainer from "@/components/DrawerContainer/DrawerContainer";
 
@@ -328,16 +328,11 @@ export default function EditPlayDrawer({
 
         // Resolve Fly/Pop Out eventType
         let resolvedEventType = eventType;
-        if (eventType === "Fly/Pop Out" || eventType === "Fly/Pop") {
-            if (hitCoordinates.x !== null && hitCoordinates.y !== null) {
-                const dx = hitCoordinates.x - ORIGIN_X;
-                const dy = ORIGIN_Y - hitCoordinates.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                resolvedEventType =
-                    dist > DEPTH_THRESHOLD.INFIELD ? "Fly Out" : "Pop Out";
-            } else {
-                resolvedEventType = "Fly Out";
-            }
+        if (eventType === UI_KEYS.FLY_POP) {
+            resolvedEventType = resolveFlyPopOut(
+                hitCoordinates.x,
+                hitCoordinates.y,
+            );
         }
 
         onSave(log.$id, {

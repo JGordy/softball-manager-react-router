@@ -145,6 +145,22 @@ export function getClampedCoordinates(x, y, actionType) {
 }
 
 /**
+ * Resolves a combined "Fly/Pop Out" play type to either "Fly Out" or "Pop Out"
+ * based on the distance of the hit from home plate.
+ *
+ * @param {number|null} x - The hit x coordinate
+ * @param {number|null} y - The hit y coordinate
+ * @returns {string} - "Fly Out" or "Pop Out"
+ */
+export function resolveFlyPopOut(x, y) {
+    if (x === null || y === null) return "Fly Out";
+    const dx = x - ORIGIN_X;
+    const dy = ORIGIN_Y - y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    return dist > DEPTH_THRESHOLD.INFIELD ? "Fly Out" : "Pop Out";
+}
+
+/**
  * Calculates percentage-based coordinates relative to a container from a pointer event.
  *
  * @param {PointerEvent|MouseEvent|TouchEvent} e - The native event

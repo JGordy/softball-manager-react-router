@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useRef, useEffect } from "react";
 import {
     Avatar,
@@ -22,11 +23,12 @@ import FieldHighlight from "./FieldHighlight";
 
 import { useRunnerProjection } from "../hooks/useRunnerProjection";
 import { getDrawerTitle, getActionColor } from "../utils/drawerUtils";
-import { ORIGIN_X, ORIGIN_Y, DEPTH_THRESHOLD } from "@/constants/fieldMapping";
+import { UI_KEYS } from "@/constants/scoring";
 import {
     getFieldZone,
     getClampedCoordinates,
     getRelativePointerCoordinates,
+    resolveFlyPopOut,
 } from "../utils/fieldMapping";
 import ConfirmationPanel from "./ConfirmationPanel";
 
@@ -53,14 +55,8 @@ export default function MobilePlayActionDrawer({
 
     // Resolve combined Fly/Pop dynamically based on current coordinates
     const getResolvedActionType = () => {
-        if (initialActionType !== "Fly/Pop Out") return initialActionType;
-        if (hitCoordinates.x === null || hitCoordinates.y === null) {
-            return "Fly Out"; // Default before click/hover
-        }
-        const dx = hitCoordinates.x - ORIGIN_X;
-        const dy = ORIGIN_Y - hitCoordinates.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        return dist > DEPTH_THRESHOLD.INFIELD ? "Fly Out" : "Pop Out";
+        if (initialActionType !== UI_KEYS.FLY_POP) return initialActionType;
+        return resolveFlyPopOut(hitCoordinates.x, hitCoordinates.y);
     };
 
     const actionType = getResolvedActionType();
@@ -122,14 +118,9 @@ export default function MobilePlayActionDrawer({
         );
 
         // Resolve action type dynamically from pointer coordinates
-        const dx = finalX - ORIGIN_X;
-        const dy = ORIGIN_Y - finalY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
         const resolvedType =
-            initialActionType === "Fly/Pop Out"
-                ? dist > DEPTH_THRESHOLD.INFIELD
-                    ? "Fly Out"
-                    : "Pop Out"
+            initialActionType === UI_KEYS.FLY_POP
+                ? resolveFlyPopOut(finalX, finalY)
                 : initialActionType;
 
         // Only update if it's fair territory

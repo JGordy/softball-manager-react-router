@@ -1,8 +1,8 @@
 import { useState, useCallback } from "react";
 import { useFetcher } from "react-router";
 import { useDisclosure } from "@mantine/hooks";
-import { UI_BATTED_OUTS, UI_WALKS } from "@/constants/scoring";
-import { ORIGIN_X, ORIGIN_Y, DEPTH_THRESHOLD } from "@/constants/fieldMapping";
+import { UI_BATTED_OUTS, UI_WALKS, UI_KEYS } from "@/constants/scoring";
+import { resolveFlyPopOut } from "../utils/fieldMapping";
 import {
     getEventDescription,
     getActivePlayerInSlot,
@@ -35,7 +35,7 @@ export function useGamedayActions({
     outs,
     setOuts,
     setScore,
-    opponentScore,
+    opponentScore: _opponentScore,
     setOpponentScore,
     runners,
     setRunners,
@@ -170,16 +170,11 @@ export function useGamedayActions({
 
             // Resolve combined Fly/Pop Out
             let actionType = actionTypeInput;
-            if (actionTypeInput === "Fly/Pop Out") {
-                if (hitCoordinates.x !== null && hitCoordinates.y !== null) {
-                    const dx = hitCoordinates.x - ORIGIN_X;
-                    const dy = ORIGIN_Y - hitCoordinates.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    actionType =
-                        dist > DEPTH_THRESHOLD.INFIELD ? "Fly Out" : "Pop Out";
-                } else {
-                    actionType = "Fly Out"; // Fallback
-                }
+            if (actionTypeInput === UI_KEYS.FLY_POP) {
+                actionType = resolveFlyPopOut(
+                    hitCoordinates.x,
+                    hitCoordinates.y,
+                );
             }
 
             // Resolve the active player for this slot (may be a substitute)
