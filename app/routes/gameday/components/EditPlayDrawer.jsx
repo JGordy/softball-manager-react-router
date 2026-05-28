@@ -168,28 +168,40 @@ export default function EditPlayDrawer({
         [batter],
     );
 
+    // Resolve combined Fly/Pop dynamically based on current coordinates
+    const resolvedEventType = useMemo(() => {
+        if (eventType !== UI_KEYS.FLY_POP) return eventType;
+        return resolveFlyPopOut(hitCoordinates.x, hitCoordinates.y);
+    }, [eventType, hitCoordinates]);
+
     // Full zone string derived from coordinates (e.g. "deep right-center gap")
     const hitLocation = useMemo(() => {
         if (hitCoordinates.x == null || hitCoordinates.y == null) return null;
         const zone = getFieldZone(
             hitCoordinates.x,
             hitCoordinates.y,
-            eventType,
+            resolvedEventType,
         );
         return zone && zone !== "foul ball" ? zone : null;
-    }, [hitCoordinates, eventType]);
+    }, [hitCoordinates, resolvedEventType]);
 
     // Description is fully derived from current play state
     const description = useMemo(() => {
-        if (!eventType || !batterName) return "";
+        if (!resolvedEventType || !batterName) return "";
         return getEventDescription(
-            eventType,
+            resolvedEventType,
             batterName,
             selectedPosition,
             runnerResults,
             hitLocation,
         );
-    }, [eventType, selectedPosition, runnerResults, batterName, hitLocation]);
+    }, [
+        resolvedEventType,
+        selectedPosition,
+        runnerResults,
+        batterName,
+        hitLocation,
+    ]);
 
     // Starting runners (Pre-play)
     const startingRunners = useMemo(() => {
@@ -325,15 +337,6 @@ export default function EditPlayDrawer({
                 derivedBaseState[outcome] = pId;
             }
         });
-
-        // Resolve Fly/Pop Out eventType
-        let resolvedEventType = eventType;
-        if (eventType === UI_KEYS.FLY_POP) {
-            resolvedEventType = resolveFlyPopOut(
-                hitCoordinates.x,
-                hitCoordinates.y,
-            );
-        }
 
         onSave(log.$id, {
             eventType: EVENT_TYPE_MAP[resolvedEventType] || resolvedEventType,

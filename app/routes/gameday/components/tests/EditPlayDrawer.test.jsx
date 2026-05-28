@@ -292,6 +292,9 @@ describe("EditPlayDrawer", () => {
             expect(onSaveMock).toHaveBeenCalledTimes(1);
             const [, payload] = onSaveMock.mock.calls[0];
             expect(payload.eventType).toBe("fly_out");
+            expect(payload.description).toBe(
+                "Joseph Gordy flies out to deep center field",
+            );
         });
 
         it("resolves Fly/Pop Out to Pop Out (pop_out) for infield coordinates", () => {
@@ -323,6 +326,9 @@ describe("EditPlayDrawer", () => {
             expect(onSaveMock).toHaveBeenCalledTimes(1);
             const [, payload] = onSaveMock.mock.calls[0];
             expect(payload.eventType).toBe("pop_out");
+            expect(payload.description).toBe(
+                "Joseph Gordy pops out to back to the pitcher",
+            );
         });
 
         it("shows loading state while isSubmitting", () => {
