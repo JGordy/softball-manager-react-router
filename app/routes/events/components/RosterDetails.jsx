@@ -171,9 +171,8 @@ export default function RosterDetails({ game, managerView, playerChart }) {
                             <IconClipboardList
                                 size={32}
                                 style={{
-                                    color: "#CCFF33",
+                                    color: "var(--mantine-color-lime-6)",
                                     marginBottom: "12px",
-                                    filter: "drop-shadow(0 0 6px rgba(204, 255, 51, 0.45))",
                                 }}
                             />
                             <Text
