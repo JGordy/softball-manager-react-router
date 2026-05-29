@@ -1,136 +1,165 @@
+import { useState } from "react";
 import { Link } from "react-router";
-import { Button, Card, Divider, Group, Skeleton, Text } from "@mantine/core";
+import {
+    Button,
+    Card,
+    Divider,
+    Group,
+    SegmentedControl,
+    Text,
+} from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { DateTime } from "luxon";
-
 import {
     IconClipboardList,
     IconEdit,
     IconPrinter,
-    IconUsersGroup,
     IconZoomQuestion,
+    IconChevronRight,
 } from "@tabler/icons-react";
 
 import { trackEvent } from "@/utils/analytics";
-
 import DrawerContainer from "@/components/DrawerContainer";
-import DeferredLoader from "@/components/DeferredLoader";
-import InlineError from "@/components/InlineError";
 import PlayerChart from "@/components/PlayerChart";
+import FieldLineupPreview from "./FieldLineupPreview";
+import fieldingPositions from "@/constants/positions";
 
-import addPlayerAvailability from "@/utils/addPlayerAvailability";
-
-import AvailablityContainer from "./AvailablityContainer";
-import CardSection from "./CardSection";
-
-export default function RosterDetails({
-    deferredData,
-    game,
-    managerView,
-    playerChart,
-    team,
-}) {
+/**
+ * RosterDetails Component
+ * Acts as the dedicated visual centerpiece for the "Lineup & Field Chart" on mobile.
+ * Embeds a responsive field visualization of Inning 1 player positions and opens
+ * the Lineup Details drawer when tapped.
+ *
+ * @param {Object} props - Component props.
+ * @param {Object} props.game - The active game document data.
+ * @param {Array} props.playerChart - The parsed and enriched player chart lineup.
+ * @param {Boolean} props.managerView - Whether the logged-in user is a manager.
+ * @returns {React.ReactElement} The lineup centerpiece widget card.
+ */
+export default function RosterDetails({ game, managerView, playerChart }) {
     const isPractice = game.eventType === "practice";
     const [lineupDrawerOpened, lineupDrawerHandlers] = useDisclosure(false);
-    const [availabilityDrawerOpened, availabilityDrawerHandlers] =
-        useDisclosure(false);
-
-    const gameDt = DateTime.fromISO(game.gameDate, { zone: "utc" }).setZone(
-        game.timeZone || "local",
-    );
-    const dateStr = gameDt.toFormat("M/d");
+    const [view, setView] = useState("field"); // "field" or "lineup"
 
     const handlePrintLineup = () => {
         window?.print();
         trackEvent("print-lineup", { eventId: game.$id });
     };
 
+    if (isPractice) {
+        return null;
+    }
+
     return (
         <>
-            <Card radius="lg" mt="md" mx="md" py="5px">
-                <Text size="sm" mt="xs">
-                    Roster & Availability Details
-                </Text>
+            <Card
+                radius="lg"
+                mt="md"
+                mx="md"
+                p="md"
+                data-testid="roster-details"
+            >
+                <Group justify="space-between" mb="xs">
+                    <Text size="sm" fw={700}>
+                        Lineup &amp; Field Chart
+                    </Text>
+                    <IconChevronRight
+                        size={18}
+                        style={{ cursor: "pointer" }}
+                        onClick={lineupDrawerHandlers.open}
+                    />
+                </Group>
 
-                {!isPractice && (
-                    <>
-                        <CardSection
-                            onClick={lineupDrawerHandlers.open}
-                            heading="Lineup & Field Chart"
-                            leftSection={<IconClipboardList size={20} />}
-                            subHeading={
-                                !playerChart ? (
-                                    <Text
-                                        size="xs"
-                                        mt="5px"
-                                        ml="28px"
-                                        c="dimmed"
-                                    >
-                                        Charts currently not available
-                                    </Text>
-                                ) : (
-                                    <Text
-                                        size="xs"
-                                        mt="5px"
-                                        ml="28px"
-                                        c="dimmed"
-                                    >
-                                        Charts available to view
-                                    </Text>
-                                )
-                            }
-                        />
-
-                        <Divider />
-                    </>
+                {playerChart && (
+                    <SegmentedControl
+                        value={view}
+                        onChange={setView}
+                        fullWidth
+                        mt="xs"
+                        mb="xs"
+                        size="xs"
+                        radius="md"
+                        color="blue"
+                        data-testid="lineup-view-segmented-control"
+                        data={[
+                            { label: "Field View", value: "field" },
+                            { label: "Lineup View", value: "lineup" },
+                        ]}
+                    />
                 )}
 
-                <CardSection
-                    onClick={availabilityDrawerHandlers.open}
-                    heading="Player Availability"
-                    leftSection={<IconUsersGroup size={20} />}
-                    subHeading={
-                        <DeferredLoader
-                            resolve={deferredData}
-                            fallback={
-                                <Skeleton
-                                    height={16}
-                                    width="70%"
-                                    mt="5px"
-                                    ml="28px"
-                                    radius="xl"
-                                />
-                            }
-                            errorElement={
-                                <InlineError
-                                    message="Error loading details"
-                                    mt="5px"
-                                    ml="28px"
-                                />
-                            }
-                        >
-                            {({ attendance, players }) => {
-                                const { rows } = attendance;
-                                const playersWithAvailability =
-                                    addPlayerAvailability(rows, players);
-                                const availablePlayers =
-                                    playersWithAvailability.filter(
-                                        (p) => p.availability === "accepted",
+                <div
+                    style={{ cursor: "pointer" }}
+                    onClick={lineupDrawerHandlers.open}
+                    data-testid="lineup-field-chart-card-wrapper"
+                >
+                    {playerChart ? (
+                        view === "field" ? (
+                            <FieldLineupPreview playerChart={playerChart} />
+                        ) : (
+                            <div
+                                data-testid="card-player-chart-container"
+                                style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    marginTop: "8px",
+                                }}
+                            >
+                                {playerChart.map((player, index) => {
+                                    const jerseySuffix = player.jerseyNumber
+                                        ? ` #${player.jerseyNumber}`
+                                        : "";
+                                    const displayName = `${player.firstName} ${player.lastName ? player.lastName.charAt(0) + "." : ""}${jerseySuffix}`;
+
+                                    const startingPos = player.positions?.[0];
+                                    const positionInitials =
+                                        startingPos && startingPos !== "Out"
+                                            ? fieldingPositions[startingPos]
+                                                  ?.initials || "Out"
+                                            : "Out";
+
+                                    return (
+                                        <Group
+                                            key={player.$id || index}
+                                            justify="space-between"
+                                            py="8px"
+                                            style={{
+                                                borderBottom:
+                                                    index <
+                                                    playerChart.length - 1
+                                                        ? "1px solid var(--mantine-color-default-border)"
+                                                        : "none",
+                                            }}
+                                        >
+                                            <Group gap="sm">
+                                                <Text
+                                                    size="sm"
+                                                    fw={700}
+                                                    c="dimmed"
+                                                    w={20}
+                                                    ta="right"
+                                                    mr="xs"
+                                                >
+                                                    {index + 1}
+                                                </Text>
+                                                <Text size="sm" fw={600}>
+                                                    {displayName}
+                                                </Text>
+                                            </Group>
+                                            <Text size="sm" fw={700} c="dimmed">
+                                                {positionInitials}
+                                            </Text>
+                                        </Group>
                                     );
-                                return (
-                                    <Text
-                                        size="xs"
-                                        mt="5px"
-                                        ml="28px"
-                                        c="dimmed"
-                                    >
-                                        {`${rows?.length || 0} responses, ${availablePlayers?.length || 0} ${availablePlayers?.length === 1 ? "player" : "players"} available`}
-                                    </Text>
-                                );
-                            }}
-                        </DeferredLoader>
-                    }
-                />
+                                })}
+                            </div>
+                        )
+                    ) : (
+                        <Text size="xs" c="dimmed" py="xl" ta="center">
+                            No lineup created yet. Tap to create or view
+                            details.
+                        </Text>
+                    )}
+                </div>
             </Card>
 
             <DrawerContainer
@@ -194,32 +223,6 @@ export default function RosterDetails({
                         </Button>
                     )}
                 </Group>
-            </DrawerContainer>
-
-            <DrawerContainer
-                opened={availabilityDrawerOpened}
-                onClose={availabilityDrawerHandlers.close}
-                title={`Vs ${game.opponent || "TBD"} on ${dateStr}`}
-                size="95%"
-            >
-                <DeferredLoader
-                    resolve={deferredData}
-                    errorElement={
-                        <InlineError message="Unable to load availability data" />
-                    }
-                >
-                    {({ attendance, players }) => {
-                        return (
-                            <AvailablityContainer
-                                attendance={attendance}
-                                game={game}
-                                managerView={managerView}
-                                players={players}
-                                team={team}
-                            />
-                        );
-                    }}
-                </DeferredLoader>
             </DrawerContainer>
         </>
     );
