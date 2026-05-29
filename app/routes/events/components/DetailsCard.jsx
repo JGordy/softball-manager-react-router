@@ -14,7 +14,6 @@ export default function DetailsCard({
     game,
     deferredData,
     season,
-    team,
     calendarDrawerHandlers: propCalendarDrawerHandlers,
     locationDrawerHandlers: propLocationDrawerHandlers,
 }) {

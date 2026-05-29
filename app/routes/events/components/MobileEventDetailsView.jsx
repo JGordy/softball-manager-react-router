@@ -66,10 +66,7 @@ export default function MobileEventDetailsView({
                 game={game}
                 deferredData={deferredData}
                 season={season}
-                team={team}
-                calendarDrawerOpened={calendarDrawerOpened}
                 calendarDrawerHandlers={calendarDrawerHandlers}
-                locationDrawerOpened={locationDrawerOpened}
                 locationDrawerHandlers={locationDrawerHandlers}
             />
 

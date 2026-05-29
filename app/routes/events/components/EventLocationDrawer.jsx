@@ -1,10 +1,11 @@
+import { Skeleton } from "@mantine/core";
 import DrawerContainer from "@/components/DrawerContainer";
 import DeferredLoader from "@/components/DeferredLoader";
 import ParkDetailsDrawer from "./ParkDetailsDrawer";
 
 /**
  * EventLocationDrawer Component
- * Wraps the park details drawer inside a deferred load of park details.
+ * Wraps the park details drawer with a deferred load of park details inside.
  *
  * @param {Object} props - Component props.
  * @param {Boolean} props.opened - Whether the drawer is open.
@@ -13,24 +14,35 @@ import ParkDetailsDrawer from "./ParkDetailsDrawer";
  * @returns {React.ReactElement} The location/park details drawer.
  */
 export default function EventLocationDrawer({ opened, onClose, deferredData }) {
+    // If deferredData is already resolved and park is explicitly missing, render nothing.
+    if (
+        deferredData &&
+        typeof deferredData.then !== "function" &&
+        !deferredData.park
+    ) {
+        return null;
+    }
+
     return (
-        <DeferredLoader
-            resolve={deferredData}
-            fallback={null}
-            errorElement={null}
+        <DrawerContainer
+            opened={opened}
+            onClose={onClose}
+            title="Location Details"
+            size="sm"
         >
-            {({ park }) =>
-                park ? (
-                    <DrawerContainer
-                        opened={opened}
-                        onClose={onClose}
-                        title="Location Details"
-                        size="sm"
-                    >
+            <DeferredLoader
+                resolve={deferredData}
+                fallback={<Skeleton height={200} radius="md" />}
+                errorElement={<div>Error loading location details</div>}
+            >
+                {({ park }) =>
+                    park ? (
                         <ParkDetailsDrawer park={park} />
-                    </DrawerContainer>
-                ) : null
-            }
-        </DeferredLoader>
+                    ) : (
+                        <div>No location details available</div>
+                    )
+                }
+            </DeferredLoader>
+        </DrawerContainer>
     );
 }

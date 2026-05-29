@@ -204,9 +204,11 @@ export default function WeatherCard({
     const [drawerSize, setDrawerSize] = useState("md");
 
     useEffect(() => {
+        let active = true;
         if (weatherPromise && typeof weatherPromise.then === "function") {
             weatherPromise
                 .then((weather) => {
+                    if (!active) return;
                     const { hourly: gameDayWeather, rainout } =
                         getGameDateWeather(gameDate, weather) || {};
                     let size = "md";
@@ -215,6 +217,7 @@ export default function WeatherCard({
                     setDrawerSize(size);
                 })
                 .catch(() => {
+                    if (!active) return;
                     setDrawerSize("md");
                 });
         } else if (weatherPromise) {
@@ -225,6 +228,9 @@ export default function WeatherCard({
             if (rainout) size = "xl";
             setDrawerSize(size);
         }
+        return () => {
+            active = false;
+        };
     }, [weatherPromise, gameDate]);
 
     if (variant === "badge") {

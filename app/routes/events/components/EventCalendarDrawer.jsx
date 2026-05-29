@@ -1,10 +1,11 @@
+import { Skeleton } from "@mantine/core";
 import DrawerContainer from "@/components/DrawerContainer";
 import DeferredLoader from "@/components/DeferredLoader";
 import CalendarDetails from "./CalendarDetails";
 
 /**
  * EventCalendarDrawer Component
- * Wraps the calendar details drawer inside a deferred load of park details.
+ * Wraps the calendar details drawer with a deferred load of park details inside.
  *
  * @param {Object} props - Component props.
  * @param {Boolean} props.opened - Whether the drawer is open.
@@ -22,21 +23,21 @@ export default function EventCalendarDrawer({
     team,
 }) {
     return (
-        <DeferredLoader
-            resolve={deferredData}
-            fallback={null}
-            errorElement={null}
+        <DrawerContainer
+            opened={opened}
+            onClose={onClose}
+            title="Add Game to Calendar"
+            size="sm"
         >
-            {({ park }) => (
-                <DrawerContainer
-                    opened={opened}
-                    onClose={onClose}
-                    title="Add Game to Calendar"
-                    size="sm"
-                >
+            <DeferredLoader
+                resolve={deferredData}
+                fallback={<Skeleton height={150} radius="md" />}
+                errorElement={<div>Error loading calendar details</div>}
+            >
+                {({ park }) => (
                     <CalendarDetails game={game} park={park} team={team} />
-                </DrawerContainer>
-            )}
-        </DeferredLoader>
+                )}
+            </DeferredLoader>
+        </DrawerContainer>
     );
 }
