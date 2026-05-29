@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
     Button,
     Card,
@@ -200,6 +201,31 @@ export default function WeatherCard({
     onClick,
 }) {
     const [weatherDrawerOpened, weatherDrawerHandlers] = useDisclosure(false);
+    const [drawerSize, setDrawerSize] = useState("md");
+
+    useEffect(() => {
+        if (weatherPromise && typeof weatherPromise.then === "function") {
+            weatherPromise
+                .then((weather) => {
+                    const { hourly: gameDayWeather, rainout } =
+                        getGameDateWeather(gameDate, weather) || {};
+                    let size = "md";
+                    if (gameDayWeather) size = "lg";
+                    if (rainout) size = "xl";
+                    setDrawerSize(size);
+                })
+                .catch(() => {
+                    setDrawerSize("md");
+                });
+        } else if (weatherPromise) {
+            const { hourly: gameDayWeather, rainout } =
+                getGameDateWeather(gameDate, weatherPromise) || {};
+            let size = "md";
+            if (gameDayWeather) size = "lg";
+            if (rainout) size = "xl";
+            setDrawerSize(size);
+        }
+    }, [weatherPromise, gameDate]);
 
     if (variant === "badge") {
         return (
@@ -306,7 +332,7 @@ export default function WeatherCard({
                     opened={weatherDrawerOpened}
                     onClose={weatherDrawerHandlers.close}
                     title="Weather Details"
-                    size="lg"
+                    size={drawerSize}
                 >
                     <DeferredLoader
                         resolve={weatherPromise}
