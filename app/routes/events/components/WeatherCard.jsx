@@ -346,17 +346,13 @@ export default function WeatherCard({
                         errorElement={weatherFallback}
                     >
                         {(weather) => {
-                            const {
-                                hourly: gameDayWeather,
-                                rainout,
-                                totalPrecipitation,
-                            } = getGameDateWeather(gameDate, weather) || {};
+                            const { hourly: gameDayWeather, rainout } =
+                                getGameDateWeather(gameDate, weather) || {};
 
                             return !gameDayWeather
                                 ? weatherFallback
                                 : renderWeatherDetails({
                                       ...gameDayWeather,
-                                      totalPrecipitation,
                                       rainout,
                                   });
                         }}
@@ -422,11 +418,8 @@ export default function WeatherCard({
 
             <DeferredLoader resolve={weatherPromise} errorElement={null}>
                 {(weather) => {
-                    const {
-                        hourly: gameDayWeather,
-                        rainout,
-                        totalPrecipitation,
-                    } = getGameDateWeather(gameDate, weather) || {};
+                    const { hourly: gameDayWeather, rainout } =
+                        getGameDateWeather(gameDate, weather) || {};
 
                     let drawerSize = "md";
                     if (gameDayWeather) drawerSize = "lg";
@@ -443,7 +436,6 @@ export default function WeatherCard({
                                 ? weatherFallback
                                 : renderWeatherDetails({
                                       ...gameDayWeather,
-                                      totalPrecipitation,
                                       rainout,
                                   })}
                         </DrawerContainer>

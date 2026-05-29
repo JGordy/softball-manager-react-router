@@ -121,7 +121,10 @@ export default function RosterDetails({ game, managerView, playerChart }) {
                                     const jerseySuffix = player.jerseyNumber
                                         ? ` #${player.jerseyNumber}`
                                         : "";
-                                    const displayName = `${player.firstName} ${player.lastName ? player.lastName.charAt(0) + "." : ""}${jerseySuffix}`;
+                                    const lastInitial = player.lastName
+                                        ? ` ${player.lastName.charAt(0)}.`
+                                        : "";
+                                    const displayName = `${player.firstName}${lastInitial}${jerseySuffix}`;
 
                                     const startingPos = player.positions?.[0];
                                     const positionInitials =

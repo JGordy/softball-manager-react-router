@@ -1,6 +1,7 @@
 import { Skeleton } from "@mantine/core";
 import DrawerContainer from "@/components/DrawerContainer";
 import DeferredLoader from "@/components/DeferredLoader";
+import InlineError from "@/components/InlineError";
 import ParkDetailsDrawer from "./ParkDetailsDrawer";
 
 /**
@@ -33,13 +34,15 @@ export default function EventLocationDrawer({ opened, onClose, deferredData }) {
             <DeferredLoader
                 resolve={deferredData}
                 fallback={<Skeleton height={200} radius="md" />}
-                errorElement={<div>Error loading location details</div>}
+                errorElement={
+                    <InlineError message="Error loading location details" />
+                }
             >
                 {({ park }) =>
                     park ? (
                         <ParkDetailsDrawer park={park} />
                     ) : (
-                        <div>No location details available</div>
+                        <InlineError message="No location details available" />
                     )
                 }
             </DeferredLoader>

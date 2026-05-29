@@ -1,6 +1,7 @@
 import { Skeleton } from "@mantine/core";
 import DrawerContainer from "@/components/DrawerContainer";
 import DeferredLoader from "@/components/DeferredLoader";
+import InlineError from "@/components/InlineError";
 import CalendarDetails from "./CalendarDetails";
 
 /**
@@ -32,7 +33,9 @@ export default function EventCalendarDrawer({
             <DeferredLoader
                 resolve={deferredData}
                 fallback={<Skeleton height={150} radius="md" />}
-                errorElement={<div>Error loading calendar details</div>}
+                errorElement={
+                    <InlineError message="Error loading calendar details" />
+                }
             >
                 {({ park }) => (
                     <CalendarDetails game={game} park={park} team={team} />
