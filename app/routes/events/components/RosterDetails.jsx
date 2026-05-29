@@ -154,10 +154,48 @@ export default function RosterDetails({ game, managerView, playerChart }) {
                             </div>
                         )
                     ) : (
-                        <Text size="xs" c="dimmed" py="xl" ta="center">
-                            No lineup created yet. Tap to create or view
-                            details.
-                        </Text>
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                padding: "28px 16px",
+                                borderRadius: "12px",
+                                border: "1.5px dashed rgba(204, 255, 51, 0.2)",
+                                background: "rgba(31, 41, 55, 0.4)",
+                                backdropFilter: "blur(4px)",
+                                marginTop: "12px",
+                            }}
+                        >
+                            <IconClipboardList
+                                size={32}
+                                style={{
+                                    color: "#CCFF33",
+                                    marginBottom: "12px",
+                                    filter: "drop-shadow(0 0 6px rgba(204, 255, 51, 0.45))",
+                                }}
+                            />
+                            <Text
+                                size="sm"
+                                fw={700}
+                                c="white"
+                                ta="center"
+                                mb={4}
+                            >
+                                No Lineup Set Yet
+                            </Text>
+                            <Text
+                                size="xs"
+                                c="dimmed"
+                                ta="center"
+                                style={{ maxWidth: "260px", lineHeight: 1.4 }}
+                            >
+                                {managerView
+                                    ? "Tap here to draft the batting order and assign fielding positions."
+                                    : "The manager hasn't posted the lineup yet. Check back closer to game time!"}
+                            </Text>
+                        </div>
                     )}
                 </div>
             </Card>

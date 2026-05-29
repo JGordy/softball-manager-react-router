@@ -73,11 +73,12 @@ describe("RosterDetails Component", () => {
         expect(screen.getByText("Lineup & Field Chart")).toBeInTheDocument();
     });
 
-    it("shows 'No lineup created yet' when no playerChart exists", () => {
+    it("shows 'No Lineup Set Yet' when no playerChart exists", () => {
         render(<RosterDetails {...defaultProps} />);
+        expect(screen.getByText("No Lineup Set Yet")).toBeInTheDocument();
         expect(
             screen.getByText(
-                "No lineup created yet. Tap to create or view details.",
+                "The manager hasn't posted the lineup yet. Check back closer to game time!",
             ),
         ).toBeInTheDocument();
     });
