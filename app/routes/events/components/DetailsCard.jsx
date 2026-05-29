@@ -22,8 +22,8 @@ export default function DetailsCard({
 
     const formattedGameTime = formatGameTime(gameDate, timeZone);
 
-    const [_, localLocationDrawerHandlers] = useDisclosure(false);
-    const [__, localCalendarDrawerHandlers] = useDisclosure(false);
+    const [, localLocationDrawerHandlers] = useDisclosure(false);
+    const [, localCalendarDrawerHandlers] = useDisclosure(false);
 
     const locationDrawerHandlers =
         propLocationDrawerHandlers || localLocationDrawerHandlers;

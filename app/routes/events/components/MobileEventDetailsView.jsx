@@ -1,6 +1,5 @@
 import { Button, Group, Skeleton } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { DateTime } from "luxon";
 import {
     IconUsersGroup,
     IconTrophy,
@@ -60,10 +59,6 @@ export default function MobileEventDetailsView({
         useDisclosure(false);
     const [calendarDrawerOpened, calendarDrawerHandlers] = useDisclosure(false);
     const [locationDrawerOpened, locationDrawerHandlers] = useDisclosure(false);
-
-    const gameDt = DateTime.fromISO(game.gameDate, { zone: "utc" }).setZone(
-        game.timeZone || "local",
-    );
 
     return (
         <>
