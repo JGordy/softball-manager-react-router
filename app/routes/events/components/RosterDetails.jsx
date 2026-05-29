@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import {
+    ActionIcon,
     Button,
     Card,
     Divider,
@@ -62,14 +63,17 @@ export default function RosterDetails({ game, managerView, playerChart }) {
                     <Text size="sm" fw={700}>
                         Lineup &amp; Field Chart
                     </Text>
-                    <IconChevronRight
-                        size={18}
-                        style={{ cursor: "pointer" }}
+                    <ActionIcon
+                        variant="subtle"
+                        color="gray"
                         onClick={lineupDrawerHandlers.open}
-                    />
+                        aria-label="Open lineup details"
+                    >
+                        <IconChevronRight size={18} />
+                    </ActionIcon>
                 </Group>
 
-                {playerChart && (
+                {playerChart && playerChart.length > 0 && (
                     <SegmentedControl
                         value={view}
                         onChange={setView}
@@ -90,9 +94,18 @@ export default function RosterDetails({ game, managerView, playerChart }) {
                 <div
                     style={{ cursor: "pointer" }}
                     onClick={lineupDrawerHandlers.open}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            lineupDrawerHandlers.open();
+                        }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="View lineup details"
                     data-testid="lineup-field-chart-card-wrapper"
                 >
-                    {playerChart ? (
+                    {playerChart && playerChart.length > 0 ? (
                         view === "field" ? (
                             <FieldLineupPreview playerChart={playerChart} />
                         ) : (

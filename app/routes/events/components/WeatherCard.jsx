@@ -302,36 +302,34 @@ export default function WeatherCard({
                     }}
                 </DeferredLoader>
 
-                <DeferredLoader resolve={weatherPromise} errorElement={null}>
-                    {(weather) => {
-                        const {
-                            hourly: gameDayWeather,
-                            rainout,
-                            totalPrecipitation,
-                        } = getGameDateWeather(gameDate, weather) || {};
+                <DrawerContainer
+                    opened={weatherDrawerOpened}
+                    onClose={weatherDrawerHandlers.close}
+                    title="Weather Details"
+                    size="lg"
+                >
+                    <DeferredLoader
+                        resolve={weatherPromise}
+                        fallback={<Skeleton height={200} radius="xl" />}
+                        errorElement={weatherFallback}
+                    >
+                        {(weather) => {
+                            const {
+                                hourly: gameDayWeather,
+                                rainout,
+                                totalPrecipitation,
+                            } = getGameDateWeather(gameDate, weather) || {};
 
-                        let drawerSize = "md";
-                        if (gameDayWeather) drawerSize = "lg";
-                        if (rainout) drawerSize = "xl";
-
-                        return (
-                            <DrawerContainer
-                                opened={weatherDrawerOpened}
-                                onClose={weatherDrawerHandlers.close}
-                                title="Weather Details"
-                                size={drawerSize}
-                            >
-                                {!gameDayWeather
-                                    ? weatherFallback
-                                    : renderWeatherDetails({
-                                          ...gameDayWeather,
-                                          totalPrecipitation,
-                                          rainout,
-                                      })}
-                            </DrawerContainer>
-                        );
-                    }}
-                </DeferredLoader>
+                            return !gameDayWeather
+                                ? weatherFallback
+                                : renderWeatherDetails({
+                                      ...gameDayWeather,
+                                      totalPrecipitation,
+                                      rainout,
+                                  });
+                        }}
+                    </DeferredLoader>
+                </DrawerContainer>
             </>
         );
     }

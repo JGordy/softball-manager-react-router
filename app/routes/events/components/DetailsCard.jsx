@@ -15,31 +15,19 @@ export default function DetailsCard({
     deferredData,
     season,
     team,
-    calendarDrawerOpened: propCalendarDrawerOpened,
     calendarDrawerHandlers: propCalendarDrawerHandlers,
-    locationDrawerOpened: propLocationDrawerOpened,
     locationDrawerHandlers: propLocationDrawerHandlers,
 }) {
     const { gameDate, timeZone } = game;
 
     const formattedGameTime = formatGameTime(gameDate, timeZone);
 
-    const [localLocationDrawerOpened, localLocationDrawerHandlers] =
-        useDisclosure(false);
-    const [localCalendarDrawerOpened, localCalendarDrawerHandlers] =
-        useDisclosure(false);
+    const [_, localLocationDrawerHandlers] = useDisclosure(false);
+    const [__, localCalendarDrawerHandlers] = useDisclosure(false);
 
-    const locationDrawerOpened =
-        propLocationDrawerOpened !== undefined
-            ? propLocationDrawerOpened
-            : localLocationDrawerOpened;
     const locationDrawerHandlers =
         propLocationDrawerHandlers || localLocationDrawerHandlers;
 
-    const calendarDrawerOpened =
-        propCalendarDrawerOpened !== undefined
-            ? propCalendarDrawerOpened
-            : localCalendarDrawerOpened;
     const calendarDrawerHandlers =
         propCalendarDrawerHandlers || localCalendarDrawerHandlers;
 

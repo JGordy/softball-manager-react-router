@@ -20,6 +20,7 @@ import RosterDetails from "./RosterDetails";
 import AvailabilityDrawer from "./AvailabilityDrawer";
 import EventCalendarDrawer from "./EventCalendarDrawer";
 import EventLocationDrawer from "./EventLocationDrawer";
+import styles from "./MobileEventDetailsView.module.css";
 
 /**
  * MobileEventDetailsView Component
@@ -63,7 +64,6 @@ export default function MobileEventDetailsView({
     const gameDt = DateTime.fromISO(game.gameDate, { zone: "utc" }).setZone(
         game.timeZone || "local",
     );
-    const dateStr = gameDt.toFormat("M/d");
 
     return (
         <>
@@ -79,28 +79,13 @@ export default function MobileEventDetailsView({
             />
 
             {/* Horizontal interactive badge/pill row */}
-            <style
-                dangerouslySetInnerHTML={{
-                    __html: `
-                .no-scrollbar::-webkit-scrollbar {
-                    display: none;
-                }
-            `,
-                }}
-            />
             <Group
                 wrap="nowrap"
                 gap="xs"
-                pl={24}
+                pl={32}
                 pr={24}
                 mt="md"
-                className="no-scrollbar"
-                style={{
-                    overflowX: "auto",
-                    scrollbarWidth: "none",
-                    msOverflowStyle: "none",
-                    WebkitOverflowScrolling: "touch",
-                }}
+                className={styles.badgeRow}
             >
                 {/* Weather Badge (for future games) */}
                 {!gameIsPast && (
