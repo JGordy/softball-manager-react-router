@@ -144,4 +144,66 @@ describe("WeatherCard Component", () => {
         expect(screen.getByText("80%")).toBeInTheDocument();
         expect(screen.getByText("Heavy Rain")).toBeInTheDocument();
     });
+
+    it("renders as badge variant and displays temperature and precip chance", () => {
+        weatherUtils.default.mockReturnValue({
+            hourly: {
+                temperature: { degrees: 68 },
+                feelsLikeTemperature: { degrees: 66 },
+                precipitation: { probability: { percent: 25 } },
+                weatherCondition: {
+                    iconBaseUri: "http://icon",
+                    description: { text: "Light Rain" },
+                },
+                wind: {
+                    speed: { value: 5 },
+                    direction: { degrees: 0 },
+                },
+                uvIndex: 5,
+            },
+        });
+
+        render(<WeatherCard {...defaultProps} variant="badge" />);
+
+        const badge = screen.getByTestId("weather-badge-button");
+        expect(badge).toBeInTheDocument();
+        expect(screen.getByText("68°F / 25%")).toBeInTheDocument();
+        expect(screen.getByText("🌧️")).toBeInTheDocument();
+    });
+
+    it("triggers onClick when weather badge variant is clicked", () => {
+        weatherUtils.default.mockReturnValue({
+            hourly: {
+                temperature: { degrees: 68 },
+                feelsLikeTemperature: { degrees: 66 },
+                precipitation: { probability: { percent: 25 } },
+                weatherCondition: {
+                    iconBaseUri: "http://icon",
+                    description: { text: "Sunny" },
+                },
+                wind: {
+                    speed: { value: 5 },
+                    direction: { degrees: 0 },
+                },
+                uvIndex: 5,
+            },
+        });
+        const mockOnClick = jest.fn();
+
+        render(
+            <WeatherCard
+                {...defaultProps}
+                variant="badge"
+                onClick={mockOnClick}
+            />,
+        );
+
+        const badge = screen.getByTestId("weather-badge-button");
+        fireEvent.click(badge);
+
+        expect(mockOnClick).toHaveBeenCalled();
+        expect(
+            screen.getByRole("dialog", { name: "Weather Details" }),
+        ).toBeInTheDocument();
+    });
 });

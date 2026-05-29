@@ -1,4 +1,13 @@
-import { Card, Divider, Group, Skeleton, Stack, Text } from "@mantine/core";
+import { useEffect, useState } from "react";
+import {
+    Button,
+    Card,
+    Divider,
+    Group,
+    Skeleton,
+    Stack,
+    Text,
+} from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 
 import {
@@ -76,8 +85,6 @@ const renderWeatherDetails = ({
     weatherCondition,
     wind,
     uvIndex,
-    totalPrecipitation,
-    ...rest
 }) => {
     const temp = Math.round(temperature.degrees);
     const feelsLike = Math.round(feelsLikeTemperature.degrees);
@@ -187,8 +194,173 @@ const renderWeatherDetails = ({
     );
 };
 
-export default function WeatherCard({ weatherPromise, gameDate }) {
+export default function WeatherCard({
+    weatherPromise,
+    gameDate,
+    variant = "card",
+    onClick,
+}) {
     const [weatherDrawerOpened, weatherDrawerHandlers] = useDisclosure(false);
+    const [drawerSize, setDrawerSize] = useState("md");
+
+    useEffect(() => {
+        let active = true;
+        if (weatherPromise && typeof weatherPromise.then === "function") {
+            weatherPromise
+                .then((weather) => {
+                    if (!active) return;
+                    const { hourly: gameDayWeather, rainout } =
+                        getGameDateWeather(gameDate, weather) || {};
+                    let size = "md";
+                    if (gameDayWeather) size = "lg";
+                    if (rainout) size = "xl";
+                    setDrawerSize(size);
+                })
+                .catch(() => {
+                    if (!active) return;
+                    setDrawerSize("md");
+                });
+        } else if (weatherPromise) {
+            const { hourly: gameDayWeather, rainout } =
+                getGameDateWeather(gameDate, weatherPromise) || {};
+            let size = "md";
+            if (gameDayWeather) size = "lg";
+            if (rainout) size = "xl";
+            setDrawerSize(size);
+        }
+        return () => {
+            active = false;
+        };
+    }, [weatherPromise, gameDate]);
+
+    if (variant === "badge") {
+        return (
+            <>
+                <DeferredLoader
+                    resolve={weatherPromise}
+                    fallback={
+                        <Skeleton
+                            height={32}
+                            width={110}
+                            radius="xl"
+                            style={{ flexShrink: 0 }}
+                        />
+                    }
+                    errorElement={
+                        <Button
+                            variant="light"
+                            color="red"
+                            size="xs"
+                            radius="xl"
+                            onClick={(e) => {
+                                weatherDrawerHandlers.open();
+                                if (onClick) onClick(e);
+                            }}
+                            styles={{
+                                root: {
+                                    cursor: "pointer",
+                                    fontWeight: 600,
+                                    border: "1.5px solid var(--mantine-color-red-5)",
+                                    flexShrink: 0,
+                                },
+                            }}
+                        >
+                            ⚠️ Weather Error
+                        </Button>
+                    }
+                >
+                    {(weather) => {
+                        const { hourly: gameDayWeather } =
+                            getGameDateWeather(gameDate, weather) || {};
+
+                        let summary = "No Forecast";
+                        let icon = "☀️";
+
+                        if (gameDayWeather) {
+                            summary = `${Math.round(gameDayWeather.temperature.degrees)}°F / ${gameDayWeather.precipitation.probability.percent}%`;
+                            const condition =
+                                gameDayWeather.weatherCondition?.description?.text?.toLowerCase() ||
+                                "";
+                            if (
+                                condition.includes("rain") ||
+                                condition.includes("shower") ||
+                                condition.includes("drizzle")
+                            ) {
+                                icon = "🌧️";
+                            } else if (
+                                condition.includes("cloud") ||
+                                condition.includes("overcast")
+                            ) {
+                                icon = "☁️";
+                            } else if (
+                                condition.includes("snow") ||
+                                condition.includes("ice")
+                            ) {
+                                icon = "❄️";
+                            } else if (
+                                condition.includes("thunder") ||
+                                condition.includes("storm")
+                            ) {
+                                icon = "⛈️";
+                            } else {
+                                icon = "☀️";
+                            }
+                        }
+
+                        return (
+                            <Button
+                                variant="filled"
+                                color="blue"
+                                size="xs"
+                                radius="xl"
+                                onClick={(e) => {
+                                    weatherDrawerHandlers.open();
+                                    if (onClick) onClick(e);
+                                }}
+                                leftSection={<span>{icon}</span>}
+                                data-testid="weather-badge-button"
+                                styles={{
+                                    root: {
+                                        cursor: "pointer",
+                                        fontWeight: 600,
+                                        border: "1.5px solid var(--mantine-color-lime-5)",
+                                        flexShrink: 0,
+                                    },
+                                }}
+                            >
+                                {summary}
+                            </Button>
+                        );
+                    }}
+                </DeferredLoader>
+
+                <DrawerContainer
+                    opened={weatherDrawerOpened}
+                    onClose={weatherDrawerHandlers.close}
+                    title="Weather Details"
+                    size={drawerSize}
+                >
+                    <DeferredLoader
+                        resolve={weatherPromise}
+                        fallback={<Skeleton height={200} radius="xl" />}
+                        errorElement={weatherFallback}
+                    >
+                        {(weather) => {
+                            const { hourly: gameDayWeather, rainout } =
+                                getGameDateWeather(gameDate, weather) || {};
+
+                            return !gameDayWeather
+                                ? weatherFallback
+                                : renderWeatherDetails({
+                                      ...gameDayWeather,
+                                      rainout,
+                                  });
+                        }}
+                    </DeferredLoader>
+                </DrawerContainer>
+            </>
+        );
+    }
 
     return (
         <>
@@ -246,11 +418,8 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
 
             <DeferredLoader resolve={weatherPromise} errorElement={null}>
                 {(weather) => {
-                    const {
-                        hourly: gameDayWeather,
-                        rainout,
-                        totalPrecipitation,
-                    } = getGameDateWeather(gameDate, weather) || {};
+                    const { hourly: gameDayWeather, rainout } =
+                        getGameDateWeather(gameDate, weather) || {};
 
                     let drawerSize = "md";
                     if (gameDayWeather) drawerSize = "lg";
@@ -267,7 +436,6 @@ export default function WeatherCard({ weatherPromise, gameDate }) {
                                 ? weatherFallback
                                 : renderWeatherDetails({
                                       ...gameDayWeather,
-                                      totalPrecipitation,
                                       rainout,
                                   })}
                         </DrawerContainer>
