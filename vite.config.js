@@ -13,6 +13,9 @@ export default defineConfig({
         ssr: "build/server/nodejs_eyJydW50aW1lIjoibm9kZWpzIn0/server.js",
         ssrManifest: true,
     },
+    ssr: {
+        noExternal: ["react-joyride"],
+    },
     plugins: [
         tailwindcss(),
         reactRouter(),
