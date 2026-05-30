@@ -11,6 +11,7 @@ import {
     Box,
     rem,
     useMantineColorScheme,
+    Button,
 } from "@mantine/core";
 
 import {
@@ -19,6 +20,7 @@ import {
     IconPalette,
     IconChecklist,
     IconShieldLock,
+    IconRefresh,
 } from "@tabler/icons-react";
 
 import { trackEvent } from "@/utils/analytics";
@@ -110,6 +112,11 @@ export default function AppPreferencesPanel({ teams = [] }) {
             value,
         });
         handlePreferenceChange("defaultAvailability", JSON.stringify(newPrefs));
+    };
+
+    const handleResetTours = () => {
+        trackEvent("onboarding-tours-reset");
+        handlePreferenceChange("onboardingTours", "{}");
     };
 
     const handleThemeChange = (value) => {
@@ -217,7 +224,7 @@ export default function AppPreferencesPanel({ teams = [] }) {
                 icon={IconChecklist}
                 label="Default Availability"
                 description='Automatically set your status to "Attending" for new games on a per-team basis.'
-                showDivider={false}
+                showDivider={true}
             >
                 <Stack gap="sm">
                     {teams.map((team) => (
@@ -237,6 +244,26 @@ export default function AppPreferencesPanel({ teams = [] }) {
                         </Text>
                     )}
                 </Stack>
+            </PreferenceSection>
+
+            <PreferenceSection
+                icon={IconRefresh}
+                label="Guided Tutorials"
+                description="Reset all page introduction tours so you can replay the walk-throughs for team management, lineups, and scoring."
+                showDivider={false}
+            >
+                <Box maxW={200}>
+                    <Button
+                        variant="outline"
+                        color="red"
+                        size="sm"
+                        fullWidth
+                        disabled={isLoading}
+                        onClick={handleResetTours}
+                    >
+                        Reset Guided Tours
+                    </Button>
+                </Box>
             </PreferenceSection>
 
             {fetcher.data?.success && (

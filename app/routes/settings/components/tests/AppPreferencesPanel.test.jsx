@@ -179,6 +179,28 @@ describe("AppPreferencesPanel Component", () => {
         expect(screen.getByText("Preference saved!")).toBeInTheDocument();
     });
 
+    it("calls handleResetTours and fetcher.submit when Reset Guided Tours is clicked", () => {
+        render(<AppPreferencesPanel />);
+
+        expect(screen.getByText("Guided Tutorials")).toBeInTheDocument();
+        const resetBtn = screen.getByRole("button", {
+            name: "Reset Guided Tours",
+        });
+        expect(resetBtn).toBeInTheDocument();
+
+        fireEvent.click(resetBtn);
+
+        expect(trackEvent).toHaveBeenCalledWith("onboarding-tours-reset");
+        expect(mockFetcher.submit).toHaveBeenCalledWith(
+            {
+                _action: "update-user-preferences",
+                userId: "user-123",
+                onboardingTours: "{}",
+            },
+            { method: "post", action: "/settings" },
+        );
+    });
+
     it("disables controls when fetcher is loading", () => {
         useFetcher.mockReturnValue({
             ...mockFetcher,
