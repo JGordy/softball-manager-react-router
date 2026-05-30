@@ -31,7 +31,7 @@ export default function DesktopEventDetailsView({
     const defaultTab = gameIsPast ? "awards" : "weather";
 
     return (
-        <Grid gutter="md" mt="md" px="md" pb="xl">
+        <Grid gap="md" mt="md" px="md" pb="xl">
             {/* Header row — Back | compact score (centred, not full-width) | GameMenu */}
             <Grid.Col span={12} mb="xl">
                 <Group
@@ -82,7 +82,7 @@ export default function DesktopEventDetailsView({
 
             {/* LEFT COLUMN — Event Info + Gameday Hub */}
             <Grid.Col span={{ base: 12, lg: 5 }}>
-                <Grid gutter="md">
+                <Grid gap="md">
                     <Grid.Col span={12}>
                         <DesktopInfoPanel
                             game={game}

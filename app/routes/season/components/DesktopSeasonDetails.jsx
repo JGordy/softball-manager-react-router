@@ -62,7 +62,7 @@ export default function DesktopSeasonDetails({
                 )}
             </Group>
 
-            <Grid gutter="xl">
+            <Grid gap="xl">
                 {/* Left Column: Details */}
                 <Grid.Col span={{ base: 12, lg: 4 }}>
                     <Group gap="sm" align="center" mb="md">

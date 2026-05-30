@@ -132,7 +132,7 @@ function WeatherForecastCard({ weatherPromise, gameDate }) {
                     } = rainout || {};
 
                     return (
-                        <Grid gutter="xl" align="center">
+                        <Grid gap="xl" align="center">
                             {/* LEFT COLUMN: Summary & Rainout */}
                             <Grid.Col span={7}>
                                 <Stack align="center" gap="sm">

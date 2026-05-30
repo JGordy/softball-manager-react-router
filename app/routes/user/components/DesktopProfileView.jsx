@@ -29,7 +29,7 @@ export default function DesktopProfileView({
     achievementsPromise,
 }) {
     return (
-        <Grid gutter="xl" mt="xl">
+        <Grid gap="xl" mt="xl">
             {/* Left Column: Details */}
             <Grid.Col span={{ base: 12, md: 5 }}>
                 <Box mx="auto">
