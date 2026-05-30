@@ -61,6 +61,7 @@ export default function DesktopRosterTable({
                             color="initials"
                             name={`${player.firstName} ${player.lastName}`}
                             radius="xl"
+                            variant="light"
                         />
                         <div>
                             <Text fz="sm" fw={500}>

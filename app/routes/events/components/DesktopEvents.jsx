@@ -31,7 +31,7 @@ export default function DesktopEvents({ teams }) {
                 />
             </UserHeader>
 
-            <Grid gutter="xl" mt="xl">
+            <Grid gap="xl" mt="xl">
                 <Grid.Col span={{ base: 12, md: 6 }}>
                     <Stack gap="md">
                         <Group gap="xs">

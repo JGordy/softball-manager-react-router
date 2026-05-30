@@ -34,7 +34,7 @@ describe("LocationInput", () => {
     it("renders with default props", () => {
         render(<LocationInput />);
         expect(
-            screen.getByRole("textbox", { name: /location/i }),
+            screen.getByRole("combobox", { name: /location/i }),
         ).toBeInTheDocument();
         expect(
             screen.getByPlaceholderText(/Where will the games be played?/i),
@@ -57,7 +57,7 @@ describe("LocationInput", () => {
 
         render(<LocationInput />);
 
-        const input = screen.getByRole("textbox", { name: /location/i });
+        const input = screen.getByRole("combobox", { name: /location/i });
 
         // Simulate user typing
         await act(async () => {
@@ -90,7 +90,7 @@ describe("LocationInput", () => {
 
         render(<LocationInput />);
 
-        const input = screen.getByRole("textbox", { name: /location/i });
+        const input = screen.getByRole("combobox", { name: /location/i });
 
         await act(async () => {
             fireEvent.change(input, { target: { value: "Unknown Place" } });

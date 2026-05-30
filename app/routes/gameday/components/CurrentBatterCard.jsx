@@ -229,7 +229,7 @@ export default function CurrentBatterCard({
                                     )}
                                 </Group>
                             </UnstyledButton>
-                            <Collapse in={sprayChartOpened}>
+                            <Collapse expanded={sprayChartOpened}>
                                 <MiniSprayChart hits={hits} />
                             </Collapse>
                         </>

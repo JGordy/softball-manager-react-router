@@ -38,7 +38,7 @@ export default function GamedayCard({ gameId, isLive, isPast, isScorekeeper }) {
     return (
         <Card
             radius="lg"
-            mx="md"
+            padding="md"
             mt="md"
             py="5px"
             bg={isLive ? "var(--mantine-color-lime-light)" : undefined}

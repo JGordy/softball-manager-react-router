@@ -14,7 +14,7 @@ export const CollapsibleSection = ({ items, renderItem, initialLimit = 5 }) => {
             {head.map(renderItem)}
             {tail.length > 0 && (
                 <>
-                    <Collapse in={expanded}>
+                    <Collapse expanded={expanded}>
                         <Stack gap="xs" mt="xs">
                             {tail.map(renderItem)}
                         </Stack>

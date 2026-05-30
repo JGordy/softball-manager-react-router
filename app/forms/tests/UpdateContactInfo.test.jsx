@@ -50,7 +50,7 @@ describe("UpdateContactInfo", () => {
         expect(
             screen.getByPlaceholderText("(xxx) xxx-xxxx"),
         ).toBeInTheDocument();
-        expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+        expect(screen.getByLabelText(/password \*/i)).toBeInTheDocument();
     });
 
     it("renders hidden user info with teams stripped", () => {

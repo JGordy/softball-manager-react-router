@@ -232,7 +232,7 @@ export default function DesktopGamedayContainer({
                         zIndex={100}
                     />
 
-                    <Grid gutter="xl" mt="md" align="flex-start">
+                    <Grid gap="xl" mt="md" align="flex-start">
                         {/* COLUMN 1: Matchup */}
                         <Grid.Col span={{ base: 12, md: 4 }}>
                             <Stack gap="md">

@@ -263,7 +263,8 @@ export default function AILineupDrawer({
             }
 
             const userMessage =
-                process.env.NODE_ENV === "development"
+                process.env.NODE_ENV === "development" ||
+                process.env.NODE_ENV === "test"
                     ? message || "Failed to generate lineup"
                     : "Failed to generate lineup";
 

@@ -1,4 +1,4 @@
-import { Button, Group, Skeleton } from "@mantine/core";
+import { Box, Button, Group, Skeleton } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import {
     IconUsersGroup,
@@ -62,13 +62,15 @@ export default function MobileEventDetailsView({
 
     return (
         <>
-            <DetailsCard
-                game={game}
-                deferredData={deferredData}
-                season={season}
-                calendarDrawerHandlers={calendarDrawerHandlers}
-                locationDrawerHandlers={locationDrawerHandlers}
-            />
+            <Box px="md" mt="-12%">
+                <DetailsCard
+                    game={game}
+                    deferredData={deferredData}
+                    season={season}
+                    calendarDrawerHandlers={calendarDrawerHandlers}
+                    locationDrawerHandlers={locationDrawerHandlers}
+                />
+            </Box>
 
             {/* Horizontal interactive badge/pill row */}
             <Group
@@ -269,20 +271,22 @@ export default function MobileEventDetailsView({
                 )}
             </Group>
 
-            {game.eventType !== "practice" && (
-                <GamedayCard
-                    gameId={game.$id}
-                    isLive={gameInProgress}
-                    isPast={gameIsPast}
-                    isScorekeeper={isScorekeeper}
-                />
-            )}
+            <Box px="md">
+                {game.eventType !== "practice" && (
+                    <GamedayCard
+                        gameId={game.$id}
+                        isLive={gameInProgress}
+                        isPast={gameIsPast}
+                        isScorekeeper={isScorekeeper}
+                    />
+                )}
 
-            <RosterDetails
-                game={game}
-                managerView={managerView}
-                playerChart={playerChart}
-            />
+                <RosterDetails
+                    game={game}
+                    managerView={managerView}
+                    playerChart={playerChart}
+                />
+            </Box>
 
             {/* Availability Drawer */}
             <AvailabilityDrawer

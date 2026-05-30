@@ -1,4 +1,4 @@
-import { createTheme } from "@mantine/core";
+import { createTheme, defaultVariantColorsResolver } from "@mantine/core";
 
 const theme = createTheme({
     fontFamily: "Open Sans, sans-serif",
@@ -31,6 +31,65 @@ const theme = createTheme({
     primaryColor: "lime",
     primaryShade: { light: 7 },
     autoContrast: true,
+    components: {
+        Avatar: {
+            defaultProps: {
+                variant: "light",
+            },
+        },
+    },
+    variantColorResolver: (input) => {
+        const defaultResolved = defaultVariantColorsResolver(input);
+
+        if (input.variant === "filled") {
+            if (input.color === "lime" || input.color === "primary") {
+                return {
+                    ...defaultResolved,
+                    background: "var(--mantine-color-lime-filled)",
+                    hover: "var(--mantine-color-lime-filled-hover)",
+                    color: "#101720",
+                };
+            }
+        }
+
+        if (input.variant === "light") {
+            const customColors = {
+                lime: {
+                    bg: "var(--soft-lime-bg)",
+                    hover: "var(--soft-lime-hover)",
+                    color: "var(--soft-lime-color)",
+                },
+                blue: {
+                    bg: "var(--soft-blue-bg)",
+                    hover: "var(--soft-blue-hover)",
+                    color: "var(--soft-blue-color)",
+                },
+                red: {
+                    bg: "var(--soft-red-bg)",
+                    hover: "var(--soft-red-hover)",
+                    color: "var(--soft-red-color)",
+                },
+                orange: {
+                    bg: "var(--soft-orange-bg)",
+                    hover: "var(--soft-orange-hover)",
+                    color: "var(--soft-orange-color)",
+                },
+            };
+
+            const colorKey = input.color === "primary" ? "lime" : input.color;
+            const soft = customColors[colorKey];
+            if (soft) {
+                return {
+                    ...defaultResolved,
+                    background: soft.bg,
+                    hover: soft.hover,
+                    color: soft.color,
+                };
+            }
+        }
+
+        return defaultResolved;
+    },
 });
 
 export default theme;

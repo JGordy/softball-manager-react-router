@@ -78,7 +78,7 @@ export default function DesktopDashboard({
 
                     {/* Calendar row removed */}
 
-                    <Grid gutter="xl">
+                    <Grid gap="xl">
                         <Grid.Col span={{ base: 12, lg: 7 }}>
                             <Title order={5} mb="md">
                                 Upcoming Games

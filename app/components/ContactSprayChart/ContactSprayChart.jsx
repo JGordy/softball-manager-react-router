@@ -253,7 +253,7 @@ export default function ContactSprayChart({
                     </Button>
                 </Group>
 
-                <Collapse in={opened}>
+                <Collapse expanded={opened}>
                     <Card p="xs" radius="lg">
                         <Stack gap="xs">
                             <Group grow>
