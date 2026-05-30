@@ -92,7 +92,7 @@ describe("TeamDetails Route", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        useOutletContext.mockReturnValue({ user: mockUser });
+        useOutletContext.mockReturnValue({ user: mockUser, isDesktop: true });
     });
 
     describe("loader", () => {

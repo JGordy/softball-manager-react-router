@@ -252,7 +252,7 @@ export default function AppPreferencesPanel({ teams = [] }) {
                 description="Reset all page introduction tours so you can replay the walk-throughs for team management, lineups, and scoring."
                 showDivider={false}
             >
-                <Box maxW={200}>
+                <Box maw={200}>
                     <Button
                         variant="outline"
                         color="red"

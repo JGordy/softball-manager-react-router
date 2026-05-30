@@ -1,7 +1,6 @@
 import { useOutletContext } from "react-router";
 
 import { Box, Container, Group, Text, Title } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
 
 import images from "@/constants/images";
 
@@ -149,15 +148,13 @@ export default function TeamDetails({ actionData, loaderData }) {
     } = loaderData;
     // console.log('/team/details >', { players, team, managerIds });
 
-    const { user } = useOutletContext();
+    const { user, isDesktop } = useOutletContext();
 
     const userId = user && user.$id;
     const managerView = managerIds.indexOf(userId) !== -1;
     const ownerView = ownerIds && ownerIds.indexOf(userId) !== -1;
 
     useResponseNotification(actionData);
-
-    const isDesktop = useMediaQuery("(min-width: 62em)", true);
 
     const textProps = {
         size: "md",
@@ -204,11 +201,15 @@ export default function TeamDetails({ actionData, loaderData }) {
                   },
               ]
             : []),
-        {
-            target: ".tour-mobile-tabs",
-            content:
-                "Use these mobile tabs to quickly switch between the team roster, active seasons, and scheduled games.",
-        },
+        ...(!isDesktop
+            ? [
+                  {
+                      target: ".tour-mobile-tabs",
+                      content:
+                          "Use these mobile tabs to quickly switch between the team roster, active seasons, and scheduled games.",
+                  },
+              ]
+            : []),
     ];
 
     return (
