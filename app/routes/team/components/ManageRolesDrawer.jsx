@@ -81,6 +81,7 @@ export default function ManageRolesDrawer({
                                         radius="xl"
                                         size="sm"
                                         color="initials"
+                                        variant="light"
                                     />
                                     <Text fw={500} size="sm">
                                         {player.firstName} {player.lastName}

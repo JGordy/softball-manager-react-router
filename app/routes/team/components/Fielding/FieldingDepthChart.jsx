@@ -147,6 +147,7 @@ const DraggablePlayerItem = ({
                     size="sm"
                     color="initials"
                     name={`${player.firstName} ${player.lastName}`}
+                    variant="light"
                 />
                 <Text size="sm">
                     {player.firstName} {player.lastName}

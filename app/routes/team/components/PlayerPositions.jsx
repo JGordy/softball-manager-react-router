@@ -17,11 +17,16 @@ export default function PlayerPositions({ preferredPositions, playerId }) {
                         name={positions[position].initials}
                         alt={position}
                         color="initials"
+                        variant="light"
                         size="sm"
                     />
                 </Tooltip>
             ))}
-            {hasOverflow && <Avatar size="sm">+{overflowCount}</Avatar>}
+            {hasOverflow && (
+                <Avatar size="sm" variant="light">
+                    +{overflowCount}
+                </Avatar>
+            )}
         </Avatar.Group>
     );
 }

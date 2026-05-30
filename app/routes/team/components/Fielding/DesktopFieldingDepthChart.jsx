@@ -198,6 +198,7 @@ function DraggableFielderItem({
                         size="sm"
                         color="initials"
                         name={`${player.firstName} ${player.lastName}`}
+                        variant="light"
                     />
                     <Text size="sm">
                         {player.firstName} {player.lastName}
@@ -379,7 +380,7 @@ export default function DesktopFieldingDepthChart({
 
     return (
         <>
-            <Grid gutter="xl" align="flex-start">
+            <Grid gap="xl" align="flex-start">
                 {/* Field image with clickable hotspots */}
                 <Grid.Col span={{ base: 12, md: 6 }}>
                     <Box className={styles.fieldContainer}>
