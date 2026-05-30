@@ -55,24 +55,24 @@ const theme = createTheme({
         if (input.variant === "light") {
             const customColors = {
                 lime: {
-                    bg: "rgba(193, 235, 51, 0.12)",
-                    hover: "rgba(193, 235, 51, 0.22)",
-                    color: "#c1eb33",
+                    bg: "var(--soft-lime-bg)",
+                    hover: "var(--soft-lime-hover)",
+                    color: "var(--soft-lime-color)",
                 },
                 blue: {
-                    bg: "rgba(59, 130, 246, 0.15)",
-                    hover: "rgba(59, 130, 246, 0.25)",
-                    color: "#60a5fa",
+                    bg: "var(--soft-blue-bg)",
+                    hover: "var(--soft-blue-hover)",
+                    color: "var(--soft-blue-color)",
                 },
                 red: {
-                    bg: "rgba(239, 68, 68, 0.15)",
-                    hover: "rgba(239, 68, 68, 0.25)",
-                    color: "#f87171",
+                    bg: "var(--soft-red-bg)",
+                    hover: "var(--soft-red-hover)",
+                    color: "var(--soft-red-color)",
                 },
                 orange: {
-                    bg: "rgba(249, 115, 22, 0.15)",
-                    hover: "rgba(249, 115, 22, 0.25)",
-                    color: "#fb923c",
+                    bg: "var(--soft-orange-bg)",
+                    hover: "var(--soft-orange-hover)",
+                    color: "var(--soft-orange-color)",
                 },
             };
 

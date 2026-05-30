@@ -29,6 +29,44 @@
         rgba(0, 0, 0, 0.03),
         rgba(193, 235, 51, 0.08)
     );
+
+    /* Translucent Light Variant Colors */
+    --soft-lime-bg: light-dark(
+        rgba(92, 138, 0, 0.08),
+        rgba(193, 235, 51, 0.12)
+    );
+    --soft-lime-hover: light-dark(
+        rgba(92, 138, 0, 0.15),
+        rgba(193, 235, 51, 0.22)
+    );
+    --soft-lime-color: light-dark(#5c8a00, #c1eb33);
+
+    --soft-blue-bg: light-dark(
+        rgba(28, 100, 242, 0.08),
+        rgba(59, 130, 246, 0.15)
+    );
+    --soft-blue-hover: light-dark(
+        rgba(28, 100, 242, 0.15),
+        rgba(59, 130, 246, 0.25)
+    );
+    --soft-blue-color: light-dark(#1e40af, #60a5fa);
+
+    --soft-red-bg: light-dark(rgba(224, 36, 36, 0.08), rgba(239, 68, 68, 0.15));
+    --soft-red-hover: light-dark(
+        rgba(224, 36, 36, 0.15),
+        rgba(239, 68, 68, 0.25)
+    );
+    --soft-red-color: light-dark(#991b1b, #f87171);
+
+    --soft-orange-bg: light-dark(
+        rgba(255, 90, 0, 0.08),
+        rgba(249, 115, 22, 0.15)
+    );
+    --soft-orange-hover: light-dark(
+        rgba(255, 90, 0, 0.15),
+        rgba(249, 115, 22, 0.25)
+    );
+    --soft-orange-color: light-dark(#9a3412, #fb923c);
 }
 
 :root[data-mantine-color-scheme="light"] {
