@@ -94,7 +94,8 @@ export default function TabsWrapper({
                 cloneElement(child, {
                     key: child.props.value,
                     ref: setControlRef(child.props.value),
-                    className: `${classes.tab} ${isActive ? classes.tabActive : ""}`,
+                    className:
+                        `${classes.tab} ${isActive ? classes.tabActive : ""} ${child.props.className || ""}`.trim(),
                     disabled: child.props.disabled,
                     style: {
                         ...child.props.style,

@@ -48,4 +48,38 @@ describe("MenuContainer Component", () => {
         fireEvent.click(screen.getByText("Item 1"));
         expect(handleClick).toHaveBeenCalledTimes(1);
     });
+
+    it("assigns formatted class name to sections", async () => {
+        const sections = [
+            {
+                label: "Team Options",
+                items: [{ key: "1", text: "Item 1" }],
+            },
+            {
+                label: "Roster",
+                items: [{ key: "2", text: "Item 2" }],
+            },
+        ];
+
+        const { container } = render(<MenuContainer sections={sections} />);
+
+        const trigger = screen.getByRole("button");
+        fireEvent.click(trigger);
+
+        await waitFor(() => {
+            expect(screen.getByText("Team Options")).toBeInTheDocument();
+        });
+
+        const teamOptionsSection = document.querySelector(
+            ".tour-menu-section-team-options",
+        );
+        expect(teamOptionsSection).toBeInTheDocument();
+        expect(teamOptionsSection).toHaveTextContent("Team Options");
+
+        const rosterSection = document.querySelector(
+            ".tour-menu-section-roster",
+        );
+        expect(rosterSection).toBeInTheDocument();
+        expect(rosterSection).toHaveTextContent("Roster");
+    });
 });

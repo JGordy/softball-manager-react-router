@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { ActionIcon, Menu, Text } from "@mantine/core";
 import { IconDots } from "@tabler/icons-react";
 
@@ -15,6 +16,19 @@ export default function MenuContainer({
     menuProps = {},
     target,
 }) {
+    const [opened, setOpened] = useState(false);
+
+    useEffect(() => {
+        const handleToggle = (e) => {
+            if (typeof e.detail?.open === "boolean") {
+                setOpened(e.detail.open);
+            }
+        };
+        window.addEventListener("toggle-onboarding-menu", handleToggle);
+        return () =>
+            window.removeEventListener("toggle-onboarding-menu", handleToggle);
+    }, []);
+
     const renderItem = (item, key) => {
         const { key: itemKey, content, text, ...rest } = item;
         return (
@@ -25,7 +39,15 @@ export default function MenuContainer({
     };
 
     return (
-        <Menu shadow="md" radius="lg" withArrow offset={0} {...menuProps}>
+        <Menu
+            shadow="md"
+            radius="lg"
+            withArrow
+            offset={0}
+            opened={opened}
+            onChange={setOpened}
+            {...menuProps}
+        >
             <Menu.Target>
                 {target ?? (
                     <ActionIcon
@@ -43,7 +65,14 @@ export default function MenuContainer({
 
             <Menu.Dropdown p="md">
                 {sections.map((section, sIdx) => (
-                    <div key={section.label ?? sIdx}>
+                    <div
+                        key={section.label ?? sIdx}
+                        className={
+                            section.label
+                                ? `tour-menu-section-${section.label.toLowerCase().replace(/\s+/g, "-")}`
+                                : undefined
+                        }
+                    >
                         {section.label && (
                             <Menu.Label>
                                 <Text size="sm">{section.label}</Text>
