@@ -1,6 +1,7 @@
 import { useOutletContext } from "react-router";
 
 import { Box, Container, Group, Text, Title } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 
 import images from "@/constants/images";
 
@@ -29,6 +30,7 @@ import { createSessionClient } from "@/utils/appwrite/server";
 import TeamMenu from "./components/TeamMenu";
 import MobileTeamDetails from "./components/MobileTeamDetails";
 import DesktopTeamDetails from "./components/DesktopTeamDetails";
+import OnboardingTour from "@/components/OnboardingTour";
 
 export function links() {
     const { fieldSrc } = images;
@@ -155,24 +157,82 @@ export default function TeamDetails({ actionData, loaderData }) {
 
     useResponseNotification(actionData);
 
+    const isDesktop = useMediaQuery("(min-width: 62em)", true);
+
     const textProps = {
         size: "md",
     };
+
+    const steps = [
+        {
+            target: ".tour-team-title",
+            content:
+                "Welcome to your Team Details page! Here you can manage and view your team's roster, seasons overview, recent results, and upcoming games.",
+            skipBeacon: true,
+            locale: {
+                next: "Start Tour",
+                skip: "Skip",
+            },
+        },
+        ...(managerView
+            ? [
+                  {
+                      target: ".tour-team-menu",
+                      content:
+                          "As a team manager, you have access to the Team Options menu. Let's look inside at the actions you can take.",
+                  },
+                  {
+                      target: ".tour-menu-section-team-options",
+                      content:
+                          "Under Team Options, you can edit the team's league name or visual branding, register new seasons, and schedule upcoming games.",
+                      placement: "left",
+                  },
+                  {
+                      target: ".tour-menu-section-roster",
+                      content:
+                          "The Roster section is vital for organization: 'Set Lineups' directs you to set the ideal batting order and defensive positioning; 'Invite Players' sends email onboarding invites; 'Assign Numbers' lets you bulk-manage jersey numbers.",
+                      placement: "left",
+                  },
+              ]
+            : []),
+        ...(isDesktop
+            ? [
+                  {
+                      target: ".tour-roster-section",
+                      content:
+                          "This is your team roster. You can view all players, their primary/secondary positions, jersey numbers, and stats.",
+                  },
+              ]
+            : []),
+        {
+            target: ".tour-mobile-tabs",
+            content:
+                "Use these mobile tabs to quickly switch between the team roster, active seasons, and scheduled games.",
+        },
+    ];
 
     return (
         <Container pt="md" size="xl">
             <Group justify="space-between" mb="xl">
                 <BackButton to="/dashboard" />
                 {managerView && (
-                    <TeamMenu
-                        team={team}
-                        userId={user.$id}
-                        ownerView={ownerView}
-                        players={players}
-                    />
+                    <Box className="tour-team-menu">
+                        <TeamMenu
+                            team={team}
+                            userId={user.$id}
+                            ownerView={ownerView}
+                            players={players}
+                        />
+                    </Box>
                 )}
             </Group>
-            <Title order={2} align="center" mt="sm" mb="lg">
+            <Title
+                order={2}
+                align="center"
+                mt="sm"
+                mb="lg"
+                className="tour-team-title"
+            >
                 {team.name}
             </Title>
             <Text {...textProps} align="center">
@@ -199,6 +259,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                     teamLogs={teamLogs}
                 />
             </Box>
+            <OnboardingTour tourKey="team_details" steps={steps} user={user} />
         </Container>
     );
 }

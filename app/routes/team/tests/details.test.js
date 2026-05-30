@@ -51,6 +51,9 @@ jest.mock("../components/MobileTeamDetails", () => () => (
 jest.mock("../components/DesktopTeamDetails", () => () => (
     <div data-testid="desktop-team-details" />
 ));
+jest.mock("@/components/OnboardingTour", () => () => (
+    <div data-testid="onboarding-tour" />
+));
 
 describe("TeamDetails Route", () => {
     const originalEnv = process.env;
@@ -327,6 +330,11 @@ describe("TeamDetails Route", () => {
             expect(
                 screen.getByTestId("desktop-team-details"),
             ).toBeInTheDocument();
+        });
+
+        it("renders OnboardingTour component", () => {
+            render(<TeamDetails loaderData={mockLoaderData} />);
+            expect(screen.getByTestId("onboarding-tour")).toBeInTheDocument();
         });
     });
 });
