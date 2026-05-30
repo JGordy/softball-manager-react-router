@@ -21,6 +21,7 @@ import {
     ColorSchemeScript,
     MantineProvider,
     mantineHtmlProps,
+    v8CssVariablesResolver,
     Container,
     Title,
     Text,
@@ -198,6 +199,7 @@ export function Layout({ children }) {
                 <MantineProvider
                     defaultColorScheme={themePreference}
                     theme={theme}
+                    cssVariablesResolver={v8CssVariablesResolver}
                 >
                     <Notifications position="top-center" zIndex={10000} />
                     <ModalsProvider>{children}</ModalsProvider>
