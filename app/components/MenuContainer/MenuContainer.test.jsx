@@ -82,4 +82,52 @@ describe("MenuContainer Component", () => {
         expect(rosterSection).toBeInTheDocument();
         expect(rosterSection).toHaveTextContent("Roster");
     });
+
+    it("responds to toggle-onboarding-menu custom events only when id matches", async () => {
+        const sections = [
+            {
+                label: "Team Options",
+                items: [{ key: "1", text: "Item 1" }],
+            },
+        ];
+
+        render(<MenuContainer sections={sections} id="test-scoped-menu" />);
+
+        // Dispatch toggle event with mismatching menuId
+        fireEvent(
+            window,
+            new CustomEvent("toggle-onboarding-menu", {
+                detail: { open: true, menuId: "other-menu-id" },
+            }),
+        );
+
+        // Menu should not open
+        expect(screen.queryByText("Team Options")).not.toBeInTheDocument();
+
+        // Dispatch toggle event with matching menuId
+        fireEvent(
+            window,
+            new CustomEvent("toggle-onboarding-menu", {
+                detail: { open: true, menuId: "test-scoped-menu" },
+            }),
+        );
+
+        // Menu should open
+        await waitFor(() => {
+            expect(screen.getByText("Team Options")).toBeInTheDocument();
+        });
+
+        // Dispatch toggle event with matching menuId to close
+        fireEvent(
+            window,
+            new CustomEvent("toggle-onboarding-menu", {
+                detail: { open: false, menuId: "test-scoped-menu" },
+            }),
+        );
+
+        // Menu should close
+        await waitFor(() => {
+            expect(screen.queryByText("Team Options")).not.toBeInTheDocument();
+        });
+    });
 });

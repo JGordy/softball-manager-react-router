@@ -199,6 +199,11 @@ export default function TeamDetails({ actionData, loaderData }) {
                       content:
                           "This is your team roster. You can view all players, their primary/secondary positions, jersey numbers, and stats.",
                   },
+                  {
+                      target: ".tour-seasons-overview",
+                      content:
+                          "This is the Seasons Overview. From here, you can track active and past seasons, overview played games, and drill into specific season stats.",
+                  },
               ]
             : []),
         ...(!isDesktop

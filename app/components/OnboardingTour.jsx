@@ -16,9 +16,15 @@ import { useJoyrideThemeStyles } from "@/hooks/useJoyrideThemeStyles";
  * @param {string} props.tourKey - Unique identifier for the tour (e.g., 'team_details').
  * @param {Array<Object>} props.steps - Array of React Joyride step objects.
  * @param {Object} [props.user] - Current user data retrieved from Appwrite session.
+ * @param {string} [props.menuId='team-details-menu'] - Optional unique identifier to scope onboarding events for the menu.
  * @returns {React.ReactElement|null} The guided tour or null.
  */
-export default function OnboardingTour({ tourKey, steps, user }) {
+export default function OnboardingTour({
+    tourKey,
+    steps,
+    user,
+    menuId = "team-details-menu",
+}) {
     const [mounted, setMounted] = useState(false);
     const [runTour, setRunTour] = useState(false); // Delayed state to bypass Joyride mounting race conditions
     const [stepIndex, setStepIndex] = useState(0); // Controlled step index to delay transitions and prevent race conditions
@@ -105,14 +111,14 @@ export default function OnboardingTour({ tourKey, steps, user }) {
                 // Ensure the menu is open by dispatching our custom controlled event
                 window.dispatchEvent(
                     new CustomEvent("toggle-onboarding-menu", {
-                        detail: { open: true },
+                        detail: { open: true, menuId },
                     }),
                 );
             } else {
                 // If it's not a menu step, close the menu
                 window.dispatchEvent(
                     new CustomEvent("toggle-onboarding-menu", {
-                        detail: { open: false },
+                        detail: { open: false, menuId },
                     }),
                 );
             }
@@ -131,6 +137,9 @@ export default function OnboardingTour({ tourKey, steps, user }) {
         // Preemptively open or close the menu dropdown / tabs during STEP_AFTER transitions to let React
         // flush state changes and render elements in the DOM before the next step's measurement.
         if (type === EVENTS.STEP_AFTER) {
+            if (data.action !== "next" && data.action !== "prev") {
+                return;
+            }
             const nextIndex =
                 data.action === "prev" ? data.index - 1 : data.index + 1;
             const nextStep = activeSteps[nextIndex];
@@ -141,14 +150,14 @@ export default function OnboardingTour({ tourKey, steps, user }) {
                 if (nextTarget.includes("tour-menu-section")) {
                     window.dispatchEvent(
                         new CustomEvent("toggle-onboarding-menu", {
-                            detail: { open: true },
+                            detail: { open: true, menuId },
                         }),
                     );
                     delay = 150; // Give menu time to render
                 } else {
                     window.dispatchEvent(
                         new CustomEvent("toggle-onboarding-menu", {
-                            detail: { open: false },
+                            detail: { open: false, menuId },
                         }),
                     );
                 }
@@ -183,7 +192,7 @@ export default function OnboardingTour({ tourKey, steps, user }) {
             // Close the menu when the tour finishes/skips
             window.dispatchEvent(
                 new CustomEvent("toggle-onboarding-menu", {
-                    detail: { open: false },
+                    detail: { open: false, menuId },
                 }),
             );
 

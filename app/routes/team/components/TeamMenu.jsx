@@ -180,7 +180,7 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
 
     return (
         <>
-            <MenuContainer sections={sections} />
+            <MenuContainer sections={sections} id="team-details-menu" />
             <ManageRolesDrawer
                 opened={rolesOpened}
                 onClose={closeRoles}

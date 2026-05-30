@@ -10,24 +10,30 @@ import classes from "./MenuContainer.module.css";
  * - sections: [{ label?: string, items: [{ key?, content, text?, leftSection?, onClick?, color?, disabled? }] }]
  * - menuProps: props forwarded to Mantine Menu
  * - target: optional custom Menu.Target children
+ * - id: optional unique identifier to scope onboarding events
  */
 export default function MenuContainer({
     sections = [],
     menuProps = {},
     target,
+    id,
 }) {
     const [opened, setOpened] = useState(false);
 
     useEffect(() => {
+        if (!id) return;
         const handleToggle = (e) => {
-            if (typeof e.detail?.open === "boolean") {
+            if (
+                e.detail?.menuId === id &&
+                typeof e.detail?.open === "boolean"
+            ) {
                 setOpened(e.detail.open);
             }
         };
         window.addEventListener("toggle-onboarding-menu", handleToggle);
         return () =>
             window.removeEventListener("toggle-onboarding-menu", handleToggle);
-    }, []);
+    }, [id]);
 
     const renderItem = (item, key) => {
         const { key: itemKey, content, text, ...rest } = item;
