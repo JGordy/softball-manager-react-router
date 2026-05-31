@@ -177,13 +177,13 @@ export default function TeamDetails({ actionData, loaderData }) {
                 "As a team manager, you have access to the Team Options menu. Let's look inside at the actions you can take.",
         },
         {
-            target: ".tour-menu-section-team-options",
+            target: ".tour-team-details-menu-section-team-options",
             content:
                 "Under Team Options, you can edit the team's league name or visual branding, register new seasons, and schedule upcoming games.",
             placement: "left",
         },
         {
-            target: ".tour-menu-section-roster",
+            target: ".tour-team-details-menu-section-roster",
             content:
                 "The Roster section is vital for organization: 'Set Lineups' directs you to set the ideal batting order and defensive positioning; 'Invite Players' sends email onboarding invites; 'Assign Numbers' lets you bulk-manage jersey numbers.",
             placement: "left",
@@ -267,6 +267,11 @@ export default function TeamDetails({ actionData, loaderData }) {
                     steps={steps}
                     user={user}
                     menuId="team-details-menu"
+                    alwaysIncludeTargets={[
+                        ".tour-team-details-menu-section-team-options",
+                        ".tour-team-details-menu-section-roster",
+                        ".tour-roster-section",
+                    ]}
                 />
             )}
         </Container>

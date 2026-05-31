@@ -83,6 +83,30 @@ describe("MenuContainer Component", () => {
         expect(rosterSection).toHaveTextContent("Roster");
     });
 
+    it("assigns scoped class name to sections when id is provided", async () => {
+        const sections = [
+            {
+                label: "Team Options",
+                items: [{ key: "1", text: "Item 1" }],
+            },
+        ];
+
+        render(<MenuContainer sections={sections} id="scoped-menu-id" />);
+
+        const trigger = screen.getByRole("button");
+        fireEvent.click(trigger);
+
+        await waitFor(() => {
+            expect(screen.getByText("Team Options")).toBeInTheDocument();
+        });
+
+        const teamOptionsSection = document.querySelector(
+            ".tour-scoped-menu-id-section-team-options",
+        );
+        expect(teamOptionsSection).toBeInTheDocument();
+        expect(teamOptionsSection).toHaveTextContent("Team Options");
+    });
+
     it("responds to toggle-onboarding-menu custom events only when id matches", async () => {
         const sections = [
             {

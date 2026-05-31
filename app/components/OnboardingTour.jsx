@@ -19,7 +19,13 @@ import { useJoyrideThemeStyles } from "@/hooks/useJoyrideThemeStyles";
  * @param {string} [props.menuId] - Optional unique identifier to scope onboarding events for the menu.
  * @returns {React.ReactElement|null} The guided tour or null.
  */
-export default function OnboardingTour({ tourKey, steps, user, menuId }) {
+export default function OnboardingTour({
+    tourKey,
+    steps,
+    user,
+    menuId,
+    alwaysIncludeTargets = [],
+}) {
     const [mounted, setMounted] = useState(false);
     const [runTour, setRunTour] = useState(false); // Delayed state to bypass Joyride mounting race conditions
     const [stepIndex, setStepIndex] = useState(0); // Controlled step index to delay transitions and prevent race conditions
@@ -41,6 +47,7 @@ export default function OnboardingTour({ tourKey, steps, user, menuId }) {
     useEffect(() => {
         if (mounted && !hasCompleted) {
             const timer = setTimeout(() => {
+                setStepIndex(0); // Ensure step index is reset to 0 when launching
                 setRunTour(true);
             }, 200); // 200ms delay to let the page settle and prevent first-step Floater bugs
             return () => clearTimeout(timer);
@@ -62,12 +69,9 @@ export default function OnboardingTour({ tourKey, steps, user, menuId }) {
                         ? step.target()
                         : step.target;
                 if (typeof target === "string") {
-                    // Allow menu section and roster section targets to bypass the initial DOM existence check
+                    // Allow specific targets to bypass the initial DOM existence check
                     // because the menu/tab will be programmatically opened when the step starts.
-                    if (
-                        target.includes("tour-menu-section") ||
-                        target.includes("tour-roster-section")
-                    ) {
+                    if (alwaysIncludeTargets.includes(target)) {
                         return true;
                     }
                     return !!document.querySelector(target);
@@ -198,6 +202,7 @@ export default function OnboardingTour({ tourKey, steps, user, menuId }) {
             }
 
             setRunTour(false);
+            setStepIndex(0); // Reset step index back to 0 on tour end
             const updatedTours = {
                 ...onboardingTours,
                 [tourKey]: true,

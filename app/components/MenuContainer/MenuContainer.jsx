@@ -75,7 +75,15 @@ export default function MenuContainer({
                         key={section.label ?? sIdx}
                         className={
                             section.label
-                                ? `tour-menu-section-${section.label.toLowerCase().replace(/\s+/g, "-")}`
+                                ? id
+                                    ? `tour-${id}-section-${section.label
+                                          .toLowerCase()
+                                          .replace(/[^a-z0-9]+/g, "-")
+                                          .replace(/(^-|-$)/g, "")}`
+                                    : `tour-menu-section-${section.label
+                                          .toLowerCase()
+                                          .replace(/[^a-z0-9]+/g, "-")
+                                          .replace(/(^-|-$)/g, "")}`
                                 : undefined
                         }
                     >

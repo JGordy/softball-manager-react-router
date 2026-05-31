@@ -144,6 +144,10 @@ describe("OnboardingTour Component", () => {
                 tourKey="team_details"
                 steps={mockSteps}
                 user={mockUser}
+                alwaysIncludeTargets={[
+                    ".tour-menu-section-roster",
+                    ".tour-roster-section",
+                ]}
             />,
         );
 
@@ -185,6 +189,10 @@ describe("OnboardingTour Component", () => {
                 tourKey="team_details"
                 steps={mockSteps}
                 user={mockUser}
+                alwaysIncludeTargets={[
+                    ".tour-menu-section-roster",
+                    ".tour-roster-section",
+                ]}
             />,
         );
 
@@ -229,6 +237,10 @@ describe("OnboardingTour Component", () => {
                 steps={mockSteps}
                 user={mockUser}
                 menuId="team-details-menu"
+                alwaysIncludeTargets={[
+                    ".tour-menu-section-roster",
+                    ".tour-roster-section",
+                ]}
             />,
         );
 
@@ -273,6 +285,7 @@ describe("OnboardingTour Component", () => {
                     { target: ".tour-roster-section", content: "Roster Step" },
                 ]}
                 user={mockUser}
+                alwaysIncludeTargets={[".tour-roster-section"]}
             />,
         );
 
@@ -286,5 +299,45 @@ describe("OnboardingTour Component", () => {
         // The tour-roster-section target fires STEP_BEFORE on mount because it's the first step
         expect(clickSpy).toHaveBeenCalled();
         clickSpy.mockRestore();
+    });
+
+    it("resets stepIndex to 0 when starting a tour or when completing a tour", () => {
+        const mockUser = {
+            $id: "user1",
+            prefs: {
+                onboardingTours: {},
+            },
+        };
+
+        const { rerender } = render(
+            <OnboardingTour
+                tourKey="team_details"
+                steps={mockSteps}
+                user={mockUser}
+                alwaysIncludeTargets={[
+                    ".tour-menu-section-roster",
+                    ".tour-roster-section",
+                ]}
+            />,
+        );
+
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // Initially stepIndex is 0
+        expect(screen.getByTestId("mock-joyride")).toBeInTheDocument();
+
+        // Finish the tour, which resets stepIndex
+        const finishBtn = screen.getByTestId("finish-btn");
+        act(() => {
+            fireEvent.click(finishBtn);
+        });
+
+        // Tour is run = false now
+        expect(screen.queryByTestId("mock-joyride")).not.toBeInTheDocument();
     });
 });
