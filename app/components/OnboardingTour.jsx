@@ -103,8 +103,7 @@ export default function OnboardingTour({
         if (type === EVENTS.STEP_BEFORE) {
             const target = step?.target;
             const isMenuStep =
-                typeof target === "string" &&
-                target.includes("tour-menu-section");
+                typeof target === "string" && target.includes("menu-section");
 
             if (menuId) {
                 if (isMenuStep) {
@@ -149,7 +148,7 @@ export default function OnboardingTour({
             let delay = 0;
             if (typeof nextTarget === "string") {
                 if (menuId) {
-                    if (nextTarget.includes("tour-menu-section")) {
+                    if (nextTarget.includes("menu-section")) {
                         window.dispatchEvent(
                             new CustomEvent("toggle-onboarding-menu", {
                                 detail: { open: true, menuId },
