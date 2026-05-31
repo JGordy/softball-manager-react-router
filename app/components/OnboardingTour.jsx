@@ -133,7 +133,10 @@ export default function OnboardingTour({
                 }
             }
 
-            if (target === ".tour-roster-section") {
+            if (
+                typeof target === "string" &&
+                target.includes("tour-roster-section")
+            ) {
                 // Preemptively click the Roster Tab button if we are on mobile view
                 const rosterTab = document.querySelector(
                     ".tour-mobile-tab-roster",
