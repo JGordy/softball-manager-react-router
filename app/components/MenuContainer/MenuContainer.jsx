@@ -50,9 +50,9 @@ export default function MenuContainer({
             radius="lg"
             withArrow
             offset={0}
+            {...menuProps}
             opened={opened}
             onChange={setOpened}
-            {...menuProps}
         >
             <Menu.Target>
                 {target ?? (

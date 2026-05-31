@@ -655,6 +655,24 @@ describe("Users Actions", () => {
             );
         });
 
+        it("should reject onboardingTours preference if it is an array", async () => {
+            const mockAccount = {
+                get: jest.fn().mockResolvedValue({ prefs: {} }),
+            };
+            createSessionClient.mockResolvedValue({ account: mockAccount });
+
+            const result = await updateUserPrefs({
+                values: { onboardingTours: "[]" },
+                client: await createSessionClient(),
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.status).toBe(400);
+            expect(result.message).toBe(
+                "Onboarding tours preference must be an object.",
+            );
+        });
+
         it("should reject invalid preference keys", async () => {
             const result = await updateUserPrefs({
                 values: { invalidKey: "some-value" },

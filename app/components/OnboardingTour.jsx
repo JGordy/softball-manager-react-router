@@ -16,15 +16,10 @@ import { useJoyrideThemeStyles } from "@/hooks/useJoyrideThemeStyles";
  * @param {string} props.tourKey - Unique identifier for the tour (e.g., 'team_details').
  * @param {Array<Object>} props.steps - Array of React Joyride step objects.
  * @param {Object} [props.user] - Current user data retrieved from Appwrite session.
- * @param {string} [props.menuId='team-details-menu'] - Optional unique identifier to scope onboarding events for the menu.
+ * @param {string} [props.menuId] - Optional unique identifier to scope onboarding events for the menu.
  * @returns {React.ReactElement|null} The guided tour or null.
  */
-export default function OnboardingTour({
-    tourKey,
-    steps,
-    user,
-    menuId = "team-details-menu",
-}) {
+export default function OnboardingTour({ tourKey, steps, user, menuId }) {
     const [mounted, setMounted] = useState(false);
     const [runTour, setRunTour] = useState(false); // Delayed state to bypass Joyride mounting race conditions
     const [stepIndex, setStepIndex] = useState(0); // Controlled step index to delay transitions and prevent race conditions
@@ -107,20 +102,22 @@ export default function OnboardingTour({
                 typeof target === "string" &&
                 target.includes("tour-menu-section");
 
-            if (isMenuStep) {
-                // Ensure the menu is open by dispatching our custom controlled event
-                window.dispatchEvent(
-                    new CustomEvent("toggle-onboarding-menu", {
-                        detail: { open: true, menuId },
-                    }),
-                );
-            } else {
-                // If it's not a menu step, close the menu
-                window.dispatchEvent(
-                    new CustomEvent("toggle-onboarding-menu", {
-                        detail: { open: false, menuId },
-                    }),
-                );
+            if (menuId) {
+                if (isMenuStep) {
+                    // Ensure the menu is open by dispatching our custom controlled event
+                    window.dispatchEvent(
+                        new CustomEvent("toggle-onboarding-menu", {
+                            detail: { open: true, menuId },
+                        }),
+                    );
+                } else {
+                    // If it's not a menu step, close the menu
+                    window.dispatchEvent(
+                        new CustomEvent("toggle-onboarding-menu", {
+                            detail: { open: false, menuId },
+                        }),
+                    );
+                }
             }
 
             if (target === ".tour-roster-section") {
@@ -147,19 +144,21 @@ export default function OnboardingTour({
 
             let delay = 0;
             if (typeof nextTarget === "string") {
-                if (nextTarget.includes("tour-menu-section")) {
-                    window.dispatchEvent(
-                        new CustomEvent("toggle-onboarding-menu", {
-                            detail: { open: true, menuId },
-                        }),
-                    );
-                    delay = 150; // Give menu time to render
-                } else {
-                    window.dispatchEvent(
-                        new CustomEvent("toggle-onboarding-menu", {
-                            detail: { open: false, menuId },
-                        }),
-                    );
+                if (menuId) {
+                    if (nextTarget.includes("tour-menu-section")) {
+                        window.dispatchEvent(
+                            new CustomEvent("toggle-onboarding-menu", {
+                                detail: { open: true, menuId },
+                            }),
+                        );
+                        delay = 150; // Give menu time to render
+                    } else {
+                        window.dispatchEvent(
+                            new CustomEvent("toggle-onboarding-menu", {
+                                detail: { open: false, menuId },
+                            }),
+                        );
+                    }
                 }
 
                 if (nextTarget === ".tour-roster-section") {
@@ -190,11 +189,13 @@ export default function OnboardingTour({
 
         if (isTourFinished) {
             // Close the menu when the tour finishes/skips
-            window.dispatchEvent(
-                new CustomEvent("toggle-onboarding-menu", {
-                    detail: { open: false, menuId },
-                }),
-            );
+            if (menuId) {
+                window.dispatchEvent(
+                    new CustomEvent("toggle-onboarding-menu", {
+                        detail: { open: false, menuId },
+                    }),
+                );
+            }
 
             setRunTour(false);
             const updatedTours = {

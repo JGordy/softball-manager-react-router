@@ -266,6 +266,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                     tourKey="team_details"
                     steps={steps}
                     user={user}
+                    menuId="team-details-menu"
                 />
             )}
         </Container>

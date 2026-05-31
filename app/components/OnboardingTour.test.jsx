@@ -228,6 +228,7 @@ describe("OnboardingTour Component", () => {
                 tourKey="team_details"
                 steps={mockSteps}
                 user={mockUser}
+                menuId="team-details-menu"
             />,
         );
 

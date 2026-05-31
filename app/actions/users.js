@@ -439,7 +439,8 @@ export async function updateUserPrefs({ values, client }) {
             }
             if (
                 typeof values.onboardingTours !== "object" ||
-                values.onboardingTours === null
+                values.onboardingTours === null ||
+                Array.isArray(values.onboardingTours)
             ) {
                 return {
                     success: false,
