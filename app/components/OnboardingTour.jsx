@@ -27,6 +27,7 @@ export default function OnboardingTour({
     alwaysIncludeTargets = [],
 }) {
     const [mounted, setMounted] = useState(false);
+    const [isDesktopViewport, setIsDesktopViewport] = useState(false);
     const [runTour, setRunTour] = useState(false); // Delayed state to bypass Joyride mounting race conditions
     const [stepIndex, setStepIndex] = useState(0); // Controlled step index to delay transitions and prevent race conditions
     const { options, styles } = useJoyrideThemeStyles();
@@ -35,6 +36,9 @@ export default function OnboardingTour({
     useEffect(() => {
         const timer = setTimeout(() => {
             setMounted(true);
+            setIsDesktopViewport(
+                window.matchMedia("(min-width: 62em)").matches,
+            );
         }, 0);
         return () => clearTimeout(timer);
     }, []);
@@ -63,6 +67,12 @@ export default function OnboardingTour({
     const activeSteps = steps
         .filter((step) => {
             if (typeof document === "undefined") return false;
+
+            // Responsive step gating evaluated client-side to prevent SSR/hydration mismatch
+            if (step.responsive === "desktop" && !isDesktopViewport)
+                return false;
+            if (step.responsive === "mobile" && isDesktopViewport) return false;
+
             try {
                 const target =
                     typeof step.target === "function"
@@ -173,12 +183,14 @@ export default function OnboardingTour({
                     }
                 }
 
-                if (delay > 0) {
-                    setTimeout(() => {
+                if (nextStep) {
+                    if (delay > 0) {
+                        setTimeout(() => {
+                            setStepIndex(nextIndex);
+                        }, delay);
+                    } else {
                         setStepIndex(nextIndex);
-                    }, delay);
-                } else {
-                    setStepIndex(nextIndex);
+                    }
                 }
             }
         }

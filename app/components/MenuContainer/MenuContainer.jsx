@@ -70,37 +70,39 @@ export default function MenuContainer({
             </Menu.Target>
 
             <Menu.Dropdown p="md">
-                {sections.map((section, sIdx) => (
-                    <div
-                        key={section.label ?? sIdx}
-                        className={
-                            section.label
-                                ? id
-                                    ? `tour-${id}-section-${section.label
-                                          .toLowerCase()
-                                          .replace(/[^a-z0-9]+/g, "-")
-                                          .replace(/(^-|-$)/g, "")}`
-                                    : `tour-menu-section-${section.label
-                                          .toLowerCase()
-                                          .replace(/[^a-z0-9]+/g, "-")
-                                          .replace(/(^-|-$)/g, "")}`
-                                : undefined
-                        }
-                    >
-                        {section.label && (
-                            <Menu.Label>
-                                <Text size="sm">{section.label}</Text>
-                            </Menu.Label>
-                        )}
+                {sections.map((section, sIdx) => {
+                    const slug = section.label
+                        ? section.label
+                              .toLowerCase()
+                              .replace(/[^a-z0-9]+/g, "-")
+                              .replace(/(^-|-$)/g, "")
+                        : null;
+                    const sectionClassName = slug
+                        ? id
+                            ? `tour-${id}-section-${slug}`
+                            : `tour-menu-section-${slug}`
+                        : undefined;
 
-                        {Array.isArray(section.items) &&
-                            section.items.map((item, iIdx) =>
-                                renderItem(item, `${sIdx}-${iIdx}`),
+                    return (
+                        <div
+                            key={section.label ?? sIdx}
+                            className={sectionClassName}
+                        >
+                            {section.label && (
+                                <Menu.Label>
+                                    <Text size="sm">{section.label}</Text>
+                                </Menu.Label>
                             )}
 
-                        {sIdx < sections.length - 1 && <Menu.Divider />}
-                    </div>
-                ))}
+                            {Array.isArray(section.items) &&
+                                section.items.map((item, iIdx) =>
+                                    renderItem(item, `${sIdx}-${iIdx}`),
+                                )}
+
+                            {sIdx < sections.length - 1 && <Menu.Divider />}
+                        </div>
+                    );
+                })}
             </Menu.Dropdown>
         </Menu>
     );

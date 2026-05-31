@@ -188,29 +188,24 @@ export default function TeamDetails({ actionData, loaderData }) {
                 "The Roster section is vital for organization: 'Set Lineups' directs you to set the ideal batting order and defensive positioning; 'Invite Players' sends email onboarding invites; 'Assign Numbers' lets you bulk-manage jersey numbers.",
             placement: "left",
         },
-        ...(isDesktop
-            ? [
-                  {
-                      target: ".tour-roster-section-desktop",
-                      content:
-                          "This is your team roster. You can view all players, their primary/secondary positions, jersey numbers, and stats.",
-                  },
-                  {
-                      target: ".tour-seasons-overview",
-                      content:
-                          "This is the Seasons Overview. From here, you can track active and past seasons, overview played games, and drill into specific season stats.",
-                  },
-              ]
-            : []),
-        ...(!isDesktop
-            ? [
-                  {
-                      target: ".tour-mobile-tabs",
-                      content:
-                          "Use these mobile tabs to quickly switch between the team roster, active seasons, and scheduled games.",
-                  },
-              ]
-            : []),
+        {
+            target: ".tour-roster-section-desktop",
+            content:
+                "This is your team roster. You can view all players, their primary/secondary positions, jersey numbers, and stats.",
+            responsive: "desktop",
+        },
+        {
+            target: ".tour-seasons-overview",
+            content:
+                "This is the Seasons Overview. From here, you can track active and past seasons, overview played games, and drill into specific season stats.",
+            responsive: "desktop",
+        },
+        {
+            target: ".tour-mobile-tabs",
+            content:
+                "Use these mobile tabs to quickly switch between the team roster, active seasons, and scheduled games.",
+            responsive: "mobile",
+        },
     ];
 
     return (
@@ -270,7 +265,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                     alwaysIncludeTargets={[
                         ".tour-team-details-menu-section-team-options",
                         ".tour-team-details-menu-section-roster",
-                        ...(isDesktop ? [".tour-roster-section-desktop"] : []),
+                        ".tour-roster-section-desktop",
                     ]}
                 />
             )}

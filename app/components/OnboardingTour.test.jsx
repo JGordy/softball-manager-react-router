@@ -340,4 +340,125 @@ describe("OnboardingTour Component", () => {
         // Tour is run = false now
         expect(screen.queryByTestId("mock-joyride")).not.toBeInTheDocument();
     });
+
+    it("filters active steps based on responsive viewport client-side", () => {
+        // Save original matchMedia
+        const originalMatchMedia = window.matchMedia;
+
+        // Mock matchMedia to return false (mobile viewport)
+        window.matchMedia = jest.fn().mockImplementation((query) => ({
+            matches: false,
+            media: query,
+            onchange: null,
+            addListener: jest.fn(),
+            removeListener: jest.fn(),
+            addEventListener: jest.fn(),
+            removeEventListener: jest.fn(),
+            dispatchEvent: jest.fn(),
+        }));
+
+        const responsiveSteps = [
+            { target: ".all-viewport", content: "All Viewports Step" },
+            {
+                target: ".desktop-only",
+                content: "Desktop Only Step",
+                responsive: "desktop",
+            },
+            {
+                target: ".mobile-only",
+                content: "Mobile Only Step",
+                responsive: "mobile",
+            },
+        ];
+
+        // Mock target presence
+        const d1 = document.createElement("div");
+        d1.className = "all-viewport";
+        document.body.appendChild(d1);
+        const d2 = document.createElement("div");
+        d2.className = "desktop-only";
+        document.body.appendChild(d2);
+        const d3 = document.createElement("div");
+        d3.className = "mobile-only";
+        document.body.appendChild(d3);
+
+        const mockUser = { $id: "user1", prefs: { onboardingTours: {} } };
+
+        const { unmount } = render(
+            <OnboardingTour
+                tourKey="team_details"
+                steps={responsiveSteps}
+                user={mockUser}
+            />,
+        );
+
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // matches: false, so it's mobile viewport. It should show:
+        // - "All Viewports Step"
+        // - "Mobile Only Step"
+        // It should NOT show:
+        // - "Desktop Only Step"
+        expect(screen.getByText("All Viewports Step")).toBeInTheDocument();
+        expect(screen.getByText("Mobile Only Step")).toBeInTheDocument();
+        expect(screen.queryByText("Desktop Only Step")).not.toBeInTheDocument();
+
+        unmount();
+        cleanup();
+        document.body.innerHTML = "";
+
+        // Now mock matchMedia to return true (desktop viewport)
+        window.matchMedia = jest.fn().mockImplementation((query) => ({
+            matches: true,
+            media: query,
+            onchange: null,
+            addListener: jest.fn(),
+            removeListener: jest.fn(),
+            addEventListener: jest.fn(),
+            removeEventListener: jest.fn(),
+            dispatchEvent: jest.fn(),
+        }));
+
+        const d4 = document.createElement("div");
+        d4.className = "all-viewport";
+        document.body.appendChild(d4);
+        const d5 = document.createElement("div");
+        d5.className = "desktop-only";
+        document.body.appendChild(d5);
+        const d6 = document.createElement("div");
+        d6.className = "mobile-only";
+        document.body.appendChild(d6);
+
+        render(
+            <OnboardingTour
+                tourKey="team_details"
+                steps={responsiveSteps}
+                user={mockUser}
+            />,
+        );
+
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // matches: true, so it's desktop viewport. It should show:
+        // - "All Viewports Step"
+        // - "Desktop Only Step"
+        // It should NOT show:
+        // - "Mobile Only Step"
+        expect(screen.getByText("All Viewports Step")).toBeInTheDocument();
+        expect(screen.getByText("Desktop Only Step")).toBeInTheDocument();
+        expect(screen.queryByText("Mobile Only Step")).not.toBeInTheDocument();
+
+        // Restore original matchMedia
+        window.matchMedia = originalMatchMedia;
+    });
 });
