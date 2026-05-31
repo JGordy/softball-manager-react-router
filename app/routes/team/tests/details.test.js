@@ -332,9 +332,20 @@ describe("TeamDetails Route", () => {
             ).toBeInTheDocument();
         });
 
-        it("renders OnboardingTour component", () => {
+        it("renders OnboardingTour component for managers", () => {
             render(<TeamDetails loaderData={mockLoaderData} />);
             expect(screen.getByTestId("onboarding-tour")).toBeInTheDocument();
+        });
+
+        it("does not render OnboardingTour component for non-managers", () => {
+            const nonManagerLoaderData = {
+                ...mockLoaderData,
+                managerIds: ["other-user"],
+            };
+            render(<TeamDetails loaderData={nonManagerLoaderData} />);
+            expect(
+                screen.queryByTestId("onboarding-tour"),
+            ).not.toBeInTheDocument();
         });
     });
 });
