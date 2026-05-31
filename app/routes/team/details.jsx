@@ -148,7 +148,7 @@ export default function TeamDetails({ actionData, loaderData }) {
     } = loaderData;
     // console.log('/team/details >', { players, team, managerIds });
 
-    const { user, isDesktop } = useOutletContext();
+    const { user } = useOutletContext();
 
     const userId = user && user.$id;
     const managerView = managerIds.indexOf(userId) !== -1;
