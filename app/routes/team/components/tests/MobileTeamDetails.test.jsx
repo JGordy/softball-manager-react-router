@@ -25,11 +25,15 @@ describe("MobileTeamDetails Component", () => {
     };
 
     it("renders Roster, Seasons, and Games tabs", () => {
-        render(<MobileTeamDetails {...mockProps} />);
+        const { container } = render(<MobileTeamDetails {...mockProps} />);
 
         expect(screen.getByText("Roster")).toBeInTheDocument();
         expect(screen.getByText("Seasons")).toBeInTheDocument();
         expect(screen.getByText("Games")).toBeInTheDocument();
+
+        // Verify onboarding class wrapper is present
+        const tabsBox = container.querySelector(".tour-mobile-tabs");
+        expect(tabsBox).toBeInTheDocument();
     });
 
     it("renders sub-components correctly", () => {

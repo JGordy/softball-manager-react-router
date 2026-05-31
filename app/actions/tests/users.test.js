@@ -569,6 +569,110 @@ describe("Users Actions", () => {
             expect(result.status).toBe(204);
         });
 
+        it("should validate and update onboardingTours preference when passed as a valid JSON string", async () => {
+            const mockAccount = {
+                get: jest.fn().mockResolvedValue({ prefs: {} }),
+                updatePrefs: jest.fn().mockResolvedValue({
+                    prefs: { onboardingTours: { team_details: true } },
+                }),
+            };
+            createSessionClient.mockResolvedValue({ account: mockAccount });
+
+            const mockValues = {
+                onboardingTours: JSON.stringify({ team_details: true }),
+            };
+            const result = await updateUserPrefs({
+                values: mockValues,
+                client: await createSessionClient(),
+            });
+
+            expect(mockAccount.updatePrefs).toHaveBeenCalledWith({
+                prefs: {
+                    onboardingTours: { team_details: true },
+                },
+            });
+            expect(result.success).toBe(true);
+            expect(result.status).toBe(204);
+        });
+
+        it("should validate and update onboardingTours preference when passed as a valid object", async () => {
+            const mockAccount = {
+                get: jest.fn().mockResolvedValue({ prefs: {} }),
+                updatePrefs: jest.fn().mockResolvedValue({
+                    prefs: { onboardingTours: { team_details: true } },
+                }),
+            };
+            createSessionClient.mockResolvedValue({ account: mockAccount });
+
+            const mockValues = { onboardingTours: { team_details: true } };
+            const result = await updateUserPrefs({
+                values: mockValues,
+                client: await createSessionClient(),
+            });
+
+            expect(mockAccount.updatePrefs).toHaveBeenCalledWith({
+                prefs: {
+                    onboardingTours: { team_details: true },
+                },
+            });
+            expect(result.success).toBe(true);
+            expect(result.status).toBe(204);
+        });
+
+        it("should reject onboardingTours preference if it is an invalid JSON string format", async () => {
+            const mockAccount = {
+                get: jest.fn().mockResolvedValue({ prefs: {} }),
+            };
+            createSessionClient.mockResolvedValue({ account: mockAccount });
+
+            const result = await updateUserPrefs({
+                values: { onboardingTours: "invalid-json-string" },
+                client: await createSessionClient(),
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.status).toBe(400);
+            expect(result.message).toBe(
+                "Invalid onboarding tours preference format.",
+            );
+        });
+
+        it("should reject onboardingTours preference if it parses to a non-object or null", async () => {
+            const mockAccount = {
+                get: jest.fn().mockResolvedValue({ prefs: {} }),
+            };
+            createSessionClient.mockResolvedValue({ account: mockAccount });
+
+            const result = await updateUserPrefs({
+                values: { onboardingTours: "null" },
+                client: await createSessionClient(),
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.status).toBe(400);
+            expect(result.message).toBe(
+                "Onboarding tours preference must be an object.",
+            );
+        });
+
+        it("should reject onboardingTours preference if it is an array", async () => {
+            const mockAccount = {
+                get: jest.fn().mockResolvedValue({ prefs: {} }),
+            };
+            createSessionClient.mockResolvedValue({ account: mockAccount });
+
+            const result = await updateUserPrefs({
+                values: { onboardingTours: "[]" },
+                client: await createSessionClient(),
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.status).toBe(400);
+            expect(result.message).toBe(
+                "Onboarding tours preference must be an object.",
+            );
+        });
+
         it("should reject invalid preference keys", async () => {
             const result = await updateUserPrefs({
                 values: { invalidKey: "some-value" },

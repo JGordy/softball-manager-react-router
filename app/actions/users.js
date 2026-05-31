@@ -353,6 +353,7 @@ export async function updateUserPrefs({ values, client }) {
             "themePreference",
             "statsPrivacy",
             "defaultAvailability",
+            "onboardingTours",
         ];
         const keys = Object.keys(values);
         const isValid = keys.every((key) => allowedKeys.includes(key));
@@ -418,6 +419,33 @@ export async function updateUserPrefs({ values, client }) {
                     success: false,
                     status: 400,
                     message: "Invalid starting page.",
+                    action: "update-user-prefs",
+                };
+            }
+        }
+
+        if (Object.prototype.hasOwnProperty.call(values, "onboardingTours")) {
+            if (typeof values.onboardingTours === "string") {
+                try {
+                    values.onboardingTours = JSON.parse(values.onboardingTours);
+                } catch (e) {
+                    return {
+                        success: false,
+                        status: 400,
+                        message: "Invalid onboarding tours preference format.",
+                        action: "update-user-prefs",
+                    };
+                }
+            }
+            if (
+                typeof values.onboardingTours !== "object" ||
+                values.onboardingTours === null ||
+                Array.isArray(values.onboardingTours)
+            ) {
+                return {
+                    success: false,
+                    status: 400,
+                    message: "Onboarding tours preference must be an object.",
                     action: "update-user-prefs",
                 };
             }

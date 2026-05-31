@@ -63,7 +63,10 @@ export default function DesktopTeamDetails({
     return (
         <Box mt="lg">
             <Grid gap="xl" align="flex-start">
-                <Grid.Col span={{ base: 12, lg: 7 }}>
+                <Grid.Col
+                    span={{ base: 12, lg: 7 }}
+                    className="tour-roster-section-desktop"
+                >
                     <Title order={4} mb="md">
                         Team Roster
                     </Title>
@@ -110,7 +113,7 @@ export default function DesktopTeamDetails({
                         </Box>
 
                         {sortedSeasons.length > 0 && (
-                            <Box>
+                            <Box className="tour-seasons-overview">
                                 <Title order={4} mb="md">
                                     Seasons Overview
                                 </Title>

@@ -48,4 +48,110 @@ describe("MenuContainer Component", () => {
         fireEvent.click(screen.getByText("Item 1"));
         expect(handleClick).toHaveBeenCalledTimes(1);
     });
+
+    it("assigns formatted class name to sections", async () => {
+        const sections = [
+            {
+                label: "Team Options",
+                items: [{ key: "1", text: "Item 1" }],
+            },
+            {
+                label: "Roster",
+                items: [{ key: "2", text: "Item 2" }],
+            },
+        ];
+
+        const { container } = render(<MenuContainer sections={sections} />);
+
+        const trigger = screen.getByRole("button");
+        fireEvent.click(trigger);
+
+        await waitFor(() => {
+            expect(screen.getByText("Team Options")).toBeInTheDocument();
+        });
+
+        const teamOptionsSection = document.querySelector(
+            ".tour-menu-section-team-options",
+        );
+        expect(teamOptionsSection).toBeInTheDocument();
+        expect(teamOptionsSection).toHaveTextContent("Team Options");
+
+        const rosterSection = document.querySelector(
+            ".tour-menu-section-roster",
+        );
+        expect(rosterSection).toBeInTheDocument();
+        expect(rosterSection).toHaveTextContent("Roster");
+    });
+
+    it("assigns scoped class name to sections when id is provided", async () => {
+        const sections = [
+            {
+                label: "Team Options",
+                items: [{ key: "1", text: "Item 1" }],
+            },
+        ];
+
+        render(<MenuContainer sections={sections} id="scoped-menu-id" />);
+
+        const trigger = screen.getByRole("button");
+        fireEvent.click(trigger);
+
+        await waitFor(() => {
+            expect(screen.getByText("Team Options")).toBeInTheDocument();
+        });
+
+        const teamOptionsSection = document.querySelector(
+            ".tour-scoped-menu-id-section-team-options",
+        );
+        expect(teamOptionsSection).toBeInTheDocument();
+        expect(teamOptionsSection).toHaveTextContent("Team Options");
+    });
+
+    it("responds to toggle-onboarding-menu custom events only when id matches", async () => {
+        const sections = [
+            {
+                label: "Team Options",
+                items: [{ key: "1", text: "Item 1" }],
+            },
+        ];
+
+        render(<MenuContainer sections={sections} id="test-scoped-menu" />);
+
+        // Dispatch toggle event with mismatching menuId
+        fireEvent(
+            window,
+            new CustomEvent("toggle-onboarding-menu", {
+                detail: { open: true, menuId: "other-menu-id" },
+            }),
+        );
+
+        // Menu should not open
+        expect(screen.queryByText("Team Options")).not.toBeInTheDocument();
+
+        // Dispatch toggle event with matching menuId
+        fireEvent(
+            window,
+            new CustomEvent("toggle-onboarding-menu", {
+                detail: { open: true, menuId: "test-scoped-menu" },
+            }),
+        );
+
+        // Menu should open
+        await waitFor(() => {
+            expect(screen.getByText("Team Options")).toBeInTheDocument();
+        });
+
+        // Dispatch toggle event with matching menuId to close
+        fireEvent(
+            window,
+            new CustomEvent("toggle-onboarding-menu", {
+                detail: { open: false, menuId: "test-scoped-menu" },
+            }),
+        );
+
+        // Menu should close
+        await waitFor(() => {
+            expect(screen.queryByText("Team Options")).not.toBeInTheDocument();
+        });
+    });
 });

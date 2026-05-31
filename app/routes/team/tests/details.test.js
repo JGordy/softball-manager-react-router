@@ -51,6 +51,9 @@ jest.mock("../components/MobileTeamDetails", () => () => (
 jest.mock("../components/DesktopTeamDetails", () => () => (
     <div data-testid="desktop-team-details" />
 ));
+jest.mock("@/components/OnboardingTour", () => () => (
+    <div data-testid="onboarding-tour" />
+));
 
 describe("TeamDetails Route", () => {
     const originalEnv = process.env;
@@ -89,7 +92,7 @@ describe("TeamDetails Route", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        useOutletContext.mockReturnValue({ user: mockUser });
+        useOutletContext.mockReturnValue({ user: mockUser, isDesktop: true });
     });
 
     describe("loader", () => {
@@ -327,6 +330,22 @@ describe("TeamDetails Route", () => {
             expect(
                 screen.getByTestId("desktop-team-details"),
             ).toBeInTheDocument();
+        });
+
+        it("renders OnboardingTour component for managers", () => {
+            render(<TeamDetails loaderData={mockLoaderData} />);
+            expect(screen.getByTestId("onboarding-tour")).toBeInTheDocument();
+        });
+
+        it("does not render OnboardingTour component for non-managers", () => {
+            const nonManagerLoaderData = {
+                ...mockLoaderData,
+                managerIds: ["other-user"],
+            };
+            render(<TeamDetails loaderData={nonManagerLoaderData} />);
+            expect(
+                screen.queryByTestId("onboarding-tour"),
+            ).not.toBeInTheDocument();
         });
     });
 });

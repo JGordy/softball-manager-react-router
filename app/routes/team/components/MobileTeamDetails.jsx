@@ -1,4 +1,4 @@
-import { Group, Tabs } from "@mantine/core";
+import { Group, Tabs, Box } from "@mantine/core";
 import {
     IconCalendarMonth,
     IconUsersGroup,
@@ -21,55 +21,59 @@ export default function MobileTeamDetails({
     const { primaryColor, seasons } = team;
 
     return (
-        <TabsWrapper color={primaryColor} defaultValue="seasons">
-            <Tabs.Tab value="roster">
-                <Group gap="xs" align="center" justify="center">
-                    <IconUsersGroup size={16} />
-                    Roster
-                </Group>
-            </Tabs.Tab>
-            <Tabs.Tab value="seasons">
-                <Group gap="xs" align="center" justify="center">
-                    <IconCalendarMonth size={16} />
-                    Seasons
-                </Group>
-            </Tabs.Tab>
-            <Tabs.Tab value="games" disabled={seasons?.length === 0}>
-                <Group gap="xs" align="center" justify="center">
-                    <IconBallBaseball size={16} />
-                    Games
-                </Group>
-            </Tabs.Tab>
+        <Box className="tour-mobile-tabs">
+            <TabsWrapper color={primaryColor} defaultValue="seasons">
+                <Tabs.Tab value="roster" className="tour-mobile-tab-roster">
+                    <Group gap="xs" align="center" justify="center">
+                        <IconUsersGroup size={16} />
+                        Roster
+                    </Group>
+                </Tabs.Tab>
+                <Tabs.Tab value="seasons">
+                    <Group gap="xs" align="center" justify="center">
+                        <IconCalendarMonth size={16} />
+                        Seasons
+                    </Group>
+                </Tabs.Tab>
+                <Tabs.Tab value="games" disabled={seasons?.length === 0}>
+                    <Group gap="xs" align="center" justify="center">
+                        <IconBallBaseball size={16} />
+                        Games
+                    </Group>
+                </Tabs.Tab>
 
-            <Tabs.Panel value="roster">
-                <PlayerList
-                    players={players}
-                    managerIds={managerIds}
-                    managerView={managerView}
-                    user={user}
-                    teamLogs={teamLogs}
-                    teamId={team.$id}
-                />
-            </Tabs.Panel>
+                <Tabs.Panel value="roster">
+                    <Box className="tour-roster-section-mobile">
+                        <PlayerList
+                            players={players}
+                            managerIds={managerIds}
+                            managerView={managerView}
+                            user={user}
+                            teamLogs={teamLogs}
+                            teamId={team.$id}
+                        />
+                    </Box>
+                </Tabs.Panel>
 
-            <Tabs.Panel value="seasons">
-                <SeasonList
-                    seasons={seasons}
-                    teamId={team.$id}
-                    managerView={managerView}
-                    primaryColor={primaryColor}
-                />
-            </Tabs.Panel>
+                <Tabs.Panel value="seasons">
+                    <SeasonList
+                        seasons={seasons}
+                        teamId={team.$id}
+                        managerView={managerView}
+                        primaryColor={primaryColor}
+                    />
+                </Tabs.Panel>
 
-            <Tabs.Panel value="games">
-                <GamesList
-                    games={seasons?.[0]?.games}
-                    seasons={seasons}
-                    teamId={team.$id}
-                    managerView={managerView}
-                    primaryColor={primaryColor}
-                />
-            </Tabs.Panel>
-        </TabsWrapper>
+                <Tabs.Panel value="games">
+                    <GamesList
+                        games={seasons?.[0]?.games}
+                        seasons={seasons}
+                        teamId={team.$id}
+                        managerView={managerView}
+                        primaryColor={primaryColor}
+                    />
+                </Tabs.Panel>
+            </TabsWrapper>
+        </Box>
     );
 }

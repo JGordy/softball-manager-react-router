@@ -50,9 +50,15 @@ describe("DesktopTeamDetails Component", () => {
     });
 
     it("renders Roster Table", () => {
-        render(<DesktopTeamDetails {...mockProps} />);
+        const { container } = render(<DesktopTeamDetails {...mockProps} />);
         expect(screen.getByText("Team Roster")).toBeInTheDocument();
         expect(screen.getByTestId("desktop-roster-table")).toBeInTheDocument();
+
+        // Verify onboarding class is present
+        const rosterCol = container.querySelector(
+            ".tour-roster-section-desktop",
+        );
+        expect(rosterCol).toBeInTheDocument();
     });
 
     it("renders Upcoming Games and Recent Results sections", () => {
@@ -65,8 +71,12 @@ describe("DesktopTeamDetails Component", () => {
     });
 
     it("renders Seasons Overview section", () => {
-        render(<DesktopTeamDetails {...mockProps} />);
+        const { container } = render(<DesktopTeamDetails {...mockProps} />);
         expect(screen.getByText("Seasons Overview")).toBeInTheDocument();
         expect(screen.getByText("Test Season")).toBeInTheDocument();
+
+        // Verify onboarding class is present
+        const seasonsBox = container.querySelector(".tour-seasons-overview");
+        expect(seasonsBox).toBeInTheDocument();
     });
 });
