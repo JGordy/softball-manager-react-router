@@ -65,7 +65,7 @@ export default function DesktopTeamDetails({
             <Grid gap="xl" align="flex-start">
                 <Grid.Col
                     span={{ base: 12, lg: 7 }}
-                    className="tour-roster-section"
+                    className="tour-roster-section-desktop"
                 >
                     <Title order={4} mb="md">
                         Team Roster

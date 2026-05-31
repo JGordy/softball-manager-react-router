@@ -43,7 +43,7 @@ export default function MobileTeamDetails({
                 </Tabs.Tab>
 
                 <Tabs.Panel value="roster">
-                    <Box className="tour-roster-section">
+                    <Box className="tour-roster-section-mobile">
                         <PlayerList
                             players={players}
                             managerIds={managerIds}

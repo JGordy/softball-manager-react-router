@@ -137,50 +137,49 @@ export default function OnboardingTour({
         // Preemptively open or close the menu dropdown / tabs during STEP_AFTER transitions to let React
         // flush state changes and render elements in the DOM before the next step's measurement.
         if (type === EVENTS.STEP_AFTER) {
-            if (data.action !== "next" && data.action !== "prev") {
-                return;
-            }
-            const nextIndex =
-                data.action === "prev" ? data.index - 1 : data.index + 1;
-            const nextStep = activeSteps[nextIndex];
-            const nextTarget = nextStep?.target;
+            if (data.action === "next" || data.action === "prev") {
+                const nextIndex =
+                    data.action === "prev" ? data.index - 1 : data.index + 1;
+                const nextStep = activeSteps[nextIndex];
+                const nextTarget = nextStep?.target;
 
-            let delay = 0;
-            if (typeof nextTarget === "string") {
-                if (menuId) {
-                    if (nextTarget.includes("menu-section")) {
-                        window.dispatchEvent(
-                            new CustomEvent("toggle-onboarding-menu", {
-                                detail: { open: true, menuId },
-                            }),
+                let delay = 0;
+                if (typeof nextTarget === "string") {
+                    if (menuId) {
+                        if (nextTarget.includes("menu-section")) {
+                            window.dispatchEvent(
+                                new CustomEvent("toggle-onboarding-menu", {
+                                    detail: { open: true, menuId },
+                                }),
+                            );
+                            delay = 150; // Give menu time to render
+                        } else {
+                            window.dispatchEvent(
+                                new CustomEvent("toggle-onboarding-menu", {
+                                    detail: { open: false, menuId },
+                                }),
+                            );
+                        }
+                    }
+
+                    if (nextTarget.includes("tour-roster-section")) {
+                        const rosterTab = document.querySelector(
+                            ".tour-mobile-tab-roster",
                         );
-                        delay = 150; // Give menu time to render
-                    } else {
-                        window.dispatchEvent(
-                            new CustomEvent("toggle-onboarding-menu", {
-                                detail: { open: false, menuId },
-                            }),
-                        );
+                        if (rosterTab) {
+                            rosterTab.click();
+                            delay = 150; // Give tab time to transition and render panel
+                        }
                     }
                 }
 
-                if (nextTarget === ".tour-roster-section") {
-                    const rosterTab = document.querySelector(
-                        ".tour-mobile-tab-roster",
-                    );
-                    if (rosterTab) {
-                        rosterTab.click();
-                        delay = 150; // Give tab time to transition and render panel
-                    }
-                }
-            }
-
-            if (delay > 0) {
-                setTimeout(() => {
+                if (delay > 0) {
+                    setTimeout(() => {
+                        setStepIndex(nextIndex);
+                    }, delay);
+                } else {
                     setStepIndex(nextIndex);
-                }, delay);
-            } else {
-                setStepIndex(nextIndex);
+                }
             }
         }
 

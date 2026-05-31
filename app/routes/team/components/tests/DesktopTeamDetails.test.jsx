@@ -55,7 +55,9 @@ describe("DesktopTeamDetails Component", () => {
         expect(screen.getByTestId("desktop-roster-table")).toBeInTheDocument();
 
         // Verify onboarding class is present
-        const rosterCol = container.querySelector(".tour-roster-section");
+        const rosterCol = container.querySelector(
+            ".tour-roster-section-desktop",
+        );
         expect(rosterCol).toBeInTheDocument();
     });
 

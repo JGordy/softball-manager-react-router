@@ -191,7 +191,7 @@ export default function TeamDetails({ actionData, loaderData }) {
         ...(isDesktop
             ? [
                   {
-                      target: ".tour-roster-section",
+                      target: ".tour-roster-section-desktop",
                       content:
                           "This is your team roster. You can view all players, their primary/secondary positions, jersey numbers, and stats.",
                   },
@@ -270,7 +270,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                     alwaysIncludeTargets={[
                         ".tour-team-details-menu-section-team-options",
                         ".tour-team-details-menu-section-roster",
-                        ".tour-roster-section",
+                        ...(isDesktop ? [".tour-roster-section-desktop"] : []),
                     ]}
                 />
             )}
