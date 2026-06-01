@@ -279,7 +279,6 @@ export default function OnboardingTour({
                     continuous
                     options={{
                         ...options,
-                        showSkipButton: true,
                         buttons: ["back", "skip", "primary"],
                         overlayClickAction: false, // Prevent clicking outside the tooltip on the overlay from closing it and locking the screen
                     }}
