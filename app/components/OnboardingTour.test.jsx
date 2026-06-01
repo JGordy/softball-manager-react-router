@@ -617,4 +617,56 @@ describe("OnboardingTour Component", () => {
         // It should decrement stepIndex to (1 - 1) = 0.
         expect(screen.getByText("Step 1")).toBeInTheDocument();
     });
+
+    it("closes the controlled menu when terminating early due to target_not_found on the last step", () => {
+        const mockUser = {
+            $id: "user1",
+            prefs: {
+                onboardingTours: {},
+            },
+        };
+
+        const eventListener = jest.fn();
+        window.addEventListener("toggle-onboarding-menu", eventListener);
+
+        render(
+            <OnboardingTour
+                tourKey="team_details"
+                steps={[
+                    { target: ".present-target", content: "Step 1" },
+                    { target: ".missing-target", content: "Step 2" },
+                ]}
+                user={mockUser}
+                menuId="game-details-menu"
+                alwaysIncludeTargets={[".present-target", ".missing-target"]}
+            />,
+        );
+
+        // Cascade timers
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // Trigger target-not-found-btn on step index 1 (which is the last step: length - 1)
+        const forwardNotFoundBtn = screen.getByTestId("target-not-found-btn");
+        act(() => {
+            fireEvent.click(forwardNotFoundBtn);
+        });
+
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // Assert that the controlled menu close dispatch occurred
+        expect(eventListener).toHaveBeenCalledWith(
+            expect.objectContaining({
+                detail: { open: false, menuId: "game-details-menu" },
+            }),
+        );
+
+        window.removeEventListener("toggle-onboarding-menu", eventListener);
+    });
 });

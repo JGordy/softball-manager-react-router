@@ -208,20 +208,29 @@ export default function OnboardingTour({
             const isLastStep = data.index === activeSteps.length - 1;
             if (isLastStep && data.action !== "prev") {
                 // Terminate tour if we hit target_not_found on the very last step going forward
+                if (menuId) {
+                    window.dispatchEvent(
+                        new CustomEvent("toggle-onboarding-menu", {
+                            detail: { open: false, menuId },
+                        }),
+                    );
+                }
                 setRunTour(false);
                 setStepIndex(0);
                 const updatedTours = {
                     ...onboardingTours,
                     [tourKey]: true,
                 };
-                fetcher.submit(
-                    {
-                        _action: "update-user-preferences",
-                        userId: user?.$id,
-                        onboardingTours: JSON.stringify(updatedTours),
-                    },
-                    { method: "post", action: "/settings" },
-                );
+                if (user?.$id) {
+                    fetcher.submit(
+                        {
+                            _action: "update-user-preferences",
+                            userId: user.$id,
+                            onboardingTours: JSON.stringify(updatedTours),
+                        },
+                        { method: "post", action: "/settings" },
+                    );
+                }
             } else {
                 // Adjust index based on navigation direction (action 'prev' vs 'next') and clamp between 0 and activeSteps length
                 const nextIndex =
