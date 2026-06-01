@@ -51,6 +51,30 @@ jest.mock("react-joyride", () => {
                         Next Step
                     </button>
                     <button
+                        data-testid="target-not-found-btn"
+                        onClick={() =>
+                            onEvent({
+                                type: "error:target_not_found",
+                                index: 1,
+                                action: "next",
+                            })
+                        }
+                    >
+                        Simulate Target Not Found
+                    </button>
+                    <button
+                        data-testid="target-not-found-prev-btn"
+                        onClick={() =>
+                            onEvent({
+                                type: "error:target_not_found",
+                                index: 1,
+                                action: "prev",
+                            })
+                        }
+                    >
+                        Simulate Target Not Found Prev
+                    </button>
+                    <button
                         data-testid="finish-btn"
                         onClick={() =>
                             onEvent({
@@ -72,6 +96,7 @@ jest.mock("react-joyride", () => {
             STEP_BEFORE: "step:before",
             STEP_AFTER: "step:after",
             TOUR_END: "tour:end",
+            TARGET_NOT_FOUND: "error:target_not_found",
         },
     };
 });
@@ -516,5 +541,53 @@ describe("OnboardingTour Component", () => {
 
         // Restore original matchMedia
         window.matchMedia = originalMatchMedia;
+    });
+
+    it("handles target_not_found errors by advancing the stepIndex gracefully based on direction", () => {
+        const mockUser = {
+            $id: "user1",
+            prefs: {
+                onboardingTours: {},
+            },
+        };
+
+        render(
+            <OnboardingTour
+                tourKey="team_details"
+                steps={[
+                    { target: ".present-target", content: "Step 1" },
+                    { target: ".missing-target", content: "Step 2" },
+                    { target: ".third-target", content: "Step 3" },
+                ]}
+                user={mockUser}
+                alwaysIncludeTargets={[
+                    ".present-target",
+                    ".missing-target",
+                    ".third-target",
+                ]}
+            />,
+        );
+
+        // Cascade timers
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // Simulate going forward (action = next) and target not found on step 1 (0-indexed base index 1)
+        const forwardBtn = screen.getByTestId("target-not-found-btn");
+        act(() => {
+            fireEvent.click(forwardBtn);
+        });
+
+        // Simulate going backward (action = prev) and target not found on step 1
+        const prevBtn = screen.getByTestId("target-not-found-prev-btn");
+        act(() => {
+            fireEvent.click(prevBtn);
+        });
+
+        expect(screen.getByTestId("mock-joyride")).toBeInTheDocument();
     });
 });

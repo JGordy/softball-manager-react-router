@@ -33,11 +33,13 @@ export function getEventDetailsSteps(managerView) {
             target: ".tour-gameday-hub-card",
             content:
                 "Access live scoring stats, play-by-plays, and box scores to follow the matchup action in real-time.",
+            responsive: "mobile",
         },
         {
             target: ".tour-lineup-field-card",
             content:
                 "View starting lineups, batting orders, and interactive fielding charts, or tap to open the details.",
+            responsive: "mobile",
         },
         ...(managerView
             ? [
@@ -45,6 +47,7 @@ export function getEventDetailsSteps(managerView) {
                       target: ".tour-game-menu-trigger",
                       content:
                           "As a team manager, you have access to the Game Options menu to update schedule details or draft charts.",
+                      responsive: "mobile",
                   },
                   {
                       target: ".tour-game-details-menu-dropdown",

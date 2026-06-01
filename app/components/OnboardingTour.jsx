@@ -203,6 +203,38 @@ export default function OnboardingTour({
             }
         }
 
+        // Handle missing elements gracefully in controlled mode (error:target_not_found)
+        if (type === EVENTS.TARGET_NOT_FOUND) {
+            const isLastStep = data.index === activeSteps.length - 1;
+            if (isLastStep && data.action !== "prev") {
+                // Terminate tour if we hit target_not_found on the very last step going forward
+                setRunTour(false);
+                setStepIndex(0);
+                const updatedTours = {
+                    ...onboardingTours,
+                    [tourKey]: true,
+                };
+                fetcher.submit(
+                    {
+                        _action: "update-user-preferences",
+                        userId: user?.$id,
+                        onboardingTours: JSON.stringify(updatedTours),
+                    },
+                    { method: "post", action: "/settings" },
+                );
+            } else {
+                // Adjust index based on navigation direction (action 'prev' vs 'next') and clamp between 0 and activeSteps length
+                const nextIndex =
+                    data.action === "prev" ? data.index - 1 : data.index + 1;
+                const clampedIndex = Math.max(
+                    0,
+                    Math.min(activeSteps.length - 1, nextIndex),
+                );
+                setStepIndex(clampedIndex);
+            }
+            return;
+        }
+
         // Listen to finished/skipped statuses or the absolute tour end event
         const isTourFinished =
             status === STATUS.FINISHED ||
