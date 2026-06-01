@@ -264,6 +264,62 @@ describe("OnboardingTour Component", () => {
         window.removeEventListener("toggle-onboarding-menu", eventListener);
     });
 
+    it("dispatches custom controlled toggle events when navigating to a menu-dropdown target", () => {
+        const mockUser = {
+            $id: "user1",
+            prefs: {
+                onboardingTours: {},
+            },
+        };
+
+        const eventListener = jest.fn();
+        window.addEventListener("toggle-onboarding-menu", eventListener);
+
+        const dropdownSteps = [
+            { target: ".present-target", content: "Step 1" },
+            {
+                target: ".tour-game-details-menu-dropdown",
+                content: "Dropdown Target Step",
+            },
+        ];
+
+        render(
+            <OnboardingTour
+                tourKey="team_details"
+                steps={dropdownSteps}
+                user={mockUser}
+                menuId="game-details-menu"
+                alwaysIncludeTargets={[
+                    ".present-target",
+                    ".tour-game-details-menu-dropdown",
+                ]}
+            />,
+        );
+
+        // Cascade pending timers
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // Click next-btn which fires step:after event transition to menu-dropdown
+        const nextBtn = screen.getByTestId("next-btn");
+        act(() => {
+            fireEvent.click(nextBtn);
+        });
+
+        // Assert that the CustomEvent was dispatched for menu-dropdown target
+        expect(eventListener).toHaveBeenCalledWith(
+            expect.objectContaining({
+                detail: { open: true, menuId: "game-details-menu" },
+            }),
+        );
+
+        window.removeEventListener("toggle-onboarding-menu", eventListener);
+    });
+
     it("programmatically clicks Roster Tab button when entering roster step on mobile", () => {
         const mockUser = {
             $id: "user1",

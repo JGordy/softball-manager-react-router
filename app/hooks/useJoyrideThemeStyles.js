@@ -20,6 +20,7 @@ export function useJoyrideThemeStyles() {
         primaryColor: isDark ? "#CCFF33" : "#5C8A00", // Neon in dark mode, dark lime in light mode
         textColor: isDark ? "#FFFFFF" : "#111827",
         zIndex: 1000,
+        showSkipButton: true,
     };
 
     const styles = {

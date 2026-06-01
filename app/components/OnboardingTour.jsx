@@ -113,7 +113,9 @@ export default function OnboardingTour({
         if (type === EVENTS.STEP_BEFORE) {
             const target = step?.target;
             const isMenuStep =
-                typeof target === "string" && target.includes("menu-section");
+                typeof target === "string" &&
+                (target.includes("menu-section") ||
+                    target.includes("menu-dropdown"));
 
             if (menuId) {
                 if (isMenuStep) {
@@ -159,7 +161,10 @@ export default function OnboardingTour({
                 let delay = 0;
                 if (typeof nextTarget === "string") {
                     if (menuId) {
-                        if (nextTarget.includes("menu-section")) {
+                        if (
+                            nextTarget.includes("menu-section") ||
+                            nextTarget.includes("menu-dropdown")
+                        ) {
                             window.dispatchEvent(
                                 new CustomEvent("toggle-onboarding-menu", {
                                     detail: { open: true, menuId },
@@ -240,15 +245,19 @@ export default function OnboardingTour({
                     run={runTour}
                     stepIndex={stepIndex}
                     continuous
-                    showSkipButton={true} // Enabled to guarantee Skip button shows in v2/v3 fallback rendering
-                    buttons={["back", "skip", "primary"]} // Consolidated button configuration in Joyride v3
-                    options={options} // Pass options directly as a prop in Joyride v3
+                    options={{
+                        ...options,
+                        showSkipButton: true,
+                        buttons: ["back", "skip", "primary"],
+                        overlayClickAction: false, // Prevent clicking outside the tooltip on the overlay from closing it and locking the screen
+                    }}
                     styles={styles}
                     onEvent={handleEvent} // Renamed from callback in Joyride v3
-                    disableOverlayClose // Prevent accidental dismissals by clicking outside
                     locale={{
                         last: "Got it!",
                         skip: "Skip Guide",
+                        next: "Next",
+                        back: "Back",
                     }}
                 />
             )}
