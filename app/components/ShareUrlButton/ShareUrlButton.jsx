@@ -51,7 +51,7 @@ export default function ShareUrlButton({ size = "lg", ...props }) {
             radius="xl"
             onClick={handleShare}
             aria-label="Share page"
-            className={classes.actionIcon}
+            className={`${classes.actionIcon} tour-share-game-button`}
             {...props}
         >
             <IconShare size={18} />

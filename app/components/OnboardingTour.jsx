@@ -113,7 +113,10 @@ export default function OnboardingTour({
         if (type === EVENTS.STEP_BEFORE) {
             const target = step?.target;
             const isMenuStep =
-                typeof target === "string" && target.includes("menu-section");
+                menuId &&
+                typeof target === "string" &&
+                (target.includes(`tour-${menuId}-section`) ||
+                    target.includes(`tour-${menuId}-dropdown`));
 
             if (menuId) {
                 if (isMenuStep) {
@@ -159,7 +162,10 @@ export default function OnboardingTour({
                 let delay = 0;
                 if (typeof nextTarget === "string") {
                     if (menuId) {
-                        if (nextTarget.includes("menu-section")) {
+                        const isNextMenuStep =
+                            nextTarget.includes(`tour-${menuId}-section`) ||
+                            nextTarget.includes(`tour-${menuId}-dropdown`);
+                        if (isNextMenuStep) {
                             window.dispatchEvent(
                                 new CustomEvent("toggle-onboarding-menu", {
                                     detail: { open: true, menuId },
@@ -198,6 +204,47 @@ export default function OnboardingTour({
             }
         }
 
+        // Handle missing elements gracefully in controlled mode (error:target_not_found)
+        if (type === EVENTS.TARGET_NOT_FOUND) {
+            const isLastStep = data.index === activeSteps.length - 1;
+            if (isLastStep && data.action !== "prev") {
+                // Terminate tour if we hit target_not_found on the very last step going forward
+                if (menuId) {
+                    window.dispatchEvent(
+                        new CustomEvent("toggle-onboarding-menu", {
+                            detail: { open: false, menuId },
+                        }),
+                    );
+                }
+                setRunTour(false);
+                setStepIndex(0);
+                const updatedTours = {
+                    ...onboardingTours,
+                    [tourKey]: true,
+                };
+                if (user?.$id) {
+                    fetcher.submit(
+                        {
+                            _action: "update-user-preferences",
+                            userId: user.$id,
+                            onboardingTours: JSON.stringify(updatedTours),
+                        },
+                        { method: "post", action: "/settings" },
+                    );
+                }
+            } else {
+                // Adjust index based on navigation direction (action 'prev' vs 'next') and clamp between 0 and activeSteps length
+                const nextIndex =
+                    data.action === "prev" ? data.index - 1 : data.index + 1;
+                const clampedIndex = Math.max(
+                    0,
+                    Math.min(activeSteps.length - 1, nextIndex),
+                );
+                setStepIndex(clampedIndex);
+            }
+            return;
+        }
+
         // Listen to finished/skipped statuses or the absolute tour end event
         const isTourFinished =
             status === STATUS.FINISHED ||
@@ -221,14 +268,16 @@ export default function OnboardingTour({
                 [tourKey]: true,
             };
 
-            fetcher.submit(
-                {
-                    _action: "update-user-preferences",
-                    userId: user?.$id,
-                    onboardingTours: JSON.stringify(updatedTours),
-                },
-                { method: "post", action: "/settings" },
-            );
+            if (user?.$id) {
+                fetcher.submit(
+                    {
+                        _action: "update-user-preferences",
+                        userId: user.$id,
+                        onboardingTours: JSON.stringify(updatedTours),
+                    },
+                    { method: "post", action: "/settings" },
+                );
+            }
         }
     };
 
@@ -240,15 +289,18 @@ export default function OnboardingTour({
                     run={runTour}
                     stepIndex={stepIndex}
                     continuous
-                    showSkipButton={true} // Enabled to guarantee Skip button shows in v2/v3 fallback rendering
-                    buttons={["back", "skip", "primary"]} // Consolidated button configuration in Joyride v3
-                    options={options} // Pass options directly as a prop in Joyride v3
+                    options={{
+                        ...options,
+                        buttons: ["back", "skip", "primary"],
+                        overlayClickAction: false, // Prevent clicking outside the tooltip on the overlay from closing it and locking the screen
+                    }}
                     styles={styles}
                     onEvent={handleEvent} // Renamed from callback in Joyride v3
-                    disableOverlayClose // Prevent accidental dismissals by clicking outside
                     locale={{
                         last: "Got it!",
                         skip: "Skip Guide",
+                        next: "Next",
+                        back: "Back",
                     }}
                 />
             )}

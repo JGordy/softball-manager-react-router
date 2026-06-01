@@ -38,11 +38,11 @@ describe("ShareUrlButton Component", () => {
         jest.clearAllMocks();
     });
 
-    it("renders correctly with share icon", () => {
+    it("renders correctly with share icon and tour class", () => {
         render(<ShareUrlButton />);
-        expect(
-            screen.getByRole("button", { name: /share page/i }),
-        ).toBeInTheDocument();
+        const button = screen.getByRole("button", { name: /share page/i });
+        expect(button).toBeInTheDocument();
+        expect(button).toHaveClass("tour-share-game-button");
     });
 
     it("calls navigator.share when supported", async () => {

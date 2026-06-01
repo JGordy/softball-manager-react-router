@@ -69,7 +69,10 @@ export default function MenuContainer({
                 )}
             </Menu.Target>
 
-            <Menu.Dropdown p="md">
+            <Menu.Dropdown
+                p="md"
+                className={id ? `tour-${id}-dropdown` : undefined}
+            >
                 {sections.map((section, sIdx) => {
                     const slug = section.label
                         ? section.label

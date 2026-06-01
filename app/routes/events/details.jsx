@@ -37,6 +37,9 @@ import DesktopEventDetailsView from "./components/DesktopEventDetailsView";
 import AvailabilityPromptDrawer from "./components/AvailabilityPromptDrawer";
 import AwardsDrawerContents from "./components/AwardsDrawerContents";
 import ShareUrlButton from "@/components/ShareUrlButton";
+import OnboardingTour from "@/components/OnboardingTour";
+
+import { getEventDetailsSteps } from "./utils/onboardingSteps";
 
 export async function action({ request, params }) {
     const { eventId } = params;
@@ -229,6 +232,8 @@ export default function EventDetails({ loaderData, actionData }) {
         onOpenAwards: awardsDrawerHandlers.open,
     };
 
+    const steps = getEventDetailsSteps(managerView);
+
     return (
         <>
             {/* Hero with stadium background — mobile only */}
@@ -243,14 +248,16 @@ export default function EventDetails({ loaderData, actionData }) {
                     <Group gap="xs">
                         <ShareUrlButton />
                         {managerView && (
-                            <GameMenu
-                                game={game}
-                                gameIsPast={gameIsPast}
-                                openDeleteDrawer={deleteDrawerHandlers.open}
-                                result={result}
-                                season={season}
-                                team={team}
-                            />
+                            <Box className="tour-game-menu-trigger">
+                                <GameMenu
+                                    game={game}
+                                    gameIsPast={gameIsPast}
+                                    openDeleteDrawer={deleteDrawerHandlers.open}
+                                    result={result}
+                                    season={season}
+                                    team={team}
+                                />
+                            </Box>
                         )}
                     </Group>
                 </Group>
@@ -344,6 +351,14 @@ export default function EventDetails({ loaderData, actionData }) {
                     </DeferredLoader>
                 </DrawerContainer>
             )}
+
+            <OnboardingTour
+                tourKey="event_details"
+                steps={steps}
+                user={user}
+                menuId="game-details-menu"
+                alwaysIncludeTargets={[".tour-game-details-menu-dropdown"]}
+            />
         </>
     );
 }

@@ -81,7 +81,9 @@ describe("MobileEventDetailsView", () => {
     });
 
     it("renders DetailsCard, GamedayCard, WeatherBadge, AvailabilityBadge, and RosterDetails for future game", () => {
-        render(<MobileEventDetailsView {...defaultProps} />);
+        const { container } = render(
+            <MobileEventDetailsView {...defaultProps} />,
+        );
 
         expect(screen.getByTestId("details-card")).toBeInTheDocument();
         expect(screen.getByTestId("gameday-card")).toBeInTheDocument();
@@ -90,6 +92,9 @@ describe("MobileEventDetailsView", () => {
             screen.getByTestId("availability-badge-button"),
         ).toBeInTheDocument();
         expect(screen.getByTestId("roster-details")).toBeInTheDocument();
+
+        const badgeRow = container.querySelector(".tour-interactive-badge-row");
+        expect(badgeRow).toBeInTheDocument();
     });
 
     it("does NOT render WeatherBadge but renders AwardsBadge for past games", () => {

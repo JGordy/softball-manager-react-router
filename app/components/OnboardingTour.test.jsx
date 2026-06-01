@@ -16,24 +16,31 @@ jest.mock("react-router", () => ({
 jest.mock("react-joyride", () => {
     const React = require("react");
     return {
-        Joyride: ({ steps, run, onEvent }) => {
+        Joyride: ({ steps, run, onEvent, stepIndex = 0 }) => {
             React.useEffect(() => {
-                if (run && steps.length > 0) {
+                if (run && steps.length > 0 && steps[stepIndex]) {
                     onEvent({
                         type: "step:before",
-                        step: steps[0],
-                        index: 0,
+                        step: steps[stepIndex],
+                        index: stepIndex,
                     });
                 }
-            }, [run, steps, onEvent]);
+            }, [run, steps, onEvent, stepIndex]);
 
             return (
-                <div data-testid="mock-joyride" data-run={String(run)}>
+                <div
+                    data-testid="mock-joyride"
+                    data-run={String(run)}
+                    data-step-index={stepIndex}
+                >
                     {steps.map((s, idx) => (
                         <div
                             key={idx}
                             data-testid={`step-${idx}`}
                             data-target={s.target}
+                            style={{
+                                display: idx === stepIndex ? "block" : "none",
+                            }}
                         >
                             {s.content}
                         </div>
@@ -43,12 +50,36 @@ jest.mock("react-joyride", () => {
                         onClick={() =>
                             onEvent({
                                 type: "step:after",
-                                index: 0,
+                                index: stepIndex,
                                 action: "next",
                             })
                         }
                     >
                         Next Step
+                    </button>
+                    <button
+                        data-testid="target-not-found-btn"
+                        onClick={() =>
+                            onEvent({
+                                type: "error:target_not_found",
+                                index: 1,
+                                action: "next",
+                            })
+                        }
+                    >
+                        Simulate Target Not Found
+                    </button>
+                    <button
+                        data-testid="target-not-found-prev-btn"
+                        onClick={() =>
+                            onEvent({
+                                type: "error:target_not_found",
+                                index: 1,
+                                action: "prev",
+                            })
+                        }
+                    >
+                        Simulate Target Not Found Prev
                     </button>
                     <button
                         data-testid="finish-btn"
@@ -72,6 +103,7 @@ jest.mock("react-joyride", () => {
             STEP_BEFORE: "step:before",
             STEP_AFTER: "step:after",
             TOUR_END: "tour:end",
+            TARGET_NOT_FOUND: "error:target_not_found",
         },
     };
 });
@@ -260,6 +292,62 @@ describe("OnboardingTour Component", () => {
 
         // Assert that the CustomEvent was dispatched
         expect(eventListener).toHaveBeenCalled();
+
+        window.removeEventListener("toggle-onboarding-menu", eventListener);
+    });
+
+    it("dispatches custom controlled toggle events when navigating to a menu-dropdown target", () => {
+        const mockUser = {
+            $id: "user1",
+            prefs: {
+                onboardingTours: {},
+            },
+        };
+
+        const eventListener = jest.fn();
+        window.addEventListener("toggle-onboarding-menu", eventListener);
+
+        const dropdownSteps = [
+            { target: ".present-target", content: "Step 1" },
+            {
+                target: ".tour-game-details-menu-dropdown",
+                content: "Dropdown Target Step",
+            },
+        ];
+
+        render(
+            <OnboardingTour
+                tourKey="team_details"
+                steps={dropdownSteps}
+                user={mockUser}
+                menuId="game-details-menu"
+                alwaysIncludeTargets={[
+                    ".present-target",
+                    ".tour-game-details-menu-dropdown",
+                ]}
+            />,
+        );
+
+        // Cascade pending timers
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // Click next-btn which fires step:after event transition to menu-dropdown
+        const nextBtn = screen.getByTestId("next-btn");
+        act(() => {
+            fireEvent.click(nextBtn);
+        });
+
+        // Assert that the CustomEvent was dispatched for menu-dropdown target
+        expect(eventListener).toHaveBeenCalledWith(
+            expect.objectContaining({
+                detail: { open: true, menuId: "game-details-menu" },
+            }),
+        );
 
         window.removeEventListener("toggle-onboarding-menu", eventListener);
     });
@@ -460,5 +548,125 @@ describe("OnboardingTour Component", () => {
 
         // Restore original matchMedia
         window.matchMedia = originalMatchMedia;
+    });
+
+    it("handles target_not_found errors by advancing or reversing stepIndex based on direction", () => {
+        const mockUser = {
+            $id: "user1",
+            prefs: {
+                onboardingTours: {},
+            },
+        };
+
+        render(
+            <OnboardingTour
+                tourKey="team_details"
+                steps={[
+                    { target: ".present-target", content: "Step 1" },
+                    { target: ".missing-target", content: "Step 2" },
+                    { target: ".third-target", content: "Step 3" },
+                ]}
+                user={mockUser}
+                alwaysIncludeTargets={[
+                    ".present-target",
+                    ".missing-target",
+                    ".third-target",
+                ]}
+            />,
+        );
+
+        // Cascade timers
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        const joyrideInstance = screen.getByTestId("mock-joyride");
+        expect(joyrideInstance).toBeInTheDocument();
+
+        // Initially we are on index 0
+        expect(screen.getByText("Step 1")).toBeInTheDocument();
+
+        // 1. Simulate target not found going forward from step 2 (index 1)
+        const forwardNotFoundBtn = screen.getByTestId("target-not-found-btn");
+        act(() => {
+            fireEvent.click(forwardNotFoundBtn);
+        });
+
+        // Timer cycles to update state
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // The target_not_found event has index: 1, action: "next".
+        // It should advance stepIndex to (1 + 1) = 2.
+        expect(screen.getByText("Step 3")).toBeInTheDocument();
+
+        // 2. Simulate target not found going backward (index: 1, action: "prev")
+        const prevNotFoundBtn = screen.getByTestId("target-not-found-prev-btn");
+        act(() => {
+            fireEvent.click(prevNotFoundBtn);
+        });
+
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // It should decrement stepIndex to (1 - 1) = 0.
+        expect(screen.getByText("Step 1")).toBeInTheDocument();
+    });
+
+    it("closes the controlled menu when terminating early due to target_not_found on the last step", () => {
+        const mockUser = {
+            $id: "user1",
+            prefs: {
+                onboardingTours: {},
+            },
+        };
+
+        const eventListener = jest.fn();
+        window.addEventListener("toggle-onboarding-menu", eventListener);
+
+        render(
+            <OnboardingTour
+                tourKey="team_details"
+                steps={[
+                    { target: ".present-target", content: "Step 1" },
+                    { target: ".missing-target", content: "Step 2" },
+                ]}
+                user={mockUser}
+                menuId="game-details-menu"
+                alwaysIncludeTargets={[".present-target", ".missing-target"]}
+            />,
+        );
+
+        // Cascade timers
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // Trigger target-not-found-btn on step index 1 (which is the last step: length - 1)
+        const forwardNotFoundBtn = screen.getByTestId("target-not-found-btn");
+        act(() => {
+            fireEvent.click(forwardNotFoundBtn);
+        });
+
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // Assert that the controlled menu close dispatch occurred
+        expect(eventListener).toHaveBeenCalledWith(
+            expect.objectContaining({
+                detail: { open: false, menuId: "game-details-menu" },
+            }),
+        );
+
+        window.removeEventListener("toggle-onboarding-menu", eventListener);
     });
 });

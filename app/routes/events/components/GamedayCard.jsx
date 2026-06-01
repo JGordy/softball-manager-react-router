@@ -41,6 +41,7 @@ export default function GamedayCard({ gameId, isLive, isPast, isScorekeeper }) {
             padding="md"
             mt="md"
             py="5px"
+            className="tour-gameday-hub-card"
             bg={isLive ? "var(--mantine-color-lime-light)" : undefined}
             style={
                 isLive

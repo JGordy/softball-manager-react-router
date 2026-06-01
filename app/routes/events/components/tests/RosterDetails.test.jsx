@@ -68,9 +68,12 @@ describe("RosterDetails Component", () => {
         jest.clearAllMocks();
     });
 
-    it("renders card headers", () => {
-        render(<RosterDetails {...defaultProps} />);
+    it("renders card headers and tour class", () => {
+        const { container } = render(<RosterDetails {...defaultProps} />);
         expect(screen.getByText("Lineup & Field Chart")).toBeInTheDocument();
+        expect(
+            container.querySelector(".tour-lineup-field-card"),
+        ).toBeInTheDocument();
     });
 
     it("shows 'No Lineup Set Yet' when no playerChart exists", () => {

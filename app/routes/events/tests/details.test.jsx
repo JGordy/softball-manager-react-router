@@ -72,6 +72,12 @@ jest.mock("../components/Scoreboard", () => () => (
 jest.mock("../components/AwardsDrawerContents", () => () => (
     <div data-testid="awards-drawer-contents" />
 ));
+jest.mock("@/components/OnboardingTour", () => (props) => (
+    <div
+        data-testid="onboarding-tour"
+        data-steps={JSON.stringify(props.steps)}
+    />
+));
 
 describe("EventDetails Route", () => {
     const mockNavigate = jest.fn();
@@ -441,6 +447,51 @@ describe("EventDetails Route", () => {
                     "/events/game123?other=param",
                     { replace: true },
                 );
+            });
+        });
+
+        describe("OnboardingTour", () => {
+            it("renders the tour with administrative steps for managers", () => {
+                render(<EventDetails loaderData={mockLoaderData} />);
+                const tourEl = screen.getByTestId("onboarding-tour");
+                expect(tourEl).toBeInTheDocument();
+
+                const steps = JSON.parse(tourEl.getAttribute("data-steps"));
+                const targets = steps.map((s) => s.target);
+
+                expect(targets).toContain("body");
+                expect(targets).toContain(".tour-share-game-button");
+                expect(targets).toContain(".tour-interactive-badge-row");
+                expect(targets).toContain(".tour-gameday-hub-card");
+                expect(targets).toContain(".tour-lineup-field-card");
+                expect(targets).toContain(".tour-game-menu-trigger");
+                expect(targets).toContain(".tour-game-details-menu-dropdown");
+                expect(steps.length).toBe(7);
+            });
+
+            it("renders the tour without administrative steps for standard players", () => {
+                const nonManagerData = {
+                    ...mockLoaderData,
+                    managerIds: ["otherUser"],
+                };
+                render(<EventDetails loaderData={nonManagerData} />);
+                const tourEl = screen.getByTestId("onboarding-tour");
+                expect(tourEl).toBeInTheDocument();
+
+                const steps = JSON.parse(tourEl.getAttribute("data-steps"));
+                const targets = steps.map((s) => s.target);
+
+                expect(targets).toContain("body");
+                expect(targets).toContain(".tour-share-game-button");
+                expect(targets).toContain(".tour-interactive-badge-row");
+                expect(targets).toContain(".tour-gameday-hub-card");
+                expect(targets).toContain(".tour-lineup-field-card");
+
+                expect(targets).not.toContain(".tour-game-menu-trigger");
+                expect(targets).not.toContain(
+                    ".tour-game-details-menu-dropdown",
+                );
+                expect(steps.length).toBe(5);
             });
         });
     });
