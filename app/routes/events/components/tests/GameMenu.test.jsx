@@ -154,7 +154,7 @@ describe("GameMenu Component", () => {
     });
 
     it("responds to toggle-onboarding-menu custom window events and renders correct section classes", async () => {
-        const { container } = render(
+        render(
             <MemoryRouter>
                 <GameMenu {...defaultProps} />
             </MemoryRouter>,
