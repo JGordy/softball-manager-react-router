@@ -113,9 +113,10 @@ export default function OnboardingTour({
         if (type === EVENTS.STEP_BEFORE) {
             const target = step?.target;
             const isMenuStep =
+                menuId &&
                 typeof target === "string" &&
-                (target.includes("menu-section") ||
-                    target.includes("menu-dropdown"));
+                (target.includes(`tour-${menuId}-section`) ||
+                    target.includes(`tour-${menuId}-dropdown`));
 
             if (menuId) {
                 if (isMenuStep) {
@@ -161,10 +162,10 @@ export default function OnboardingTour({
                 let delay = 0;
                 if (typeof nextTarget === "string") {
                     if (menuId) {
-                        if (
-                            nextTarget.includes("menu-section") ||
-                            nextTarget.includes("menu-dropdown")
-                        ) {
+                        const isNextMenuStep =
+                            nextTarget.includes(`tour-${menuId}-section`) ||
+                            nextTarget.includes(`tour-${menuId}-dropdown`);
+                        if (isNextMenuStep) {
                             window.dispatchEvent(
                                 new CustomEvent("toggle-onboarding-menu", {
                                     detail: { open: true, menuId },
@@ -267,14 +268,16 @@ export default function OnboardingTour({
                 [tourKey]: true,
             };
 
-            fetcher.submit(
-                {
-                    _action: "update-user-preferences",
-                    userId: user?.$id,
-                    onboardingTours: JSON.stringify(updatedTours),
-                },
-                { method: "post", action: "/settings" },
-            );
+            if (user?.$id) {
+                fetcher.submit(
+                    {
+                        _action: "update-user-preferences",
+                        userId: user.$id,
+                        onboardingTours: JSON.stringify(updatedTours),
+                    },
+                    { method: "post", action: "/settings" },
+                );
+            }
         }
     };
 
