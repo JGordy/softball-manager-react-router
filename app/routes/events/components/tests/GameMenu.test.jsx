@@ -1,5 +1,6 @@
-import { render, screen, fireEvent } from "@/utils/test-utils";
+import { render, screen, fireEvent, act } from "@/utils/test-utils";
 import { MemoryRouter } from "react-router";
+
 import * as modalHooks from "@/hooks/useModal";
 
 import GameMenu from "../GameMenu";
@@ -150,5 +151,36 @@ describe("GameMenu Component", () => {
         );
         await openMenu();
         expect(screen.getByText("Update game results")).toBeInTheDocument();
+    });
+
+    it("responds to toggle-onboarding-menu custom window events and renders correct section classes", async () => {
+        const { container } = render(
+            <MemoryRouter>
+                <GameMenu {...defaultProps} />
+            </MemoryRouter>,
+        );
+
+        // Initially menu is closed, Edit Game Details is not visible
+        expect(screen.queryByText("Edit Game Details")).not.toBeInTheDocument();
+
+        // Dispatch the custom event to open the menu
+        act(() => {
+            window.dispatchEvent(
+                new CustomEvent("toggle-onboarding-menu", {
+                    detail: { menuId: "game-details-menu", open: true },
+                }),
+            );
+        });
+
+        // The menu should now be open and options visible
+        expect(
+            await screen.findByText("Edit Game Details"),
+        ).toBeInTheDocument();
+
+        // Check that the section wrapper has the correct tour class
+        const section = document.body.querySelector(
+            ".tour-game-details-menu-section-game-details",
+        );
+        expect(section).toBeInTheDocument();
     });
 });

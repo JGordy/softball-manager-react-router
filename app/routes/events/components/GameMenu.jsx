@@ -113,5 +113,5 @@ export default function GameMenu({
         },
     ];
 
-    return <MenuContainer sections={sections} />;
+    return <MenuContainer sections={sections} id="game-details-menu" />;
 }

@@ -79,7 +79,7 @@ export default function MobileEventDetailsView({
                 pl={32}
                 pr={24}
                 mt="md"
-                className={styles.badgeRow}
+                className={`${styles.badgeRow} tour-interactive-badge-row`}
             >
                 {/* Weather Badge (for future games) */}
                 {!gameIsPast && (
@@ -163,6 +163,7 @@ export default function MobileEventDetailsView({
                                     color="blue"
                                     size="xs"
                                     radius="xl"
+                                    className="tour-availability-badge"
                                     onClick={() => {
                                         availabilityDrawerHandlers.open();
                                         trackEvent("view-availability-badge", {
@@ -189,6 +190,7 @@ export default function MobileEventDetailsView({
                                         color="blue"
                                         size="xs"
                                         radius="xl"
+                                        className="tour-directions-badge"
                                         onClick={() => {
                                             locationDrawerHandlers.open();
                                             trackEvent(
@@ -218,6 +220,7 @@ export default function MobileEventDetailsView({
                                     color="blue"
                                     size="xs"
                                     radius="xl"
+                                    className="tour-calendar-badge"
                                     onClick={() => {
                                         calendarDrawerHandlers.open();
                                         trackEvent("view-calendar-badge", {

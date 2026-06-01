@@ -52,7 +52,13 @@ export default function RosterDetails({ game, managerView, playerChart }) {
 
     return (
         <>
-            <Card radius="lg" mt="md" p="md" data-testid="roster-details">
+            <Card
+                radius="lg"
+                mt="md"
+                p="md"
+                className="tour-lineup-field-card"
+                data-testid="roster-details"
+            >
                 <Group justify="space-between" mb="xs">
                     <Text size="sm" fw={700}>
                         Lineup &amp; Field Chart
