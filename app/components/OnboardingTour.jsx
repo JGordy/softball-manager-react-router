@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Joyride, STATUS, EVENTS } from "react-joyride";
 import { useFetcher } from "react-router";
 import { useJoyrideThemeStyles } from "@/hooks/useJoyrideThemeStyles";
@@ -18,6 +18,7 @@ import { trackEvent } from "@/utils/analytics";
  * @param {Array<Object>} props.steps - Array of React Joyride step objects.
  * @param {Object} [props.user] - Current user data retrieved from Appwrite session.
  * @param {string} [props.menuId] - Optional unique identifier to scope onboarding events for the menu.
+ * @param {string} [props.trackingSuffix] - Optional explicit tracking suffix to use for analytics events (e.g. 'teams', 'events').
  * @returns {React.ReactElement|null} The guided tour or null.
  */
 export default function OnboardingTour({
@@ -26,6 +27,7 @@ export default function OnboardingTour({
     user,
     menuId,
     alwaysIncludeTargets = [],
+    trackingSuffix,
 }) {
     const [mounted, setMounted] = useState(false);
     const [isDesktopViewport, setIsDesktopViewport] = useState(false);
@@ -33,6 +35,7 @@ export default function OnboardingTour({
     const [stepIndex, setStepIndex] = useState(0); // Controlled step index to delay transitions and prevent race conditions
     const { options, styles } = useJoyrideThemeStyles();
     const fetcher = useFetcher();
+    const tourEndTimeoutRef = useRef(null);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -41,7 +44,12 @@ export default function OnboardingTour({
                 window.matchMedia("(min-width: 62em)").matches,
             );
         }, 0);
-        return () => clearTimeout(timer);
+        return () => {
+            clearTimeout(timer);
+            if (tourEndTimeoutRef.current) {
+                clearTimeout(tourEndTimeoutRef.current);
+            }
+        };
     }, []);
 
     const userPrefs = user?.prefs || {};
@@ -253,12 +261,19 @@ export default function OnboardingTour({
             type === EVENTS.TOUR_END;
 
         if (isTourFinished) {
-            // Track tour metrics following the standard snake_case naming convention
-            // Dynamically scope event names by parsing the first word of the tourKey (e.g. team_details -> _teams, event_details -> _events)
+            // Track tour metrics using the snake_case naming style chosen for these onboarding events.
+            // Dynamically scope event names by using the provided trackingSuffix, or parsing the tourKey.
             const isSkipped =
                 status === STATUS.SKIPPED || data.action === "skip";
-            const baseKey = tourKey ? tourKey.split("_")[0] : "";
-            const suffix = baseKey ? `_${baseKey}s` : "";
+
+            const suffix = trackingSuffix
+                ? trackingSuffix.startsWith("_")
+                    ? trackingSuffix
+                    : `_${trackingSuffix}`
+                : tourKey
+                  ? `_${tourKey.split("_")[0]}s`
+                  : "";
+
             const eventName = isSkipped
                 ? `onboarding_tour_skipped${suffix}`
                 : `onboarding_tour_completed${suffix}`;
@@ -278,9 +293,14 @@ export default function OnboardingTour({
                 );
             }
 
+            // Clear any existing tour end timeout
+            if (tourEndTimeoutRef.current) {
+                clearTimeout(tourEndTimeoutRef.current);
+            }
+
             // Use a short delay before unmounting the Joyride component to allow its
             // internal portal overlay clean-up logic to execute and cleanly remove itself from the DOM
-            setTimeout(() => {
+            tourEndTimeoutRef.current = setTimeout(() => {
                 setRunTour(false);
                 setStepIndex(0); // Reset step index back to 0 on tour end
             }, 100);

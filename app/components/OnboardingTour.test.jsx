@@ -99,6 +99,18 @@ jest.mock("react-joyride", () => {
                     >
                         Finish Tour
                     </button>
+                    <button
+                        data-testid="skip-btn"
+                        onClick={() =>
+                            onEvent({
+                                status: "skipped",
+                                type: "tour:end",
+                                action: "skip",
+                            })
+                        }
+                    >
+                        Skip Tour
+                    </button>
                 </div>
             );
         },
@@ -682,7 +694,7 @@ describe("OnboardingTour Component", () => {
         window.removeEventListener("toggle-onboarding-menu", eventListener);
     });
 
-    it("triggers the correct Umami analytics events for completed and skipped actions", async () => {
+    it("triggers the correct Umami analytics event when the tour is completed", () => {
         const mockUser = {
             $id: "user1",
             prefs: {
@@ -718,6 +730,87 @@ describe("OnboardingTour Component", () => {
             expect.objectContaining({
                 tourKey: "team_details",
                 userId: "user1",
+            }),
+        );
+    });
+
+    it("triggers the correct Umami analytics event when the tour is skipped", () => {
+        const mockUser = {
+            $id: "user2",
+            prefs: {
+                onboardingTours: {},
+            },
+        };
+
+        render(
+            <OnboardingTour
+                tourKey="event_details"
+                steps={[{ target: ".present-target", content: "Step 1" }]}
+                user={mockUser}
+                alwaysIncludeTargets={[".present-target"]}
+            />,
+        );
+
+        // Cascade timers
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // Trigger skip tour
+        const skipBtn = screen.getByTestId("skip-btn");
+        act(() => {
+            fireEvent.click(skipBtn);
+        });
+
+        expect(mockTrack).toHaveBeenCalledWith(
+            "onboarding_tour_skipped_events",
+            expect.objectContaining({
+                tourKey: "event_details",
+                userId: "user2",
+            }),
+        );
+    });
+
+    it("triggers the correct Umami analytics event using custom trackingSuffix prop when provided", () => {
+        const mockUser = {
+            $id: "user3",
+            prefs: {
+                onboardingTours: {},
+            },
+        };
+
+        render(
+            <OnboardingTour
+                tourKey="custom_tour"
+                trackingSuffix="custom_value"
+                steps={[{ target: ".present-target", content: "Step 1" }]}
+                user={mockUser}
+                alwaysIncludeTargets={[".present-target"]}
+            />,
+        );
+
+        // Cascade timers
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // Trigger finish tour
+        const finishBtn = screen.getByTestId("finish-btn");
+        act(() => {
+            fireEvent.click(finishBtn);
+        });
+
+        expect(mockTrack).toHaveBeenCalledWith(
+            "onboarding_tour_completed_custom_value",
+            expect.objectContaining({
+                tourKey: "custom_tour",
+                userId: "user3",
             }),
         );
     });
