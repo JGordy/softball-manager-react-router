@@ -238,7 +238,7 @@ export default function OnboardingTour({
                             userId: user.$id,
                             onboardingTours: JSON.stringify(updatedTours),
                         },
-                        { method: "post", action: "/settings" },
+                        { method: "post", action: "/api/user-preferences" },
                     );
                 }
             } else {
@@ -254,11 +254,14 @@ export default function OnboardingTour({
             return;
         }
 
-        // Handle finished/skipped statuses or the absolute tour end event
+        // Handle finished/skipped statuses, absolute tour end event, or the last step next action in controlled mode
         const isTourFinished =
             status === STATUS.FINISHED ||
             status === STATUS.SKIPPED ||
-            type === EVENTS.TOUR_END;
+            type === EVENTS.TOUR_END ||
+            (type === EVENTS.STEP_AFTER &&
+                data.action === "next" &&
+                data.index === activeSteps.length - 1);
 
         if (isTourFinished) {
             // Track tour metrics using the snake_case naming style chosen for these onboarding events.
@@ -317,7 +320,7 @@ export default function OnboardingTour({
                         userId: user.$id,
                         onboardingTours: JSON.stringify(updatedTours),
                     },
-                    { method: "post", action: "/settings" },
+                    { method: "post", action: "/api/user-preferences" },
                 );
             }
         }

@@ -267,7 +267,7 @@ describe("OnboardingTour Component", () => {
                 userId: "user1",
                 onboardingTours: JSON.stringify({ team_details: true }),
             },
-            { method: "post", action: "/settings" },
+            { method: "post", action: "/api/user-preferences" },
         );
     });
 
