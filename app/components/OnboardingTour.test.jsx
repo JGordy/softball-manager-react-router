@@ -3,6 +3,13 @@ import { render } from "@/utils/test-utils";
 import OnboardingTour from "./OnboardingTour";
 
 const mockSubmit = jest.fn();
+const mockTrack = jest.fn();
+
+// Mock global window.umami
+global.window = global.window || {};
+global.window.umami = {
+    track: mockTrack,
+};
 
 // Mock useFetcher
 jest.mock("react-router", () => ({
@@ -419,10 +426,15 @@ describe("OnboardingTour Component", () => {
         // Initially stepIndex is 0
         expect(screen.getByTestId("mock-joyride")).toBeInTheDocument();
 
-        // Finish the tour, which resets stepIndex
+        // Finish the tour, which resets stepIndex after 100ms
         const finishBtn = screen.getByTestId("finish-btn");
         act(() => {
             fireEvent.click(finishBtn);
+        });
+
+        // Fast-forward fake timers for the unmounting timeout
+        act(() => {
+            jest.advanceTimersByTime(100);
         });
 
         // Tour is run = false now
@@ -668,5 +680,45 @@ describe("OnboardingTour Component", () => {
         );
 
         window.removeEventListener("toggle-onboarding-menu", eventListener);
+    });
+
+    it("triggers the correct Umami analytics events for completed and skipped actions", async () => {
+        const mockUser = {
+            $id: "user1",
+            prefs: {
+                onboardingTours: {},
+            },
+        };
+
+        render(
+            <OnboardingTour
+                tourKey="team_details"
+                steps={[{ target: ".present-target", content: "Step 1" }]}
+                user={mockUser}
+                alwaysIncludeTargets={[".present-target"]}
+            />,
+        );
+
+        // Cascade timers
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // Trigger finish tour
+        const finishBtn = screen.getByTestId("finish-btn");
+        act(() => {
+            fireEvent.click(finishBtn);
+        });
+
+        expect(mockTrack).toHaveBeenCalledWith(
+            "onboarding_tour_completed_teams",
+            expect.objectContaining({
+                tourKey: "team_details",
+                userId: "user1",
+            }),
+        );
     });
 });

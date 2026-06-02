@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Joyride, STATUS, EVENTS } from "react-joyride";
 import { useFetcher } from "react-router";
 import { useJoyrideThemeStyles } from "@/hooks/useJoyrideThemeStyles";
+import { trackEvent } from "@/utils/analytics";
 
 /**
  * OnboardingTour is a reusable guided tour component built on top of React Joyride (v3+).
@@ -245,13 +246,29 @@ export default function OnboardingTour({
             return;
         }
 
-        // Listen to finished/skipped statuses or the absolute tour end event
+        // Handle finished/skipped statuses or the absolute tour end event
         const isTourFinished =
             status === STATUS.FINISHED ||
             status === STATUS.SKIPPED ||
             type === EVENTS.TOUR_END;
 
         if (isTourFinished) {
+            // Track tour metrics following the standard snake_case naming convention
+            // Dynamically scope event names by parsing the first word of the tourKey (e.g. team_details -> _teams, event_details -> _events)
+            const isSkipped =
+                status === STATUS.SKIPPED || data.action === "skip";
+            const baseKey = tourKey ? tourKey.split("_")[0] : "";
+            const suffix = baseKey ? `_${baseKey}s` : "";
+            const eventName = isSkipped
+                ? `onboarding_tour_skipped${suffix}`
+                : `onboarding_tour_completed${suffix}`;
+
+            trackEvent(eventName, {
+                tourKey,
+                userId: user?.$id || "anonymous",
+                lastStep: data.index,
+            });
+
             // Close the menu when the tour finishes/skips
             if (menuId) {
                 window.dispatchEvent(
@@ -261,8 +278,13 @@ export default function OnboardingTour({
                 );
             }
 
-            setRunTour(false);
-            setStepIndex(0); // Reset step index back to 0 on tour end
+            // Use a short delay before unmounting the Joyride component to allow its
+            // internal portal overlay clean-up logic to execute and cleanly remove itself from the DOM
+            setTimeout(() => {
+                setRunTour(false);
+                setStepIndex(0); // Reset step index back to 0 on tour end
+            }, 100);
+
             const updatedTours = {
                 ...onboardingTours,
                 [tourKey]: true,
