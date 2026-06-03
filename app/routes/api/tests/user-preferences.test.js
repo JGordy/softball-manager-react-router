@@ -58,7 +58,11 @@ describe("user-preferences API", () => {
         const data = await response.json();
 
         expect(response.status).toBe(200);
-        expect(data).toEqual(mockResult);
+        expect(data).toEqual({
+            success: true,
+            status: 200,
+            message: "Preferences updated successfully.",
+        });
         expect(createSessionClient).toHaveBeenCalledWith(request);
         expect(mockGet).toHaveBeenCalled();
         expect(updateUserPrefs).toHaveBeenCalledWith({

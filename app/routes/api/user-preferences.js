@@ -41,9 +41,12 @@ export async function action({ request }) {
             const result = await updateUserPrefs({ values, client });
             // Since result contains a body, we cannot return HTTP 204 directly
             // via Response.json() without throwing an "Invalid response status code 204" RangeError.
-            // Map 204 to 200 for successful JSON responses.
+            // Map 204 to 200 for successful JSON responses, and normalize result's status field if it exists.
             const httpStatus =
                 result?.status === 204 ? 200 : result?.status || 200;
+            if (result && result.status === 204) {
+                result.status = 200;
+            }
             return Response.json(result, { status: httpStatus });
         }
 
