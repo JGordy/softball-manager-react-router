@@ -227,8 +227,17 @@ export default function OnboardingTour({
                         }),
                     );
                 }
-                setRunTour(false);
-                setStepIndex(0);
+                // Clear any existing tour end timeout
+                if (tourEndTimeoutRef.current) {
+                    clearTimeout(tourEndTimeoutRef.current);
+                }
+
+                // Use a short delay before unmounting the Joyride component to allow its
+                // internal portal overlay clean-up logic to execute and cleanly remove itself from the DOM
+                tourEndTimeoutRef.current = setTimeout(() => {
+                    setRunTour(false);
+                    setStepIndex(0);
+                }, 100);
                 const updatedTours = {
                     ...onboardingTours,
                     [tourKey]: true,
