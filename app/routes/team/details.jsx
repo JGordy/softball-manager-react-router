@@ -217,6 +217,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                     steps={steps}
                     user={user}
                     menuId="team-details-menu"
+                    trackingSuffix="teams"
                     alwaysIncludeTargets={[
                         ".tour-team-details-menu-section-team-options",
                         ".tour-team-details-menu-section-roster",

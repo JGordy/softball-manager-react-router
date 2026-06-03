@@ -357,6 +357,7 @@ export default function EventDetails({ loaderData, actionData }) {
                 steps={steps}
                 user={user}
                 menuId="game-details-menu"
+                trackingSuffix="events"
                 alwaysIncludeTargets={[".tour-game-details-menu-dropdown"]}
             />
         </>
