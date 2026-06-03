@@ -39,7 +39,12 @@ export async function action({ request }) {
 
         if (_action === "update-user-preferences") {
             const result = await updateUserPrefs({ values, client });
-            return Response.json(result);
+            // Since result contains a body, we cannot return HTTP 204 directly
+            // via Response.json() without throwing an "Invalid response status code 204" RangeError.
+            // Map 204 to 200 for successful JSON responses.
+            const httpStatus =
+                result?.status === 204 ? 200 : result?.status || 200;
+            return Response.json(result, { status: httpStatus });
         }
 
         return Response.json({ error: "Invalid action" }, { status: 400 });

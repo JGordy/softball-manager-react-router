@@ -36,6 +36,7 @@ export default function OnboardingTour({
     const { options, styles } = useJoyrideThemeStyles();
     const fetcher = useFetcher();
     const tourEndTimeoutRef = useRef(null);
+    const hasSubmittedEndRef = useRef(false);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -59,6 +60,7 @@ export default function OnboardingTour({
     // Handle delayed start of the tour on mount to ensure all DOM elements are painted
     useEffect(() => {
         if (mounted && !hasCompleted) {
+            hasSubmittedEndRef.current = false;
             const timer = setTimeout(() => {
                 setStepIndex(0); // Ensure step index is reset to 0 when launching
                 setRunTour(true);
@@ -264,6 +266,8 @@ export default function OnboardingTour({
                 data.index === activeSteps.length - 1);
 
         if (isTourFinished) {
+            if (hasSubmittedEndRef.current) return;
+            hasSubmittedEndRef.current = true;
             // Track tour metrics using the snake_case naming style chosen for these onboarding events.
             // Dynamically scope event names by using the provided trackingSuffix, or parsing the tourKey.
             const isSkipped =
