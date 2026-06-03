@@ -725,6 +725,11 @@ describe("OnboardingTour Component", () => {
             fireEvent.click(finishBtn);
         });
 
+        // Flush unmount timeout
+        act(() => {
+            jest.advanceTimersByTime(100);
+        });
+
         expect(mockTrack).toHaveBeenCalledWith(
             "onboarding_tour_completed_teams",
             expect.objectContaining({
@@ -763,6 +768,11 @@ describe("OnboardingTour Component", () => {
         const skipBtn = screen.getByTestId("skip-btn");
         act(() => {
             fireEvent.click(skipBtn);
+        });
+
+        // Flush unmount timeout
+        act(() => {
+            jest.advanceTimersByTime(100);
         });
 
         expect(mockTrack).toHaveBeenCalledWith(
@@ -804,6 +814,11 @@ describe("OnboardingTour Component", () => {
         const finishBtn = screen.getByTestId("finish-btn");
         act(() => {
             fireEvent.click(finishBtn);
+        });
+
+        // Flush unmount timeout
+        act(() => {
+            jest.advanceTimersByTime(100);
         });
 
         expect(mockTrack).toHaveBeenCalledWith(

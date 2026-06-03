@@ -17,8 +17,25 @@ export async function action({ request }) {
 
     try {
         const formData = await request.formData();
-        const { _action, userId, ...values } = Object.fromEntries(formData);
-        const client = await createSessionClient(request);
+        const {
+            _action,
+            userId: _userId,
+            ...values
+        } = Object.fromEntries(formData);
+
+        let client;
+        try {
+            client = await createSessionClient(request);
+            const user = await client.account.get();
+            if (!user) {
+                return Response.json(
+                    { error: "Unauthorized" },
+                    { status: 401 },
+                );
+            }
+        } catch {
+            return Response.json({ error: "Unauthorized" }, { status: 401 });
+        }
 
         if (_action === "update-user-preferences") {
             const result = await updateUserPrefs({ values, client });

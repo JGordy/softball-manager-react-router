@@ -33,7 +33,8 @@ describe("user-preferences API", () => {
     });
 
     it("should successfully execute updateUserPrefs when action is update-user-preferences", async () => {
-        const mockClient = { account: {} };
+        const mockGet = jest.fn().mockResolvedValue({ $id: "user1" });
+        const mockClient = { account: { get: mockGet } };
         createSessionClient.mockResolvedValue(mockClient);
 
         const mockResult = {
@@ -59,14 +60,40 @@ describe("user-preferences API", () => {
         expect(response.status).toBe(200);
         expect(data).toEqual(mockResult);
         expect(createSessionClient).toHaveBeenCalledWith(request);
+        expect(mockGet).toHaveBeenCalled();
         expect(updateUserPrefs).toHaveBeenCalledWith({
             values: { onboardingTours: '{"team_details":true}' },
             client: mockClient,
         });
     });
 
+    it("should return 401 if user is not authenticated or account.get throws", async () => {
+        const mockGet = jest
+            .fn()
+            .mockRejectedValue(new Error("Unauthenticated"));
+        const mockClient = { account: { get: mockGet } };
+        createSessionClient.mockResolvedValue(mockClient);
+
+        const formData = new FormData();
+        formData.append("_action", "update-user-preferences");
+
+        const request = new Request("http://localhost/api/user-preferences", {
+            method: "POST",
+            body: formData,
+        });
+
+        const response = await action({ request });
+        const data = await response.json();
+
+        expect(response.status).toBe(401);
+        expect(data.error).toBe("Unauthorized");
+    });
+
     it("should return 400 if action name is invalid", async () => {
-        createSessionClient.mockResolvedValue({});
+        const mockGet = jest.fn().mockResolvedValue({ $id: "user1" });
+        const mockClient = { account: { get: mockGet } };
+        createSessionClient.mockResolvedValue(mockClient);
+
         const formData = new FormData();
         formData.append("_action", "invalid-action");
 
@@ -82,21 +109,22 @@ describe("user-preferences API", () => {
         expect(data.error).toBe("Invalid action");
     });
 
-    it("should return 500 when client authentication or preferences update throws an exception", async () => {
-        createSessionClient.mockRejectedValue(new Error("Appwrite failed"));
-
-        const formData = new FormData();
-        formData.append("_action", "update-user-preferences");
-
+    it("should return 500 when client authentication throws an exception not related to session client", async () => {
+        // Here we simulate an unexpected error in the main block (e.g. request.formData throws or similar)
+        // or createSessionClient throws a general error. If createSessionClient throws,
+        // it is caught by the inner block, which returns 401. So to trigger the outer catch (500),
+        // we can mock request.formData to throw.
         const request = new Request("http://localhost/api/user-preferences", {
             method: "POST",
-            body: formData,
         });
+        jest.spyOn(request, "formData").mockRejectedValue(
+            new Error("Form data error"),
+        );
 
         const response = await action({ request });
         const data = await response.json();
 
         expect(response.status).toBe(500);
-        expect(data.error).toBe("Appwrite failed");
+        expect(data.error).toBe("Form data error");
     });
 });
