@@ -72,7 +72,7 @@ describe("Lineup Route", () => {
     const mockLoaderData = {
         game: {
             $id: "game123",
-            gameDate: "2026-06-03T01:00:00Z",
+            gameDate: "2050-01-01T00:00:00Z",
         },
         managerIds: ["user123"], // Current user is manager
         players: [],

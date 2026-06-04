@@ -18,7 +18,7 @@ describe("LineupValidationMenu Component", () => {
             name: /Lineup Validation/i,
         });
         expect(trigger).toBeInTheDocument();
-        expect(trigger).toHaveAttribute("id", "tour-validation-menu");
+        expect(trigger).toHaveClass("tour-validation-menu");
 
         // The dropdown content is not mounted until opened, so it should not exist yet.
         expect(screen.queryByText("No issues found")).toBeNull();

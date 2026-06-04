@@ -16,7 +16,7 @@ export const creationSteps = [
     {
         target: "#tour-option-available",
         content:
-            "Or automatically auto-generate a lineup from all team members who marked themselves as available for the event.",
+            "Or auto-generate a lineup from all team members who marked themselves as available for the event.",
         placement: "bottom",
         skipScroll: true,
     },
@@ -46,12 +46,12 @@ export const gridSteps = [
     },
     {
         target: () => {
-            if (typeof document === "undefined") return "#tour-validation-menu";
+            if (typeof document === "undefined") return ".tour-validation-menu";
             const elements = document.querySelectorAll(".tour-validation-menu");
             const visible = Array.from(elements).find(
                 (el) => el.offsetWidth > 0 && el.offsetHeight > 0,
             );
-            return visible || "#tour-validation-menu";
+            return visible || ".tour-validation-menu";
         },
         content:
             "Check here for validation feedback—like gender ratio rule alerts, duplicate positions within an inning, or unassigned defensive slots.",
