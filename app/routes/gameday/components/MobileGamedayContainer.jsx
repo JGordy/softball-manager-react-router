@@ -39,6 +39,9 @@ import SelectOpponentBatterDrawer from "./SelectOpponentBatterDrawer";
 import ShareUrlButton from "@/components/ShareUrlButton";
 import GameRecapView from "./GameRecapView";
 
+import OnboardingTour from "@/components/OnboardingTour";
+import { opponentSteps } from "../utils/onboardingSteps";
+
 export default function MobileGamedayContainer({
     game: staticGame,
     playerChart: initialPlayerChart,
@@ -182,6 +185,7 @@ export default function MobileGamedayContainer({
                     <ShareUrlButton />
                     {isScorekeeper ? (
                         <GamedayMenu
+                            menuId="gameday-menu"
                             gameFinal={isGameFinal}
                             score={score}
                             opponentScore={opponentScore}
@@ -225,6 +229,22 @@ export default function MobileGamedayContainer({
                 </Card>
             ) : (
                 <>
+                    {isScorekeeper && !isGameFinal && !isOurBatting && (
+                        <OnboardingTour
+                            tourKey="gameday_opponent"
+                            steps={opponentSteps}
+                            user={user}
+                            menuId="gameday-menu"
+                            alwaysIncludeTargets={[
+                                ".tour-gameday-menu-dropdown",
+                                ".tour-gameday-menu-item-toggle-scoring-mode",
+                                ".tour-gameday-menu-item-set-active-batter",
+                                ".tour-gameday-menu-item-wrap-lineup",
+                            ]}
+                            trackingSuffix="gameday_opponent"
+                            disableScrolling={true}
+                        />
+                    )}
                     <ScoreboardHeader
                         score={score}
                         opponentScore={opponentScore}

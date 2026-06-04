@@ -140,7 +140,8 @@ export default function OnboardingTour({
                 menuId &&
                 (typeof resolvedTarget === "string"
                     ? resolvedTarget.includes(`tour-${menuId}-section`) ||
-                      resolvedTarget.includes(`tour-${menuId}-dropdown`)
+                      resolvedTarget.includes(`tour-${menuId}-dropdown`) ||
+                      resolvedTarget.includes(`tour-${menuId}-item`)
                     : resolvedTarget instanceof HTMLElement &&
                       (resolvedTarget.classList.contains(
                           `tour-${menuId}-section`,
@@ -148,9 +149,14 @@ export default function OnboardingTour({
                           resolvedTarget.classList.contains(
                               `tour-${menuId}-dropdown`,
                           ) ||
+                          resolvedTarget.classList.contains(
+                              `tour-${menuId}-item`,
+                          ) ||
                           resolvedTarget.closest(`.tour-${menuId}-section`) !==
                               null ||
                           resolvedTarget.closest(`.tour-${menuId}-dropdown`) !==
+                              null ||
+                          resolvedTarget.closest(`.tour-${menuId}-item`) !==
                               null));
 
             if (menuId) {
@@ -268,6 +274,9 @@ export default function OnboardingTour({
                                   ) ||
                                   resolvedNextTarget.includes(
                                       `tour-${menuId}-dropdown`,
+                                  ) ||
+                                  resolvedNextTarget.includes(
+                                      `tour-${menuId}-item`,
                                   )
                                 : resolvedNextTarget instanceof HTMLElement &&
                                   (resolvedNextTarget.classList.contains(
@@ -276,11 +285,17 @@ export default function OnboardingTour({
                                       resolvedNextTarget.classList.contains(
                                           `tour-${menuId}-dropdown`,
                                       ) ||
+                                      resolvedNextTarget.classList.contains(
+                                          `tour-${menuId}-item`,
+                                      ) ||
                                       resolvedNextTarget.closest(
                                           `.tour-${menuId}-section`,
                                       ) !== null ||
                                       resolvedNextTarget.closest(
                                           `.tour-${menuId}-dropdown`,
+                                      ) !== null ||
+                                      resolvedNextTarget.closest(
+                                          `.tour-${menuId}-item`,
                                       ) !== null);
                         if (isNextMenuStep) {
                             window.dispatchEvent(

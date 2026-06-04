@@ -182,6 +182,7 @@ export default function CurrentBatterCard({
                 <Stack mt="md" gap="xs">
                     <TextInput
                         key={currentBatter.$id}
+                        className="tour-opponent-notes-input"
                         size="sm"
                         placeholder="Add notes (e.g. Lefty, fast, #12)"
                         defaultValue={currentBatter.notes || ""}

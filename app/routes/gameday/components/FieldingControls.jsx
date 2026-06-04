@@ -32,13 +32,20 @@ export default function FieldingControls({ onOut, onRun, onSkip }) {
                 FIELDING CONTROLS
             </Text>
             <Group grow>
-                <Button h={80} color="red" radius="md" onClick={onOut}>
+                <Button
+                    className="tour-fielding-out-btn"
+                    h={80}
+                    color="red"
+                    radius="md"
+                    onClick={onOut}
+                >
                     <Text size="md" fw={900}>
                         OUT
                     </Text>
                 </Button>
                 <Group gap="xs" align="center" wrap="nowrap">
                     <Button
+                        className="tour-fielding-run-btn"
                         h={80}
                         color="lime.4"
                         radius="md"
@@ -74,7 +81,13 @@ export default function FieldingControls({ onOut, onRun, onSkip }) {
                     </Stack>
                 </Group>
             </Group>
-            <Button variant="filled" color="blue" radius="md" onClick={onSkip}>
+            <Button
+                className="tour-fielding-skip-btn"
+                variant="filled"
+                color="blue"
+                radius="md"
+                onClick={onSkip}
+            >
                 Skip to Batting
             </Button>
         </Stack>

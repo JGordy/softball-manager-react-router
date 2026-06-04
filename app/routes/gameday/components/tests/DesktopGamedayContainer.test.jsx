@@ -13,6 +13,10 @@ jest.mock("../SubPlayerDrawer", () => () => (
     <div data-testid="sub-player-modal" />
 ));
 
+jest.mock("@/components/OnboardingTour", () => () => (
+    <div data-testid="onboarding-tour" />
+));
+
 jest.mock(
     "../EditPlayDrawer",
     () =>
@@ -378,6 +382,58 @@ describe("DesktopGamedayContainer", () => {
             expect(
                 screen.getAllByText("Alice Smith singles").length,
             ).toBeGreaterThan(0);
+        });
+    });
+
+    describe("OnboardingTour integration", () => {
+        it("renders OnboardingTour when scorekeeper is on defense (opponent batting)", () => {
+            gameStateHook.useGameState.mockReturnValue({
+                inning: 1,
+                halfInning: "top", // top is opponent batting for home team
+                outs: 0,
+                score: 0,
+                opponentScore: 0,
+                runners: { first: null, second: null, third: null },
+                battingOrderIndex: 0,
+            });
+
+            render(
+                <DesktopGamedayContainer
+                    game={{ ...mockGame, isHomeGame: true }}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    isScorekeeper={true}
+                />,
+            );
+
+            expect(screen.getByTestId("onboarding-tour")).toBeInTheDocument();
+        });
+
+        it("does not render OnboardingTour when batting", () => {
+            gameStateHook.useGameState.mockReturnValue({
+                inning: 1,
+                halfInning: "bottom", // bottom is our batting for home team
+                outs: 0,
+                score: 0,
+                opponentScore: 0,
+                runners: { first: null, second: null, third: null },
+                battingOrderIndex: 0,
+            });
+
+            render(
+                <DesktopGamedayContainer
+                    game={{ ...mockGame, isHomeGame: true }}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    isScorekeeper={true}
+                />,
+            );
+
+            expect(
+                screen.queryByTestId("onboarding-tour"),
+            ).not.toBeInTheDocument();
         });
     });
 });

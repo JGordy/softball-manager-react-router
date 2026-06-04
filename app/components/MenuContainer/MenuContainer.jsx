@@ -36,9 +36,23 @@ export default function MenuContainer({
     }, [id]);
 
     const renderItem = (item, key) => {
-        const { key: itemKey, content, text, ...rest } = item;
+        const { key: itemKey, content, text, className, ...rest } = item;
+        const resolvedKey = itemKey ?? key;
+        const resolvedClassName = [
+            className,
+            id
+                ? `tour-${id}-item-${resolvedKey}`
+                : `tour-menu-item-${resolvedKey}`,
+        ]
+            .filter(Boolean)
+            .join(" ");
+
         return (
-            <Menu.Item key={itemKey ?? key} {...rest}>
+            <Menu.Item
+                key={resolvedKey}
+                className={resolvedClassName}
+                {...rest}
+            >
                 {content ?? (text ? <Text>{text}</Text> : null)}
             </Menu.Item>
         );
