@@ -28,6 +28,7 @@ export default function OnboardingTour({
     menuId,
     alwaysIncludeTargets = [],
     trackingSuffix,
+    disableScrolling = false,
 }) {
     const [mounted, setMounted] = useState(false);
     const [isDesktopViewport, setIsDesktopViewport] = useState(false);
@@ -64,7 +65,7 @@ export default function OnboardingTour({
             const timer = setTimeout(() => {
                 setStepIndex(0); // Ensure step index is reset to 0 when launching
                 setRunTour(true);
-            }, 200); // 200ms delay to let the page settle and prevent first-step Floater bugs
+            }, 600); // 600ms delay to let the page settle, layout paint, and prevent first-step Floater bugs
             return () => clearTimeout(timer);
         } else {
             setRunTour(false);
@@ -91,7 +92,7 @@ export default function OnboardingTour({
                         : step.target;
                 if (typeof target === "string") {
                     // Allow specific targets to bypass the initial DOM existence check
-                    // because the menu/tab will be programmatically opened when the step starts.
+                    // because the menu/tab/drawer will be programmatically opened when the step starts.
                     if (alwaysIncludeTargets.includes(target)) {
                         return true;
                     }
@@ -123,11 +124,14 @@ export default function OnboardingTour({
         // Programmatically open/close menu dropdowns and tab panels during step transitions
         if (type === EVENTS.STEP_BEFORE) {
             const target = step?.target;
+
             const isMenuStep =
                 menuId &&
-                typeof target === "string" &&
-                (target.includes(`tour-${menuId}-section`) ||
-                    target.includes(`tour-${menuId}-dropdown`));
+                (typeof target === "string"
+                    ? target.includes(`tour-${menuId}-section`) ||
+                      target.includes(`tour-${menuId}-dropdown`)
+                    : target?.toString().includes(`tour-${menuId}-section`) ||
+                      target?.toString().includes(`tour-${menuId}-dropdown`));
 
             if (menuId) {
                 if (isMenuStep) {
@@ -149,6 +153,20 @@ export default function OnboardingTour({
 
             if (
                 typeof target === "string" &&
+                (target === "#tour-option-scratch" ||
+                    target === "#tour-option-available" ||
+                    target === "#tour-option-ai")
+            ) {
+                // Dispatch event to open the lineup drawer automatically during the tour
+                window.dispatchEvent(
+                    new CustomEvent("toggle-onboarding-lineup-drawer", {
+                        detail: { open: true },
+                    }),
+                );
+            }
+
+            if (
+                typeof target === "string" &&
                 target.includes("tour-roster-section")
             ) {
                 // Preemptively click the Roster Tab button if we are on mobile view
@@ -158,6 +176,37 @@ export default function OnboardingTour({
                 if (rosterTab) {
                     rosterTab.click();
                 }
+            }
+
+            if (
+                typeof target === "string" &&
+                target === "#tour-position-select-0"
+            ) {
+                // Let the step and overlay settle before opening the select dropdown
+                setTimeout(() => {
+                    const selectEl = document.querySelector(
+                        "#tour-position-select-0",
+                    );
+                    if (selectEl) {
+                        selectEl.focus();
+                        selectEl.click();
+
+                        // Mantine's Select is powered by Combobox which toggles on pointerdown events.
+                        // Dispatch pointerdown and click events to the input and its parent wrapper to trigger the toggle.
+                        const wrapper =
+                            selectEl.closest(".mantine-Input-wrapper") ||
+                            selectEl.parentElement;
+                        if (wrapper) {
+                            wrapper.dispatchEvent(
+                                new PointerEvent("pointerdown", {
+                                    bubbles: true,
+                                    cancelable: true,
+                                }),
+                            );
+                            wrapper.click();
+                        }
+                    }
+                }, 200);
             }
         }
 
@@ -171,11 +220,17 @@ export default function OnboardingTour({
                 const nextTarget = nextStep?.target;
 
                 let delay = 0;
-                if (typeof nextTarget === "string") {
-                    if (menuId) {
+                if (nextTarget) {
+                    const nextTargetStr =
+                        typeof nextTarget === "function"
+                            ? nextTarget.toString()
+                            : nextTarget;
+                    const isStringTarget = typeof nextTarget === "string";
+
+                    if (menuId && typeof nextTargetStr === "string") {
                         const isNextMenuStep =
-                            nextTarget.includes(`tour-${menuId}-section`) ||
-                            nextTarget.includes(`tour-${menuId}-dropdown`);
+                            nextTargetStr.includes(`tour-${menuId}-section`) ||
+                            nextTargetStr.includes(`tour-${menuId}-dropdown`);
                         if (isNextMenuStep) {
                             window.dispatchEvent(
                                 new CustomEvent("toggle-onboarding-menu", {
@@ -192,7 +247,35 @@ export default function OnboardingTour({
                         }
                     }
 
-                    if (nextTarget.includes("tour-roster-section")) {
+                    if (
+                        isStringTarget &&
+                        (nextTarget === "#tour-option-scratch" ||
+                            nextTarget === "#tour-option-available" ||
+                            nextTarget === "#tour-option-ai")
+                    ) {
+                        window.dispatchEvent(
+                            new CustomEvent("toggle-onboarding-lineup-drawer", {
+                                detail: { open: true },
+                            }),
+                        );
+                        delay = 300; // Give drawer time to slide open and render
+                    } else if (
+                        isStringTarget &&
+                        // If we are transitioning away from a drawer step (e.g. back to start or forward to player chart)
+                        // close the drawer.
+                        !nextTarget.includes("tour-option-")
+                    ) {
+                        window.dispatchEvent(
+                            new CustomEvent("toggle-onboarding-lineup-drawer", {
+                                detail: { open: false },
+                            }),
+                        );
+                    }
+
+                    if (
+                        isStringTarget &&
+                        nextTarget.includes("tour-roster-section")
+                    ) {
                         const rosterTab = document.querySelector(
                             ".tour-mobile-tab-roster",
                         );
@@ -220,6 +303,11 @@ export default function OnboardingTour({
             const isLastStep = data.index === activeSteps.length - 1;
             if (isLastStep && data.action !== "prev") {
                 // Terminate tour if we hit target_not_found on the very last step going forward
+                window.dispatchEvent(
+                    new CustomEvent("toggle-onboarding-lineup-drawer", {
+                        detail: { open: false },
+                    }),
+                );
                 if (menuId) {
                     window.dispatchEvent(
                         new CustomEvent("toggle-onboarding-menu", {
@@ -300,7 +388,13 @@ export default function OnboardingTour({
                 lastStep: data.index,
             });
 
-            // Close the menu when the tour finishes/skips
+            // Close the menu and lineup drawer when the tour finishes/skips
+            window.dispatchEvent(
+                new CustomEvent("toggle-onboarding-lineup-drawer", {
+                    detail: { open: false },
+                }),
+            );
+
             if (menuId) {
                 window.dispatchEvent(
                     new CustomEvent("toggle-onboarding-menu", {
@@ -347,8 +441,10 @@ export default function OnboardingTour({
                     run={runTour}
                     stepIndex={stepIndex}
                     continuous
+                    disableScrollParentFix={true}
                     options={{
                         ...options,
+                        skipScroll: disableScrolling,
                         buttons: ["back", "skip", "primary"],
                         overlayClickAction: false, // Prevent clicking outside the tooltip on the overlay from closing it and locking the screen
                     }}
