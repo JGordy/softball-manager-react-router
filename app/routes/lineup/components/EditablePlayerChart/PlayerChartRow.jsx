@@ -22,7 +22,10 @@ const PlayerChartRow = ({
                     {provided.placeholder}
                     {managerView && (
                         <Table.Td>
-                            <div {...provided.dragHandleProps}>
+                            <div
+                                id={`tour-drag-handle-${index}`}
+                                {...provided.dragHandleProps}
+                            >
                                 <IconGripVertical size={18} stroke={1.5} />
                             </div>
                         </Table.Td>
@@ -60,6 +63,12 @@ const PlayerChartRow = ({
                                             positionData={positionData}
                                             playerLookup={playerLookup}
                                             error={isDuplicate}
+                                            id={
+                                                index === 0 &&
+                                                inning === "inning1"
+                                                    ? "tour-position-select-0"
+                                                    : undefined
+                                            }
                                         />
                                     ) : (
                                         <Text>{row[inning]}</Text>

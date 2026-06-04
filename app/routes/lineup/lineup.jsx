@@ -29,6 +29,8 @@ import LineupValidationMenu from "./components/LineupValidationMenu";
 import AILineupDrawer from "./components/AILineupDrawer";
 import AddPlayersDrawer from "./components/AddPlayersDrawer";
 import ShareUrlButton from "@/components/ShareUrlButton";
+import OnboardingTour from "@/components/OnboardingTour";
+import { creationSteps, gridSteps } from "./utils/onboardingSteps";
 
 import { validateLineup } from "./utils/validateLineup";
 
@@ -215,6 +217,32 @@ function Lineup({ loaderData, actionData }) {
 
     return (
         <Container size="xl" p="md">
+            {managerView && (!lineupState || lineupState.length === 0) && (
+                <OnboardingTour
+                    tourKey="lineup_creation"
+                    steps={creationSteps}
+                    user={user}
+                    alwaysIncludeTargets={[
+                        "#tour-create-lineup-btn",
+                        "#tour-option-scratch",
+                        "#tour-option-available",
+                        "#tour-option-ai",
+                    ]}
+                    trackingSuffix="lineup_creation"
+                    disableScrolling={true}
+                />
+            )}
+            {managerView && lineupState && lineupState.length > 0 && (
+                <OnboardingTour
+                    tourKey="lineup_grid"
+                    steps={gridSteps}
+                    user={user}
+                    menuId="lineup-menu"
+                    alwaysIncludeTargets={[".tour-lineup-menu-dropdown"]}
+                    trackingSuffix="lineup_grid"
+                    disableScrolling={true}
+                />
+            )}
             <Stack gap="md" mt="lg" mb="xl">
                 <Group justify="space-between" align="center">
                     <BackButton text="Back to event details" />

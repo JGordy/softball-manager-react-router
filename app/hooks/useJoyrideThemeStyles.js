@@ -19,7 +19,7 @@ export function useJoyrideThemeStyles() {
             : "rgba(55, 65, 81, 0.4)",
         primaryColor: isDark ? "#CCFF33" : "#5C8A00", // Neon in dark mode, dark lime in light mode
         textColor: isDark ? "#FFFFFF" : "#111827",
-        zIndex: 1000,
+        zIndex: 9999,
     };
 
     const styles = {

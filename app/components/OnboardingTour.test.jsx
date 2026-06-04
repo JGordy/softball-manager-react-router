@@ -408,6 +408,84 @@ describe("OnboardingTour Component", () => {
         clickSpy.mockRestore();
     });
 
+    it("pre-emptively opens and closes lineup drawer during transitions to drawer targets", () => {
+        const mockUser = {
+            $id: "user1",
+            prefs: {
+                onboardingTours: {},
+            },
+        };
+
+        const eventListener = jest.fn();
+        window.addEventListener(
+            "toggle-onboarding-lineup-drawer",
+            eventListener,
+        );
+
+        const lineupSteps = [
+            { target: "#tour-create-lineup-btn", content: "Button Step" },
+            { target: "#tour-option-scratch", content: "Drawer Step" },
+            { target: "#tour-drag-handle-0", content: "Outside Drawer Step" },
+        ];
+
+        render(
+            <OnboardingTour
+                tourKey="lineup_details"
+                steps={lineupSteps}
+                user={mockUser}
+                alwaysIncludeTargets={[
+                    "#tour-create-lineup-btn",
+                    "#tour-option-scratch",
+                    "#tour-drag-handle-0",
+                ]}
+            />,
+        );
+
+        // Cascade pending timers
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // Initially we are on step 1. Advance to step 2 (drawer step).
+        const nextBtn = screen.getByTestId("next-btn");
+        act(() => {
+            fireEvent.click(nextBtn);
+        });
+
+        // The CustomEvent should have been dispatched to open the drawer
+        expect(eventListener).toHaveBeenCalledWith(
+            expect.objectContaining({
+                detail: { open: true },
+            }),
+        );
+
+        // Advance timers by 300ms to let the stepIndex change to 1 (step 2)
+        act(() => {
+            jest.advanceTimersByTime(300);
+        });
+
+        // Reset spy call count and advance to step 3 (non-drawer step)
+        eventListener.mockClear();
+        act(() => {
+            fireEvent.click(nextBtn);
+        });
+
+        // The CustomEvent should have been dispatched to close the drawer
+        expect(eventListener).toHaveBeenCalledWith(
+            expect.objectContaining({
+                detail: { open: false },
+            }),
+        );
+
+        window.removeEventListener(
+            "toggle-onboarding-lineup-drawer",
+            eventListener,
+        );
+    });
+
     it("resets stepIndex to 0 when starting a tour or when completing a tour", () => {
         const mockUser = {
             $id: "user1",
