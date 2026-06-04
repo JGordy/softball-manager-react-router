@@ -25,6 +25,7 @@ export const opponentSteps = [
             "Click here to access options and scoring controls for both the game and the opponent.",
         placement: "bottom",
         skipScroll: true,
+        spotlightClicks: true,
     },
     {
         target: () =>
@@ -33,6 +34,7 @@ export const opponentSteps = [
             "If you don't want to track the opponent batter-by-batter, select 'Basic Scoring' to switch to a simplified runs-and-outs mode.",
         placement: "left",
         skipScroll: true,
+        spotlightClicks: true,
     },
     {
         target: () =>
