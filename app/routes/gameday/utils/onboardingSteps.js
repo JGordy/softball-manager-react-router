@@ -53,10 +53,20 @@ export function getOpponentScoringSteps(startingMode) {
         skipScroll: true,
     };
 
-    const toggleToBasicStep = {
+    // First transition when starting on Detailed (switches to Basic)
+    const toggleToBasicFirst = {
         target: () => getMenuTarget("gameday-menu", "toggle-scoring-mode"),
         content:
             "If you don't want to track the opponent batter-by-batter, select 'Basic Scoring' to switch to a simplified runs-and-outs mode. We will automatically switch to Basic mode now to show you those controls.",
+        placement: "left",
+        skipScroll: true,
+    };
+
+    // Second transition when starting on Basic (switches back to Basic)
+    const toggleToBasicSecond = {
+        target: () => getMenuTarget("gameday-menu", "toggle-scoring-mode"),
+        content:
+            "We will now switch back to Basic Scoring mode to return to our starting point and complete the guide.",
         placement: "left",
         skipScroll: true,
     };
@@ -93,7 +103,17 @@ export function getOpponentScoringSteps(startingMode) {
         skipScroll: true,
     };
 
-    const toggleToDetailedStep = {
+    // First transition when starting on Basic (switches to Detailed)
+    const toggleToDetailedFirst = {
+        target: () => getMenuTarget("gameday-menu", "toggle-scoring-mode"),
+        content:
+            "If you want to track physical descriptions and score plays batter-by-batter, select 'Detailed Scoring'. We will automatically switch to Detailed mode now to show you those features.",
+        placement: "left",
+        skipScroll: true,
+    };
+
+    // Second transition when starting on Detailed (switches back to Detailed)
+    const toggleToDetailedSecond = {
         target: () => getMenuTarget("gameday-menu", "toggle-scoring-mode"),
         content:
             "We will now switch back to Detailed Scoring mode to return to our starting point and complete the guide.",
@@ -108,12 +128,12 @@ export function getOpponentScoringSteps(startingMode) {
             runButtonStep,
             skipButtonStep,
             firstMenuStep,
-            toggleToDetailedStep,
+            toggleToDetailedFirst,
             notesStep,
             secondMenuStep,
             setActiveBatterStep,
             wrapLineupStep,
-            toggleToBasicStep,
+            toggleToBasicSecond,
         ];
     }
 
@@ -124,11 +144,11 @@ export function getOpponentScoringSteps(startingMode) {
         firstMenuStep,
         setActiveBatterStep,
         wrapLineupStep,
-        toggleToBasicStep,
+        toggleToBasicFirst,
         outButtonStep,
         runButtonStep,
         skipButtonStep,
         secondMenuStep,
-        toggleToDetailedStep,
+        toggleToDetailedSecond,
     ];
 }
