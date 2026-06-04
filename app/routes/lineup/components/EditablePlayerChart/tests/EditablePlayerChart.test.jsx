@@ -96,12 +96,16 @@ describe("EditablePlayerChart Component", () => {
         validationResults: { battingErrors: [], fieldingErrors: {} },
     };
 
-    it("renders table with player rows", () => {
-        render(<EditablePlayerChart {...defaultProps} />);
+    it("renders table with player rows and assigns drag-handle IDs", () => {
+        const { container } = render(<EditablePlayerChart {...defaultProps} />);
 
         expect(screen.getByText("Player One")).toBeInTheDocument();
         expect(screen.getByText("Player Two")).toBeInTheDocument();
         expect(screen.getByText("Missing Positions")).toBeInTheDocument();
+
+        // The first row's drag handle container should have the ID tour-drag-handle-0
+        const dragHandle = container.querySelector("#tour-drag-handle-0");
+        expect(dragHandle).toBeInTheDocument();
     });
 
     it("renders empty state gracefully", () => {
