@@ -112,6 +112,8 @@ export default function LineupValidationMenu({ validationResults }) {
                     disabled={!hasErrors}
                 >
                     <ActionIcon
+                        id="tour-validation-menu"
+                        className="tour-validation-menu"
                         radius="xl"
                         variant="light"
                         color={hasErrors ? "red" : "lime"}

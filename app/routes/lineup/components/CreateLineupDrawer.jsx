@@ -6,9 +6,22 @@ import { IconPencil, IconSparkles, IconUsers } from "@tabler/icons-react";
 
 import DrawerContainer from "@/components/DrawerContainer";
 
-function OptionCard({ icon, title, description, onClick, disabled, gradient }) {
+function OptionCard({
+    icon,
+    title,
+    description,
+    onClick,
+    disabled,
+    gradient,
+    id,
+}) {
     return (
-        <Card radius="md" p="md" style={{ opacity: disabled ? 0.5 : 1 }}>
+        <Card
+            id={id}
+            radius="md"
+            p="md"
+            style={{ opacity: disabled ? 0.5 : 1 }}
+        >
             <Group gap="md" align="flex-start" wrap="nowrap">
                 <ThemeIcon
                     variant={gradient ? "gradient" : "light"}
@@ -70,6 +83,7 @@ export default function CreateLineupDrawer({
                     title="Start from Scratch"
                     description="Build your lineup manually by adding players one by one."
                     onClick={onStartFromScratch}
+                    id="tour-option-scratch"
                 />
                 <OptionCard
                     icon={<IconUsers size={22} />}
@@ -81,6 +95,7 @@ export default function CreateLineupDrawer({
                     }
                     onClick={onCreateWithAvailable}
                     disabled={!canCreateWithAvailable}
+                    id="tour-option-available"
                 />
                 <OptionCard
                     icon={<IconSparkles size={22} />}
@@ -92,6 +107,7 @@ export default function CreateLineupDrawer({
                     }
                     onClick={onOpenAiDrawer}
                     gradient
+                    id="tour-option-ai"
                 />
             </Stack>
         </DrawerContainer>
