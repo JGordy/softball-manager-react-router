@@ -302,9 +302,9 @@ export default function OnboardingTour({
 
                     if (
                         isStringTarget &&
-                        (nextTarget === "#tour-option-scratch" ||
-                            nextTarget === "#tour-option-available" ||
-                            nextTarget === "#tour-option-ai")
+                        (resolvedNextTarget === "#tour-option-scratch" ||
+                            resolvedNextTarget === "#tour-option-available" ||
+                            resolvedNextTarget === "#tour-option-ai")
                     ) {
                         window.dispatchEvent(
                             new CustomEvent("toggle-onboarding-lineup-drawer", {
@@ -316,7 +316,7 @@ export default function OnboardingTour({
                         isStringTarget &&
                         // If we are transitioning away from a drawer step (e.g. back to start or forward to player chart)
                         // close the drawer.
-                        !nextTarget.includes("tour-option-")
+                        !resolvedNextTarget.includes("tour-option-")
                     ) {
                         window.dispatchEvent(
                             new CustomEvent("toggle-onboarding-lineup-drawer", {
@@ -327,7 +327,7 @@ export default function OnboardingTour({
 
                     if (
                         isStringTarget &&
-                        nextTarget.includes("tour-roster-section")
+                        resolvedNextTarget.includes("tour-roster-section")
                     ) {
                         const rosterTab = document.querySelector(
                             ".tour-mobile-tab-roster",
