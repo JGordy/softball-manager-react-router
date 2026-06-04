@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { render, screen, fireEvent } from "@/utils/test-utils";
 import * as dateTimeUtils from "@/utils/dateTime";
 import { trackEvent } from "@/utils/analytics";
