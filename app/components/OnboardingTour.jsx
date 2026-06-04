@@ -273,22 +273,24 @@ export default function OnboardingTour({
                     typeof currentTarget === "function"
                         ? currentTarget()
                         : currentTarget;
+                const toggleClassName = menuId
+                    ? `tour-${menuId}-item-toggle-scoring-mode`
+                    : "tour-menu-item-toggle-scoring-mode";
+
                 const isToggleScoringModeStep =
                     typeof resolvedCurrentTarget === "string"
-                        ? resolvedCurrentTarget.includes(
-                              "tour-gameday-menu-item-toggle-scoring-mode",
-                          )
+                        ? resolvedCurrentTarget.includes(toggleClassName)
                         : resolvedCurrentTarget instanceof HTMLElement &&
-                          (resolvedCurrentTarget.classList.contains(
-                              "tour-gameday-menu-item-toggle-scoring-mode",
+                          (resolvedCurrentTarget.matches(
+                              `[class*="${toggleClassName}"]`,
                           ) ||
                               resolvedCurrentTarget.closest(
-                                  ".tour-gameday-menu-item-toggle-scoring-mode",
+                                  `[class*="${toggleClassName}"]`,
                               ) !== null);
 
                 if (data.action === "next" && isToggleScoringModeStep) {
                     const toggleBtn = document.querySelector(
-                        ".tour-gameday-menu-item-toggle-scoring-mode",
+                        `.${toggleClassName}`,
                     );
                     if (toggleBtn) {
                         toggleBtn.click();
