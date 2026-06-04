@@ -258,6 +258,36 @@ export default function OnboardingTour({
                 const nextTarget = nextStep?.target;
 
                 let delay = 0;
+
+                const currentStep = activeSteps[data.index];
+                const currentTarget = currentStep?.target;
+                const resolvedCurrentTarget =
+                    typeof currentTarget === "function"
+                        ? currentTarget()
+                        : currentTarget;
+                const isToggleScoringModeStep =
+                    typeof resolvedCurrentTarget === "string"
+                        ? resolvedCurrentTarget.includes(
+                              "tour-gameday-menu-item-toggle-scoring-mode",
+                          )
+                        : resolvedCurrentTarget instanceof HTMLElement &&
+                          (resolvedCurrentTarget.classList.contains(
+                              "tour-gameday-menu-item-toggle-scoring-mode",
+                          ) ||
+                              resolvedCurrentTarget.closest(
+                                  ".tour-gameday-menu-item-toggle-scoring-mode",
+                              ) !== null);
+
+                if (data.action === "next" && isToggleScoringModeStep) {
+                    const toggleBtn = document.querySelector(
+                        ".tour-gameday-menu-item-toggle-scoring-mode",
+                    );
+                    if (toggleBtn) {
+                        toggleBtn.click();
+                        delay = 300;
+                    }
+                }
+
                 if (nextTarget) {
                     const resolvedNextTarget =
                         typeof nextTarget === "function"

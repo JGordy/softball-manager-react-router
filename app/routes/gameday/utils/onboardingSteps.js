@@ -25,16 +25,6 @@ export const opponentSteps = [
             "Click here to access options and scoring controls for both the game and the opponent.",
         placement: "bottom",
         skipScroll: true,
-        spotlightClicks: true,
-    },
-    {
-        target: () =>
-            getFirstVisible(".tour-gameday-menu-item-toggle-scoring-mode"),
-        content:
-            "If you don't want to track the opponent batter-by-batter, select 'Basic Scoring' to switch to a simplified runs-and-outs mode.",
-        placement: "left",
-        skipScroll: true,
-        spotlightClicks: true,
     },
     {
         target: () =>
@@ -48,6 +38,14 @@ export const opponentSteps = [
         target: () => getFirstVisible(".tour-gameday-menu-item-wrap-lineup"),
         content:
             "Once you've scored the entire opponent lineup, click 'Top of Lineup (Wrap)' to lock the opponent roster size and cycle back to Batter 1.",
+        placement: "left",
+        skipScroll: true,
+    },
+    {
+        target: () =>
+            getFirstVisible(".tour-gameday-menu-item-toggle-scoring-mode"),
+        content:
+            "If you don't want to track the opponent batter-by-batter, select 'Basic Scoring' to switch to a simplified runs-and-outs mode. We will automatically switch to Basic mode now to show you those controls.",
         placement: "left",
         skipScroll: true,
     },
@@ -70,6 +68,21 @@ export const opponentSteps = [
         content:
             "When the half-inning ends, tap here to advance immediately to your team's batting turn.",
         placement: "top",
+        skipScroll: true,
+    },
+    {
+        target: '[data-testid="menu-target-icon"]',
+        content:
+            "Let's open the menu again to switch back to Detailed Scoring.",
+        placement: "bottom",
+        skipScroll: true,
+    },
+    {
+        target: () =>
+            getFirstVisible(".tour-gameday-menu-item-toggle-scoring-mode"),
+        content:
+            "We will now switch back to Detailed Scoring mode to return to our starting point and complete the guide.",
+        placement: "left",
         skipScroll: true,
     },
 ];
