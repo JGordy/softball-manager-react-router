@@ -1,11 +1,5 @@
 export function getMenuTarget(menuId, itemKey) {
-    if (typeof document === "undefined") return "";
-    const selector = `.tour-${menuId}-item-${itemKey}`;
-    const el = document.querySelector(selector);
-    if (el && el.offsetWidth > 0 && el.offsetHeight > 0) {
-        return el;
-    }
-    return selector;
+    return `.tour-${menuId}-item-${itemKey}`;
 }
 
 export function getOpponentScoringSteps(startingMode) {
