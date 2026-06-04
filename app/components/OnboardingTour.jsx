@@ -173,9 +173,7 @@ export default function OnboardingTour({
 
             if (
                 typeof resolvedTarget === "string" &&
-                (resolvedTarget === "#tour-option-scratch" ||
-                    resolvedTarget === "#tour-option-available" ||
-                    resolvedTarget === "#tour-option-ai")
+                resolvedTarget.includes("tour-option-")
             ) {
                 // Dispatch event to open the lineup drawer automatically during the tour
                 window.dispatchEvent(
@@ -302,9 +300,7 @@ export default function OnboardingTour({
 
                     if (
                         isStringTarget &&
-                        (resolvedNextTarget === "#tour-option-scratch" ||
-                            resolvedNextTarget === "#tour-option-available" ||
-                            resolvedNextTarget === "#tour-option-ai")
+                        resolvedNextTarget.includes("tour-option-")
                     ) {
                         window.dispatchEvent(
                             new CustomEvent("toggle-onboarding-lineup-drawer", {
@@ -494,7 +490,6 @@ export default function OnboardingTour({
                     run={runTour}
                     stepIndex={stepIndex}
                     continuous
-                    disableScrollParentFix={true}
                     options={{
                         ...options,
                         skipScroll: disableScrolling,
