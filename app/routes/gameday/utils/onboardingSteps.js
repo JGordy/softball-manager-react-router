@@ -68,7 +68,7 @@ export function getOpponentScoringSteps(startingMode) {
     const outButtonStep = {
         target: ".tour-fielding-out-btn",
         content:
-            "In Basic mode, quickly record an out for the opponent with a single tap.",
+            "In Basic mode, quickly record an out for the opponent with a single tap. Recording three outs will automatically advance to the next half-inning.",
         placement: "top",
         skipScroll: true,
     };
@@ -84,7 +84,7 @@ export function getOpponentScoringSteps(startingMode) {
     const skipButtonStep = {
         target: ".tour-fielding-skip-btn",
         content:
-            "If you don't want to score the opponent, you can tap here at any time to skip immediately to your team's batting turn. Otherwise, recording three outs will advance the inning automatically.",
+            "If you don't want to score the opponent, you can tap here at any time to skip immediately to your team's batting turn.",
         placement: "top",
         skipScroll: true,
     };
