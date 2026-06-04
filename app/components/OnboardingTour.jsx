@@ -334,7 +334,7 @@ export default function OnboardingTour({
                                 }),
                             );
                             delay = 150; // Give menu time to render
-                        } else {
+                        } else if (!isToggleScoringModeStep) {
                             window.dispatchEvent(
                                 new CustomEvent("toggle-onboarding-menu", {
                                     detail: { open: false, menuId },
