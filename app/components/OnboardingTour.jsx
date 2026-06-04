@@ -107,10 +107,15 @@ export default function OnboardingTour({
                 return false;
             }
         })
-        .map((step) => ({
-            ...step,
-            skipBeacon: true, // Renamed from disableBeacon in Joyride v3
-        }));
+        .map((step) => {
+            const resolvedTarget =
+                typeof step.target === "function" ? step.target() : step.target;
+            return {
+                ...step,
+                target: resolvedTarget,
+                skipBeacon: true,
+            };
+        });
 
     if (activeSteps.length === 0) return null;
 
@@ -284,7 +289,7 @@ export default function OnboardingTour({
                     );
                     if (toggleBtn) {
                         toggleBtn.click();
-                        delay = 300;
+                        delay = 800;
                     }
                 }
 

@@ -101,6 +101,7 @@ export default function MobileGamedayContainer({
         players,
     });
 
+    const [tourInitialMode] = useState(opponentScoringMode);
     const [sprayChartTeam, setSprayChartTeam] = useState("us");
     const [boxScoreTeam, setBoxScoreTeam] = useState("us");
 
@@ -232,7 +233,7 @@ export default function MobileGamedayContainer({
                     {isScorekeeper && !isGameFinal && !isOurBatting && (
                         <OnboardingTour
                             tourKey="gameday_opponent"
-                            steps={getOpponentScoringSteps(opponentScoringMode)}
+                            steps={getOpponentScoringSteps(tourInitialMode)}
                             user={user}
                             menuId="gameday-menu"
                             alwaysIncludeTargets={[
