@@ -45,6 +45,9 @@ jest.mock("../components/LineupMenu", () => () => (
 jest.mock("../components/LineupValidationMenu", () => () => (
     <div data-testid="lineup-validation-menu" />
 ));
+jest.mock("@/components/OnboardingTour", () => () => (
+    <div data-testid="onboarding-tour" />
+));
 
 describe("Lineup Route", () => {
     const mockNavigate = jest.fn();
@@ -69,6 +72,7 @@ describe("Lineup Route", () => {
     const mockLoaderData = {
         game: {
             $id: "game123",
+            gameDate: "2026-06-03T01:00:00Z",
         },
         managerIds: ["user123"], // Current user is manager
         players: [],
@@ -270,6 +274,14 @@ describe("Lineup Route", () => {
             expect(
                 screen.queryByTestId("lineup-validation-menu"),
             ).not.toBeInTheDocument();
+            expect(
+                screen.queryByTestId("onboarding-tour"),
+            ).not.toBeInTheDocument();
+        });
+
+        it("renders the OnboardingTour for managers", () => {
+            render(<Lineup loaderData={mockLoaderData} />);
+            expect(screen.getByTestId("onboarding-tour")).toBeInTheDocument();
         });
 
         it("calls validateLineup with correct data", () => {
