@@ -306,6 +306,27 @@ export default function OnboardingTour({
                     const isStringTarget =
                         typeof resolvedNextTarget === "string";
 
+                    const isNextToggleScoringModeStep =
+                        typeof resolvedNextTarget === "string"
+                            ? resolvedNextTarget.includes(toggleClassName)
+                            : resolvedNextTarget instanceof HTMLElement &&
+                              (resolvedNextTarget.matches(
+                                  `[class*="${toggleClassName}"]`,
+                              ) ||
+                                  resolvedNextTarget.closest(
+                                      `[class*="${toggleClassName}"]`,
+                                  ) !== null);
+
+                    if (data.action === "prev" && isNextToggleScoringModeStep) {
+                        const toggleBtn = document.querySelector(
+                            `.${toggleClassName}`,
+                        );
+                        if (toggleBtn) {
+                            toggleBtn.click();
+                            delay = 800;
+                        }
+                    }
+
                     if (menuId) {
                         const isNextMenuStep =
                             typeof resolvedNextTarget === "string"
@@ -343,8 +364,11 @@ export default function OnboardingTour({
                                     detail: { open: true, menuId },
                                 }),
                             );
-                            delay = 150; // Give menu time to render
-                        } else if (!isToggleScoringModeStep) {
+                            delay = Math.max(delay, 150); // Give menu time to render
+                        } else if (
+                            !isToggleScoringModeStep &&
+                            !isNextToggleScoringModeStep
+                        ) {
                             window.dispatchEvent(
                                 new CustomEvent("toggle-onboarding-menu", {
                                     detail: { open: false, menuId },
@@ -362,7 +386,7 @@ export default function OnboardingTour({
                                 detail: { open: true },
                             }),
                         );
-                        delay = 300; // Give drawer time to slide open and render
+                        delay = Math.max(delay, 300); // Give drawer time to slide open and render
                     } else if (
                         isStringTarget &&
                         // If we are transitioning away from a drawer step (e.g. back to start or forward to player chart)
@@ -385,7 +409,7 @@ export default function OnboardingTour({
                         );
                         if (rosterTab) {
                             rosterTab.click();
-                            delay = 150; // Give tab time to transition and render panel
+                            delay = Math.max(delay, 150); // Give tab time to transition and render panel
                         }
                     }
                 }

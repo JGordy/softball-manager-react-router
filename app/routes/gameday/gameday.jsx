@@ -1,6 +1,7 @@
 import { useLoaderData, useOutletContext, useActionData } from "react-router";
-import { Container } from "@mantine/core";
+import { Container, Title, Text, Box } from "@mantine/core";
 
+import BackButton from "@/components/BackButton";
 import DeferredLoader from "@/components/DeferredLoader";
 
 import { getEventById } from "@/loaders/games";
@@ -263,12 +264,29 @@ export async function action({ request, params }) {
 }
 
 export default function Gameday() {
-    const { game, deferredData, teams, scorekeeperIds } = useLoaderData();
+    const loaderData = useLoaderData();
     const { user, isDesktop } = useOutletContext();
     const actionData = useActionData();
 
     useResponseNotification(actionData);
 
+    if (!loaderData || loaderData.gameDeleted || !loaderData.game) {
+        return (
+            <Container size="sm" py="xl">
+                <BackButton mb="xl" />
+                <Box ta="center" py="xl">
+                    <Title order={2} mb="md">
+                        Game Not Found
+                    </Title>
+                    <Text size="lg" c="dimmed">
+                        This game has been removed or is no longer available.
+                    </Text>
+                </Box>
+            </Container>
+        );
+    }
+
+    const { game, deferredData, teams, scorekeeperIds } = loaderData;
     const team = teams?.[0];
     const isScorekeeper = !!(
         user &&

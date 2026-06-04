@@ -65,6 +65,18 @@ jest.mock("react-joyride", () => {
                         Next Step
                     </button>
                     <button
+                        data-testid="prev-btn"
+                        onClick={() =>
+                            onEvent({
+                                type: "step:after",
+                                index: stepIndex,
+                                action: "prev",
+                            })
+                        }
+                    >
+                        Prev Step
+                    </button>
+                    <button
                         data-testid="target-not-found-btn"
                         onClick={() =>
                             onEvent({
@@ -906,5 +918,78 @@ describe("OnboardingTour Component", () => {
                 userId: "user3",
             }),
         );
+    });
+
+    it("clicks the toggle button when transitioning back (prev) to a toggle scoring mode step", () => {
+        const mockUser = {
+            $id: "user1",
+            prefs: {
+                onboardingTours: {},
+            },
+        };
+
+        const toggleBtn = document.createElement("button");
+        toggleBtn.className = "tour-gameday-menu-item-toggle-scoring-mode";
+        const toggleClickSpy = jest.spyOn(toggleBtn, "click");
+        document.body.appendChild(toggleBtn);
+
+        const toggleSteps = [
+            { target: ".present-target", content: "Step 1" },
+            {
+                target: ".tour-gameday-menu-item-toggle-scoring-mode",
+                content: "Toggle Step",
+            },
+            { target: ".some-other-target", content: "Step 3" },
+        ];
+
+        render(
+            <OnboardingTour
+                tourKey="opponent_scoring"
+                steps={toggleSteps}
+                user={mockUser}
+                menuId="gameday-menu"
+                alwaysIncludeTargets={[
+                    ".present-target",
+                    ".tour-gameday-menu-item-toggle-scoring-mode",
+                    ".some-other-target",
+                ]}
+            />,
+        );
+
+        // Cascade timers to mount and start
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // Current step is 0 (Step 1). Go next to Step 2.
+        const nextBtn = screen.getByTestId("next-btn");
+        act(() => {
+            fireEvent.click(nextBtn);
+        });
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // Now stepIndex is 1. Go next to Step 3.
+        act(() => {
+            fireEvent.click(nextBtn);
+        });
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // Now stepIndex is 2. Let's click prev to go back to stepIndex 1 (the toggle step).
+        const prevBtn = screen.getByTestId("prev-btn");
+        act(() => {
+            fireEvent.click(prevBtn);
+        });
+
+        // Going back (prev) to the toggle step should click the toggle button
+        expect(toggleClickSpy).toHaveBeenCalled();
+        toggleClickSpy.mockRestore();
+        document.body.removeChild(toggleBtn);
     });
 });
