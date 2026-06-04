@@ -205,9 +205,6 @@ export default function CurrentBatterCard({
                                 backgroundColor: "rgba(0, 0, 0, 0.3)",
                                 color: "white",
                                 border: "1px solid rgba(255, 255, 255, 0.3)",
-                                "&::placeholder": {
-                                    color: "rgba(255, 255, 255, 0.5)",
-                                },
                             },
                         }}
                     />

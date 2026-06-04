@@ -148,21 +148,24 @@ export default function OnboardingTour({
                       resolvedTarget.includes(`tour-${menuId}-dropdown`) ||
                       resolvedTarget.includes(`tour-${menuId}-item`)
                     : resolvedTarget instanceof HTMLElement &&
-                      (resolvedTarget.classList.contains(
-                          `tour-${menuId}-section`,
+                      (resolvedTarget.matches(
+                          `[class*="tour-${menuId}-section"]`,
                       ) ||
-                          resolvedTarget.classList.contains(
-                              `tour-${menuId}-dropdown`,
+                          resolvedTarget.matches(
+                              `[class*="tour-${menuId}-dropdown"]`,
                           ) ||
-                          resolvedTarget.classList.contains(
-                              `tour-${menuId}-item`,
+                          resolvedTarget.matches(
+                              `[class*="tour-${menuId}-item"]`,
                           ) ||
-                          resolvedTarget.closest(`.tour-${menuId}-section`) !==
-                              null ||
-                          resolvedTarget.closest(`.tour-${menuId}-dropdown`) !==
-                              null ||
-                          resolvedTarget.closest(`.tour-${menuId}-item`) !==
-                              null));
+                          resolvedTarget.closest(
+                              `[class*="tour-${menuId}-section"]`,
+                          ) !== null ||
+                          resolvedTarget.closest(
+                              `[class*="tour-${menuId}-dropdown"]`,
+                          ) !== null ||
+                          resolvedTarget.closest(
+                              `[class*="tour-${menuId}-item"]`,
+                          ) !== null));
 
             if (menuId) {
                 if (isMenuStep) {
@@ -314,23 +317,23 @@ export default function OnboardingTour({
                                       `tour-${menuId}-item`,
                                   )
                                 : resolvedNextTarget instanceof HTMLElement &&
-                                  (resolvedNextTarget.classList.contains(
-                                      `tour-${menuId}-section`,
+                                  (resolvedNextTarget.matches(
+                                      `[class*="tour-${menuId}-section"]`,
                                   ) ||
-                                      resolvedNextTarget.classList.contains(
-                                          `tour-${menuId}-dropdown`,
+                                      resolvedNextTarget.matches(
+                                          `[class*="tour-${menuId}-dropdown"]`,
                                       ) ||
-                                      resolvedNextTarget.classList.contains(
-                                          `tour-${menuId}-item`,
+                                      resolvedNextTarget.matches(
+                                          `[class*="tour-${menuId}-item"]`,
                                       ) ||
                                       resolvedNextTarget.closest(
-                                          `.tour-${menuId}-section`,
+                                          `[class*="tour-${menuId}-section"]`,
                                       ) !== null ||
                                       resolvedNextTarget.closest(
-                                          `.tour-${menuId}-dropdown`,
+                                          `[class*="tour-${menuId}-dropdown"]`,
                                       ) !== null ||
                                       resolvedNextTarget.closest(
-                                          `.tour-${menuId}-item`,
+                                          `[class*="tour-${menuId}-item"]`,
                                       ) !== null);
                         if (isNextMenuStep) {
                             window.dispatchEvent(
