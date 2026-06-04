@@ -39,7 +39,7 @@ import ShareUrlButton from "@/components/ShareUrlButton";
 import GameRecapView from "./GameRecapView";
 
 import OnboardingTour from "@/components/OnboardingTour";
-import { opponentSteps } from "../utils/onboardingSteps";
+import { getOpponentScoringSteps } from "../utils/onboardingSteps";
 
 export default function DesktopGamedayContainer({
     game: staticGame,
@@ -232,7 +232,7 @@ export default function DesktopGamedayContainer({
                     {isScorekeeper && !isGameFinal && !isOurBatting && (
                         <OnboardingTour
                             tourKey="gameday_opponent"
-                            steps={opponentSteps}
+                            steps={getOpponentScoringSteps(opponentScoringMode)}
                             user={user}
                             menuId="gameday-menu"
                             alwaysIncludeTargets={[
@@ -240,6 +240,10 @@ export default function DesktopGamedayContainer({
                                 ".tour-gameday-menu-item-toggle-scoring-mode",
                                 ".tour-gameday-menu-item-set-active-batter",
                                 ".tour-gameday-menu-item-wrap-lineup",
+                                ".tour-current-batter-card",
+                                ".tour-fielding-out-btn",
+                                ".tour-fielding-run-btn",
+                                ".tour-fielding-skip-btn",
                             ]}
                             trackingSuffix="gameday_opponent"
                             disableScrolling={true}
