@@ -119,7 +119,11 @@ export default function LineupMenu({
 
     return (
         <>
-            <MenuContainer sections={sections} />
+            <MenuContainer
+                sections={sections}
+                id="lineup-menu"
+                menuProps={{ zIndex: 10000 }}
+            />
 
             <RemovePlayersDrawer
                 opened={removePlayersDrawerOpened}

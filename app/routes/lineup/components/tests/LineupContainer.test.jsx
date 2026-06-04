@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { render, screen, fireEvent } from "@/utils/test-utils";
 import * as dateTimeUtils from "@/utils/dateTime";
 import { trackEvent } from "@/utils/analytics";
@@ -107,6 +108,9 @@ describe("LineupContainer Component", () => {
         expect(
             screen.getByRole("button", { name: /Create Lineup/i }),
         ).toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: /Create Lineup/i }),
+        ).toHaveAttribute("id", "tour-create-lineup-btn");
     });
 
     it("renders Create Lineup button when no chart exists", () => {
@@ -156,6 +160,10 @@ describe("LineupContainer Component", () => {
         expect(saveButtons).toHaveLength(2);
         expect(resetButtons).toHaveLength(2);
         expect(savePublishButtons).toHaveLength(2);
+
+        expect(saveButtons[0]).toHaveAttribute("id", "tour-save-btn");
+        expect(resetButtons[0]).toHaveAttribute("id", "tour-reset-btn");
+        expect(savePublishButtons[0]).toHaveAttribute("id", "tour-publish-btn");
     });
 
     it("opens CreateLineupDrawer when Create Lineup button is clicked", () => {
@@ -232,5 +240,33 @@ describe("LineupContainer Component", () => {
         expect(trackEvent).toHaveBeenCalledWith("lineup_open_ai_drawer", {
             gameId: "game1",
         });
+    });
+
+    it("opens and closes the drawer when receiving the custom toggle-onboarding-lineup-drawer event", () => {
+        render(<LineupContainer {...defaultProps} lineupState={null} />);
+
+        expect(
+            screen.queryByTestId("create-lineup-drawer"),
+        ).not.toBeInTheDocument();
+
+        // Dispatch open event
+        fireEvent(
+            window,
+            new CustomEvent("toggle-onboarding-lineup-drawer", {
+                detail: { open: true },
+            }),
+        );
+        expect(screen.getByTestId("create-lineup-drawer")).toBeInTheDocument();
+
+        // Dispatch close event
+        fireEvent(
+            window,
+            new CustomEvent("toggle-onboarding-lineup-drawer", {
+                detail: { open: false },
+            }),
+        );
+        expect(
+            screen.queryByTestId("create-lineup-drawer"),
+        ).not.toBeInTheDocument();
     });
 });
