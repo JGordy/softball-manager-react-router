@@ -1,3 +1,20 @@
+/**
+ * Helper to retrieve the first visible DOM element matching a selector,
+ * or return the selector string/fallback.
+ *
+ * @param {string} selector - The CSS selector to query.
+ * @param {string} [fallback] - Fallback to return if no element is found.
+ * @returns {HTMLElement|string} The first visible element or fallback.
+ */
+export function getFirstVisible(selector, fallback = selector) {
+    if (typeof document === "undefined") return fallback;
+    const elements = document.querySelectorAll(selector);
+    const visible = Array.from(elements).find(
+        (el) => el.offsetWidth > 0 && el.offsetHeight > 0,
+    );
+    return visible || fallback;
+}
+
 export const creationSteps = [
     {
         target: "#tour-create-lineup-btn",
@@ -45,45 +62,21 @@ export const gridSteps = [
         skipScroll: true,
     },
     {
-        target: () => {
-            if (typeof document === "undefined") return ".tour-validation-menu";
-            const elements = document.querySelectorAll(".tour-validation-menu");
-            const visible = Array.from(elements).find(
-                (el) => el.offsetWidth > 0 && el.offsetHeight > 0,
-            );
-            return visible || ".tour-validation-menu";
-        },
+        target: () => getFirstVisible(".tour-validation-menu"),
         content:
             "Check here for validation feedback—like gender ratio rule alerts, duplicate positions within an inning, or unassigned defensive slots.",
         placement: "bottom",
         skipScroll: true,
     },
     {
-        target: () => {
-            if (typeof document === "undefined")
-                return ".tour-lineup-menu-dropdown";
-            const elements = document.querySelectorAll(
-                ".tour-lineup-menu-dropdown",
-            );
-            const visible = Array.from(elements).find(
-                (el) => el.offsetWidth > 0 && el.offsetHeight > 0,
-            );
-            return visible || ".tour-lineup-menu-dropdown";
-        },
+        target: () => getFirstVisible(".tour-lineup-menu-dropdown"),
         content:
             "Use the actions menu to add players, invite guest players, run the predictive AI generator, or delete the chart entirely.",
         placement: "bottom",
         skipScroll: true,
     },
     {
-        target: () => {
-            if (typeof document === "undefined") return "#tour-save-btn";
-            const elements = document.querySelectorAll(".tour-save-btn");
-            const visible = Array.from(elements).find(
-                (el) => el.offsetWidth > 0 && el.offsetHeight > 0,
-            );
-            return visible || "#tour-save-btn";
-        },
+        target: () => getFirstVisible(".tour-save-btn", "#tour-save-btn"),
         content:
             "When you are ready, click Save to keep your drafts, or Publish to notify your players of the roster changes.",
         placement: "top",
