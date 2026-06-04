@@ -84,7 +84,7 @@ export function getOpponentScoringSteps(startingMode) {
     const skipButtonStep = {
         target: ".tour-fielding-skip-btn",
         content:
-            "When the half-inning ends, tap here to advance immediately to your team's batting turn.",
+            "If you don't want to score the opponent, you can tap here at any time to skip immediately to your team's batting turn. Otherwise, recording three outs will advance the inning automatically.",
         placement: "top",
         skipScroll: true,
     };
