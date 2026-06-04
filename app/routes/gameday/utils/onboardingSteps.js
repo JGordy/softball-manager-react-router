@@ -1,15 +1,11 @@
-export function getMenuTarget(
-    menuId,
-    itemKey,
-    fallbackSelector = '[data-testid="menu-target-icon"]',
-) {
-    if (typeof document === "undefined") return fallbackSelector;
+export function getMenuTarget(menuId, itemKey) {
+    if (typeof document === "undefined") return "";
     const selector = `.tour-${menuId}-item-${itemKey}`;
     const el = document.querySelector(selector);
     if (el && el.offsetWidth > 0 && el.offsetHeight > 0) {
         return el;
     }
-    return document.querySelector(fallbackSelector) || "body";
+    return selector;
 }
 
 export function getOpponentScoringSteps(startingMode) {
