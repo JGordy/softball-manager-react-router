@@ -61,7 +61,14 @@ export default function CurrentBatterCard({
     const textMutedColor = isOpponent ? "red.1" : "blue.1";
 
     return (
-        <Card withBorder p="sm" radius="md" bg={cardBg} {...props}>
+        <Card
+            className="tour-current-batter-card"
+            withBorder
+            p="sm"
+            radius="md"
+            bg={cardBg}
+            {...props}
+        >
             <Group justify="space-between" wrap="nowrap">
                 <Group wrap="nowrap" gap="md" style={{ minWidth: 0, flex: 1 }}>
                     <Avatar

@@ -13,7 +13,7 @@ export const opponentSteps = [
         },
     },
     {
-        target: ".tour-opponent-notes-input",
+        target: ".tour-current-batter-card",
         content:
             "Use this notes field to quickly jot down identifiers like jersey numbers, physical descriptions, or batting stance (lefty/righty) so you can track opponent players easily.",
         placement: "bottom",
