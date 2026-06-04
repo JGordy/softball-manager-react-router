@@ -81,6 +81,34 @@ export default function MobileEventDetailsView({
                 mt="md"
                 className={`${styles.badgeRow} tour-interactive-badge-row`}
             >
+                {/* Awards Badge (for past games) */}
+                {gameIsPast && game.eventType !== "practice" && (
+                    <Button
+                        variant="filled"
+                        color="blue"
+                        size="xs"
+                        radius="xl"
+                        onClick={() => {
+                            onOpenAwards();
+                            trackEvent("view-awards-badge", {
+                                eventId: game.$id,
+                            });
+                        }}
+                        leftSection={<IconTrophy size={16} />}
+                        data-testid="awards-badge-button"
+                        styles={{
+                            root: {
+                                cursor: "pointer",
+                                fontWeight: 600,
+                                border: "1.5px solid var(--mantine-color-lime-5)",
+                                flexShrink: 0,
+                            },
+                        }}
+                    >
+                        Awards
+                    </Button>
+                )}
+
                 {/* Weather Badge (for future games) */}
                 {!gameIsPast && (
                     <WeatherCard
@@ -244,34 +272,6 @@ export default function MobileEventDetailsView({
                         );
                     }}
                 </DeferredLoader>
-
-                {/* Awards Badge (for past games) */}
-                {gameIsPast && game.eventType !== "practice" && (
-                    <Button
-                        variant="filled"
-                        color="blue"
-                        size="xs"
-                        radius="xl"
-                        onClick={() => {
-                            onOpenAwards();
-                            trackEvent("view-awards-badge", {
-                                eventId: game.$id,
-                            });
-                        }}
-                        leftSection={<IconTrophy size={16} />}
-                        data-testid="awards-badge-button"
-                        styles={{
-                            root: {
-                                cursor: "pointer",
-                                fontWeight: 600,
-                                border: "1.5px solid var(--mantine-color-lime-5)",
-                                flexShrink: 0,
-                            },
-                        }}
-                    >
-                        Awards
-                    </Button>
-                )}
             </Group>
 
             <Box px="md">
