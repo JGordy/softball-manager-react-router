@@ -15,7 +15,7 @@ export const opponentSteps = [
     {
         target: ".tour-opponent-notes-input",
         content:
-            "When scoring the opponent, you won't have their full roster pre-filled. Use this notes field to quickly jot down clues like lefty/righty, jersey numbers, or player speed.",
+            "Use this notes field to quickly jot down identifiers like jersey numbers, physical descriptions, or batting stance (lefty/righty) so you can track opponent players easily.",
         placement: "bottom",
         skipScroll: true,
     },
