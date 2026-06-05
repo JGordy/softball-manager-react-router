@@ -263,7 +263,6 @@ export default function MobileGamedayContainer({
                                 ".tour-spray-field",
                                 ".tour-runner-advancement-dnd",
                                 ".tour-confirm-play-btn",
-                                ".tour-undo-play-btn",
                                 ".tour-last-play-card",
                             ]}
                             trackingSuffix="gameday_scoring_flow"

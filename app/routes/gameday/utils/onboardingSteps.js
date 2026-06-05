@@ -153,7 +153,7 @@ export function getScoringFlowSteps() {
             target: "body",
             placement: "center",
             content:
-                "Welcome to the scoring flow guide! This tour will walk you through scoring an at-bat, selecting hit location, adjusting runners, and editing play logs.",
+                "Welcome to the scoring flow guide! This tour will walk you through scoring an at-bat, selecting hit location, adjusting runners, and confirming or undoing plays.",
             skipBeacon: true,
             locale: {
                 next: "Start Tour",
