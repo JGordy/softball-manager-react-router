@@ -19,6 +19,8 @@ export function useTourGlobalClick({
     useEffect(() => {
         if (!runTour) return;
 
+        let clickDelayTimer = null;
+
         const handleGlobalClick = (e) => {
             if (!e.isTrusted && process.env.NODE_ENV !== "test") return;
             if (stepIndex === lastProcessedStepRef.current) return;
@@ -53,7 +55,7 @@ export function useTourGlobalClick({
                         ".tour-proceed-advancement-btn",
                     );
                     if (proceedBtn) {
-                        setTimeout(() => {
+                        clickDelayTimer = setTimeout(() => {
                             proceedBtn.click();
                         }, 100);
                     }
@@ -82,6 +84,9 @@ export function useTourGlobalClick({
         window.addEventListener("pointerup", handleGlobalClick, true);
         window.addEventListener("mouseup", handleGlobalClick, true);
         return () => {
+            if (clickDelayTimer) {
+                clearTimeout(clickDelayTimer);
+            }
             window.removeEventListener("click", handleGlobalClick, true);
             window.removeEventListener("pointerup", handleGlobalClick, true);
             window.removeEventListener("mouseup", handleGlobalClick, true);

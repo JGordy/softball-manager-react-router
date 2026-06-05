@@ -20,6 +20,7 @@ describe("createTourEventHandler", () => {
         simulatedRefs = {
             tourEndTimeout: null,
             selectTimeout: null,
+            transitionTimeout: null,
             hasSubmittedEnd: false,
             pollingInterval: null,
         };
@@ -55,6 +56,15 @@ describe("createTourEventHandler", () => {
             }),
             setSelectTimeout: jest.fn((val) => {
                 simulatedRefs.selectTimeout = val;
+            }),
+            clearTransitionTimeout: jest.fn(() => {
+                if (simulatedRefs.transitionTimeout) {
+                    clearTimeout(simulatedRefs.transitionTimeout);
+                    simulatedRefs.transitionTimeout = null;
+                }
+            }),
+            setTransitionTimeout: jest.fn((val) => {
+                simulatedRefs.transitionTimeout = val;
             }),
             getHasSubmittedEnd: jest.fn(() => simulatedRefs.hasSubmittedEnd),
             setHasSubmittedEnd: jest.fn((val) => {

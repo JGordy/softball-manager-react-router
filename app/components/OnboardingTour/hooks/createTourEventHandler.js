@@ -92,6 +92,8 @@ export function createTourEventHandler({
     setTourEndTimeout,
     clearSelectTimeout,
     setSelectTimeout,
+    clearTransitionTimeout,
+    setTransitionTimeout,
     getHasSubmittedEnd,
     setHasSubmittedEnd,
     clearPollingInterval,
@@ -102,10 +104,14 @@ export function createTourEventHandler({
         const { status, type, step } = data;
 
         const cleanupAndFinishTour = () => {
+            if (getHasSubmittedEnd()) return;
+            setHasSubmittedEnd(true);
+
             dispatchToggleDrawer(false);
             dispatchToggleMenu(menuId, false);
 
             clearTourEndTimeout();
+            clearTransitionTimeout();
 
             setTourEndTimeout(
                 setTimeout(() => {
@@ -371,9 +377,12 @@ export function createTourEventHandler({
 
                 if (nextStep) {
                     if (delay > 0) {
-                        setTimeout(() => {
-                            setStepIndex(nextIndex);
-                        }, delay);
+                        clearTransitionTimeout();
+                        setTransitionTimeout(
+                            setTimeout(() => {
+                                setStepIndex(nextIndex);
+                            }, delay),
+                        );
                     } else {
                         setStepIndex(nextIndex);
                     }

@@ -44,6 +44,7 @@ export default function OnboardingTour({
     const tourEndTimeoutRef = useRef(null);
     const selectTimeoutRef = useRef(null);
     const pollingIntervalRef = useRef(null);
+    const transitionTimeoutRef = useRef(null);
     const hasSubmittedEndRef = useRef(false);
     const lastProcessedStepRef = useRef(-1);
 
@@ -87,9 +88,13 @@ export default function OnboardingTour({
         .map((step) => {
             let resolvedTarget = step.target;
             if (typeof step.target === "function") {
-                const res = step.target();
-                if (typeof res === "string") {
-                    resolvedTarget = res;
+                try {
+                    const res = step.target();
+                    if (typeof res === "string") {
+                        resolvedTarget = res;
+                    }
+                } catch (err) {
+                    console.error("Error resolving step target function:", err);
                 }
             }
             return {
@@ -116,6 +121,9 @@ export default function OnboardingTour({
             }
             if (pollingIntervalRef.current) {
                 clearInterval(pollingIntervalRef.current);
+            }
+            if (transitionTimeoutRef.current) {
+                clearTimeout(transitionTimeoutRef.current);
             }
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -179,6 +187,15 @@ export default function OnboardingTour({
         },
         setSelectTimeout: (val) => {
             selectTimeoutRef.current = val;
+        },
+        clearTransitionTimeout: () => {
+            if (transitionTimeoutRef.current) {
+                clearTimeout(transitionTimeoutRef.current);
+                transitionTimeoutRef.current = null;
+            }
+        },
+        setTransitionTimeout: (val) => {
+            transitionTimeoutRef.current = val;
         },
         getHasSubmittedEnd: () => hasSubmittedEndRef.current,
         setHasSubmittedEnd: (val) => {
