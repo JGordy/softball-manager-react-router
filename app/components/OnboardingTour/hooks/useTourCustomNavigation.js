@@ -20,6 +20,9 @@ export function useTourCustomNavigation({
         let timeoutId = null;
 
         const handleNextStep = () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
             if (runTour && stepIndex < activeSteps.length - 1) {
                 const currentStep = activeSteps[stepIndex];
                 const currentTarget =

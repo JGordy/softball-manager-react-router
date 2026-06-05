@@ -112,6 +112,8 @@ export function createTourEventHandler({
 
             clearTourEndTimeout();
             clearTransitionTimeout();
+            clearPollingInterval();
+            clearSelectTimeout();
 
             setTourEndTimeout(
                 setTimeout(() => {
@@ -466,6 +468,9 @@ export function createTourEventHandler({
             dispatchToggleMenu(menuId, false);
 
             clearTourEndTimeout();
+            clearTransitionTimeout();
+            clearPollingInterval();
+            clearSelectTimeout();
 
             setTourEndTimeout(
                 setTimeout(() => {
