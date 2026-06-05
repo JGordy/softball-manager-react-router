@@ -1,5 +1,5 @@
 import { renderHook } from "@/utils/test-utils";
-import { useTourEventHandler } from "../useTourEventHandler";
+import { createTourEventHandler } from "../createTourEventHandler";
 import { STATUS, EVENTS } from "react-joyride";
 import { trackEvent } from "@/utils/analytics";
 
@@ -8,13 +8,21 @@ jest.mock("@/utils/analytics", () => ({
     trackEvent: jest.fn(),
 }));
 
-describe("useTourEventHandler", () => {
+describe("createTourEventHandler", () => {
     let props;
     let windowEventSpy;
+
+    let simulatedRefs;
 
     beforeEach(() => {
         jest.clearAllMocks();
         windowEventSpy = jest.spyOn(window, "dispatchEvent");
+        simulatedRefs = {
+            tourEndTimeout: null,
+            selectTimeout: null,
+            hasSubmittedEnd: false,
+            pollingInterval: null,
+        };
 
         props = {
             tourKey: "test_tour",
@@ -30,9 +38,38 @@ describe("useTourEventHandler", () => {
             setRunTour: jest.fn(),
             setRerenderCount: jest.fn(),
             fetcher: { submit: jest.fn() },
-            tourEndTimeoutRef: { current: null },
-            selectTimeoutRef: { current: null },
-            hasSubmittedEndRef: { current: false },
+            clearTourEndTimeout: jest.fn(() => {
+                if (simulatedRefs.tourEndTimeout) {
+                    clearTimeout(simulatedRefs.tourEndTimeout);
+                    simulatedRefs.tourEndTimeout = null;
+                }
+            }),
+            setTourEndTimeout: jest.fn((val) => {
+                simulatedRefs.tourEndTimeout = val;
+            }),
+            clearSelectTimeout: jest.fn(() => {
+                if (simulatedRefs.selectTimeout) {
+                    clearTimeout(simulatedRefs.selectTimeout);
+                    simulatedRefs.selectTimeout = null;
+                }
+            }),
+            setSelectTimeout: jest.fn((val) => {
+                simulatedRefs.selectTimeout = val;
+            }),
+            getHasSubmittedEnd: jest.fn(() => simulatedRefs.hasSubmittedEnd),
+            setHasSubmittedEnd: jest.fn((val) => {
+                simulatedRefs.hasSubmittedEnd = val;
+            }),
+            clearPollingInterval: jest.fn(() => {
+                if (simulatedRefs.pollingInterval) {
+                    clearInterval(simulatedRefs.pollingInterval);
+                    simulatedRefs.pollingInterval = null;
+                }
+            }),
+            setPollingInterval: jest.fn((val) => {
+                simulatedRefs.pollingInterval = val;
+            }),
+            getPollingInterval: jest.fn(() => simulatedRefs.pollingInterval),
         };
     });
 
@@ -41,12 +78,12 @@ describe("useTourEventHandler", () => {
     });
 
     it("returns a function to handle Joyride events", () => {
-        const { result } = renderHook(() => useTourEventHandler(props));
+        const { result } = renderHook(() => createTourEventHandler(props));
         expect(typeof result.current).toBe("function");
     });
 
     it("handles STEP_BEFORE events for drawer/menu targets", () => {
-        const { result } = renderHook(() => useTourEventHandler(props));
+        const { result } = renderHook(() => createTourEventHandler(props));
         const handleEvent = result.current;
 
         // Menu Step
@@ -75,7 +112,7 @@ describe("useTourEventHandler", () => {
     });
 
     it("handles STEP_AFTER custom programmatic navigation actions", () => {
-        const { result } = renderHook(() => useTourEventHandler(props));
+        const { result } = renderHook(() => createTourEventHandler(props));
         const handleEvent = result.current;
 
         const actionBtn = document.createElement("button");
@@ -97,7 +134,7 @@ describe("useTourEventHandler", () => {
     });
 
     it("triggers analytics and saves completion on finished status", () => {
-        const { result } = renderHook(() => useTourEventHandler(props));
+        const { result } = renderHook(() => createTourEventHandler(props));
         const handleEvent = result.current;
 
         jest.useFakeTimers();
@@ -143,8 +180,7 @@ describe("useTourEventHandler", () => {
         props.activeSteps = [
             { target: ".tour-last-play-card", content: "Last step" },
         ];
-        props.pollingIntervalRef = { current: null };
-        const { result } = renderHook(() => useTourEventHandler(props));
+        const { result } = renderHook(() => createTourEventHandler(props));
         const handleEvent = result.current;
 
         jest.useFakeTimers();
@@ -157,13 +193,13 @@ describe("useTourEventHandler", () => {
         });
 
         // Interval should be set
-        expect(props.pollingIntervalRef.current).not.toBeNull();
+        expect(props.getPollingInterval()).not.toBeNull();
 
         // Advance timers past maxRetries (15 * 200ms = 3000ms)
         jest.advanceTimersByTime(3200);
 
         // It should clear interval and call cleanupAndFinishTour
-        expect(props.pollingIntervalRef.current).toBeNull();
+        expect(props.getPollingInterval()).toBeNull();
         expect(props.setRunTour).toHaveBeenCalledWith(false);
         expect(props.setStepIndex).toHaveBeenCalledWith(0);
 
@@ -171,7 +207,7 @@ describe("useTourEventHandler", () => {
     });
 
     it("handles TARGET_NOT_FOUND gracefully and clamps the step index", () => {
-        const { result } = renderHook(() => useTourEventHandler(props));
+        const { result } = renderHook(() => createTourEventHandler(props));
         const handleEvent = result.current;
 
         handleEvent({

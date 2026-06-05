@@ -7,7 +7,7 @@ import { useJoyrideThemeStyles } from "@/hooks/useJoyrideThemeStyles";
 import { useTourStartDelay } from "./hooks/useTourStartDelay";
 import { useTourGlobalClick } from "./hooks/useTourGlobalClick";
 import { useTourCustomNavigation } from "./hooks/useTourCustomNavigation";
-import { useTourEventHandler } from "./hooks/useTourEventHandler";
+import { createTourEventHandler } from "./hooks/createTourEventHandler";
 
 /**
  * OnboardingTour is a reusable guided tour component built on top of React Joyride (v3+).
@@ -118,6 +118,7 @@ export default function OnboardingTour({
                 clearInterval(pollingIntervalRef.current);
             }
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Handle delayed start of the tour on mount to ensure all DOM elements are painted
@@ -150,7 +151,7 @@ export default function OnboardingTour({
     if (!mounted) return null;
     if (activeSteps.length === 0) return null;
 
-    const handleEvent = useTourEventHandler({
+    const handleEvent = createTourEventHandler({
         tourKey,
         activeSteps,
         user,
@@ -161,10 +162,38 @@ export default function OnboardingTour({
         setRunTour,
         setRerenderCount,
         fetcher,
-        tourEndTimeoutRef,
-        selectTimeoutRef,
-        hasSubmittedEndRef,
-        pollingIntervalRef,
+        clearTourEndTimeout: () => {
+            if (tourEndTimeoutRef.current) {
+                clearTimeout(tourEndTimeoutRef.current);
+                tourEndTimeoutRef.current = null;
+            }
+        },
+        setTourEndTimeout: (val) => {
+            tourEndTimeoutRef.current = val;
+        },
+        clearSelectTimeout: () => {
+            if (selectTimeoutRef.current) {
+                clearTimeout(selectTimeoutRef.current);
+                selectTimeoutRef.current = null;
+            }
+        },
+        setSelectTimeout: (val) => {
+            selectTimeoutRef.current = val;
+        },
+        getHasSubmittedEnd: () => hasSubmittedEndRef.current,
+        setHasSubmittedEnd: (val) => {
+            hasSubmittedEndRef.current = val;
+        },
+        clearPollingInterval: () => {
+            if (pollingIntervalRef.current) {
+                clearInterval(pollingIntervalRef.current);
+                pollingIntervalRef.current = null;
+            }
+        },
+        setPollingInterval: (val) => {
+            pollingIntervalRef.current = val;
+        },
+        getPollingInterval: () => pollingIntervalRef.current,
     });
 
     return (

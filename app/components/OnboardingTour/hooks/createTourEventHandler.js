@@ -73,11 +73,11 @@ const checkIsMenuStep = (resolvedTarget, menuId) => {
 };
 
 /**
- * Custom hook that returns the Joyride onEvent handler function.
+ * Factory function that returns the Joyride onEvent handler function.
  * This abstracts step transitions, tab/drawer/menu interactions, target_not_found errors,
  * and tour completion analytics & persistence.
  */
-export function useTourEventHandler({
+export function createTourEventHandler({
     tourKey,
     activeSteps,
     user,
@@ -88,10 +88,15 @@ export function useTourEventHandler({
     setRunTour,
     setRerenderCount,
     fetcher,
-    tourEndTimeoutRef,
-    selectTimeoutRef,
-    hasSubmittedEndRef,
-    pollingIntervalRef,
+    clearTourEndTimeout,
+    setTourEndTimeout,
+    clearSelectTimeout,
+    setSelectTimeout,
+    getHasSubmittedEnd,
+    setHasSubmittedEnd,
+    clearPollingInterval,
+    setPollingInterval,
+    getPollingInterval,
 }) {
     return (data) => {
         const { status, type, step } = data;
@@ -100,14 +105,14 @@ export function useTourEventHandler({
             dispatchToggleDrawer(false);
             dispatchToggleMenu(menuId, false);
 
-            if (tourEndTimeoutRef.current) {
-                clearTimeout(tourEndTimeoutRef.current);
-            }
+            clearTourEndTimeout();
 
-            tourEndTimeoutRef.current = setTimeout(() => {
-                setRunTour(false);
-                setStepIndex(0);
-            }, 100);
+            setTourEndTimeout(
+                setTimeout(() => {
+                    setRunTour(false);
+                    setStepIndex(0);
+                }, 100),
+            );
 
             const updatedTours = {
                 ...onboardingTours,
@@ -130,9 +135,7 @@ export function useTourEventHandler({
             const resolvedTarget = resolveTarget(step?.target);
 
             // Clear any active select dropdown timeout from a previous step
-            if (selectTimeoutRef.current) {
-                clearTimeout(selectTimeoutRef.current);
-            }
+            clearSelectTimeout();
 
             const isMenuStep = checkIsMenuStep(resolvedTarget, menuId);
             if (menuId) {
@@ -157,46 +160,46 @@ export function useTourEventHandler({
                 typeof resolvedTarget === "string" &&
                 resolvedTarget === "#tour-position-select-0"
             ) {
-                selectTimeoutRef.current = setTimeout(() => {
-                    const selectEl = document.querySelector(
-                        "#tour-position-select-0",
-                    );
-                    if (selectEl) {
-                        selectEl.focus();
-                        selectEl.click();
+                setSelectTimeout(
+                    setTimeout(() => {
+                        const selectEl = document.querySelector(
+                            "#tour-position-select-0",
+                        );
+                        if (selectEl) {
+                            selectEl.focus();
+                            selectEl.click();
 
-                        const wrapper =
-                            selectEl.closest(".mantine-Input-wrapper") ||
-                            selectEl.parentElement;
-                        if (wrapper) {
-                            if (typeof PointerEvent !== "undefined") {
-                                wrapper.dispatchEvent(
-                                    new PointerEvent("pointerdown", {
-                                        bubbles: true,
-                                        cancelable: true,
-                                    }),
-                                );
-                            } else if (typeof MouseEvent !== "undefined") {
-                                wrapper.dispatchEvent(
-                                    new MouseEvent("mousedown", {
-                                        bubbles: true,
-                                        cancelable: true,
-                                    }),
-                                );
+                            const wrapper =
+                                selectEl.closest(".mantine-Input-wrapper") ||
+                                selectEl.parentElement;
+                            if (wrapper) {
+                                if (typeof PointerEvent !== "undefined") {
+                                    wrapper.dispatchEvent(
+                                        new PointerEvent("pointerdown", {
+                                            bubbles: true,
+                                            cancelable: true,
+                                        }),
+                                    );
+                                } else if (typeof MouseEvent !== "undefined") {
+                                    wrapper.dispatchEvent(
+                                        new MouseEvent("mousedown", {
+                                            bubbles: true,
+                                            cancelable: true,
+                                        }),
+                                    );
+                                }
+                                wrapper.click();
                             }
-                            wrapper.click();
                         }
-                    }
-                }, 200);
+                    }, 200),
+                );
             }
         }
 
         // Preemptively open or close the menu dropdown / tabs during STEP_AFTER transitions to let React
         // flush state changes and render elements in the DOM before the next step's measurement.
         if (type === EVENTS.STEP_AFTER) {
-            if (selectTimeoutRef.current) {
-                clearTimeout(selectTimeoutRef.current);
-            }
+            clearSelectTimeout();
 
             if (data.action === "next" || data.action === "prev") {
                 const nextIndex =
@@ -383,9 +386,7 @@ export function useTourEventHandler({
             const isLastStep = data.index === activeSteps.length - 1;
             if (isLastStep && data.action !== "prev") {
                 if (step?.target === ".tour-last-play-card") {
-                    if (pollingIntervalRef?.current) {
-                        clearInterval(pollingIntervalRef.current);
-                    }
+                    clearPollingInterval();
                     let retries = 0;
                     const maxRetries = 15;
                     const interval = setInterval(() => {
@@ -395,21 +396,15 @@ export function useTourEventHandler({
                         retries++;
                         if (el) {
                             clearInterval(interval);
-                            if (pollingIntervalRef) {
-                                pollingIntervalRef.current = null;
-                            }
+                            clearPollingInterval();
                             setRerenderCount((c) => c + 1);
                         } else if (retries >= maxRetries) {
                             clearInterval(interval);
-                            if (pollingIntervalRef) {
-                                pollingIntervalRef.current = null;
-                            }
+                            clearPollingInterval();
                             cleanupAndFinishTour();
                         }
                     }, 200);
-                    if (pollingIntervalRef) {
-                        pollingIntervalRef.current = interval;
-                    }
+                    setPollingInterval(interval);
                     return;
                 }
                 cleanupAndFinishTour();
@@ -435,8 +430,8 @@ export function useTourEventHandler({
                 data.index === activeSteps.length - 1);
 
         if (isTourFinished) {
-            if (hasSubmittedEndRef.current) return;
-            hasSubmittedEndRef.current = true;
+            if (getHasSubmittedEnd()) return;
+            setHasSubmittedEnd(true);
             const isSkipped =
                 status === STATUS.SKIPPED || data.action === "skip";
 
@@ -461,14 +456,14 @@ export function useTourEventHandler({
             dispatchToggleDrawer(false);
             dispatchToggleMenu(menuId, false);
 
-            if (tourEndTimeoutRef.current) {
-                clearTimeout(tourEndTimeoutRef.current);
-            }
+            clearTourEndTimeout();
 
-            tourEndTimeoutRef.current = setTimeout(() => {
-                setRunTour(false);
-                setStepIndex(0);
-            }, 100);
+            setTourEndTimeout(
+                setTimeout(() => {
+                    setRunTour(false);
+                    setStepIndex(0);
+                }, 100),
+            );
 
             const updatedTours = {
                 ...onboardingTours,

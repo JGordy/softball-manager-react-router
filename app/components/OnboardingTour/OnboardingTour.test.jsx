@@ -505,7 +505,7 @@ describe("OnboardingTour Component", () => {
             },
         };
 
-        const { rerender } = render(
+        render(
             <OnboardingTour
                 tourKey="team_details"
                 steps={mockSteps}
