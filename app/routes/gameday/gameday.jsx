@@ -273,7 +273,9 @@ export default function Gameday() {
     if (!loaderData || loaderData.gameDeleted || !loaderData.game) {
         return (
             <Container size="sm" py="xl">
-                <BackButton mb="xl" />
+<Box mb="xl">
+    <BackButton />
+</Box>
                 <Box ta="center" py="xl">
                     <Title order={2} mb="md">
                         Game Not Found
