@@ -63,7 +63,9 @@ export function useTourGlobalClick({
                         new CustomEvent("onboarding-next-step"),
                     );
                 } else if (target === ".tour-last-play-card") {
-                    const cardEl = e.target.closest(".tour-last-play-card");
+                    const cardEl = e.target.closest
+                        ? e.target.closest(".tour-last-play-card")
+                        : null;
                     const undoBtn = cardEl
                         ? cardEl.querySelector(".tour-undo-play-btn")
                         : null;
