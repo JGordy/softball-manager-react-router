@@ -141,4 +141,13 @@ describe("RunnerAdvancementDND", () => {
         // The component should render the batterName for the batter badge
         expect(screen.getByText("Custom Batter Name")).toBeInTheDocument();
     });
+
+    it("renders container with tour hook class (.tour-runner-advancement-dnd)", () => {
+        const { container } = render(
+            <RunnerAdvancementDND {...defaultProps} />,
+        );
+        expect(
+            container.querySelector(".tour-runner-advancement-dnd"),
+        ).toBeInTheDocument();
+    });
 });

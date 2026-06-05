@@ -101,4 +101,24 @@ describe("LastPlayCard", () => {
             color: "var(--mantine-color-red-6)",
         });
     });
+
+    it("renders with tour class hooks (.tour-last-play-card and .tour-undo-play-btn)", () => {
+        const { container } = render(
+            <LastPlayCard
+                lastLog={mockLog}
+                onUndo={mockOnUndo}
+                isSubmitting={false}
+                playerChart={mockPlayerChart}
+            />,
+        );
+
+        // Card wrapper must have .tour-last-play-card
+        expect(
+            container.querySelector(".tour-last-play-card"),
+        ).toBeInTheDocument();
+
+        // Undo button must have .tour-undo-play-btn
+        const undoBtn = screen.getByRole("button", { name: "UNDO" });
+        expect(undoBtn).toHaveClass("tour-undo-play-btn");
+    });
 });

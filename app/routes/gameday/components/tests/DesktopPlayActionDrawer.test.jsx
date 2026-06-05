@@ -209,4 +209,33 @@ describe("DesktopPlayActionDrawer", () => {
 
         expect(mockOnSelectInfield).toHaveBeenCalled();
     });
+
+    it("renders with tour class hooks (.tour-spray-field, .tour-field-position-rf, and .tour-proceed-advancement-btn)", () => {
+        render(<DesktopPlayActionDrawer {...defaultProps} />);
+
+        // Find the spray field container by class hook
+        const fieldContainer = document.querySelector(".tour-spray-field");
+        expect(fieldContainer).toBeInTheDocument();
+
+        // RF position button must have the tour-field-position-rf class
+        const rfBtn = document.querySelector(".tour-field-position-rf");
+        expect(rfBtn).toBeInTheDocument();
+
+        // Simulate locking position so proceed button is shown
+        const fieldImage = screen.getByAltText(
+            /Interactive softball field diagram/i,
+        );
+        const container = fieldImage.parentElement;
+        fireEvent.pointerDown(container, {
+            clientX: 100,
+            clientY: 100,
+            pointerId: 1,
+        });
+
+        // Proceed button must have .tour-proceed-advancement-btn
+        const proceedBtn = screen
+            .getByText(/Proceed to Runner Advancement/i)
+            .closest("button");
+        expect(proceedBtn).toHaveClass("tour-proceed-advancement-btn");
+    });
 });
