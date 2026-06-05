@@ -20,6 +20,7 @@ export default function CurrentBatterCard({
     logs,
     isOpponent = false,
     onNotesChange,
+    className,
     ...props
 }) {
     if (!currentBatter) return null;
@@ -61,7 +62,14 @@ export default function CurrentBatterCard({
     const textMutedColor = isOpponent ? "red.1" : "blue.1";
 
     return (
-        <Card withBorder p="sm" radius="md" bg={cardBg} {...props}>
+        <Card
+            className={`tour-current-batter-card ${className || ""}`}
+            withBorder
+            p="sm"
+            radius="md"
+            bg={cardBg}
+            {...props}
+        >
             <Group justify="space-between" wrap="nowrap">
                 <Group wrap="nowrap" gap="md" style={{ minWidth: 0, flex: 1 }}>
                     <Avatar
@@ -182,6 +190,7 @@ export default function CurrentBatterCard({
                 <Stack mt="md" gap="xs">
                     <TextInput
                         key={currentBatter.$id}
+                        className="tour-opponent-notes-input"
                         size="sm"
                         placeholder="Add notes (e.g. Lefty, fast, #12)"
                         defaultValue={currentBatter.notes || ""}
@@ -197,9 +206,6 @@ export default function CurrentBatterCard({
                                 backgroundColor: "rgba(0, 0, 0, 0.3)",
                                 color: "white",
                                 border: "1px solid rgba(255, 255, 255, 0.3)",
-                                "&::placeholder": {
-                                    color: "rgba(255, 255, 255, 0.5)",
-                                },
                             },
                         }}
                     />

@@ -38,6 +38,9 @@ import SelectOpponentBatterDrawer from "./SelectOpponentBatterDrawer";
 import ShareUrlButton from "@/components/ShareUrlButton";
 import GameRecapView from "./GameRecapView";
 
+import OnboardingTour from "@/components/OnboardingTour";
+import { getOpponentScoringSteps } from "../utils/onboardingSteps";
+
 export default function DesktopGamedayContainer({
     game: staticGame,
     playerChart: initialPlayerChart,
@@ -100,6 +103,8 @@ export default function DesktopGamedayContainer({
 
     const isGameFinal =
         game.gameFinal !== undefined ? !!game.gameFinal : gameFinal;
+
+    const [tourInitialMode] = useState(opponentScoringMode);
 
     const [sprayChartTeam, setSprayChartTeam] = useState("us");
     const [boxScoreTeam, setBoxScoreTeam] = useState("us");
@@ -182,6 +187,7 @@ export default function DesktopGamedayContainer({
                     <ShareUrlButton />
                     {isScorekeeper ? (
                         <GamedayMenu
+                            menuId="gameday-menu"
                             gameFinal={isGameFinal}
                             score={score}
                             opponentScore={opponentScore}
@@ -225,6 +231,26 @@ export default function DesktopGamedayContainer({
                 </Card>
             ) : (
                 <Box pos="relative">
+                    {isScorekeeper && !isGameFinal && !isOurBatting && (
+                        <OnboardingTour
+                            tourKey="gameday_opponent"
+                            steps={getOpponentScoringSteps(tourInitialMode)}
+                            user={user}
+                            menuId="gameday-menu"
+                            alwaysIncludeTargets={[
+                                ".tour-gameday-menu-dropdown",
+                                ".tour-gameday-menu-item-toggle-scoring-mode",
+                                ".tour-gameday-menu-item-set-active-batter",
+                                ".tour-gameday-menu-item-wrap-lineup",
+                                ".tour-current-batter-card",
+                                ".tour-fielding-out-btn",
+                                ".tour-fielding-run-btn",
+                                ".tour-fielding-skip-btn",
+                            ]}
+                            trackingSuffix="gameday_opponent"
+                            disableScrolling={true}
+                        />
+                    )}
                     <LoadingOverlay
                         visible={isSyncing}
                         overlayProps={{ radius: "lg", blur: 1, opacity: 0.1 }}

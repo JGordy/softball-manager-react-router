@@ -107,10 +107,20 @@ export default function OnboardingTour({
                 return false;
             }
         })
-        .map((step) => ({
-            ...step,
-            skipBeacon: true, // Renamed from disableBeacon in Joyride v3
-        }));
+        .map((step) => {
+            let resolvedTarget = step.target;
+            if (typeof step.target === "function") {
+                const res = step.target();
+                if (typeof res === "string") {
+                    resolvedTarget = res;
+                }
+            }
+            return {
+                ...step,
+                target: resolvedTarget,
+                skipBeacon: true,
+            };
+        });
 
     if (activeSteps.length === 0) return null;
 
@@ -140,18 +150,27 @@ export default function OnboardingTour({
                 menuId &&
                 (typeof resolvedTarget === "string"
                     ? resolvedTarget.includes(`tour-${menuId}-section`) ||
-                      resolvedTarget.includes(`tour-${menuId}-dropdown`)
+                      resolvedTarget.includes(`tour-${menuId}-dropdown`) ||
+                      resolvedTarget.includes(`tour-${menuId}-item`)
                     : resolvedTarget instanceof HTMLElement &&
-                      (resolvedTarget.classList.contains(
-                          `tour-${menuId}-section`,
+                      (resolvedTarget.matches(
+                          `[class*="tour-${menuId}-section"]`,
                       ) ||
-                          resolvedTarget.classList.contains(
-                              `tour-${menuId}-dropdown`,
+                          resolvedTarget.matches(
+                              `[class*="tour-${menuId}-dropdown"]`,
                           ) ||
-                          resolvedTarget.closest(`.tour-${menuId}-section`) !==
-                              null ||
-                          resolvedTarget.closest(`.tour-${menuId}-dropdown`) !==
-                              null));
+                          resolvedTarget.matches(
+                              `[class*="tour-${menuId}-item"]`,
+                          ) ||
+                          resolvedTarget.closest(
+                              `[class*="tour-${menuId}-section"]`,
+                          ) !== null ||
+                          resolvedTarget.closest(
+                              `[class*="tour-${menuId}-dropdown"]`,
+                          ) !== null ||
+                          resolvedTarget.closest(
+                              `[class*="tour-${menuId}-item"]`,
+                          ) !== null));
 
             if (menuId) {
                 if (isMenuStep) {
@@ -252,6 +271,38 @@ export default function OnboardingTour({
                 const nextTarget = nextStep?.target;
 
                 let delay = 0;
+
+                const currentStep = activeSteps[data.index];
+                const currentTarget = currentStep?.target;
+                const resolvedCurrentTarget =
+                    typeof currentTarget === "function"
+                        ? currentTarget()
+                        : currentTarget;
+                const toggleClassName = menuId
+                    ? `tour-${menuId}-item-toggle-scoring-mode`
+                    : "tour-menu-item-toggle-scoring-mode";
+
+                const isToggleScoringModeStep =
+                    typeof resolvedCurrentTarget === "string"
+                        ? resolvedCurrentTarget.includes(toggleClassName)
+                        : resolvedCurrentTarget instanceof HTMLElement &&
+                          (resolvedCurrentTarget.matches(
+                              `[class*="${toggleClassName}"]`,
+                          ) ||
+                              resolvedCurrentTarget.closest(
+                                  `[class*="${toggleClassName}"]`,
+                              ) !== null);
+
+                if (data.action === "next" && isToggleScoringModeStep) {
+                    const toggleBtn = document.querySelector(
+                        `.${toggleClassName}`,
+                    );
+                    if (toggleBtn) {
+                        toggleBtn.click();
+                        delay = 800;
+                    }
+                }
+
                 if (nextTarget) {
                     const resolvedNextTarget =
                         typeof nextTarget === "function"
@@ -259,6 +310,36 @@ export default function OnboardingTour({
                             : nextTarget;
                     const isStringTarget =
                         typeof resolvedNextTarget === "string";
+
+                    const isNextToggleScoringModeStep =
+                        typeof resolvedNextTarget === "string"
+                            ? resolvedNextTarget.includes(toggleClassName)
+                            : resolvedNextTarget instanceof HTMLElement &&
+                              (resolvedNextTarget.matches(
+                                  `[class*="${toggleClassName}"]`,
+                              ) ||
+                                  resolvedNextTarget.closest(
+                                      `[class*="${toggleClassName}"]`,
+                                  ) !== null);
+
+                    if (data.action === "prev" && isNextToggleScoringModeStep) {
+                        if (menuId) {
+                            window.dispatchEvent(
+                                new CustomEvent("toggle-onboarding-menu", {
+                                    detail: { open: true, menuId },
+                                }),
+                            );
+                        }
+                        setTimeout(() => {
+                            const toggleBtn = document.querySelector(
+                                `.${toggleClassName}`,
+                            );
+                            if (toggleBtn) {
+                                toggleBtn.click();
+                            }
+                        }, 100);
+                        delay = Math.max(delay, 800);
+                    }
 
                     if (menuId) {
                         const isNextMenuStep =
@@ -268,19 +349,28 @@ export default function OnboardingTour({
                                   ) ||
                                   resolvedNextTarget.includes(
                                       `tour-${menuId}-dropdown`,
+                                  ) ||
+                                  resolvedNextTarget.includes(
+                                      `tour-${menuId}-item`,
                                   )
                                 : resolvedNextTarget instanceof HTMLElement &&
-                                  (resolvedNextTarget.classList.contains(
-                                      `tour-${menuId}-section`,
+                                  (resolvedNextTarget.matches(
+                                      `[class*="tour-${menuId}-section"]`,
                                   ) ||
-                                      resolvedNextTarget.classList.contains(
-                                          `tour-${menuId}-dropdown`,
+                                      resolvedNextTarget.matches(
+                                          `[class*="tour-${menuId}-dropdown"]`,
+                                      ) ||
+                                      resolvedNextTarget.matches(
+                                          `[class*="tour-${menuId}-item"]`,
                                       ) ||
                                       resolvedNextTarget.closest(
-                                          `.tour-${menuId}-section`,
+                                          `[class*="tour-${menuId}-section"]`,
                                       ) !== null ||
                                       resolvedNextTarget.closest(
-                                          `.tour-${menuId}-dropdown`,
+                                          `[class*="tour-${menuId}-dropdown"]`,
+                                      ) !== null ||
+                                      resolvedNextTarget.closest(
+                                          `[class*="tour-${menuId}-item"]`,
                                       ) !== null);
                         if (isNextMenuStep) {
                             window.dispatchEvent(
@@ -288,8 +378,11 @@ export default function OnboardingTour({
                                     detail: { open: true, menuId },
                                 }),
                             );
-                            delay = 150; // Give menu time to render
-                        } else {
+                            delay = Math.max(delay, 150); // Give menu time to render
+                        } else if (
+                            !isToggleScoringModeStep &&
+                            !isNextToggleScoringModeStep
+                        ) {
                             window.dispatchEvent(
                                 new CustomEvent("toggle-onboarding-menu", {
                                     detail: { open: false, menuId },
@@ -307,7 +400,7 @@ export default function OnboardingTour({
                                 detail: { open: true },
                             }),
                         );
-                        delay = 300; // Give drawer time to slide open and render
+                        delay = Math.max(delay, 300); // Give drawer time to slide open and render
                     } else if (
                         isStringTarget &&
                         // If we are transitioning away from a drawer step (e.g. back to start or forward to player chart)
@@ -330,7 +423,7 @@ export default function OnboardingTour({
                         );
                         if (rosterTab) {
                             rosterTab.click();
-                            delay = 150; // Give tab time to transition and render panel
+                            delay = Math.max(delay, 150); // Give tab time to transition and render panel
                         }
                     }
                 }

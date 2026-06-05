@@ -23,6 +23,7 @@ export default function GamedayMenu({
     opponentChart,
     opponentOrderIndex,
     onOpenSelectBatterDrawer,
+    menuId,
 }) {
     const fetcher = useFetcher();
     const { eventId } = useParams();
@@ -259,5 +260,5 @@ export default function GamedayMenu({
             : []),
     ];
 
-    return <MenuContainer sections={sections} />;
+    return <MenuContainer id={menuId} sections={sections} />;
 }

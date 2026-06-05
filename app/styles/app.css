@@ -219,3 +219,8 @@ main {
 .live-pulse {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* Improve contrast of opponent notes placeholder text on dark red background */
+.tour-opponent-notes-input input::placeholder {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
