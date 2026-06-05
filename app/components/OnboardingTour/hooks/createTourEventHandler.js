@@ -258,11 +258,11 @@ export function createTourEventHandler({
 
                 if (data.action === "next" && isSprayFieldStep) {
                     clickElement(".tour-field-position-rf");
-                    if (clickElement(".tour-proceed-advancement-btn")) {
-                        delay = 450;
-                    } else {
-                        delay = 350;
-                    }
+                    // Defer clicking the proceed button to let React update the DOM and render it
+                    setTimeout(() => {
+                        clickElement(".tour-proceed-advancement-btn");
+                    }, 100);
+                    delay = 450;
                 }
 
                 const isConfirmPlayStep =

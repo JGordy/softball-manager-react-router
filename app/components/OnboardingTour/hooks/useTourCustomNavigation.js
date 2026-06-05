@@ -58,12 +58,23 @@ export function useTourCustomNavigation({
                     delay = 800;
                 }
 
+                const startingIndex = stepIndex;
                 if (delay > 0) {
                     timeoutRef.current = setTimeout(() => {
-                        setStepIndex((prev) => prev + 1);
+                        setStepIndex((prev) => {
+                            if (prev === startingIndex) {
+                                return Math.min(
+                                    activeSteps.length - 1,
+                                    startingIndex + 1,
+                                );
+                            }
+                            return prev;
+                        });
                     }, delay);
                 } else {
-                    setStepIndex((prev) => prev + 1);
+                    setStepIndex((prev) =>
+                        Math.min(activeSteps.length - 1, prev + 1),
+                    );
                 }
             }
         };
