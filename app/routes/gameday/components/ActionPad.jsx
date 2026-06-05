@@ -49,6 +49,11 @@ export default function ActionPad({ onAction, runners, outs: currentOuts }) {
                     {onBase.map((btn) => (
                         <Button
                             key={btn.value}
+                            className={
+                                btn.value === UI_KEYS.SINGLE
+                                    ? "tour-action-1b"
+                                    : undefined
+                            }
                             color={btn.color}
                             variant={btn.variant || "filled"}
                             radius="md"

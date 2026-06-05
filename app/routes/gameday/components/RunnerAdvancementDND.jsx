@@ -766,7 +766,7 @@ export default function RunnerAdvancementDND({
                     onPointerUp={handlePointerUp}
                     onPointerCancel={handlePointerUp} // Safety reset
                     onContextMenu={(e) => e.preventDefault()}
-                    className={fieldStyles.fieldContainer}
+                    className={`${fieldStyles.fieldContainer} tour-runner-advancement-dnd`}
                     style={{
                         backgroundImage:
                             "url('/images/baseball-infield-v2.png')",
@@ -871,7 +871,7 @@ export default function RunnerAdvancementDND({
                 >
                     <Box
                         ref={containerRef}
-                        className={fieldStyles.fieldContainer}
+                        className={`${fieldStyles.fieldContainer} tour-runner-advancement-dnd`}
                     >
                         {renderDiamond()}
                         {renderGhostTrail()}

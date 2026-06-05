@@ -188,7 +188,7 @@ export default function MobilePlayActionDrawer({
             <Paper radius="md" p="0">
                 <div
                     ref={containerRef}
-                    className={styles.imageContainer}
+                    className={`${styles.imageContainer} tour-spray-field`}
                     style={{ touchAction: "none", margin: "10px auto" }}
                     onContextMenu={(e) => e.preventDefault()}
                     onPointerDown={(e) => {
@@ -225,7 +225,7 @@ export default function MobilePlayActionDrawer({
                         return (
                             <div
                                 key={pos.value}
-                                className={`${styles.fieldingPosition} ${className}`}
+                                className={`${styles.fieldingPosition} ${className} ${pos.value === "RF" ? "tour-field-position-rf" : ""}`}
                                 onClick={() => {
                                     setSelectedPosition(pos.value);
                                     // If just clicked, set coords to centroid
