@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 /**
  * Custom hook to handle custom onboarding-next-step event dispatches to advance the tour index,
@@ -16,12 +16,29 @@ export function useTourCustomNavigation({
     activeSteps,
     setStepIndex,
 }) {
-    useEffect(() => {
-        let timeoutId = null;
+    const timeoutRef = useRef(null);
 
+    // Clear timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
+
+    // Clear timeout when tour stops
+    useEffect(() => {
+        if (!runTour && timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+        }
+    }, [runTour]);
+
+    useEffect(() => {
         const handleNextStep = () => {
-            if (timeoutId) {
-                clearTimeout(timeoutId);
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
             }
             if (runTour && stepIndex < activeSteps.length - 1) {
                 const currentStep = activeSteps[stepIndex];
@@ -42,7 +59,7 @@ export function useTourCustomNavigation({
                 }
 
                 if (delay > 0) {
-                    timeoutId = setTimeout(() => {
+                    timeoutRef.current = setTimeout(() => {
                         setStepIndex((prev) => prev + 1);
                     }, delay);
                 } else {
@@ -54,9 +71,6 @@ export function useTourCustomNavigation({
         window.addEventListener("onboarding-next-step", handleNextStep);
         return () => {
             window.removeEventListener("onboarding-next-step", handleNextStep);
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-            }
         };
     }, [runTour, stepIndex, activeSteps, setStepIndex]);
 }
