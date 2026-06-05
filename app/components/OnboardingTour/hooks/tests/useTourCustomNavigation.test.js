@@ -67,4 +67,34 @@ describe("useTourCustomNavigation", () => {
         });
         expect(setStepIndex).toHaveBeenCalled();
     });
+
+    it("should clear timeout on unmount to prevent leaks", () => {
+        const setStepIndex = jest.fn();
+        const activeSteps = [
+            { target: ".tour-confirm-play-btn", content: "Confirm Step" },
+            { target: ".other-target", content: "Step 2" },
+        ];
+
+        const { unmount } = renderHook(() =>
+            useTourCustomNavigation({
+                runTour: true,
+                stepIndex: 0,
+                activeSteps,
+                setStepIndex,
+            }),
+        );
+
+        act(() => {
+            window.dispatchEvent(new CustomEvent("onboarding-next-step"));
+        });
+
+        // Timeout is scheduled, unmount hook now
+        unmount();
+
+        act(() => {
+            jest.advanceTimersByTime(3500);
+        });
+
+        expect(setStepIndex).not.toHaveBeenCalled();
+    });
 });

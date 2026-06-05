@@ -91,9 +91,39 @@ export function useTourEventHandler({
     tourEndTimeoutRef,
     selectTimeoutRef,
     hasSubmittedEndRef,
+    pollingIntervalRef,
 }) {
     return (data) => {
         const { status, type, step } = data;
+
+        const cleanupAndFinishTour = () => {
+            dispatchToggleDrawer(false);
+            dispatchToggleMenu(menuId, false);
+
+            if (tourEndTimeoutRef.current) {
+                clearTimeout(tourEndTimeoutRef.current);
+            }
+
+            tourEndTimeoutRef.current = setTimeout(() => {
+                setRunTour(false);
+                setStepIndex(0);
+            }, 100);
+
+            const updatedTours = {
+                ...onboardingTours,
+                [tourKey]: true,
+            };
+            if (user?.$id) {
+                fetcher.submit(
+                    {
+                        _action: "update-user-preferences",
+                        userId: user.$id,
+                        onboardingTours: JSON.stringify(updatedTours),
+                    },
+                    { method: "post", action: "/api/user-preferences" },
+                );
+            }
+        };
 
         // Programmatically open/close menu dropdowns and tab panels during step transitions
         if (type === EVENTS.STEP_BEFORE) {
@@ -353,43 +383,36 @@ export function useTourEventHandler({
             const isLastStep = data.index === activeSteps.length - 1;
             if (isLastStep && data.action !== "prev") {
                 if (step?.target === ".tour-last-play-card") {
+                    if (pollingIntervalRef?.current) {
+                        clearInterval(pollingIntervalRef.current);
+                    }
+                    let retries = 0;
+                    const maxRetries = 15;
                     const interval = setInterval(() => {
                         const el = document.querySelector(
                             ".tour-last-play-card",
                         );
+                        retries++;
                         if (el) {
                             clearInterval(interval);
+                            if (pollingIntervalRef) {
+                                pollingIntervalRef.current = null;
+                            }
                             setRerenderCount((c) => c + 1);
+                        } else if (retries >= maxRetries) {
+                            clearInterval(interval);
+                            if (pollingIntervalRef) {
+                                pollingIntervalRef.current = null;
+                            }
+                            cleanupAndFinishTour();
                         }
                     }, 200);
+                    if (pollingIntervalRef) {
+                        pollingIntervalRef.current = interval;
+                    }
                     return;
                 }
-                dispatchToggleDrawer(false);
-                dispatchToggleMenu(menuId, false);
-
-                if (tourEndTimeoutRef.current) {
-                    clearTimeout(tourEndTimeoutRef.current);
-                }
-
-                tourEndTimeoutRef.current = setTimeout(() => {
-                    setRunTour(false);
-                    setStepIndex(0);
-                }, 100);
-
-                const updatedTours = {
-                    ...onboardingTours,
-                    [tourKey]: true,
-                };
-                if (user?.$id) {
-                    fetcher.submit(
-                        {
-                            _action: "update-user-preferences",
-                            userId: user.$id,
-                            onboardingTours: JSON.stringify(updatedTours),
-                        },
-                        { method: "post", action: "/api/user-preferences" },
-                    );
-                }
+                cleanupAndFinishTour();
             } else {
                 const nextIndex =
                     data.action === "prev" ? data.index - 1 : data.index + 1;

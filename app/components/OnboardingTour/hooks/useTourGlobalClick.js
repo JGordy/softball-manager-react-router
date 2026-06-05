@@ -17,9 +17,10 @@ export function useTourGlobalClick({
     lastProcessedStepRef,
 }) {
     useEffect(() => {
+        if (!runTour) return;
+
         const handleGlobalClick = (e) => {
-            if (!runTour || (!e.isTrusted && process.env.NODE_ENV !== "test"))
-                return;
+            if (!e.isTrusted && process.env.NODE_ENV !== "test") return;
             if (stepIndex === lastProcessedStepRef.current) return;
 
             const currentStep = activeSteps[stepIndex];

@@ -43,6 +43,7 @@ export default function OnboardingTour({
     const fetcher = useFetcher();
     const tourEndTimeoutRef = useRef(null);
     const selectTimeoutRef = useRef(null);
+    const pollingIntervalRef = useRef(null);
     const hasSubmittedEndRef = useRef(false);
     const lastProcessedStepRef = useRef(-1);
 
@@ -113,6 +114,9 @@ export default function OnboardingTour({
             if (selectTimeoutRef.current) {
                 clearTimeout(selectTimeoutRef.current);
             }
+            if (pollingIntervalRef.current) {
+                clearInterval(pollingIntervalRef.current);
+            }
         };
     }, []);
 
@@ -160,6 +164,7 @@ export default function OnboardingTour({
         tourEndTimeoutRef,
         selectTimeoutRef,
         hasSubmittedEndRef,
+        pollingIntervalRef,
     });
 
     return (

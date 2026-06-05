@@ -81,4 +81,38 @@ describe("useTourGlobalClick", () => {
         window.removeEventListener("onboarding-next-step", nextStepListener);
         document.body.removeChild(targetDiv);
     });
+
+    it("should not bind event listeners when runTour is false", () => {
+        const addSpy = jest.spyOn(window, "addEventListener");
+
+        const lastProcessedStepRef = { current: -1 };
+        const activeSteps = [{ target: ".tour-action-1b", content: "Step" }];
+
+        renderHook(() =>
+            useTourGlobalClick({
+                runTour: false,
+                stepIndex: 0,
+                activeSteps,
+                lastProcessedStepRef,
+            }),
+        );
+
+        expect(addSpy).not.toHaveBeenCalledWith(
+            "click",
+            expect.any(Function),
+            true,
+        );
+        expect(addSpy).not.toHaveBeenCalledWith(
+            "pointerup",
+            expect.any(Function),
+            true,
+        );
+        expect(addSpy).not.toHaveBeenCalledWith(
+            "mouseup",
+            expect.any(Function),
+            true,
+        );
+
+        addSpy.mockRestore();
+    });
 });

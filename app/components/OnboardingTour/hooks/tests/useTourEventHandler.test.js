@@ -139,6 +139,37 @@ describe("useTourEventHandler", () => {
         jest.useRealTimers();
     });
 
+    it("polls for .tour-last-play-card on target not found at last step and completes if retries exceed max", () => {
+        props.activeSteps = [
+            { target: ".tour-last-play-card", content: "Last step" },
+        ];
+        props.pollingIntervalRef = { current: null };
+        const { result } = renderHook(() => useTourEventHandler(props));
+        const handleEvent = result.current;
+
+        jest.useFakeTimers();
+
+        handleEvent({
+            type: EVENTS.TARGET_NOT_FOUND,
+            index: 0,
+            action: "next",
+            step: props.activeSteps[0],
+        });
+
+        // Interval should be set
+        expect(props.pollingIntervalRef.current).not.toBeNull();
+
+        // Advance timers past maxRetries (15 * 200ms = 3000ms)
+        jest.advanceTimersByTime(3200);
+
+        // It should clear interval and call cleanupAndFinishTour
+        expect(props.pollingIntervalRef.current).toBeNull();
+        expect(props.setRunTour).toHaveBeenCalledWith(false);
+        expect(props.setStepIndex).toHaveBeenCalledWith(0);
+
+        jest.useRealTimers();
+    });
+
     it("handles TARGET_NOT_FOUND gracefully and clamps the step index", () => {
         const { result } = renderHook(() => useTourEventHandler(props));
         const handleEvent = result.current;

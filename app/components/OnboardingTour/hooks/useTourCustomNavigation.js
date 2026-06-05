@@ -17,6 +17,8 @@ export function useTourCustomNavigation({
     setStepIndex,
 }) {
     useEffect(() => {
+        let timeoutId = null;
+
         const handleNextStep = () => {
             if (runTour && stepIndex < activeSteps.length - 1) {
                 const currentStep = activeSteps[stepIndex];
@@ -37,7 +39,7 @@ export function useTourCustomNavigation({
                 }
 
                 if (delay > 0) {
-                    setTimeout(() => {
+                    timeoutId = setTimeout(() => {
                         setStepIndex((prev) => prev + 1);
                     }, delay);
                 } else {
@@ -49,6 +51,9 @@ export function useTourCustomNavigation({
         window.addEventListener("onboarding-next-step", handleNextStep);
         return () => {
             window.removeEventListener("onboarding-next-step", handleNextStep);
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
         };
     }, [runTour, stepIndex, activeSteps, setStepIndex]);
 }
