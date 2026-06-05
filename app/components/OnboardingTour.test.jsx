@@ -987,6 +987,11 @@ describe("OnboardingTour Component", () => {
             fireEvent.click(prevBtn);
         });
 
+        // Advance timers to trigger the deferred click
+        act(() => {
+            jest.advanceTimersByTime(100);
+        });
+
         // Going back (prev) to the toggle step should click the toggle button
         expect(toggleClickSpy).toHaveBeenCalled();
         toggleClickSpy.mockRestore();

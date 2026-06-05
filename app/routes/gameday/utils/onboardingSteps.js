@@ -24,7 +24,7 @@ export function getOpponentScoringSteps(startingMode) {
     };
 
     const firstMenuStep = {
-        target: '[data-testid="menu-target-icon"]',
+        target: ".tour-gameday-menu-target",
         content:
             "Click here to access options and scoring controls for both the game and the opponent.",
         placement: "bottom",
@@ -90,7 +90,7 @@ export function getOpponentScoringSteps(startingMode) {
     };
 
     const secondMenuStep = {
-        target: '[data-testid="menu-target-icon"]',
+        target: ".tour-gameday-menu-target",
         content:
             "Let's open the menu again to switch back to the other scoring mode.",
         placement: "bottom",

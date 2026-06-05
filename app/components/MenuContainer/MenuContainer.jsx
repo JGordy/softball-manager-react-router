@@ -72,7 +72,7 @@ export default function MenuContainer({
                 {target ?? (
                     <ActionIcon
                         variant="light"
-                        className={classes.actionIcon}
+                        className={`${classes.actionIcon}${id ? ` tour-${id}-target` : ""}`}
                         radius="xl"
                         size="lg"
                         aria-label="Toggle menu"

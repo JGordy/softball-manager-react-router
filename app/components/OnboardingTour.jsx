@@ -318,13 +318,22 @@ export default function OnboardingTour({
                                   ) !== null);
 
                     if (data.action === "prev" && isNextToggleScoringModeStep) {
-                        const toggleBtn = document.querySelector(
-                            `.${toggleClassName}`,
-                        );
-                        if (toggleBtn) {
-                            toggleBtn.click();
-                            delay = 800;
+                        if (menuId) {
+                            window.dispatchEvent(
+                                new CustomEvent("toggle-onboarding-menu", {
+                                    detail: { open: true, menuId },
+                                }),
+                            );
                         }
+                        setTimeout(() => {
+                            const toggleBtn = document.querySelector(
+                                `.${toggleClassName}`,
+                            );
+                            if (toggleBtn) {
+                                toggleBtn.click();
+                            }
+                        }, 100);
+                        delay = Math.max(delay, 800);
                     }
 
                     if (menuId) {
