@@ -40,7 +40,10 @@ import ShareUrlButton from "@/components/ShareUrlButton";
 import GameRecapView from "./GameRecapView";
 
 import OnboardingTour from "@/components/OnboardingTour";
-import { getOpponentScoringSteps } from "../utils/onboardingSteps";
+import {
+    getOpponentScoringSteps,
+    getScoringFlowSteps,
+} from "../utils/onboardingSteps";
 
 export default function MobileGamedayContainer({
     game: staticGame,
@@ -247,6 +250,23 @@ export default function MobileGamedayContainer({
                                 ".tour-fielding-skip-btn",
                             ]}
                             trackingSuffix="gameday_opponent"
+                            disableScrolling={true}
+                        />
+                    )}
+                    {isScorekeeper && !isGameFinal && isOurBatting && (
+                        <OnboardingTour
+                            tourKey="gameday_scoring_flow"
+                            steps={getScoringFlowSteps()}
+                            user={user}
+                            alwaysIncludeTargets={[
+                                ".tour-action-1b",
+                                ".tour-spray-field",
+                                ".tour-runner-advancement-dnd",
+                                ".tour-confirm-play-btn",
+                                ".tour-undo-play-btn",
+                                ".tour-last-play-card",
+                            ]}
+                            trackingSuffix="gameday_scoring_flow"
                             disableScrolling={true}
                         />
                     )}
