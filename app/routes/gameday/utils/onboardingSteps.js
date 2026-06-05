@@ -146,3 +146,54 @@ export function getOpponentScoringSteps(startingMode) {
         toggleToDetailedSecond,
     ];
 }
+
+export function getScoringFlowSteps() {
+    return [
+        {
+            target: "body",
+            placement: "center",
+            content:
+                "Welcome to the scoring flow guide! This tour will walk you through scoring an at-bat, selecting hit location, adjusting runners, and editing play logs.",
+            skipBeacon: true,
+            locale: {
+                next: "Start Tour",
+                skip: "Skip",
+            },
+        },
+        {
+            target: ".tour-action-1b",
+            content:
+                "Click on 1B (Single) to record a base hit for the current batter.",
+            placement: "top",
+            skipScroll: true,
+        },
+        {
+            target: ".tour-spray-field",
+            content:
+                "Now select where the ball was hit. You can click on any fielding position or touch and drag on the field. For this tour, we will automatically click RF (Right Field) for you.",
+            placement: "top",
+            skipScroll: true,
+        },
+        {
+            target: ".tour-runner-advancement-dnd",
+            content:
+                "Review and adjust runner advancements. If a runner got out, drag their badge to the OUT circle. Drag base runners clockwise to advance them.",
+            placement: "top",
+            skipScroll: true,
+        },
+        {
+            target: ".tour-confirm-play-btn",
+            content:
+                "Click 'Confirm Play' to save the play. We will click it now to log the hit.",
+            placement: "top",
+            skipScroll: true,
+        },
+        {
+            target: ".tour-last-play-card",
+            content:
+                "If you made a mistake, you can click UNDO on the Last Play card. We will undo the play now to reset the field.",
+            placement: "top",
+            skipScroll: true,
+        },
+    ];
+}
