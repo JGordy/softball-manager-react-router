@@ -20,6 +20,7 @@ export default function CurrentBatterCard({
     logs,
     isOpponent = false,
     onNotesChange,
+    className,
     ...props
 }) {
     if (!currentBatter) return null;
@@ -62,7 +63,7 @@ export default function CurrentBatterCard({
 
     return (
         <Card
-            className="tour-current-batter-card"
+            className={`tour-current-batter-card ${className || ""}`}
             withBorder
             p="sm"
             radius="md"

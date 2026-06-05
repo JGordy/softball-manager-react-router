@@ -108,8 +108,13 @@ export default function OnboardingTour({
             }
         })
         .map((step) => {
-            const resolvedTarget =
-                typeof step.target === "function" ? step.target() : step.target;
+            let resolvedTarget = step.target;
+            if (typeof step.target === "function") {
+                const res = step.target();
+                if (typeof res === "string") {
+                    resolvedTarget = res;
+                }
+            }
             return {
                 ...step,
                 target: resolvedTarget,
