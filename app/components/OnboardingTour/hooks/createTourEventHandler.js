@@ -222,6 +222,21 @@ export function createTourEventHandler({
         if (type === EVENTS.STEP_AFTER) {
             clearSelectTimeout();
 
+            if (data.index === 0 && data.action === "next") {
+                const suffix = trackingSuffix
+                    ? trackingSuffix.startsWith("_")
+                        ? trackingSuffix
+                        : `_${trackingSuffix}`
+                    : tourKey
+                      ? `_${tourKey.split("_")[0]}s`
+                      : "";
+
+                trackEvent(`onboarding_tour_started${suffix}`, {
+                    tourKey,
+                    userId: user?.$id || "anonymous",
+                });
+            }
+
             if (data.action === "next" || data.action === "prev") {
                 const nextIndex =
                     data.action === "prev" ? data.index - 1 : data.index + 1;
