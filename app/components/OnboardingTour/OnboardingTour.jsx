@@ -211,6 +211,7 @@ export default function OnboardingTour({
             pollingIntervalRef.current = val;
         },
         getPollingInterval: () => pollingIntervalRef.current,
+        getLastProcessedStep: () => lastProcessedStepRef.current,
     });
 
     return (

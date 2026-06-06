@@ -111,6 +111,7 @@ export function createTourEventHandler({
     clearPollingInterval,
     setPollingInterval,
     getPollingInterval,
+    getLastProcessedStep,
 }) {
     return (data) => {
         const { status, type, step } = data;
@@ -248,7 +249,15 @@ export function createTourEventHandler({
                                   `[class*="${toggleClassName}"]`,
                               ) !== null);
 
-                if (data.action === "next" && isToggleScoringModeStep) {
+                const hasUserActivatedAction =
+                    getLastProcessedStep &&
+                    getLastProcessedStep() === data.index;
+
+                if (
+                    data.action === "next" &&
+                    isToggleScoringModeStep &&
+                    !hasUserActivatedAction
+                ) {
                     if (clickElement(`.${toggleClassName}`)) {
                         delay = 800;
                     }
@@ -258,7 +267,11 @@ export function createTourEventHandler({
                     typeof resolvedCurrentTarget === "string" &&
                     resolvedCurrentTarget.includes("tour-action-1b");
 
-                if (data.action === "next" && is1BStep) {
+                if (
+                    data.action === "next" &&
+                    is1BStep &&
+                    !hasUserActivatedAction
+                ) {
                     if (clickElement(".tour-action-1b")) {
                         delay = 650;
                     }
@@ -268,12 +281,18 @@ export function createTourEventHandler({
                     typeof resolvedCurrentTarget === "string" &&
                     resolvedCurrentTarget.includes("tour-spray-field");
 
-                if (data.action === "next" && isSprayFieldStep) {
+                if (
+                    data.action === "next" &&
+                    isSprayFieldStep &&
+                    !hasUserActivatedAction
+                ) {
                     clickElement(".tour-field-position-rf");
                     // Defer clicking the proceed button to let React update the DOM and render it
-                    setTimeout(() => {
-                        clickElement(".tour-proceed-advancement-btn");
-                    }, 100);
+                    setSelectTimeout(
+                        setTimeout(() => {
+                            clickElement(".tour-proceed-advancement-btn");
+                        }, 100),
+                    );
                     delay = 450;
                 }
 
@@ -281,7 +300,11 @@ export function createTourEventHandler({
                     typeof resolvedCurrentTarget === "string" &&
                     resolvedCurrentTarget.includes("tour-confirm-play-btn");
 
-                if (data.action === "next" && isConfirmPlayStep) {
+                if (
+                    data.action === "next" &&
+                    isConfirmPlayStep &&
+                    !hasUserActivatedAction
+                ) {
                     if (clickElement(".tour-confirm-play-btn")) {
                         delay = 3000;
                     }
@@ -291,7 +314,11 @@ export function createTourEventHandler({
                     typeof resolvedCurrentTarget === "string" &&
                     resolvedCurrentTarget.includes("tour-last-play-card");
 
-                if (data.action === "next" && isUndoPlayStep) {
+                if (
+                    data.action === "next" &&
+                    isUndoPlayStep &&
+                    !hasUserActivatedAction
+                ) {
                     if (clickElement(".tour-undo-play-btn")) {
                         delay = 850;
                     }
@@ -315,9 +342,11 @@ export function createTourEventHandler({
 
                     if (data.action === "prev" && isNextToggleScoringModeStep) {
                         dispatchToggleMenu(menuId, true);
-                        setTimeout(() => {
-                            clickElement(`.${toggleClassName}`);
-                        }, 100);
+                        setSelectTimeout(
+                            setTimeout(() => {
+                                clickElement(`.${toggleClassName}`);
+                            }, 100),
+                        );
                         delay = Math.max(delay, 800);
                     }
 
