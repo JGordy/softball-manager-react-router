@@ -35,10 +35,14 @@ export function useTourGlobalClick({
             if (typeof target !== "string") return;
 
             const targetEl = document.querySelector(target);
+            const isElementTarget = e.target instanceof Element;
             const isClickOnTarget =
                 (targetEl &&
-                    (targetEl === e.target || targetEl.contains(e.target))) ||
-                (e.target.closest && e.target.closest(target));
+                    (targetEl === e.target ||
+                        (isElementTarget && targetEl.contains(e.target)))) ||
+                (isElementTarget &&
+                    e.target.closest &&
+                    e.target.closest(target));
 
             if (isClickOnTarget) {
                 if (
@@ -63,9 +67,10 @@ export function useTourGlobalClick({
                         new CustomEvent("onboarding-next-step"),
                     );
                 } else if (target === ".tour-last-play-card") {
-                    const cardEl = e.target.closest
-                        ? e.target.closest(".tour-last-play-card")
-                        : null;
+                    const cardEl =
+                        isElementTarget && e.target.closest
+                            ? e.target.closest(".tour-last-play-card")
+                            : null;
                     const undoBtn = cardEl
                         ? cardEl.querySelector(".tour-undo-play-btn")
                         : null;

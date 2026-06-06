@@ -36,6 +36,8 @@ export function useTourCustomNavigation({
     }, [runTour]);
 
     useEffect(() => {
+        if (!runTour) return;
+
         const handleNextStep = () => {
             if (timeoutRef.current) {
                 clearTimeout(timeoutRef.current);

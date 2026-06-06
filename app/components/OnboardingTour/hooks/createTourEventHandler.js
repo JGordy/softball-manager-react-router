@@ -6,8 +6,20 @@ import { trackEvent } from "@/utils/analytics";
 /**
  * Resolves a Joyride step target which can be a function returning a selector/element, or the selector itself.
  */
-const resolveTarget = (target) =>
-    typeof target === "function" ? target() : target;
+const resolveTarget = (target) => {
+    if (typeof target === "function") {
+        try {
+            return target();
+        } catch (err) {
+            console.error(
+                "Error resolving step target function in event handler:",
+                err,
+            );
+            return null;
+        }
+    }
+    return target;
+};
 
 /**
  * Dispatches the custom toggle-onboarding-menu event.
