@@ -202,4 +202,16 @@ describe("MobilePlayActionDrawer", () => {
 
         expect(mockOnSelectInfield).toHaveBeenCalled();
     });
+
+    it("renders with tour class hooks (.tour-spray-field and .tour-field-position-rf)", () => {
+        render(<MobilePlayActionDrawer {...defaultProps} />);
+
+        // Find the spray field container by class hook
+        const fieldContainer = document.querySelector(".tour-spray-field");
+        expect(fieldContainer).toBeInTheDocument();
+
+        // RF position button must have the tour-field-position-rf class
+        const rfBtn = document.querySelector(".tour-field-position-rf");
+        expect(rfBtn).toBeInTheDocument();
+    });
 });

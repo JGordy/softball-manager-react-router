@@ -111,4 +111,16 @@ describe("ActionPad", () => {
         );
         expect(screen.getByRole("button", { name: "SF" })).not.toBeDisabled();
     });
+
+    it("renders Single button with tour hook class (.tour-action-1b)", () => {
+        render(
+            <ActionPad
+                onAction={mockOnAction}
+                runners={defaultRunners}
+                outs={0}
+            />,
+        );
+        const singleBtn = screen.getByRole("button", { name: "1B" });
+        expect(singleBtn).toHaveClass("tour-action-1b");
+    });
 });

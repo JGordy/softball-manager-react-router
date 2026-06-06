@@ -191,7 +191,7 @@ export default function DesktopPlayActionDrawer({
             <Paper radius="md" p="0">
                 <div
                     ref={containerRef}
-                    className={styles.imageContainer}
+                    className={`${styles.imageContainer} tour-spray-field`}
                     style={{ touchAction: "none", margin: "10px auto" }}
                     onContextMenu={(e) => e.preventDefault()}
                     onPointerDown={(e) => {
@@ -235,7 +235,7 @@ export default function DesktopPlayActionDrawer({
                         return (
                             <div
                                 key={pos.value}
-                                className={`${styles.fieldingPosition} ${className}`}
+                                className={`${styles.fieldingPosition} ${className} ${pos.value === "RF" ? "tour-field-position-rf" : ""}`}
                                 onClick={() => {
                                     if (!isLocked) {
                                         setSelectedPosition(pos.value);
@@ -359,6 +359,7 @@ export default function DesktopPlayActionDrawer({
                                     </Button>
                                 </Group>
                                 <Button
+                                    className="tour-proceed-advancement-btn"
                                     fullWidth
                                     color="blue"
                                     onClick={() => setShowConfirmation(true)}

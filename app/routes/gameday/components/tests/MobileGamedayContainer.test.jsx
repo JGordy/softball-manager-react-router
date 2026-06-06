@@ -20,9 +20,22 @@ jest.mock(
             opened ? <div data-testid="edit-play-drawer">Edit Play</div> : null,
 );
 
-jest.mock("@/components/OnboardingTour", () => () => (
-    <div data-testid="onboarding-tour" />
-));
+export const mockOnboardingTour = jest.fn(
+    ({ tourKey, user, alwaysIncludeTargets }) => {
+        const hasCompleted = user?.prefs?.onboardingTours?.[tourKey] === true;
+        if (hasCompleted) return null;
+        return (
+            <div
+                data-testid={`onboarding-tour-${tourKey}`}
+                data-always-include={JSON.stringify(alwaysIncludeTargets)}
+            />
+        );
+    },
+);
+jest.mock(
+    "@/components/OnboardingTour",
+    () => (props) => mockOnboardingTour(props),
+);
 
 // Mock hooks
 jest.mock("react-router", () => ({
@@ -394,7 +407,7 @@ describe("MobileGamedayContainer", () => {
     });
 
     describe("OnboardingTour integration", () => {
-        it("renders OnboardingTour when scorekeeper is on defense (opponent batting)", () => {
+        it("renders opponent OnboardingTour when scorekeeper is on defense (opponent batting)", () => {
             gameStateHook.useGameState.mockReturnValue({
                 inning: 1,
                 halfInning: "top", // top is opponent batting for home team
@@ -415,10 +428,12 @@ describe("MobileGamedayContainer", () => {
                 />,
             );
 
-            expect(screen.getByTestId("onboarding-tour")).toBeInTheDocument();
+            expect(
+                screen.getByTestId("onboarding-tour-gameday_opponent"),
+            ).toBeInTheDocument();
         });
 
-        it("does not render OnboardingTour when batting", () => {
+        it("renders scoring flow OnboardingTour when batting", () => {
             gameStateHook.useGameState.mockReturnValue({
                 inning: 1,
                 halfInning: "bottom", // bottom is our batting for home team
@@ -440,8 +455,73 @@ describe("MobileGamedayContainer", () => {
             );
 
             expect(
-                screen.queryByTestId("onboarding-tour"),
+                screen.getByTestId("onboarding-tour-gameday_scoring_flow"),
+            ).toBeInTheDocument();
+        });
+
+        it("does not render scoring flow OnboardingTour when batting if already completed", () => {
+            gameStateHook.useGameState.mockReturnValue({
+                inning: 1,
+                halfInning: "bottom",
+                outs: 0,
+                score: 0,
+                opponentScore: 0,
+                runners: { first: null, second: null, third: null },
+                battingOrderIndex: 0,
+            });
+
+            render(
+                <MobileGamedayContainer
+                    game={{ ...mockGame, isHomeGame: true }}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    isScorekeeper={true}
+                    user={{
+                        prefs: {
+                            onboardingTours: { gameday_scoring_flow: true },
+                        },
+                    }}
+                />,
+            );
+
+            expect(
+                screen.queryByTestId("onboarding-tour-gameday_scoring_flow"),
             ).not.toBeInTheDocument();
+        });
+
+        it("includes .tour-last-play-card in alwaysIncludeTargets for scoring flow tour", () => {
+            gameStateHook.useGameState.mockReturnValue({
+                inning: 1,
+                halfInning: "bottom",
+                outs: 0,
+                score: 0,
+                opponentScore: 0,
+                runners: { first: null, second: null, third: null },
+                battingOrderIndex: 0,
+            });
+
+            render(
+                <MobileGamedayContainer
+                    game={{ ...mockGame, isHomeGame: true }}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    isScorekeeper={true}
+                />,
+            );
+
+            const tourElement = screen.getByTestId(
+                "onboarding-tour-gameday_scoring_flow",
+            );
+            expect(tourElement).toBeInTheDocument();
+
+            const alwaysInclude = JSON.parse(
+                tourElement.getAttribute("data-always-include"),
+            );
+            expect(alwaysInclude).toContain(".tour-last-play-card");
+            expect(alwaysInclude).toContain(".tour-action-1b");
+            expect(alwaysInclude).toContain(".tour-confirm-play-btn");
         });
     });
 });

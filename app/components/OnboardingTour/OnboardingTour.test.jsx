@@ -1,5 +1,4 @@
-import { screen, fireEvent, cleanup, act } from "@testing-library/react";
-import { render } from "@/utils/test-utils";
+import { screen, fireEvent, cleanup, act, render } from "@/utils/test-utils";
 import OnboardingTour from "./OnboardingTour";
 
 const mockSubmit = jest.fn();
@@ -506,7 +505,7 @@ describe("OnboardingTour Component", () => {
             },
         };
 
-        const { rerender } = render(
+        render(
             <OnboardingTour
                 tourKey="team_details"
                 steps={mockSteps}
@@ -996,5 +995,78 @@ describe("OnboardingTour Component", () => {
         expect(toggleClickSpy).toHaveBeenCalled();
         toggleClickSpy.mockRestore();
         document.body.removeChild(toggleBtn);
+    });
+
+    it("appends _rerender to activeSteps passed to Joyride", () => {
+        const mockUser = {
+            $id: "user1",
+            prefs: { onboardingTours: {} },
+        };
+
+        const targetDiv = document.createElement("div");
+        targetDiv.className = "present-target";
+        document.body.appendChild(targetDiv);
+
+        render(
+            <OnboardingTour
+                tourKey="team_details"
+                steps={[{ target: ".present-target", content: "Step 1" }]}
+                user={mockUser}
+                alwaysIncludeTargets={[".present-target"]}
+            />,
+        );
+
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        // Verify the step elements are rendered in mock joyride
+        expect(screen.getByTestId("step-0")).toBeInTheDocument();
+        document.body.removeChild(targetDiv);
+    });
+
+    it("advances stepIndex when onboarding-next-step event is fired", () => {
+        const mockUser = {
+            $id: "user1",
+            prefs: { onboardingTours: {} },
+        };
+
+        const steps = [
+            { target: ".target-1", content: "Step 1" },
+            { target: ".target-2", content: "Step 2" },
+        ];
+
+        render(
+            <OnboardingTour
+                tourKey="team_details"
+                steps={steps}
+                user={mockUser}
+                alwaysIncludeTargets={[".target-1", ".target-2"]}
+            />,
+        );
+
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        const joyride = screen.getByTestId("mock-joyride");
+        expect(joyride).toHaveAttribute("data-step-index", "0");
+
+        // Dispatch onboarding-next-step event
+        act(() => {
+            window.dispatchEvent(new CustomEvent("onboarding-next-step"));
+        });
+
+        act(() => {
+            jest.runOnlyPendingTimers();
+        });
+
+        expect(joyride).toHaveAttribute("data-step-index", "1");
     });
 });

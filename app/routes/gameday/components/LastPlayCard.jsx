@@ -14,6 +14,7 @@ export default function LastPlayCard({
 
     return (
         <Card
+            className="tour-last-play-card"
             p="sm"
             radius="md"
             w="100%"
@@ -52,6 +53,7 @@ export default function LastPlayCard({
 
                 {onUndo && (
                     <Button
+                        className="tour-undo-play-btn"
                         variant="filled"
                         size="sm"
                         color="orange.5"
