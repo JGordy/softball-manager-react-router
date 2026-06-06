@@ -143,6 +143,25 @@ describe("createTourEventHandler", () => {
         document.body.removeChild(actionBtn);
     });
 
+    it("tracks onboarding_tour_started when transitioning from step 0 with action next", () => {
+        const { result } = renderHook(() => createTourEventHandler(props));
+        const handleEvent = result.current;
+
+        handleEvent({
+            type: EVENTS.STEP_AFTER,
+            index: 0,
+            action: "next",
+        });
+
+        expect(trackEvent).toHaveBeenCalledWith(
+            "onboarding_tour_started_test",
+            expect.objectContaining({
+                tourKey: "test_tour",
+                userId: "user-123",
+            }),
+        );
+    });
+
     it("triggers analytics and saves completion on finished status", () => {
         const { result } = renderHook(() => createTourEventHandler(props));
         const handleEvent = result.current;
