@@ -253,7 +253,7 @@ describe("useGameState", () => {
             { $id: "p3", firstName: "Charlie" },
         ];
 
-        // Scenario 1: No logs yet, but first player is active, next should skip p2 and go to p3
+        // Scenario: p1 batted last; next should skip removed p2 and advance to p3
         const logs = [
             {
                 $id: "log1",
