@@ -1,6 +1,11 @@
 import { render, screen, fireEvent } from "@/utils/test-utils";
 import SubPlayerDrawer from "../SubPlayerDrawer";
 
+jest.mock("react-router", () => ({
+    ...jest.requireActual("react-router"),
+    useOutletContext: jest.fn(() => ({ isDesktop: false })),
+}));
+
 describe("SubPlayerDrawer", () => {
     const mockOnClose = jest.fn();
     const mockOnConfirmSub = jest.fn();

@@ -1,4 +1,4 @@
-import { useMediaQuery } from "@mantine/hooks";
+import { useOutletContext } from "react-router";
 import { Stack, Text, Button, Group } from "@mantine/core";
 import { IconClipboardList } from "@tabler/icons-react";
 import DrawerContainer from "@/components/DrawerContainer/DrawerContainer";
@@ -10,7 +10,7 @@ export default function SelectOpponentBatterDrawer({
     onSelectOpponentBatter,
     opponentChart = [],
 }) {
-    const isDesktop = useMediaQuery("(min-width: 62em)");
+    const { isDesktop = false } = useOutletContext() || {};
     const slotsCount = Math.max(
         12,
         opponentChart?.length || 0,

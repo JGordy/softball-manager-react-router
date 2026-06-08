@@ -4,7 +4,7 @@ import { useGamedayActions } from "./useGamedayActions";
 import { useGameState } from "./useGameState";
 import { useGameUpdates } from "@/hooks/useGameUpdates";
 import { useGameRealtime } from "@/hooks/useGameRealtime";
-import { parsePlayerChart } from "../utils/gamedayUtils";
+import { parsePlayerChart, getActivePlayerId } from "../utils/gamedayUtils";
 const EMPTY_ARRAY = [];
 
 export function useGamedayController({
@@ -176,6 +176,7 @@ export function useGamedayController({
         initiateAction,
         completeAction,
         handleSubCurrentBatter: handleSubAction,
+        handleRemovePlayer: handleRemoveAction,
         undoLast,
         updateAction,
         isSubmitting,
@@ -237,6 +238,18 @@ export function useGamedayController({
         [handleSubAction, battingOrderIndex, playerChart],
     );
 
+    const handleRemovePlayer = useCallback(
+        (slotIndex, removalType) => {
+            handleRemoveAction(
+                slotIndex,
+                removalType,
+                playerChart,
+                setPlayerChart,
+            );
+        },
+        [handleRemoveAction, playerChart],
+    );
+
     const handleUndoLast = useCallback(() => {
         if (!isScorekeeper || logs.length === 0) return;
         const lastLog = logs[logs.length - 1];
@@ -253,6 +266,17 @@ export function useGamedayController({
                         ...slot,
                         substitutions: slot.substitutions.slice(0, -1),
                     };
+                }
+                return slot;
+            });
+            setPlayerChart(revertedChart);
+            undoLast(revertedChart);
+        } else if (lastLog.eventType === "INJURY_REMOVE") {
+            const revertedChart = playerChart.map((slot) => {
+                if (getActivePlayerId(slot) === lastLog.playerId) {
+                    const { removed, removalType, removalInning, ...rest } =
+                        slot;
+                    return rest;
                 }
                 return slot;
             });
@@ -452,6 +476,7 @@ export function useGamedayController({
         initiateAction,
         completeAction,
         handleSubCurrentBatter,
+        handleRemovePlayer,
         eligibleSubstitutes,
         playerChart,
         opponentChart,

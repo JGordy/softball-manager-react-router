@@ -8,6 +8,7 @@ import {
     getActivePlayerInSlot,
     handleWalk,
     handleRunnerResults,
+    getNextBatterIndex,
 } from "../utils/gamedayUtils";
 
 /**
@@ -205,6 +206,7 @@ export function useGamedayActions({
                 );
             } else if (
                 actionType === "K" ||
+                actionType === "injury_auto_out" ||
                 UI_BATTED_OUTS.includes(actionType)
             ) {
                 result = handleAutomaticOut(runners);
@@ -262,7 +264,7 @@ export function useGamedayActions({
                 if (isOurBatting) {
                     setScore((prev) => prev + runsOnPlay);
                     setBattingOrderIndex(
-                        (battingOrderIndex + 1) % playerChart.length,
+                        getNextBatterIndex(battingOrderIndex, playerChart),
                     );
                 } else {
                     setOpponentScore((prev) => prev + runsOnPlay);
@@ -372,6 +374,59 @@ export function useGamedayActions({
         [fetcher, halfInning, inning, isScorekeeper, runners, team?.$id],
     );
 
+    const handleRemovePlayer = useCallback(
+        (slotIndex, removalType, currentPlayerChart, onChartUpdate) => {
+            if (!isScorekeeper || !team?.$id) return;
+
+            const slot = currentPlayerChart[slotIndex];
+            const activePlayer = getActivePlayerInSlot(slot);
+            const activePlayerId = activePlayer.playerId ?? activePlayer.$id;
+            const playerName =
+                `${activePlayer.firstName || ""}${activePlayer.lastName ? " " + activePlayer.lastName : ""}`.trim();
+
+            const updatedChart = currentPlayerChart.map((s, idx) => {
+                if (idx !== slotIndex) return s;
+                return {
+                    ...s,
+                    removed: true,
+                    removalType,
+                    removalInning: inning,
+                };
+            });
+
+            // Notify parent to update local state
+            onChartUpdate(updatedChart);
+
+            const descType =
+                removalType === "skip"
+                    ? "skip future at-bats"
+                    : "automatic out";
+            const description = `${playerName} removed due to injury (${descType})`;
+
+            fetcher.submit(
+                {
+                    _action: "substitute-player",
+                    playerChart: JSON.stringify(updatedChart),
+                    teamId: team?.$id,
+                    inning,
+                    halfInning,
+                    playerId: activePlayerId,
+                    eventType: "INJURY_REMOVE",
+                    rbi: 0,
+                    outsOnPlay: 0,
+                    description,
+                    hitX: null,
+                    hitY: null,
+                    hitLocation: null,
+                    battingSide: null,
+                    baseState: JSON.stringify(runners),
+                },
+                { method: "post" },
+            );
+        },
+        [fetcher, halfInning, inning, isScorekeeper, runners, team?.$id],
+    );
+
     const initiateAction = useCallback(
         (actionType) => {
             if (!isScorekeeper) return;
@@ -443,6 +498,7 @@ export function useGamedayActions({
         initiateAction,
         completeAction,
         handleSubCurrentBatter,
+        handleRemovePlayer,
         undoLast,
         updateAction,
         isSubmitting,

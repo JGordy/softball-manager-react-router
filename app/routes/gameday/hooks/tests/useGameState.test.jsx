@@ -245,4 +245,66 @@ describe("useGameState", () => {
         // opponent_lineup_pointer should set the active batter to index 2 exactly, without incrementing it
         expect(result.current.opponentOrderIndex).toBe(2);
     });
+
+    it("skips players who are marked as removed with type 'skip'", () => {
+        const playerChartWithRemoved = [
+            { $id: "p1", firstName: "Alice" },
+            { $id: "p2", firstName: "Bob", removed: true, removalType: "skip" },
+            { $id: "p3", firstName: "Charlie" },
+        ];
+
+        // Scenario: p1 batted last; next should skip removed p2 and advance to p3
+        const logs = [
+            {
+                $id: "log1",
+                playerId: "p1",
+                inning: 1,
+                halfInning: "top",
+                outsOnPlay: 1,
+                baseState: "{}",
+            },
+        ];
+
+        const { result } = renderHook(() =>
+            useGameState({
+                logs,
+                game: defaultGame,
+                playerChart: playerChartWithRemoved,
+            }),
+        );
+
+        // p1 batted last. Next is index 1 (Bob), but Bob is skipped, so index should be 2 (Charlie).
+        expect(result.current.battingOrderIndex).toBe(2);
+    });
+
+    it("ignores 'INJURY_REMOVE' logs when calculating the next batter", () => {
+        const logs = [
+            {
+                $id: "log1",
+                playerId: "p1",
+                inning: 1,
+                halfInning: "top",
+                outsOnPlay: 1, // Alice bats, index advances to p2 (index 1)
+                baseState: "{}",
+                eventType: "1B",
+            },
+            {
+                $id: "log2",
+                playerId: "p3", // Charlie is removed
+                inning: 1,
+                halfInning: "top",
+                outsOnPlay: 0,
+                baseState: "{}",
+                eventType: "INJURY_REMOVE",
+            },
+        ];
+
+        const { result } = renderHook(() =>
+            useGameState({ logs, game: defaultGame, playerChart }),
+        );
+
+        // Even though log2 happened, it's an INJURY_REMOVE, so the engine should correctly see log1
+        // as the last at-bat and remain on index 1 for p2.
+        expect(result.current.battingOrderIndex).toBe(1);
+    });
 });

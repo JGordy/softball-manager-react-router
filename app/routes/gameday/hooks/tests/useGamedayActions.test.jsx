@@ -206,6 +206,55 @@ describe("useGamedayActions", () => {
         );
     });
 
+    it("handles handleRemovePlayer correctly", () => {
+        const { result } = renderHook(() => useGamedayActions(defaultProps));
+        const mockChartUpdate = jest.fn();
+
+        act(() => {
+            result.current.handleRemovePlayer(
+                0,
+                "skip",
+                defaultProps.playerChart,
+                mockChartUpdate,
+            );
+        });
+
+        const expectedChart = [
+            {
+                $id: "p1",
+                firstName: "Alice",
+                lastName: "Player",
+                removed: true,
+                removalType: "skip",
+                removalInning: 1,
+            },
+            { $id: "p2", firstName: "Bob", lastName: "Batter" },
+        ];
+
+        expect(mockChartUpdate).toHaveBeenCalledWith(expectedChart);
+        expect(mockSubmit).toHaveBeenCalledWith(
+            {
+                _action: "substitute-player",
+                playerChart: JSON.stringify(expectedChart),
+                teamId: "team1",
+                inning: 1,
+                halfInning: "top",
+                playerId: "p1",
+                eventType: "INJURY_REMOVE",
+                rbi: 0,
+                outsOnPlay: 0,
+                description:
+                    "Alice Player removed due to injury (skip future at-bats)",
+                hitX: null,
+                hitY: null,
+                hitLocation: null,
+                battingSide: null,
+                baseState: JSON.stringify(defaultProps.runners),
+            },
+            { method: "post" },
+        );
+    });
+
     describe("updateAction", () => {
         it("submits update-game-event with the correct logId and payload", () => {
             const { result } = renderHook(() =>

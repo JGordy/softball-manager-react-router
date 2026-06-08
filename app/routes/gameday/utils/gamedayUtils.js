@@ -148,6 +148,8 @@ export function getEventDescription(
         baseDesc = `${batterName} reaches on a fielder's choice ${fcLoc}`;
     } else if (actionType === "BB") baseDesc = `${batterName} walks`;
     else if (actionType === "K") baseDesc = `${batterName} strikes out`;
+    else if (actionType === "injury_auto_out")
+        baseDesc = `${batterName} - Automatic Out (Injury)`;
     else baseDesc = `${batterName}: ${actionType}${loc ? ` (${loc})` : ""}`;
 
     // Add advancement context if batter moved further than expected
@@ -308,3 +310,39 @@ export const isOpponentPlay = (log, isHomeGame) => {
 
     return false;
 };
+
+/**
+ * Calculates the next batting order index, skipping any players marked as removed with type 'skip'.
+ */
+export function getNextBatterIndex(currentIndex, playerChart) {
+    if (!playerChart || playerChart.length === 0) return 0;
+    let nextIndex = (currentIndex + 1) % playerChart.length;
+    let attempts = 0;
+    while (
+        playerChart[nextIndex]?.removed &&
+        playerChart[nextIndex]?.removalType === "skip" &&
+        attempts < playerChart.length
+    ) {
+        nextIndex = (nextIndex + 1) % playerChart.length;
+        attempts++;
+    }
+    return nextIndex;
+}
+
+/**
+ * Calculates the first active batting order index, skipping any players marked as removed with type 'skip'.
+ */
+export function getFirstBatterIndex(playerChart) {
+    if (!playerChart || playerChart.length === 0) return 0;
+    let index = 0;
+    let attempts = 0;
+    while (
+        playerChart[index]?.removed &&
+        playerChart[index]?.removalType === "skip" &&
+        attempts < playerChart.length
+    ) {
+        index = (index + 1) % playerChart.length;
+        attempts++;
+    }
+    return index;
+}

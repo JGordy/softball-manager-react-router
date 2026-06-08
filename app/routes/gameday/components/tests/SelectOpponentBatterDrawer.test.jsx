@@ -1,6 +1,11 @@
 import { render, screen, fireEvent } from "@/utils/test-utils";
 import SelectOpponentBatterDrawer from "../SelectOpponentBatterDrawer";
 
+jest.mock("react-router", () => ({
+    ...jest.requireActual("react-router"),
+    useOutletContext: jest.fn(() => ({ isDesktop: false })),
+}));
+
 describe("SelectOpponentBatterDrawer", () => {
     const defaultProps = {
         opened: true,

@@ -316,4 +316,95 @@ describe("useGamedayController", () => {
             }),
         );
     });
+
+    it("handles undo for INJURY_REMOVE correctly", () => {
+        const mockUndoLast = jest.fn();
+        useGamedayActions.mockReturnValue({
+            pendingAction: null,
+            drawerOpened: false,
+            openDrawer: jest.fn(),
+            closeDrawer: jest.fn(),
+            advanceHalfInning: jest.fn(),
+            handleOpponentRun: jest.fn(),
+            handleOpponentOut: jest.fn(),
+            initiateAction: jest.fn(),
+            completeAction: jest.fn(),
+            undoLast: mockUndoLast,
+            isSubmitting: false,
+            fetcher: { data: null, state: "idle" },
+        });
+
+        const playerChartWithRemoval = [
+            {
+                $id: "p1",
+                firstName: "John",
+                lastName: "Doe",
+                removed: true,
+                removalType: "skip",
+                removalInning: 1,
+            },
+            { $id: "p2", firstName: "Jane", lastName: "Smith" },
+        ];
+
+        const initialLogs = [
+            { $id: "log1", eventType: "INJURY_REMOVE", playerId: "p1" },
+        ];
+
+        const { result } = renderHook(() =>
+            useGamedayController({
+                game: mockGame,
+                playerChart: playerChartWithRemoval,
+                team: mockTeam,
+                initialLogs,
+                isScorekeeper: true,
+            }),
+        );
+
+        act(() => {
+            result.current.undoLast();
+        });
+
+        const expectedRevertedChart = [
+            { $id: "p1", firstName: "John", lastName: "Doe" },
+            { $id: "p2", firstName: "Jane", lastName: "Smith" },
+        ];
+
+        expect(mockUndoLast).toHaveBeenCalledWith(expectedRevertedChart);
+    });
+
+    it("handles undo for other events correctly by calling undoLast without arguments", () => {
+        const mockUndoLast = jest.fn();
+        useGamedayActions.mockReturnValue({
+            pendingAction: null,
+            drawerOpened: false,
+            openDrawer: jest.fn(),
+            closeDrawer: jest.fn(),
+            advanceHalfInning: jest.fn(),
+            handleOpponentRun: jest.fn(),
+            handleOpponentOut: jest.fn(),
+            initiateAction: jest.fn(),
+            completeAction: jest.fn(),
+            undoLast: mockUndoLast,
+            isSubmitting: false,
+            fetcher: { data: null, state: "idle" },
+        });
+
+        const initialLogs = [{ $id: "log1", eventType: "1B", playerId: "p1" }];
+
+        const { result } = renderHook(() =>
+            useGamedayController({
+                game: mockGame,
+                playerChart: mockPlayerChart,
+                team: mockTeam,
+                initialLogs,
+                isScorekeeper: true,
+            }),
+        );
+
+        act(() => {
+            result.current.undoLast();
+        });
+
+        expect(mockUndoLast).toHaveBeenCalledWith();
+    });
 });
