@@ -17,7 +17,7 @@ export default function SubPlayerDrawer({
     onConfirmSub,
 }) {
     const [selectedPlayer, setSelectedPlayer] = useState(null);
-    const { isDesktop } = useOutletContext();
+    const { isDesktop = false } = useOutletContext() || {};
 
     // Reset selection when modal closes or opens
     useEffect(() => {

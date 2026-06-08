@@ -34,7 +34,7 @@ export default function RemovePlayerDrawer({
 }) {
     const [selectedSlotIndex, setSelectedSlotIndex] = useState(null);
     const [removalType, setRemovalType] = useState("skip");
-    const { isDesktop } = useOutletContext();
+    const { isDesktop = false } = useOutletContext() || {};
 
     // Reset selection when drawer closes or opens
     useEffect(() => {

@@ -10,7 +10,7 @@ export default function SelectOpponentBatterDrawer({
     onSelectOpponentBatter,
     opponentChart = [],
 }) {
-    const { isDesktop } = useOutletContext();
+    const { isDesktop = false } = useOutletContext() || {};
     const slotsCount = Math.max(
         12,
         opponentChart?.length || 0,
