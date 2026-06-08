@@ -245,7 +245,7 @@ function Lineup({ loaderData, actionData }) {
             )}
             <Stack gap="md" mt="lg" mb="xl">
                 <Group justify="space-between" align="center">
-                    <BackButton text="Back to event details" />
+                    <BackButton text="Event Details" />
                     <Group align="center" gap="xs">
                         <ShareUrlButton />
                         {managerView && (
@@ -280,18 +280,6 @@ function Lineup({ loaderData, actionData }) {
                         )}
                         {managerView && (
                             <Group gap="xs" hiddenFrom="sm">
-                                {isGameActive && (
-                                    <Button
-                                        variant="light"
-                                        component={Link}
-                                        to={`/events/${eventId}/gameday`}
-                                        leftSection={
-                                            <IconDeviceAnalytics size={16} />
-                                        }
-                                    >
-                                        Scoring
-                                    </Button>
-                                )}
                                 <LineupValidationMenu
                                     validationResults={validationResults}
                                 />
@@ -311,12 +299,25 @@ function Lineup({ loaderData, actionData }) {
                     </Group>
                 </Group>
 
-                <Stack gap={0}>
-                    <Title order={4}>vs. {game?.opponent || "TBD"}</Title>
-                    <Text size="sm" c="dimmed">
-                        {formatForViewerDate(game?.gameDate)}
-                    </Text>
-                </Stack>
+                <Group justify="space-between" align="center" wrap="nowrap">
+                    <Stack gap={0}>
+                        <Title order={4}>vs. {game?.opponent || "TBD"}</Title>
+                        <Text size="sm" c="dimmed">
+                            {formatForViewerDate(game?.gameDate)}
+                        </Text>
+                    </Stack>
+                    {managerView && isGameActive && (
+                        <Button
+                            variant="light"
+                            component={Link}
+                            to={`/events/${eventId}/gameday`}
+                            leftSection={<IconDeviceAnalytics size={16} />}
+                            hiddenFrom="sm"
+                        >
+                            Scoring
+                        </Button>
+                    )}
+                </Group>
             </Stack>
 
             <LineupContainer
