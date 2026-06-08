@@ -91,9 +91,10 @@ export default function RemovePlayerDrawer({
                             color="orange"
                             variant="light"
                         >
-                            Removing a player from the lineup is permanent for
-                            the remainder of the game. Previous stats/at-bats
-                            will remain intact.
+                            Removing a player from the lineup applies for the
+                            remainder of the game, but can be reverted using the
+                            Undo button. Previous stats/at-bats will remain
+                            intact.
                         </Alert>
 
                         <Text size="sm" fw={600} mb={-5}>

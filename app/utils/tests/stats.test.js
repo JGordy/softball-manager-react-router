@@ -501,11 +501,17 @@ describe("calculateGameStats", () => {
         expect(oppStats.RBI).toBe(2);
     });
 
-    it("should skip injury_auto_out event types entirely and not increment at-bats or plate appearances", () => {
+    it("should skip injury_auto_out and INJURY_REMOVE event types entirely and not increment at-bats or plate appearances", () => {
         const logs = [
             {
                 playerId: "player1",
                 eventType: "injury_auto_out",
+                rbi: 0,
+                baseState: "{}",
+            },
+            {
+                playerId: "player1",
+                eventType: "INJURY_REMOVE",
                 rbi: 0,
                 baseState: "{}",
             },
@@ -883,10 +889,11 @@ describe("calculatePlayerStats", () => {
         expect(stats.rbi).toBe(0);
     });
 
-    it("should skip injury_auto_out events", () => {
+    it("should skip injury_auto_out and INJURY_REMOVE events", () => {
         const logs = [
             { eventType: "single", rbi: 0 },
             { eventType: "injury_auto_out", rbi: 0 },
+            { eventType: "INJURY_REMOVE", rbi: 0 },
         ];
         const stats = calculatePlayerStats(logs);
         expect(stats.ab).toBe(1);

@@ -79,11 +79,12 @@ export const calculateGameStats = (
 
     // 2. Process logs
     logs.forEach((log) => {
-        // Skip substitution, lineup pointer, and injury automatic out events
+        // Skip substitution, lineup pointer, injury automatic out, and injury removal events
         if (
             log.eventType === "SUB" ||
             log.eventType === "opponent_lineup_pointer" ||
-            log.eventType === "injury_auto_out"
+            log.eventType === "injury_auto_out" ||
+            log.eventType === "INJURY_REMOVE"
         )
             return;
 
@@ -291,6 +292,7 @@ export const calculatePlayerStats = (logs) => {
         if (log.eventType === "opponent_run" || isOpponentPlay(log)) return;
         if (
             log.eventType === "injury_auto_out" ||
+            log.eventType === "INJURY_REMOVE" ||
             log.eventType === "SUB" ||
             log.eventType === "opponent_lineup_pointer"
         )
