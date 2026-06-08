@@ -110,6 +110,11 @@ export default function CurrentBatterCard({
                                     SUB
                                 </Badge>
                             )}
+                            {currentBatter.removed && (
+                                <Badge size="xs" color="red" variant="filled">
+                                    INJURED - AUTO OUT
+                                </Badge>
+                            )}
                         </Group>
                         <Text
                             size="xl"

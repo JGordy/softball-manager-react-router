@@ -7,6 +7,7 @@ import {
     IconClipboardList,
     IconChartBar,
     IconRefresh,
+    IconUserMinus,
 } from "@tabler/icons-react";
 
 import MenuContainer from "@/components/MenuContainer";
@@ -17,6 +18,7 @@ export default function GamedayMenu({
     score,
     opponentScore,
     onSubBatter,
+    onRemovePlayer,
     opponentScoringMode,
     onToggleOpponentScoringMode,
     isOurBatting,
@@ -210,6 +212,15 @@ export default function GamedayMenu({
             onClick: onSubBatter,
             leftSection: <IconArrowsExchange size={14} />,
             content: <Text>Sub Current Batter</Text>,
+        });
+    }
+
+    if (!gameFinal && onRemovePlayer) {
+        gameControls.unshift({
+            key: "remove-player",
+            onClick: onRemovePlayer,
+            leftSection: <IconUserMinus size={14} />,
+            content: <Text>Remove Player (Injury)</Text>,
         });
     }
 

@@ -14,6 +14,7 @@ import {
     SegmentedControl,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { IconAlertTriangle, IconUserMinus } from "@tabler/icons-react";
 
 import BackButton from "@/components/BackButton";
 import TabsWrapper from "@/components/TabsWrapper";
@@ -31,6 +32,7 @@ import LastPlayCard from "./LastPlayCard";
 import FieldingControls from "./FieldingControls";
 import DesktopPlayActionDrawer from "./DesktopPlayActionDrawer";
 import SubPlayerDrawer from "./SubPlayerDrawer";
+import RemovePlayerDrawer from "./RemovePlayerDrawer";
 import GamedayMenu from "./GamedayMenu";
 import AchievementsList from "./AchievementsList";
 import EditPlayDrawer from "./EditPlayDrawer";
@@ -84,6 +86,7 @@ export default function DesktopGamedayContainer({
         initiateAction,
         completeAction,
         handleSubCurrentBatter,
+        handleRemovePlayer,
         eligibleSubstitutes,
         playerChart,
         opponentChart,
@@ -144,6 +147,10 @@ export default function DesktopGamedayContainer({
 
     const [subModalOpened, { open: openSubModal, close: closeSubModal }] =
         useDisclosure(false);
+    const [
+        removePlayerOpened,
+        { open: openRemovePlayer, close: closeRemovePlayer },
+    ] = useDisclosure(false);
     const [editLog, setEditLog] = useState(null);
     const [editDrawerOpened, { open: openEditDrawer, close: closeEditDrawer }] =
         useDisclosure(false);
@@ -196,6 +203,9 @@ export default function DesktopGamedayContainer({
                             opponentScore={opponentScore}
                             onSubBatter={
                                 isOurBatting ? openSubModal : undefined
+                            }
+                            onRemovePlayer={
+                                isOurBatting ? openRemovePlayer : undefined
                             }
                             opponentScoringMode={opponentScoringMode}
                             onToggleOpponentScoringMode={
@@ -336,8 +346,57 @@ export default function DesktopGamedayContainer({
                         <Grid.Col span={{ base: 12, md: 4 }}>
                             <Stack gap="md">
                                 {!isGameFinal &&
-                                    (isOurBatting ||
-                                    opponentScoringMode === "Detailed" ? (
+                                    (isOurBatting &&
+                                    currentBatter?.removed &&
+                                    currentBatter?.removalType ===
+                                        "auto-out" ? (
+                                        isScorekeeper && (
+                                            <Card
+                                                p="md"
+                                                radius="lg"
+                                                bg="orange.9"
+                                                c="white"
+                                                ta="center"
+                                            >
+                                                <Stack align="center" gap="sm">
+                                                    <IconAlertTriangle
+                                                        size={32}
+                                                    />
+                                                    <Text fw={700}>
+                                                        Injured Player -
+                                                        Automatic Out
+                                                    </Text>
+                                                    <Text
+                                                        size="xs"
+                                                        opacity={0.8}
+                                                    >
+                                                        This slot is marked for
+                                                        automatic out due to
+                                                        player injury. Click
+                                                        below to record the out.
+                                                    </Text>
+                                                    <Button
+                                                        color="red"
+                                                        onClick={() =>
+                                                            completeAction(
+                                                                "injury_auto_out",
+                                                            )
+                                                        }
+                                                        leftSection={
+                                                            <IconUserMinus
+                                                                size={16}
+                                                            />
+                                                        }
+                                                        fullWidth
+                                                        size="md"
+                                                    >
+                                                        Record Automatic Out
+                                                    </Button>
+                                                </Stack>
+                                            </Card>
+                                        )
+                                    ) : isOurBatting ||
+                                      opponentScoringMode === "Detailed" ? (
                                         isScorekeeper && (
                                             <Card radius="lg">
                                                 <ActionPad
@@ -514,6 +573,13 @@ export default function DesktopGamedayContainer({
                 currentSlot={currentBatter}
                 eligibleSubstitutes={eligibleSubstitutes}
                 onConfirmSub={handleSubCurrentBatter}
+            />
+
+            <RemovePlayerDrawer
+                opened={removePlayerOpened}
+                onClose={closeRemovePlayer}
+                playerChart={playerChart}
+                onConfirmRemove={handleRemovePlayer}
             />
 
             <EditPlayDrawer
