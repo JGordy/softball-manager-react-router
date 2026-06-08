@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { isOpponentPlay } from "../utils/gamedayUtils";
+import {
+    isOpponentPlay,
+    getNextBatterIndex,
+    getFirstBatterIndex,
+} from "../utils/gamedayUtils";
 
 export function useGameState({ logs, game, playerChart, opponentChart }) {
     const [inning, setInning] = useState(1);
@@ -35,7 +39,10 @@ export function useGameState({ logs, game, playerChart, opponentChart }) {
 
             for (let i = logs.length - 1; i >= 0; i--) {
                 const log = logs[i];
-                if (log.eventType !== "SUB") {
+                if (
+                    log.eventType !== "SUB" &&
+                    log.eventType !== "INJURY_REMOVE"
+                ) {
                     if (isOpponentPlay(log, game.isHomeGame)) {
                         if (!lastOpponentAtBatLog && log.playerId) {
                             lastOpponentAtBatLog = log;
@@ -59,11 +66,11 @@ export function useGameState({ logs, game, playerChart, opponentChart }) {
                 );
                 const nextIndex =
                     lastBatterIndex >= 0
-                        ? (lastBatterIndex + 1) % playerChart.length
-                        : 0;
+                        ? getNextBatterIndex(lastBatterIndex, playerChart)
+                        : getFirstBatterIndex(playerChart);
                 setBattingOrderIndex(nextIndex);
             } else {
-                setBattingOrderIndex(0);
+                setBattingOrderIndex(getFirstBatterIndex(playerChart));
             }
 
             if (lastOpponentAtBatLog) {
