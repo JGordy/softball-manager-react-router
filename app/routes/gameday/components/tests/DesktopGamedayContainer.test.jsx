@@ -43,6 +43,7 @@ jest.mock("react-router", () => ({
     useLocation: () => ({ hash: "", pathname: "/gameday", search: "" }),
     useNavigate: () => jest.fn(),
     useParams: () => ({ eventId: "game123" }),
+    useOutletContext: () => ({ isDesktop: true }),
     Link: ({ to, children, ...props }) => (
         <a href={to} {...props}>
             {children}
