@@ -500,6 +500,27 @@ describe("calculateGameStats", () => {
         expect(oppStats["2B"]).toBe(1);
         expect(oppStats.RBI).toBe(2);
     });
+
+    it("should skip injury_auto_out event types entirely and not increment at-bats or plate appearances", () => {
+        const logs = [
+            {
+                playerId: "player1",
+                eventType: "injury_auto_out",
+                rbi: 0,
+                baseState: "{}",
+            },
+            {
+                playerId: "player1",
+                eventType: "single",
+                rbi: 0,
+                baseState: "{}",
+            },
+        ];
+        const stats = calculateGameStats(logs, mockPlayerChart);
+        const player1Stats = stats.find((s) => s.player.$id === "player1");
+        expect(player1Stats.PA).toBe(1);
+        expect(player1Stats.AB).toBe(1);
+    });
 });
 
 describe("calculateTeamTotals", () => {
@@ -860,5 +881,15 @@ describe("calculatePlayerStats", () => {
         expect(stats.ab).toBe(1);
         expect(stats.hits).toBe(1);
         expect(stats.rbi).toBe(0);
+    });
+
+    it("should skip injury_auto_out events", () => {
+        const logs = [
+            { eventType: "single", rbi: 0 },
+            { eventType: "injury_auto_out", rbi: 0 },
+        ];
+        const stats = calculatePlayerStats(logs);
+        expect(stats.ab).toBe(1);
+        expect(stats.hits).toBe(1);
     });
 });
