@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useMediaQuery } from "@mantine/hooks";
+import { useOutletContext } from "react-router";
 
 import { Stack, Text, Button, Group, Avatar, Badge } from "@mantine/core";
 
@@ -17,7 +17,7 @@ export default function SubPlayerDrawer({
     onConfirmSub,
 }) {
     const [selectedPlayer, setSelectedPlayer] = useState(null);
-    const isDesktop = useMediaQuery("(min-width: 62em)");
+    const { isDesktop } = useOutletContext();
 
     // Reset selection when modal closes or opens
     useEffect(() => {
