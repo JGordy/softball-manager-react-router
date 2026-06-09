@@ -238,4 +238,76 @@ describe("DesktopPlayActionDrawer", () => {
             .closest("button");
         expect(proceedBtn).toHaveClass("tour-proceed-advancement-btn");
     });
+
+    it("renders touch-specific instructions and handles touch-and-drag location picking on touch devices", () => {
+        const originalMatchMedia = window.matchMedia;
+        const originalMaxTouchPoints = window.navigator.maxTouchPoints;
+
+        window.matchMedia = jest.fn().mockImplementation((query) => ({
+            matches: query === "(pointer: coarse)",
+            media: query,
+            onchange: null,
+            addListener: jest.fn(),
+            removeListener: jest.fn(),
+            addEventListener: jest.fn(),
+            removeEventListener: jest.fn(),
+            dispatchEvent: jest.fn(),
+        }));
+        Object.defineProperty(window.navigator, "maxTouchPoints", {
+            value: 1,
+            configurable: true,
+        });
+
+        render(<DesktopPlayActionDrawer {...defaultProps} />);
+
+        // Verify touch-specific instruction is rendered
+        expect(
+            screen.getByText(/Touch and drag to find the hit location/i),
+        ).toBeInTheDocument();
+
+        const fieldImage = screen.getByAltText(
+            /Interactive softball field diagram/i,
+        );
+        const container = fieldImage.parentElement;
+
+        // Proximity move: Simulate pointerDown on touch device (starts drag, does not lock immediately)
+        fireEvent.pointerDown(container, {
+            clientX: 50,
+            clientY: 50,
+            pointerId: 1,
+        });
+
+        // Instruction is still visible because it's not locked yet
+        expect(
+            screen.getByText(/Touch and drag to find the hit location/i),
+        ).toBeInTheDocument();
+
+        // Drag: Move pointer
+        fireEvent.pointerMove(container, {
+            clientX: 60,
+            clientY: 60,
+            pointerId: 1,
+        });
+
+        // Release: Pointer up locks the coordinates
+        fireEvent.pointerUp(container, {
+            clientX: 60,
+            clientY: 60,
+            pointerId: 1,
+        });
+
+        // Now locked, instruction disappears and 'Unlock' is visible
+        expect(
+            screen.queryByText(/Touch and drag to find the hit location/i),
+        ).not.toBeInTheDocument();
+        expect(screen.getByText(/Hit to/i)).toBeInTheDocument();
+        expect(screen.getByText(/Unlock/i)).toBeInTheDocument();
+
+        // Restore mocks
+        window.matchMedia = originalMatchMedia;
+        Object.defineProperty(window.navigator, "maxTouchPoints", {
+            value: originalMaxTouchPoints,
+            configurable: true,
+        });
+    });
 });

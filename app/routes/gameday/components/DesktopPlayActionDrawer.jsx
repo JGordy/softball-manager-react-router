@@ -51,7 +51,18 @@ export default function DesktopPlayActionDrawer({
     const [hitCoordinates, setHitCoordinates] = useState({ x: null, y: null });
     const [isLocked, setIsLocked] = useState(false);
     const [showConfirmation, setShowConfirmation] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
+    const [isTouchDevice, setIsTouchDevice] = useState(false);
     const containerRef = useRef(null);
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            setIsTouchDevice(
+                window.matchMedia("(pointer: coarse)").matches ||
+                    navigator.maxTouchPoints > 0,
+            );
+        }
+    }, []);
 
     // Resolve combined Fly/Pop dynamically based on current coordinates
     const getResolvedActionType = () => {
@@ -94,6 +105,7 @@ export default function DesktopPlayActionDrawer({
             setBattingSide(bats || "right");
             setIsLocked(false);
             setShowConfirmation(false);
+            setIsDragging(false);
         }
     }, [opened, bats]);
     /* eslint-enable react-hooks/set-state-in-effect */
@@ -195,21 +207,45 @@ export default function DesktopPlayActionDrawer({
                     style={{ touchAction: "none", margin: "10px auto" }}
                     onContextMenu={(e) => e.preventDefault()}
                     onPointerDown={(e) => {
-                        if (!isLocked) {
-                            if (handlePointerEvent(e)) {
-                                setIsLocked(true);
+                        if (isTouchDevice) {
+                            setIsDragging(true);
+                            handlePointerEvent(e);
+                        } else {
+                            if (!isLocked) {
+                                if (handlePointerEvent(e)) {
+                                    setIsLocked(true);
+                                }
                             }
                         }
                     }}
                     onPointerMove={(e) => {
-                        if (!isLocked) {
-                            handlePointerEvent(e);
+                        if (isTouchDevice) {
+                            if (isDragging) {
+                                handlePointerEvent(e);
+                            }
+                        } else {
+                            if (!isLocked) {
+                                handlePointerEvent(e);
+                            }
+                        }
+                    }}
+                    onPointerUp={(e) => {
+                        if (isTouchDevice && isDragging) {
+                            setIsDragging(false);
+                            setIsLocked(true);
                         }
                     }}
                     onPointerLeave={() => {
-                        if (!isLocked) {
-                            setHitCoordinates({ x: null, y: null });
-                            setSelectedPosition(null);
+                        if (isTouchDevice) {
+                            if (isDragging) {
+                                setIsDragging(false);
+                                setIsLocked(true);
+                            }
+                        } else {
+                            if (!isLocked) {
+                                setHitCoordinates({ x: null, y: null });
+                                setSelectedPosition(null);
+                            }
                         }
                     }}
                 >
@@ -280,7 +316,10 @@ export default function DesktopPlayActionDrawer({
                     {hitCoordinates.x !== null && (
                         <Tooltip
                             label={hitLocation || "Touch the field"}
-                            opened={!!hitLocation && !isLocked}
+                            opened={
+                                !!hitLocation &&
+                                (isTouchDevice ? isDragging : !isLocked)
+                            }
                             position="top"
                             offset={40}
                             withinPortal={false}
@@ -335,8 +374,9 @@ export default function DesktopPlayActionDrawer({
 
                 {!isLocked && !showConfirmation && (
                     <Text size="sm" ta="center" c="dimmed" my="sm">
-                        Hover over the field to find the hit location, then
-                        click to lock it in
+                        {isTouchDevice
+                            ? "Touch and drag to find the hit location, then release to lock it in"
+                            : "Hover over the field to find the hit location, then click to lock it in"}
                     </Text>
                 )}
 

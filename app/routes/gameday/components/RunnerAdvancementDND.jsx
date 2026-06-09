@@ -1,22 +1,23 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
-import { createPortal } from "react-dom";
-
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-
 import { Box, Text, Paper, Badge, Group, Stack } from "@mantine/core";
-
 import { BASE_POSITIONS } from "@/constants/basePositions";
-
 import { getRelativePointerCoordinates } from "../utils/fieldMapping";
 import { getPlayerName } from "../utils/gamedayUtils";
-
 import fieldStyles from "./GamedayField.module.css";
 
 // --- INTERNAL HELPERS ---
 
-function BaseTargetContent({ id, activeDraggableId, isHovered, snapshot }) {
-    const isActuallyHovered =
-        isHovered || (snapshot && snapshot.isDraggingOver);
+/**
+ * Renders the visual content of a base target (e.g., SVG path for home plate, "OUT" label for out zone).
+ *
+ * @param {object} props
+ * @param {string} props.id - Unique ID of the base target.
+ * @param {string|null} props.activeDraggableId - The ID of the runner currently being dragged, if any.
+ * @param {boolean} props.isHovered - Whether the target is currently hovered by a dragged item.
+ * @returns {React.ReactElement}
+ */
+function BaseTargetContent({ id, activeDraggableId, isHovered }) {
+    const isActuallyHovered = isHovered;
     return (
         <>
             {id === "base-home" && (
@@ -67,18 +68,27 @@ function BaseTargetContent({ id, activeDraggableId, isHovered, snapshot }) {
     );
 }
 
+/**
+ * Component representing a base target or drop zone on the field.
+ *
+ * @param {object} props
+ * @param {string} props.id - Unique ID of the base target.
+ * @param {object} props.pos - Percentage-based x/y coordinates of the target.
+ * @param {string|null} props.activeDraggableId - The ID of the runner currently being dragged, if any.
+ * @param {boolean} props.isHovered - Whether the target is currently hovered.
+ * @param {boolean} props.isAllowed - Whether moving the runner to this target is allowed by rules.
+ * @param {React.ReactNode} props.children - Runner badges currently positioned at this base.
+ * @returns {React.ReactElement}
+ */
 function BaseTarget({
     id,
     pos,
     activeDraggableId,
     isHovered,
     isAllowed,
-    snapshot,
-    provided,
     children,
 }) {
-    const isActuallyHovered =
-        isHovered || (snapshot && snapshot.isDraggingOver);
+    const isActuallyHovered = isHovered;
     const targetClasses = [
         fieldStyles.baseTarget,
         id === "out-zone" ? fieldStyles.outZone : "",
@@ -99,15 +109,14 @@ function BaseTarget({
 
     return (
         <Box
-            {...(provided ? provided.droppableProps : {})}
-            ref={provided ? provided.innerRef : null}
             style={{
                 position: "absolute",
                 left: `${pos.x}%`,
                 top: `${pos.y}%`,
-                width: provided ? 100 : 80,
-                height: provided ? 120 : 80,
-                transform: "translate(-50%, -50%)",
+                width: 80,
+                height: 80,
+                marginLeft: -40,
+                marginTop: -40,
                 zIndex: 1,
             }}
         >
@@ -125,7 +134,6 @@ function BaseTarget({
                         id={id}
                         activeDraggableId={activeDraggableId}
                         isHovered={isHovered}
-                        snapshot={snapshot}
                     />
                 </Paper>
 
@@ -149,13 +157,29 @@ function BaseTarget({
                     {children}
                 </Box>
             </Box>
-            {provided && provided.placeholder}
         </Box>
     );
 }
 
 // --- MAIN COMPONENT ---
 
+/**
+ * RunnerAdvancementDND - Implements unified touch & mouse drag-and-drop runner advancement interface.
+ * Uses pointer events for browser-agnostic drag behavior on the baseball field diagram.
+ *
+ * @param {object} props
+ * @param {object} props.runners - Current positions of players on bases.
+ * @param {object} props.runnerResults - Projected/intended advancement results for runner/batter.
+ * @param {function} props.setRunnerResults - State setter function for runnerResults.
+ * @param {number} props.runsScored - Number of RBI/runs scored in the play.
+ * @param {number} props.outsRecorded - Number of outs recorded in the play.
+ * @param {Array} props.playerChart - Team lineup/roster array.
+ * @param {string} props.actionType - The batter action (e.g. Single, Double, Triple, etc.).
+ * @param {string} props.batterId - Roster ID of the current batter.
+ * @param {string} props.batterName - Name of the current batter.
+ * @param {string} [props.variant='desktop'] - Layout mode: 'desktop' or 'mobile'.
+ * @returns {React.ReactElement}
+ */
 export default function RunnerAdvancementDND({
     runners,
     runnerResults,
@@ -177,8 +201,6 @@ export default function RunnerAdvancementDND({
     const [hoveredBaseId, setHoveredBaseId] = useState(null);
     const containerRef = useRef(null);
 
-    const isMobile = variant === "mobile";
-
     // --- SHARED DATA Calculation ---
 
     const getRunnerName = useCallback(
@@ -188,7 +210,7 @@ export default function RunnerAdvancementDND({
                 return batterName || "Batter";
             return getPlayerName(id, playerChart);
         },
-        [batterId, batterName, getPlayerName, playerChart],
+        [batterId, batterName, playerChart],
     );
 
     // Each zone is an array because Home (Score) and the OUT zone support multiple runners
@@ -235,200 +257,152 @@ export default function RunnerAdvancementDND({
         return groups;
     }, [runnerResults, runners, batterId, getRunnerName]);
 
-    // --- RULES ENGINE (Shared by DND and Manual Pointer) ---
+    // --- RULES ENGINE ---
 
-    const checkMovementRules = (pId, sourceBaseId, targetBaseId) => {
-        const sequence = [
-            "base-home",
-            "base-1",
-            "base-2",
-            "base-3",
-            "base-home",
-        ];
+    const checkMovementRules = useCallback(
+        (pId, sourceBaseId, targetBaseId) => {
+            const sequence = [
+                "base-home",
+                "base-1",
+                "base-2",
+                "base-3",
+                "base-home",
+            ];
 
-        let originalIdx = 0;
-        if (runners.first === pId) originalIdx = 1;
-        else if (runners.second === pId) originalIdx = 2;
-        else if (runners.third === pId) originalIdx = 3;
-        else if (pId === (batterId || "Batter")) {
-            const normalized = actionType?.toLowerCase();
-            if (normalized === "single" || actionType === "1B") originalIdx = 1;
-            else if (normalized === "double" || actionType === "2B")
-                originalIdx = 2;
-            else if (normalized === "triple" || actionType === "3B")
-                originalIdx = 3;
-            else if (normalized === "homerun" || actionType === "HR")
-                originalIdx = 4;
-            else originalIdx = 0;
-        }
+            let originalIdx = 0;
+            if (runners.first === pId) originalIdx = 1;
+            else if (runners.second === pId) originalIdx = 2;
+            else if (runners.third === pId) originalIdx = 3;
+            else if (pId === (batterId || "Batter")) {
+                const normalized = actionType?.toLowerCase();
+                if (normalized === "single" || actionType === "1B")
+                    originalIdx = 1;
+                else if (normalized === "double" || actionType === "2B")
+                    originalIdx = 2;
+                else if (normalized === "triple" || actionType === "3B")
+                    originalIdx = 3;
+                else if (normalized === "homerun" || actionType === "HR")
+                    originalIdx = 4;
+                else originalIdx = 0;
+            }
 
-        let targetIdx = sequence.indexOf(targetBaseId);
-        // Special case for Home vs Score: if we are at the field and moving to home, it's index 4 (Score)
-        if (
-            targetBaseId === "base-home" &&
-            (sourceBaseId !== "base-home" || originalIdx > 0)
-        ) {
-            targetIdx = 4;
-        }
+            let targetIdx = sequence.indexOf(targetBaseId);
+            // Special case for Home vs Score: if we are at the field and moving to home, it's index 4 (Score)
+            if (
+                targetBaseId === "base-home" &&
+                (sourceBaseId !== "base-home" || originalIdx > 0)
+            ) {
+                targetIdx = 4;
+            }
 
-        // 1. Floor Check: Batter cannot go back before their hit floor.
-        // Existing runners can retreat as long as they don't pass anyone else.
-        const isBatter = pId === (batterId || "Batter");
-        if (
-            isBatter &&
-            targetBaseId !== "out-zone" &&
-            targetIdx < originalIdx
-        ) {
-            return { allowed: false };
-        }
+            // 1. Floor Check: Batter cannot go back before their hit floor.
+            // Existing runners can retreat as long as they don't pass anyone else.
+            const isBatter = pId === (batterId || "Batter");
+            if (
+                isBatter &&
+                targetBaseId !== "out-zone" &&
+                targetIdx < originalIdx
+            ) {
+                return { allowed: false };
+            }
 
-        // 2. No-Passing Calculation (Skipped for Out-Zone)
-        if (targetBaseId !== "out-zone") {
-            const playerRank =
-                pId === (batterId || "Batter")
-                    ? 0
-                    : runners.third === pId
-                      ? 3
-                      : runners.second === pId
-                        ? 2
-                        : 1;
-
-            for (const [key, result] of Object.entries(runnerResults)) {
-                const otherId =
-                    key === "batter" ? batterId || "Batter" : runners[key];
-                if (!otherId || otherId === pId) continue;
-
-                const otherRank =
-                    key === "batter"
+            // 2. No-Passing Calculation (Skipped for Out-Zone)
+            if (targetBaseId !== "out-zone") {
+                const playerRank =
+                    pId === (batterId || "Batter")
                         ? 0
-                        : key === "third"
+                        : runners.third === pId
                           ? 3
-                          : key === "second"
+                          : runners.second === pId
                             ? 2
                             : 1;
-                let otherBaseIdx = 0;
-                if (result === "score") otherBaseIdx = 4;
-                else if (result === "third") otherBaseIdx = 3;
-                else if (result === "second") otherBaseIdx = 2;
-                else if (result === "first") otherBaseIdx = 1;
-                else if (result === "out")
-                    otherBaseIdx = 99; // Sentinel for "Out"
-                else if (result === "stay") otherBaseIdx = otherRank;
 
-                if (otherBaseIdx !== 99) {
-                    // If I am trailing they must stay ahead of me
-                    if (playerRank < otherRank && targetIdx > otherBaseIdx)
-                        return { allowed: false };
-                    // If I am leading they must stay behind me
-                    if (playerRank > otherRank && targetIdx < otherBaseIdx)
-                        return { allowed: false };
+                for (const [key, result] of Object.entries(runnerResults)) {
+                    const otherId =
+                        key === "batter" ? batterId || "Batter" : runners[key];
+                    if (!otherId || otherId === pId) continue;
+
+                    const otherRank =
+                        key === "batter"
+                            ? 0
+                            : key === "third"
+                              ? 3
+                              : key === "second"
+                                ? 2
+                                : 1;
+                    let otherBaseIdx = 0;
+                    if (result === "score") otherBaseIdx = 4;
+                    else if (result === "third") otherBaseIdx = 3;
+                    else if (result === "second") otherBaseIdx = 2;
+                    else if (result === "first") otherBaseIdx = 1;
+                    else if (result === "out")
+                        otherBaseIdx = 99; // Sentinel for "Out"
+                    else if (result === "stay") otherBaseIdx = otherRank;
+
+                    if (otherBaseIdx !== 99) {
+                        // If I am trailing they must stay ahead of me
+                        if (playerRank < otherRank && targetIdx > otherBaseIdx)
+                            return { allowed: false };
+                        // If I am leading they must stay behind me
+                        if (playerRank > otherRank && targetIdx < otherBaseIdx)
+                            return { allowed: false };
+                    }
                 }
             }
-        }
 
-        // 3. Occupancy check (Skipped for Home/Out)
-        const isStandardBase =
-            targetBaseId === "base-1" ||
-            targetBaseId === "base-2" ||
-            targetBaseId === "base-3";
-        if (isStandardBase) {
-            const isOccupied =
-                draggablesByBase[targetBaseId].length > 0 &&
-                !draggablesByBase[targetBaseId].some((d) => d.id === pId);
-            if (isOccupied) return { allowed: false };
-        }
+            // 3. Occupancy check (Skipped for Home/Out)
+            const isStandardBase =
+                targetBaseId === "base-1" ||
+                targetBaseId === "base-2" ||
+                targetBaseId === "base-3";
+            if (isStandardBase) {
+                const isOccupied =
+                    draggablesByBase[targetBaseId].length > 0 &&
+                    !draggablesByBase[targetBaseId].some((d) => d.id === pId);
+                if (isOccupied) return { allowed: false };
+            }
 
-        return {
-            allowed: true,
-            targetValue:
-                targetBaseId === "base-home"
-                    ? "score"
-                    : targetBaseId === "out-zone"
-                      ? "out"
-                      : targetBaseId === "base-1"
-                        ? "first"
-                        : targetBaseId === "base-2"
-                          ? "second"
-                          : "third",
-        };
-    };
+            return {
+                allowed: true,
+                targetValue:
+                    targetBaseId === "base-home"
+                        ? "score"
+                        : targetBaseId === "out-zone"
+                          ? "out"
+                          : targetBaseId === "base-1"
+                            ? "first"
+                            : targetBaseId === "base-2"
+                              ? "second"
+                              : "third",
+            };
+        },
+        [runners, actionType, batterId, runnerResults, draggablesByBase],
+    );
+
+    const updatePlayResult = useCallback(
+        (pId, targetValue) => {
+            let sourceKey = null;
+            if (pId === (batterId || "Batter")) sourceKey = "batter";
+            else if (runners.first === pId) sourceKey = "first";
+            else if (runners.second === pId) sourceKey = "second";
+            else if (runners.third === pId) sourceKey = "third";
+
+            if (sourceKey) {
+                setRunnerResults((prev) => ({
+                    ...prev,
+                    [sourceKey]: targetValue,
+                }));
+                setLastMovedId(pId);
+            }
+        },
+        [batterId, runners, setRunnerResults],
+    );
 
     // --- INTERACTION Handlers ---
 
-    // Desktop/Mouse Move Listener for Ghost Trail (separate from mobile pointer events)
-    const handleMouseMove = useCallback(
-        (e) => {
-            if (!activeDraggableId || !containerRef.current) return;
-            const coords = getRelativePointerCoordinates(
-                e,
-                containerRef.current,
-            );
-            setCurrentPointerPos(coords);
-        },
-        [activeDraggableId],
-    );
-
-    const handleMouseUp = useCallback(() => {
-        if (!isMobile) {
-            setDragStartPos(null);
-            setDragSourceId(null);
-            setActiveDraggableId(null);
-            setCurrentPointerPos(null);
-        }
-    }, [isMobile]);
-
-    useEffect(() => {
-        if (!isMobile && activeDraggableId) {
-            window.addEventListener("mousemove", handleMouseMove);
-            window.addEventListener("mouseup", handleMouseUp);
-            return () => {
-                window.removeEventListener("mousemove", handleMouseMove);
-                window.removeEventListener("mouseup", handleMouseUp);
-            };
-        }
-    }, [isMobile, activeDraggableId, handleMouseMove, handleMouseUp]);
-
-    const onDragStart = (start) => {
-        const sourceId = start.source.droppableId;
-        const pId = start.draggableId;
-        setDragSourceId(sourceId);
-        setActiveDraggableId(pId);
-        setDragStartPos(BASE_POSITIONS[sourceId]);
-    };
-
-    const updatePlayResult = (pId, targetValue) => {
-        let sourceKey = null;
-        if (pId === (batterId || "Batter")) sourceKey = "batter";
-        else if (runners.first === pId) sourceKey = "first";
-        else if (runners.second === pId) sourceKey = "second";
-        else if (runners.third === pId) sourceKey = "third";
-
-        if (sourceKey) {
-            setRunnerResults((prev) => ({ ...prev, [sourceKey]: targetValue }));
-            setLastMovedId(pId);
-        }
-    };
-
-    const onDragEnd = (result) => {
-        setDragStartPos(null);
-        setDragSourceId(null);
-        setActiveDraggableId(null);
-        setCurrentPointerPos(null);
-
-        const { destination, draggableId } = result;
-        if (!destination) return;
-
-        const { allowed, targetValue } = checkMovementRules(
-            draggableId,
-            result.source.droppableId,
-            destination.droppableId,
-        );
-        if (allowed) updatePlayResult(draggableId, targetValue);
-    };
-
-    // MANUAL POINTER SYSTEM (Mobile Bypass)
     const handlePointerDown = (e, pId = null, bId = null) => {
-        if (!isMobile || !containerRef.current) return;
+        if (e.button !== undefined && e.button !== 0) return; // Only drag with primary (left) button
+        if (!containerRef.current) return;
 
         const coords = getRelativePointerCoordinates(e, containerRef.current);
 
@@ -469,7 +443,6 @@ export default function RunnerAdvancementDND({
         }
 
         if (closestPlayer && closestBaseId) {
-            // Prevent default browser behavior (selection/zoom)
             e.preventDefault();
 
             setDragSourceId(closestBaseId);
@@ -477,68 +450,26 @@ export default function RunnerAdvancementDND({
             setDragStartPos(BASE_POSITIONS[closestBaseId]);
             setIsDragging(true);
             setCurrentPointerPos(coords);
-
-            // Capture the pointer on the container so move/up events continue to fire
-            if (containerRef.current.setPointerCapture) {
-                try {
-                    containerRef.current.setPointerCapture(e.pointerId);
-                } catch {
-                    // Ignore capture errors
-                }
-            }
         }
     };
 
-    const handlePointerMove = (e) => {
-        if (!isDragging || !containerRef.current) return;
-
-        // Prevent default browser behavior once the drag is active
-        e.preventDefault();
-
-        const coords = getRelativePointerCoordinates(e, containerRef.current);
-        setCurrentPointerPos(coords);
-
-        // Calculate closest base for hover effect
-        let closestBaseId = null;
-        let minDist = 20; // Hover threshold in % coords
-        Object.entries(BASE_POSITIONS).forEach(([baseId, bPos]) => {
-            const dist = Math.sqrt(
-                Math.pow(coords.x - bPos.x, 2) + Math.pow(coords.y - bPos.y, 2),
-            );
-            if (dist < minDist) {
-                minDist = dist;
-                closestBaseId = baseId;
-            }
-        });
-        setHoveredBaseId(closestBaseId);
-    };
-
-    const handlePointerUp = (e) => {
+    // Global window listeners for movement and release to avoid losing focus during active drag
+    useEffect(() => {
         if (!isDragging || !activeDraggableId) return;
 
-        e.preventDefault();
+        const handleMove = (e) => {
+            if (e.cancelable) e.preventDefault();
+            if (!containerRef.current) return;
 
-        // Release capture on the container
-        if (
-            containerRef.current &&
-            containerRef.current.releasePointerCapture
-        ) {
-            try {
-                containerRef.current.releasePointerCapture(e.pointerId);
-            } catch {
-                // Ignore capture errors
-            }
-        }
-
-        if (containerRef.current) {
             const coords = getRelativePointerCoordinates(
                 e,
                 containerRef.current,
             );
+            setCurrentPointerPos(coords);
 
-            // Find closest base for dropping
-            let targetBaseId = null;
-            let minDist = 25; // Dropping threshold
+            // Calculate closest base for hover effect
+            let closestBaseId = null;
+            let minDist = 20; // Hover threshold in % coords
             Object.entries(BASE_POSITIONS).forEach(([baseId, bPos]) => {
                 const dist = Math.sqrt(
                     Math.pow(coords.x - bPos.x, 2) +
@@ -546,28 +477,85 @@ export default function RunnerAdvancementDND({
                 );
                 if (dist < minDist) {
                     minDist = dist;
-                    targetBaseId = baseId;
+                    closestBaseId = baseId;
                 }
             });
+            setHoveredBaseId(closestBaseId);
+        };
 
-            if (targetBaseId) {
-                const { allowed, targetValue } = checkMovementRules(
-                    activeDraggableId,
-                    dragSourceId,
-                    targetBaseId,
+        const handleUp = (e) => {
+            if (e.cancelable) e.preventDefault();
+
+            if (containerRef.current) {
+                const coords = getRelativePointerCoordinates(
+                    e,
+                    containerRef.current,
                 );
-                if (allowed) updatePlayResult(activeDraggableId, targetValue);
-            }
-        }
 
-        // Reset interaction state
-        setIsDragging(false);
-        setDragStartPos(null);
-        setDragSourceId(null);
-        setActiveDraggableId(null);
-        setCurrentPointerPos(null);
-        setHoveredBaseId(null);
-    };
+                // Find closest base for dropping
+                let targetBaseId = null;
+                let minDist = 25; // Dropping threshold
+                Object.entries(BASE_POSITIONS).forEach(([baseId, bPos]) => {
+                    const dist = Math.sqrt(
+                        Math.pow(coords.x - bPos.x, 2) +
+                            Math.pow(coords.y - bPos.y, 2),
+                    );
+                    if (dist < minDist) {
+                        minDist = dist;
+                        targetBaseId = baseId;
+                    }
+                });
+
+                if (targetBaseId) {
+                    const { allowed, targetValue } = checkMovementRules(
+                        activeDraggableId,
+                        dragSourceId,
+                        targetBaseId,
+                    );
+                    if (allowed)
+                        updatePlayResult(activeDraggableId, targetValue);
+                }
+            }
+
+            // Reset interaction state
+            setIsDragging(false);
+            setDragStartPos(null);
+            setDragSourceId(null);
+            setActiveDraggableId(null);
+            setCurrentPointerPos(null);
+            setHoveredBaseId(null);
+        };
+
+        const handleCancel = (e) => {
+            if (e.cancelable) e.preventDefault();
+
+            // Reset interaction state without performing any drop logic
+            setIsDragging(false);
+            setDragStartPos(null);
+            setDragSourceId(null);
+            setActiveDraggableId(null);
+            setCurrentPointerPos(null);
+            setHoveredBaseId(null);
+        };
+
+        window.addEventListener("pointermove", handleMove, { passive: false });
+        window.addEventListener("pointerup", handleUp, { passive: false });
+        window.addEventListener("pointercancel", handleCancel, {
+            passive: false,
+        });
+
+        return () => {
+            window.removeEventListener("pointermove", handleMove);
+            window.removeEventListener("pointerup", handleUp);
+            window.removeEventListener("pointercancel", handleCancel);
+        };
+    }, [
+        isDragging,
+        activeDraggableId,
+        dragSourceId,
+        checkMovementRules,
+        updatePlayResult,
+    ]);
 
     // --- RENDER PIECES ---
 
@@ -686,7 +674,7 @@ export default function RunnerAdvancementDND({
     };
 
     const renderGhostBadge = () => {
-        if (!isMobile || !activeDraggableId || !currentPointerPos) return null;
+        if (!activeDraggableId || !currentPointerPos) return null;
 
         let playerName = "Runner";
         // Check batter first
@@ -758,253 +746,101 @@ export default function RunnerAdvancementDND({
                 </Text>
             </Group>
 
-            {isMobile ? (
-                <Box
-                    ref={containerRef}
-                    onPointerDown={handlePointerDown}
-                    onPointerMove={handlePointerMove}
-                    onPointerUp={handlePointerUp}
-                    onPointerCancel={handlePointerUp} // Safety reset
-                    onContextMenu={(e) => e.preventDefault()}
-                    className={`${fieldStyles.fieldContainer} tour-runner-advancement-dnd`}
-                    style={{
-                        backgroundImage:
-                            "url('/images/baseball-infield-v2.png')",
-                    }}
-                >
-                    {renderGhostTrail()}
-                    {renderGhostBadge()}
+            <Box
+                ref={containerRef}
+                onPointerDown={handlePointerDown}
+                onContextMenu={(e) => e.preventDefault()}
+                className={`${fieldStyles.fieldContainer} tour-runner-advancement-dnd`}
+                style={{
+                    backgroundImage: "url('/images/baseball-infield-v2.png')",
+                }}
+            >
+                {variant === "desktop" && renderDiamond()}
+                {renderGhostTrail()}
+                {renderGhostBadge()}
 
-                    {Object.entries(BASE_POSITIONS).map(([id, pos]) => {
-                        const rules = activeDraggableId
-                            ? checkMovementRules(
-                                  activeDraggableId,
-                                  dragSourceId,
-                                  id,
-                              )
-                            : { allowed: true };
-                        const isHovered =
-                            hoveredBaseId === id && activeDraggableId;
+                {Object.entries(BASE_POSITIONS).map(([id, pos]) => {
+                    const rules = activeDraggableId
+                        ? checkMovementRules(
+                              activeDraggableId,
+                              dragSourceId,
+                              id,
+                          )
+                        : { allowed: true };
+                    const isHovered = hoveredBaseId === id && activeDraggableId;
 
-                        return (
-                            <BaseTarget
-                                key={id}
-                                id={id}
-                                pos={pos}
-                                activeDraggableId={activeDraggableId}
-                                isHovered={isHovered}
-                                isAllowed={rules.allowed}
-                            >
-                                {draggablesByBase[id].map((p) => {
-                                    const isBeingDragged =
-                                        activeDraggableId === p.id;
+                    return (
+                        <BaseTarget
+                            key={id}
+                            id={id}
+                            pos={pos}
+                            activeDraggableId={activeDraggableId}
+                            isHovered={isHovered}
+                            isAllowed={rules.allowed}
+                        >
+                            {draggablesByBase[id].map((p) => {
+                                const isBeingDragged =
+                                    activeDraggableId === p.id;
 
-                                    // On mobile, only hide the source badge if we've dragged a significant amount
-                                    let isVisuallyGone = isBeingDragged;
-                                    if (
-                                        isBeingDragged &&
-                                        isMobile &&
-                                        currentPointerPos
-                                    ) {
-                                        const dist = Math.sqrt(
+                                let isVisuallyGone = isBeingDragged;
+                                if (isBeingDragged && currentPointerPos) {
+                                    const dist = Math.sqrt(
+                                        Math.pow(
+                                            currentPointerPos.x - pos.x,
+                                            2,
+                                        ) +
                                             Math.pow(
-                                                currentPointerPos.x - pos.x,
+                                                currentPointerPos.y - pos.y,
                                                 2,
-                                            ) +
-                                                Math.pow(
-                                                    currentPointerPos.y - pos.y,
-                                                    2,
-                                                ),
-                                        );
-                                        if (dist < 5) isVisuallyGone = false;
-                                    }
-
-                                    const playerName =
-                                        p.id === "Batter" || p.id === batterId
-                                            ? batterName || "Batter"
-                                            : p.name;
-
-                                    return (
-                                        <Box
-                                            key={p.id}
-                                            style={{
-                                                pointerEvents: "auto",
-                                                opacity: isVisuallyGone ? 0 : 1,
-                                            }}
-                                            onPointerDown={(e) => {
-                                                e.stopPropagation();
-                                                handlePointerDown(e, p.id, id);
-                                            }}
-                                        >
-                                            <Badge
-                                                size="xl"
-                                                radius="sm"
-                                                color="blue"
-                                                variant="filled"
-                                                className={`${fieldStyles.runnerBadge} ${isBeingDragged ? fieldStyles.runnerBadgeDragging : ""}`}
-                                                style={{
-                                                    padding: "0 10px",
-                                                    height: 32,
-                                                    minWidth: 60,
-                                                }}
-                                                styles={{
-                                                    label: {
-                                                        textTransform: "none",
-                                                        overflow: "visible",
-                                                    },
-                                                }}
-                                            >
-                                                {playerName}
-                                            </Badge>
-                                        </Box>
+                                            ),
                                     );
-                                })}
-                            </BaseTarget>
-                        );
-                    })}
-                </Box>
-            ) : (
-                <DragDropContext
-                    onDragStart={onDragStart}
-                    onDragEnd={onDragEnd}
-                    disableInteractiveElementBlocking={true}
-                >
-                    <Box
-                        ref={containerRef}
-                        className={`${fieldStyles.fieldContainer} tour-runner-advancement-dnd`}
-                    >
-                        {renderDiamond()}
-                        {renderGhostTrail()}
-                        {Object.keys(BASE_POSITIONS).map((id) => (
-                            <Droppable
-                                key={id}
-                                droppableId={id}
-                                isDropDisabled={
-                                    activeDraggableId
-                                        ? !checkMovementRules(
-                                              activeDraggableId,
-                                              dragSourceId,
-                                              id,
-                                          ).allowed
-                                        : false
+                                    if (dist < 5) isVisuallyGone = false;
                                 }
-                            >
-                                {(provided, snapshot) => {
-                                    const rules = activeDraggableId
-                                        ? checkMovementRules(
-                                              activeDraggableId,
-                                              dragSourceId,
-                                              id,
-                                          )
-                                        : { allowed: true };
 
-                                    return (
-                                        <BaseTarget
-                                            id={id}
-                                            pos={BASE_POSITIONS[id]}
-                                            activeDraggableId={
-                                                activeDraggableId
-                                            }
-                                            isAllowed={rules.allowed}
-                                            snapshot={snapshot}
-                                            provided={provided}
+                                const playerName =
+                                    p.id === "Batter" || p.id === batterId
+                                        ? batterName || "Batter"
+                                        : p.name;
+
+                                return (
+                                    <Box
+                                        key={p.id}
+                                        style={{
+                                            pointerEvents: "auto",
+                                            opacity: isVisuallyGone ? 0 : 1,
+                                        }}
+                                        onPointerDown={(e) => {
+                                            e.stopPropagation();
+                                            handlePointerDown(e, p.id, id);
+                                        }}
+                                    >
+                                        <Badge
+                                            size="xl"
+                                            radius="sm"
+                                            color="blue"
+                                            variant="filled"
+                                            className={`${fieldStyles.runnerBadge} ${isBeingDragged ? fieldStyles.runnerBadgeDragging : ""}`}
+                                            style={{
+                                                padding: "0 10px",
+                                                height: 32,
+                                                minWidth: 60,
+                                            }}
+                                            styles={{
+                                                label: {
+                                                    textTransform: "none",
+                                                    overflow: "visible",
+                                                },
+                                            }}
                                         >
-                                            {draggablesByBase[id].map(
-                                                (p, index) => (
-                                                    <Draggable
-                                                        key={p.id}
-                                                        draggableId={p.id}
-                                                        index={index}
-                                                    >
-                                                        {(
-                                                            draggableProvided,
-                                                            dSnapshot,
-                                                        ) => {
-                                                            const child = (
-                                                                <div
-                                                                    ref={
-                                                                        draggableProvided.innerRef
-                                                                    }
-                                                                    {...draggableProvided.draggableProps}
-                                                                    {...draggableProvided.dragHandleProps}
-                                                                    onContextMenu={(
-                                                                        e,
-                                                                    ) =>
-                                                                        e.preventDefault()
-                                                                    }
-                                                                    className={`${fieldStyles.runnerBadge} ${dSnapshot.isDragging ? fieldStyles.runnerBadgeDragging : ""}`}
-                                                                    style={{
-                                                                        ...draggableProvided
-                                                                            .draggableProps
-                                                                            .style,
-                                                                        touchAction:
-                                                                            "none",
-                                                                        zIndex: dSnapshot.isDragging
-                                                                            ? 10000
-                                                                            : 20,
-                                                                        pointerEvents:
-                                                                            "auto",
-                                                                        padding:
-                                                                            "0 10px",
-                                                                        height: 32,
-                                                                        minWidth: 60,
-                                                                        display:
-                                                                            "flex",
-                                                                        alignItems:
-                                                                            "center",
-                                                                        justifyContent:
-                                                                            "center",
-                                                                    }}
-                                                                    onPointerDown={(
-                                                                        e,
-                                                                    ) => {
-                                                                        e.stopPropagation();
-                                                                        handlePointerDown(
-                                                                            e,
-                                                                            p.id,
-                                                                            id,
-                                                                        );
-                                                                    }}
-                                                                >
-                                                                    <Text
-                                                                        size="sm"
-                                                                        fw={800}
-                                                                        c="white"
-                                                                        style={{
-                                                                            textShadow:
-                                                                                "0 1px 2px rgba(0,0,0,0.5)",
-                                                                            whiteSpace:
-                                                                                "nowrap",
-                                                                        }}
-                                                                    >
-                                                                        {p.id ===
-                                                                            "Batter" ||
-                                                                        p.id ===
-                                                                            batterId
-                                                                            ? batterName ||
-                                                                              "Batter"
-                                                                            : p.name}
-                                                                    </Text>
-                                                                </div>
-                                                            );
-                                                            return dSnapshot.isDragging
-                                                                ? createPortal(
-                                                                      child,
-                                                                      document.body,
-                                                                  )
-                                                                : child;
-                                                        }}
-                                                    </Draggable>
-                                                ),
-                                            )}
-                                        </BaseTarget>
-                                    );
-                                }}
-                            </Droppable>
-                        ))}
-                    </Box>
-                </DragDropContext>
-            )}
+                                            {playerName}
+                                        </Badge>
+                                    </Box>
+                                );
+                            })}
+                        </BaseTarget>
+                    );
+                })}
+            </Box>
         </Stack>
     );
 }
