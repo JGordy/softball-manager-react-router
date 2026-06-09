@@ -20,7 +20,9 @@ jest.mock("@/utils/showNotification", () => ({
     useResponseNotification: jest.fn(),
 }));
 
-jest.mock("@/components/BackButton", () => () => <button>Back</button>);
+jest.mock("@/components/BackButton", () => ({ text }) => (
+    <button>{text || "Event Details"}</button>
+));
 
 jest.mock("@/loaders/games");
 jest.mock("@/actions/lineups");
@@ -248,7 +250,7 @@ describe("Lineup Route", () => {
             );
 
             expect(useResponseNotification).toHaveBeenCalledWith(actionData);
-            expect(screen.getByText("Back")).toBeInTheDocument();
+            expect(screen.getByText("Event Details")).toBeInTheDocument();
             expect(screen.getByTestId("lineup-container")).toBeInTheDocument();
             expect(
                 screen.getByRole("button", { name: /share page/i }),
