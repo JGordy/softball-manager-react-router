@@ -150,4 +150,112 @@ describe("RunnerAdvancementDND", () => {
             container.querySelector(".tour-runner-advancement-dnd"),
         ).toBeInTheDocument();
     });
+
+    it("successfully drags and drops a runner to an allowed base", () => {
+        const {
+            getRelativePointerCoordinates,
+        } = require("../../utils/fieldMapping");
+        getRelativePointerCoordinates.mockImplementation((e) => {
+            if (e.type === "pointerdown") return { x: 91, y: 50 };
+            if (e.type === "pointermove" || e.type === "pointerup")
+                return { x: 50, y: 9 };
+            return { x: 50, y: 50 };
+        });
+
+        render(<RunnerAdvancementDND {...defaultProps} />);
+        const runnerBadge = screen.getByText("John");
+
+        // Start drag on John (at base-1: 91, 50)
+        fireEvent.pointerDown(runnerBadge, {
+            pointerId: 1,
+            button: 0,
+        });
+
+        // Move to base-2 (50, 9)
+        fireEvent.pointerMove(document.body, {
+            pointerId: 1,
+        });
+
+        // Drop on base-2
+        fireEvent.pointerUp(document.body, {
+            pointerId: 1,
+        });
+
+        expect(mockSetRunnerResults).toHaveBeenCalled();
+        const updateFn = mockSetRunnerResults.mock.calls[0][0];
+        const prevResults = defaultProps.runnerResults;
+        const newResults = updateFn(prevResults);
+        expect(newResults.first).toBe("second"); // John advanced from first to second base
+    });
+
+    it("prevents dropping a runner to a blocked base", () => {
+        const {
+            getRelativePointerCoordinates,
+        } = require("../../utils/fieldMapping");
+        getRelativePointerCoordinates.mockImplementation((e) => {
+            if (e.type === "pointerdown") return { x: 91, y: 50 };
+            if (e.type === "pointermove" || e.type === "pointerup")
+                return { x: 9, y: 50 };
+            return { x: 50, y: 50 };
+        });
+
+        const props = {
+            ...defaultProps,
+            // Add a runner at second who stays, blocking the batter from passing them
+            runners: { first: null, second: "player2", third: null },
+            runnerResults: {
+                first: "stay",
+                second: "stay",
+                third: "stay",
+                batter: "stay",
+            },
+            batterId: "batter1",
+            batterName: "Jane",
+        };
+
+        render(<RunnerAdvancementDND {...props} />);
+        const batterBadge = screen.getByText("Jane");
+
+        // Start drag on Jane (the batter, hit is 1B so starts at 1B: 91, 50)
+        fireEvent.pointerDown(batterBadge, {
+            pointerId: 1,
+            button: 0,
+        });
+
+        // Try to move Jane to 3B (9, 50), passing the runner at 2B (who is staying)
+        fireEvent.pointerMove(document.body, {
+            pointerId: 1,
+        });
+
+        // Release/drop on 3B
+        fireEvent.pointerUp(document.body, {
+            pointerId: 1,
+        });
+
+        // setRunnerResults should not be called because passing is blocked
+        expect(mockSetRunnerResults).not.toHaveBeenCalled();
+    });
+
+    it("unbinds window listeners and resets state on pointercancel", () => {
+        render(<RunnerAdvancementDND {...defaultProps} />);
+        const runnerBadge = screen.getByText("John");
+
+        // Start drag
+        fireEvent.pointerDown(runnerBadge, {
+            pointerId: 1,
+            button: 0,
+        });
+
+        // Verify "DRAG TO" hint is visible (meaning drag is active)
+        expect(screen.getByText("DRAG TO")).toBeInTheDocument();
+
+        // Cancel drag
+        fireEvent.pointerCancel(document.body, {
+            pointerId: 1,
+        });
+
+        // Verify "DRAG TO" is no longer visible (drag state reset)
+        expect(screen.queryByText("DRAG TO")).not.toBeInTheDocument();
+        expect(mockSetRunnerResults).not.toHaveBeenCalled();
+    });
 });
