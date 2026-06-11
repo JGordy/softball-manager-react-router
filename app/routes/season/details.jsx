@@ -28,7 +28,7 @@ export async function loader({ request, params }) {
     const client = await createSessionClient(request);
 
     let park = null;
-    const { season } = await getSeasonById({ seasonId, client });
+    const { season, players, logs } = await getSeasonById({ seasonId, client });
 
     if (season.parkId) {
         park = await getParkById({
@@ -37,7 +37,7 @@ export async function loader({ request, params }) {
         });
     }
 
-    return { season, park };
+    return { season, park, players, logs };
 }
 
 export async function action({ request, params }) {
@@ -66,7 +66,7 @@ export async function action({ request, params }) {
 
 export default function SeasonDetails({ loaderData, actionData }) {
     const { isDesktop, user } = useOutletContext();
-    const { season, park } = loaderData;
+    const { season, park, players, logs } = loaderData;
     const { teams = [] } = season;
     const [team] = teams;
     const { primaryColor, managerIds = [] } = team || { primaryColor: "lime" };
@@ -133,6 +133,8 @@ export default function SeasonDetails({ loaderData, actionData }) {
         isManager,
         record,
         detailsConfig,
+        players,
+        logs,
     };
 
     if (isDesktop) {

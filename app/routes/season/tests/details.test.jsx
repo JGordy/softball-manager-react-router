@@ -37,6 +37,8 @@ jest.mock("@tabler/icons-react", () => ({
     IconFriends: () => <div data-testid="icon-friends" />,
     IconInfoCircle: () => <div data-testid="icon-info" />,
     IconMapPin: () => <div data-testid="icon-map-pin" />,
+    IconTable: () => <div data-testid="icon-table" />,
+    IconMap2: () => <div data-testid="icon-map2" />,
 }));
 
 // Mock loaders and actions
@@ -66,6 +68,14 @@ jest.mock("@/components/GamesList", () => ({
 jest.mock("../components/SeasonMenu", () => ({
     __esModule: true,
     default: () => <div data-testid="season-menu" />,
+}));
+jest.mock("@/components/BoxScore", () => ({
+    __esModule: true,
+    default: () => <div data-testid="box-score" />,
+}));
+jest.mock("@/components/ContactSprayChart", () => ({
+    __esModule: true,
+    default: () => <div data-testid="spray-chart" />,
 }));
 
 describe("SeasonDetails Route", () => {

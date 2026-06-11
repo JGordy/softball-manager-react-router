@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
     Card,
     Container,
@@ -9,11 +10,18 @@ import {
     Title,
 } from "@mantine/core";
 
-import { IconBallBaseball, IconInfoCircle } from "@tabler/icons-react";
+import {
+    IconBallBaseball,
+    IconInfoCircle,
+    IconTable,
+    IconMap2,
+} from "@tabler/icons-react";
 
 import BackButton from "@/components/BackButton";
 import GamesList from "@/components/GamesList";
 import TabsWrapper from "@/components/TabsWrapper";
+import BoxScore from "@/components/BoxScore";
+import ContactSprayChart from "@/components/ContactSprayChart";
 
 import { formatForViewerDate } from "@/utils/dateTime";
 
@@ -49,13 +57,28 @@ function DetailCard({ icon: Icon, label, value, color, href, rightSection }) {
     );
 }
 
+/**
+ * Renders the mobile version of the Season Details page.
+ * Displays a tabs interface with Details, Games, Stats, and Spray Chart.
+ */
 export default function MobileSeasonDetails({
     season,
     primaryColor,
     isManager,
     record,
     detailsConfig,
+    players = [],
+    logs = [],
 }) {
+    const battersList = useMemo(() => {
+        return (players || []).map((p) => ({
+            label: p.jerseyNumber
+                ? `#${p.jerseyNumber} ${p.firstName} ${p.lastName || ""}`
+                : `${p.firstName} ${p.lastName || ""}`,
+            value: p.$id,
+        }));
+    }, [players]);
+
     return (
         <Container pt="md">
             <Group justify="space-between">
@@ -83,6 +106,18 @@ export default function MobileSeasonDetails({
                     <Group gap="xs" align="center" justify="center">
                         <IconBallBaseball size={16} />
                         Games
+                    </Group>
+                </Tabs.Tab>
+                <Tabs.Tab value="stats">
+                    <Group gap="xs" align="center" justify="center">
+                        <IconTable size={16} />
+                        Stats
+                    </Group>
+                </Tabs.Tab>
+                <Tabs.Tab value="spray">
+                    <Group gap="xs" align="center" justify="center">
+                        <IconMap2 size={16} />
+                        Spray
                     </Group>
                 </Tabs.Tab>
 
@@ -115,6 +150,19 @@ export default function MobileSeasonDetails({
                         games={season.games}
                         height="50vh"
                         primaryColor={primaryColor}
+                    />
+                </Tabs.Panel>
+
+                <Tabs.Panel value="stats" pt="md">
+                    <BoxScore logs={logs} players={players} seasonView={true} />
+                </Tabs.Panel>
+
+                <Tabs.Panel value="spray" pt="md">
+                    <ContactSprayChart
+                        hits={logs}
+                        batters={battersList}
+                        layout="stacked"
+                        games={season.games}
                     />
                 </Tabs.Panel>
             </TabsWrapper>

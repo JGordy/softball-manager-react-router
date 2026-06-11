@@ -30,7 +30,7 @@ import CurrentBatterCard from "./CurrentBatterCard";
 import DefenseCard from "./DefenseCard";
 import LastPlayCard from "./LastPlayCard";
 import FieldingControls from "./FieldingControls";
-import BoxScore from "./BoxScore";
+import BoxScore from "@/components/BoxScore";
 import UpNextCard from "./UpNextCard";
 import SubPlayerDrawer from "./SubPlayerDrawer";
 import RemovePlayerDrawer from "./RemovePlayerDrawer";

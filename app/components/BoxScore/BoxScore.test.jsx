@@ -1,5 +1,5 @@
 import { render, screen } from "@/utils/test-utils";
-import BoxScore from "../BoxScore";
+import BoxScore from "./BoxScore";
 
 describe("BoxScore", () => {
     const mockLogs = [
@@ -141,5 +141,31 @@ describe("BoxScore", () => {
         expect(cells[3]).toBe("2"); // RBI
         expect(cells[4]).toBe("0"); // R (HR scorer is added to R only if scored array has it, but HR counts as at-bat and hit)
         expect(cells[5]).toBe("1"); // HR
+    });
+
+    it("renders aggregate season stats correctly in seasonView", () => {
+        const seasonLogs = [
+            { playerId: "p1", eventType: "single", rbi: 1, gameId: "g1" },
+            { playerId: "p1", eventType: "double", rbi: 1, gameId: "g2" },
+            { playerId: "p2", eventType: "strikeout", gameId: "g1" },
+        ];
+        const seasonPlayers = [
+            { $id: "p1", firstName: "John", lastName: "Doe" },
+            { $id: "p2", firstName: "Jane", lastName: "Smith" },
+        ];
+
+        render(
+            <BoxScore
+                logs={seasonLogs}
+                players={seasonPlayers}
+                seasonView={true}
+            />,
+        );
+
+        expect(screen.getByText("John")).toBeInTheDocument();
+        expect(screen.getByText("Jane")).toBeInTheDocument();
+
+        // Verify totals row
+        expect(screen.getByText("TOTALS")).toBeInTheDocument();
     });
 });

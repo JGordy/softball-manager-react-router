@@ -97,11 +97,13 @@ export default function ContactSprayChart({
     showBattingSide = true,
     batters = [],
     layout = "flex",
+    games = [],
 }) {
     const [battingSide, setBattingSide] = useState(OVERALL);
     const [categoryFilter, setCategoryFilter] = useState("ALL");
     const [locationFilter, setLocationFilter] = useState("ALL");
     const [playerFilter, setPlayerFilter] = useState("ALL");
+    const [gameFilter, setGameFilter] = useState("ALL");
     const [opened, { toggle }] = useDisclosure(false);
 
     const filteredHits = useMemo(() => {
@@ -136,6 +138,11 @@ export default function ContactSprayChart({
                     hit.battingSide?.toUpperCase() === battingSide;
 
                 if (!sideMatch) return false;
+
+                // Game filter
+                if (gameFilter !== "ALL" && hit.gameId !== gameFilter) {
+                    return false;
+                }
 
                 // Category filter
                 if (categoryFilter === "HITS") {
@@ -179,6 +186,7 @@ export default function ContactSprayChart({
         categoryFilter,
         locationFilter,
         playerFilter,
+        gameFilter,
         showBattingSide,
     ]);
 
@@ -261,7 +269,7 @@ export default function ContactSprayChart({
                 <Collapse expanded={opened}>
                     <Card p="xs" radius="lg">
                         <Stack gap="xs">
-                            <Group grow>
+                            <Group className={styles.filterGroup}>
                                 {batters.length > 0 && (
                                     <Select
                                         label="Batter"
@@ -276,7 +284,10 @@ export default function ContactSprayChart({
                                         value={playerFilter}
                                         onChange={setPlayerFilter}
                                         size="sm"
-                                        comboboxProps={{ zIndex: 6000 }}
+                                        comboboxProps={{
+                                            zIndex: 6000,
+                                            width: "max-content",
+                                        }}
                                     />
                                 )}
                                 <Select
@@ -286,7 +297,10 @@ export default function ContactSprayChart({
                                     value={categoryFilter}
                                     onChange={setCategoryFilter}
                                     size="sm"
-                                    comboboxProps={{ zIndex: 6000 }}
+                                    comboboxProps={{
+                                        zIndex: 6000,
+                                        width: "max-content",
+                                    }}
                                 />
                                 <Select
                                     label="Location"
@@ -301,8 +315,42 @@ export default function ContactSprayChart({
                                     value={locationFilter}
                                     onChange={setLocationFilter}
                                     size="sm"
-                                    comboboxProps={{ zIndex: 6000 }}
+                                    comboboxProps={{
+                                        zIndex: 6000,
+                                        width: "max-content",
+                                    }}
                                 />
+                                {games.length > 0 && (
+                                    <Select
+                                        label="Game"
+                                        placeholder="All Games"
+                                        data={[
+                                            { label: "All", value: "ALL" },
+                                            ...games.map((g) => {
+                                                const dateStr = g.gameDate
+                                                    ? new Date(
+                                                          g.gameDate,
+                                                      ).toLocaleDateString(
+                                                          undefined,
+                                                          {
+                                                              month: "numeric",
+                                                              day: "numeric",
+                                                          },
+                                                      )
+                                                    : "";
+                                                const label = `${dateStr ? `${dateStr} - ` : ""}${g.isHomeGame ? "vs" : "@"} ${g.opponent}`;
+                                                return { label, value: g.$id };
+                                            }),
+                                        ]}
+                                        value={gameFilter}
+                                        onChange={setGameFilter}
+                                        size="sm"
+                                        comboboxProps={{
+                                            zIndex: 6000,
+                                            width: "max-content",
+                                        }}
+                                    />
+                                )}
                             </Group>
                             <Button
                                 variant="subtle"
@@ -313,6 +361,7 @@ export default function ContactSprayChart({
                                     setLocationFilter("ALL");
                                     setBattingSide(OVERALL);
                                     setPlayerFilter("ALL");
+                                    setGameFilter("ALL");
                                 }}
                             >
                                 Reset Filters

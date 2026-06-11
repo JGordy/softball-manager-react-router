@@ -38,3 +38,34 @@
     transform: translate(-50%, -50%) scale(1.5);
     z-index: 20;
 }
+
+.filterGroup {
+    display: flex;
+    gap: var(--mantine-spacing-xs);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+}
+
+.filterGroup::-webkit-scrollbar {
+    display: none;
+}
+
+.filterGroup > * {
+    flex-shrink: 0;
+    min-width: 130px;
+}
+
+@media (min-width: 768px) {
+    .filterGroup {
+        overflow-x: visible;
+        flex-wrap: nowrap;
+    }
+    .filterGroup > * {
+        flex-grow: 1;
+        flex-shrink: 1;
+        min-width: 0;
+    }
+}
