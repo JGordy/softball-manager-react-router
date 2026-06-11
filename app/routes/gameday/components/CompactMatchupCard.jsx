@@ -17,7 +17,7 @@ import UpNextCard from "./UpNextCard";
 function Base({ active, style, label }) {
     return (
         <Box
-            aria-label={label}
+            aria-label={`${label} - ${active ? "occupied" : "empty"}`}
             style={{
                 width: 10,
                 height: 10,

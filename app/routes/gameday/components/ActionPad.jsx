@@ -19,6 +19,25 @@ const outs = [
     { label: "LINE", color: OUT_COLOR, value: UI_KEYS.LINE_OUT },
 ];
 
+const ON_BASE_DESKTOP = [
+    { label: "1B", color: HIT_COLOR, value: UI_KEYS.SINGLE },
+    { label: "2B", color: HIT_COLOR, value: UI_KEYS.DOUBLE },
+    {
+        label: "BB",
+        color: "blue",
+        value: UI_KEYS.WALK,
+        variant: "light",
+    },
+    { label: "3B", color: HIT_COLOR, value: UI_KEYS.TRIPLE },
+    { label: "HR", color: HIT_COLOR, value: UI_KEYS.HOMERUN },
+    {
+        label: "ERR",
+        color: "orange",
+        value: UI_KEYS.ERROR,
+        variant: "light",
+    },
+];
+
 export default function ActionPad({
     onAction,
     runners,
@@ -44,26 +63,7 @@ export default function ActionPad({
         disabled: basesEmpty || isTwoOuts,
     };
 
-    const onBaseButtons = isDesktop
-        ? [
-              { label: "1B", color: HIT_COLOR, value: UI_KEYS.SINGLE },
-              { label: "2B", color: HIT_COLOR, value: UI_KEYS.DOUBLE },
-              {
-                  label: "BB",
-                  color: "blue",
-                  value: UI_KEYS.WALK,
-                  variant: "light",
-              },
-              { label: "3B", color: HIT_COLOR, value: UI_KEYS.TRIPLE },
-              { label: "HR", color: HIT_COLOR, value: UI_KEYS.HOMERUN },
-              {
-                  label: "ERR",
-                  color: "orange",
-                  value: UI_KEYS.ERROR,
-                  variant: "light",
-              },
-          ]
-        : onBase;
+    const onBaseButtons = isDesktop ? ON_BASE_DESKTOP : onBase;
 
     const outsButtons = isDesktop
         ? [
