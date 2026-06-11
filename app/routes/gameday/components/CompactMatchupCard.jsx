@@ -3,9 +3,36 @@ import { IconCaretUpFilled, IconCaretDownFilled } from "@tabler/icons-react";
 
 import StatusBadge from "@/components/StatusBadge";
 
-import DiamondView from "./DiamondView";
 import CurrentBatterCard from "./CurrentBatterCard";
 import UpNextCard from "./UpNextCard";
+
+/**
+ * A compact base component representing a single base on the diamond.
+ *
+ * @param {object} props - Component props
+ * @param {boolean} props.active - Whether the base has a runner on it
+ * @param {object} props.style - CSS overrides for positioning
+ * @param {string} props.label - ARIA label for accessibility
+ */
+function Base({ active, style, label }) {
+    return (
+        <Box
+            aria-label={label}
+            style={{
+                width: 10,
+                height: 10,
+                backgroundColor: active
+                    ? "var(--mantine-color-blue-filled)"
+                    : "var(--mantine-color-gray-3)",
+                border: "1px solid var(--mantine-color-gray-5)",
+                position: "absolute",
+                zIndex: 2,
+                opacity: active ? 1 : 0.4,
+                ...style,
+            }}
+        />
+    );
+}
 
 export default function CompactMatchupCard({
     score,
@@ -18,15 +45,17 @@ export default function CompactMatchupCard({
     gameFinal = false,
     realtimeStatus = "connecting",
     isOurBatting,
-    runners,
+    runners = { first: false, second: false, third: false },
     currentBatter,
     upcomingBatters,
     logs,
     opponentScoringMode,
     onOpponentNotesChange,
+    splitBatter = false,
+    ...props
 }) {
     return (
-        <Card p="md" radius="lg">
+        <Card p="md" radius="lg" {...props}>
             <Stack gap="md">
                 {/* Scoreboard Row */}
                 <Group justify="space-between" align="center" wrap="nowrap">
@@ -46,16 +75,41 @@ export default function CompactMatchupCard({
                             </Badge>
                         ) : (
                             <>
+                                {/* Compact Diamond */}
                                 <Box
-                                    style={{
-                                        transform: "scale(0.35)",
-                                        transformOrigin: "center",
-                                        margin: "-60px 0 -55px 0",
-                                    }}
+                                    pos="relative"
+                                    w={40}
+                                    h={28}
+                                    mt="xs"
+                                    aria-label="Runner status"
                                 >
-                                    <DiamondView
-                                        runners={runners}
-                                        withTitle={false}
+                                    <Base
+                                        active={runners.second}
+                                        label="Second base"
+                                        style={{
+                                            top: 0,
+                                            left: "50%",
+                                            transform:
+                                                "translateX(-50%) rotate(45deg)",
+                                        }}
+                                    />
+                                    <Base
+                                        active={runners.third}
+                                        label="Third base"
+                                        style={{
+                                            top: 10,
+                                            left: 6,
+                                            transform: "rotate(45deg)",
+                                        }}
+                                    />
+                                    <Base
+                                        active={runners.first}
+                                        label="First base"
+                                        style={{
+                                            top: 10,
+                                            right: 6,
+                                            transform: "rotate(45deg)",
+                                        }}
                                     />
                                 </Box>
                                 <Group gap={2} justify="center" mt="sm">
@@ -75,28 +129,20 @@ export default function CompactMatchupCard({
                                     )}
                                 </Group>
                                 <Group gap={4} mb={4}>
-                                    <Box
-                                        style={{
-                                            width: 6,
-                                            height: 6,
-                                            borderRadius: "50%",
-                                            backgroundColor:
-                                                outs >= 1
-                                                    ? "var(--mantine-color-red-filled)"
-                                                    : "var(--mantine-color-gray-4)",
-                                        }}
-                                    />
-                                    <Box
-                                        style={{
-                                            width: 6,
-                                            height: 6,
-                                            borderRadius: "50%",
-                                            backgroundColor:
-                                                outs >= 2
-                                                    ? "var(--mantine-color-red-filled)"
-                                                    : "var(--mantine-color-gray-4)",
-                                        }}
-                                    />
+                                    {[1, 2].map((dotOuts) => (
+                                        <Box
+                                            key={dotOuts}
+                                            style={{
+                                                width: 6,
+                                                height: 6,
+                                                borderRadius: "50%",
+                                                backgroundColor:
+                                                    outs >= dotOuts
+                                                        ? "var(--mantine-color-red-filled)"
+                                                        : "var(--mantine-color-gray-4)",
+                                            }}
+                                        />
+                                    ))}
                                 </Group>
                             </>
                         )}
@@ -113,10 +159,10 @@ export default function CompactMatchupCard({
                     </Stack>
                 </Group>
 
-                <Divider />
+                {!splitBatter && <Divider />}
 
                 {/* Batting Information */}
-                {!gameFinal && (
+                {!splitBatter && !gameFinal && (
                     <Stack gap="xs">
                         {(isOurBatting ||
                             opponentScoringMode === "Detailed") && (
