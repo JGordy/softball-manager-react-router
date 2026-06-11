@@ -23,7 +23,7 @@ import { isOpponentPlay } from "../utils/gamedayUtils";
 
 import { useGamedayController } from "../hooks/useGamedayController";
 
-import BoxScore from "./BoxScore";
+import BoxScore from "@/components/BoxScore";
 import CompactMatchupCard from "./CompactMatchupCard";
 import CurrentBatterCard from "./CurrentBatterCard";
 import UpNextCard from "./UpNextCard";
