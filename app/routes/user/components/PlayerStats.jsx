@@ -258,7 +258,7 @@ export default function PlayerStats({ statsPromise, isDesktop }) {
                             title="Contact Spray Chart"
                             size={isDesktop ? "md" : "xl"}
                         >
-                            <ContactSprayChart hits={logs} />
+                            <ContactSprayChart hits={logs} layout="stacked" />
                         </DrawerContainer>
                     </Stack>
                 );

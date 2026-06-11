@@ -93,4 +93,11 @@ describe("ContactSprayChart", () => {
         expect(screen.getByText(/2 hits/i)).toBeInTheDocument();
         expect(screen.getByText(/\.667 AVG/i)).toBeInTheDocument();
     });
+
+    it("renders correctly with layout='stacked' prop", () => {
+        const { container } = render(
+            <ContactSprayChart hits={mockHits} layout="stacked" />,
+        );
+        expect(container.firstChild).toBeInTheDocument();
+    });
 });
