@@ -123,4 +123,31 @@ describe("ActionPad", () => {
         const singleBtn = screen.getByRole("button", { name: "1B" });
         expect(singleBtn).toHaveClass("tour-action-1b");
     });
+
+    it("renders all buttons correctly when isDesktop is true", () => {
+        render(
+            <ActionPad
+                onAction={mockOnAction}
+                runners={defaultRunners}
+                outs={0}
+                isDesktop={true}
+            />,
+        );
+        expect(screen.getByRole("button", { name: "1B" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "2B" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "3B" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "HR" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "BB" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "ERR" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "K" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "GRD" })).toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: "FLY/POP" }),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: "LINE" }),
+        ).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "FC" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "SF" })).toBeInTheDocument();
+    });
 });
