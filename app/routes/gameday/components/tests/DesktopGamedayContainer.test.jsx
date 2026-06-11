@@ -517,4 +517,68 @@ describe("DesktopGamedayContainer", () => {
             expect(alwaysInclude).toContain(".tour-confirm-play-btn");
         });
     });
+
+    describe("Layout Rendering", () => {
+        it("renders DefenseCard when team is on defense (opponent batting)", () => {
+            // Team is home and it's top of the inning -> Opponent is batting (we are on defense)
+            gameStateHook.useGameState.mockReturnValue({
+                inning: 1,
+                halfInning: "top",
+                outs: 0,
+                score: 0,
+                opponentScore: 0,
+                runners: { first: null, second: null, third: null },
+                battingOrderIndex: 0,
+            });
+
+            render(
+                <DesktopGamedayContainer
+                    game={{
+                        ...mockGame,
+                        isHomeGame: true,
+                        opponentScoringMode: "Basic",
+                    }}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    isScorekeeper={true}
+                />,
+            );
+
+            // Defense card should render team name and ON DEFENSE
+            expect(screen.getByText("ON DEFENSE")).toBeInTheDocument();
+            expect(
+                screen.queryByText("CURRENT BATTER"),
+            ).not.toBeInTheDocument();
+            expect(screen.queryByText("UP NEXT")).not.toBeInTheDocument();
+        });
+
+        it("renders CurrentBatterCard and UpNextCard when team is batting", () => {
+            // Team is home and it's bottom of the inning -> We are batting
+            gameStateHook.useGameState.mockReturnValue({
+                inning: 1,
+                halfInning: "bottom",
+                outs: 0,
+                score: 0,
+                opponentScore: 0,
+                runners: { first: null, second: null, third: null },
+                battingOrderIndex: 0,
+            });
+
+            render(
+                <DesktopGamedayContainer
+                    game={{ ...mockGame, isHomeGame: true }}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    isScorekeeper={true}
+                />,
+            );
+
+            // Batting cards should render
+            expect(screen.queryByText("ON DEFENSE")).not.toBeInTheDocument();
+            expect(screen.getByText("CURRENT BATTER")).toBeInTheDocument();
+            expect(screen.getByText("UP NEXT")).toBeInTheDocument();
+        });
+    });
 });

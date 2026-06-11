@@ -25,6 +25,8 @@ import { useGamedayController } from "../hooks/useGamedayController";
 
 import BoxScore from "./BoxScore";
 import CompactMatchupCard from "./CompactMatchupCard";
+import CurrentBatterCard from "./CurrentBatterCard";
+import UpNextCard from "./UpNextCard";
 import ActionPad from "./ActionPad";
 import PlayHistoryList from "./PlayHistoryList";
 import DefenseCard from "./DefenseCard";
@@ -186,6 +188,26 @@ export default function DesktopGamedayContainer({
         setEditLog(null);
     };
 
+    const handleOpponentNotesChange = (notes) => {
+        if (!isOurBatting) {
+            const updated = [...opponentChart];
+            while (updated.length <= opponentOrderIndex) {
+                const idx = updated.length;
+                updated.push({
+                    $id: `OPP_BAT_${idx + 1}`,
+                    firstName: "Batter",
+                    lastName: `${idx + 1}`,
+                    substitutions: [],
+                });
+            }
+            updated[opponentOrderIndex] = {
+                ...updated[opponentOrderIndex],
+                notes,
+            };
+            saveOpponentChart(updated);
+        }
+    };
+
     return (
         <Stack gap="md">
             {/* Page header — 3-column layout ensures title stays centered */}
@@ -300,22 +322,27 @@ export default function DesktopGamedayContainer({
                     />
 
                     <Flex
-                        direction={{ base: "column", md: "row" }}
+                        direction={{ base: "column", lg: "row" }}
                         justify="center"
                         align="flex-start"
                         gap="xl"
                         mt="md"
                     >
-                        {/* COLUMN 1: Matchup */}
-                        <Box
-                            style={{
-                                flex: "1 1 340px",
-                                maxWidth: 460,
-                                width: "100%",
-                            }}
+                        {/* COLUMN A: Matchup & Action Controls */}
+                        <Stack
+                            flex={{ base: "1 1 auto", lg: "55 55 0px" }}
+                            maw={{ base: "100%", lg: 825 }}
+                            style={{ width: "100%" }}
+                            gap="md"
                         >
-                            <Stack gap="md">
+                            {/* ROW 1: Scoreboard and Current Batter */}
+                            <Flex
+                                direction={{ base: "column", sm: "row" }}
+                                gap="md"
+                                align="stretch"
+                            >
                                 <CompactMatchupCard
+                                    splitBatter={true}
                                     score={score}
                                     opponentScore={opponentScore}
                                     inning={inning}
@@ -331,150 +358,163 @@ export default function DesktopGamedayContainer({
                                     upcomingBatters={upcomingBatters}
                                     logs={logs}
                                     opponentScoringMode={opponentScoringMode}
-                                    onOpponentNotesChange={(notes) => {
-                                        if (!isOurBatting) {
-                                            const updated = [...opponentChart];
-                                            while (
-                                                updated.length <=
-                                                opponentOrderIndex
-                                            ) {
-                                                const idx = updated.length;
-                                                updated.push({
-                                                    $id: `OPP_BAT_${idx + 1}`,
-                                                    firstName: "Batter",
-                                                    lastName: `${idx + 1}`,
-                                                    substitutions: [],
-                                                });
-                                            }
-                                            updated[opponentOrderIndex] = {
-                                                ...updated[opponentOrderIndex],
-                                                notes,
-                                            };
-                                            saveOpponentChart(updated);
-                                        }
-                                    }}
+                                    onOpponentNotesChange={
+                                        handleOpponentNotesChange
+                                    }
+                                    style={{ flex: "40 40 0px", minWidth: 0 }}
                                 />
-                                {logs.length > 0 && !isGameFinal && (
-                                    <LastPlayCard
-                                        lastLog={logs[logs.length - 1]}
-                                        onUndo={isScorekeeper ? undoLast : null}
-                                        isSubmitting={isSubmitting}
-                                        playerChart={playerChart}
-                                        isHomeGame={game.isHomeGame}
-                                    />
-                                )}
-                            </Stack>
-                        </Box>
+                                {!isGameFinal &&
+                                    (isOurBatting ||
+                                    opponentScoringMode === "Detailed" ? (
+                                        <Stack
+                                            gap="md"
+                                            style={{
+                                                flex: "60 60 0px",
+                                                minWidth: 0,
+                                            }}
+                                        >
+                                            <CurrentBatterCard
+                                                currentBatter={currentBatter}
+                                                logs={logs}
+                                                isOpponent={!isOurBatting}
+                                                onNotesChange={
+                                                    !isOurBatting
+                                                        ? handleOpponentNotesChange
+                                                        : undefined
+                                                }
+                                            />
+                                            <UpNextCard
+                                                upcomingBatters={
+                                                    upcomingBatters
+                                                }
+                                            />
+                                        </Stack>
+                                    ) : (
+                                        <Box
+                                            style={{
+                                                flex: "60 60 0px",
+                                                minWidth: 0,
+                                            }}
+                                        >
+                                            <DefenseCard
+                                                teamName={team.name}
+                                                dueUpBatters={dueUpBatters}
+                                                style={{ height: "100%" }}
+                                            />
+                                        </Box>
+                                    ))}
+                            </Flex>
 
-                        {/* COLUMN 2: Action Pad */}
-                        {showColumn2 && (
-                            <Box
-                                style={{
-                                    flex: "1 1 340px",
-                                    maxWidth: 460,
-                                    width: "100%",
-                                }}
-                            >
-                                <Stack gap="md">
+                            {/* ROW 2: Action Pad or Fielding Controls */}
+                            {showColumn2 && (
+                                <Box>
                                     {!isGameFinal &&
                                         (isOurBatting &&
                                         currentBatter?.removed &&
                                         currentBatter?.removalType ===
-                                            "auto-out" ? (
-                                            isScorekeeper && (
-                                                <Card
-                                                    p="md"
-                                                    radius="lg"
-                                                    bg="orange.9"
-                                                    c="white"
-                                                    ta="center"
-                                                >
-                                                    <Stack
-                                                        align="center"
-                                                        gap="sm"
-                                                    >
-                                                        <IconAlertTriangle
-                                                            size={32}
+                                            "auto-out"
+                                            ? isScorekeeper && (
+                                                  <Card
+                                                      p="md"
+                                                      radius="lg"
+                                                      bg="orange.9"
+                                                      c="white"
+                                                      ta="center"
+                                                  >
+                                                      <Stack
+                                                          align="center"
+                                                          gap="sm"
+                                                      >
+                                                          <IconAlertTriangle
+                                                              size={32}
+                                                          />
+                                                          <Text fw={700}>
+                                                              Injured Player -
+                                                              Automatic Out
+                                                          </Text>
+                                                          <Text
+                                                              size="xs"
+                                                              opacity={0.8}
+                                                          >
+                                                              This slot is
+                                                              marked for
+                                                              automatic out due
+                                                              to player injury.
+                                                              Click below to
+                                                              record the out.
+                                                          </Text>
+                                                          <Button
+                                                              color="red"
+                                                              onClick={() =>
+                                                                  completeAction(
+                                                                      "injury_auto_out",
+                                                                  )
+                                                              }
+                                                              leftSection={
+                                                                  <IconUserMinus
+                                                                      size={16}
+                                                                  />
+                                                              }
+                                                              fullWidth
+                                                              size="md"
+                                                          >
+                                                              Record Automatic
+                                                              Out
+                                                          </Button>
+                                                      </Stack>
+                                                  </Card>
+                                              )
+                                            : isOurBatting ||
+                                                opponentScoringMode ===
+                                                    "Detailed"
+                                              ? isScorekeeper && (
+                                                    <Card radius="lg">
+                                                        <ActionPad
+                                                            onAction={
+                                                                initiateAction
+                                                            }
+                                                            runners={runners}
+                                                            outs={outs}
+                                                            isDesktop={true}
                                                         />
-                                                        <Text fw={700}>
-                                                            Injured Player -
-                                                            Automatic Out
-                                                        </Text>
-                                                        <Text
-                                                            size="xs"
-                                                            opacity={0.8}
-                                                        >
-                                                            This slot is marked
-                                                            for automatic out
-                                                            due to player
-                                                            injury. Click below
-                                                            to record the out.
-                                                        </Text>
-                                                        <Button
-                                                            color="red"
-                                                            onClick={() =>
-                                                                completeAction(
-                                                                    "injury_auto_out",
-                                                                )
+                                                    </Card>
+                                                )
+                                              : isScorekeeper && (
+                                                    <Card radius="lg">
+                                                        <FieldingControls
+                                                            onOut={
+                                                                handleOpponentOut
                                                             }
-                                                            leftSection={
-                                                                <IconUserMinus
-                                                                    size={16}
-                                                                />
+                                                            onRun={
+                                                                handleOpponentRun
                                                             }
-                                                            fullWidth
-                                                            size="md"
-                                                        >
-                                                            Record Automatic Out
-                                                        </Button>
-                                                    </Stack>
-                                                </Card>
-                                            )
-                                        ) : isOurBatting ||
-                                          opponentScoringMode === "Detailed" ? (
-                                            isScorekeeper && (
-                                                <Card radius="lg">
-                                                    <ActionPad
-                                                        onAction={
-                                                            initiateAction
-                                                        }
-                                                        runners={runners}
-                                                        outs={outs}
-                                                    />
-                                                </Card>
-                                            )
-                                        ) : (
-                                            <>
-                                                <DefenseCard
-                                                    teamName={team.name}
-                                                    dueUpBatters={dueUpBatters}
-                                                />
-                                                {isScorekeeper && (
-                                                    <FieldingControls
-                                                        onOut={
-                                                            handleOpponentOut
-                                                        }
-                                                        onRun={
-                                                            handleOpponentRun
-                                                        }
-                                                        onSkip={
-                                                            advanceHalfInning
-                                                        }
-                                                    />
-                                                )}
-                                            </>
-                                        ))}
-                                </Stack>
-                            </Box>
-                        )}
+                                                            onSkip={
+                                                                advanceHalfInning
+                                                            }
+                                                            isDesktop={true}
+                                                        />
+                                                    </Card>
+                                                ))}
+                                </Box>
+                            )}
 
-                        {/* COLUMN 3: Tabs */}
+                            {/* ROW 3: Last Play */}
+                            {logs.length > 0 && !isGameFinal && (
+                                <LastPlayCard
+                                    lastLog={logs[logs.length - 1]}
+                                    onUndo={isScorekeeper ? undoLast : null}
+                                    isSubmitting={isSubmitting}
+                                    playerChart={playerChart}
+                                    isHomeGame={game.isHomeGame}
+                                />
+                            )}
+                        </Stack>
+
+                        {/* COLUMN B: Tabs */}
                         <Box
-                            style={{
-                                flex: "1 1 340px",
-                                maxWidth: 460,
-                                width: "100%",
-                            }}
+                            flex={{ base: "1 1 auto", lg: "45 45 0px" }}
+                            maw={{ base: "100%", lg: 675 }}
+                            style={{ width: "100%" }}
                         >
                             <TabsWrapper
                                 value={activeTab}

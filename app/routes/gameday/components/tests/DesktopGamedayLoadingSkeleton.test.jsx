@@ -10,6 +10,6 @@ describe("DesktopGamedayLoadingSkeleton", () => {
 
         // Mantine Skeletons have the mantine-Skeleton-root class
         const skeletons = container.querySelectorAll(".mantine-Skeleton-root");
-        expect(skeletons.length).toBeGreaterThan(0);
+        expect(skeletons.length).toBeGreaterThanOrEqual(15);
     });
 });
