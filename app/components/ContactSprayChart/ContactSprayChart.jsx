@@ -85,6 +85,9 @@ const CATEGORIES_DATA = [
  *     ball was hit (e.g., "left field", "center field"); used for location filters.
  * @param {string} [props.hits[].direction] - Optional alternative to `hitLocation`
  *     describing the hit direction (e.g., "right field line").
+ * @param {"flex"|"stacked"} [props.layout="flex"] - Layout mode for the component.
+ *     "flex" displays the chart and legend side-by-side on desktop.
+ *     "stacked" forces them to be vertical (column) regardless of viewport.
  *
  * @returns {JSX.Element} A card containing the filter controls, field image, and
  * plotted contact points with tooltips for each batted-ball event.
@@ -93,6 +96,7 @@ export default function ContactSprayChart({
     hits = [],
     showBattingSide = true,
     batters = [],
+    layout = "flex",
 }) {
     const [battingSide, setBattingSide] = useState(OVERALL);
     const [categoryFilter, setCategoryFilter] = useState("ALL");
@@ -303,7 +307,7 @@ export default function ContactSprayChart({
                             <Button
                                 variant="subtle"
                                 size="sm"
-                                color="red"
+                                c="red"
                                 onClick={() => {
                                     setCategoryFilter("ALL");
                                     setLocationFilter("ALL");
@@ -319,7 +323,11 @@ export default function ContactSprayChart({
             </Stack>
 
             <Flex
-                direction={{ base: "column", sm: "row" }}
+                direction={
+                    layout === "stacked"
+                        ? "column"
+                        : { base: "column", sm: "row" }
+                }
                 align="stretch"
                 gap="md"
                 mt="md"
@@ -328,7 +336,11 @@ export default function ContactSprayChart({
                     className={styles.mapContainer}
                     radius="lg"
                     p="0px"
-                    flex={{ base: "none", sm: "1 1 300px" }}
+                    flex={
+                        layout === "stacked"
+                            ? "none"
+                            : { base: "none", sm: "1 1 300px" }
+                    }
                     maw={{ base: "100%", sm: 400 }}
                     w="100%"
                 >
@@ -411,7 +423,11 @@ export default function ContactSprayChart({
                 <Card
                     radius="lg"
                     p="sm"
-                    flex={{ base: "none", sm: "1 1 200px" }}
+                    flex={
+                        layout === "stacked"
+                            ? "none"
+                            : { base: "none", sm: "1 1 200px" }
+                    }
                     w="100%"
                 >
                     <Group justify="space-between" mb="xs">
@@ -426,7 +442,11 @@ export default function ContactSprayChart({
                         </Text>
                     </Group>
                     <Flex
-                        direction={{ base: "row", sm: "column" }}
+                        direction={
+                            layout === "stacked"
+                                ? "row"
+                                : { base: "row", sm: "column" }
+                        }
                         wrap="wrap"
                         gap="md"
                     >
