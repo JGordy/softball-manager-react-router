@@ -1,6 +1,19 @@
-import { Grid, Stack, Card, Group, Skeleton, Box } from "@mantine/core";
+import { Flex, Stack, Card, Group, Skeleton, Box } from "@mantine/core";
 
 export default function DesktopGamedayLoadingSkeleton() {
+    const renderSkeletonGroup = (titleWidth) => (
+        <Stack gap="xs">
+            <Skeleton height={10} width={titleWidth} />
+            {[0, 1].map((row) => (
+                <Group key={row} grow gap="xs">
+                    {[0, 1, 2].map((col) => (
+                        <Skeleton key={col} height={40} radius="md" />
+                    ))}
+                </Group>
+            ))}
+        </Stack>
+    );
+
     return (
         <Stack gap="md" mt="md">
             {/* Header */}
@@ -11,12 +24,32 @@ export default function DesktopGamedayLoadingSkeleton() {
             </Group>
 
             <Box pos="relative">
-                <Grid gap="xl" mt="md" align="flex-start">
-                    {/* COLUMN 1: Matchup (CompactMatchupCard & LastPlayCard) */}
-                    <Grid.Col span={{ base: 12, md: 4 }}>
-                        <Stack gap="md">
-                            {/* CompactMatchupCard Skeleton */}
-                            <Card radius="lg" p="md">
+                <Flex
+                    direction={{ base: "column", lg: "row" }}
+                    justify="center"
+                    align="flex-start"
+                    gap="xl"
+                    mt="md"
+                >
+                    {/* COLUMN A: Matchup & Action Controls */}
+                    <Stack
+                        flex={{ base: "1 1 auto", lg: "55 55 0px" }}
+                        maw={{ base: "100%", lg: 825 }}
+                        style={{ width: "100%" }}
+                        gap="md"
+                    >
+                        {/* ROW 1: Scoreboard and Current Batter */}
+                        <Flex
+                            direction={{ base: "column", sm: "row" }}
+                            gap="md"
+                            align="stretch"
+                        >
+                            {/* Scoreboard Skeleton */}
+                            <Card
+                                radius="lg"
+                                p="md"
+                                style={{ flex: "40 40 0px", minWidth: 0 }}
+                            >
                                 <Group
                                     justify="space-between"
                                     align="center"
@@ -113,87 +146,102 @@ export default function DesktopGamedayLoadingSkeleton() {
                                 </Group>
                             </Card>
 
-                            {/* LastPlayCard Skeleton */}
-                            <Card
-                                radius="md"
-                                p="sm"
-                                style={{
-                                    borderLeft:
-                                        "6px solid var(--mantine-color-lime-4)",
-                                }}
+                            {/* Current Batter & Up Next Stack */}
+                            <Stack
+                                gap="md"
+                                style={{ flex: "60 60 0px", minWidth: 0 }}
                             >
-                                <Group
-                                    justify="space-between"
-                                    align="center"
-                                    wrap="nowrap"
-                                >
-                                    <Stack gap={4} style={{ flex: 1 }}>
-                                        <Skeleton height={10} width={60} />
-                                        <Skeleton height={20} width="90%" />
-                                        <Skeleton height={12} width="50%" />
-                                    </Stack>
-                                    <Skeleton
-                                        height={40}
-                                        width={80}
-                                        radius="xl"
-                                    />
-                                </Group>
-                            </Card>
-                        </Stack>
-                    </Grid.Col>
+                                <Card radius="lg" p="md">
+                                    <Group
+                                        justify="space-between"
+                                        wrap="nowrap"
+                                    >
+                                        <Group
+                                            wrap="nowrap"
+                                            gap="md"
+                                            style={{ flex: 1 }}
+                                        >
+                                            <Skeleton
+                                                height={48}
+                                                width={48}
+                                                radius="xl"
+                                            />
+                                            <Stack gap={4} style={{ flex: 1 }}>
+                                                <Skeleton
+                                                    height={10}
+                                                    width={80}
+                                                />
+                                                <Skeleton
+                                                    height={16}
+                                                    width={120}
+                                                />
+                                            </Stack>
+                                        </Group>
+                                        <Stack gap={4} align="flex-end">
+                                            <Skeleton height={10} width={60} />
+                                            <Skeleton height={16} width={40} />
+                                        </Stack>
+                                    </Group>
+                                </Card>
+                                <Card p="xs" radius="md">
+                                    <Group
+                                        justify="space-between"
+                                        gap="sm"
+                                        wrap="nowrap"
+                                    >
+                                        <Skeleton
+                                            height={16}
+                                            width={60}
+                                            radius="sm"
+                                        />
+                                        <Skeleton
+                                            height={16}
+                                            width={180}
+                                            radius="sm"
+                                        />
+                                    </Group>
+                                </Card>
+                            </Stack>
+                        </Flex>
 
-                    {/* COLUMN 2: Action Pad (DefenseCard & ActionPad & FieldingControls) */}
-                    <Grid.Col span={{ base: 12, md: 4 }}>
-                        <Stack gap="md">
-                            <Card radius="lg" p="md">
-                                <Group grow gap="md" align="flex-start">
-                                    {/* ON BASE Column */}
-                                    <Stack gap="xs">
-                                        <Skeleton height={10} width={50} />
-                                        <Group grow gap="xs">
-                                            <Skeleton height={40} radius="md" />
-                                            <Skeleton height={40} radius="md" />
-                                        </Group>
-                                        <Group grow gap="xs">
-                                            <Skeleton height={40} radius="md" />
-                                            <Skeleton height={40} radius="md" />
-                                        </Group>
-                                        <Group grow gap="xs">
-                                            <Skeleton height={40} radius="md" />
-                                            <Skeleton height={40} radius="md" />
-                                        </Group>
-                                    </Stack>
-
-                                    {/* OUTS Column */}
-                                    <Stack gap="xs">
-                                        <Skeleton height={10} width={40} />
-                                        <Group grow gap="xs">
-                                            <Skeleton height={40} radius="md" />
-                                            <Skeleton height={40} radius="md" />
-                                        </Group>
-                                        <Group grow gap="xs">
-                                            <Skeleton height={40} radius="md" />
-                                            <Skeleton height={40} radius="md" />
-                                        </Group>
-                                        <Group grow gap="xs">
-                                            <Skeleton height={40} radius="md" />
-                                            <Skeleton height={40} radius="md" />
-                                        </Group>
-                                    </Stack>
-                                </Group>
-                            </Card>
-
-                            {/* Fielding Controls rough equivalent */}
-                            <Group gap="md" grow>
-                                <Skeleton height={50} radius="md" />
-                                <Skeleton height={50} radius="md" />
+                        {/* ROW 2: Action Pad Skeleton */}
+                        <Card radius="lg" p="md">
+                            <Group grow gap="md" align="flex-start">
+                                {renderSkeletonGroup(50)}
+                                {renderSkeletonGroup(40)}
                             </Group>
-                            <Skeleton height={40} radius="md" />
-                        </Stack>
-                    </Grid.Col>
+                        </Card>
 
-                    {/* COLUMN 3: Tabs & Content (Spray Chart / Box Score) */}
-                    <Grid.Col span={{ base: 12, md: 4 }}>
+                        {/* ROW 3: LastPlayCard Skeleton */}
+                        <Card
+                            radius="md"
+                            p="sm"
+                            style={{
+                                borderLeft:
+                                    "6px solid var(--mantine-color-lime-4)",
+                            }}
+                        >
+                            <Group
+                                justify="space-between"
+                                align="center"
+                                wrap="nowrap"
+                            >
+                                <Stack gap={4} style={{ flex: 1 }}>
+                                    <Skeleton height={10} width={60} />
+                                    <Skeleton height={20} width="90%" />
+                                    <Skeleton height={12} width="50%" />
+                                </Stack>
+                                <Skeleton height={40} width={80} radius="xl" />
+                            </Group>
+                        </Card>
+                    </Stack>
+
+                    {/* COLUMN B: Tabs & Content (Spray Chart / Box Score) */}
+                    <Box
+                        flex={{ base: "1 1 auto", lg: "45 45 0px" }}
+                        maw={{ base: "100%", lg: 675 }}
+                        style={{ width: "100%" }}
+                    >
                         {/* Tabs Skeleton */}
                         <Card radius="xl" p={4} mb="md">
                             <Group gap={0} grow>
@@ -207,8 +255,8 @@ export default function DesktopGamedayLoadingSkeleton() {
                         <Card radius="lg" p="md">
                             <Skeleton height={400} width="100%" radius="md" />
                         </Card>
-                    </Grid.Col>
-                </Grid>
+                    </Box>
+                </Flex>
             </Box>
         </Stack>
     );

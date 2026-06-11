@@ -439,9 +439,19 @@ export function useGamedayController({
         }
     }
 
-    const dueUpBatters = [currentBatter, ...upcomingBatters]
-        .slice(0, 3)
-        .filter(Boolean);
+    const ourDueUpBatters = [];
+    if (playerChart.length > 0) {
+        const numBattersToFetch = Math.min(3, playerChart.length);
+        for (let i = 0; i < numBattersToFetch; i++) {
+            ourDueUpBatters.push(
+                playerChart[(battingOrderIndex + i) % playerChart.length],
+            );
+        }
+    }
+
+    const dueUpBatters = isOurBatting
+        ? [currentBatter, ...upcomingBatters].slice(0, 3).filter(Boolean)
+        : ourDueUpBatters;
 
     return {
         game: gameData,

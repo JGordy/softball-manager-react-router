@@ -154,4 +154,21 @@ describe("FieldingControls", () => {
         );
         expect(mockOnSkip).toHaveBeenCalled();
     });
+
+    it("renders horizontal layout when isDesktop is true", () => {
+        render(
+            <FieldingControls
+                onOut={mockOnOut}
+                onRun={mockOnRun}
+                onSkip={mockOnSkip}
+                isDesktop={true}
+            />,
+        );
+        expect(screen.getByText("FIELDING CONTROLS")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "OUT" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "RUN" })).toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: "Skip to Batting" }),
+        ).toBeInTheDocument();
+    });
 });

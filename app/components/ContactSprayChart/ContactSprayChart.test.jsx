@@ -73,4 +73,24 @@ describe("ContactSprayChart", () => {
         ).not.toBeInTheDocument();
         expect(screen.getByLabelText(/2B at Right Field/i)).toBeInTheDocument();
     });
+
+    it("renders legend labels and stats correctly", () => {
+        render(<ContactSprayChart hits={mockHits} />);
+
+        // Verify legend section headers
+        expect(screen.getByText("Legend")).toBeInTheDocument();
+
+        // Verify legend items
+        expect(screen.getByText("Single")).toBeInTheDocument();
+        expect(screen.getByText("Double")).toBeInTheDocument();
+        expect(screen.getByText("Triple")).toBeInTheDocument();
+        expect(screen.getByText("Home Run")).toBeInTheDocument();
+        expect(screen.getByText("Out")).toBeInTheDocument();
+        expect(screen.getByText("Error / FC")).toBeInTheDocument();
+
+        // Verify stats calculation: 3 events, 2 hits (single, double) -> .667 AVG
+        expect(screen.getByText(/3 events/i)).toBeInTheDocument();
+        expect(screen.getByText(/2 hits/i)).toBeInTheDocument();
+        expect(screen.getByText(/\.667 AVG/i)).toBeInTheDocument();
+    });
 });
