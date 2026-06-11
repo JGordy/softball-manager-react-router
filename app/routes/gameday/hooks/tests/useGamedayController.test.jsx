@@ -127,6 +127,28 @@ describe("useGamedayController", () => {
         expect(result.current.dueUpBatters[0].$id).toBe("p2");
     });
 
+    it("calculates dueUpBatters correctly when on defense (isOurBatting is false)", () => {
+        useGameState.mockReturnValue({
+            battingOrderIndex: 1, // Our next batter is Jane Smith (p2)
+            halfInning: "bottom", // Opponent bats bottom
+            opponentOrderIndex: 0,
+        });
+
+        const { result } = renderHook(() =>
+            useGamedayController({
+                game: { ...mockGame, isHomeGame: false },
+                playerChart: mockPlayerChart,
+                team: mockTeam,
+            }),
+        );
+
+        expect(result.current.isOurBatting).toBe(false);
+        expect(result.current.dueUpBatters).toHaveLength(3);
+        expect(result.current.dueUpBatters[0].$id).toBe("p2");
+        expect(result.current.dueUpBatters[1].$id).toBe("p3");
+        expect(result.current.dueUpBatters[2].$id).toBe("p1");
+    });
+
     it("determines isOurBatting correctly", () => {
         // Away game, top inning -> batting
         const { result: awayTop } = renderHook(() =>
