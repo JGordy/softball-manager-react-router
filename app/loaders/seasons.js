@@ -56,8 +56,33 @@ export async function getSeasonById({ seasonId, client }) {
         );
         season.games = gamesResponse.rows || [];
 
-        return { season };
+        // Fetch team players and logs for stats aggregation
+        let players = [];
+        let logs = [];
+        if (season.teamId) {
+            try {
+                const { getTeamById } = await import("./teams");
+                const teamInfo = await getTeamById({
+                    teamId: season.teamId,
+                    client,
+                });
+                players = teamInfo.players || [];
+                const gameIds = season.games.map((g) => g.$id);
+                if (gameIds.length > 0) {
+                    logs = (teamInfo.teamLogs || []).filter((log) =>
+                        gameIds.includes(log.gameId),
+                    );
+                }
+            } catch (err) {
+                console.error(
+                    "Error fetching team players/logs for season stats:",
+                    err,
+                );
+            }
+        }
+
+        return { season, players, logs };
     } else {
-        return { season: {} };
+        return { season: {}, players: [], logs: [] };
     }
 }
