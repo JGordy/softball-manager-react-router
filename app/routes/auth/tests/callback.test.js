@@ -71,7 +71,7 @@ describe("OAuth Callback Route Loader", () => {
         const request = new Request("http://localhost/auth/callback");
         try {
             await loader({ request });
-            fail("Should have thrown redirect");
+            throw new Error("Should have thrown redirect");
         } catch (error) {
             expect(isRedirect(error)).toBe(true);
             expect(getRedirectUrl(error)).toBe("/login?error=invalid_session");
@@ -96,7 +96,7 @@ describe("OAuth Callback Route Loader", () => {
 
         try {
             await loader({ request });
-            fail("Should have thrown redirect");
+            throw new Error("Should have thrown redirect");
         } catch (error) {
             expect(isRedirect(error)).toBe(true);
             expect(mockAdminAccount.createSession).toHaveBeenCalledWith(
@@ -145,7 +145,7 @@ describe("OAuth Callback Route Loader", () => {
 
         try {
             await loader({ request });
-            fail("Should have thrown redirect");
+            throw new Error("Should have thrown redirect");
         } catch (error) {
             expect(isRedirect(error)).toBe(true);
             expect(global.fetch).toHaveBeenCalledWith(
@@ -180,7 +180,7 @@ describe("OAuth Callback Route Loader", () => {
 
         try {
             await loader({ request });
-            fail("Should have thrown redirect");
+            throw new Error("Should have thrown redirect");
         } catch (error) {
             expect(isRedirect(error)).toBe(true);
             expect(getRedirectUrl(error)).toBe("/login?error=callback_error");
