@@ -56,6 +56,7 @@ export default function AddPlayer({
 
     const [preferred, setPreferred] = useState(initialPreferred);
     const [disliked, setDisliked] = useState(initialDisliked);
+    const [bats, setBats] = useState(defaults.bats || "Right");
 
     return (
         <FormWrapper
@@ -134,7 +135,8 @@ export default function AddPlayer({
                         name="bats"
                         label="Bats"
                         description="Select whether you bat left, right, or switch"
-                        defaultValue={defaults.bats || "Right"}
+                        value={bats}
+                        onChange={setBats}
                         size="md"
                     >
                         <Group mt="xs">
@@ -143,6 +145,22 @@ export default function AddPlayer({
                             <Radio value="Switch" label="Switch" />
                         </Group>
                     </Radio.Group>
+                    {bats === "Switch" && (
+                        <Radio.Group
+                            mb="md"
+                            className={classes.inputs}
+                            name="defaultBats"
+                            label="Default Batting Side"
+                            description="Select which side you default to as a switch hitter"
+                            defaultValue={defaults.defaultBats || "right"}
+                            size="md"
+                        >
+                            <Group mt="xs">
+                                <Radio value="left" label="Left" />
+                                <Radio value="right" label="Right" />
+                            </Group>
+                        </Radio.Group>
+                    )}
                 </>
             )}
 

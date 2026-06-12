@@ -167,6 +167,32 @@ describe("Users Actions", () => {
             expect(result.success).toBe(false);
             expect(result.status).toBe(400);
         });
+
+        it("should set defaultBats appropriately when creating a player", async () => {
+            const mockValues = {
+                firstName: "John",
+                lastName: "Doe",
+                bats: "Switch",
+                defaultBats: "left",
+            };
+            createDocument.mockResolvedValue({ $id: "user1" });
+            await createPlayer({
+                values: mockValues,
+                teamId: "team1",
+                userId: null,
+                client: mockClient,
+            });
+            expect(createDocument).toHaveBeenCalledWith(
+                "users",
+                "unique-id",
+                expect.objectContaining({
+                    bats: "Switch",
+                    defaultBats: "left",
+                }),
+                expect.any(Array),
+                expect.any(Object),
+            );
+        });
     });
 
     describe("updateUser", () => {
@@ -385,6 +411,44 @@ describe("Users Actions", () => {
 
             expect(result.success).toBe(false);
             expect(result.status).toBe(400);
+        });
+
+        it("should handle defaultBats appropriately when updating bats to Switch vs other", async () => {
+            const userId = "user1";
+            readDocument.mockResolvedValue({ $id: userId, bats: "Right" });
+            updateDocument.mockResolvedValue({ $id: userId });
+
+            await updateUser({
+                values: { bats: "Switch", defaultBats: "left" },
+                userId,
+                client: mockClient,
+            });
+
+            expect(updateDocument).toHaveBeenCalledWith(
+                "users",
+                userId,
+                expect.objectContaining({
+                    bats: "Switch",
+                    defaultBats: "left",
+                }),
+                mockClient,
+            );
+
+            await updateUser({
+                values: { bats: "Right" },
+                userId,
+                client: mockClient,
+            });
+
+            expect(updateDocument).toHaveBeenCalledWith(
+                "users",
+                userId,
+                expect.objectContaining({
+                    bats: "Right",
+                    defaultBats: null,
+                }),
+                mockClient,
+            );
         });
     });
 
