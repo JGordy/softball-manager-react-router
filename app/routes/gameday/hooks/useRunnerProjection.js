@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
  * Handles initialization of runner states based on actionType ("guesses")
  * and calculates the projected final state.
  */
-export function useRunnerProjection({ opened, actionType, runners, outs }) {
+export function useRunnerProjection({ opened, actionType, runners }) {
     const [runnerResults, setRunnerResults] = useState({});
 
     // Reset local state when drawer closes

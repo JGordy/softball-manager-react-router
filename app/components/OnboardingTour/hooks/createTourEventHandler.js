@@ -110,7 +110,6 @@ export function createTourEventHandler({
     setHasSubmittedEnd,
     clearPollingInterval,
     setPollingInterval,
-    getPollingInterval,
     getLastProcessedStep,
 }) {
     return (data) => {

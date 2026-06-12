@@ -111,7 +111,7 @@ export function NotificationsProvider({ children }) {
                             setIsSubscribed(false);
                         }
                     })
-                    .catch((err) => {
+                    .catch(() => {
                         // On error, assume not valid
                         localStorage.removeItem(PUSH_TARGET_KEY);
                         setPushTargetId(null);

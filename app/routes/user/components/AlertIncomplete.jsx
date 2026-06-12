@@ -1,7 +1,7 @@
 import { Alert } from "@mantine/core";
 import { IconInfoCircle } from "@tabler/icons-react";
 
-export default function AlertIncomplete({ incompleteData, handleAlertClose }) {
+export default function AlertIncomplete({ incompleteData }) {
     return (
         <Alert
             autoContrast

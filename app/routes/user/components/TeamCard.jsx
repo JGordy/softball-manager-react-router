@@ -2,7 +2,6 @@ import { Link } from "react-router";
 
 import {
     Card,
-    Divider,
     Text,
     Group,
     ThemeIcon,
