@@ -43,7 +43,7 @@ export default function MobilePlayActionDrawer({
 }) {
     const isSwitchHitter = currentBatter?.bats?.toLowerCase() === "switch";
     const bats = isSwitchHitter
-        ? "left"
+        ? currentBatter?.defaultBats || "right"
         : currentBatter?.bats?.toLowerCase() || "right";
 
     const [selectedPosition, setSelectedPosition] = useState(null);

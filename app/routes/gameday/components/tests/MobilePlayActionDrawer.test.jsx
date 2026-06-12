@@ -214,4 +214,32 @@ describe("MobilePlayActionDrawer", () => {
         const rfBtn = document.querySelector(".tour-field-position-rf");
         expect(rfBtn).toBeInTheDocument();
     });
+
+    it("defaults battingSide based on defaultBats for switch hitters", () => {
+        const switchHitterLeft = {
+            ...defaultProps.currentBatter,
+            bats: "Switch",
+            defaultBats: "left",
+        };
+        const { rerender } = render(
+            <MobilePlayActionDrawer
+                {...defaultProps}
+                currentBatter={switchHitterLeft}
+            />,
+        );
+        expect(screen.getByLabelText("Left")).toBeChecked();
+
+        const switchHitterRight = {
+            ...defaultProps.currentBatter,
+            bats: "Switch",
+            defaultBats: "right",
+        };
+        rerender(
+            <MobilePlayActionDrawer
+                {...defaultProps}
+                currentBatter={switchHitterRight}
+            />,
+        );
+        expect(screen.getByLabelText("Right")).toBeChecked();
+    });
 });
