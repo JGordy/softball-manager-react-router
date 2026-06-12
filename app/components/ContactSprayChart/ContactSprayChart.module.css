@@ -55,7 +55,22 @@
 
 .filterGroup > * {
     flex-shrink: 0;
-    min-width: 130px;
+}
+
+.filterGroup > .batterSelect {
+    width: 175px;
+}
+
+.filterGroup > .resultSelect {
+    width: 95px;
+}
+
+.filterGroup > .locationSelect {
+    width: 115px;
+}
+
+.filterGroup > .gameSelect {
+    width: 165px;
 }
 
 @media (min-width: 768px) {
@@ -64,8 +79,7 @@
         flex-wrap: nowrap;
     }
     .filterGroup > * {
-        flex-grow: 1;
+        flex-grow: 0;
         flex-shrink: 1;
-        min-width: 0;
     }
 }

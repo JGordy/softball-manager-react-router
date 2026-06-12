@@ -272,6 +272,7 @@ export default function ContactSprayChart({
                             <Group className={styles.filterGroup}>
                                 {batters.length > 0 && (
                                     <Select
+                                        className={styles.batterSelect}
                                         label="Batter"
                                         placeholder="All Batters"
                                         data={[
@@ -291,6 +292,7 @@ export default function ContactSprayChart({
                                     />
                                 )}
                                 <Select
+                                    className={styles.resultSelect}
                                     label="Result"
                                     placeholder="All"
                                     data={CATEGORIES_DATA}
@@ -303,6 +305,7 @@ export default function ContactSprayChart({
                                     }}
                                 />
                                 <Select
+                                    className={styles.locationSelect}
                                     label="Location"
                                     placeholder="Anywhere"
                                     data={[
@@ -322,6 +325,7 @@ export default function ContactSprayChart({
                                 />
                                 {games.length > 0 && (
                                     <Select
+                                        className={styles.gameSelect}
                                         label="Game"
                                         placeholder="All Games"
                                         data={[
