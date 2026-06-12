@@ -38,6 +38,7 @@ export default function TabsWrapper({
     children,
     mt = "xl",
     align = "center",
+    size = "sm",
 }) {
     const [rootRef, setRootRef] = useState(null);
     const [uncontrolledValue, setUncontrolledValue] = useState(
@@ -95,7 +96,7 @@ export default function TabsWrapper({
                     key: child.props.value,
                     ref: setControlRef(child.props.value),
                     className:
-                        `${classes.tab} ${isActive ? classes.tabActive : ""} ${child.props.className || ""}`.trim(),
+                        `${classes.tab} ${size === "xs" ? classes.tabXs : ""} ${isActive ? classes.tabActive : ""} ${child.props.className || ""}`.trim(),
                     disabled: child.props.disabled,
                     style: {
                         ...child.props.style,
@@ -115,7 +116,7 @@ export default function TabsWrapper({
             <div className={classes.scrollWrapper}>
                 <Tabs.List
                     ref={setRootRef}
-                    className={classes.list}
+                    className={`${classes.list} ${size === "xs" ? classes.listXs : ""}`.trim()}
                     style={align === "left" ? { margin: "0" } : undefined}
                 >
                     {tabs}
