@@ -23,10 +23,10 @@ export default function CurrentBatterCard({
     className,
     ...props
 }) {
-    if (!currentBatter) return null;
-
     const [sprayChartOpened, { toggle: toggleSprayChart }] =
         useDisclosure(false);
+
+    if (!currentBatter) return null;
 
     // Resolve the currently active player (original or sub) for display
     const activePlayer = getActivePlayerInSlot(currentBatter);

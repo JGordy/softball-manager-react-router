@@ -65,4 +65,6 @@ const PositionSelect = React.memo(
     },
 );
 
+PositionSelect.displayName = "PositionSelect";
+
 export default PositionSelect;
