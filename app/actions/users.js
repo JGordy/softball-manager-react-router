@@ -50,6 +50,9 @@ export async function createPlayer({ values, teamId, userId, client }) {
               ]
             : [];
 
+        const defaultBats =
+            values.bats === "Switch" ? values.defaultBats || "right" : null;
+
         const player = await createDocument(
             "users",
             _userId,
@@ -58,6 +61,7 @@ export async function createPlayer({ values, teamId, userId, client }) {
                 preferredPositions,
                 dislikedPositions,
                 userId: _userId,
+                defaultBats,
             },
             docPermissions,
             client,
@@ -82,6 +86,14 @@ export async function updateUser({ values, userId, client }) {
     if (dataToUpdate.dislikedPositions) {
         dataToUpdate.dislikedPositions =
             dataToUpdate.dislikedPositions.split(",");
+    }
+
+    if (dataToUpdate.bats) {
+        if (dataToUpdate.bats === "Switch") {
+            dataToUpdate.defaultBats = dataToUpdate.defaultBats || "right";
+        } else {
+            dataToUpdate.defaultBats = null;
+        }
     }
 
     try {

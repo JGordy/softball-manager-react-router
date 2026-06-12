@@ -310,4 +310,34 @@ describe("DesktopPlayActionDrawer", () => {
             configurable: true,
         });
     });
+
+    it("defaults battingSide based on defaultBats for switch hitters (left)", () => {
+        const switchHitterLeft = {
+            ...defaultProps.currentBatter,
+            bats: "Switch",
+            defaultBats: "left",
+        };
+        render(
+            <DesktopPlayActionDrawer
+                {...defaultProps}
+                currentBatter={switchHitterLeft}
+            />,
+        );
+        expect(screen.getByLabelText("Left")).toBeChecked();
+    });
+
+    it("defaults battingSide based on defaultBats for switch hitters (right)", () => {
+        const switchHitterRight = {
+            ...defaultProps.currentBatter,
+            bats: "Switch",
+            defaultBats: "right",
+        };
+        render(
+            <DesktopPlayActionDrawer
+                {...defaultProps}
+                currentBatter={switchHitterRight}
+            />,
+        );
+        expect(screen.getByLabelText("Right")).toBeChecked();
+    });
 });
