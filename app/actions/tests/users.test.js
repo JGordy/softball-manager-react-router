@@ -77,6 +77,7 @@ describe("Users Actions", () => {
                     preferredPositions: ["1B", "OF"],
                     dislikedPositions: ["P", "C"],
                     userId: "unique-id",
+                    defaultBats: null,
                 },
                 [
                     Permission.read(Role.any()),
@@ -116,6 +117,7 @@ describe("Users Actions", () => {
                     preferredPositions: ["P", "C"],
                     dislikedPositions: ["OF"], // C was removed
                     userId: "user123",
+                    defaultBats: null,
                 },
                 [
                     Permission.read(Role.any()),

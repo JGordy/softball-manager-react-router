@@ -228,8 +228,8 @@ describe("AddPlayer", () => {
         expect(preferredOptions).not.toContain("Catcher");
     });
 
-    it("renders defaultBats fields conditionally based on bats value", () => {
-        const { rerender } = render(
+    it("does not render defaultBats fields when bats is Right", () => {
+        render(
             <AddPlayer
                 inputsToDisplay={["throws-bats"]}
                 defaults={{ bats: "Right" }}
@@ -238,8 +238,10 @@ describe("AddPlayer", () => {
         expect(
             screen.queryByLabelText(/Default Batting Side/i),
         ).not.toBeInTheDocument();
+    });
 
-        rerender(
+    it("renders defaultBats fields when bats is Switch", () => {
+        render(
             <AddPlayer
                 inputsToDisplay={["throws-bats"]}
                 defaults={{ bats: "Switch" }}
