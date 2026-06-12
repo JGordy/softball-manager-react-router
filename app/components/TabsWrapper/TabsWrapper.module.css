@@ -56,3 +56,32 @@
     bottom: 0;
     border-radius: var(--mantine-radius-xl);
 }
+
+.listXs {
+    padding: 3px;
+    gap: 2px;
+}
+
+.tabXs {
+    padding: 4px 10px;
+    font-size: 11px;
+    gap: 4px;
+}
+
+@media (min-width: 48em) {
+    .list {
+        padding: 3px;
+        gap: 2px;
+    }
+
+    .tab {
+        padding: 4px 10px;
+        font-size: 11px;
+        gap: 4px;
+    }
+
+    .tab svg {
+        width: 14px !important;
+        height: 14px !important;
+    }
+}
