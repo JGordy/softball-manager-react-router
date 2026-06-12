@@ -215,26 +215,28 @@ describe("MobilePlayActionDrawer", () => {
         expect(rfBtn).toBeInTheDocument();
     });
 
-    it("defaults battingSide based on defaultBats for switch hitters", () => {
+    it("defaults battingSide based on defaultBats for switch hitters (left)", () => {
         const switchHitterLeft = {
             ...defaultProps.currentBatter,
             bats: "Switch",
             defaultBats: "left",
         };
-        const { rerender } = render(
+        render(
             <MobilePlayActionDrawer
                 {...defaultProps}
                 currentBatter={switchHitterLeft}
             />,
         );
         expect(screen.getByLabelText("Left")).toBeChecked();
+    });
 
+    it("defaults battingSide based on defaultBats for switch hitters (right)", () => {
         const switchHitterRight = {
             ...defaultProps.currentBatter,
             bats: "Switch",
             defaultBats: "right",
         };
-        rerender(
+        render(
             <MobilePlayActionDrawer
                 {...defaultProps}
                 currentBatter={switchHitterRight}
