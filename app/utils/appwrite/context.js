@@ -42,7 +42,7 @@ export async function getCurrentUser(context) {
 
     try {
         return await client.account.get();
-    } catch (error) {
+    } catch (_error) {
         return null;
     }
 }

@@ -127,7 +127,7 @@ export async function action({ request }) {
         try {
             const prefs = await teams.getPrefs(teamId);
             maxMaleBatters = parseInt(prefs.maxMaleBatters, 10) || 0;
-        } catch (e) {
+        } catch (_e) {
             // failed to load prefs or no prefs set, stick to defaults
         }
 

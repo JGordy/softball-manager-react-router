@@ -21,7 +21,7 @@ export async function redirectIfAuthenticated(request, redirectTo = null) {
         const destination = redirectTo || (!isMobile ? "/" : "/dashboard");
 
         return redirect(destination);
-    } catch (error) {
+    } catch (_error) {
         // No valid session found, allow access to the page
         return null;
     }

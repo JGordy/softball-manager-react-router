@@ -69,7 +69,7 @@ export default function AwardsDrawerContents({
                 embla.scrollTo(idx);
                 setActiveAward(awardKey);
                 scrolledRef.current = true;
-            } catch (e) {
+            } catch (_e) {
                 // embla might throw if not ready; ignore silently
             }
         }, 1000);
