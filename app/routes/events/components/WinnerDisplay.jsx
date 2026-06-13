@@ -29,7 +29,7 @@ function useWinnerConfetti(team) {
             state.cancelled = true;
             try {
                 if (state.removeTimer) clearTimeout(state.removeTimer);
-            } catch (e) {
+            } catch (_e) {
                 /* ignore */
             }
 
@@ -40,11 +40,11 @@ function useWinnerConfetti(team) {
                 ) {
                     try {
                         state.myConfetti.reset();
-                    } catch (e) {
+                    } catch (_e) {
                         /* ignore */
                     }
                 }
-            } catch (e) {
+            } catch (_e) {
                 /* ignore */
             }
 
@@ -54,7 +54,7 @@ function useWinnerConfetti(team) {
                 }
                 state.canvas = null;
                 state.myConfetti = null;
-            } catch (e) {
+            } catch (_e) {
                 /* ignore */
             }
         };
@@ -130,7 +130,7 @@ function useWinnerConfetti(team) {
                     }
                     state.canvas = null;
                     state.myConfetti = null;
-                } catch (e) {
+                } catch (_e) {
                     /* ignore */
                 }
             }, 5000);
@@ -250,7 +250,7 @@ export default function WinnerDisplay({
             });
 
             return items[0][0];
-        } catch (e) {
+        } catch (_e) {
             return null;
         }
     };

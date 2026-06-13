@@ -20,7 +20,6 @@ export default function SeasonList({
 
     const getSeasonStatus = (season) => {
         const today = DateTime.local();
-        const oneMonthFromNow = today.plus({ months: 1 });
 
         const startDate = DateTime.fromISO(season.startDate);
         const endDate = DateTime.fromISO(season.endDate);

@@ -229,7 +229,7 @@ export default function DesktopPlayActionDrawer({
                             }
                         }
                     }}
-                    onPointerUp={(e) => {
+                    onPointerUp={() => {
                         if (isTouchDevice && isDragging) {
                             setIsDragging(false);
                             setIsLocked(true);

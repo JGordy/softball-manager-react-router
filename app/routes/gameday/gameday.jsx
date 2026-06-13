@@ -49,7 +49,7 @@ export async function action({ request, params }) {
         if (baseState) {
             try {
                 parsedBaseState = JSON.parse(baseState);
-            } catch (e) {
+            } catch (_e) {
                 return {
                     success: false,
                     status: 400,
@@ -151,7 +151,7 @@ export async function action({ request, params }) {
         if (baseState) {
             try {
                 parsedBaseState = JSON.parse(baseState);
-            } catch (e) {
+            } catch (_e) {
                 return {
                     success: false,
                     status: 400,

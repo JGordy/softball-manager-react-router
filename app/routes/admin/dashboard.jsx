@@ -43,7 +43,7 @@ export async function loader({ request }) {
     let user;
     try {
         user = await account.get();
-    } catch (e) {
+    } catch (_e) {
         throw redirect("/login");
     }
 

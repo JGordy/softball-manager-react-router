@@ -1,4 +1,4 @@
-import { ActionIcon, Card, Divider, Group, Text } from "@mantine/core";
+import { ActionIcon, Card, Group, Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { Fragment } from "react";
 

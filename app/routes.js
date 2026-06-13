@@ -1,4 +1,4 @@
-import { index, layout, route } from "@react-router/dev/routes";
+import { layout, route } from "@react-router/dev/routes";
 
 export default [
     // Authentication routes (public)

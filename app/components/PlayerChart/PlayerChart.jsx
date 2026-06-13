@@ -1,16 +1,12 @@
 import { useMemo } from "react";
 
-import { ScrollArea, Table, Text } from "@mantine/core";
+import { ScrollArea, Table } from "@mantine/core";
 
 import fieldingPositions from "@/constants/positions";
 
 import styles from "./PlayerChart.module.css";
 
 const PlayerChart = ({ playerChart }) => {
-    if (!playerChart) {
-        return null;
-    }
-
     const columns = useMemo(
         () => [
             {
@@ -30,6 +26,9 @@ const PlayerChart = ({ playerChart }) => {
     );
 
     const rows = useMemo(() => {
+        if (!playerChart) {
+            return [];
+        }
         return playerChart.map((player, index) => {
             const row = {
                 battingOrder: index + 1,
@@ -42,6 +41,10 @@ const PlayerChart = ({ playerChart }) => {
             return row;
         });
     }, [playerChart]);
+
+    if (!playerChart) {
+        return null;
+    }
 
     return (
         <div className={`${styles.tableContainer} printable`}>

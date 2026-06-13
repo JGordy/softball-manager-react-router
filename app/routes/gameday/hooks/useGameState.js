@@ -191,7 +191,7 @@ export function useGameState({ logs, game, playerChart, opponentChart }) {
                             ? JSON.parse(lastLog.baseState)
                             : lastLog.baseState;
                 }
-            } catch (e) {
+            } catch (_e) {
                 console.warn("Failed to parse base state from log", lastLog);
             }
 

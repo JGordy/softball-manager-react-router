@@ -60,7 +60,7 @@ export function tryParsePartialLineup(jsonStr) {
         if (Array.isArray(parsed.lineup)) {
             return parsed.lineup;
         }
-    } catch (e) {
+    } catch (_e) {
         // Parsing failed, likely because the structure wasn't exactly what we expected
         // or the cut-off point was awkward (though our brace logic minimizes this).
     }

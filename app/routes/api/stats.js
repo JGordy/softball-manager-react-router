@@ -9,7 +9,7 @@ export async function loader({ request }) {
     try {
         const user = await account.get();
         userId = user.$id;
-    } catch (error) {
+    } catch (_error) {
         return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 

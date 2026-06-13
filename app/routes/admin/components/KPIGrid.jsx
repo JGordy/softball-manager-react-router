@@ -1,12 +1,4 @@
-import {
-    Group,
-    Indicator,
-    Paper,
-    Grid,
-    Text,
-    Title,
-    Stack,
-} from "@mantine/core";
+import { Indicator, Paper, Grid, Text, Title, Stack } from "@mantine/core";
 
 export const KPIGrid = ({ stats }) => {
     const kpis = [

@@ -135,7 +135,7 @@ export async function loader({ request }) {
         if (preferences.themePreference) {
             themePreference = preferences.themePreference;
         }
-    } catch (error) {
+    } catch (_error) {
         // User not authenticated or error fetching preferences, use cookie value
     }
 
@@ -164,7 +164,7 @@ export function Layout({ children }) {
     try {
         const data = useLoaderData();
         themePreference = getThemePreference(data);
-    } catch (e) {
+    } catch (_e) {
         // useLoaderData might throw in some error contexts or during initial SSR states
     }
 

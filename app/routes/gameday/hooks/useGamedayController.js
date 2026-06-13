@@ -12,7 +12,6 @@ export function useGamedayController({
     playerChart: initialPlayerChart = EMPTY_ARRAY,
     team,
     initialLogs = EMPTY_ARRAY,
-    gameFinal = false,
     isScorekeeper = false,
     isDesktop = false,
     players = EMPTY_ARRAY,
@@ -274,8 +273,12 @@ export function useGamedayController({
         } else if (lastLog.eventType === "INJURY_REMOVE") {
             const revertedChart = playerChart.map((slot) => {
                 if (getActivePlayerId(slot) === lastLog.playerId) {
-                    const { removed, removalType, removalInning, ...rest } =
-                        slot;
+                    const {
+                        removed: _removed,
+                        removalType: _removalType,
+                        removalInning: _removalInning,
+                        ...rest
+                    } = slot;
                     return rest;
                 }
                 return slot;

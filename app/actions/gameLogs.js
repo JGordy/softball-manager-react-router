@@ -420,7 +420,7 @@ export const updateGameEvent = async ({
                             ? JSON.parse(oldLog.baseState)
                             : oldLog.baseState;
                     return !!parsed?.isOpponent;
-                } catch (e) {
+                } catch (_e) {
                     return false;
                 }
             })();
@@ -434,7 +434,7 @@ export const updateGameEvent = async ({
                             ? JSON.parse(logPayload.baseState)
                             : logPayload.baseState;
                     return !!parsed?.isOpponent;
-                } catch (e) {
+                } catch (_e) {
                     return false;
                 }
             })();

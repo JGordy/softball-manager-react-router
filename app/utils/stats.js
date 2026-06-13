@@ -152,7 +152,7 @@ export const calculateGameStats = (
                 typeof log.baseState === "string"
                     ? JSON.parse(log.baseState)
                     : log.baseState || {};
-        } catch (e) {
+        } catch (_e) {
             console.warn("Stats: Failed to parse baseState", log);
         }
 

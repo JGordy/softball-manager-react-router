@@ -13,7 +13,6 @@ const PlayerChartRow = ({
     getPositionOptions,
     fieldingErrors,
     handlePositionChange,
-    players,
 }) => {
     return (
         <Draggable key={row.playerId} draggableId={row.playerId} index={index}>

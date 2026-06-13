@@ -440,7 +440,7 @@ export async function updateUserPrefs({ values, client }) {
             if (typeof values.onboardingTours === "string") {
                 try {
                     values.onboardingTours = JSON.parse(values.onboardingTours);
-                } catch (e) {
+                } catch (_e) {
                     return {
                         success: false,
                         status: 400,

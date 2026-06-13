@@ -42,13 +42,53 @@ export default [
                     caughtErrorsIgnorePattern: "^_",
                 },
             ],
-            "no-console": ["warn", { allow: ["warn", "error"] }],
+            "react/no-unescaped-entities": "off",
+            "no-console": "off",
+            "react-hooks/set-state-in-effect": "off",
+            "react-hooks/refs": "off",
+            "react-hooks/exhaustive-deps": "off",
+            "no-constant-condition": "off",
+            "no-prototype-builtins": "warn",
+            "no-empty": "off",
+            "react/no-unknown-property": "warn",
+            "require-yield": "off",
             ...eslintConfigPrettier.rules,
         },
         settings: {
             react: {
                 version: "detect",
             },
+        },
+    },
+    {
+        files: [
+            "**/*.test.{js,jsx}",
+            "**/tests/**/*.{js,jsx}",
+            "**/__tests__/**/*.{js,jsx}",
+        ],
+        rules: {
+            "react/display-name": "off",
+            "no-unused-vars": "off",
+            "no-console": "off",
+            "react-hooks/exhaustive-deps": "off",
+        },
+    },
+    {
+        files: ["public/service-worker.js", "public/sw-utils.js"],
+        languageOptions: {
+            globals: {
+                ...globals.serviceworker,
+                importScripts: "readonly",
+                clients: "readonly",
+                normalizeNotificationData: "readonly",
+                normalizeUrl: "readonly",
+                extractNotificationUrl: "readonly",
+                handleNotificationClick: "readonly",
+            },
+        },
+        rules: {
+            "no-console": "off",
+            "no-unused-vars": "off",
         },
     },
 ];

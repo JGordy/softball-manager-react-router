@@ -15,6 +15,7 @@ import {
 import { TimeInput } from "@mantine/dates";
 import { IconClock } from "@tabler/icons-react";
 
+import useModal from "@/hooks/useModal";
 import GamesTable from "@/components/GamesTable";
 
 import timeZones from "@/constants/timeZones";
@@ -32,6 +33,7 @@ export default function GenerateSeasonGames({
     buttonColor,
     season,
 }) {
+    const { closeAllModals } = useModal();
     const ref = useRef(null);
     const navigation = useNavigation();
     const isSubmitting =
@@ -271,10 +273,7 @@ export default function GenerateSeasonGames({
                     <Button
                         variant="outline"
                         color="gray"
-                        onClick={() => {
-                            handleCloseModal();
-                            setError(null);
-                        }}
+                        onClick={closeAllModals}
                     >
                         Cancel
                     </Button>
