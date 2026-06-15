@@ -462,6 +462,7 @@ describe("gameLogs actions", () => {
             );
             expect(commitTransaction).toHaveBeenCalledWith("txn-456");
             expect(result.success).toBe(true);
+            expect(result.log).toEqual(mockLog);
         });
 
         it("should undo a game event without reverting score if rbi was 0", async () => {
@@ -487,6 +488,7 @@ describe("gameLogs actions", () => {
                 mockedClient: true,
             });
             expect(result.success).toBe(true);
+            expect(result.log).toEqual({ gameId: "game123", rbi: 0 });
         });
 
         it("should handle errors and rollback transaction when undo fails", async () => {

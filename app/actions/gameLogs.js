@@ -275,11 +275,11 @@ export const undoGameEvent = async ({ logId, client }) => {
             await createOperations(transaction.$id, operations);
             await commitTransaction(transaction.$id);
 
-            return { success: true };
+            return { success: true, log };
         } else {
             // No score to revert, just delete the log
             await deleteDocument("game_logs", logId, client);
-            return { success: true };
+            return { success: true, log };
         }
     } catch (error) {
         console.error("Error undoing game event:", error);
