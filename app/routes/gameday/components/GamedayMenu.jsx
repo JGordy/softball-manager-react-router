@@ -27,6 +27,7 @@ export default function GamedayMenu({
     onOpenSelectBatterDrawer,
     opponentLineupLocked,
     menuId,
+    game,
 }) {
     const fetcher = useFetcher();
     const { eventId } = useParams();
@@ -188,7 +189,7 @@ export default function GamedayMenu({
                                 }
                                 fetcher.submit(
                                     {
-                                        _action: "update-opponent-settings",
+                                        _action: "lock-opponent-lineup",
                                         opponentLineupLocked: true,
                                         opponentLineup: JSON.stringify(
                                             resolvedOpponentLineup.slice(
@@ -196,6 +197,13 @@ export default function GamedayMenu({
                                                 targetLength,
                                             ),
                                         ),
+                                        oldOpponentLineup:
+                                            JSON.stringify(opponentChart),
+                                        teamId: game?.teamId,
+                                        inning: String(
+                                            game?.currentInning || 1,
+                                        ),
+                                        halfInning: game?.halfInning || "top",
                                     },
                                     { method: "post" },
                                 );

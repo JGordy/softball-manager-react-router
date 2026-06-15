@@ -215,6 +215,7 @@ export default function MobileGamedayContainer({
                             opponentOrderIndex={opponentOrderIndex}
                             onOpenSelectBatterDrawer={openSelectBatter}
                             opponentLineupLocked={game.opponentLineupLocked}
+                            game={game}
                         />
                     ) : (
                         <div style={{ minWidth: 40 }} />

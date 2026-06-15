@@ -78,6 +78,7 @@ describe("GamedayMenu", () => {
                 gameFinal={false}
                 score={5}
                 opponentScore={3}
+                game={{ teamId: "t1", currentInning: 1, halfInning: "top" }}
                 {...props}
             />,
         );
@@ -202,7 +203,7 @@ describe("GamedayMenu", () => {
 
         expect(mockSubmit).toHaveBeenCalledWith(
             expect.objectContaining({
-                _action: "update-opponent-settings",
+                _action: "lock-opponent-lineup",
                 opponentLineupLocked: true,
             }),
             expect.anything(),
