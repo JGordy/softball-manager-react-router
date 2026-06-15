@@ -78,6 +78,7 @@ describe("GamedayMenu", () => {
                 gameFinal={false}
                 score={5}
                 opponentScore={3}
+                game={{ teamId: "t1", currentInning: 1, halfInning: "top" }}
                 {...props}
             />,
         );
@@ -202,7 +203,7 @@ describe("GamedayMenu", () => {
 
         expect(mockSubmit).toHaveBeenCalledWith(
             expect.objectContaining({
-                _action: "update-opponent-settings",
+                _action: "lock-opponent-lineup",
                 opponentLineupLocked: true,
             }),
             expect.anything(),
@@ -211,9 +212,8 @@ describe("GamedayMenu", () => {
         // Parse and check the sent opponentLineup has 3 batters (OPP_BAT_1, OPP_BAT_2, OPP_BAT_3)
         const submittedData = mockSubmit.mock.calls[0][0];
         const submittedLineup = JSON.parse(submittedData.opponentLineup);
-        expect(submittedLineup).toHaveLength(3);
+        expect(submittedLineup).toHaveLength(2);
         expect(submittedLineup[0].$id).toBe("OPP_BAT_1");
         expect(submittedLineup[1].$id).toBe("OPP_BAT_2");
-        expect(submittedLineup[2].$id).toBe("OPP_BAT_3");
     });
 });
