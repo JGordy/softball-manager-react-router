@@ -161,23 +161,91 @@ describe("Gameday Route", () => {
             expect(result.error).toBe("Undo failed");
         });
 
-        it("handles update-game-score action", async () => {
+        it("reverts opponent lineup if log contains revert data", async () => {
             const formData = new FormData();
-            formData.append("_action", "update-game-score");
-            formData.append("score", "10");
+            formData.append("_action", "undo-game-event");
+            formData.append("logId", "log1");
 
             const request = {
                 formData: () => Promise.resolve(formData),
             };
             const params = { eventId: "game123" };
 
+            const mockLog = {
+                baseState: JSON.stringify({
+                    revertOpponentLineupLocked: false,
+                    revertOpponentLineup: "[]",
+                }),
+            };
+
+            gameLogActions.undoGameEvent.mockResolvedValue({
+                success: true,
+                log: mockLog,
+            });
+            gamesActions.updateGame.mockResolvedValue({});
+
             await action({ request, params });
 
-            expect(gamesActions.updateGame).toHaveBeenCalledWith({
-                values: { score: "10" },
-                eventId: "game123",
-                client: expect.any(Object),
-            });
+            expect(gameLogActions.undoGameEvent).toHaveBeenCalled();
+            expect(gamesActions.updateGame).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    values: expect.objectContaining({
+                        opponentLineupLocked: false,
+                        opponentLineup: "[]",
+                    }),
+                }),
+            );
+        });
+
+        it("handles update-game-score action", async () => {
+            const formData = new FormData();
+            formData.append("_action", "update-game-score");
+            formData.append("score", "5");
+
+            const request = {
+                formData: () => Promise.resolve(formData),
+            };
+            const params = { eventId: "game123" };
+
+            gamesActions.updateGame.mockResolvedValue({ success: true });
+
+            await action({ request, params });
+
+            expect(gamesActions.updateGame).toHaveBeenCalled();
+        });
+
+        it("handles lock-opponent-lineup action", async () => {
+            const formData = new FormData();
+            formData.append("_action", "lock-opponent-lineup");
+            formData.append("opponentLineupLocked", "true");
+            formData.append("opponentLineup", "[{}]");
+            formData.append("oldOpponentLineup", "[]");
+            formData.append("teamId", "team1");
+
+            const request = {
+                formData: () => Promise.resolve(formData),
+            };
+            const params = { eventId: "game123" };
+
+            gameLogActions.logGameEvent.mockResolvedValue({ success: true });
+            gamesActions.updateGame.mockResolvedValue({ success: true });
+
+            await action({ request, params });
+
+            expect(gameLogActions.logGameEvent).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    eventType: "opponent_lineup_wrap",
+                    teamId: "team1",
+                }),
+            );
+            expect(gamesActions.updateGame).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    values: expect.objectContaining({
+                        opponentLineupLocked: "true",
+                        opponentLineup: "[{}]",
+                    }),
+                }),
+            );
         });
 
         it("handles update-game-event action and delegates to updateGameEvent", async () => {

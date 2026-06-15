@@ -104,7 +104,69 @@ export async function action({ request, params }) {
             }
         }
 
+        // If the log was successfully removed and it contains opponent lineup revert data
+        if (undoResponse?.success && undoResponse.log?.baseState) {
+            try {
+                const parsedBaseState = JSON.parse(undoResponse.log.baseState);
+                if (parsedBaseState.revertOpponentLineupLocked !== undefined) {
+                    await updateGame({
+                        values: {
+                            opponentLineupLocked:
+                                parsedBaseState.revertOpponentLineupLocked,
+                            opponentLineup:
+                                parsedBaseState.revertOpponentLineup,
+                        },
+                        eventId,
+                        client,
+                    });
+                }
+            } catch (e) {
+                console.error(
+                    "Failed to parse baseState for undoing opponent lineup:",
+                    e,
+                );
+            }
+        }
+
         return undoResponse;
+    }
+    if (_action === "lock-opponent-lineup") {
+        const {
+            opponentLineupLocked,
+            opponentLineup,
+            oldOpponentLineup,
+            teamId,
+            inning,
+            halfInning,
+        } = values;
+
+        // Log the event
+        const logResponse = await logGameEvent({
+            gameId: eventId,
+            client,
+            teamId,
+            inning,
+            halfInning,
+            eventType: "opponent_lineup_wrap",
+            description: "Lineup locked and wrapped to top of order",
+            rbi: 0,
+            outsOnPlay: 0,
+            baseState: JSON.stringify({
+                revertOpponentLineupLocked: false,
+                revertOpponentLineup: oldOpponentLineup,
+            }),
+        });
+
+        if (logResponse && !logResponse.success) {
+            return logResponse;
+        }
+
+        // Update the game
+        return updateGame({
+            values: { opponentLineupLocked, opponentLineup },
+            eventId,
+            client,
+        });
     }
     if (_action === "update-game-event") {
         const { logId, propagate, ...logData } = values;
