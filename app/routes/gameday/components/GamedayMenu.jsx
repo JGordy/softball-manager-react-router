@@ -25,6 +25,7 @@ export default function GamedayMenu({
     opponentChart,
     opponentOrderIndex,
     onOpenSelectBatterDrawer,
+    opponentLineupLocked,
     menuId,
 }) {
     const fetcher = useFetcher();
@@ -142,8 +143,9 @@ export default function GamedayMenu({
             children: (
                 <>
                     <Text size="sm" mb="md">
-                        This will lock the opponent's lineup size and start
-                        cycling back to Batter 1.
+                        This will lock the opponent's lineup size and
+                        immediately wrap back to Batter 1 (skipping the current
+                        batter).
                     </Text>
                     <Group justify="flex-end" mt="xl">
                         <Button
@@ -156,7 +158,10 @@ export default function GamedayMenu({
                         <Button
                             color="blue"
                             onClick={() => {
-                                const targetLength = opponentOrderIndex + 1;
+                                const targetLength = Math.max(
+                                    1,
+                                    opponentOrderIndex,
+                                );
                                 let resolvedOpponentLineup = [...opponentChart];
                                 if (
                                     resolvedOpponentLineup.length < targetLength
@@ -240,20 +245,21 @@ export default function GamedayMenu({
     ];
 
     if (opponentScoringMode === "Detailed" && !isOurBatting) {
-        opponentControls.push(
-            {
-                key: "set-active-batter",
-                onClick: onOpenSelectBatterDrawer,
-                leftSection: <IconClipboardList size={14} />,
-                content: <Text>Set Active Batter</Text>,
-            },
-            {
+        opponentControls.push({
+            key: "set-active-batter",
+            onClick: onOpenSelectBatterDrawer,
+            leftSection: <IconClipboardList size={14} />,
+            content: <Text>Set Active Batter</Text>,
+        });
+
+        if (!opponentLineupLocked) {
+            opponentControls.push({
                 key: "wrap-lineup",
                 onClick: handleWrapLineup,
                 leftSection: <IconRefresh size={14} />,
                 content: <Text>Top of Lineup (Wrap)</Text>,
-            },
-        );
+            });
+        }
     }
 
     const sections = [

@@ -242,6 +242,7 @@ export default function DesktopGamedayContainer({
                             opponentChart={opponentChart}
                             opponentOrderIndex={opponentOrderIndex}
                             onOpenSelectBatterDrawer={openSelectBatter}
+                            opponentLineupLocked={game.opponentLineupLocked}
                         />
                     ) : (
                         <div style={{ minWidth: 40 }} />
