@@ -1,10 +1,10 @@
 module.exports = {
     testEnvironment: "jsdom",
     transform: {
-        "^.+\\.(js|jsx|ts|tsx)$": "babel-jest",
+        "^.+\\.(js|jsx|mjs|cjs|ts|tsx)$": "babel-jest",
     },
     transformIgnorePatterns: [
-        "/node_modules/(?!(node-appwrite|node-fetch-native-with-agent)/).+\\.js$",
+        "/node_modules/(?!(node-appwrite|node-fetch-native-with-agent|react-router|@react-router|cookie-es)/).+\\.(js|jsx|mjs|cjs|ts|tsx)$",
     ],
     // Path aliases - @/ covers most cases. Add others only if needed.
     // Keep in sync with vite.config.ts and tsconfig.json
