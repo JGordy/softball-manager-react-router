@@ -265,10 +265,11 @@ export const calculateTeamTotals = (statsArray) => {
  * @param {Array} logs - Array of game log objects for a single player
  * @returns {Object} Stats object
  */
-export const calculatePlayerStats = (logs) => {
+export const calculatePlayerStats = (logs, userId) => {
     let hits = 0;
     let ab = 0; // At Bats
     let rbi = 0;
+    let runs = 0;
     let doubles = 0;
     let triples = 0;
     let homeruns = 0;
@@ -298,11 +299,33 @@ export const calculatePlayerStats = (logs) => {
         )
             return;
 
-        const eventType = log.eventType;
-        const logRbi = log.rbi || 0;
+        const isUsersAtBat = log.playerId === userId;
 
-        rbi += logRbi;
-        details.RBI += logRbi;
+        // Count RBI only if it's the user's at-bat
+        if (isUsersAtBat) {
+            const logRbi = log.rbi || 0;
+            rbi += logRbi;
+            details.RBI += logRbi;
+        }
+
+        // Parse baseState to check for runs
+        let baseState = {};
+        try {
+            baseState =
+                typeof log.baseState === "string"
+                    ? JSON.parse(log.baseState)
+                    : log.baseState || {};
+        } catch (_e) {}
+
+        const scoredList = log.scored || baseState.scored || [];
+        if (Array.isArray(scoredList) && scoredList.includes(userId)) {
+            runs++;
+        }
+
+        // Only count hitting stats (AB, Hits, etc) if this log belongs to the user's at-bat
+        if (!isUsersAtBat) return;
+
+        const eventType = log.eventType;
 
         // Standardize event type
         let type = eventType;
@@ -387,6 +410,7 @@ export const calculatePlayerStats = (logs) => {
         hits,
         ab,
         rbi,
+        runs,
         doubles,
         triples,
         homeruns,

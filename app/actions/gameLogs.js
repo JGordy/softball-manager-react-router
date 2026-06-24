@@ -141,6 +141,10 @@ export const logGameEvent = async ({
             hitY: normalizeOptionalField(hitY, parseFloat),
             hitLocation: normalizeOptionalField(hitLocation),
             battingSide: normalizeOptionalField(battingSide),
+            scored:
+                safeBaseState.scored && Array.isArray(safeBaseState.scored)
+                    ? safeBaseState.scored
+                    : [],
         };
 
         const isHomeTeam =
@@ -408,6 +412,10 @@ export const updateGameEvent = async ({
                     runnerResults: parsedRunnerResults,
                 }),
             }),
+            scored:
+                parsedBase.scored && Array.isArray(parsedBase.scored)
+                    ? parsedBase.scored
+                    : [],
         };
         // Remove runnerResults from payload as it's not a root attribute
         delete logPayload.runnerResults;

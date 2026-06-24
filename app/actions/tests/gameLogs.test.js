@@ -50,7 +50,12 @@ describe("gameLogs actions", () => {
                 rbi: 1,
                 outsOnPlay: 0,
                 description: "John Doe singles",
-                baseState: { first: true, second: false, third: false },
+                baseState: {
+                    first: true,
+                    second: false,
+                    third: false,
+                    scored: ["player789"],
+                },
             };
 
             const mockTransaction = { $id: "txn-123" };
@@ -83,6 +88,7 @@ describe("gameLogs actions", () => {
                             rbi: 1,
                             outsOnPlay: 0,
                             description: "John Doe singles",
+                            scored: ["player789"],
                             baseState: JSON.stringify(mockPayload.baseState),
                         }),
                         permissions: expect.arrayContaining([
@@ -113,7 +119,7 @@ describe("gameLogs actions", () => {
                 rbi: 0,
                 outsOnPlay: 1,
                 description: "K",
-                baseState: {},
+                baseState: { scored: [] },
             };
 
             createDocument.mockResolvedValue({ $id: "log790", ...mockPayload });
@@ -134,6 +140,7 @@ describe("gameLogs actions", () => {
                 expect.objectContaining({
                     gameId: "game123",
                     playerId: "player456",
+                    scored: [],
                 }),
                 expect.arrayContaining([
                     'read("any")',
@@ -618,7 +625,7 @@ describe("gameLogs actions", () => {
                 first: null,
                 second: "player1",
                 third: null,
-                scored: [],
+                scored: ["player2"],
             }),
             runnerResults: JSON.stringify({
                 batter: "second",
@@ -651,6 +658,7 @@ describe("gameLogs actions", () => {
                 expect.objectContaining({
                     hitX: 75.63,
                     hitY: 40.02,
+                    scored: ["player2"],
                 }),
                 mockClient,
             );
@@ -679,6 +687,7 @@ describe("gameLogs actions", () => {
                 expect.objectContaining({
                     hitX: 75.63,
                     hitY: 40.02,
+                    scored: ["player2"],
                 }),
                 mockClient,
             );
@@ -706,6 +715,7 @@ describe("gameLogs actions", () => {
                 "log1",
                 expect.objectContaining({
                     baseState: expect.stringContaining("runnerResults"),
+                    scored: ["player2"],
                 }),
                 mockClient,
             );

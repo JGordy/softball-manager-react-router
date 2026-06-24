@@ -52,7 +52,10 @@ export async function getStatsByUserId({ userId, client }) {
         const logsResponse = await listDocuments(
             "game_logs",
             [
-                Query.equal("playerId", userId),
+                Query.or([
+                    Query.equal("playerId", userId),
+                    Query.contains("scored", userId),
+                ]),
                 Query.orderDesc("$createdAt"),
                 Query.limit(500),
             ],
@@ -62,7 +65,7 @@ export async function getStatsByUserId({ userId, client }) {
         const logs = logsResponse.rows;
 
         if (logs.length === 0) {
-            return { logs: [], games: [], teams: [] };
+            return { userId, logs: [], games: [], teams: [] };
         }
 
         // 2. Extract unique game IDs
@@ -111,12 +114,13 @@ export async function getStatsByUserId({ userId, client }) {
         }
 
         return {
+            userId,
             logs,
             games,
             teams,
         };
     } catch (err) {
         console.error("[getStatsByUserId] Error:", err);
-        return { logs: [], games: [], teams: [] };
+        return { userId, logs: [], games: [], teams: [] };
     }
 }

@@ -29,9 +29,9 @@ describe("StatsDetailDrawer Component", () => {
     };
 
     const mockLogs = [
-        { eventType: UI_KEYS.SINGLE, rbi: 1 },
-        { eventType: UI_KEYS.HOMERUN, rbi: 4 },
-        { eventType: UI_KEYS.FLY_OUT, rbi: 0 },
+        { playerId: "player1", eventType: UI_KEYS.SINGLE, rbi: 1 },
+        { playerId: "player1", eventType: UI_KEYS.HOMERUN, rbi: 4 },
+        { playerId: "player1", eventType: UI_KEYS.FLY_OUT, rbi: 0 },
     ];
 
     it("renders nothing if game is missing", () => {
@@ -41,6 +41,7 @@ describe("StatsDetailDrawer Component", () => {
                 onClose={() => {}}
                 game={null}
                 logs={[]}
+                userId="player1"
             />,
         );
         expect(screen.queryByTestId("drawer")).not.toBeInTheDocument();
@@ -53,6 +54,7 @@ describe("StatsDetailDrawer Component", () => {
                 onClose={() => {}}
                 game={mockGame}
                 logs={mockLogs}
+                userId="player1"
             />,
         );
         expect(screen.queryByTestId("drawer")).not.toBeInTheDocument();
@@ -65,6 +67,7 @@ describe("StatsDetailDrawer Component", () => {
                 onClose={() => {}}
                 game={mockGame}
                 logs={mockLogs}
+                userId="player1"
             />,
         );
 
@@ -73,6 +76,7 @@ describe("StatsDetailDrawer Component", () => {
 
         // Check table rows
         expect(screen.getByText("At Bats")).toBeInTheDocument();
+        expect(screen.getByText("Runs")).toBeInTheDocument();
         expect(screen.getByText("Home Runs")).toBeInTheDocument();
 
         // Check RBI - it should sum to 5 (1 + 4)
@@ -88,6 +92,7 @@ describe("StatsDetailDrawer Component", () => {
                 onClose={() => {}}
                 game={mockGame}
                 logs={mockLogs}
+                userId="player1"
             />,
         );
 
@@ -104,6 +109,7 @@ describe("StatsDetailDrawer Component", () => {
                 onClose={() => {}}
                 game={mockGame}
                 logs={mockLogs}
+                userId="player1"
             />,
         );
 
