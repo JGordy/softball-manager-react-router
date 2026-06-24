@@ -22,6 +22,8 @@ jest.mock("node-appwrite", () => ({
         select: jest.fn(
             (attrs) => `select([${attrs.map((a) => `"${a}"`).join(", ")}])`,
         ),
+        or: jest.fn((queries) => `or([${queries.join(",")}])`),
+        contains: jest.fn((attr, value) => `contains("${attr}", "${value}")`),
     },
 }));
 
@@ -69,7 +71,9 @@ describe("Users Loader", () => {
             expect(listDocuments).toHaveBeenCalledWith(
                 "game_logs",
                 expect.arrayContaining([
-                    expect.stringContaining('equal("playerId", "user1")'),
+                    expect.stringContaining(
+                        'or([equal("playerId", "user1"),contains("scored", "user1")])',
+                    ),
                     expect.stringContaining('orderDesc("$createdAt")'),
                     expect.stringContaining("limit(500)"),
                 ]),
@@ -104,6 +108,7 @@ describe("Users Loader", () => {
                 mockClient,
             );
 
+            expect(result.userId).toEqual("user1");
             expect(result.logs).toEqual(mockLogs);
             expect(result.games).toEqual(mockGames);
             expect(result.teams).toEqual(mockTeams);
@@ -145,7 +150,12 @@ describe("Users Loader", () => {
             });
 
             expect(listDocuments).toHaveBeenCalledTimes(1);
-            expect(result).toEqual({ logs: [], games: [], teams: [] });
+            expect(result).toEqual({
+                userId: "user1",
+                logs: [],
+                games: [],
+                teams: [],
+            });
         });
     });
 
