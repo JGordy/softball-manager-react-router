@@ -39,9 +39,11 @@ describe("PlayerStats Component", () => {
     };
 
     const mockStatsData = {
+        userId: "player1",
         logs: [
             {
                 gameId: "g1",
+                playerId: "player1",
                 eventType: UI_KEYS.SINGLE,
                 rbi: 1,
                 angle: 90,
@@ -49,6 +51,7 @@ describe("PlayerStats Component", () => {
             },
             {
                 gameId: "g1",
+                playerId: "player1",
                 eventType: UI_KEYS.HOMERUN,
                 rbi: 4,
                 angle: 45,

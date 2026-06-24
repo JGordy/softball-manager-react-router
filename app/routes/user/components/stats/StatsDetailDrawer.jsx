@@ -5,12 +5,18 @@ import { DateTime } from "luxon";
 import DrawerContainer from "@/components/DrawerContainer";
 import { calculatePlayerStats } from "@/utils/stats";
 
-export default function StatsDetailDrawer({ opened, onClose, game, logs }) {
+export default function StatsDetailDrawer({
+    opened,
+    onClose,
+    game,
+    logs,
+    userId,
+}) {
     const { isDesktop } = useOutletContext();
 
     if (!game) return null;
 
-    const stats = calculatePlayerStats(logs || []);
+    const stats = calculatePlayerStats(logs || [], userId);
     const { details } = stats;
 
     const date = DateTime.fromISO(game.gameDate).toLocaleString(
@@ -20,6 +26,7 @@ export default function StatsDetailDrawer({ opened, onClose, game, logs }) {
     const rows = [
         { label: "At Bats", value: stats.ab },
         { label: "Hits", value: stats.hits },
+        { label: "Runs", value: stats.runs },
         { label: "Singles", value: details["1B"] },
         { label: "Doubles", value: details["2B"] },
         { label: "Triples", value: details["3B"] },
