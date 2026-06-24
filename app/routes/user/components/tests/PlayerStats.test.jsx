@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from "@/utils/test-utils";
 import { UI_KEYS } from "@/constants/scoring";
 
 import PlayerStats from "../PlayerStats";
+import ContactSprayChart from "@/components/ContactSprayChart";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
@@ -16,9 +17,10 @@ jest.mock("@/components/DeferredLoader", () => ({
     },
 }));
 
-jest.mock("@/components/ContactSprayChart", () => () => (
-    <div data-testid="spray-chart" />
-));
+jest.mock("@/components/ContactSprayChart", () => ({
+    __esModule: true,
+    default: jest.fn(() => <div data-testid="spray-chart" />),
+}));
 
 jest.mock(
     "@/components/DrawerContainer",
@@ -102,5 +104,41 @@ describe("PlayerStats Component", () => {
         fireEvent.click(sprayButton);
 
         expect(screen.getByTestId("spray-chart")).toBeInTheDocument();
+    });
+
+    it("filters logs correctly to only pass the user's at-bats to the spray chart", () => {
+        const complexData = {
+            ...mockStatsData,
+            logs: [
+                ...mockStatsData.logs,
+                {
+                    gameId: "g1",
+                    playerId: "player2",
+                    eventType: UI_KEYS.DOUBLE,
+                    rbi: 1,
+                    scored: ["player1"], // user scored on someone else's hit
+                },
+            ],
+        };
+        render(<PlayerStats statsPromise={complexData} />);
+
+        const sprayButton = screen.getByText("View Spray Chart");
+        fireEvent.click(sprayButton);
+
+        // Ensure ContactSprayChart was called
+        expect(ContactSprayChart).toHaveBeenCalled();
+
+        // Get the props passed to ContactSprayChart in its most recent render
+        const lastCall =
+            ContactSprayChart.mock.calls[
+                ContactSprayChart.mock.calls.length - 1
+            ];
+        const props = lastCall[0];
+
+        // Should only include logs where playerId === "player1"
+        expect(props.hits).toHaveLength(2); // mockStatsData has 2 hits for player1
+        props.hits.forEach((hit) => {
+            expect(hit.playerId).toBe("player1");
+        });
     });
 });

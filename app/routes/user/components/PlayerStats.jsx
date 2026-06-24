@@ -126,8 +126,19 @@ export default function PlayerStats({ statsPromise, isDesktop }) {
 
                 // Take up to the last 20 games
                 const recentGameIds = sortedGameIds.slice(0, 20);
+                const recentGameIdsSet = new Set(recentGameIds);
 
-                const overallStats = calculatePlayerStats(logs, userId);
+                // Filter logs to only include the recent games so the overall stats match the "Last X Games" label
+                const recentLogs = logs.filter((log) =>
+                    recentGameIdsSet.has(log.gameId),
+                );
+
+                const overallStats = calculatePlayerStats(recentLogs, userId);
+
+                // Filter logs to only include the user's at-bats for the spray chart
+                const userRecentLogs = recentLogs.filter(
+                    (log) => log.playerId === userId,
+                );
 
                 return (
                     <Stack gap="md" mt="md">
@@ -267,7 +278,10 @@ export default function PlayerStats({ statsPromise, isDesktop }) {
                             title="Contact Spray Chart"
                             size={isDesktop ? "md" : "xl"}
                         >
-                            <ContactSprayChart hits={logs} layout="stacked" />
+                            <ContactSprayChart
+                                hits={userRecentLogs}
+                                layout="stacked"
+                            />
                         </DrawerContainer>
                     </Stack>
                 );
