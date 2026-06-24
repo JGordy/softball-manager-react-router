@@ -751,7 +751,7 @@ describe("calculateTeamTotals", () => {
 
 describe("calculatePlayerStats", () => {
     it("should initialize with zero stats for empty logs", () => {
-        const stats = calculatePlayerStats([]);
+        const stats = calculatePlayerStats([], "player1");
         expect(stats.hits).toBe(0);
         expect(stats.ab).toBe(0);
         expect(stats.rbi).toBe(0);
@@ -766,7 +766,8 @@ describe("calculatePlayerStats", () => {
             { eventType: "triple", rbi: 2 },
         ];
 
-        const stats = calculatePlayerStats(logs);
+        const mappedLogs = logs.map((l) => ({ ...l, playerId: "player1" }));
+        const stats = calculatePlayerStats(mappedLogs, "player1");
 
         expect(stats.ab).toBe(4);
         expect(stats.hits).toBe(3); // 1B, 2B, 3B
@@ -789,7 +790,8 @@ describe("calculatePlayerStats", () => {
         // AVG: 1 / 2 = .500
         // OBP: (1 + 1) / (2 + 1 + 1) = 2 / 4 = .500
 
-        const stats = calculatePlayerStats(logs);
+        const mappedLogs = logs.map((l) => ({ ...l, playerId: "player1" }));
+        const stats = calculatePlayerStats(mappedLogs, "player1");
 
         expect(stats.ab).toBe(2);
         expect(stats.hits).toBe(1);
@@ -812,7 +814,8 @@ describe("calculatePlayerStats", () => {
         // OBP: 3 / 4 = .750
         // OPS: 1.750 + .750 = 2.500
 
-        const stats = calculatePlayerStats(logs);
+        const mappedLogs = logs.map((l) => ({ ...l, playerId: "player1" }));
+        const stats = calculatePlayerStats(mappedLogs, "player1");
 
         expect(stats.calculated.slg).toBe("1.750");
         expect(stats.calculated.obp).toBe(".750");
@@ -835,7 +838,8 @@ describe("calculatePlayerStats", () => {
         // SF = sacrifice_fly (0 AB, 1 SF)
         // Total: AB: 5, Hits: 4, BB: 1, SF: 1, RBI: 2, K: 1
 
-        const stats = calculatePlayerStats(logs);
+        const mappedLogs = logs.map((l) => ({ ...l, playerId: "player1" }));
+        const stats = calculatePlayerStats(mappedLogs, "player1");
 
         expect(stats.ab).toBe(5);
         expect(stats.hits).toBe(4);
@@ -857,7 +861,8 @@ describe("calculatePlayerStats", () => {
         ];
         const logs = outTypes.map((type) => ({ eventType: type }));
 
-        const stats = calculatePlayerStats(logs);
+        const mappedLogs = logs.map((l) => ({ ...l, playerId: "player1" }));
+        const stats = calculatePlayerStats(mappedLogs, "player1");
 
         expect(stats.ab).toBe(5);
         expect(stats.details.Outs).toBe(5);
@@ -867,7 +872,8 @@ describe("calculatePlayerStats", () => {
     it("should handle error and fielders_choice database values", () => {
         const logs = [{ eventType: "error" }, { eventType: "fielders_choice" }];
 
-        const stats = calculatePlayerStats(logs);
+        const mappedLogs = logs.map((l) => ({ ...l, playerId: "player1" }));
+        const stats = calculatePlayerStats(mappedLogs, "player1");
 
         expect(stats.ab).toBe(2);
         expect(stats.details.E).toBe(1);
@@ -883,10 +889,34 @@ describe("calculatePlayerStats", () => {
                 baseState: { isOpponent: true },
             },
         ];
-        const stats = calculatePlayerStats(logs);
+        const mappedLogs = logs.map((l) => ({ ...l, playerId: "player1" }));
+        const stats = calculatePlayerStats(mappedLogs, "player1");
         expect(stats.ab).toBe(1);
         expect(stats.hits).toBe(1);
         expect(stats.rbi).toBe(0);
+    });
+
+    it("should correctly credit runs to players but not add plate appearances if they only scored", () => {
+        const logs = [
+            // Opponent play where player1 scored (not batter)
+            {
+                playerId: "player2",
+                eventType: "single",
+                rbi: 1,
+                baseState: JSON.stringify({ scored: ["player1"] }),
+            },
+            // Player1's own at-bat where they also scored
+            {
+                playerId: "player1",
+                eventType: "single",
+                rbi: 0,
+                scored: ["player1"],
+            },
+        ];
+        const stats = calculatePlayerStats(logs, "player1");
+        expect(stats.ab).toBe(1);
+        expect(stats.hits).toBe(1);
+        expect(stats.runs).toBe(2);
     });
 
     it("should skip injury_auto_out and INJURY_REMOVE events", () => {
@@ -895,7 +925,8 @@ describe("calculatePlayerStats", () => {
             { eventType: "injury_auto_out", rbi: 0 },
             { eventType: "INJURY_REMOVE", rbi: 0 },
         ];
-        const stats = calculatePlayerStats(logs);
+        const mappedLogs = logs.map((l) => ({ ...l, playerId: "player1" }));
+        const stats = calculatePlayerStats(mappedLogs, "player1");
         expect(stats.ab).toBe(1);
         expect(stats.hits).toBe(1);
     });
