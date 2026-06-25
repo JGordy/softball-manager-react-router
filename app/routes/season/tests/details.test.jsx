@@ -4,6 +4,7 @@ import { render, screen } from "@/utils/test-utils";
 import { updateSeason } from "@/actions/seasons";
 import { getSeasonById } from "@/loaders/seasons";
 import { getParkById } from "@/loaders/parks";
+import { mockContext } from "@/utils/mockContext";
 
 import SeasonDetails, { loader, action } from "../details";
 
@@ -106,6 +107,7 @@ describe("SeasonDetails Route", () => {
             const result = await loader({
                 params: { seasonId: "season-123" },
                 request: {},
+                context: mockContext,
             });
 
             expect(getSeasonById).toHaveBeenCalledWith({
@@ -135,6 +137,7 @@ describe("SeasonDetails Route", () => {
                     body: formData,
                 }),
                 params: { seasonId: "season-123" },
+                context: mockContext,
             });
 
             expect(updateSeason).toHaveBeenCalledWith({

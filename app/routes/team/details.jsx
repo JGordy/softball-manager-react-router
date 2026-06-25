@@ -1,5 +1,4 @@
 import { useOutletContext } from "react-router";
-
 import { Box, Container, Group, Text, Title } from "@mantine/core";
 
 import images from "@/constants/images";
@@ -24,12 +23,11 @@ import { getTeamById } from "@/loaders/teams";
 
 import { useResponseNotification } from "@/utils/showNotification";
 
-import { createSessionClient } from "@/utils/appwrite/server";
-
 import TeamMenu from "./components/TeamMenu";
 import MobileTeamDetails from "./components/MobileTeamDetails";
 import DesktopTeamDetails from "./components/DesktopTeamDetails";
 import OnboardingTour from "@/components/OnboardingTour";
+import { appwriteClientContext } from "@/contexts/router";
 import { getTeamDetailsSteps } from "./utils/onboardingSteps";
 
 export function links() {
@@ -37,13 +35,13 @@ export function links() {
     return [{ rel: "preload", href: fieldSrc, as: "image" }];
 }
 
-export async function loader({ params, request }) {
+export async function loader({ params, context }) {
     const { teamId } = params;
-    const client = await createSessionClient(request);
+    const client = context.get(appwriteClientContext);
     return getTeamById({ teamId, client });
 }
 
-export async function action({ request, params }) {
+export async function action({ request, params, context }) {
     const { teamId } = params;
     const contentType =
         request.headers && typeof request.headers.get === "function"
@@ -65,7 +63,7 @@ export async function action({ request, params }) {
         values = sanitizedValues;
     }
 
-    const client = await createSessionClient(request);
+    const client = context.get(appwriteClientContext);
 
     if (_action === "add-player") {
         return createPlayer({ values, teamId, client });
