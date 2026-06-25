@@ -2,6 +2,7 @@ import { redirect } from "react-router";
 
 import { createSessionClient } from "@/utils/appwrite/server";
 import { isMobileUserAgent } from "@/utils/device";
+import { mockContext } from "@/utils/mockContext";
 
 import { redirectIfAuthenticated } from "../redirectIfAuthenticated";
 
@@ -18,61 +19,66 @@ jest.mock("@/utils/device", () => ({
 }));
 
 describe("redirectIfAuthenticated", () => {
-    let mockAccount;
+    let localMockContext;
+    let mockUser = { $id: "user-123" };
+    let request;
 
     beforeEach(() => {
-        mockAccount = {
-            get: jest.fn(),
-        };
-        createSessionClient.mockResolvedValue({ account: mockAccount });
+        mockUser = { $id: "user-123" };
         jest.clearAllMocks();
+
+        localMockContext = {
+            get: jest.fn((ctx) => {
+                if (
+                    ctx === "userContext" ||
+                    String(ctx).includes("userContext")
+                ) {
+                    return mockUser;
+                }
+                return {
+                    account: { get: jest.fn().mockResolvedValue(mockUser) },
+                };
+            }),
+        };
+        request = new Request("http://localhost/login");
     });
 
     it("returns null if no active session", async () => {
-        mockAccount.get.mockRejectedValue(new Error("No session"));
-        const request = new Request("http://localhost/login");
+        mockUser = null;
 
-        const result = await redirectIfAuthenticated(request);
+        const result = await redirectIfAuthenticated(request, localMockContext);
 
         expect(result).toBeNull();
     });
 
     it("redirects to / if authenticated on desktop", async () => {
-        mockAccount.get.mockResolvedValue({ $id: "user1" });
         isMobileUserAgent.mockReturnValue(false);
-        const request = new Request("http://localhost/login");
 
-        await redirectIfAuthenticated(request);
+        await redirectIfAuthenticated(request, localMockContext);
 
         expect(redirect).toHaveBeenCalledWith("/");
     });
 
     it("redirects to /dashboard if authenticated on mobile", async () => {
-        mockAccount.get.mockResolvedValue({ $id: "user1" });
         isMobileUserAgent.mockReturnValue(true);
-        const request = new Request("http://localhost/login");
 
-        await redirectIfAuthenticated(request);
+        await redirectIfAuthenticated(request, localMockContext);
 
         expect(redirect).toHaveBeenCalledWith("/dashboard");
     });
 
     it("redirects to custom path if provided on mobile", async () => {
-        mockAccount.get.mockResolvedValue({ $id: "user1" });
         isMobileUserAgent.mockReturnValue(true);
-        const request = new Request("http://localhost/login");
 
-        await redirectIfAuthenticated(request, "/profile");
+        await redirectIfAuthenticated(request, localMockContext, "/profile");
 
         expect(redirect).toHaveBeenCalledWith("/profile");
     });
 
     it("redirects to custom path if provided on desktop", async () => {
-        mockAccount.get.mockResolvedValue({ $id: "user1" });
         isMobileUserAgent.mockReturnValue(false);
-        const request = new Request("http://localhost/login");
 
-        await redirectIfAuthenticated(request, "/profile");
+        await redirectIfAuthenticated(request, localMockContext, "/profile");
 
         expect(redirect).toHaveBeenCalledWith("/profile");
     });

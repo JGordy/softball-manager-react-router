@@ -22,8 +22,8 @@ export function meta() {
     ];
 }
 
-export async function loader({ request }) {
-    return await redirectIfAuthenticated(request);
+export async function loader({ request, context }) {
+    return await redirectIfAuthenticated(request, context);
 }
 
 export async function action({ request }) {
