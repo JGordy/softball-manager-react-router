@@ -6,14 +6,13 @@
  * This endpoint is secured and only allows sending a test notification to the authenticated user.
  */
 
-import { createSessionClient } from "@/utils/appwrite/server";
+import { userContext } from "@/contexts/router";
 import { sendPushNotification } from "@/actions/notifications";
 
-export async function action({ request }) {
+export async function action({ request, context }) {
     try {
         // Get the current user
-        const { account } = await createSessionClient(request);
-        const user = await account.get();
+        const user = context.get(userContext);
 
         if (!user) {
             return Response.json(

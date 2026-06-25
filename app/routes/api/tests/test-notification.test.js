@@ -1,18 +1,38 @@
 import { createSessionClient } from "@/utils/appwrite/server";
 import { sendPushNotification } from "@/actions/notifications";
-
 import { action } from "../test-notification";
 
 jest.mock("@/utils/appwrite/server");
 jest.mock("@/actions/notifications");
 
 describe("test-notification API action", () => {
-    const mockUser = { $id: "user-123" };
-    const mockAccount = { get: jest.fn().mockResolvedValue(mockUser) };
+    let mockUser = { $id: "user-123" };
+    let mockClient = {
+        account: { get: jest.fn() },
+        databases: {
+            listDocuments: jest.fn(),
+            createDocument: jest.fn(),
+            updateDocument: jest.fn(),
+        },
+    };
+    let localMockContext;
 
     beforeEach(() => {
         jest.clearAllMocks();
-        createSessionClient.mockResolvedValue({ account: mockAccount });
+        mockUser = { $id: "user-123" };
+
+        localMockContext = {
+            get: jest.fn((ctx) => {
+                if (
+                    ctx === "userContext" ||
+                    String(ctx).includes("userContext")
+                ) {
+                    return mockUser;
+                }
+                return mockClient;
+            }),
+        };
+        createSessionClient.mockResolvedValue(mockClient);
     });
 
     it("sends push notification if user is authenticated", async () => {
@@ -21,7 +41,7 @@ describe("test-notification API action", () => {
         const request = new Request("http://localhost/api/test-notification", {
             method: "POST",
         });
-        const response = await action({ request });
+        const response = await action({ request, context: localMockContext });
         const data = await response.json();
 
         expect(data.success).toBe(true);
@@ -34,15 +54,15 @@ describe("test-notification API action", () => {
     });
 
     it("returns 401 if not authenticated", async () => {
-        createSessionClient.mockRejectedValue(new Error("Unauthorized"));
+        mockUser = null;
 
         const request = new Request("http://localhost/api/test-notification", {
             method: "POST",
         });
-        const response = await action({ request });
+        const response = await action({ request, context: localMockContext });
         const data = await response.json();
 
-        expect(response.status).toBe(500); // Because of the catch block in the action
-        expect(data.error).toBe("Unauthorized");
+        expect(response.status).toBe(401);
+        expect(data.error).toBe("Not authenticated");
     });
 });

@@ -1,4 +1,4 @@
-import { createSessionClient } from "@/utils/appwrite/server";
+import { appwriteClientContext, userContext } from "@/contexts/router";
 import { updateUserPrefs } from "@/actions/users";
 
 /**
@@ -10,7 +10,7 @@ import { updateUserPrefs } from "@/actions/users";
  * @param {Request} context.request - The incoming request.
  * @returns {Promise<Response>} JSON response indicating success or failure.
  */
-export async function action({ request }) {
+export async function action({ request, context }) {
     if (request.method !== "POST") {
         return Response.json({ error: "Method not allowed" }, { status: 405 });
     }
@@ -23,17 +23,10 @@ export async function action({ request }) {
             ...values
         } = Object.fromEntries(formData);
 
-        let client;
-        try {
-            client = await createSessionClient(request);
-            const user = await client.account.get();
-            if (!user) {
-                return Response.json(
-                    { error: "Unauthorized" },
-                    { status: 401 },
-                );
-            }
-        } catch {
+        const client = context.get(appwriteClientContext);
+        const user = context.get(userContext);
+
+        if (!client || !user) {
             return Response.json({ error: "Unauthorized" }, { status: 401 });
         }
 

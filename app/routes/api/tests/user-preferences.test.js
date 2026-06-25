@@ -1,6 +1,7 @@
 import { action } from "../user-preferences";
 import { createSessionClient } from "@/utils/appwrite/server";
 import { updateUserPrefs } from "@/actions/users";
+import { mockContext } from "@/utils/mockContext";
 
 jest.mock("@/utils/appwrite/server", () => ({
     createSessionClient: jest.fn(),
@@ -11,9 +12,27 @@ jest.mock("@/actions/users", () => ({
 }));
 
 describe("user-preferences API", () => {
+    let localMockContext;
+    let mockClient;
+    let mockUser = { $id: "user1" };
+
     beforeEach(() => {
+        mockUser = { $id: "user1" };
         jest.clearAllMocks();
         jest.spyOn(console, "error").mockImplementation(() => {});
+
+        localMockContext = {
+            get: jest.fn((ctx) => {
+                if (
+                    ctx &&
+                    (ctx.name === "userContext" ||
+                        String(ctx).includes("userContext"))
+                ) {
+                    return mockUser;
+                }
+                return mockClient;
+            }),
+        };
     });
 
     afterEach(() => {
@@ -25,7 +44,7 @@ describe("user-preferences API", () => {
             method: "GET",
         });
 
-        const response = await action({ request });
+        const response = await action({ request, context: localMockContext });
         const data = await response.json();
 
         expect(response.status).toBe(405);
@@ -34,7 +53,7 @@ describe("user-preferences API", () => {
 
     it("should successfully execute updateUserPrefs when action is update-user-preferences", async () => {
         const mockGet = jest.fn().mockResolvedValue({ $id: "user1" });
-        const mockClient = { account: { get: mockGet } };
+        mockClient = { account: { get: mockGet } };
         createSessionClient.mockResolvedValue(mockClient);
 
         const mockResult = {
@@ -54,7 +73,7 @@ describe("user-preferences API", () => {
             body: formData,
         });
 
-        const response = await action({ request });
+        const response = await action({ request, context: localMockContext });
         const data = await response.json();
 
         expect(response.status).toBe(200);
@@ -63,8 +82,6 @@ describe("user-preferences API", () => {
             status: 200,
             message: "Preferences updated successfully.",
         });
-        expect(createSessionClient).toHaveBeenCalledWith(request);
-        expect(mockGet).toHaveBeenCalled();
         expect(updateUserPrefs).toHaveBeenCalledWith({
             values: { onboardingTours: '{"team_details":true}' },
             client: mockClient,
@@ -72,10 +89,11 @@ describe("user-preferences API", () => {
     });
 
     it("should return 401 if user is not authenticated or account.get throws", async () => {
+        mockUser = null;
         const mockGet = jest
             .fn()
             .mockRejectedValue(new Error("Unauthenticated"));
-        const mockClient = { account: { get: mockGet } };
+        mockClient = { account: { get: mockGet } };
         createSessionClient.mockResolvedValue(mockClient);
 
         const formData = new FormData();
@@ -86,7 +104,7 @@ describe("user-preferences API", () => {
             body: formData,
         });
 
-        const response = await action({ request });
+        const response = await action({ request, context: localMockContext });
         const data = await response.json();
 
         expect(response.status).toBe(401);
@@ -95,7 +113,7 @@ describe("user-preferences API", () => {
 
     it("should return 400 if action name is invalid", async () => {
         const mockGet = jest.fn().mockResolvedValue({ $id: "user1" });
-        const mockClient = { account: { get: mockGet } };
+        mockClient = { account: { get: mockGet } };
         createSessionClient.mockResolvedValue(mockClient);
 
         const formData = new FormData();
@@ -106,7 +124,7 @@ describe("user-preferences API", () => {
             body: formData,
         });
 
-        const response = await action({ request });
+        const response = await action({ request, context: localMockContext });
         const data = await response.json();
 
         expect(response.status).toBe(400);
@@ -125,7 +143,7 @@ describe("user-preferences API", () => {
             new Error("Form data error"),
         );
 
-        const response = await action({ request });
+        const response = await action({ request, context: localMockContext });
         const data = await response.json();
 
         expect(response.status).toBe(500);

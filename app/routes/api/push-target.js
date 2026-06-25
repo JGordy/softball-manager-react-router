@@ -10,14 +10,14 @@ import {
     subscribeToAllTeams,
 } from "@/actions/notifications";
 
-import { createSessionClient } from "@/utils/appwrite/server";
+import { appwriteClientContext } from "@/contexts/router";
 
 /**
  * POST: Create a new push target
  * DELETE: Remove an existing push target
  */
 
-export async function loader({ request }) {
+export async function loader({ request, context }) {
     // GET: Verify if a push target exists for the current user and targetId
     const url = new URL(request.url);
     const targetId = url.searchParams.get("targetId");
@@ -26,7 +26,12 @@ export async function loader({ request }) {
         return Response.json({ error: "Missing targetId" }, { status: 400 });
     }
     try {
-        const sessionClient = await createSessionClient(request);
+        const sessionClient = context.get(appwriteClientContext);
+
+        if (!sessionClient) {
+            return Response.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
         const target = await getPushTarget({ client: sessionClient, targetId });
 
         if (!target) {
@@ -41,12 +46,16 @@ export async function loader({ request }) {
     }
 }
 
-export async function action({ request }) {
+export async function action({ request, context }) {
     const method = request.method;
     try {
+        const sessionClient = context.get(appwriteClientContext);
+        if (!sessionClient) {
+            return Response.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
         if (method === "POST") {
             const { fcmToken, providerId } = await request.json();
-            const sessionClient = await createSessionClient(request);
 
             const target = await createPushTarget({
                 client: sessionClient,
@@ -76,7 +85,6 @@ export async function action({ request }) {
 
         if (method === "DELETE") {
             const { targetId } = await request.json();
-            const sessionClient = await createSessionClient(request);
 
             await deletePushTarget({ client: sessionClient, targetId });
 

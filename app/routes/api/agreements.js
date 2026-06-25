@@ -1,17 +1,16 @@
 import { updateUser } from "@/actions/users";
-import { createSessionClient } from "@/utils/appwrite/server";
+import { userContext, appwriteClientContext } from "@/contexts/router";
 
-export async function action({ request }) {
+export async function action({ request, context }) {
     if (request.method !== "POST") {
         return Response.json({ error: "Method not allowed" }, { status: 405 });
     }
 
     try {
-        const sessionClient = await createSessionClient(request);
-        const { account } = sessionClient;
-        const user = await account.get();
+        const sessionClient = context.get(appwriteClientContext);
+        const user = context.get(userContext);
 
-        if (!user) {
+        if (!user || !sessionClient) {
             return Response.json({ error: "Unauthorized" }, { status: 401 });
         }
 

@@ -1,17 +1,15 @@
 import { getStatsByUserId } from "@/loaders/users";
-import { createSessionClient } from "@/utils/appwrite/server";
+import { userContext, appwriteClientContext } from "@/contexts/router";
 
-export async function loader({ request }) {
-    const sessionClient = await createSessionClient(request);
-    const { account } = sessionClient;
-    let userId;
+export async function loader({ context }) {
+    const sessionClient = context.get(appwriteClientContext);
+    const user = context.get(userContext);
 
-    try {
-        const user = await account.get();
-        userId = user.$id;
-    } catch (_error) {
+    if (!user || !sessionClient) {
         return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const userId = user.$id;
 
     try {
         const stats = await getStatsByUserId({ userId, client: sessionClient });

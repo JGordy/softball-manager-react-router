@@ -1,6 +1,7 @@
 import { loader } from "../stats";
 import { getStatsByUserId } from "@/loaders/users";
 import { createSessionClient } from "@/utils/appwrite/server";
+import { mockContext } from "@/utils/mockContext";
 
 // Mock the user loader
 jest.mock("@/loaders/users", () => ({
@@ -13,6 +14,9 @@ jest.mock("@/utils/appwrite/server", () => ({
 
 describe("stats API", () => {
     let mockAccount;
+    let localMockContext;
+    let mockClient;
+    let mockUser;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -23,9 +27,21 @@ describe("stats API", () => {
             get: jest.fn(),
         };
 
-        createSessionClient.mockResolvedValue({
-            account: mockAccount,
-        });
+        mockClient = { account: mockAccount };
+        mockUser = { $id: "123" };
+
+        localMockContext = {
+            get: jest.fn((ctx) => {
+                if (
+                    ctx === "userContext" ||
+                    String(ctx).includes("userContext") ||
+                    (ctx && ctx.name === "userContext")
+                ) {
+                    return mockUser;
+                }
+                return mockClient;
+            }),
+        };
     });
 
     afterEach(() => {
@@ -34,10 +50,13 @@ describe("stats API", () => {
 
     describe("loader (GET)", () => {
         it("should return 401 if user is not logged in", async () => {
-            mockAccount.get.mockRejectedValue(new Error("Unauthorized"));
+            mockUser = null;
 
             const request = new Request("http://localhost/api/stats");
-            const response = await loader({ request });
+            const response = await loader({
+                request,
+                context: localMockContext,
+            });
 
             expect(response.status).toBe(401);
             const data = await response.json();
@@ -45,7 +64,7 @@ describe("stats API", () => {
         });
 
         it("should return the stats for the logged in user", async () => {
-            mockAccount.get.mockResolvedValue({ $id: "123" });
+            mockUser = { $id: "123" };
             const mockStats = {
                 logs: [{ id: 1 }],
                 games: [],
@@ -54,7 +73,10 @@ describe("stats API", () => {
             getStatsByUserId.mockResolvedValue(mockStats);
 
             const request = new Request("http://localhost/api/stats");
-            const response = await loader({ request });
+            const response = await loader({
+                request,
+                context: localMockContext,
+            });
 
             expect(response.status).toBe(200);
             const data = await response.json();
@@ -66,11 +88,14 @@ describe("stats API", () => {
         });
 
         it("should return 500 if getting stats fails", async () => {
-            mockAccount.get.mockResolvedValue({ $id: "123" });
+            mockUser = { $id: "123" };
             getStatsByUserId.mockRejectedValue(new Error("Database error"));
 
             const request = new Request("http://localhost/api/stats");
-            const response = await loader({ request });
+            const response = await loader({
+                request,
+                context: localMockContext,
+            });
 
             expect(response.status).toBe(500);
             const data = await response.json();
