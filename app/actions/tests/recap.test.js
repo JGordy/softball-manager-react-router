@@ -2,6 +2,8 @@ import { generateGameRecapBackground } from "../recap";
 import { readDocument, listDocuments, updateDocument } from "@/utils/databases";
 import { createModel, generateContent } from "@/utils/ai";
 import { Query } from "node-appwrite";
+import { getWeatherData } from "@/utils/weather";
+import getGameDateWeather from "@/routes/events/utils/getGameDateWeather";
 
 // Mock dependencies
 jest.mock("@/utils/databases", () => ({
@@ -14,6 +16,12 @@ jest.mock("@/utils/ai", () => ({
     createModel: jest.fn(),
     generateContent: jest.fn(),
 }));
+
+jest.mock("@/utils/weather", () => ({
+    getWeatherData: jest.fn(),
+}));
+
+jest.mock("@/routes/events/utils/getGameDateWeather", () => jest.fn());
 
 describe("generateGameRecapBackground Action", () => {
     const mockClient = { tablesDB: { id: "mock-client-db" } };
@@ -73,6 +81,7 @@ describe("generateGameRecapBackground Action", () => {
             opponentScore: "4",
             result: "won",
             gameDate: "2026-05-22",
+            parkId: "park789",
         };
         readDocument.mockResolvedValueOnce(mockGame); // Game fetch
 
@@ -82,6 +91,15 @@ describe("generateGameRecapBackground Action", () => {
             name: "Viper Elite",
         };
         readDocument.mockResolvedValueOnce(mockTeam); // Team fetch
+
+        // Mock park fetch
+        const mockPark = {
+            $id: "park789",
+            city: "Atlanta",
+            state: "GA",
+            formattedAddress: "123 Softball Field, Atlanta, GA",
+        };
+        readDocument.mockResolvedValueOnce(mockPark); // Park fetch
 
         // Mock game logs
         const mockLogs = {
@@ -104,6 +122,22 @@ describe("generateGameRecapBackground Action", () => {
             ],
         };
         listDocuments.mockResolvedValueOnce(mockLogs); // Logs fetch
+
+        // Mock weather data
+        getWeatherData.mockResolvedValueOnce({
+            hourly: [
+                {
+                    temperature: { degrees: 85 },
+                    weatherCondition: { description: { text: "Sunny" } },
+                },
+            ],
+        });
+        getGameDateWeather.mockReturnValueOnce({
+            hourly: {
+                temperature: { degrees: 85 },
+                weatherCondition: { description: { text: "Sunny" } },
+            },
+        });
 
         // Mock AI model configuration and content generation
         const mockModel = { modelName: "gemini-3.5-flash", thinking: "medium" };
@@ -133,6 +167,13 @@ describe("generateGameRecapBackground Action", () => {
             [],
             mockClient,
         );
+        expect(readDocument).toHaveBeenNthCalledWith(
+            3,
+            "parks",
+            "park789",
+            [],
+            mockClient,
+        );
 
         expect(listDocuments).toHaveBeenCalledWith(
             "game_logs",
@@ -153,6 +194,10 @@ describe("generateGameRecapBackground Action", () => {
         expect(promptText).toContain(
             "Final Score: Viper Elite 12 - 4 Mud Dogs",
         );
+        expect(promptText).toContain(
+            "Location: 123 Softball Field, Atlanta, GA",
+        );
+        expect(promptText).toContain("Weather: 85°F, Sunny");
         expect(promptText).toContain("John Doe hits a solo home run");
 
         // Verify update document

@@ -5,6 +5,8 @@ import {
     readDocument,
     updateDocument,
 } from "@/utils/databases.js";
+import { getWeatherData } from "@/utils/weather.js";
+import getGameDateWeather from "@/routes/events/utils/getGameDateWeather.js";
 
 /**
  * Background action to generate a game recap using Gemini 3.5 Flash and write it to the games collection.
@@ -63,6 +65,8 @@ export async function generateGameRecapBackground({ eventId, client }) {
             opponentScore: game.opponentScore || "0",
             result: game.result || "unknown",
             date: game.gameDate || game.dateTime || "Unknown Date",
+            location: "Unknown Location",
+            weather: "Unknown Weather",
         };
 
         // Attempt to fetch actual team details for a friendlier recap name
@@ -85,6 +89,49 @@ export async function generateGameRecapBackground({ eventId, client }) {
             }
         }
 
+        // Attempt to fetch park and weather details
+        if (game.parkId) {
+            try {
+                const park = await readDocument(
+                    "parks",
+                    game.parkId,
+                    [],
+                    client,
+                );
+                if (park) {
+                    gameDetailsContext.location =
+                        park.formattedAddress ||
+                        [park.city, park.state].filter(Boolean).join(", ") ||
+                        "Unknown Location";
+
+                    const weatherData = await getWeatherData(
+                        game.parkId,
+                        game,
+                        client,
+                    );
+                    if (weatherData) {
+                        const { hourly } =
+                            getGameDateWeather(
+                                game.gameDate || game.dateTime,
+                                weatherData,
+                            ) || {};
+                        if (
+                            hourly &&
+                            hourly.temperature &&
+                            hourly.weatherCondition
+                        ) {
+                            gameDetailsContext.weather = `${Math.round(hourly.temperature.degrees)}°F, ${hourly.weatherCondition.description.text}`;
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn(
+                    "generateGameRecapBackground: Failed to fetch park or weather context, using default.",
+                    err.message,
+                );
+            }
+        }
+
         // Format play-by-play narrative context into clean lines
         const playByPlayLines = logs.map((log) => {
             const inningInfo = `Inning ${log.inning} (${log.halfInning || "top"}):`;
@@ -102,6 +149,8 @@ Here are the details of the game:
 - Final Score: ${gameDetailsContext.teamName} ${gameDetailsContext.score} - ${gameDetailsContext.opponentScore} ${gameDetailsContext.opponent}
 - Result: ${gameDetailsContext.result.toUpperCase()}
 - Date: ${gameDetailsContext.date}
+- Location: ${gameDetailsContext.location}
+- Weather: ${gameDetailsContext.weather}
 
 Below is the chronological play-by-play log of the game:
 ${playByPlayLines.length > 0 ? playByPlayLines.join("\n") : "No plays were logged for this game."}
