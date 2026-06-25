@@ -1,13 +1,12 @@
 import { useOutletContext } from "react-router";
 import { getUserTeams } from "@/loaders/teams";
+import { appwriteClientContext } from "@/contexts/router";
 
 import MobileEvents from "./components/MobileEvents";
 import DesktopEvents from "./components/DesktopEvents";
 
-import { createSessionClient } from "@/utils/appwrite/server";
-
-export async function loader({ request }) {
-    const client = await createSessionClient(request);
+export async function loader({ context }) {
+    const client = context.get(appwriteClientContext);
     const { managing, playing, userId } = await getUserTeams({ client });
     return { userId, teams: { managing, playing } };
 }

@@ -7,6 +7,7 @@ import * as awardsActions from "@/actions/awards";
 import * as gamesLoaders from "@/loaders/games";
 import * as dateTimeUtils from "@/utils/dateTime";
 import * as modalHooks from "@/hooks/useModal";
+import { mockContext } from "@/utils/mockContext";
 
 import EventDetails, { loader, action } from "../details";
 
@@ -135,7 +136,7 @@ describe("EventDetails Route", () => {
         it("calls getEventById with correct params", async () => {
             const params = { eventId: "evt123" };
             const request = { url: "http://test.com" };
-            await loader({ params, request });
+            await loader({ params, request, context: mockContext });
             expect(gamesLoaders.getEventById).toHaveBeenCalledWith({
                 eventId: "evt123",
                 client: expect.any(Object),
@@ -152,6 +153,7 @@ describe("EventDetails Route", () => {
             await action({
                 request: { formData: () => Promise.resolve(formData) },
                 params: { eventId: "evt1" },
+                context: mockContext,
             });
 
             expect(gamesActions.updateGame).toHaveBeenCalledWith({
@@ -169,6 +171,7 @@ describe("EventDetails Route", () => {
             await action({
                 request,
                 params: { eventId: "evt1" },
+                context: mockContext,
             });
 
             expect(gamesActions.deleteGame).toHaveBeenCalledWith({
@@ -184,6 +187,7 @@ describe("EventDetails Route", () => {
             await action({
                 request: { formData: () => Promise.resolve(formData) },
                 params: { eventId: "evt1" },
+                context: mockContext,
             });
 
             expect(
@@ -202,6 +206,7 @@ describe("EventDetails Route", () => {
             await action({
                 request: { formData: () => Promise.resolve(formData) },
                 params: { eventId: "evt1" },
+                context: mockContext,
             });
 
             expect(awardsActions.sendAwardVotes).toHaveBeenCalledWith({
