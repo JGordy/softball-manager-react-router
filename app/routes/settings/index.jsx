@@ -13,16 +13,15 @@ import {
 
 import { logoutAction } from "@/actions/logout";
 
-import { createSessionClient } from "@/utils/appwrite/server";
-
 import UserHeader from "@/components/UserHeader";
+import { appwriteClientContext } from "@/contexts/router";
 
 import DesktopSettingsDashboard from "./components/DesktopSettingsDashboard";
 import MobileSettingsContainer from "./components/MobileSettingsContainer";
 
-export async function loader({ request }) {
+export async function loader({ context }) {
     try {
-        const { teams } = await createSessionClient(request);
+        const { teams } = context.get(appwriteClientContext);
         // Fetch all teams with pagination to avoid only loading the first page.
         const pageSize = 100;
         const allTeams = [];
@@ -57,10 +56,10 @@ export async function loader({ request }) {
     }
 }
 
-export async function action({ request }) {
+export async function action({ request, context }) {
     const formData = await request.formData();
     const { _action, userId, ...values } = Object.fromEntries(formData);
-    const client = await createSessionClient(request);
+    const client = context.get(appwriteClientContext);
 
     if (_action === "logout") {
         return logoutAction({ client });

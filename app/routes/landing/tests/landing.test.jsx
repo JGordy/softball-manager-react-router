@@ -8,6 +8,7 @@ import { render, screen } from "@/utils/test-utils";
 import { logoutAction } from "@/actions/logout";
 import { createSessionClient } from "@/utils/appwrite/server";
 import { isMobileUserAgent } from "@/utils/device";
+import { mockContext } from "@/utils/mockContext";
 
 import Landing, { loader, action } from "../landing";
 
@@ -101,17 +102,20 @@ describe("Landing Route", () => {
     describe("loader", () => {
         it("returns isAuthenticated true if session exists", async () => {
             isMobileUserAgent.mockReturnValue(false);
-            createSessionClient.mockResolvedValue({
-                account: {
-                    get: jest
-                        .fn()
-                        .mockResolvedValue({ $id: "user-123", labels: [] }),
-                },
-            });
+            const localMockContext = {
+                get: jest.fn(() => ({
+                    account: {
+                        get: jest
+                            .fn()
+                            .mockResolvedValue({ $id: "user-123", labels: [] }),
+                    },
+                })),
+            };
 
             await expect(
                 loader({
                     request: new Request("http://localhost/"),
+                    context: localMockContext,
                 }),
             ).rejects.toMatchObject({
                 status: 302,
@@ -121,19 +125,22 @@ describe("Landing Route", () => {
 
         it("redirects to custom startingPage if session exists", async () => {
             isMobileUserAgent.mockReturnValue(false);
-            createSessionClient.mockResolvedValue({
-                account: {
-                    get: jest.fn().mockResolvedValue({
-                        $id: "user-123",
-                        labels: [],
-                        prefs: { startingPage: "/events" },
-                    }),
-                },
-            });
+            const localMockContext = {
+                get: jest.fn(() => ({
+                    account: {
+                        get: jest.fn().mockResolvedValue({
+                            $id: "user-123",
+                            labels: [],
+                            prefs: { startingPage: "/events" },
+                        }),
+                    },
+                })),
+            };
 
             await expect(
                 loader({
                     request: new Request("http://localhost/"),
+                    context: localMockContext,
                 }),
             ).rejects.toMatchObject({
                 status: 302,
@@ -143,19 +150,24 @@ describe("Landing Route", () => {
 
         it("redirects to /dashboard if startingPage preference is unsafe", async () => {
             isMobileUserAgent.mockReturnValue(false);
-            createSessionClient.mockResolvedValue({
-                account: {
-                    get: jest.fn().mockResolvedValue({
-                        $id: "user-123",
-                        labels: [],
-                        prefs: { startingPage: "https://malicious-site.com" },
-                    }),
-                },
-            });
+            const localMockContext = {
+                get: jest.fn(() => ({
+                    account: {
+                        get: jest.fn().mockResolvedValue({
+                            $id: "user-123",
+                            labels: [],
+                            prefs: {
+                                startingPage: "https://malicious-site.com",
+                            },
+                        }),
+                    },
+                })),
+            };
 
             await expect(
                 loader({
                     request: new Request("http://localhost/"),
+                    context: localMockContext,
                 }),
             ).rejects.toMatchObject({
                 status: 302,
@@ -165,14 +177,19 @@ describe("Landing Route", () => {
 
         it("returns isAuthenticated false if session check fails", async () => {
             isMobileUserAgent.mockReturnValue(false);
-            createSessionClient.mockResolvedValue({
-                account: {
-                    get: jest.fn().mockRejectedValue(new Error("Unauthorized")),
-                },
-            });
+            const localMockContext = {
+                get: jest.fn(() => ({
+                    account: {
+                        get: jest
+                            .fn()
+                            .mockRejectedValue(new Error("Unauthorized")),
+                    },
+                })),
+            };
 
             const result = await loader({
                 request: new Request("http://localhost/"),
+                context: localMockContext,
             });
             expect(result).toEqual({
                 isAuthenticated: false,
@@ -186,6 +203,7 @@ describe("Landing Route", () => {
         it("calls logoutAction", async () => {
             await action({
                 request: new Request("http://localhost/?redirect=/login"),
+                context: mockContext,
             });
             expect(logoutAction).toHaveBeenCalled();
         });
