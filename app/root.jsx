@@ -46,6 +46,7 @@ import { usePushNotificationListener } from "@/hooks/usePushNotificationListener
 import { NotificationsProvider } from "@/context/NotificationsContext";
 
 import { createSessionClient } from "@/utils/appwrite/server";
+import { userContext, appwriteClientContext } from "@/contexts/router";
 import UmamiTracker from "@/components/UmamiTracker";
 
 import theme from "./theme";
@@ -107,6 +108,36 @@ export const links = () => [
         type: "image/png",
         sizes: "192x192",
         href: "/android-chrome-icon192x192.png",
+    },
+];
+
+export const middleware = [
+    async ({ request, context }, next) => {
+        try {
+            const sessionClient = await createSessionClient(request);
+            const { account } = sessionClient;
+
+            // Inject sessionClient into context
+            context.set(appwriteClientContext, sessionClient);
+
+            let user = null;
+            try {
+                user = await account.get();
+            } catch (_error) {
+                // User is not authenticated
+            }
+
+            // Inject user into context
+            context.set(userContext, user);
+        } catch (error) {
+            // Log critical errors during middleware auth setup
+            console.error("Root middleware - Auth setup failure:", error);
+            context.set(appwriteClientContext, null);
+            context.set(userContext, null);
+        }
+
+        // Continue down the middleware chain to loaders/actions
+        await next();
     },
 ];
 
