@@ -2,6 +2,7 @@ import { render, screen } from "@/utils/test-utils";
 import * as gamesLoaders from "@/loaders/games";
 import * as lineupsActions from "@/actions/lineups";
 import * as addPlayerAvailability from "@/utils/addPlayerAvailability";
+import { mockContext } from "@/utils/mockContext";
 import * as validateLineupUtils from "../utils/validateLineup";
 
 import Lineup, { loader, action } from "../lineup";
@@ -88,7 +89,7 @@ describe("Lineup Route", () => {
         it("calls getEventWithPlayerCharts with correct params", async () => {
             const params = { eventId: "evt123" };
             const request = { url: "http://test.com" };
-            await loader({ params, request });
+            await loader({ params, request, context: mockContext });
             expect(gamesLoaders.getEventWithPlayerCharts).toHaveBeenCalledWith({
                 eventId: "evt123",
                 client: expect.any(Object),
@@ -106,6 +107,7 @@ describe("Lineup Route", () => {
             await action({
                 request: { formData: () => Promise.resolve(formData) },
                 params: { eventId: "evt1" },
+                context: mockContext,
             });
 
             expect(lineupsActions.savePlayerChart).toHaveBeenCalledWith({
@@ -126,6 +128,7 @@ describe("Lineup Route", () => {
             await action({
                 request: { formData: () => Promise.resolve(formData) },
                 params: { eventId: "evt1" },
+                context: mockContext,
             });
 
             expect(lineupsActions.savePlayerChart).toHaveBeenCalledWith({
@@ -145,6 +148,7 @@ describe("Lineup Route", () => {
             const result = await action({
                 request: { formData: () => Promise.resolve(formData) },
                 params: { eventId: "evt1" },
+                context: mockContext,
             });
 
             expect(result.status).toBe(400);
@@ -161,6 +165,7 @@ describe("Lineup Route", () => {
             await action({
                 request: { formData: () => Promise.resolve(formData) },
                 params: { eventId: "evt1" },
+                context: mockContext,
             });
 
             expect(lineupsActions.savePlayerChart).toHaveBeenCalledWith({
@@ -179,6 +184,7 @@ describe("Lineup Route", () => {
             const result = await action({
                 request: { formData: () => Promise.resolve(formData) },
                 params: { eventId: "evt1" },
+                context: mockContext,
             });
 
             expect(result.status).toBe(400);
@@ -202,6 +208,7 @@ describe("Lineup Route", () => {
             await action({
                 request: { formData: () => Promise.resolve(formData) },
                 params: { eventId: "evt1" },
+                context: mockContext,
             });
 
             expect(gamesLoaders.getEventById).toHaveBeenCalledWith(
@@ -232,6 +239,7 @@ describe("Lineup Route", () => {
             const result = await action({
                 request: { formData: () => Promise.resolve(formData) },
                 params: { eventId: "evt1" },
+                context: mockContext,
             });
 
             expect(result.status).toBe(404);

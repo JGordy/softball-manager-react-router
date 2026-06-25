@@ -2,6 +2,7 @@ import { Query } from "node-appwrite";
 
 import { listDocuments, updateDocument } from "@/utils/databases";
 import { createModel, generateContentStream } from "@/utils/ai";
+import { mockContext } from "@/utils/mockContext";
 
 import { action } from "../lineup";
 
@@ -98,7 +99,10 @@ describe("lineup generation action", () => {
     describe("Input Validation", () => {
         it("should return 400 if players array is missing", async () => {
             const req = createMockRequest({ players: null });
-            const response = await action({ request: req });
+            const response = await action({
+                request: req,
+                context: mockContext,
+            });
             const data = await response.json();
 
             expect(response.status).toBe(400);
@@ -107,7 +111,10 @@ describe("lineup generation action", () => {
 
         it("should return 400 if gameId is missing", async () => {
             const req = createMockRequest({ gameId: null });
-            const response = await action({ request: req });
+            const response = await action({
+                request: req,
+                context: mockContext,
+            });
             const data = await response.json();
 
             expect(response.status).toBe(400);
@@ -120,7 +127,10 @@ describe("lineup generation action", () => {
             });
 
             const req = createMockRequest();
-            const response = await action({ request: req });
+            const response = await action({
+                request: req,
+                context: mockContext,
+            });
             const data = await response.json();
 
             expect(response.status).toBe(403);
@@ -136,7 +146,7 @@ describe("lineup generation action", () => {
             listDocuments.mockResolvedValueOnce({ rows: [] });
 
             const req = createMockRequest();
-            await action({ request: req });
+            await action({ request: req, context: mockContext });
 
             expect(updateDocument).toHaveBeenCalledWith(
                 "games",
@@ -170,7 +180,10 @@ describe("lineup generation action", () => {
             // Mock updateDocument success for the increment
             updateDocument.mockResolvedValue({});
 
-            const response = await action({ request: req });
+            const response = await action({
+                request: req,
+                context: mockContext,
+            });
 
             // Expect failure response
             expect(response.status).toBe(500);
@@ -201,7 +214,10 @@ describe("lineup generation action", () => {
         it("should return 404 if game is not found", async () => {
             listDocuments.mockResolvedValueOnce({ rows: [] }); // Step 1: Get Game
 
-            const response = await action({ request: createMockRequest() });
+            const response = await action({
+                request: createMockRequest(),
+                context: mockContext,
+            });
             expect(response.status).toBe(404);
         });
 
@@ -210,7 +226,10 @@ describe("lineup generation action", () => {
                 rows: [{ $id: "g1", teamId: null }],
             });
 
-            const response = await action({ request: createMockRequest() });
+            const response = await action({
+                request: createMockRequest(),
+                context: mockContext,
+            });
             expect(response.status).toBe(404);
         });
     });
@@ -237,7 +256,7 @@ describe("lineup generation action", () => {
                 }) // History
                 .mockResolvedValueOnce({ rows: [] }); // Stats
 
-            await action({ request: req });
+            await action({ request: req, context: mockContext });
 
             const callArgs = generateContentStream.mock.calls[0][1];
             const inputData = JSON.parse(callArgs[1].text);
@@ -286,7 +305,7 @@ describe("lineup generation action", () => {
                     ],
                 });
 
-            await action({ request: req });
+            await action({ request: req, context: mockContext });
 
             const callArgs = generateContentStream.mock.calls[0][1];
             const inputData = JSON.parse(callArgs[1].text);
@@ -334,7 +353,10 @@ describe("lineup generation action", () => {
                 })
                 .mockRejectedValueOnce(new Error("Appwrite Error"));
 
-            const response = await action({ request: req });
+            const response = await action({
+                request: req,
+                context: mockContext,
+            });
             expect(response.status).toBe(200); // Process output even if logs fail
             expect(generateContentStream).toHaveBeenCalled();
         });
@@ -361,7 +383,10 @@ describe("lineup generation action", () => {
 
         it("should return a Responsive with a ReadableStream that iterates over content", async () => {
             const req = createMockRequest();
-            const response = await action({ request: req });
+            const response = await action({
+                request: req,
+                context: mockContext,
+            });
 
             // Verify response headers
             expect(response.status).toBe(200);
@@ -396,7 +421,10 @@ describe("lineup generation action", () => {
             });
 
             const req = createMockRequest();
-            const response = await action({ request: req });
+            const response = await action({
+                request: req,
+                context: mockContext,
+            });
             const body = response.body;
 
             const mockController = {
@@ -442,7 +470,10 @@ describe("lineup generation action", () => {
             });
 
             const req = createMockRequest();
-            const response = await action({ request: req });
+            const response = await action({
+                request: req,
+                context: mockContext,
+            });
             const body = response.body;
 
             const mockController = {

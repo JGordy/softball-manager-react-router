@@ -4,6 +4,7 @@ import { render, screen } from "@/utils/test-utils";
 import { getTeamById } from "@/loaders/teams";
 import { saveBattingOrder, saveFieldingPositions } from "@/actions/lineups";
 import { trackEvent } from "@/utils/analytics";
+import { mockContext } from "@/utils/mockContext";
 
 import TeamLineup, { loader, action } from "../lineup";
 
@@ -54,7 +55,7 @@ describe("TeamLineup Route", () => {
         it("calls getTeamById with correct params", async () => {
             const params = { teamId: "team1" };
             const request = { url: "http://localhost" };
-            await loader({ params, request });
+            await loader({ params, request, context: mockContext });
             expect(getTeamById).toHaveBeenCalledWith({
                 teamId: "team1",
                 client: expect.any(Object),
@@ -70,7 +71,7 @@ describe("TeamLineup Route", () => {
             const request = { formData: () => Promise.resolve(formData) };
             const params = { teamId: "team1" };
 
-            await action({ request, params });
+            await action({ request, params, context: mockContext });
             expect(saveBattingOrder).toHaveBeenCalledWith({
                 teamId: "team1",
                 values: { idealLineup: JSON.stringify({ lineup: ["p1"] }) },
@@ -85,7 +86,7 @@ describe("TeamLineup Route", () => {
             const request = { formData: () => Promise.resolve(formData) };
             const params = { teamId: "team1" };
 
-            await action({ request, params });
+            await action({ request, params, context: mockContext });
             expect(saveFieldingPositions).toHaveBeenCalledWith({
                 teamId: "team1",
                 values: { idealPositioning: JSON.stringify({ P: ["p1"] }) },

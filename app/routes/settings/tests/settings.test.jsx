@@ -4,6 +4,7 @@ import { render, screen } from "@/utils/test-utils";
 import { createSessionClient } from "@/utils/appwrite/server";
 import { logoutAction } from "@/actions/logout";
 import { updateUser, updateUserPrefs } from "@/actions/users";
+import { mockContext } from "@/utils/mockContext";
 
 import Settings, { loader, action } from "../index";
 
@@ -63,12 +64,15 @@ describe("Settings Route", () => {
                 })
                 .mockResolvedValueOnce({ teams: [{ $id: "team-101" }] });
 
-            createSessionClient.mockResolvedValue({
-                teams: { list: mockTeamsList },
-            });
+            const localMockContext = {
+                get: jest.fn(() => ({
+                    teams: { list: mockTeamsList },
+                })),
+            };
 
             const result = await loader({
                 request: new Request("http://localhost/"),
+                context: localMockContext,
             });
             expect(result.teams.length).toBe(101);
             expect(mockTeamsList).toHaveBeenCalledTimes(2);
@@ -84,6 +88,7 @@ describe("Settings Route", () => {
                     method: "POST",
                     body: formData,
                 }),
+                context: mockContext,
             });
             expect(logoutAction).toHaveBeenCalled();
         });
@@ -98,6 +103,7 @@ describe("Settings Route", () => {
                     method: "POST",
                     body: formData,
                 }),
+                context: mockContext,
             });
             expect(updateUser).toHaveBeenCalledWith({
                 userId: "user-123",
@@ -116,6 +122,7 @@ describe("Settings Route", () => {
                     method: "POST",
                     body: formData,
                 }),
+                context: mockContext,
             });
             expect(updateUserPrefs).toHaveBeenCalledWith({
                 values: { startingPage: "/events" },

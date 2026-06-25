@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef } from "react";
-
 import {
     Form,
     useLocation,
@@ -21,8 +20,6 @@ import { updatePlayerAttendance } from "@/actions/attendance";
 import { sendAwardVotes } from "@/actions/awards";
 import { getEventById } from "@/loaders/games";
 
-import { createSessionClient } from "@/utils/appwrite/server";
-
 import { getGameDayStatus } from "@/utils/dateTime";
 
 import useModal from "@/hooks/useModal";
@@ -38,14 +35,15 @@ import AvailabilityPromptDrawer from "./components/AvailabilityPromptDrawer";
 import AwardsDrawerContents from "./components/AwardsDrawerContents";
 import ShareUrlButton from "@/components/ShareUrlButton";
 import OnboardingTour from "@/components/OnboardingTour";
+import { appwriteClientContext } from "@/contexts/router";
 
 import { getEventDetailsSteps } from "./utils/onboardingSteps";
 
-export async function action({ request, params }) {
+export async function action({ request, params, context }) {
     const { eventId } = params;
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
-    const client = await createSessionClient(request);
+    const client = context.get(appwriteClientContext);
 
     if (_action === "update-game") {
         return updateGame({ eventId, values, client });
@@ -61,9 +59,9 @@ export async function action({ request, params }) {
     }
 }
 
-export async function loader({ params, request }) {
+export async function loader({ params, context }) {
     const { eventId } = params;
-    const client = await createSessionClient(request);
+    const client = context.get(appwriteClientContext);
 
     return await getEventById({ eventId, client });
 }

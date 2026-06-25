@@ -9,6 +9,7 @@ import * as seasonsActions from "@/actions/seasons";
 import * as teamsActions from "@/actions/teams";
 import * as invitationsActions from "@/actions/invitations";
 import { useResponseNotification } from "@/utils/showNotification";
+import { mockContext } from "@/utils/mockContext";
 
 import TeamDetails, { loader, action } from "../details";
 
@@ -99,7 +100,7 @@ describe("TeamDetails Route", () => {
         it("calls getTeamById with correct params", async () => {
             const params = { teamId: "team1" };
             const request = { url: "http://localhost/team/team1" };
-            await loader({ params, request });
+            await loader({ params, request, context: mockContext });
             expect(teamsLoaders.getTeamById).toHaveBeenCalledWith({
                 teamId: "team1",
                 client: expect.any(Object),
@@ -119,7 +120,7 @@ describe("TeamDetails Route", () => {
                 headers: { get: jest.fn() },
             };
 
-            await action({ request, params });
+            await action({ request, params, context: mockContext });
             expect(usersActions.createPlayer).toHaveBeenCalledWith(
                 expect.objectContaining({
                     values: expect.objectContaining({ name: "New Player" }),
@@ -138,7 +139,7 @@ describe("TeamDetails Route", () => {
                 headers: { get: jest.fn() },
             };
 
-            await action({ request, params });
+            await action({ request, params, context: mockContext });
             expect(teamsActions.updatePreferences).toHaveBeenCalledWith(
                 expect.objectContaining({
                     teamId: "team1",
@@ -158,7 +159,7 @@ describe("TeamDetails Route", () => {
                 headers: { get: jest.fn() },
             };
 
-            await action({ request, params });
+            await action({ request, params, context: mockContext });
             expect(invitationsActions.invitePlayersServer).toHaveBeenCalledWith(
                 {
                     players: [{ email: "test@test.com", name: "Test User" }],
@@ -178,7 +179,7 @@ describe("TeamDetails Route", () => {
                 headers: { get: jest.fn() },
             };
 
-            await action({ request, params });
+            await action({ request, params, context: mockContext });
             expect(seasonsActions.createSeason).toHaveBeenCalledWith(
                 expect.objectContaining({
                     values: expect.objectContaining({ name: "New Season" }),
@@ -197,7 +198,7 @@ describe("TeamDetails Route", () => {
                 headers: { get: jest.fn() },
             };
 
-            await action({ request, params });
+            await action({ request, params, context: mockContext });
             expect(teamsActions.updateTeam).toHaveBeenCalledWith(
                 expect.objectContaining({
                     values: expect.objectContaining({ name: "Updated Team" }),
@@ -216,7 +217,7 @@ describe("TeamDetails Route", () => {
                 headers: { get: jest.fn() },
             };
 
-            await action({ request, params });
+            await action({ request, params, context: mockContext });
             expect(gamesActions.createSingleGame).toHaveBeenCalledWith(
                 expect.objectContaining({
                     values: expect.objectContaining({ opponent: "Opponent" }),
@@ -236,7 +237,7 @@ describe("TeamDetails Route", () => {
                 headers: { get: jest.fn() },
             };
 
-            await action({ request, params });
+            await action({ request, params, context: mockContext });
             expect(teamsActions.updateMemberRole).toHaveBeenCalledWith(
                 expect.objectContaining({
                     values: expect.objectContaining({
@@ -260,7 +261,7 @@ describe("TeamDetails Route", () => {
                 headers: { get: jest.fn(() => "application/json") },
             };
 
-            await action({ request, params });
+            await action({ request, params, context: mockContext });
             expect(
                 invitationsActions.syncInvitedPlayersServer,
             ).toHaveBeenCalledWith({
@@ -280,7 +281,11 @@ describe("TeamDetails Route", () => {
                 headers: { get: jest.fn(() => "application/json") },
             };
 
-            const result = await action({ request, params });
+            const result = await action({
+                request,
+                params,
+                context: mockContext,
+            });
             expect(result).toEqual({
                 success: false,
                 message: "Something failed",

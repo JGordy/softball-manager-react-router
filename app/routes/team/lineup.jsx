@@ -8,23 +8,22 @@ import { trackEvent } from "@/utils/analytics";
 import { getTeamById } from "@/loaders/teams";
 import { saveFieldingPositions, saveBattingOrder } from "@/actions/lineups";
 
-import { createSessionClient } from "@/utils/appwrite/server";
-
 import BackButton from "@/components/BackButton";
+import { appwriteClientContext } from "@/contexts/router";
 
 import TeamLineupContainer from "./components/TeamLineupContainer";
 
-export async function loader({ request, params }) {
+export async function loader({ params, context }) {
     const { teamId } = params;
-    const client = await createSessionClient(request);
+    const client = context.get(appwriteClientContext);
     return getTeamById({ teamId, client });
 }
 
-export async function action({ request, params }) {
+export async function action({ request, params, context }) {
     const { teamId } = params;
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
-    const client = await createSessionClient(request);
+    const client = context.get(appwriteClientContext);
 
     if (_action === "save-fielding-positions") {
         return saveFieldingPositions({ values, teamId, client });

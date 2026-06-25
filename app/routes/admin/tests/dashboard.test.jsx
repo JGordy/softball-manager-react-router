@@ -7,6 +7,7 @@ import {
     createAdminClient,
 } from "@/utils/appwrite/server";
 import { umamiService } from "@/utils/umami/server";
+import { mockContext } from "@/utils/mockContext";
 
 import AdminDashboard, { loader } from "../dashboard";
 
@@ -92,35 +93,55 @@ describe("AdminDashboard Route", () => {
 
     describe("loader", () => {
         it("redirects to login if user session is missing", async () => {
-            createSessionClient.mockResolvedValue({
-                account: { get: jest.fn().mockRejectedValue(new Error()) },
-            });
+            const localMockContext = {
+                get: jest.fn(() => null),
+            };
 
             try {
-                await loader({ request: new Request("http://localhost/") });
+                await loader({
+                    request: new Request("http://localhost/"),
+                    context: localMockContext,
+                });
             } catch (error) {
                 expect(error.url).toBe("/login");
             }
         });
 
         it("redirects to dashboard if user is not an admin", async () => {
-            createSessionClient.mockResolvedValue({
-                account: { get: jest.fn().mockResolvedValue({ labels: [] }) },
-            });
+            const localMockContext = {
+                get: jest.fn((ctx) => {
+                    if (
+                        ctx === "userContext" ||
+                        String(ctx).includes("userContext")
+                    ) {
+                        return { labels: [] };
+                    }
+                    return {};
+                }),
+            };
 
             try {
-                await loader({ request: new Request("http://localhost/") });
+                await loader({
+                    request: new Request("http://localhost/"),
+                    context: localMockContext,
+                });
             } catch (error) {
                 expect(error.url).toBe("/dashboard");
             }
         });
 
         it("fetches data if user is an admin", async () => {
-            createSessionClient.mockResolvedValue({
-                account: {
-                    get: jest.fn().mockResolvedValue({ labels: ["admin"] }),
-                },
-            });
+            const localMockContext = {
+                get: jest.fn((ctx) => {
+                    if (
+                        ctx === "userContext" ||
+                        String(ctx).includes("userContext")
+                    ) {
+                        return { labels: ["admin"] };
+                    }
+                    return {};
+                }),
+            };
 
             const mockAdminClient = {
                 users: {
@@ -150,6 +171,7 @@ describe("AdminDashboard Route", () => {
 
             const result = await loader({
                 request: new Request("http://localhost/"),
+                context: localMockContext,
             });
             expect(result.recentUsers.length).toBe(1);
             expect(umamiService.getStats).toHaveBeenCalled();

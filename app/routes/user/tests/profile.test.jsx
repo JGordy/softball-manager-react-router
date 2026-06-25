@@ -10,6 +10,7 @@ import { render, screen, fireEvent } from "@/utils/test-utils";
 import * as usersActions from "@/actions/users";
 import * as usersLoaders from "@/loaders/users";
 import { createSessionClient } from "@/utils/appwrite/server";
+import { mockContext } from "@/utils/mockContext";
 
 import UserProfile, { action, loader } from "../profile";
 
@@ -81,7 +82,11 @@ describe("UserProfile Route Component", () => {
             const params = { userId: "user-1" };
             const request = { url: "http://localhost/user/user-1#stats" };
 
-            const result = await loader({ params, request });
+            const result = await loader({
+                params,
+                request,
+                context: mockContext,
+            });
 
             expect(usersLoaders.getUserById).toHaveBeenCalledWith({
                 userId: "user-1",
@@ -110,7 +115,11 @@ describe("UserProfile Route Component", () => {
             const params = { userId: "user-1" };
             const request = { url: "http://localhost/user/user-1#invalid" };
 
-            const result = await loader({ params, request });
+            const result = await loader({
+                params,
+                request,
+                context: mockContext,
+            });
 
             expect(result.defaultTab).toBe("player");
         });
@@ -124,7 +133,7 @@ describe("UserProfile Route Component", () => {
             const request = { formData: () => Promise.resolve(formData) };
             const params = { userId: "user-1" };
 
-            await action({ request, params });
+            await action({ request, params, context: mockContext });
 
             expect(usersActions.updateUser).toHaveBeenCalledWith({
                 values: { name: "Updated Name" },
@@ -139,7 +148,11 @@ describe("UserProfile Route Component", () => {
             const request = { formData: () => Promise.resolve(formData) };
             const params = { userId: "user-1" };
 
-            const result = await action({ request, params });
+            const result = await action({
+                request,
+                params,
+                context: mockContext,
+            });
             expect(result).toBeUndefined();
         });
     });

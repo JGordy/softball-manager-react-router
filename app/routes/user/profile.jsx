@@ -21,11 +21,11 @@ import {
 } from "@/loaders/users";
 
 import { useResponseNotification } from "@/utils/showNotification";
+import { appwriteClientContext } from "@/contexts/router";
 import {
     getIncompleteProfileFields,
     REQUIRED_PROFILE_FIELDS,
 } from "@/utils/users";
-import { createSessionClient } from "@/utils/appwrite/server";
 
 import AlertIncomplete from "./components/AlertIncomplete";
 import ProfileMenu from "./components/ProfileMenu";
@@ -38,18 +38,18 @@ export function links() {
     return [{ rel: "preload", href: fieldSrc, as: "image" }];
 }
 
-export async function action({ request, params }) {
+export async function action({ request, params, context }) {
     const { userId } = params;
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
 
     if (_action === "edit-player") {
-        const sessionClient = await createSessionClient(request);
+        const sessionClient = context.get(appwriteClientContext);
         return updateUser({ values, userId, client: sessionClient });
     }
 }
 
-export async function loader({ params, request }) {
+export async function loader({ params, request, context }) {
     const { userId } = params;
     const url = new URL(request.url);
     const hash = url.hash.replace(/^#/, "") || null;
@@ -63,7 +63,7 @@ export async function loader({ params, request }) {
     ];
     const defaultTab = validTabs.includes(hash) ? hash : "player";
 
-    const sessionClient = await createSessionClient(request);
+    const sessionClient = context.get(appwriteClientContext);
 
     return {
         player: await getUserById({ userId, client: sessionClient }),

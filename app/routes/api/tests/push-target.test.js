@@ -1,4 +1,5 @@
 import { loader, action } from "../push-target";
+import { mockContext } from "@/utils/mockContext";
 import {
     createPushTarget,
     deletePushTarget,
@@ -31,7 +32,7 @@ describe("push-target API", () => {
     describe("loader (GET)", () => {
         it("should return 400 if targetId is missing", async () => {
             const request = new Request("http://localhost/api/push-target");
-            const response = await loader({ request });
+            const response = await loader({ request, context: mockContext });
 
             expect(response.status).toBe(400);
             const data = await response.json();
@@ -44,7 +45,7 @@ describe("push-target API", () => {
             );
             getPushTarget.mockResolvedValue(null);
 
-            const response = await loader({ request });
+            const response = await loader({ request, context: mockContext });
 
             expect(response.status).toBe(404);
             const data = await response.json();
@@ -62,7 +63,7 @@ describe("push-target API", () => {
             const mockTarget = { $id: "t1" };
             getPushTarget.mockResolvedValue(mockTarget);
 
-            const response = await loader({ request });
+            const response = await loader({ request, context: mockContext });
 
             expect(response.status).toBe(200);
             const data = await response.json();
@@ -76,7 +77,7 @@ describe("push-target API", () => {
             );
             getPushTarget.mockRejectedValue(new Error("DB Error"));
 
-            const response = await loader({ request });
+            const response = await loader({ request, context: mockContext });
 
             expect(response.status).toBe(500);
             const data = await response.json();
@@ -97,7 +98,7 @@ describe("push-target API", () => {
             createPushTarget.mockResolvedValue(mockTarget);
             subscribeToAllTeams.mockResolvedValue({ success: true });
 
-            const response = await action({ request });
+            const response = await action({ request, context: mockContext });
 
             expect(response.status).toBe(200);
             const data = await response.json();
@@ -130,7 +131,7 @@ describe("push-target API", () => {
             createPushTarget.mockResolvedValue(mockTarget);
             subscribeToAllTeams.mockRejectedValue(new Error("Sub failed"));
 
-            const response = await action({ request });
+            const response = await action({ request, context: mockContext });
 
             // Should still return success for the target creation
             expect(response.status).toBe(200);
@@ -154,7 +155,7 @@ describe("push-target API", () => {
 
             deletePushTarget.mockResolvedValue({});
 
-            const response = await action({ request });
+            const response = await action({ request, context: mockContext });
 
             expect(response.status).toBe(200);
             expect(deletePushTarget).toHaveBeenCalledWith({
@@ -168,7 +169,7 @@ describe("push-target API", () => {
                 method: "PUT",
             });
 
-            const response = await action({ request });
+            const response = await action({ request, context: mockContext });
             expect(response.status).toBe(405);
         });
 
@@ -179,7 +180,7 @@ describe("push-target API", () => {
             });
             createPushTarget.mockRejectedValue(new Error("Fail"));
 
-            const response = await action({ request });
+            const response = await action({ request, context: mockContext });
             expect(response.status).toBe(500);
         });
     });

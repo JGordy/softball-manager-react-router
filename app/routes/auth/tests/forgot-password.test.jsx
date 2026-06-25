@@ -2,6 +2,7 @@ import { useActionData } from "react-router";
 
 import { render, screen, cleanup } from "@/utils/test-utils";
 import { createAdminClient } from "@/utils/appwrite/server";
+import { mockContext } from "@/utils/mockContext";
 
 import { redirectIfAuthenticated } from "../utils/redirectIfAuthenticated";
 import ForgotPassword, { loader, action } from "../forgot-password";
@@ -38,8 +39,11 @@ describe("Forgot Password Route", () => {
     describe("loader", () => {
         it("calls redirectIfAuthenticated", async () => {
             const request = new Request("http://localhost/forgot-password");
-            await loader({ request });
-            expect(redirectIfAuthenticated).toHaveBeenCalledWith(request);
+            await loader({ request, context: mockContext });
+            expect(redirectIfAuthenticated).toHaveBeenCalledWith(
+                request,
+                mockContext,
+            );
         });
     });
 
@@ -51,7 +55,7 @@ describe("Forgot Password Route", () => {
                 body: formData,
             });
 
-            const result = await action({ request });
+            const result = await action({ request, context: mockContext });
             expect(result.success).toBe(false);
             expect(result.message).toBe("Email is required");
         });
@@ -69,7 +73,7 @@ describe("Forgot Password Route", () => {
             };
             createAdminClient.mockReturnValue({ account: mockAccount });
 
-            const result = await action({ request });
+            const result = await action({ request, context: mockContext });
 
             expect(mockAccount.createRecovery).toHaveBeenCalledWith(
                 "test@test.com",
@@ -94,7 +98,7 @@ describe("Forgot Password Route", () => {
             };
             createAdminClient.mockReturnValue({ account: mockAccount });
 
-            const result = await action({ request });
+            const result = await action({ request, context: mockContext });
             expect(result.success).toBe(false);
             expect(result.message).toBe("Email not found");
         });

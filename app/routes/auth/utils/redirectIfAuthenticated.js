@@ -1,5 +1,5 @@
 import { redirect } from "react-router";
-import { createSessionClient } from "@/utils/appwrite/server";
+import { userContext } from "@/contexts/router";
 import { isMobileUserAgent } from "@/utils/device";
 
 /**
@@ -11,18 +11,20 @@ import { isMobileUserAgent } from "@/utils/device";
  * @param {string} redirectTo - The path to redirect to if authenticated
  * @returns {Promise<Response|null>} Redirect response if authenticated, null otherwise
  */
-export async function redirectIfAuthenticated(request, redirectTo = null) {
-    try {
-        const { account } = await createSessionClient(request);
-        await account.get(); // Succeeds if valid session exists, throws if no session
+export async function redirectIfAuthenticated(
+    request,
+    context,
+    redirectTo = null,
+) {
+    const user = context.get(userContext);
 
+    if (user) {
         // User is already logged in, redirect
         const isMobile = isMobileUserAgent(request);
         const destination = redirectTo || (!isMobile ? "/" : "/dashboard");
 
         return redirect(destination);
-    } catch (_error) {
-        // No valid session found, allow access to the page
-        return null;
     }
+
+    return null;
 }

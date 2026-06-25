@@ -11,8 +11,7 @@ import UserHeader from "@/components/UserHeader";
 import AddTeam from "@/forms/AddTeam";
 import { createTeam } from "@/actions/teams";
 import { getUserTeams } from "@/loaders/teams";
-
-import { createSessionClient } from "@/utils/appwrite/server";
+import { appwriteClientContext } from "@/contexts/router";
 
 import DashboardMenu from "./components/DashboardMenu";
 import MobileDashboard from "./components/MobileDashboard";
@@ -25,8 +24,8 @@ export function meta() {
     ];
 }
 
-export async function loader({ request }) {
-    const sessionClient = await createSessionClient(request);
+export async function loader({ context }) {
+    const sessionClient = context.get(appwriteClientContext);
     const { managing, playing, userId, stats } = await getUserTeams({
         client: sessionClient,
         isDashboard: true,
@@ -38,10 +37,10 @@ export async function loader({ request }) {
     };
 }
 
-export async function action({ request }) {
+export async function action({ request, context }) {
     const formData = await request.formData();
     const { _action, userId, ...values } = Object.fromEntries(formData);
-    const sessionClient = await createSessionClient(request);
+    const sessionClient = context.get(appwriteClientContext);
 
     if (_action === "add-team") {
         return createTeam({ values, userId, client: sessionClient });

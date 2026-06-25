@@ -1,5 +1,4 @@
 import { Group, Text } from "@mantine/core";
-
 import {
     IconCalendarRepeat,
     IconCurrencyDollar,
@@ -16,16 +15,15 @@ import { updateSeason } from "@/actions/seasons";
 import { getSeasonById } from "@/loaders/seasons";
 import { getParkById } from "@/loaders/parks";
 
-import { createSessionClient } from "@/utils/appwrite/server";
-
 import { useResponseNotification } from "@/utils/showNotification";
+import { appwriteClientContext } from "@/contexts/router";
 
 import DesktopSeasonDetails from "./components/DesktopSeasonDetails";
 import MobileSeasonDetails from "./components/MobileSeasonDetails";
 
-export async function loader({ request, params }) {
+export async function loader({ params, context }) {
     const { seasonId } = params;
-    const client = await createSessionClient(request);
+    const client = context.get(appwriteClientContext);
 
     let park = null;
     const { season, players, logs } = await getSeasonById({ seasonId, client });
@@ -40,12 +38,12 @@ export async function loader({ request, params }) {
     return { season, park, players, logs };
 }
 
-export async function action({ request, params }) {
+export async function action({ request, params, context }) {
     const { seasonId } = params;
 
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
-    const client = await createSessionClient(request);
+    const client = context.get(appwriteClientContext);
 
     if (_action === "edit-season") {
         return updateSeason({ values, seasonId, client });

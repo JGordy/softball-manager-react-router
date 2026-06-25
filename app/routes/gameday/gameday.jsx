@@ -16,16 +16,15 @@ import {
 import { savePlayerChart } from "@/actions/lineups";
 
 import { useResponseNotification } from "@/utils/showNotification";
-
-import { createSessionClient } from "@/utils/appwrite/server";
+import { appwriteClientContext } from "@/contexts/router";
 
 import GamedayContainer from "./components/GamedayContainer";
 import GamedayLoadingSkeleton from "./components/GamedayLoadingSkeleton";
 import { parsePlayerChart } from "./utils/gamedayUtils";
 
-export async function loader({ params, request }) {
+export async function loader({ params, context }) {
     const { eventId } = params;
-    const client = await createSessionClient(request);
+    const client = context.get(appwriteClientContext);
     return await getEventById({
         eventId,
         client,
@@ -37,11 +36,11 @@ export async function loader({ params, request }) {
     });
 }
 
-export async function action({ request, params }) {
+export async function action({ request, params, context }) {
     const { eventId } = params;
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
-    const client = await createSessionClient(request);
+    const client = context.get(appwriteClientContext);
 
     if (_action === "log-game-event") {
         const { baseState, ...logData } = values;

@@ -17,10 +17,8 @@ import {
     Stack,
     Loader,
 } from "@mantine/core";
-import {
-    createAdminClient,
-    createSessionClient,
-} from "@/utils/appwrite/server";
+import { createAdminClient } from "@/utils/appwrite/server";
+import { userContext } from "@/contexts/router";
 
 import { getAdminDashboardData } from "./utils/dashboard";
 import { ItemCard } from "./components/ItemCard";
@@ -34,16 +32,14 @@ import { ParkLeaderboard } from "./components/ParkLeaderboard";
 import { MobileDashboardNav } from "./components/DashboardNav";
 import { ExternalToolsMenu } from "./components/ExternalToolsMenu";
 
-export async function loader({ request }) {
+export async function loader({ request, context }) {
     const url = new URL(request.url);
     const range = url.searchParams.get("range") || "24h";
 
     // 1. Double check auth & admin label
-    const { account } = await createSessionClient(request);
-    let user;
-    try {
-        user = await account.get();
-    } catch (_e) {
+    const user = context.get(userContext);
+
+    if (!user) {
         throw redirect("/login");
     }
 
