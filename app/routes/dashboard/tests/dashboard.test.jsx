@@ -4,6 +4,7 @@ import { render, screen, fireEvent } from "@/utils/test-utils";
 import { createTeam } from "@/actions/teams";
 import { getUserTeams } from "@/loaders/teams";
 import useModal from "@/hooks/useModal";
+import { mockContext } from "@/utils/mockContext";
 
 import Dashboard, { loader, action } from "../dashboard";
 
@@ -96,6 +97,7 @@ describe("Dashboard Route", () => {
             getUserTeams.mockResolvedValue(mockTeams);
             const result = await loader({
                 request: new Request("http://localhost/"),
+                context: mockContext,
             });
 
             expect(getUserTeams).toHaveBeenCalled();
@@ -121,6 +123,7 @@ describe("Dashboard Route", () => {
                     method: "POST",
                     body: formData,
                 }),
+                context: mockContext,
             });
 
             expect(createTeam).toHaveBeenCalledWith({
