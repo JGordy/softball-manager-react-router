@@ -17,16 +17,6 @@ export function MobileDashboardNav() {
             target: "platform-totals",
         },
         {
-            label: "Analytics",
-            icon: <IconActivity size={16} />,
-            target: "analytics-performance",
-        },
-        {
-            label: "Teams",
-            icon: <IconChartBar size={16} />,
-            target: "team-sections",
-        },
-        {
             label: "Users",
             icon: <IconUsers size={16} />,
             target: "user-sections",

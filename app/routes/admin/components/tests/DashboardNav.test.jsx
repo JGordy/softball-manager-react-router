@@ -20,12 +20,6 @@ describe("MobileDashboardNav", () => {
             screen.getByRole("button", { name: /Totals/i }),
         ).toBeInTheDocument();
         expect(
-            screen.getByRole("button", { name: /Analytics/i }),
-        ).toBeInTheDocument();
-        expect(
-            screen.getByRole("button", { name: /Teams/i }),
-        ).toBeInTheDocument();
-        expect(
             screen.getByRole("button", { name: /Users/i }),
         ).toBeInTheDocument();
     });

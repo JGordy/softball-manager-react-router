@@ -24,10 +24,7 @@ import { getAdminDashboardData } from "./utils/dashboard";
 import { ItemCard } from "./components/ItemCard";
 import { DashboardSection } from "./components/DashboardSection";
 import { KPIGrid } from "./components/KPIGrid";
-import { AnalyticsSummary } from "./components/AnalyticsSummary";
 import { AttendanceHealth } from "./components/AttendanceHealth";
-import { FeaturePopularity } from "./components/FeaturePopularity";
-import { AILineupMetrics } from "./components/AILineupMetrics";
 import { ParkLeaderboard } from "./components/ParkLeaderboard";
 import { MobileDashboardNav } from "./components/DashboardNav";
 import { ExternalToolsMenu } from "./components/ExternalToolsMenu";
@@ -54,16 +51,8 @@ export async function loader({ request, context }) {
 }
 
 export default function AdminDashboard() {
-    const {
-        stats,
-        recentUsers,
-        activeUsers,
-        activeTeams,
-        activeParks,
-        topFeatures,
-        aiLineupMetrics,
-        range,
-    } = useLoaderData();
+    const { stats, recentUsers, activeUsers, activeParks, range } =
+        useLoaderData();
     const revalidator = useRevalidator();
     const [, setSearchParams] = useSearchParams();
 
@@ -137,51 +126,7 @@ export default function AdminDashboard() {
                 </SimpleGrid>
             </Stack>
 
-            {/* Section 2: Analytics & Performance (Umami Data - Respects Timeframe) */}
-            <Stack id="analytics-performance" gap="md" mb="xl">
-                <Text size="xs" c="dimmed" fw={700} tt="uppercase">
-                    Analytics & Performance
-                </Text>
-                <div id="analytics-summary">
-                    <AnalyticsSummary umami={stats.umami} range={range} />
-                </div>
-                <SimpleGrid cols={{ base: 1, md: 2 }} gap="xl">
-                    <AILineupMetrics
-                        aiLineupMetrics={aiLineupMetrics}
-                        range={range}
-                    />
-                    <FeaturePopularity
-                        topFeatures={topFeatures}
-                        range={range}
-                    />
-                </SimpleGrid>
-            </Stack>
-
             <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} gap="xl">
-                <DashboardSection
-                    id="team-sections"
-                    title="Most Active Teams"
-                    items={activeTeams}
-                    initialLimit={3}
-                    renderItem={(t) => (
-                        <ItemCard
-                            key={`team-${t.id}`}
-                            text={t.name}
-                            subText={`ID: ${t.id}`}
-                            bgColor={t.primaryColor}
-                            rightSection={
-                                <Badge
-                                    color={t.primaryColor ? "white" : "lime"}
-                                    variant={t.primaryColor ? "white" : "light"}
-                                    c={t.primaryColor || undefined}
-                                >
-                                    {t.views.toLocaleString()} views
-                                </Badge>
-                            }
-                        />
-                    )}
-                />
-
                 <DashboardSection
                     id="user-sections"
                     title="Recent Signups"
