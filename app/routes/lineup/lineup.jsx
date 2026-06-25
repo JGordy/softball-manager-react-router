@@ -12,8 +12,6 @@ import { savePlayerChart } from "@/actions/lineups";
 
 import BackButton from "@/components/BackButton";
 
-import { createSessionClient } from "@/utils/appwrite/server";
-
 import addPlayerAvailability from "@/utils/addPlayerAvailability";
 
 import { formatForViewerDate, getGameDayStatus } from "@/utils/dateTime";
@@ -30,21 +28,22 @@ import AILineupDrawer from "./components/AILineupDrawer";
 import AddPlayersDrawer from "./components/AddPlayersDrawer";
 import ShareUrlButton from "@/components/ShareUrlButton";
 import OnboardingTour from "@/components/OnboardingTour";
+import { appwriteClientContext } from "@/contexts/router";
 import { creationSteps, gridSteps } from "./utils/onboardingSteps";
 
 import { validateLineup } from "./utils/validateLineup";
 
-export async function loader({ params, request }) {
+export async function loader({ params, context }) {
     const { eventId } = params;
-    const client = await createSessionClient(request);
+    const client = context.get(appwriteClientContext);
     return await getEventWithPlayerCharts({ eventId, client });
 }
 
-export async function action({ request, params }) {
+export async function action({ request, params, context }) {
     const { eventId } = params;
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
-    const client = await createSessionClient(request);
+    const client = context.get(appwriteClientContext);
 
     if (_action === "save-chart") {
         const playerChart = parsePlayerChart(values.playerChart);
