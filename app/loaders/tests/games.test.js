@@ -13,10 +13,11 @@ jest.mock("@/utils/appwrite/server", () => ({
     createSessionClient: jest.fn(),
 }));
 
-import { createAdminClient } from "@/utils/appwrite/server";
+jest.mock("@/utils/weather", () => ({
+    getWeatherData: jest.fn(),
+}));
 
-// Mock global fetch for weather API
-global.fetch = jest.fn();
+import { createAdminClient } from "@/utils/appwrite/server";
 
 describe("Games Loader", () => {
     const mockSessionClient = { tablesDB: { id: "mock-session-db" } };
@@ -39,12 +40,6 @@ describe("Games Loader", () => {
                     .fn()
                     .mockResolvedValue({ memberships: [] }),
             },
-        });
-
-        // Default mock for fetch to prevent errors
-        global.fetch.mockResolvedValue({
-            ok: false,
-            json: async () => ({}),
         });
     });
 
