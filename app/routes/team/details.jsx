@@ -226,6 +226,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                     trackingSuffix="teams"
                     alwaysIncludeTargets={[
                         ".tour-team-details-menu-section-team-options",
+                        ".tour-team-details-menu-section-lineup-options",
                         ".tour-team-details-menu-section-roster",
                         ".tour-roster-section-desktop",
                     ]}
