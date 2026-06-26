@@ -115,7 +115,7 @@ describe("TeamMenu Component", () => {
         );
         fireEvent.click(screen.getByRole("button")); // Open menu
         expect(await screen.findByText("Manage Roles")).toBeInTheDocument();
-        expect(screen.getByText("Preferences")).toBeInTheDocument();
+        expect(screen.getByText("Rules")).toBeInTheDocument();
     });
 
     it("hides owner-only options if ownerView is false", async () => {

@@ -132,7 +132,7 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
             ],
         },
         {
-            label: "Roster",
+            label: "Lineup Options",
             items: [
                 {
                     key: "ideal-lineup",
@@ -140,12 +140,27 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                     leftSection: <IconClipboardList size={18} />,
                     content: <Text>Set Lineups</Text>,
                 },
-                // {
-                //     key: "add-player",
-                //     onClick: openAddPlayerModal,
-                //     leftSection: <IconUserFilled size={18} />,
-                //     content: <Text>Add Player</Text>,
-                // },
+                ...(ownerView
+                    ? [
+                          {
+                              key: "manage-labels",
+                              onClick: openLabels,
+                              leftSection: <IconTags size={18} />,
+                              content: <Text>Player Labels</Text>,
+                          },
+                          {
+                              key: "preferences",
+                              onClick: openPreferences,
+                              leftSection: <IconSettings size={18} />,
+                              content: <Text>Rules</Text>,
+                          },
+                      ]
+                    : []),
+            ],
+        },
+        {
+            label: "Roster",
+            items: [
                 {
                     key: "invite-player",
                     onClick: openInvitePlayerModal,
@@ -158,35 +173,19 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                     leftSection: <IconShirtSport size={18} />,
                     content: <Text>Assign Numbers</Text>,
                 },
+                ...(ownerView
+                    ? [
+                          {
+                              key: "manage-roles",
+                              onClick: openRoles,
+                              leftSection: <IconShieldLock size={18} />,
+                              content: <Text>Manage Roles</Text>,
+                          },
+                      ]
+                    : []),
             ],
         },
     ];
-
-    if (ownerView) {
-        sections.push({
-            label: "Admin",
-            items: [
-                {
-                    key: "manage-roles",
-                    onClick: openRoles,
-                    leftSection: <IconShieldLock size={18} />,
-                    content: <Text>Manage Roles</Text>,
-                },
-                {
-                    key: "manage-labels",
-                    onClick: openLabels,
-                    leftSection: <IconTags size={18} />,
-                    content: <Text>Player Labels</Text>,
-                },
-                {
-                    key: "preferences",
-                    onClick: openPreferences,
-                    leftSection: <IconSettings size={18} />,
-                    content: <Text>Preferences</Text>,
-                },
-            ],
-        });
-    }
 
     return (
         <>
