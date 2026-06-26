@@ -128,11 +128,15 @@ export async function action({ request, context }) {
         const { teams } = createAdminClient();
         let maxMaleBatters = 0;
         let lineupStrategy = "spread"; // default strategy
+        let playerLabels = {};
         try {
             const prefs = await teams.getPrefs(teamId);
             maxMaleBatters = parseInt(prefs.maxMaleBatters, 10) || 0;
             if (prefs.lineupStrategy) {
                 lineupStrategy = prefs.lineupStrategy;
+            }
+            if (prefs.playerLabels) {
+                playerLabels = prefs.playerLabels;
             }
         } catch (_e) {
             // failed to load prefs or no prefs set, stick to defaults
@@ -326,15 +330,31 @@ export async function action({ request, context }) {
         });
 
         // Minify Available Players
-        const minifiedPlayers = players.map((p) => ({
-            $id: p.$id,
-            f: p.firstName,
-            l: p.lastName,
-            g: p.gender,
-            p: p.preferredPositions || [],
-            d: p.dislikedPositions || [],
-            b: p.bats,
-        }));
+        const minifiedPlayers = players.map((p) => {
+            const entry = {
+                $id: p.$id,
+                f: p.firstName,
+                l: p.lastName,
+                g: p.gender,
+                p: p.preferredPositions || [],
+                d: p.dislikedPositions || [],
+                b: p.bats,
+            };
+
+            // Only add labels if the player has no game logs/stats in history
+            const hasStats = historicalData.some(
+                (g) => g.stats && g.stats[p.$id],
+            );
+            if (
+                !hasStats &&
+                playerLabels[p.$id] &&
+                playerLabels[p.$id].length > 0
+            ) {
+                entry.labels = playerLabels[p.$id];
+            }
+
+            return entry;
+        });
 
         // Team Logic
         let idealPositioning = {};

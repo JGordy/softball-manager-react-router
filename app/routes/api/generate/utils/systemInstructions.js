@@ -68,7 +68,7 @@ ${reasoning}
 ## DATA INTERPRETATION
 -   You will receive structured JSON input containing: 'team', 'history', and 'availablePlayers'.
 -   **Input Legend (Minified Keys)**:
-    -   **Players**: f=First Name, l=Last Name, g=Gender, b=Bats (Right/Left/Switch), p=Preferred Positions, d=Disliked Positions.
+    -   **Players**: f=First Name, l=Last Name, g=Gender, b=Bats (Right/Left/Switch), p=Preferred Positions, d=Disliked Positions, labels=Hitting characteristics (e.g. "Power", "On Base") (if available).
     -   **History**: d=Date, s=Runs Scored, o=Opponent Runs, l=Lineup (Player IDs), stats={ PlayerID: "Events" } (if available).
     -   **Stats Legend**: 1B=Single, 2B=Double, 3B=Triple, HR=Home Run, BB=Walk, K=Strikeout, OUT=Out, E=Error, FC=Fielder's Choice, SF=Sac Fly.
     -   **Context**: Events may include details in parentheses, e.g., "HR(deep center, RBI:2)". "RBI:N" indicates N runs batted in on that play.
