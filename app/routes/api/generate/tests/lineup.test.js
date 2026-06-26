@@ -210,6 +210,40 @@ describe("lineup generation action", () => {
         });
     });
 
+    describe("Preferences Integration", () => {
+        it("should fetch lineupStrategy and maxMaleBatters from team preferences and pass to the model", async () => {
+            const { createAdminClient } = require("@/utils/appwrite/server");
+            const getPrefsMock = jest.fn().mockResolvedValue({
+                maxMaleBatters: 3,
+                lineupStrategy: "best_first",
+            });
+            createAdminClient.mockReturnValueOnce({
+                teams: { getPrefs: getPrefsMock },
+            });
+
+            // Setup basic mocks to allow the action to reach createModel
+            listDocuments.mockImplementation(async () => ({
+                rows: [{ $id: "g1", teamId: "t1" }],
+                total: 1,
+            }));
+
+            const req = createMockRequest();
+            await action({ request: req, context: mockContext });
+
+            // Check if getPrefs was called
+            expect(getPrefsMock).toHaveBeenCalledWith("t1");
+
+            // Check createModel call
+            const createModelCall = createModel.mock.calls[0][0];
+            expect(createModelCall.systemInstruction).toContain(
+                "Group your best hitters",
+            );
+            expect(createModelCall.systemInstruction).toContain(
+                "MAXIMUM 3 consecutive males",
+            );
+        });
+    });
+
     describe("Game Context Validation", () => {
         it("should return 404 if game is not found", async () => {
             listDocuments.mockResolvedValueOnce({ rows: [] }); // Step 1: Get Game

@@ -127,9 +127,13 @@ export async function action({ request, context }) {
 
         const { teams } = createAdminClient();
         let maxMaleBatters = 0;
+        let lineupStrategy = "spread"; // default strategy
         try {
             const prefs = await teams.getPrefs(teamId);
             maxMaleBatters = parseInt(prefs.maxMaleBatters, 10) || 0;
+            if (prefs.lineupStrategy) {
+                lineupStrategy = prefs.lineupStrategy;
+            }
         } catch (_e) {
             // failed to load prefs or no prefs set, stick to defaults
         }
@@ -376,7 +380,10 @@ export async function action({ request, context }) {
                 responseMimeType: "application/json",
                 responseSchema: lineupSchema,
             },
-            systemInstruction: getLineupSystemInstruction(maxMaleBatters),
+            systemInstruction: getLineupSystemInstruction(
+                maxMaleBatters,
+                lineupStrategy,
+            ),
         });
 
         // Use "Data-as-a-Part" structure
