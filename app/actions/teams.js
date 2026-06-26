@@ -386,3 +386,54 @@ export async function updateBulkJerseyNumbers({ teamId, values, client }) {
         };
     }
 }
+
+export async function updatePlayerLabels({ teamId, values, client }) {
+    if (!client) {
+        throw new Error(
+            "A constructed 'client' object is strictly required for authorization.",
+        );
+    }
+
+    try {
+        const auth = await verifyManager(teamId, client);
+        if (!auth.success) return auth;
+
+        const { teams: teamsApi } = createAdminClient();
+
+        // 1. Get current preferences
+        const currentPrefs = await teamsApi.getPrefs(teamId);
+
+        // 2. Extract labels from values
+        // Expecting values.labels to be an object like: { "player1": ["Power"], "player2": ["Power", "On Base"] }
+        const newPlayerLabels = { ...(currentPrefs.playerLabels || {}) };
+
+        if (values.labels) {
+            Object.entries(values.labels).forEach(([playerId, labelsArray]) => {
+                if (!labelsArray || labelsArray.length === 0) {
+                    delete newPlayerLabels[playerId];
+                } else {
+                    newPlayerLabels[playerId] = Array.isArray(labelsArray)
+                        ? labelsArray
+                        : [labelsArray];
+                }
+            });
+        }
+
+        // 3. Save back to Appwrite
+        await teamsApi.updatePrefs(teamId, {
+            ...currentPrefs,
+            playerLabels: newPlayerLabels,
+        });
+
+        return {
+            success: true,
+            message: "Player labels updated successfully",
+        };
+    } catch (error) {
+        console.error("Error updating player labels:", error);
+        return {
+            success: false,
+            message: "Failed to update player labels",
+        };
+    }
+}
