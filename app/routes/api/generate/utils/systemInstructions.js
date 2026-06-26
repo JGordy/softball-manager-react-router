@@ -1,6 +1,9 @@
 import positions from "@/constants/positions";
 
-export const getLineupSystemInstruction = (maxMaleBatters = 0) => {
+export const getLineupSystemInstruction = (
+    maxMaleBatters = 0,
+    lineupStrategy = "spread",
+) => {
     // Determine if Coed rules apply
     const isCoed = maxMaleBatters > 0;
 
@@ -24,7 +27,9 @@ export const getLineupSystemInstruction = (maxMaleBatters = 0) => {
             ? `-   **Algorithm**: Maintain male count. If count >= ${maxMaleBatters}, you MUST pick a female. If females are scarce, spacing them out is key.`
             : null,
         "-   **Structure**: 1st (Lead-off), 3rd, 4th, 5th spots are high-leverage.",
-        "-   **Strategy**: Do not stack power hitters. Place consistent on-base threats (Singles, Walks) before power hitters (HRs, 2B) to ensure bases are not empty for big hits.",
+        lineupStrategy === "best_first"
+            ? "-   **Strategy**: Group your best hitters (determined by batting average and power) near the top of the lineup to maximize their at-bats per game. For example: 1st (Highest average), 2nd (High average), 3rd (High average + best power), 4th (High average + next best power), and then stagger the remaining lower average batters down to the end of the lineup. **IMPORTANT: You must still strictly adhere to all other rules while applying this strategy.**"
+            : "-   **Strategy**: Spread out the high average and power batters throughout the lineup to minimize dead innings with back-to-back weaker hitters. For example: 1st (Highest average), 3rd (High average + best power), 5th (Lower average), 6th (High average/power), ensuring there are on-base threats before power hitters. **IMPORTANT: You must still strictly adhere to all other rules while applying this strategy.**",
     ]
         .filter(Boolean)
         .join("\n");
