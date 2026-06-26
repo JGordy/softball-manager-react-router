@@ -26,7 +26,7 @@ describe("PreferencesDrawer Component", () => {
     };
     const mockTeam = {
         $id: "t1",
-        prefs: { maxMaleBatters: "2" },
+        prefs: { maxMaleBatters: "2", lineupStrategy: "best_first" },
     };
     const mockOnClose = jest.fn();
 
@@ -47,6 +47,10 @@ describe("PreferencesDrawer Component", () => {
         expect(
             screen.getByLabelText("Max Consecutive Male Batters"),
         ).toHaveValue("2");
+
+        expect(
+            screen.getByRole("combobox", { name: "Lineup Strategy" }), // Mantine Select renders as combobox
+        ).toHaveValue("Grouped at Top");
     });
 
     it("submits the correct data on form submission", () => {
@@ -69,6 +73,7 @@ describe("PreferencesDrawer Component", () => {
             {
                 _action: "update-preferences",
                 maxMaleBatters: 3,
+                lineupStrategy: "best_first", // the default from mockTeam was unchanged
             },
             expect.objectContaining({ method: "post" }),
         );

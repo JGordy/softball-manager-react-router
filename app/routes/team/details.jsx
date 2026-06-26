@@ -72,7 +72,10 @@ export async function action({ request, params, context }) {
     if (_action === "update-preferences") {
         return updatePreferences({
             teamId,
-            prefs: { maxMaleBatters: values.maxMaleBatters },
+            prefs: {
+                maxMaleBatters: values.maxMaleBatters,
+                lineupStrategy: values.lineupStrategy,
+            },
         });
     }
 

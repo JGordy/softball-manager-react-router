@@ -134,6 +134,7 @@ describe("TeamDetails Route", () => {
             const formData = new FormData();
             formData.append("_action", "update-preferences");
             formData.append("maxMaleBatters", "3");
+            formData.append("lineupStrategy", "best_first");
             const request = {
                 formData: () => Promise.resolve(formData),
                 headers: { get: jest.fn() },
@@ -143,7 +144,10 @@ describe("TeamDetails Route", () => {
             expect(teamsActions.updatePreferences).toHaveBeenCalledWith(
                 expect.objectContaining({
                     teamId: "team1",
-                    prefs: expect.objectContaining({ maxMaleBatters: "3" }),
+                    prefs: expect.objectContaining({
+                        maxMaleBatters: "3",
+                        lineupStrategy: "best_first",
+                    }),
                 }),
             );
         });
