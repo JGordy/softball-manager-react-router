@@ -12,6 +12,7 @@ import {
     IconClipboardList,
     IconSettings,
     IconShirtSport,
+    IconTags,
 } from "@tabler/icons-react";
 
 import AddTeam from "@/forms/AddTeam";
@@ -24,6 +25,7 @@ import useModal from "@/hooks/useModal";
 import MenuContainer from "@/components/MenuContainer";
 
 import ManageRolesDrawer from "./ManageRolesDrawer";
+import PlayerLabelsDrawer from "./PlayerLabelsDrawer";
 import PreferencesDrawer from "./PreferencesDrawer";
 import BulkJerseyNumberModal from "./BulkJerseyNumberModal";
 
@@ -36,6 +38,8 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
         preferencesOpened,
         { open: openPreferences, close: closePreferences },
     ] = useDisclosure(false);
+    const [labelsOpened, { open: openLabels, close: closeLabels }] =
+        useDisclosure(false);
 
     const { $id: teamId, name: teamName, seasons, primaryColor } = team;
 
@@ -169,6 +173,12 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                     content: <Text>Manage Roles</Text>,
                 },
                 {
+                    key: "manage-labels",
+                    onClick: openLabels,
+                    leftSection: <IconTags size={18} />,
+                    content: <Text>Player Labels</Text>,
+                },
+                {
                     key: "preferences",
                     onClick: openPreferences,
                     leftSection: <IconSettings size={18} />,
@@ -192,6 +202,12 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                 opened={preferencesOpened}
                 onClose={closePreferences}
                 team={team}
+            />
+            <PlayerLabelsDrawer
+                opened={labelsOpened}
+                onClose={closeLabels}
+                team={team}
+                players={players}
             />
         </>
     );

@@ -13,6 +13,7 @@ import {
     updateMemberRole,
     updatePreferences,
     updateBulkJerseyNumbers,
+    updatePlayerLabels,
 } from "@/actions/teams";
 import {
     invitePlayersServer,
@@ -77,6 +78,10 @@ export async function action({ request, params, context }) {
                 lineupStrategy: values.lineupStrategy,
             },
         });
+    }
+
+    if (_action === "update-player-labels") {
+        return updatePlayerLabels({ teamId, values, client });
     }
 
     if (_action === "invite-player") {

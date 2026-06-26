@@ -18,6 +18,9 @@ jest.mock("../ManageRolesDrawer", () => () => (
 jest.mock("../PreferencesDrawer", () => () => (
     <div data-testid="preferences-drawer" />
 ));
+jest.mock("../PlayerLabelsDrawer", () => () => (
+    <div data-testid="player-labels-drawer" />
+));
 jest.mock("../BulkJerseyNumberModal", () => () => (
     <div data-testid="bulk-jersey-modal" />
 ));
