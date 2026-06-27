@@ -27,9 +27,15 @@ export function getTeamDetailsSteps() {
             placement: "left",
         },
         {
+            target: ".tour-team-details-menu-section-lineup-options",
+            content:
+                "The Lineup Options section lets you generate batting orders and set lineup rules. 'Set Lineups' directs you to the ideal lineup builder, while 'Player Labels' and 'Rules' give you fine-grained control over lineup generation.",
+            placement: "left",
+        },
+        {
             target: ".tour-team-details-menu-section-roster",
             content:
-                "The Roster section is vital for organization: 'Set Lineups' directs you to set the ideal batting order and defensive positioning; 'Invite Players' sends email onboarding invites; 'Assign Numbers' lets you bulk-manage jersey numbers.",
+                "The Roster section is vital for organization: 'Invite Players' sends email onboarding invites, 'Assign Numbers' lets you bulk-manage jersey numbers, and 'Manage Roles' controls team permissions.",
             placement: "left",
         },
         {

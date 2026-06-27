@@ -210,6 +210,83 @@ describe("lineup generation action", () => {
         });
     });
 
+    describe("Preferences Integration", () => {
+        it("should fetch lineupStrategy and maxMaleBatters from team preferences and pass to the model", async () => {
+            const { createAdminClient } = require("@/utils/appwrite/server");
+            const getPrefsMock = jest.fn().mockResolvedValue({
+                maxMaleBatters: 3,
+                lineupStrategy: "best_first",
+            });
+            createAdminClient.mockReturnValueOnce({
+                teams: { getPrefs: getPrefsMock },
+            });
+
+            // Setup basic mocks to allow the action to reach createModel
+            listDocuments.mockImplementation(async () => ({
+                rows: [{ $id: "g1", teamId: "t1" }],
+                total: 1,
+            }));
+
+            const req = createMockRequest();
+            await action({ request: req, context: mockContext });
+
+            // Check if getPrefs was called
+            expect(getPrefsMock).toHaveBeenCalledWith("t1");
+
+            // Check createModel call
+            const createModelCall = createModel.mock.calls[0][0];
+            expect(createModelCall.systemInstruction).toContain(
+                "Group your best hitters",
+            );
+            expect(createModelCall.systemInstruction).toContain(
+                "MAXIMUM 3 consecutive males",
+            );
+        });
+
+        it("should only pass playerLabels if the player has no game logs in history", async () => {
+            const { createAdminClient } = require("@/utils/appwrite/server");
+            const getPrefsMock = jest.fn().mockResolvedValue({
+                playerLabels: {
+                    p1: ["Power"],
+                    p2: ["On Base"], // Has stats, shouldn't get labels
+                },
+            });
+            createAdminClient.mockReturnValueOnce({
+                teams: { getPrefs: getPrefsMock },
+            });
+
+            listDocuments.mockImplementation(async (collection) => {
+                if (collection === "games") {
+                    return { rows: [{ $id: "g1", teamId: "t1" }], total: 1 };
+                } else if (collection === "game_logs") {
+                    return {
+                        rows: [
+                            {
+                                $id: "log1",
+                                gameId: "g_old",
+                                playerId: "p2",
+                                type: "1B",
+                                teamId: "t1",
+                            },
+                        ],
+                        total: 1,
+                    };
+                }
+                return { rows: [], total: 0 };
+            });
+
+            const req = createMockRequest();
+            await action({ request: req, context: mockContext });
+
+            const promptArgs = generateContentStream.mock.calls[0][1];
+            const promptStr = JSON.stringify(promptArgs);
+
+            expect(promptStr).toContain("labels");
+            expect(promptStr).toContain("Power"); // p1 has no stats
+            expect(promptStr).not.toContain("On Base"); // p2 has stats
+        });
+    });
+
     describe("Game Context Validation", () => {
         it("should return 404 if game is not found", async () => {
             listDocuments.mockResolvedValueOnce({ rows: [] }); // Step 1: Get Game

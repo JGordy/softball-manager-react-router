@@ -5,10 +5,17 @@
  * @param {Object} options - Configuration options
  * @param {string|Array} options.idealLineup - JSON string or array of player IDs in preferred order (from team settings)
  * @param {number} options.maxConsecutiveMales - Maximum consecutive male batters allowed (default: 3)
+ * @param {string} options.lineupStrategy - "best_first" or "spread" (default: "spread")
+ * @param {Object} options.playerLabels - Map of playerId -> array of labels (e.g. ["Power", "On Base"])
  * @returns {Array} - Ordered array of players for the batting lineup
  */
 function createBattingOrder(players, options = {}) {
-    const { idealLineup, maxConsecutiveMales = 3 } = options;
+    const {
+        idealLineup,
+        maxConsecutiveMales = 3,
+        lineupStrategy = "spread",
+        playerLabels = {},
+    } = options;
 
     // Parse idealLineup if provided as a string
     let idealOrder = [];
@@ -39,18 +46,31 @@ function createBattingOrder(players, options = {}) {
             players,
             idealOrder,
             maxConsecutiveMales,
+            playerLabels,
+            lineupStrategy,
         );
     }
 
     // Fall back to original algorithm if no ideal lineup is set
-    return createBattingOrderFallback(players, maxConsecutiveMales);
+    return createBattingOrderFallback(
+        players,
+        maxConsecutiveMales,
+        playerLabels,
+        lineupStrategy,
+    );
 }
 
 /**
  * Creates batting order based on team's ideal lineup, filtering to only available players.
  * Falls back to adding remaining players using the gender-balancing algorithm.
  */
-function createBattingOrderFromIdeal(players, idealOrder, maxConsecutiveMales) {
+function createBattingOrderFromIdeal(
+    players,
+    idealOrder,
+    maxConsecutiveMales,
+    playerLabels,
+    lineupStrategy,
+) {
     const battingOrder = [];
     const playerMap = new Map(players.map((p) => [p.$id, p]));
     const addedPlayerIds = new Set();
@@ -72,6 +92,8 @@ function createBattingOrderFromIdeal(players, idealOrder, maxConsecutiveMales) {
         const additionalOrder = createBattingOrderFallback(
             remainingPlayers,
             maxConsecutiveMales,
+            playerLabels,
+            lineupStrategy,
         );
         battingOrder.push(...additionalOrder);
     }
@@ -80,43 +102,80 @@ function createBattingOrderFromIdeal(players, idealOrder, maxConsecutiveMales) {
 }
 
 /**
- * Original algorithm: Creates batting order with gender balancing
- * (max consecutive males rule)
+ * Algorithm: Creates batting order with gender balancing and labels
  */
-function createBattingOrderFallback(players, maxConsecutiveMales) {
-    const availablePlayers = [...players];
+function createBattingOrderFallback(
+    players,
+    maxConsecutiveMales,
+    playerLabels = {},
+    lineupStrategy = "spread",
+) {
+    // Assign a label score to each player: Power = 3, On Base = 2, Other = 1
+    const scoredPlayers = players.map((p) => {
+        const labels = playerLabels[p.$id] || [];
+        let score = 1;
+        if (labels.includes("Power")) score = 3;
+        else if (labels.includes("On Base")) score = 2;
+        return { ...p, _labelScore: score };
+    });
+
+    let prioritizedQueue = [];
+
+    if (lineupStrategy === "best_first") {
+        // Sort purely descending by score
+        prioritizedQueue = scoredPlayers.sort(
+            (a, b) => b._labelScore - a._labelScore,
+        );
+    } else {
+        // Spread Strategy: Interleave the top hitters throughout the lineup
+        const power = scoredPlayers.filter((p) => p._labelScore === 3);
+        const onBase = scoredPlayers.filter((p) => p._labelScore === 2);
+        const other = scoredPlayers.filter((p) => p._labelScore === 1);
+
+        // A simple spreading approach:
+        // We have N total spots. We just take one from power, one from other, one from onBase, etc.
+        while (power.length > 0 || onBase.length > 0 || other.length > 0) {
+            if (power.length > 0) prioritizedQueue.push(power.shift());
+            if (other.length > 0) prioritizedQueue.push(other.shift());
+            if (onBase.length > 0) prioritizedQueue.push(onBase.shift());
+            if (other.length > 0) prioritizedQueue.push(other.shift()); // Spread 'other' more frequently
+        }
+    }
+
+    const availablePlayers = [...prioritizedQueue];
     const battingOrder = [];
     let consecutiveMaleCount = 0;
 
     // Continue until all players are in the batting order
     while (availablePlayers.length > 0) {
-        let playerToPick = null;
-        let playerIndexToPick;
+        let playerIndexToPick = -1;
 
         // If we've reached the max consecutive males, we MUST pick a female.
         if (consecutiveMaleCount >= maxConsecutiveMales) {
-            // Find the highest-rated available female player.
             playerIndexToPick = availablePlayers.findIndex(
                 (p) => p.gender === "Female",
             );
 
-            // If no female is available, we have to pick a male, breaking the rule.
-            // This is a fallback to prevent an infinite loop.
+            // If no female is available, fallback to picking the highest priority player
             if (playerIndexToPick === -1) {
-                playerIndexToPick = 0; // Pick the highest-rated player (who must be male).
+                playerIndexToPick = 0;
             }
         } else {
-            // We can pick either gender. We'll just pick the highest-rated player available.
-            playerIndexToPick = availablePlayers.findIndex(
-                (p) => p.gender === "Male",
-            );
+            // Pick the highest priority player (index 0)
+            playerIndexToPick = 0;
+
+            // Look ahead: if picking a male now would force us into an impossible situation later?
+            // (A more advanced algorithm could look ahead, but for now we trust the queue order
+            // until we are forced to pick a female).
         }
 
-        // Get the player and remove them from the available list.
-        playerToPick = availablePlayers.splice(playerIndexToPick, 1)[0];
+        const playerToPick = availablePlayers.splice(playerIndexToPick, 1)[0];
+
+        // Remove the temporary _labelScore property
+        delete playerToPick._labelScore;
+
         battingOrder.push(playerToPick);
 
-        // Update the consecutive male count.
         if (playerToPick.gender === "Male") {
             consecutiveMaleCount++;
         } else {

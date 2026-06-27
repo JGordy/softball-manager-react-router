@@ -270,4 +270,60 @@ describe("createBattingOrder utility", () => {
             expect(result.map((p) => p.$id)).toEqual(["3", "2", "1"]);
         });
     });
+
+    describe("playerLabels and lineupStrategy", () => {
+        const labeledPlayers = [
+            { $id: "p1", gender: "Male" }, // Other
+            { $id: "p2", gender: "Male" }, // Power
+            { $id: "p3", gender: "Female" }, // On Base
+            { $id: "p4", gender: "Male" }, // Other
+            { $id: "p5", gender: "Male" }, // Power
+            { $id: "p6", gender: "Female" }, // On Base
+        ];
+
+        const playerLabels = {
+            p2: ["Power"],
+            p3: ["On Base"],
+            p5: ["Power", "Speed"],
+            p6: ["On Base"],
+        };
+
+        it("should prioritize best_first strategy", () => {
+            const result = createBattingOrder(labeledPlayers, {
+                lineupStrategy: "best_first",
+                playerLabels,
+                maxConsecutiveMales: 3,
+            });
+
+            // p2 and p5 should be at the top (Power)
+            // p3 and p6 should be next (On Base)
+            // p1 and p4 at the bottom (Other)
+
+            // Let's check their positions
+            const ids = result.map((p) => p.$id);
+            expect(ids.indexOf("p2")).toBeLessThan(2);
+            expect(ids.indexOf("p5")).toBeLessThan(2);
+
+            // Should be placed before On Base
+            expect(ids.indexOf("p2")).toBeLessThan(ids.indexOf("p3"));
+            expect(ids.indexOf("p5")).toBeLessThan(ids.indexOf("p6"));
+        });
+
+        it("should interleave using spread strategy", () => {
+            const result = createBattingOrder(labeledPlayers, {
+                lineupStrategy: "spread",
+                playerLabels,
+                maxConsecutiveMales: 3,
+            });
+
+            // In spread, it should take Power, Other, OnBase, Other, etc.
+            // Power: p2, p5. On Base: p3, p6. Other: p1, p4.
+            // Queue: p2 (Power), p1 (Other), p3 (OnBase), p4 (Other), p5 (Power), p6 (OnBase)
+
+            const ids = result.map((p) => p.$id);
+            expect(ids[0]).toBe("p2");
+            expect(ids[1]).toBe("p1");
+            expect(ids[2]).toBe("p3");
+        });
+    });
 });

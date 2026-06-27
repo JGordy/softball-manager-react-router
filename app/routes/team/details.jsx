@@ -13,6 +13,7 @@ import {
     updateMemberRole,
     updatePreferences,
     updateBulkJerseyNumbers,
+    updatePlayerLabels,
 } from "@/actions/teams";
 import {
     invitePlayersServer,
@@ -72,8 +73,15 @@ export async function action({ request, params, context }) {
     if (_action === "update-preferences") {
         return updatePreferences({
             teamId,
-            prefs: { maxMaleBatters: values.maxMaleBatters },
+            prefs: {
+                maxMaleBatters: values.maxMaleBatters,
+                lineupStrategy: values.lineupStrategy,
+            },
         });
+    }
+
+    if (_action === "update-player-labels") {
+        return updatePlayerLabels({ teamId, values, client });
     }
 
     if (_action === "invite-player") {
@@ -218,6 +226,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                     trackingSuffix="teams"
                     alwaysIncludeTargets={[
                         ".tour-team-details-menu-section-team-options",
+                        ".tour-team-details-menu-section-lineup-options",
                         ".tour-team-details-menu-section-roster",
                         ".tour-roster-section-desktop",
                     ]}

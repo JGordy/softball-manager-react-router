@@ -1,4 +1,3 @@
-/* eslint-disable react/display-name */
 import { useOutletContext } from "react-router";
 import { render, screen } from "@/utils/test-utils";
 
@@ -134,6 +133,7 @@ describe("TeamDetails Route", () => {
             const formData = new FormData();
             formData.append("_action", "update-preferences");
             formData.append("maxMaleBatters", "3");
+            formData.append("lineupStrategy", "best_first");
             const request = {
                 formData: () => Promise.resolve(formData),
                 headers: { get: jest.fn() },
@@ -143,7 +143,31 @@ describe("TeamDetails Route", () => {
             expect(teamsActions.updatePreferences).toHaveBeenCalledWith(
                 expect.objectContaining({
                     teamId: "team1",
-                    prefs: expect.objectContaining({ maxMaleBatters: "3" }),
+                    prefs: expect.objectContaining({
+                        maxMaleBatters: "3",
+                        lineupStrategy: "best_first",
+                    }),
+                }),
+            );
+        });
+
+        it("calls updatePlayerLabels for update-player-labels action via json", async () => {
+            const request = {
+                json: () =>
+                    Promise.resolve({
+                        _action: "update-player-labels",
+                        labels: { player1: ["Power"] },
+                    }),
+                url: "http://localhost/team/team1",
+                headers: { get: () => "application/json" },
+            };
+
+            await action({ request, params, context: mockContext });
+            expect(teamsActions.updatePlayerLabels).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    teamId: "team1",
+                    values: { labels: { player1: ["Power"] } },
+                    client: expect.any(Object),
                 }),
             );
         });
