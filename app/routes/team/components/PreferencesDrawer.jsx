@@ -7,7 +7,6 @@ import {
     Text,
     Select,
     Group,
-    Checkbox,
     Card,
 } from "@mantine/core";
 import { IconCheck } from "@tabler/icons-react";
