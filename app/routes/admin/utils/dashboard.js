@@ -3,17 +3,8 @@ import { listDocuments } from "@/utils/databases";
 
 export async function getAdminDashboardData({ users, client, range = "24h" }) {
     // 1. Calculate timeframe for Umami and normalize range
-    const now = Date.now();
     const VALID_RANGES = ["24h", "7d", "30d"];
     const normalizedRange = VALID_RANGES.includes(range) ? range : "24h";
-
-    let startAt = now - 24 * 60 * 60 * 1000; // Default 24h
-
-    if (normalizedRange === "7d") {
-        startAt = now - 7 * 24 * 60 * 60 * 1000;
-    } else if (normalizedRange === "30d") {
-        startAt = now - 30 * 24 * 60 * 60 * 1000;
-    }
 
     // 2. Fetch Appwrite Stats & metrics in parallel
     const [
