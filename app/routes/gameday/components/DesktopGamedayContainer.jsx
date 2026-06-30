@@ -244,6 +244,8 @@ export default function DesktopGamedayContainer({
                             onOpenSelectBatterDrawer={openSelectBatter}
                             opponentLineupLocked={game.opponentLineupLocked}
                             game={game}
+                            inning={inning}
+                            halfInning={halfInning}
                         />
                     ) : (
                         <div style={{ minWidth: 40 }} />
