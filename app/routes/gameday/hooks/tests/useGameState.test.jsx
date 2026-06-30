@@ -246,6 +246,31 @@ describe("useGameState", () => {
         expect(result.current.opponentOrderIndex).toBe(2);
     });
 
+    it("sets opponentOrderIndex to 0 when last log is opponent_lineup_wrap", () => {
+        const game = {
+            score: 0,
+            opponentScore: 0,
+            isHomeGame: true,
+            opponentLineupLocked: true,
+        };
+        const logs = [
+            {
+                $id: "opp_log1",
+                inning: 1,
+                halfInning: "top",
+                eventType: "opponent_lineup_wrap",
+                baseState: JSON.stringify({ isOpponent: true }),
+            },
+        ];
+
+        const { result } = renderHook(() =>
+            useGameState({ logs, game, playerChart, opponentChart: [] }),
+        );
+
+        // opponent_lineup_wrap should reset the active batter to index 0
+        expect(result.current.opponentOrderIndex).toBe(0);
+    });
+
     it("skips players who are marked as removed with type 'skip'", () => {
         const playerChartWithRemoved = [
             { $id: "p1", firstName: "Alice" },
