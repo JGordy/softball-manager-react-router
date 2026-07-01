@@ -44,7 +44,11 @@ export function useGameState({ logs, game, playerChart, opponentChart }) {
                     log.eventType !== "INJURY_REMOVE"
                 ) {
                     if (isOpponentPlay(log, game.isHomeGame)) {
-                        if (!lastOpponentAtBatLog && log.playerId) {
+                        if (
+                            !lastOpponentAtBatLog &&
+                            (log.playerId ||
+                                log.eventType === "opponent_lineup_wrap")
+                        ) {
                             lastOpponentAtBatLog = log;
                         }
                     } else {
@@ -76,7 +80,9 @@ export function useGameState({ logs, game, playerChart, opponentChart }) {
             if (lastOpponentAtBatLog) {
                 let nextOpponentIndex = 0;
 
-                if (opponentChart && opponentChart.length > 0) {
+                if (lastOpponentAtBatLog.eventType === "opponent_lineup_wrap") {
+                    nextOpponentIndex = 0;
+                } else if (opponentChart && opponentChart.length > 0) {
                     const lastOpponentIndex = opponentChart.findIndex(
                         (p) => p.$id === lastOpponentAtBatLog.playerId,
                     );

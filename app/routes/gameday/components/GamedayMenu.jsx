@@ -28,6 +28,8 @@ export default function GamedayMenu({
     opponentLineupLocked,
     menuId,
     game,
+    inning,
+    halfInning,
 }) {
     const fetcher = useFetcher();
     const { eventId } = useParams();
@@ -200,10 +202,8 @@ export default function GamedayMenu({
                                         oldOpponentLineup:
                                             JSON.stringify(opponentChart),
                                         teamId: game?.teamId,
-                                        inning: String(
-                                            game?.currentInning || 1,
-                                        ),
-                                        halfInning: game?.halfInning || "top",
+                                        inning: String(inning || 1),
+                                        halfInning: halfInning || "top",
                                     },
                                     { method: "post" },
                                 );

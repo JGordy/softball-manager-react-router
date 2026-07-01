@@ -78,7 +78,9 @@ describe("GamedayMenu", () => {
                 gameFinal={false}
                 score={5}
                 opponentScore={3}
-                game={{ teamId: "t1", currentInning: 1, halfInning: "top" }}
+                game={{ teamId: "t1" }}
+                inning={1}
+                halfInning="top"
                 {...props}
             />,
         );
