@@ -97,7 +97,7 @@ export default function DesktopPlayActionDrawer({
     }));
 
     // Reset state when drawer closes
-    /* eslint-disable react-hooks/set-state-in-effect */
+
     useEffect(() => {
         if (!opened) {
             setSelectedPosition(null);
@@ -108,7 +108,6 @@ export default function DesktopPlayActionDrawer({
             setIsDragging(false);
         }
     }, [opened, bats]);
-    /* eslint-enable react-hooks/set-state-in-effect */
 
     const handleConfirm = () => {
         onSelect({

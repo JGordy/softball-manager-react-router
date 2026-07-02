@@ -194,7 +194,6 @@ function Lineup({ loaderData, actionData }) {
                     positions: [],
                 });
 
-                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setHasBeenEdited(true);
                 closeAllModals();
 

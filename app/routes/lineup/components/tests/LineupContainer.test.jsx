@@ -43,7 +43,7 @@ jest.mock("../../utils/createFieldingChart");
 jest.mock("@/utils/analytics", () => ({ trackEvent: jest.fn() }));
 
 // Mock child components
-// eslint-disable-next-line react/display-name
+
 jest.mock("../EditablePlayerChart", () => ({ playerChart }) => (
     <div data-testid="editable-player-chart">
         {playerChart?.length || 0} players

@@ -86,7 +86,7 @@ describe("Landing Route", () => {
                 msg.includes("Encountered two children with the same key")
             )
                 return;
-            // eslint-disable-next-line no-console
+
             console.warn(msg);
         });
     });

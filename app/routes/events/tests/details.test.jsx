@@ -1,4 +1,3 @@
-/* eslint-disable react/display-name */
 import { render, screen, fireEvent, act } from "@/utils/test-utils";
 
 import * as gamesActions from "@/actions/games";

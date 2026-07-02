@@ -1,4 +1,3 @@
-/* eslint-disable react/display-name */
 import { render, screen, waitFor, fireEvent, within } from "@/utils/test-utils";
 import * as gameUpdatesHook from "@/hooks/useGameUpdates";
 import * as gameStateHook from "../../hooks/useGameState";
