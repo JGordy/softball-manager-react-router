@@ -126,7 +126,6 @@ export default function OnboardingTour({
                 clearTimeout(transitionTimeoutRef.current);
             }
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Handle delayed start of the tour on mount to ensure all DOM elements are painted

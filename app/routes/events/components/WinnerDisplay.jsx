@@ -136,7 +136,6 @@ function useWinnerConfetti(team) {
             }, 5000);
             // confetti fired
         } catch (err) {
-            // eslint-disable-next-line no-console
             console.error("Failed to run confetti", err);
         }
     };
@@ -194,7 +193,6 @@ export default function WinnerDisplay({
         };
 
         // deliberately only watch activeAward so we fire per-award changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeAward]);
 
     if (entries.length === 0) {
