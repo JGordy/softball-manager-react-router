@@ -1,8 +1,5 @@
 import { redirect, useLoaderData, useNavigation } from "react-router";
-
 import { LoadingOverlay } from "@mantine/core";
-
-import { createSessionClient } from "@/utils/appwrite/server";
 
 import { logoutAction } from "@/actions/logout";
 
@@ -15,6 +12,7 @@ import CTASection from "./components/CTASection";
 import Footer from "./components/Footer";
 
 import { isMobileUserAgent } from "@/utils/device";
+import { appwriteClientContext } from "@/contexts/router";
 
 export const links = () => [
     { rel: "canonical", href: "https://www.rostrhq.app/" },
@@ -50,19 +48,19 @@ export const meta = () => {
     ];
 };
 
-export async function action({ request }) {
+export async function action({ request, context }) {
     const url = new URL(request.url);
     const redirectTo = url.searchParams.get("redirect");
-    const client = await createSessionClient(request);
+    const client = context.get(appwriteClientContext);
 
     return logoutAction({ client, redirectTo });
 }
 
-export async function loader({ request }) {
+export async function loader({ request, context }) {
     const isMobile = isMobileUserAgent(request);
 
     try {
-        const { account } = await createSessionClient(request);
+        const { account } = context.get(appwriteClientContext);
         const user = await account.get();
 
         // Use prefs for startingPage preference

@@ -69,7 +69,7 @@ export default function PlayerDetailsDrawer({
 
                 {showStats && (
                     <Tabs.Panel value="spray" pt="lg">
-                        <ContactSprayChart hits={playerHits} />
+                        <ContactSprayChart hits={playerHits} layout="stacked" />
                     </Tabs.Panel>
                 )}
             </TabsWrapper>

@@ -1,10 +1,11 @@
-import { ID, Permission, Role } from "node-appwrite";
+import { ID, Permission, Role, Query } from "node-appwrite";
 
 import {
     createDocument,
     deleteDocument,
     readDocument,
     updateDocument,
+    listDocuments,
 } from "@/utils/databases.js";
 import { combineDateTime } from "@/utils/dateTime";
 import { hasBadWords } from "@/utils/badWordsApi";
@@ -22,6 +23,7 @@ import {
     sendGameFinalNotification,
     sendAwardVoteNotification,
 } from "./notifications";
+import { generateGameRecapBackground } from "./recap.js";
 
 function computeResult(score, opponentScore) {
     const a = parseInt(String(score).trim(), 10);
@@ -423,6 +425,13 @@ export async function updateGame({ values, eventId, client }) {
             values.countTowardsRecord === true;
     }
 
+    if (Object.prototype.hasOwnProperty.call(values, "opponentLineupLocked")) {
+        dataToUpdate.opponentLineupLocked =
+            values.opponentLineupLocked === "true" ||
+            values.opponentLineupLocked === "on" ||
+            values.opponentLineupLocked === true;
+    }
+
     if (Object.prototype.hasOwnProperty.call(values, "gameFinal")) {
         dataToUpdate.gameFinal =
             values.gameFinal === "true" ||
@@ -485,6 +494,42 @@ export async function updateGame({ values, eventId, client }) {
                         funcError,
                     );
                 }
+            }
+
+            if (isSetFinal) {
+                // Only trigger recap generation if play-by-play logs exist
+                listDocuments(
+                    "game_logs",
+                    [Query.equal("gameId", eventId), Query.limit(1)],
+                    client,
+                )
+                    .then((logsResponse) => {
+                        const hasLogs =
+                            logsResponse?.total > 0 ||
+                            (logsResponse?.rows &&
+                                logsResponse.rows.length > 0);
+                        if (hasLogs) {
+                            generateGameRecapBackground({
+                                eventId,
+                                client,
+                            }).catch((err) => {
+                                console.error(
+                                    "Error generating background game recap:",
+                                    err,
+                                );
+                            });
+                        } else {
+                            console.log(
+                                `updateGame: No game_logs found for game ${eventId}. Skipping recap generation.`,
+                            );
+                        }
+                    })
+                    .catch((err) => {
+                        console.error(
+                            "Error checking game_logs before recap generation:",
+                            err,
+                        );
+                    });
             }
 
             try {

@@ -9,10 +9,10 @@ import { isbot } from "isbot";
 // the hardcoded 4950ms internal abort from firing before deferred data resolves.
 // In production, Appwrite responds in ~400ms so the default 4950ms is more than enough.
 export const streamTimeout =
-    process.env.NODE_ENV === "development" ? 30_000 : 4_950;
+    process.env.NODE_ENV === "development" ? 30000 : 4950;
 
 // Give React 1 extra second beyond streamTimeout to flush remaining shell content.
-const ABORT_DELAY = streamTimeout + 1_000;
+const ABORT_DELAY = streamTimeout + 1000;
 
 export default function handleRequest(
     request,

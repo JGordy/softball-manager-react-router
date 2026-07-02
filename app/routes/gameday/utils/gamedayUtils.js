@@ -148,6 +148,8 @@ export function getEventDescription(
         baseDesc = `${batterName} reaches on a fielder's choice ${fcLoc}`;
     } else if (actionType === "BB") baseDesc = `${batterName} walks`;
     else if (actionType === "K") baseDesc = `${batterName} strikes out`;
+    else if (actionType === "injury_auto_out")
+        baseDesc = `${batterName} - Automatic Out (Injury)`;
     else baseDesc = `${batterName}: ${actionType}${loc ? ` (${loc})` : ""}`;
 
     // Add advancement context if batter moved further than expected
@@ -272,4 +274,75 @@ export function parsePlayerChart(playerChart) {
         console.error("Error parsing playerChart:", e);
         return undefined;
     }
+}
+
+/**
+ * Classifies whether a game log represents an opponent play.
+ * Uses explicit indicators or visitor vs home baseball rule as a fallback.
+ *
+ * @param {Object} log - The game log object
+ * @param {boolean} [isHomeGame] - Whether our team is the home team
+ * @returns {boolean} True if the play belongs to the opponent
+ */
+export const isOpponentPlay = (log, isHomeGame) => {
+    if (!log) return false;
+
+    // Explicit eventType check
+    if (log.eventType === "opponent_run") return true;
+
+    // Check custom JSON metadata in baseState
+    if (log.baseState) {
+        try {
+            const parsed =
+                typeof log.baseState === "string"
+                    ? JSON.parse(log.baseState)
+                    : log.baseState;
+            if (parsed?.isOpponent !== undefined) return !!parsed.isOpponent;
+        } catch {}
+    }
+
+    // Rules-based fallback (Visitor bats first, Home bats second)
+    if (isHomeGame !== undefined && isHomeGame !== null) {
+        const isHome = isHomeGame === "true" || isHomeGame === true;
+        const isTop = log.halfInning === "top";
+        return isHome ? isTop : !isTop;
+    }
+
+    return false;
+};
+
+/**
+ * Calculates the next batting order index, skipping any players marked as removed with type 'skip'.
+ */
+export function getNextBatterIndex(currentIndex, playerChart) {
+    if (!playerChart || playerChart.length === 0) return 0;
+    let nextIndex = (currentIndex + 1) % playerChart.length;
+    let attempts = 0;
+    while (
+        playerChart[nextIndex]?.removed &&
+        playerChart[nextIndex]?.removalType === "skip" &&
+        attempts < playerChart.length
+    ) {
+        nextIndex = (nextIndex + 1) % playerChart.length;
+        attempts++;
+    }
+    return nextIndex;
+}
+
+/**
+ * Calculates the first active batting order index, skipping any players marked as removed with type 'skip'.
+ */
+export function getFirstBatterIndex(playerChart) {
+    if (!playerChart || playerChart.length === 0) return 0;
+    let index = 0;
+    let attempts = 0;
+    while (
+        playerChart[index]?.removed &&
+        playerChart[index]?.removalType === "skip" &&
+        attempts < playerChart.length
+    ) {
+        index = (index + 1) % playerChart.length;
+        attempts++;
+    }
+    return index;
 }

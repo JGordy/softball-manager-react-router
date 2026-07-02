@@ -21,6 +21,7 @@ import {
     ColorSchemeScript,
     MantineProvider,
     mantineHtmlProps,
+    v8CssVariablesResolver,
     Container,
     Title,
     Text,
@@ -45,6 +46,7 @@ import { usePushNotificationListener } from "@/hooks/usePushNotificationListener
 import { NotificationsProvider } from "@/context/NotificationsContext";
 
 import { createSessionClient } from "@/utils/appwrite/server";
+import { userContext, appwriteClientContext } from "@/contexts/router";
 import UmamiTracker from "@/components/UmamiTracker";
 
 import theme from "./theme";
@@ -109,6 +111,36 @@ export const links = () => [
     },
 ];
 
+export const middleware = [
+    async ({ request, context }, next) => {
+        try {
+            const sessionClient = await createSessionClient(request);
+            const { account } = sessionClient;
+
+            // Inject sessionClient into context
+            context.set(appwriteClientContext, sessionClient);
+
+            let user = null;
+            try {
+                user = await account.get();
+            } catch (_error) {
+                // User is not authenticated
+            }
+
+            // Inject user into context
+            context.set(userContext, user);
+        } catch (error) {
+            // Log critical errors during middleware auth setup
+            console.error("Root middleware - Auth setup failure:", error);
+            context.set(appwriteClientContext, null);
+            context.set(userContext, null);
+        }
+
+        // Continue down the middleware chain to loaders/actions
+        await next();
+    },
+];
+
 export async function loader({ request }) {
     const cookieHeader = request.headers.get("Cookie");
     let themePreference = "auto";
@@ -134,7 +166,7 @@ export async function loader({ request }) {
         if (preferences.themePreference) {
             themePreference = preferences.themePreference;
         }
-    } catch (error) {
+    } catch (_error) {
         // User not authenticated or error fetching preferences, use cookie value
     }
 
@@ -163,7 +195,7 @@ export function Layout({ children }) {
     try {
         const data = useLoaderData();
         themePreference = getThemePreference(data);
-    } catch (e) {
+    } catch (_e) {
         // useLoaderData might throw in some error contexts or during initial SSR states
     }
 
@@ -198,6 +230,7 @@ export function Layout({ children }) {
                 <MantineProvider
                     defaultColorScheme={themePreference}
                     theme={theme}
+                    cssVariablesResolver={v8CssVariablesResolver}
                 >
                     <Notifications position="top-center" zIndex={10000} />
                     <ModalsProvider>{children}</ModalsProvider>

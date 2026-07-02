@@ -227,4 +227,28 @@ describe("AddPlayer", () => {
         );
         expect(preferredOptions).not.toContain("Catcher");
     });
+
+    it("does not render defaultBats fields when bats is Right", () => {
+        render(
+            <AddPlayer
+                inputsToDisplay={["throws-bats"]}
+                defaults={{ bats: "Right" }}
+            />,
+        );
+        expect(
+            screen.queryByLabelText(/Default Batting Side/i),
+        ).not.toBeInTheDocument();
+    });
+
+    it("renders defaultBats fields when bats is Switch", () => {
+        render(
+            <AddPlayer
+                inputsToDisplay={["throws-bats"]}
+                defaults={{ bats: "Switch" }}
+            />,
+        );
+        expect(
+            screen.getByLabelText(/Default Batting Side/i),
+        ).toBeInTheDocument();
+    });
 });

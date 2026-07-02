@@ -3,7 +3,7 @@ import { Button, Container, Group, Text, Title } from "@mantine/core";
 
 import classes from "@/styles/notfound.module.css";
 
-export default function Settings({ actionData }) {
+export default function Settings() {
     const navigate = useNavigate();
 
     const handleHomeButtonClick = () => {

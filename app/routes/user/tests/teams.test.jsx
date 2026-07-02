@@ -4,6 +4,7 @@ import { render, screen, fireEvent } from "@/utils/test-utils";
 import * as teamsActions from "@/actions/teams";
 import * as teamsLoaders from "@/loaders/teams";
 import useModal from "@/hooks/useModal";
+import { mockContext } from "@/utils/mockContext";
 
 import UserTeams, { action, loader } from "../teams";
 
@@ -67,7 +68,7 @@ describe("UserTeams Route Component", () => {
     describe("loader", () => {
         it("calls getUserTeams with client payload", async () => {
             const request = { url: "http://localhost/teams" };
-            await loader({ request });
+            await loader({ request, context: mockContext });
             expect(teamsLoaders.getUserTeams).toHaveBeenCalledWith({
                 client: expect.any(Object),
             });
@@ -82,7 +83,7 @@ describe("UserTeams Route Component", () => {
             formData.append("name", "New Team");
             const request = { formData: () => Promise.resolve(formData) };
 
-            await action({ request });
+            await action({ request, context: mockContext });
 
             expect(teamsActions.createTeam).toHaveBeenCalledWith({
                 values: { name: "New Team" },

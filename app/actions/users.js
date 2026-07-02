@@ -50,6 +50,9 @@ export async function createPlayer({ values, teamId, userId, client }) {
               ]
             : [];
 
+        const defaultBats =
+            values.bats === "Switch" ? values.defaultBats || "right" : null;
+
         const player = await createDocument(
             "users",
             _userId,
@@ -58,6 +61,7 @@ export async function createPlayer({ values, teamId, userId, client }) {
                 preferredPositions,
                 dislikedPositions,
                 userId: _userId,
+                defaultBats,
             },
             docPermissions,
             client,
@@ -82,6 +86,14 @@ export async function updateUser({ values, userId, client }) {
     if (dataToUpdate.dislikedPositions) {
         dataToUpdate.dislikedPositions =
             dataToUpdate.dislikedPositions.split(",");
+    }
+
+    if (dataToUpdate.bats) {
+        if (dataToUpdate.bats === "Switch") {
+            dataToUpdate.defaultBats = dataToUpdate.defaultBats || "right";
+        } else {
+            dataToUpdate.defaultBats = null;
+        }
     }
 
     try {
@@ -353,6 +365,7 @@ export async function updateUserPrefs({ values, client }) {
             "themePreference",
             "statsPrivacy",
             "defaultAvailability",
+            "onboardingTours",
         ];
         const keys = Object.keys(values);
         const isValid = keys.every((key) => allowedKeys.includes(key));
@@ -418,6 +431,33 @@ export async function updateUserPrefs({ values, client }) {
                     success: false,
                     status: 400,
                     message: "Invalid starting page.",
+                    action: "update-user-prefs",
+                };
+            }
+        }
+
+        if (Object.prototype.hasOwnProperty.call(values, "onboardingTours")) {
+            if (typeof values.onboardingTours === "string") {
+                try {
+                    values.onboardingTours = JSON.parse(values.onboardingTours);
+                } catch (_e) {
+                    return {
+                        success: false,
+                        status: 400,
+                        message: "Invalid onboarding tours preference format.",
+                        action: "update-user-prefs",
+                    };
+                }
+            }
+            if (
+                typeof values.onboardingTours !== "object" ||
+                values.onboardingTours === null ||
+                Array.isArray(values.onboardingTours)
+            ) {
+                return {
+                    success: false,
+                    status: 400,
+                    message: "Onboarding tours preference must be an object.",
                     action: "update-user-prefs",
                 };
             }

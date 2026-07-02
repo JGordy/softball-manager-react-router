@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useOutletContext } from "react-router";
-import { Button, Checkbox, Card, Group, Text } from "@mantine/core";
+import { Button, Checkbox, Card, Group, Text, Box } from "@mantine/core";
 
 import DrawerContainer from "@/components/DrawerContainer";
 
@@ -43,7 +43,7 @@ export default function RemovePlayersDrawer({
                 value={selectedPlayers}
                 onChange={setSelectedPlayers}
             >
-                <div mt="xs">
+                <Box mt="xs">
                     {lineupState?.map((player) => (
                         <Card key={player.$id} p="0" mb="sm">
                             <Checkbox.Card
@@ -62,7 +62,7 @@ export default function RemovePlayersDrawer({
                             </Checkbox.Card>
                         </Card>
                     ))}
-                </div>
+                </Box>
             </Checkbox.Group>
             <Button
                 color="red"

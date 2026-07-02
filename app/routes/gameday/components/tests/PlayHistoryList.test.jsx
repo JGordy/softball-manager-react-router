@@ -30,6 +30,7 @@ describe("PlayHistoryList", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         gamedayUtils.getRunnerMovement.mockReturnValue([]);
+        gamedayUtils.isOpponentPlay.mockReturnValue(false);
     });
 
     it("renders logs in reverse order", () => {
@@ -139,5 +140,75 @@ describe("PlayHistoryList", () => {
                 screen.queryByRole("button", { name: /edit play/i }),
             ).not.toBeInTheDocument();
         });
+
+        it("does not show edit button on opponent_run log rows even for scorekeepers", () => {
+            const opponentLog = {
+                $id: "log-opp",
+                description: "Trinity Red scored 2 runs",
+                eventType: "opponent_run",
+                rbi: 2,
+                inning: 2,
+                halfInning: "top",
+            };
+            render(
+                <PlayHistoryList
+                    logs={[opponentLog]}
+                    playerChart={[]}
+                    isScorekeeper={true}
+                    onEditPlay={jest.fn()}
+                />,
+            );
+            expect(
+                screen.queryByRole("button", { name: /edit play/i }),
+            ).not.toBeInTheDocument();
+        });
+    });
+
+    it("renders opponent run event cards correctly with custom opponentName", () => {
+        const opponentLog = {
+            $id: "log-opp",
+            eventType: "opponent_run",
+            rbi: 2,
+            inning: 2,
+            halfInning: "top",
+        };
+        render(
+            <PlayHistoryList
+                logs={[opponentLog]}
+                playerChart={[]}
+                opponentName="Trinity Red"
+            />,
+        );
+        expect(
+            screen.getByText("Trinity Red scored 2 runs"),
+        ).toBeInTheDocument();
+    });
+
+    it("applies opponent styling to normal plays if isOpponentPlay is true", () => {
+        gamedayUtils.isOpponentPlay.mockReturnValue(true);
+        const opponentLog = {
+            $id: "log-opp-play",
+            description: "Batter 2 walks",
+            rbi: 0,
+            inning: 1,
+            halfInning: "top",
+            baseState: "{}",
+        };
+        const { container } = render(
+            <PlayHistoryList
+                logs={[opponentLog]}
+                playerChart={[]}
+                isHomeGame={true}
+            />,
+        );
+
+        const cardElement = container.querySelector(".mantine-Card-root");
+        expect(cardElement).toBeInTheDocument();
+
+        // Assert that the opponent style styles are applied (red border on right)
+        expect(cardElement.style.borderRight).toBe(
+            "1px solid var(--mantine-color-red-6)",
+        );
+        expect(cardElement.style.borderLeft).toBe("");
     });
 });

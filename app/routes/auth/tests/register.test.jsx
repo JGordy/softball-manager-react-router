@@ -10,6 +10,7 @@ import { createDocument } from "@/utils/databases";
 import { hasBadWords } from "@/utils/badWordsApi";
 import { showNotification } from "@/utils/showNotification";
 import { trackEvent, identifyUser } from "@/utils/analytics";
+import { mockContext } from "@/utils/mockContext";
 
 import { redirectIfAuthenticated } from "../utils/redirectIfAuthenticated";
 import Register, { loader, action } from "../register";
@@ -67,8 +68,11 @@ describe("Register Route", () => {
     describe("loader", () => {
         it("calls redirectIfAuthenticated", async () => {
             const request = new Request("http://localhost/register");
-            await loader({ request });
-            expect(redirectIfAuthenticated).toHaveBeenCalledWith(request);
+            await loader({ request, context: mockContext });
+            expect(redirectIfAuthenticated).toHaveBeenCalledWith(
+                request,
+                mockContext,
+            );
         });
     });
 
@@ -80,7 +84,7 @@ describe("Register Route", () => {
                 body: formData,
             });
 
-            const result = await action({ request });
+            const result = await action({ request, context: mockContext });
             expect(result.error).toBe("Email, password and name are required.");
         });
 
@@ -96,7 +100,7 @@ describe("Register Route", () => {
 
             hasBadWords.mockResolvedValue(true);
 
-            const result = await action({ request });
+            const result = await action({ request, context: mockContext });
             expect(result.error).toBe(
                 "Name contains inappropriate language. Please choose a different name.",
             );
@@ -128,7 +132,7 @@ describe("Register Route", () => {
             });
             serializeSessionCookie.mockReturnValue("cookie-string");
 
-            const result = await action({ request });
+            const result = await action({ request, context: mockContext });
 
             expect(mockAccount.create).toHaveBeenCalled();
             expect(createDocument).toHaveBeenCalledWith(
@@ -159,7 +163,7 @@ describe("Register Route", () => {
             };
             createAdminClient.mockReturnValue({ account: mockAccount });
 
-            const result = await action({ request });
+            const result = await action({ request, context: mockContext });
 
             expect(result.error).toBe("Registration failed");
         });

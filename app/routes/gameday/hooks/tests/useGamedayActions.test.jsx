@@ -2,6 +2,7 @@ import { useFetcher } from "react-router";
 import { renderHook, act } from "@testing-library/react";
 
 import { useGamedayActions } from "../useGamedayActions";
+import { UI_KEYS } from "@/constants/scoring";
 
 jest.mock("react-router", () => ({
     useFetcher: jest.fn(),
@@ -36,6 +37,12 @@ describe("useGamedayActions", () => {
         setBattingOrderIndex: jest.fn(),
         logs: [],
         isScorekeeper: true,
+        game: { $id: "game1", opponent: "Opponent" },
+        currentBatter: { $id: "p1", firstName: "Alice", lastName: "Player" },
+        isOurBatting: true,
+        opponentOrderIndex: 0,
+        setOpponentOrderIndex: jest.fn(),
+        opponentChart: [],
     };
 
     beforeEach(() => {
@@ -63,7 +70,46 @@ describe("useGamedayActions", () => {
         expect(updater(0)).toBe(1);
 
         expect(mockSubmit).toHaveBeenCalledWith(
-            { _action: "update-game-score", opponentScore: 1 },
+            {
+                _action: "log-game-event",
+                teamId: "team1",
+                inning: 1,
+                halfInning: "top",
+                eventType: "opponent_run",
+                rbi: 1,
+                outsOnPlay: 0,
+                description: "Opponent scored 1 run",
+                baseState: JSON.stringify({ isOpponent: true }),
+            },
+            { method: "post" },
+        );
+    });
+
+    it("handles multiple opponent runs correctly", () => {
+        const { result } = renderHook(() => useGamedayActions(defaultProps));
+
+        act(() => {
+            result.current.handleOpponentRun(5);
+        });
+
+        expect(defaultProps.setOpponentScore).toHaveBeenCalledWith(
+            expect.any(Function),
+        );
+        const updater = defaultProps.setOpponentScore.mock.calls[0][0];
+        expect(updater(0)).toBe(5);
+
+        expect(mockSubmit).toHaveBeenCalledWith(
+            {
+                _action: "log-game-event",
+                teamId: "team1",
+                inning: 1,
+                halfInning: "top",
+                eventType: "opponent_run",
+                rbi: 5,
+                outsOnPlay: 0,
+                description: "Opponent scored 5 runs",
+                baseState: JSON.stringify({ isOpponent: true }),
+            },
             { method: "post" },
         );
     });
@@ -108,6 +154,42 @@ describe("useGamedayActions", () => {
         expect(defaultProps.setBattingOrderIndex).toHaveBeenCalledWith(1);
     });
 
+    it("resolves Fly/Pop Out to Fly Out or Pop Out based on payload coordinates in completeAction", () => {
+        const { result } = renderHook(() => useGamedayActions(defaultProps));
+
+        // 1. Infield coordinates
+        act(() => {
+            result.current.completeAction(UI_KEYS.FLY_POP, {
+                hitCoordinates: { x: 50, y: 65 },
+                hitLocation: "to shortstop",
+            });
+        });
+
+        expect(mockSubmit).toHaveBeenCalledWith(
+            expect.objectContaining({
+                _action: "log-game-event",
+                eventType: "Pop Out",
+            }),
+            { method: "post" },
+        );
+
+        // 2. Outfield coordinates
+        act(() => {
+            result.current.completeAction(UI_KEYS.FLY_POP, {
+                hitCoordinates: { x: 50, y: 20 },
+                hitLocation: "center field",
+            });
+        });
+
+        expect(mockSubmit).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+                _action: "log-game-event",
+                eventType: "Fly Out",
+            }),
+            { method: "post" },
+        );
+    });
+
     it("undoLast calls fetcher submit", () => {
         const logsWithEntry = [{ $id: "log123" }];
         const { result } = renderHook(() =>
@@ -120,6 +202,55 @@ describe("useGamedayActions", () => {
 
         expect(mockSubmit).toHaveBeenCalledWith(
             { _action: "undo-game-event", logId: "log123" },
+            { method: "post" },
+        );
+    });
+
+    it("handles handleRemovePlayer correctly", () => {
+        const { result } = renderHook(() => useGamedayActions(defaultProps));
+        const mockChartUpdate = jest.fn();
+
+        act(() => {
+            result.current.handleRemovePlayer(
+                0,
+                "skip",
+                defaultProps.playerChart,
+                mockChartUpdate,
+            );
+        });
+
+        const expectedChart = [
+            {
+                $id: "p1",
+                firstName: "Alice",
+                lastName: "Player",
+                removed: true,
+                removalType: "skip",
+                removalInning: 1,
+            },
+            { $id: "p2", firstName: "Bob", lastName: "Batter" },
+        ];
+
+        expect(mockChartUpdate).toHaveBeenCalledWith(expectedChart);
+        expect(mockSubmit).toHaveBeenCalledWith(
+            {
+                _action: "substitute-player",
+                playerChart: JSON.stringify(expectedChart),
+                teamId: "team1",
+                inning: 1,
+                halfInning: "top",
+                playerId: "p1",
+                eventType: "INJURY_REMOVE",
+                rbi: 0,
+                outsOnPlay: 0,
+                description:
+                    "Alice Player removed due to injury (skip future at-bats)",
+                hitX: null,
+                hitY: null,
+                hitLocation: null,
+                battingSide: null,
+                baseState: JSON.stringify(defaultProps.runners),
+            },
             { method: "post" },
         );
     });
@@ -209,5 +340,29 @@ describe("useGamedayActions", () => {
 
             expect(mockSubmit).not.toHaveBeenCalled();
         });
+    });
+
+    it("handles selecting an active opponent batter slot correctly", () => {
+        const { result } = renderHook(() => useGamedayActions(defaultProps));
+
+        act(() => {
+            result.current.handleSelectOpponentBatter(5); // index 5 represents Batter 6
+        });
+
+        expect(mockSubmit).toHaveBeenCalledWith(
+            {
+                _action: "log-game-event",
+                teamId: "team1",
+                inning: 1,
+                halfInning: "top",
+                eventType: "opponent_lineup_pointer",
+                playerId: "OPP_BAT_6",
+                rbi: 0,
+                outsOnPlay: 0,
+                description: "Lineup advanced to Batter 6",
+                baseState: JSON.stringify({ isOpponent: true }),
+            },
+            { method: "post" },
+        );
     });
 });

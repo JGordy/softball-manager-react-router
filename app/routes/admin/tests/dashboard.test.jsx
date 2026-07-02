@@ -6,22 +6,14 @@ import {
     createSessionClient,
     createAdminClient,
 } from "@/utils/appwrite/server";
-import { umamiService } from "@/utils/umami/server";
+import { mockContext } from "@/utils/mockContext";
 
 import AdminDashboard, { loader } from "../dashboard";
 
-// Mock Appwrite and Umami
+// Mock Appwrite
 jest.mock("@/utils/appwrite/server", () => ({
     createSessionClient: jest.fn(),
     createAdminClient: jest.fn(),
-}));
-
-jest.mock("@/utils/umami/server", () => ({
-    umamiService: {
-        getStats: jest.fn(),
-        getActiveUsers: jest.fn(),
-        getMetrics: jest.fn(),
-    },
 }));
 
 // Mock react-router hooks
@@ -42,12 +34,6 @@ describe("AdminDashboard Route", () => {
             totalUsers: 100,
             totalTeams: 10,
             totalGames: 50,
-            umami: {
-                pageviews: { value: 1000 },
-                visitors: { value: 200 },
-                bounces: { value: 50 },
-                totaltime: { value: 3600 },
-            },
             activeUsers: 5,
             attendance: {
                 accepted: 80,
@@ -55,11 +41,6 @@ describe("AdminDashboard Route", () => {
                 tentative: 10,
                 total: 100,
             },
-        },
-        aiLineupMetrics: {
-            requested: 10,
-            generated: 8,
-            applied: 4,
         },
         recentUsers: [
             {
@@ -77,11 +58,7 @@ describe("AdminDashboard Route", () => {
                 accessedAt: new Date().toISOString(),
             },
         ],
-        activeTeams: [
-            { id: "team-1", name: "Team 1", views: 100, primaryColor: "blue" },
-        ],
         activeParks: [{ id: "park-1", name: "Central Park", gameCount: 15 }],
-        topFeatures: [{ name: "Live Scoring", views: 200 }],
         range: "24h",
     };
 
@@ -92,35 +69,55 @@ describe("AdminDashboard Route", () => {
 
     describe("loader", () => {
         it("redirects to login if user session is missing", async () => {
-            createSessionClient.mockResolvedValue({
-                account: { get: jest.fn().mockRejectedValue(new Error()) },
-            });
+            const localMockContext = {
+                get: jest.fn(() => null),
+            };
 
             try {
-                await loader({ request: new Request("http://localhost/") });
+                await loader({
+                    request: new Request("http://localhost/"),
+                    context: localMockContext,
+                });
             } catch (error) {
                 expect(error.url).toBe("/login");
             }
         });
 
         it("redirects to dashboard if user is not an admin", async () => {
-            createSessionClient.mockResolvedValue({
-                account: { get: jest.fn().mockResolvedValue({ labels: [] }) },
-            });
+            const localMockContext = {
+                get: jest.fn((ctx) => {
+                    if (
+                        ctx === "userContext" ||
+                        String(ctx).includes("userContext")
+                    ) {
+                        return { labels: [] };
+                    }
+                    return {};
+                }),
+            };
 
             try {
-                await loader({ request: new Request("http://localhost/") });
+                await loader({
+                    request: new Request("http://localhost/"),
+                    context: localMockContext,
+                });
             } catch (error) {
                 expect(error.url).toBe("/dashboard");
             }
         });
 
         it("fetches data if user is an admin", async () => {
-            createSessionClient.mockResolvedValue({
-                account: {
-                    get: jest.fn().mockResolvedValue({ labels: ["admin"] }),
-                },
-            });
+            const localMockContext = {
+                get: jest.fn((ctx) => {
+                    if (
+                        ctx === "userContext" ||
+                        String(ctx).includes("userContext")
+                    ) {
+                        return { labels: ["admin"] };
+                    }
+                    return {};
+                }),
+            };
 
             const mockAdminClient = {
                 users: {
@@ -145,14 +142,11 @@ describe("AdminDashboard Route", () => {
             };
             createAdminClient.mockReturnValue(mockAdminClient);
 
-            umamiService.getStats.mockResolvedValue({});
-            umamiService.getActiveUsers.mockResolvedValue([]);
-
             const result = await loader({
                 request: new Request("http://localhost/"),
+                context: localMockContext,
             });
             expect(result.recentUsers.length).toBe(1);
-            expect(umamiService.getStats).toHaveBeenCalled();
         });
     });
 
@@ -170,29 +164,11 @@ describe("AdminDashboard Route", () => {
             expect(screen.getAllByText("Online")[0]).toBeInTheDocument();
             expect(screen.getByText("5")).toBeInTheDocument();
 
-            // AnalyticsSummary checks
-            expect(screen.getByText(/Umami Analytics/i)).toBeInTheDocument();
-            expect(screen.getAllByText(/24h/i).length).toBeGreaterThan(0);
-
-            // AI Lineup Activity checks
-            expect(screen.getByText(/AI Lineup Activity/i)).toBeInTheDocument();
-            expect(screen.getByText("40%")).toBeInTheDocument();
-
-            // AttendanceHealth checks
-            expect(screen.getByText("Show-up Rate")).toBeInTheDocument();
-            expect(screen.getByText("80%")).toBeInTheDocument();
-
-            // FeaturePopularity checks
-            expect(screen.getByText(/Feature Popularity/i)).toBeInTheDocument();
-            expect(screen.getByText("Live Scoring")).toBeInTheDocument();
-
             // ParkLeaderboard checks
             expect(screen.getByText("Park Activity")).toBeInTheDocument();
             expect(screen.getByText("Central Park")).toBeInTheDocument();
 
             // DashboardSection checks
-            expect(screen.getByText("Most Active Teams")).toBeInTheDocument();
-            expect(screen.getByText("Team 1")).toBeInTheDocument();
             expect(screen.getByText("Recent Signups")).toBeInTheDocument();
             expect(screen.getByText("Newbie User")).toBeInTheDocument();
             expect(screen.getByText("Recently Active")).toBeInTheDocument();
@@ -204,23 +180,6 @@ describe("AdminDashboard Route", () => {
             // External Tools Menu check
             expect(
                 screen.getByRole("button", { name: /external tools/i }),
-            ).toBeInTheDocument();
-        });
-
-        it("handles missing Umami data gracefully", () => {
-            require("react-router").useLoaderData.mockReturnValue({
-                ...mockLoaderData,
-                stats: { ...mockLoaderData.stats, umami: null },
-            });
-
-            render(
-                <MemoryRouter>
-                    <AdminDashboard />
-                </MemoryRouter>,
-            );
-
-            expect(
-                screen.getByText("Failed to load Umami data"),
             ).toBeInTheDocument();
         });
     });

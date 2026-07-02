@@ -13,14 +13,15 @@ const mockGame = {
 };
 
 const mockLogs = [
-    { eventType: UI_KEYS.SINGLE, rbi: 1 },
-    { eventType: UI_KEYS.DOUBLE, rbi: 2 },
-    { eventType: UI_KEYS.FLY_OUT, rbi: 0 },
+    { playerId: "player1", eventType: UI_KEYS.SINGLE, rbi: 1 },
+    { playerId: "player1", eventType: UI_KEYS.DOUBLE, rbi: 2 },
+    { playerId: "player1", eventType: UI_KEYS.FLY_OUT, rbi: 0 },
 ];
 
 const defaultProps = {
     game: mockGame,
     logs: mockLogs,
+    userId: "player1",
 };
 
 describe("GameStatsCard Component", () => {
@@ -51,7 +52,10 @@ describe("GameStatsCard Component", () => {
     });
 
     it("handles multiple extra base hits in summary text", () => {
-        const extraLogs = [{ eventType: "2B" }, { eventType: "HR" }];
+        const extraLogs = [
+            { playerId: "player1", eventType: "2B" },
+            { playerId: "player1", eventType: "HR" },
+        ];
         render(
             <GameStatsCard
                 {...defaultProps}
@@ -61,5 +65,25 @@ describe("GameStatsCard Component", () => {
         );
 
         expect(screen.getByText("[2B, HR]")).toBeInTheDocument();
+    });
+
+    it("renders runs badge when runs > 0", () => {
+        const logsWithRuns = [
+            { playerId: "player1", eventType: "single", rbi: 1 },
+            {
+                playerId: "player1",
+                eventType: "single",
+                rbi: 0,
+                scored: ["player1"],
+            },
+        ];
+        render(
+            <GameStatsCard
+                {...defaultProps}
+                logs={logsWithRuns}
+                onClick={() => {}}
+            />,
+        );
+        expect(screen.getByText("1 Run")).toBeInTheDocument();
     });
 });

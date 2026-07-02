@@ -1,18 +1,9 @@
 import { listDocuments } from "@/utils/databases";
-import { umamiService } from "@/utils/umami/server";
 import { getAdminDashboardData } from "../dashboard";
 
 // Mock dependencies
 jest.mock("@/utils/databases", () => ({
     listDocuments: jest.fn(),
-}));
-
-jest.mock("@/utils/umami/server", () => ({
-    umamiService: {
-        getStats: jest.fn(),
-        getActiveUsers: jest.fn(),
-        getMetrics: jest.fn(),
-    },
 }));
 
 describe("Admin Dashboard Utils", () => {
@@ -46,28 +37,19 @@ describe("Admin Dashboard Utils", () => {
                     ],
                 }); // recent games
 
-            // Mock Umami
-            umamiService.getStats.mockResolvedValue({ views: 500 });
-            umamiService.getActiveUsers.mockResolvedValue({ visitors: 5 });
-            umamiService.getMetrics
-                .mockResolvedValueOnce([
-                    { x: "/team/team-1", y: 100 },
-                    { x: "/team/team-1/lineup", y: 50 },
-                    { x: "/team/team-2", y: 30 },
-                    { x: "/gameday/game-1", y: 200 }, // Live Scoring
-                    { x: "/not-a-team", y: 10 },
-                ])
-                .mockResolvedValueOnce([
-                    { x: "ai-lineup-requested", y: 10 },
-                    { x: "ai-lineup-generated", y: 8 },
-                    { x: "ai-lineup-applied", y: 4 },
-                ]);
-
-            // Mock Team resolution (Sequential call 1)
+            // Mock Season resolution (Sequential call 1) - New
             listDocuments.mockResolvedValueOnce({
                 rows: [
-                    { $id: "team-1", name: "Team One", primaryColor: "blue" },
-                    { $id: "team-2", name: "Team Two", primaryColor: "red" },
+                    { $id: "s1", parkId: "park-1" },
+                    { $id: "s2", parkId: "park-2" },
+                ],
+            });
+
+            // Mock Park resolution (Sequential call 2)
+            listDocuments.mockResolvedValueOnce({
+                rows: [
+                    { $id: "park-1", displayName: "Central Park" },
+                    { $id: "park-2", displayName: "West Park" },
                 ],
             });
 
@@ -111,7 +93,7 @@ describe("Admin Dashboard Utils", () => {
             expect(result.stats.totalUsers).toBe(100);
             expect(result.stats.totalTeams).toBe(20);
             expect(result.stats.totalGames).toBe(50);
-            expect(result.stats.activeUsers).toBe(5);
+            expect(result.stats.activeUsers).toBe(2);
 
             // Verify Attendance Metrics
             expect(result.stats.attendance.accepted).toBe(200);
@@ -120,21 +102,6 @@ describe("Admin Dashboard Utils", () => {
             // Rate logic in AttendanceHealth: (accepted / total) * 100 where total includes tentative
             // With this mock data: (200 / 275) * 100 ≈ 72.7. The rate is calculated in the component,
             // so here we only verify the raw attendance counts.
-
-            // Verify Team Aggregation
-            expect(result.activeTeams).toHaveLength(2);
-            expect(result.activeTeams[0]).toEqual({
-                id: "team-1",
-                name: "Team One",
-                primaryColor: "blue",
-                views: 150, // 100 + 50
-            });
-
-            // Verify Feature Popularity
-            const liveScoring = result.topFeatures.find(
-                (f) => f.name === "Live Scoring",
-            );
-            expect(liveScoring.views).toBe(200);
 
             // Verify Park Leaderboard
             expect(result.activeParks).toHaveLength(2);
@@ -145,31 +112,18 @@ describe("Admin Dashboard Utils", () => {
             expect(result.recentUsers[0].$id).toBe("u2"); // 2024-01-02 is more recent
             expect(result.activeUsers[0].$id).toBe("u1"); // 2024-01-02 is more recent activity
 
-            // Verify AI Lineup Metrics
-            expect(result.aiLineupMetrics).toEqual({
-                requested: 10,
-                generated: 8,
-                applied: 4,
-                successRate: 40,
-                applicationRate: 50,
-            });
             expect(result.range).toBe("24h");
         });
 
         it("normalizes and respects different time ranges", async () => {
             mockUsersService.list.mockResolvedValue({ total: 0, users: [] });
             listDocuments.mockResolvedValue({ total: 0, rows: [] });
-            umamiService.getStats.mockResolvedValue({});
-            umamiService.getMetrics.mockResolvedValue([]);
 
             const result7d = await getAdminDashboardData({
                 users: mockUsersService,
                 range: "7d",
             });
             expect(result7d.range).toBe("7d");
-            expect(umamiService.getStats).toHaveBeenCalledWith(
-                expect.any(Number),
-            );
 
             const resultInvalid = await getAdminDashboardData({
                 users: mockUsersService,
@@ -178,51 +132,9 @@ describe("Admin Dashboard Utils", () => {
             expect(resultInvalid.range).toBe("24h");
         });
 
-        it("handles missing Umami data gracefully", async () => {
-            mockUsersService.list.mockResolvedValue({ total: 0, users: [] });
-            listDocuments.mockResolvedValue({ total: 0, rows: [] });
-            umamiService.getStats.mockResolvedValue(null);
-            umamiService.getActiveUsers.mockResolvedValue(null);
-            umamiService.getMetrics.mockResolvedValue([]);
-
-            const result = await getAdminDashboardData({
-                users: mockUsersService,
-            });
-
-            expect(result.stats.umami).toBeNull();
-            expect(result.stats.activeUsers).toBe(0);
-            expect(result.activeTeams).toEqual([]);
-        });
-
-        it("handles Umami service errors gracefully", async () => {
-            mockUsersService.list.mockResolvedValue({ total: 10, users: [] });
-            listDocuments.mockResolvedValue({ total: 5, rows: [] });
-
-            // Umami service throws
-            umamiService.getStats.mockRejectedValue(new Error("Umami Down"));
-            umamiService.getActiveUsers.mockResolvedValue({ visitors: 5 });
-            umamiService.getMetrics.mockResolvedValue([]);
-
-            const result = await getAdminDashboardData({
-                users: mockUsersService,
-            });
-
-            // Appwrite data should still be there
-            expect(result.stats.totalUsers).toBe(10);
-            expect(result.stats.totalTeams).toBe(5);
-
-            // Umami data should be defaulted
-            expect(result.stats.umami).toBeNull();
-            expect(result.stats.activeUsers).toBe(0);
-            expect(result.activeTeams).toEqual([]);
-        });
-
         it("validates and normalizes ranges correctly", async () => {
             mockUsersService.list.mockResolvedValue({ total: 10, users: [] });
             listDocuments.mockResolvedValue({ total: 5, rows: [] });
-            umamiService.getStats.mockResolvedValue({});
-            umamiService.getActiveUsers.mockResolvedValue([]);
-            umamiService.getMetrics.mockResolvedValue([]);
 
             // 1. Valid range (7d)
             const result7d = await getAdminDashboardData({
@@ -230,9 +142,6 @@ describe("Admin Dashboard Utils", () => {
                 range: "7d",
             });
             expect(result7d.range).toBe("7d");
-            expect(umamiService.getStats).toHaveBeenCalledWith(
-                expect.any(Number),
-            );
 
             // 2. Invalid range (foo) -> defaults to 24h
             const resultInvalid = await getAdminDashboardData({

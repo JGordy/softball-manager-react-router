@@ -23,18 +23,16 @@ jest.mock("@tabler/icons-react", () => ({
 jest.mock(
     "../RemovePlayersDrawer",
     () =>
-        // eslint-disable-next-line react/display-name
         ({ opened }) =>
             opened ? <div data-testid="remove-players-drawer" /> : null,
 );
 jest.mock(
     "../DeleteLineupDrawer",
     () =>
-        // eslint-disable-next-line react/display-name
         ({ opened }) =>
             opened ? <div data-testid="delete-lineup-drawer" /> : null,
 );
-// eslint-disable-next-line react/display-name
+
 jest.mock("../AddGuestPlayerModal", () => () => (
     <div data-testid="add-guest-player-modal" />
 ));

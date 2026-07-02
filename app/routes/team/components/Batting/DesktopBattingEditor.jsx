@@ -216,7 +216,7 @@ export default function DesktopBattingEditor({
 
     return (
         <DragDropContext onDragEnd={onDragEnd}>
-            <Grid gutter="lg">
+            <Grid gap="lg">
                 {/* Lineup card — two internal droppable columns */}
                 <Grid.Col span={8}>
                     <Card

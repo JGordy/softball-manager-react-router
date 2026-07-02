@@ -5,25 +5,34 @@ import { IconClock, IconMapPin } from "@tabler/icons-react";
 
 import { formatGameTime } from "@/utils/dateTime";
 
-import DrawerContainer from "@/components/DrawerContainer";
 import DeferredLoader from "@/components/DeferredLoader";
 import InlineError from "@/components/InlineError";
 
-import ParkDetailsDrawer from "./ParkDetailsDrawer";
-import CalendarDetails from "./CalendarDetails";
 import CardSection from "./CardSection";
 
-export default function DetailsCard({ game, deferredData, season, team }) {
+export default function DetailsCard({
+    game,
+    deferredData,
+    season,
+    calendarDrawerHandlers: propCalendarDrawerHandlers,
+    locationDrawerHandlers: propLocationDrawerHandlers,
+}) {
     const { gameDate, timeZone } = game;
 
     const formattedGameTime = formatGameTime(gameDate, timeZone);
 
-    const [locationDrawerOpened, locationDrawerHandlers] = useDisclosure(false);
-    const [calendarDrawerOpened, calendarDrawerHandlers] = useDisclosure(false);
+    const [, localLocationDrawerHandlers] = useDisclosure(false);
+    const [, localCalendarDrawerHandlers] = useDisclosure(false);
+
+    const locationDrawerHandlers =
+        propLocationDrawerHandlers || localLocationDrawerHandlers;
+
+    const calendarDrawerHandlers =
+        propCalendarDrawerHandlers || localCalendarDrawerHandlers;
 
     return (
         <>
-            <Card radius="lg" mt="-12%" mx="md" py="5px">
+            <Card radius="lg" padding="md" py="5px">
                 <Text size="sm" mt="xs">
                     Date & Location Details
                 </Text>
@@ -105,39 +114,6 @@ export default function DetailsCard({ game, deferredData, season, team }) {
                     }
                 />
             </Card>
-
-            <DeferredLoader
-                resolve={deferredData}
-                fallback={null}
-                errorElement={null}
-            >
-                {({ park }) => (
-                    <>
-                        <DrawerContainer
-                            opened={calendarDrawerOpened}
-                            onClose={calendarDrawerHandlers.close}
-                            title="Add Game to Calendar"
-                            size="sm"
-                        >
-                            <CalendarDetails
-                                game={game}
-                                park={park}
-                                team={team}
-                            />
-                        </DrawerContainer>
-                        {park && (
-                            <DrawerContainer
-                                opened={locationDrawerOpened}
-                                onClose={locationDrawerHandlers.close}
-                                title="Location Details"
-                                size="sm"
-                            >
-                                <ParkDetailsDrawer park={park} />
-                            </DrawerContainer>
-                        )}
-                    </>
-                )}
-            </DeferredLoader>
         </>
     );
 }

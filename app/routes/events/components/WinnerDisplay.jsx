@@ -29,7 +29,7 @@ function useWinnerConfetti(team) {
             state.cancelled = true;
             try {
                 if (state.removeTimer) clearTimeout(state.removeTimer);
-            } catch (e) {
+            } catch (_e) {
                 /* ignore */
             }
 
@@ -40,11 +40,11 @@ function useWinnerConfetti(team) {
                 ) {
                     try {
                         state.myConfetti.reset();
-                    } catch (e) {
+                    } catch (_e) {
                         /* ignore */
                     }
                 }
-            } catch (e) {
+            } catch (_e) {
                 /* ignore */
             }
 
@@ -54,7 +54,7 @@ function useWinnerConfetti(team) {
                 }
                 state.canvas = null;
                 state.myConfetti = null;
-            } catch (e) {
+            } catch (_e) {
                 /* ignore */
             }
         };
@@ -130,13 +130,12 @@ function useWinnerConfetti(team) {
                     }
                     state.canvas = null;
                     state.myConfetti = null;
-                } catch (e) {
+                } catch (_e) {
                     /* ignore */
                 }
             }, 5000);
             // confetti fired
         } catch (err) {
-            // eslint-disable-next-line no-console
             console.error("Failed to run confetti", err);
         }
     };
@@ -194,7 +193,6 @@ export default function WinnerDisplay({
         };
 
         // deliberately only watch activeAward so we fire per-award changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeAward]);
 
     if (entries.length === 0) {
@@ -250,7 +248,7 @@ export default function WinnerDisplay({
             });
 
             return items[0][0];
-        } catch (e) {
+        } catch (_e) {
             return null;
         }
     };

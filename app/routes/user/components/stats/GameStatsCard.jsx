@@ -3,8 +3,9 @@ import { DateTime } from "luxon";
 
 import { calculatePlayerStats } from "@/utils/stats";
 
-export default function GameStatsCard({ game, logs, onClick }) {
-    const stats = calculatePlayerStats(logs);
+export default function GameStatsCard({ game, logs = [], onClick, userId }) {
+    // 1. Calculate base stats for the user
+    const stats = calculatePlayerStats(logs, userId);
     const date = DateTime.fromISO(game.gameDate).toLocaleString(
         DateTime.DATE_MED,
     );
@@ -43,16 +44,28 @@ export default function GameStatsCard({ game, logs, onClick }) {
                         )}
                     </Group>
 
-                    {stats.rbi > 0 && (
-                        <Badge
-                            variant="filled"
-                            color="blue"
-                            size="md"
-                            radius="xl"
-                        >
-                            {stats.rbi} RBI
-                        </Badge>
-                    )}
+                    <Group gap="xs">
+                        {stats.runs > 0 && (
+                            <Badge
+                                variant="light"
+                                color="blue"
+                                size="md"
+                                radius="xl"
+                            >
+                                {stats.runs} {stats.runs === 1 ? "Run" : "Runs"}
+                            </Badge>
+                        )}
+                        {stats.rbi > 0 && (
+                            <Badge
+                                variant="filled"
+                                color="blue"
+                                size="md"
+                                radius="xl"
+                            >
+                                {stats.rbi} RBI
+                            </Badge>
+                        )}
+                    </Group>
                 </Group>
             </Card>
         </UnstyledButton>

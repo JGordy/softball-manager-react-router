@@ -1,6 +1,15 @@
 import { useState, useEffect } from "react";
 import { useFetcher } from "react-router";
-import { NumberInput, Button, Stack, Text } from "@mantine/core";
+import {
+    NumberInput,
+    Button,
+    Stack,
+    Text,
+    Select,
+    Group,
+    Card,
+} from "@mantine/core";
+import { IconCheck } from "@tabler/icons-react";
 import DrawerContainer from "@/components/DrawerContainer";
 
 export default function PreferencesDrawer({ opened, onClose, team }) {
@@ -10,11 +19,15 @@ export default function PreferencesDrawer({ opened, onClose, team }) {
     const initialMaxMale = parseInt(team?.prefs?.maxMaleBatters, 10) || 0;
     const [maxMaleBatters, setMaxMaleBatters] = useState(initialMaxMale);
 
+    const initialStrategy = team?.prefs?.lineupStrategy || "spread";
+    const [lineupStrategy, setLineupStrategy] = useState(initialStrategy);
+
     const isSubmitting = fetcher.state === "submitting";
 
     useEffect(() => {
         setMaxMaleBatters(initialMaxMale);
-    }, [initialMaxMale, opened]);
+        setLineupStrategy(initialStrategy);
+    }, [initialMaxMale, initialStrategy, opened]);
 
     useEffect(() => {
         if (fetcher.data?.success) {
@@ -28,6 +41,7 @@ export default function PreferencesDrawer({ opened, onClose, team }) {
             {
                 _action: "update-preferences",
                 maxMaleBatters: maxMaleBatters,
+                lineupStrategy: lineupStrategy,
             },
             { method: "post", action: `/team/${team.$id}` },
         );
@@ -54,6 +68,59 @@ export default function PreferencesDrawer({ opened, onClose, team }) {
                         onChange={(val) =>
                             setMaxMaleBatters(val === "" ? 0 : val)
                         }
+                    />
+
+                    <Select
+                        label="Lineup Strategy"
+                        description="How should the lineup be ordered?"
+                        data={[
+                            {
+                                value: "spread",
+                                label: "Spread",
+                                description:
+                                    "Optimized for minimal outs by spacing out your best hitters.",
+                            },
+                            {
+                                value: "best_first",
+                                label: "Grouped at Top",
+                                description:
+                                    "Get more at-bats for your best hitters by putting them first.",
+                            },
+                        ]}
+                        value={lineupStrategy}
+                        onChange={setLineupStrategy}
+                        comboboxProps={{ zIndex: 10000 }}
+                        renderOption={({ option, checked }) => (
+                            <Card
+                                withBorder
+                                padding="sm"
+                                radius="md"
+                                style={{
+                                    pointerEvents: "none",
+                                    borderLeft: checked
+                                        ? "4px solid var(--mantine-primary-color-filled)"
+                                        : undefined,
+                                }}
+                            >
+                                <Group wrap="nowrap" justify="space-between">
+                                    <Stack gap={0}>
+                                        <Text size="sm" fw={500}>
+                                            {option.label}
+                                        </Text>
+                                        <Text size="xs" c="dimmed">
+                                            {option.description}
+                                        </Text>
+                                    </Stack>
+                                    {checked && (
+                                        <IconCheck
+                                            size={20}
+                                            color="var(--mantine-primary-color-filled)"
+                                            stroke={2.5}
+                                        />
+                                    )}
+                                </Group>
+                            </Card>
+                        )}
                     />
 
                     <Button

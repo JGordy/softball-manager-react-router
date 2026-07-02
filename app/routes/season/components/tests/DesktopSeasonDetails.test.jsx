@@ -7,6 +7,8 @@ jest.mock("@tabler/icons-react", () => ({
     IconBallBaseball: () => <div data-testid="icon-baseball" />,
     IconCalendarMonth: () => <div data-testid="icon-calendar" />,
     IconInfoCircle: () => <div data-testid="icon-info" />,
+    IconTable: () => <div data-testid="icon-table" />,
+    IconMap2: () => <div data-testid="icon-map2" />,
 }));
 
 // Mock global components
@@ -17,6 +19,18 @@ jest.mock("@/components/BackButton", () => ({
 jest.mock("../SeasonMenu", () => ({
     __esModule: true,
     default: () => <div data-testid="season-menu" />,
+}));
+jest.mock("@/components/GamesList", () => ({
+    __esModule: true,
+    default: () => <div data-testid="games-list" />,
+}));
+jest.mock("@/components/BoxScore", () => ({
+    __esModule: true,
+    default: () => <div data-testid="box-score" />,
+}));
+jest.mock("@/components/ContactSprayChart", () => ({
+    __esModule: true,
+    default: () => <div data-testid="spray-chart" />,
 }));
 jest.mock("@/utils/getGames", () => ({
     splitGames: jest.fn(() => ({

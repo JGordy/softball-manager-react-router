@@ -1,4 +1,4 @@
-import { index, layout, route } from "@react-router/dev/routes";
+import { layout, route } from "@react-router/dev/routes";
 
 export default [
     // Authentication routes (public)
@@ -55,6 +55,7 @@ export default [
         route("/api/push-target", "routes/api/push-target.js"),
         route("/api/resend-verification", "routes/api/resend-verification.js"),
         route("/api/session", "routes/api/session.js"),
+        route("/api/user-preferences", "routes/api/user-preferences.js"),
         route("/api/test-notification", "routes/api/test-notification.js"),
         route(
             "/api/notifications/preferences",

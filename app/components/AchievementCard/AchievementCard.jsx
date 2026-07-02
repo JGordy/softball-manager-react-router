@@ -78,7 +78,9 @@ export default function AchievementCard({
             style={{ "--rarity-color": rarityColor }}
             data-testid="achievement-card"
         >
-            <Box className={`${classes.haloContainer} ${hasSpecialEffect && !isLocked ? classes.haloContainerWithEffect : ""}`}>
+            <Box
+                className={`${classes.haloContainer} ${hasSpecialEffect && !isLocked ? classes.haloContainerWithEffect : ""}`}
+            >
                 {!isLocked && hasSpecialEffect && (
                     <Box className={classes.halo} />
                 )}
@@ -103,7 +105,10 @@ export default function AchievementCard({
                                     size="sm"
                                     radius="sm"
                                     leftSection={<IconTrophy size={10} />}
-                                    style={{ textTransform: "uppercase", fontSize: "10px" }}
+                                    style={{
+                                        textTransform: "uppercase",
+                                        fontSize: "10px",
+                                    }}
                                     data-testid="achievement-rarity-badge"
                                 >
                                     {rarity}
@@ -119,11 +124,23 @@ export default function AchievementCard({
                                     style={{
                                         textTransform: "uppercase",
                                         fontSize: "9px",
-                                        flexShrink: 0
+                                        flexShrink: 0,
                                     }}
                                     data-testid="achievement-player-badge"
                                 >
-                                    {isMe && <Box component="span" mr={4} style={{ display: 'inline-block', width: 4, height: 4, borderRadius: '50%', background: 'currentColor' }} />}
+                                    {isMe && (
+                                        <Box
+                                            component="span"
+                                            mr={4}
+                                            style={{
+                                                display: "inline-block",
+                                                width: 4,
+                                                height: 4,
+                                                borderRadius: "50%",
+                                                background: "currentColor",
+                                            }}
+                                        />
+                                    )}
                                     {playerName}
                                 </Badge>
                             )}
@@ -137,9 +154,13 @@ export default function AchievementCard({
                                 variant={isLocked ? "light" : "filled"}
                                 className={classes.icon}
                                 style={{
-                                    backgroundColor: isLocked ? "transparent" : `${rarityColor}15`,
+                                    backgroundColor: isLocked
+                                        ? "transparent"
+                                        : `${rarityColor}15`,
                                     color: isLocked ? "gray" : rarityColor,
-                                    border: isLocked ? "1px dashed var(--mantine-color-gray-6)" : `1px solid ${rarityColor}30`,
+                                    border: isLocked
+                                        ? "1px dashed var(--mantine-color-gray-6)"
+                                        : `1px solid ${rarityColor}30`,
                                 }}
                             >
                                 <IconElement size={24} stroke={1.5} />
@@ -149,13 +170,19 @@ export default function AchievementCard({
                                 <Text
                                     fw={800}
                                     size="lg"
-                                    className={isLocked ? classes.titleLocked : classes.title}
+                                    className={
+                                        isLocked
+                                            ? classes.titleLocked
+                                            : classes.title
+                                    }
                                     style={{ lineHeight: 1.2 }}
                                 >
                                     {name}
                                 </Text>
                                 <Text size="sm" className={classes.description}>
-                                    {isLocked ? "Keep playing to unlock this achievement." : description}
+                                    {isLocked
+                                        ? "Keep playing to unlock this achievement."
+                                        : description}
                                 </Text>
                             </Stack>
                         </Group>
@@ -164,9 +191,15 @@ export default function AchievementCard({
                         {!isLocked && (
                             <Box className={classes.innerBox}>
                                 <Group justify="space-between" align="center">
-                                    <Text className={classes.statLabel}>Unlocked</Text>
+                                    <Text className={classes.statLabel}>
+                                        Unlocked
+                                    </Text>
                                     <Text className={classes.statValue}>
-                                        {unlockedAt ? DateTime.fromISO(unlockedAt).toFormat("LLL dd, yyyy") : "---"}
+                                        {unlockedAt
+                                            ? DateTime.fromISO(
+                                                  unlockedAt,
+                                              ).toFormat("LLL dd, yyyy")
+                                            : "---"}
                                     </Text>
                                 </Group>
                             </Box>
@@ -180,7 +213,13 @@ export default function AchievementCard({
     // If it's locked, perhaps show the actual description in a tooltip instead
     if (isLocked) {
         return (
-            <Tooltip label={description} position="top" withArrow multiline w={250}>
+            <Tooltip
+                label={description}
+                position="top"
+                withArrow
+                multiline
+                w={250}
+            >
                 {content}
             </Tooltip>
         );

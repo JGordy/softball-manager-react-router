@@ -1,6 +1,7 @@
 import { useLoaderData, useOutletContext, useActionData } from "react-router";
-import { Container } from "@mantine/core";
+import { Container, Title, Text, Box } from "@mantine/core";
 
+import BackButton from "@/components/BackButton";
 import DeferredLoader from "@/components/DeferredLoader";
 
 import { getEventById } from "@/loaders/games";
@@ -15,16 +16,15 @@ import {
 import { savePlayerChart } from "@/actions/lineups";
 
 import { useResponseNotification } from "@/utils/showNotification";
-
-import { createSessionClient } from "@/utils/appwrite/server";
+import { appwriteClientContext } from "@/contexts/router";
 
 import GamedayContainer from "./components/GamedayContainer";
 import GamedayLoadingSkeleton from "./components/GamedayLoadingSkeleton";
 import { parsePlayerChart } from "./utils/gamedayUtils";
 
-export async function loader({ params, request }) {
+export async function loader({ params, context }) {
     const { eventId } = params;
-    const client = await createSessionClient(request);
+    const client = context.get(appwriteClientContext);
     return await getEventById({
         eventId,
         client,
@@ -36,11 +36,11 @@ export async function loader({ params, request }) {
     });
 }
 
-export async function action({ request, params }) {
+export async function action({ request, params, context }) {
     const { eventId } = params;
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
-    const client = await createSessionClient(request);
+    const client = context.get(appwriteClientContext);
 
     if (_action === "log-game-event") {
         const { baseState, ...logData } = values;
@@ -48,7 +48,7 @@ export async function action({ request, params }) {
         if (baseState) {
             try {
                 parsedBaseState = JSON.parse(baseState);
-            } catch (e) {
+            } catch (_e) {
                 return {
                     success: false,
                     status: 400,
@@ -103,7 +103,69 @@ export async function action({ request, params }) {
             }
         }
 
+        // If the log was successfully removed and it contains opponent lineup revert data
+        if (undoResponse?.success && undoResponse.log?.baseState) {
+            try {
+                const parsedBaseState = JSON.parse(undoResponse.log.baseState);
+                if (parsedBaseState.revertOpponentLineupLocked !== undefined) {
+                    await updateGame({
+                        values: {
+                            opponentLineupLocked:
+                                parsedBaseState.revertOpponentLineupLocked,
+                            opponentLineup:
+                                parsedBaseState.revertOpponentLineup,
+                        },
+                        eventId,
+                        client,
+                    });
+                }
+            } catch (e) {
+                console.error(
+                    "Failed to parse baseState for undoing opponent lineup:",
+                    e,
+                );
+            }
+        }
+
         return undoResponse;
+    }
+    if (_action === "lock-opponent-lineup") {
+        const {
+            opponentLineupLocked,
+            opponentLineup,
+            oldOpponentLineup,
+            teamId,
+            inning,
+            halfInning,
+        } = values;
+
+        // Log the event
+        const logResponse = await logGameEvent({
+            gameId: eventId,
+            client,
+            teamId,
+            inning,
+            halfInning,
+            eventType: "opponent_lineup_wrap",
+            description: "Lineup locked and wrapped to top of order",
+            rbi: 0,
+            outsOnPlay: 0,
+            baseState: JSON.stringify({
+                revertOpponentLineupLocked: false,
+                revertOpponentLineup: oldOpponentLineup,
+            }),
+        });
+
+        if (logResponse && !logResponse.success) {
+            return logResponse;
+        }
+
+        // Update the game
+        return updateGame({
+            values: { opponentLineupLocked, opponentLineup },
+            eventId,
+            client,
+        });
     }
     if (_action === "update-game-event") {
         const { logId, propagate, ...logData } = values;
@@ -117,8 +179,28 @@ export async function action({ request, params }) {
     if (_action === "update-game-score") {
         return updateGame({ values, eventId, client });
     }
+    if (_action === "update-opponent-settings") {
+        return updateGame({ values, eventId, client });
+    }
     if (_action === "end-game") {
         return updateGame({ values, eventId, client });
+    }
+    if (_action === "generate-recap") {
+        const { generateGameRecapBackground } = await import(
+            "@/actions/recap.js"
+        );
+        try {
+            await generateGameRecapBackground({ eventId, client });
+            return { success: true, message: "Recap generated successfully!" };
+        } catch (error) {
+            console.error("Failed to generate game recap:", error);
+            return {
+                success: false,
+                error: true,
+                message:
+                    "Failed to generate recap column. Please check server logs.",
+            };
+        }
     }
     if (_action === "resume-game") {
         return updateGame({ values, eventId, client });
@@ -130,7 +212,7 @@ export async function action({ request, params }) {
         if (baseState) {
             try {
                 parsedBaseState = JSON.parse(baseState);
-            } catch (e) {
+            } catch (_e) {
                 return {
                     success: false,
                     status: 400,
@@ -243,12 +325,31 @@ export async function action({ request, params }) {
 }
 
 export default function Gameday() {
-    const { game, deferredData, teams, scorekeeperIds } = useLoaderData();
+    const loaderData = useLoaderData();
     const { user, isDesktop } = useOutletContext();
     const actionData = useActionData();
 
     useResponseNotification(actionData);
 
+    if (!loaderData || loaderData.gameDeleted || !loaderData.game) {
+        return (
+            <Container size="sm" py="xl">
+                <Box mb="xl">
+                    <BackButton />
+                </Box>
+                <Box ta="center" py="xl">
+                    <Title order={2} mb="md">
+                        Game Not Found
+                    </Title>
+                    <Text size="lg" c="dimmed">
+                        This game has been removed or is no longer available.
+                    </Text>
+                </Box>
+            </Container>
+        );
+    }
+
+    const { game, deferredData, teams, scorekeeperIds } = loaderData;
     const team = teams?.[0];
     const isScorekeeper = !!(
         user &&

@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from "@/utils/test-utils";
+import { UI_KEYS } from "@/constants/scoring";
 
 import * as runnerProjectionHook from "../../hooks/useRunnerProjection";
 import * as drawerUtils from "../../utils/drawerUtils";
@@ -30,6 +31,13 @@ jest.mock("../../utils/fieldMapping", () => ({
     getFieldZone: jest.fn().mockReturnValue("left field"),
     getClampedCoordinates: jest.fn().mockImplementation((x, y) => ({ x, y })),
     getRelativePointerCoordinates: jest.fn().mockReturnValue({ x: 50, y: 50 }),
+    resolveFlyPopOut: jest.fn().mockImplementation((x, y) => {
+        if (x === null || y === null) return "Fly Out";
+        const dx = x - 50;
+        const dy = 78 - y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        return dist > 38 ? "Fly Out" : "Pop Out";
+    }),
 }));
 jest.mock("../ConfirmationPanel", () => (props) => (
     <div data-testid="confirmation-panel">
@@ -128,5 +136,111 @@ describe("MobilePlayActionDrawer", () => {
                 hitLocation: "left field",
             }),
         );
+    });
+
+    it("resolves Fly/Pop Out to Fly Out or Pop Out based on interaction coordinates", async () => {
+        const fieldMapping = require("../../utils/fieldMapping");
+
+        // 1. Outfield coordinate
+        fieldMapping.getRelativePointerCoordinates.mockReturnValueOnce({
+            x: 50,
+            y: 20,
+        });
+
+        const mockOnSelectOutfield = jest.fn();
+        const { unmount } = render(
+            <MobilePlayActionDrawer
+                {...defaultProps}
+                actionType={UI_KEYS.FLY_POP}
+                onSelect={mockOnSelectOutfield}
+            />,
+        );
+
+        const fieldImage = screen.getByAltText(
+            /Interactive softball field diagram/i,
+        );
+        const container = fieldImage.parentElement;
+
+        fireEvent.pointerDown(container, {
+            clientX: 100,
+            clientY: 100,
+            pointerId: 1,
+        });
+        fireEvent.pointerUp(container);
+        fireEvent.click(screen.getByText("Confirm Play"));
+
+        expect(mockOnSelectOutfield).toHaveBeenCalled();
+        unmount();
+
+        // 2. Infield coordinate
+        fieldMapping.getRelativePointerCoordinates.mockReturnValueOnce({
+            x: 50,
+            y: 65,
+        });
+        const mockOnSelectInfield = jest.fn();
+        render(
+            <MobilePlayActionDrawer
+                {...defaultProps}
+                actionType={UI_KEYS.FLY_POP}
+                onSelect={mockOnSelectInfield}
+            />,
+        );
+
+        const fieldImage2 = screen.getByAltText(
+            /Interactive softball field diagram/i,
+        );
+        const container2 = fieldImage2.parentElement;
+
+        fireEvent.pointerDown(container2, {
+            clientX: 100,
+            clientY: 100,
+            pointerId: 1,
+        });
+        fireEvent.pointerUp(container2);
+        fireEvent.click(screen.getByText("Confirm Play"));
+
+        expect(mockOnSelectInfield).toHaveBeenCalled();
+    });
+
+    it("renders with tour class hooks (.tour-spray-field and .tour-field-position-rf)", () => {
+        render(<MobilePlayActionDrawer {...defaultProps} />);
+
+        // Find the spray field container by class hook
+        const fieldContainer = document.querySelector(".tour-spray-field");
+        expect(fieldContainer).toBeInTheDocument();
+
+        // RF position button must have the tour-field-position-rf class
+        const rfBtn = document.querySelector(".tour-field-position-rf");
+        expect(rfBtn).toBeInTheDocument();
+    });
+
+    it("defaults battingSide based on defaultBats for switch hitters (left)", () => {
+        const switchHitterLeft = {
+            ...defaultProps.currentBatter,
+            bats: "Switch",
+            defaultBats: "left",
+        };
+        render(
+            <MobilePlayActionDrawer
+                {...defaultProps}
+                currentBatter={switchHitterLeft}
+            />,
+        );
+        expect(screen.getByLabelText("Left")).toBeChecked();
+    });
+
+    it("defaults battingSide based on defaultBats for switch hitters (right)", () => {
+        const switchHitterRight = {
+            ...defaultProps.currentBatter,
+            bats: "Switch",
+            defaultBats: "right",
+        };
+        render(
+            <MobilePlayActionDrawer
+                {...defaultProps}
+                currentBatter={switchHitterRight}
+            />,
+        );
+        expect(screen.getByLabelText("Right")).toBeChecked();
     });
 });

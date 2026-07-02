@@ -21,6 +21,7 @@ import {
     updateBulkJerseyNumbers,
     updateJerseyNumber,
     updatePreferences,
+    updatePlayerLabels,
 } from "../teams";
 import { verifyManager } from "../utils/teamAuth.js";
 
@@ -673,6 +674,68 @@ describe("Teams Actions", () => {
 
             expect(updateTeamPreferences).toHaveBeenCalledWith(teamId, prefs);
             expect(result).toEqual({ success: true });
+        });
+    });
+
+    describe("updatePlayerLabels", () => {
+        it("should return error if client is missing", async () => {
+            await expect(
+                updatePlayerLabels({ teamId: "t1", values: {} }),
+            ).rejects.toThrow("strictly required for authorization");
+        });
+
+        it("should return error if not a manager", async () => {
+            verifyManager.mockResolvedValue({
+                success: false,
+                message: "No permission",
+            });
+
+            const result = await updatePlayerLabels({
+                teamId: "t1",
+                values: {},
+                client: mockSessionClient,
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.message).toBe("No permission");
+        });
+
+        it("should fetch current prefs, merge labels, and update prefs", async () => {
+            verifyManager.mockResolvedValue({ success: true });
+            const mockUpdatePrefs = jest.fn().mockResolvedValue({});
+            const mockGetPrefs = jest.fn().mockResolvedValue({
+                existingPref: true,
+                playerLabels: {
+                    p2: ["Speed"],
+                },
+            });
+
+            createAdminClient.mockReturnValue({
+                teams: {
+                    getPrefs: mockGetPrefs,
+                    updatePrefs: mockUpdatePrefs,
+                },
+            });
+
+            const result = await updatePlayerLabels({
+                teamId: "t1",
+                values: {
+                    labels: {
+                        p1: ["Power"],
+                        p2: [], // Should delete
+                    },
+                },
+                client: mockSessionClient,
+            });
+
+            expect(mockGetPrefs).toHaveBeenCalledWith("t1");
+            expect(mockUpdatePrefs).toHaveBeenCalledWith("t1", {
+                existingPref: true,
+                playerLabels: {
+                    p1: ["Power"],
+                },
+            });
+            expect(result.success).toBe(true);
         });
     });
 });

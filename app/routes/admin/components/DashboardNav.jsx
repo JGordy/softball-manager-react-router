@@ -1,11 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button, Group, ScrollArea, Box } from "@mantine/core";
-import {
-    IconActivity,
-    IconChartBar,
-    IconTimeline,
-    IconUsers,
-} from "@tabler/icons-react";
+import { IconTimeline, IconUsers } from "@tabler/icons-react";
 
 export function MobileDashboardNav() {
     const [activeSection, setActiveSection] = useState("platform-totals");
@@ -15,16 +10,6 @@ export function MobileDashboardNav() {
             label: "Totals",
             icon: <IconTimeline size={16} />,
             target: "platform-totals",
-        },
-        {
-            label: "Analytics",
-            icon: <IconActivity size={16} />,
-            target: "analytics-performance",
-        },
-        {
-            label: "Teams",
-            icon: <IconChartBar size={16} />,
-            target: "team-sections",
         },
         {
             label: "Users",

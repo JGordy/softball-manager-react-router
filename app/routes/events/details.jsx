@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef } from "react";
-
 import {
     Form,
     useLocation,
@@ -21,8 +20,6 @@ import { updatePlayerAttendance } from "@/actions/attendance";
 import { sendAwardVotes } from "@/actions/awards";
 import { getEventById } from "@/loaders/games";
 
-import { createSessionClient } from "@/utils/appwrite/server";
-
 import { getGameDayStatus } from "@/utils/dateTime";
 
 import useModal from "@/hooks/useModal";
@@ -37,12 +34,16 @@ import DesktopEventDetailsView from "./components/DesktopEventDetailsView";
 import AvailabilityPromptDrawer from "./components/AvailabilityPromptDrawer";
 import AwardsDrawerContents from "./components/AwardsDrawerContents";
 import ShareUrlButton from "@/components/ShareUrlButton";
+import OnboardingTour from "@/components/OnboardingTour";
+import { appwriteClientContext } from "@/contexts/router";
 
-export async function action({ request, params }) {
+import { getEventDetailsSteps } from "./utils/onboardingSteps";
+
+export async function action({ request, params, context }) {
     const { eventId } = params;
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
-    const client = await createSessionClient(request);
+    const client = context.get(appwriteClientContext);
 
     if (_action === "update-game") {
         return updateGame({ eventId, values, client });
@@ -58,9 +59,9 @@ export async function action({ request, params }) {
     }
 }
 
-export async function loader({ params, request }) {
+export async function loader({ params, context }) {
     const { eventId } = params;
-    const client = await createSessionClient(request);
+    const client = context.get(appwriteClientContext);
 
     return await getEventById({ eventId, client });
 }
@@ -229,6 +230,8 @@ export default function EventDetails({ loaderData, actionData }) {
         onOpenAwards: awardsDrawerHandlers.open,
     };
 
+    const steps = getEventDetailsSteps(managerView);
+
     return (
         <>
             {/* Hero with stadium background — mobile only */}
@@ -243,14 +246,16 @@ export default function EventDetails({ loaderData, actionData }) {
                     <Group gap="xs">
                         <ShareUrlButton />
                         {managerView && (
-                            <GameMenu
-                                game={game}
-                                gameIsPast={gameIsPast}
-                                openDeleteDrawer={deleteDrawerHandlers.open}
-                                result={result}
-                                season={season}
-                                team={team}
-                            />
+                            <Box className="tour-game-menu-trigger">
+                                <GameMenu
+                                    game={game}
+                                    gameIsPast={gameIsPast}
+                                    openDeleteDrawer={deleteDrawerHandlers.open}
+                                    result={result}
+                                    season={season}
+                                    team={team}
+                                />
+                            </Box>
                         )}
                     </Group>
                 </Group>
@@ -344,6 +349,15 @@ export default function EventDetails({ loaderData, actionData }) {
                     </DeferredLoader>
                 </DrawerContainer>
             )}
+
+            <OnboardingTour
+                tourKey="event_details"
+                steps={steps}
+                user={user}
+                menuId="game-details-menu"
+                trackingSuffix="events"
+                alwaysIncludeTargets={[".tour-game-details-menu-dropdown"]}
+            />
         </>
     );
 }

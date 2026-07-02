@@ -19,7 +19,7 @@ import { showNotification } from "@/utils/showNotification";
  * Onboarding route for new users to complete their profile.
  * Path: /auth/setup
  */
-export async function loader({ request, context }) {
+export async function loader({ context }) {
     const user = await getCurrentUser(context);
     if (!user) return redirect("/login");
 

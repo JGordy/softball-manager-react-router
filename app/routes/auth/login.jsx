@@ -44,8 +44,8 @@ export function meta() {
 }
 
 // Check if user is already logged in, redirect to home if so
-export async function loader({ request }) {
-    const response = await redirectIfAuthenticated(request);
+export async function loader({ request, context }) {
+    const response = await redirectIfAuthenticated(request, context);
     if (response) return response;
 
     const url = new URL(request.url);

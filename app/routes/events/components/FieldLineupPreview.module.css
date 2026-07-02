@@ -1,0 +1,64 @@
+/* FieldLineupPreview.module.css */
+
+.container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    max-width: 380px;
+    margin: 8px auto 0 auto;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: var(--mantine-color-body);
+}
+
+.fieldImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    user-select: none;
+    pointer-events: none;
+}
+
+.positionOverlay {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.initialsBadge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 9px;
+    font-weight: 900;
+    color: #111827; /* Deep midnight navy text */
+    background-color: #ccff33; /* Velocity neon accent */
+    border: 1.5px solid #ffffff;
+    box-shadow:
+        0 0 8px rgba(204, 255, 51, 0.6),
+        0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.playerName {
+    margin-top: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #ffffff;
+    background: rgba(17, 24, 39, 0.9); /* Velvet deep navy */
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(204, 255, 51, 0.45); /* Subtle neon highlight border */
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+    white-space: nowrap;
+    text-align: center;
+}

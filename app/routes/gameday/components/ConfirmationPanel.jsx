@@ -60,6 +60,7 @@ export function ConfirmationPanel({
             />
 
             <Button
+                className="tour-confirm-play-btn"
                 color={getActionColor(actionType)}
                 fullWidth
                 size="md"

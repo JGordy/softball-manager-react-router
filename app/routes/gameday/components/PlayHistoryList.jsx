@@ -14,13 +14,15 @@ import {
     IconPencil,
 } from "@tabler/icons-react";
 
-import { getRunnerMovement } from "../utils/gamedayUtils";
+import { getRunnerMovement, isOpponentPlay } from "../utils/gamedayUtils";
 
 export default function PlayHistoryList({
     logs,
     playerChart,
     isScorekeeper,
     onEditPlay,
+    opponentName = "Opponent", // For future features (e.g. opponent recaps)
+    isHomeGame,
 }) {
     if (!logs.length) {
         return (
@@ -35,6 +37,54 @@ export default function PlayHistoryList({
     return (
         <Stack gap="xs">
             {[...logs].reverse().map((log) => {
+                // Render opponent run events with a distinct visual style aligned to the right
+                if (log.eventType === "opponent_run") {
+                    return (
+                        <Card
+                            key={log.$id}
+                            p="xs"
+                            radius="md"
+                            bg="rgba(229, 115, 115, 0.08)"
+                            style={{
+                                borderRight:
+                                    "1px solid var(--mantine-color-red-6)",
+                            }}
+                        >
+                            <Stack gap={4}>
+                                <Group justify="space-between" wrap="nowrap">
+                                    <Text
+                                        size="sm"
+                                        fw={700}
+                                        style={{ flex: 1 }}
+                                    >
+                                        {log.description ||
+                                            `${opponentName} scored ${log.rbi || 0} run${(log.rbi || 0) === 1 ? "" : "s"}`}
+                                    </Text>
+                                </Group>
+                                <Group
+                                    gap={4}
+                                    aria-label={`${log.halfInning === "top" ? "Top" : "Bottom"} of inning ${log.inning}`}
+                                >
+                                    {log.halfInning === "top" ? (
+                                        <IconCaretUpFilled
+                                            size={12}
+                                            color="var(--mantine-color-blue-9)"
+                                        />
+                                    ) : (
+                                        <IconCaretDownFilled
+                                            size={12}
+                                            color="var(--mantine-color-blue-9)"
+                                        />
+                                    )}
+                                    <Text size="xs" c="dimmed">
+                                        {log.inning}
+                                    </Text>
+                                </Group>
+                            </Stack>
+                        </Card>
+                    );
+                }
+
                 // Render substitution events with a distinct visual style
                 if (log.eventType === "SUB") {
                     return (
@@ -87,8 +137,25 @@ export default function PlayHistoryList({
                     playerChart,
                 );
 
+                const isOpponent = isOpponentPlay(log, isHomeGame);
+
                 return (
-                    <Card key={log.$id} p="xs" radius="md">
+                    <Card
+                        key={log.$id}
+                        p="xs"
+                        radius="md"
+                        bg={
+                            isOpponent ? "rgba(229, 115, 115, 0.08)" : undefined
+                        }
+                        style={{
+                            borderLeft: isOpponent
+                                ? undefined
+                                : "1px solid var(--mantine-color-blue-6)",
+                            borderRight: isOpponent
+                                ? "1px solid var(--mantine-color-red-6)"
+                                : undefined,
+                        }}
+                    >
                         <Stack gap={4}>
                             <Group justify="space-between" wrap="nowrap">
                                 <Text size="sm" fw={700} style={{ flex: 1 }}>

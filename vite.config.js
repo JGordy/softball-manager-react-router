@@ -1,22 +1,19 @@
 import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
-import tsconfigPaths from "vite-tsconfig-paths";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 // import netlifyPlugin from '@netlify/vite-plugin-react-router'
 
 export default defineConfig({
     build: {
         sourcemap: process.env.SENTRY_AUTH_TOKEN ? "hidden" : false,
-        manifest: true,
-        outDir: "build/client",
-        ssr: "build/server/nodejs_eyJydW50aW1lIjoibm9kZWpzIn0/server.js",
-        ssrManifest: true,
+    },
+    ssr: {
+        noExternal: ["react-joyride"],
     },
     plugins: [
         tailwindcss(),
         reactRouter(),
-        tsconfigPaths(),
         ...(process.env.SENTRY_AUTH_TOKEN
             ? [
                   sentryVitePlugin({
@@ -32,6 +29,7 @@ export default defineConfig({
         // netlifyPlugin(),
     ],
     resolve: {
+        tsconfigPaths: true,
         alias: {
             "@": "/app",
             "@actions": "/actions",

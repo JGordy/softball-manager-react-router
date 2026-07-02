@@ -3,20 +3,59 @@ import { useGamedayTabs } from "./useGamedayTabs";
 import { useGamedayActions } from "./useGamedayActions";
 import { useGameState } from "./useGameState";
 import { useGameUpdates } from "@/hooks/useGameUpdates";
+import { useGameRealtime } from "@/hooks/useGameRealtime";
+import { parsePlayerChart, getActivePlayerId } from "../utils/gamedayUtils";
+const EMPTY_ARRAY = [];
 
 export function useGamedayController({
     game,
-    playerChart: initialPlayerChart,
+    playerChart: initialPlayerChart = EMPTY_ARRAY,
     team,
-    initialLogs = [],
-    gameFinal = false,
+    initialLogs = EMPTY_ARRAY,
     isScorekeeper = false,
     isDesktop = false,
-    players = [],
+    players = EMPTY_ARRAY,
 }) {
     const [logs, setLogs] = useState(initialLogs);
     // Hold playerChart in local state so sub updates reflect immediately
     const [lineup, setLineup] = useState(initialPlayerChart);
+    // Hold game details in local state to allow real-time background recap and final state updates
+    const [gameData, setGameData] = useState(game);
+
+    const parsedOpponentLineup = useMemo(() => {
+        const defaultOpponentLineup = Array.from({ length: 12 }).map(
+            (_, i) => ({
+                $id: `OPP_BAT_${i + 1}`,
+                firstName: "Batter",
+                lastName: `${i + 1}`,
+                substitutions: [],
+            }),
+        );
+
+        return (
+            parsePlayerChart(gameData.opponentLineup) || defaultOpponentLineup
+        );
+    }, [gameData.opponentLineup]);
+
+    const [opponentChart, setOpponentChart] = useState(parsedOpponentLineup);
+    const [opponentScoringMode, setOpponentScoringMode] = useState(
+        gameData.opponentScoringMode || "Detailed",
+    );
+
+    // Sync opponentScoringMode with gameData updates from realtime subscription
+    useEffect(() => {
+        if (gameData.opponentScoringMode) {
+            setOpponentScoringMode(gameData.opponentScoringMode);
+        }
+    }, [gameData.opponentScoringMode]);
+
+    // Real-time updates for the game document itself (specifically recap and finalized status)
+    useGameRealtime(game.$id, {
+        onGameUpdate: (updatedGame) => {
+            setGameData(updatedGame);
+        },
+        enabled: true,
+    });
 
     // Enrich playerChart with live data (like avatarUrl) from the players (user documents) array
     const playerChart = useMemo(() => {
@@ -44,7 +83,7 @@ export function useGamedayController({
     const setPlayerChart = setLineup;
 
     // Real-time updates for game logs
-    const { status: realtimeStatus } = useGameUpdates(game.$id, {
+    const { status: realtimeStatus } = useGameUpdates(gameData.$id, {
         onNewLog: (newLog) => {
             setLogs((prev) => {
                 const logExists = prev.some((log) => log.$id === newLog.$id);
@@ -62,18 +101,26 @@ export function useGamedayController({
         onDeleteLog: (deletedLogId) => {
             setLogs((prev) => prev.filter((log) => log.$id !== deletedLogId));
         },
-        gameDate: game.gameDate,
-        gameFinal,
+        gameDate: gameData.gameDate,
+        gameFinal: !!gameData.gameFinal,
     });
 
     // Sub-hook: Tab navigation & URL Sync
+    const hasRecapTab =
+        !!gameData.gameFinal && (!!gameData.recap || logs.length > 0);
     const { activeTab, handleTabChange, setActiveTab } = useGamedayTabs({
-        gameFinal,
+        gameFinal: !!gameData.gameFinal,
         isDesktop,
+        hasRecapTab,
     });
 
     // Primary Game Logic State
-    const gameState = useGameState({ logs, game, playerChart });
+    const gameState = useGameState({
+        logs,
+        game: gameData,
+        playerChart,
+        opponentChart,
+    });
     const {
         inning,
         setInning,
@@ -89,7 +136,31 @@ export function useGamedayController({
         setRunners,
         battingOrderIndex,
         setBattingOrderIndex,
+        opponentOrderIndex,
+        setOpponentOrderIndex,
     } = gameState;
+
+    const isOurBatting = gameData.isHomeGame
+        ? halfInning === "bottom"
+        : halfInning === "top";
+
+    const getOpponentBatter = useCallback(
+        (index) => {
+            return (
+                opponentChart[index] || {
+                    $id: `OPP_BAT_${index + 1}`,
+                    firstName: `Batter ${index + 1}`,
+                    lastName: "",
+                    jerseyNumber: "",
+                }
+            );
+        },
+        [opponentChart],
+    );
+
+    const currentBatter = isOurBatting
+        ? playerChart[battingOrderIndex]
+        : getOpponentBatter(opponentOrderIndex);
 
     // Sub-hook: Scoring Actions
     const {
@@ -100,9 +171,11 @@ export function useGamedayController({
         advanceHalfInning,
         handleOpponentRun,
         handleOpponentOut,
+        handleSelectOpponentBatter,
         initiateAction,
         completeAction,
         handleSubCurrentBatter: handleSubAction,
+        handleRemovePlayer: handleRemoveAction,
         undoLast,
         updateAction,
         isSubmitting,
@@ -126,6 +199,12 @@ export function useGamedayController({
         setBattingOrderIndex,
         logs,
         isScorekeeper,
+        game: gameData,
+        currentBatter,
+        isOurBatting,
+        opponentOrderIndex,
+        setOpponentOrderIndex,
+        opponentChart,
     });
 
     // Derive the list of players eligible to substitute:
@@ -158,6 +237,18 @@ export function useGamedayController({
         [handleSubAction, battingOrderIndex, playerChart],
     );
 
+    const handleRemovePlayer = useCallback(
+        (slotIndex, removalType) => {
+            handleRemoveAction(
+                slotIndex,
+                removalType,
+                playerChart,
+                setPlayerChart,
+            );
+        },
+        [handleRemoveAction, playerChart],
+    );
+
     const handleUndoLast = useCallback(() => {
         if (!isScorekeeper || logs.length === 0) return;
         const lastLog = logs[logs.length - 1];
@@ -179,10 +270,51 @@ export function useGamedayController({
             });
             setPlayerChart(revertedChart);
             undoLast(revertedChart);
+        } else if (lastLog.eventType === "INJURY_REMOVE") {
+            const revertedChart = playerChart.map((slot) => {
+                if (getActivePlayerId(slot) === lastLog.playerId) {
+                    const {
+                        removed: _removed,
+                        removalType: _removalType,
+                        removalInning: _removalInning,
+                        ...rest
+                    } = slot;
+                    return rest;
+                }
+                return slot;
+            });
+            setPlayerChart(revertedChart);
+            undoLast(revertedChart);
         } else {
             undoLast();
         }
     }, [isScorekeeper, logs, playerChart, setPlayerChart, undoLast]);
+
+    const saveOpponentChart = useCallback(
+        (updatedChart) => {
+            setOpponentChart(updatedChart);
+            fetcher.submit(
+                {
+                    _action: "update-opponent-settings",
+                    opponentLineup: JSON.stringify(updatedChart),
+                },
+                { method: "post" },
+            );
+        },
+        [fetcher, setOpponentChart],
+    );
+
+    const handleToggleOpponentScoringMode = useCallback(() => {
+        const nextMode = opponentScoringMode === "Basic" ? "Detailed" : "Basic";
+        setOpponentScoringMode(nextMode);
+        fetcher.submit(
+            {
+                _action: "update-opponent-settings",
+                opponentScoringMode: nextMode,
+            },
+            { method: "post" },
+        );
+    }, [opponentScoringMode, fetcher]);
 
     const batters = useMemo(() => {
         const batterMap = new Map();
@@ -233,6 +365,11 @@ export function useGamedayController({
         }
     }, [fetcher.data, fetcher.state]);
 
+    // Sync initial game data when the prop changes (e.g. from loader revalidation)
+    useEffect(() => {
+        setGameData(game);
+    }, [game]);
+
     // Sync initialLogs when they change
     useEffect(() => {
         setLogs(initialLogs);
@@ -243,29 +380,84 @@ export function useGamedayController({
         setPlayerChart(initialPlayerChart);
     }, [initialPlayerChart]);
 
+    // Sync and dynamically pad opponentChart when lineup, order index, or logs update
+    useEffect(() => {
+        const updated = [...parsedOpponentLineup];
+
+        // 1. Find the highest opponent batter index from active index & logs
+        let maxIndex = opponentOrderIndex;
+        logs.forEach((log) => {
+            if (log.playerId?.startsWith("OPP_BAT_")) {
+                const match = log.playerId.match(/OPP_BAT_(\d+)/);
+                if (match) {
+                    const num = parseInt(match[1], 10) - 1;
+                    if (num > maxIndex) maxIndex = num;
+                }
+            }
+        });
+
+        // 2. Pad updated array with placeholders up to maxIndex
+        while (updated.length <= maxIndex) {
+            const idx = updated.length;
+            updated.push({
+                $id: `OPP_BAT_${idx + 1}`,
+                firstName: "Batter",
+                lastName: `${idx + 1}`,
+                substitutions: [],
+            });
+        }
+
+        // 3. Only update state if the padded chart differs from the current state
+        const isDifferent =
+            updated.length !== opponentChart.length ||
+            updated.some((item, idx) => opponentChart[idx]?.$id !== item.$id);
+
+        if (isDifferent) {
+            setOpponentChart(updated);
+        }
+    }, [parsedOpponentLineup, opponentOrderIndex, logs, opponentChart]);
+
     const isSyncing = fetcher.state !== "idle" || realtimeStatus === "syncing";
 
-    const isOurBatting = game.isHomeGame
-        ? halfInning === "bottom"
-        : halfInning === "top";
-
-    const currentBatter = playerChart[battingOrderIndex];
-
     const upcomingBatters = [];
-    if (playerChart.length > 1) {
-        const numBattersToFetch = Math.min(3, playerChart.length - 1);
-        for (let i = 1; i <= numBattersToFetch; i++) {
-            upcomingBatters.push(
+    if (isOurBatting) {
+        if (playerChart.length > 1) {
+            const numBattersToFetch = Math.min(3, playerChart.length - 1);
+            for (let i = 1; i <= numBattersToFetch; i++) {
+                upcomingBatters.push(
+                    playerChart[(battingOrderIndex + i) % playerChart.length],
+                );
+            }
+        }
+    } else {
+        const chartLength = gameData.opponentLineupLocked
+            ? Math.max(opponentChart.length, 1)
+            : opponentOrderIndex + 4;
+        for (let i = 1; i <= 3; i++) {
+            let nextIndex = opponentOrderIndex + i;
+            if (gameData.opponentLineupLocked) {
+                nextIndex = nextIndex % chartLength;
+            }
+            upcomingBatters.push(getOpponentBatter(nextIndex));
+        }
+    }
+
+    const ourDueUpBatters = [];
+    if (playerChart.length > 0) {
+        const numBattersToFetch = Math.min(3, playerChart.length);
+        for (let i = 0; i < numBattersToFetch; i++) {
+            ourDueUpBatters.push(
                 playerChart[(battingOrderIndex + i) % playerChart.length],
             );
         }
     }
 
-    const dueUpBatters = [currentBatter, ...upcomingBatters]
-        .slice(0, 3)
-        .filter(Boolean);
+    const dueUpBatters = isOurBatting
+        ? [currentBatter, ...upcomingBatters].slice(0, 3).filter(Boolean)
+        : ourDueUpBatters;
 
     return {
+        game: gameData,
         logs,
         setLogs,
         realtimeStatus,
@@ -293,11 +485,19 @@ export function useGamedayController({
         advanceHalfInning,
         handleOpponentRun,
         handleOpponentOut,
+        handleSelectOpponentBatter,
         initiateAction,
         completeAction,
         handleSubCurrentBatter,
+        handleRemovePlayer,
         eligibleSubstitutes,
         playerChart,
+        opponentChart,
+        setOpponentChart,
+        saveOpponentChart,
+        opponentOrderIndex,
+        opponentScoringMode,
+        toggleOpponentScoringMode: handleToggleOpponentScoringMode,
         undoLast: handleUndoLast,
         updateAction,
     };

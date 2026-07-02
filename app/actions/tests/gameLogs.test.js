@@ -50,7 +50,12 @@ describe("gameLogs actions", () => {
                 rbi: 1,
                 outsOnPlay: 0,
                 description: "John Doe singles",
-                baseState: { first: true, second: false, third: false },
+                baseState: {
+                    first: true,
+                    second: false,
+                    third: false,
+                    scored: ["player789"],
+                },
             };
 
             const mockTransaction = { $id: "txn-123" };
@@ -83,6 +88,7 @@ describe("gameLogs actions", () => {
                             rbi: 1,
                             outsOnPlay: 0,
                             description: "John Doe singles",
+                            scored: ["player789"],
                             baseState: JSON.stringify(mockPayload.baseState),
                         }),
                         permissions: expect.arrayContaining([
@@ -113,7 +119,7 @@ describe("gameLogs actions", () => {
                 rbi: 0,
                 outsOnPlay: 1,
                 description: "K",
-                baseState: {},
+                baseState: { scored: [] },
             };
 
             createDocument.mockResolvedValue({ $id: "log790", ...mockPayload });
@@ -134,6 +140,7 @@ describe("gameLogs actions", () => {
                 expect.objectContaining({
                     gameId: "game123",
                     playerId: "player456",
+                    scored: [],
                 }),
                 expect.arrayContaining([
                     'read("any")',
@@ -274,6 +281,145 @@ describe("gameLogs actions", () => {
             expect(result.success).toBe(false);
             expect(result.message).toContain("Invalid baseState data");
         });
+
+        it("should successfully log an opponent_run event and update opponentScore using transaction", async () => {
+            const mockPayload = {
+                gameId: "game123",
+                inning: "1",
+                halfInning: "bottom",
+                playerId: "player456",
+                eventType: "opponent_run",
+                rbi: 2,
+                outsOnPlay: 0,
+                description: "Trinity Red scored 2 runs",
+                baseState: { isOpponent: true },
+            };
+
+            const mockTransaction = { $id: "txn-123" };
+            createTransaction.mockResolvedValue(mockTransaction);
+            readDocument.mockResolvedValue({
+                opponentScore: "4",
+                teamId: "team789",
+            });
+            createOperations.mockResolvedValue({});
+            commitTransaction.mockResolvedValue({});
+
+            const result = await logGameEvent({
+                ...mockPayload,
+                client: { mockedClient: true },
+            });
+
+            expect(createTransaction).toHaveBeenCalled();
+            expect(readDocument).toHaveBeenCalledWith("games", "game123", [], {
+                mockedClient: true,
+            });
+            expect(createOperations).toHaveBeenCalledWith(
+                "txn-123",
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        action: "create",
+                        tableId: "GAME_LOGS_COLLECTION_ID",
+                        data: expect.objectContaining({
+                            eventType: "opponent_run",
+                            rbi: 2,
+                            baseState: JSON.stringify(mockPayload.baseState),
+                        }),
+                    }),
+                    expect.objectContaining({
+                        action: "update",
+                        tableId: "GAMES_COLLECTION_ID",
+                        rowId: "game123",
+                        data: { opponentScore: "6" },
+                    }),
+                ]),
+            );
+            expect(commitTransaction).toHaveBeenCalledWith("txn-123");
+            expect(result.success).toBe(true);
+        });
+
+        it("should derive isOpponent as true if eventType is regular hit but halfInning and isHomeGame indicate opponent is batting (home game, top inning)", async () => {
+            const mockPayload = {
+                gameId: "game123",
+                inning: "1",
+                halfInning: "top",
+                playerId: "OPP_BAT_1",
+                eventType: "1B",
+                rbi: 1,
+                outsOnPlay: 0,
+                description: "Opponent singles",
+                baseState: {},
+            };
+
+            const mockTransaction = { $id: "txn-123" };
+            createTransaction.mockResolvedValue(mockTransaction);
+            readDocument.mockResolvedValue({
+                opponentScore: "4",
+                teamId: "team789",
+                isHomeGame: true,
+            });
+            createOperations.mockResolvedValue({});
+            commitTransaction.mockResolvedValue({});
+
+            const result = await logGameEvent({
+                ...mockPayload,
+                client: { mockedClient: true },
+            });
+
+            expect(result.success).toBe(true);
+            expect(createOperations).toHaveBeenCalledWith(
+                "txn-123",
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        action: "update",
+                        tableId: "GAMES_COLLECTION_ID",
+                        rowId: "game123",
+                        data: { opponentScore: "5" },
+                    }),
+                ]),
+            );
+        });
+
+        it("should derive isOpponent as true if eventType is regular hit but halfInning and isHomeGame indicate opponent is batting (away game, bottom inning)", async () => {
+            const mockPayload = {
+                gameId: "game123",
+                inning: "1",
+                halfInning: "bottom",
+                playerId: "OPP_BAT_1",
+                eventType: "2B",
+                rbi: 2,
+                outsOnPlay: 0,
+                description: "Opponent doubles",
+                baseState: {},
+            };
+
+            const mockTransaction = { $id: "txn-123" };
+            createTransaction.mockResolvedValue(mockTransaction);
+            readDocument.mockResolvedValue({
+                opponentScore: "2",
+                teamId: "team789",
+                isHomeGame: false,
+            });
+            createOperations.mockResolvedValue({});
+            commitTransaction.mockResolvedValue({});
+
+            const result = await logGameEvent({
+                ...mockPayload,
+                client: { mockedClient: true },
+            });
+
+            expect(result.success).toBe(true);
+            expect(createOperations).toHaveBeenCalledWith(
+                "txn-123",
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        action: "update",
+                        tableId: "GAMES_COLLECTION_ID",
+                        rowId: "game123",
+                        data: { opponentScore: "4" },
+                    }),
+                ]),
+            );
+        });
     });
 
     describe("undoGameEvent", () => {
@@ -323,6 +469,7 @@ describe("gameLogs actions", () => {
             );
             expect(commitTransaction).toHaveBeenCalledWith("txn-456");
             expect(result.success).toBe(true);
+            expect(result.log).toEqual(mockLog);
         });
 
         it("should undo a game event without reverting score if rbi was 0", async () => {
@@ -348,6 +495,7 @@ describe("gameLogs actions", () => {
                 mockedClient: true,
             });
             expect(result.success).toBe(true);
+            expect(result.log).toEqual({ gameId: "game123", rbi: 0 });
         });
 
         it("should handle errors and rollback transaction when undo fails", async () => {
@@ -373,6 +521,92 @@ describe("gameLogs actions", () => {
             expect(result.error).toBe("Fetch error");
             expect(console.error).toHaveBeenCalled();
         });
+
+        it("should successfully undo an opponent_run event and revert opponentScore using transaction", async () => {
+            const mockLog = {
+                gameId: "game123",
+                eventType: "opponent_run",
+                rbi: 2,
+            };
+
+            const mockTransaction = { $id: "txn-456" };
+            readDocument.mockResolvedValueOnce(mockLog);
+            readDocument.mockResolvedValueOnce({ opponentScore: "8" });
+            createTransaction.mockResolvedValue(mockTransaction);
+            createOperations.mockResolvedValue({});
+            commitTransaction.mockResolvedValue({});
+
+            const result = await undoGameEvent({
+                logId: "log789",
+                client: { mockedClient: true },
+            });
+
+            expect(readDocument).toHaveBeenCalledWith(
+                "game_logs",
+                "log789",
+                [],
+                { mockedClient: true },
+            );
+            expect(readDocument).toHaveBeenCalledWith("games", "game123", [], {
+                mockedClient: true,
+            });
+            expect(createTransaction).toHaveBeenCalled();
+            expect(createOperations).toHaveBeenCalledWith(
+                "txn-456",
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        action: "update",
+                        tableId: "GAMES_COLLECTION_ID",
+                        rowId: "game123",
+                        data: { opponentScore: "6" },
+                    }),
+                    expect.objectContaining({
+                        action: "delete",
+                        tableId: "GAME_LOGS_COLLECTION_ID",
+                        rowId: "log789",
+                    }),
+                ]),
+            );
+            expect(commitTransaction).toHaveBeenCalledWith("txn-456");
+            expect(result.success).toBe(true);
+        });
+
+        it("should successfully undo a regular hit event that produced runs for opponent by deriving opponent-ness from log.halfInning and game.isHomeGame", async () => {
+            const mockLog = {
+                gameId: "game123",
+                eventType: "1B",
+                halfInning: "top",
+                rbi: 1,
+            };
+
+            const mockTransaction = { $id: "txn-456" };
+            readDocument.mockResolvedValueOnce(mockLog);
+            readDocument.mockResolvedValueOnce({
+                opponentScore: "8",
+                isHomeGame: true,
+            });
+            createTransaction.mockResolvedValue(mockTransaction);
+            createOperations.mockResolvedValue({});
+            commitTransaction.mockResolvedValue({});
+
+            const result = await undoGameEvent({
+                logId: "log789",
+                client: { mockedClient: true },
+            });
+
+            expect(createOperations).toHaveBeenCalledWith(
+                "txn-456",
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        action: "update",
+                        tableId: "GAMES_COLLECTION_ID",
+                        rowId: "game123",
+                        data: { opponentScore: "7" },
+                    }),
+                ]),
+            );
+            expect(result.success).toBe(true);
+        });
     });
 
     describe("updateGameEvent", () => {
@@ -391,7 +625,7 @@ describe("gameLogs actions", () => {
                 first: null,
                 second: "player1",
                 third: null,
-                scored: [],
+                scored: ["player2"],
             }),
             runnerResults: JSON.stringify({
                 batter: "second",
@@ -424,6 +658,7 @@ describe("gameLogs actions", () => {
                 expect.objectContaining({
                     hitX: 75.63,
                     hitY: 40.02,
+                    scored: ["player2"],
                 }),
                 mockClient,
             );
@@ -452,6 +687,7 @@ describe("gameLogs actions", () => {
                 expect.objectContaining({
                     hitX: 75.63,
                     hitY: 40.02,
+                    scored: ["player2"],
                 }),
                 mockClient,
             );
@@ -479,6 +715,7 @@ describe("gameLogs actions", () => {
                 "log1",
                 expect.objectContaining({
                     baseState: expect.stringContaining("runnerResults"),
+                    scored: ["player2"],
                 }),
                 mockClient,
             );
@@ -569,6 +806,78 @@ describe("gameLogs actions", () => {
             });
             expect(result.success).toBe(false);
             expect(result.status).toBe(400);
+        });
+
+        it("updates the opponentScore when RBI changes on an opponent_run event", async () => {
+            readDocument
+                .mockResolvedValueOnce({
+                    $id: "log1",
+                    gameId: "game1",
+                    eventType: "opponent_run",
+                    rbi: 1,
+                })
+                .mockResolvedValueOnce({ $id: "game1", opponentScore: "4" });
+
+            updateDocument
+                .mockResolvedValueOnce({ $id: "game1" })
+                .mockResolvedValueOnce({ $id: "log1" });
+
+            const result = await updateGameEvent({
+                logId: "log1",
+                newData: {
+                    ...baseNewData,
+                    rbi: "3",
+                    eventType: "opponent_run",
+                },
+                client: mockClient,
+            });
+
+            expect(updateDocument).toHaveBeenNthCalledWith(
+                1,
+                "games",
+                "game1",
+                { opponentScore: "6" },
+                mockClient,
+            );
+            expect(result.success).toBe(true);
+        });
+
+        it("handles type transition from team play to opponent_run play correctly adjusting both scores", async () => {
+            readDocument
+                .mockResolvedValueOnce({
+                    $id: "log1",
+                    gameId: "game1",
+                    eventType: "single",
+                    rbi: 1,
+                })
+                .mockResolvedValueOnce({
+                    $id: "game1",
+                    score: "4",
+                    opponentScore: "2",
+                });
+
+            updateDocument
+                .mockResolvedValueOnce({ $id: "game1" })
+                .mockResolvedValueOnce({ $id: "log1" });
+
+            const result = await updateGameEvent({
+                logId: "log1",
+                newData: {
+                    ...baseNewData,
+                    rbi: "3",
+                    eventType: "opponent_run",
+                },
+                client: mockClient,
+            });
+
+            expect(updateDocument).toHaveBeenNthCalledWith(
+                1,
+                "games",
+                "game1",
+                { score: "3", opponentScore: "5" },
+                mockClient,
+            );
+            expect(result.success).toBe(true);
         });
     });
 });

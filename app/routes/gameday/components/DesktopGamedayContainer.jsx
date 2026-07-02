@@ -1,25 +1,32 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { Link } from "react-router";
 import {
     Box,
+    Button,
     Card,
-    Grid,
+    Flex,
     Group,
     LoadingOverlay,
     Stack,
     Tabs,
     Text,
     Title,
+    SegmentedControl,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { IconAlertTriangle, IconUserMinus } from "@tabler/icons-react";
 
 import BackButton from "@/components/BackButton";
 import TabsWrapper from "@/components/TabsWrapper";
 import ContactSprayChart from "@/components/ContactSprayChart";
+import { isOpponentPlay } from "../utils/gamedayUtils";
 
 import { useGamedayController } from "../hooks/useGamedayController";
 
-import BoxScore from "./BoxScore";
+import BoxScore from "@/components/BoxScore";
 import CompactMatchupCard from "./CompactMatchupCard";
+import CurrentBatterCard from "./CurrentBatterCard";
+import UpNextCard from "./UpNextCard";
 import ActionPad from "./ActionPad";
 import PlayHistoryList from "./PlayHistoryList";
 import DefenseCard from "./DefenseCard";
@@ -27,13 +34,22 @@ import LastPlayCard from "./LastPlayCard";
 import FieldingControls from "./FieldingControls";
 import DesktopPlayActionDrawer from "./DesktopPlayActionDrawer";
 import SubPlayerDrawer from "./SubPlayerDrawer";
+import RemovePlayerDrawer from "./RemovePlayerDrawer";
 import GamedayMenu from "./GamedayMenu";
 import AchievementsList from "./AchievementsList";
 import EditPlayDrawer from "./EditPlayDrawer";
+import SelectOpponentBatterDrawer from "./SelectOpponentBatterDrawer";
 import ShareUrlButton from "@/components/ShareUrlButton";
+import GameRecapView from "./GameRecapView";
+
+import OnboardingTour from "@/components/OnboardingTour";
+import {
+    getOpponentScoringSteps,
+    getScoringFlowSteps,
+} from "../utils/onboardingSteps";
 
 export default function DesktopGamedayContainer({
-    game,
+    game: staticGame,
     playerChart: initialPlayerChart,
     team,
     initialLogs = [],
@@ -44,6 +60,7 @@ export default function DesktopGamedayContainer({
     achievements = [],
 }) {
     const {
+        game,
         logs,
         realtimeStatus,
         activeTab,
@@ -66,16 +83,23 @@ export default function DesktopGamedayContainer({
         closeDrawer,
         handleOpponentRun,
         handleOpponentOut,
+        handleSelectOpponentBatter,
         advanceHalfInning,
         initiateAction,
         completeAction,
         handleSubCurrentBatter,
+        handleRemovePlayer,
         eligibleSubstitutes,
         playerChart,
+        opponentChart,
+        saveOpponentChart,
+        opponentOrderIndex,
+        opponentScoringMode,
+        toggleOpponentScoringMode,
         undoLast,
         updateAction,
     } = useGamedayController({
-        game,
+        game: staticGame,
         playerChart: initialPlayerChart,
         team,
         initialLogs,
@@ -85,30 +109,68 @@ export default function DesktopGamedayContainer({
         players,
     });
 
+    const isGameFinal =
+        game.gameFinal !== undefined ? !!game.gameFinal : gameFinal;
+
+    const showColumn2 =
+        !isGameFinal &&
+        (isScorekeeper ||
+            (!isOurBatting && opponentScoringMode !== "Detailed"));
+
+    const [tourInitialMode] = useState(opponentScoringMode);
+
+    const [sprayChartTeam, setSprayChartTeam] = useState("us");
+    const [boxScoreTeam, setBoxScoreTeam] = useState("us");
+
+    // Auto-switch tabs to active team when batting side changes
+    useEffect(() => {
+        setSprayChartTeam(isOurBatting ? "us" : "them");
+        setBoxScoreTeam(isOurBatting ? "us" : "them");
+    }, [isOurBatting]);
+
+    const sprayHits = useMemo(() => {
+        return logs.filter(
+            (l) =>
+                isOpponentPlay(l, game.isHomeGame) ===
+                (sprayChartTeam === "them"),
+        );
+    }, [logs, sprayChartTeam, game.isHomeGame]);
+
+    const sprayBatters = useMemo(() => {
+        if (sprayChartTeam === "us") {
+            return batters;
+        } else {
+            const batterMap = new Map();
+            opponentChart.forEach((slot, index) => {
+                const label =
+                    slot.firstName || slot.lastName
+                        ? `${slot.firstName || ""} ${slot.lastName || ""}`.trim()
+                        : `Batter ${index + 1}`;
+                batterMap.set(slot.$id, { value: slot.$id, label });
+            });
+            return Array.from(batterMap.values());
+        }
+    }, [sprayChartTeam, batters, opponentChart]);
+
     const [subModalOpened, { open: openSubModal, close: closeSubModal }] =
         useDisclosure(false);
+    const [
+        removePlayerOpened,
+        { open: openRemovePlayer, close: closeRemovePlayer },
+    ] = useDisclosure(false);
     const [editLog, setEditLog] = useState(null);
     const [editDrawerOpened, { open: openEditDrawer, close: closeEditDrawer }] =
         useDisclosure(false);
+    const [
+        selectBatterOpened,
+        { open: openSelectBatter, close: closeSelectBatter },
+    ] = useDisclosure(false);
 
     const previousLog = useMemo(() => {
         if (!editLog) return null;
         const idx = logs.findIndex((l) => l.$id === editLog.$id);
         return idx > 0 ? logs[idx - 1] : null;
     }, [editLog, logs]);
-
-    if (playerChart.length === 0) {
-        return (
-            <Card p="xl" radius="lg" ta="center">
-                <Text fw={700} mb="xs">
-                    Lineup Required
-                </Text>
-                <Text size="sm" c="dimmed">
-                    You must create a lineup before scoring.
-                </Text>
-            </Card>
-        );
-    }
 
     const handleEditPlay = (log) => {
         setEditLog(log);
@@ -124,6 +186,26 @@ export default function DesktopGamedayContainer({
         updateAction(logId, updatedData);
         closeEditDrawer();
         setEditLog(null);
+    };
+
+    const handleOpponentNotesChange = (notes) => {
+        if (!isOurBatting) {
+            const updated = [...opponentChart];
+            while (updated.length <= opponentOrderIndex) {
+                const idx = updated.length;
+                updated.push({
+                    $id: `OPP_BAT_${idx + 1}`,
+                    firstName: "Batter",
+                    lastName: `${idx + 1}`,
+                    substitutions: [],
+                });
+            }
+            updated[opponentOrderIndex] = {
+                ...updated[opponentOrderIndex],
+                notes,
+            };
+            saveOpponentChart(updated);
+        }
     };
 
     return (
@@ -142,12 +224,28 @@ export default function DesktopGamedayContainer({
                     <ShareUrlButton />
                     {isScorekeeper ? (
                         <GamedayMenu
-                            gameFinal={gameFinal}
+                            menuId="gameday-menu"
+                            gameFinal={isGameFinal}
                             score={score}
                             opponentScore={opponentScore}
                             onSubBatter={
                                 isOurBatting ? openSubModal : undefined
                             }
+                            onRemovePlayer={
+                                isOurBatting ? openRemovePlayer : undefined
+                            }
+                            opponentScoringMode={opponentScoringMode}
+                            onToggleOpponentScoringMode={
+                                toggleOpponentScoringMode
+                            }
+                            isOurBatting={isOurBatting}
+                            opponentChart={opponentChart}
+                            opponentOrderIndex={opponentOrderIndex}
+                            onOpenSelectBatterDrawer={openSelectBatter}
+                            opponentLineupLocked={game.opponentLineupLocked}
+                            game={game}
+                            inning={inning}
+                            halfInning={halfInning}
                         />
                     ) : (
                         <div style={{ minWidth: 40 }} />
@@ -155,137 +253,402 @@ export default function DesktopGamedayContainer({
                 </Group>
             </Group>
 
-            <Box pos="relative">
-                <LoadingOverlay
-                    visible={isSyncing}
-                    overlayProps={{ radius: "lg", blur: 1, opacity: 0.1 }}
-                    loaderProps={{ color: "blue", type: "dots" }}
-                    zIndex={100}
-                />
+            {playerChart.length === 0 ? (
+                <Card
+                    p="xl"
+                    radius="lg"
+                    ta="center"
+                    mx="auto"
+                    w="100%"
+                    maw={480}
+                >
+                    <Text fw={700} mb="xs">
+                        Lineup Required
+                    </Text>
+                    <Text size="sm" c="dimmed" mb="md">
+                        You must create a lineup before scoring.
+                    </Text>
+                    {isScorekeeper && (
+                        <Button
+                            component={Link}
+                            to={`/events/${game.$id}/lineup`}
+                            variant="filled"
+                            color="lime"
+                            mt="xs"
+                        >
+                            Create Lineup
+                        </Button>
+                    )}
+                </Card>
+            ) : (
+                <Box pos="relative">
+                    {isScorekeeper && !isGameFinal && !isOurBatting && (
+                        <OnboardingTour
+                            tourKey="gameday_opponent"
+                            steps={getOpponentScoringSteps(tourInitialMode)}
+                            user={user}
+                            menuId="gameday-menu"
+                            alwaysIncludeTargets={[
+                                ".tour-gameday-menu-dropdown",
+                                ".tour-gameday-menu-item-toggle-scoring-mode",
+                                ".tour-gameday-menu-item-set-active-batter",
+                                ".tour-gameday-menu-item-wrap-lineup",
+                                ".tour-current-batter-card",
+                                ".tour-fielding-out-btn",
+                                ".tour-fielding-run-btn",
+                                ".tour-fielding-skip-btn",
+                            ]}
+                            trackingSuffix="gameday_opponent"
+                            disableScrolling={true}
+                        />
+                    )}
+                    {isScorekeeper && !isGameFinal && isOurBatting && (
+                        <OnboardingTour
+                            tourKey="gameday_scoring_flow"
+                            steps={getScoringFlowSteps()}
+                            user={user}
+                            alwaysIncludeTargets={[
+                                ".tour-action-1b",
+                                ".tour-spray-field",
+                                ".tour-runner-advancement-dnd",
+                                ".tour-confirm-play-btn",
+                                ".tour-last-play-card",
+                            ]}
+                            trackingSuffix="gameday_scoring_flow"
+                            disableScrolling={true}
+                        />
+                    )}
+                    <LoadingOverlay
+                        visible={isSyncing}
+                        overlayProps={{ radius: "lg", blur: 1, opacity: 0.1 }}
+                        loaderProps={{ color: "blue", type: "dots" }}
+                        zIndex={100}
+                    />
 
-                <Grid gutter="xl" mt="md" align="flex-start">
-                    {/* COLUMN 1: Matchup */}
-                    <Grid.Col span={{ base: 12, md: 4 }}>
-                        <Stack gap="md">
-                            <CompactMatchupCard
-                                score={score}
-                                opponentScore={opponentScore}
-                                inning={inning}
-                                halfInning={halfInning}
-                                outs={outs}
-                                teamName={team.name}
-                                opponentName={game.opponent}
-                                gameFinal={gameFinal}
-                                realtimeStatus={realtimeStatus}
-                                isOurBatting={isOurBatting}
-                                runners={runners}
-                                currentBatter={currentBatter}
-                                upcomingBatters={upcomingBatters}
-                                logs={logs}
-                            />
-                            {logs.length > 0 && isOurBatting && !gameFinal && (
+                    <Flex
+                        direction={{ base: "column", lg: "row" }}
+                        justify="center"
+                        align="flex-start"
+                        gap="xl"
+                        mt="md"
+                    >
+                        {/* COLUMN A: Matchup & Action Controls */}
+                        <Stack
+                            flex={{ base: "1 1 auto", lg: "55 55 0px" }}
+                            maw={{ base: "100%", lg: 825 }}
+                            style={{ width: "100%" }}
+                            gap="md"
+                        >
+                            {/* ROW 1: Scoreboard and Current Batter */}
+                            <Flex
+                                direction={{ base: "column", sm: "row" }}
+                                gap="md"
+                                align="stretch"
+                            >
+                                <CompactMatchupCard
+                                    splitBatter={true}
+                                    score={score}
+                                    opponentScore={opponentScore}
+                                    inning={inning}
+                                    halfInning={halfInning}
+                                    outs={outs}
+                                    teamName={team.name}
+                                    opponentName={game.opponent}
+                                    gameFinal={isGameFinal}
+                                    realtimeStatus={realtimeStatus}
+                                    isOurBatting={isOurBatting}
+                                    runners={runners}
+                                    currentBatter={currentBatter}
+                                    upcomingBatters={upcomingBatters}
+                                    logs={logs}
+                                    opponentScoringMode={opponentScoringMode}
+                                    onOpponentNotesChange={
+                                        handleOpponentNotesChange
+                                    }
+                                    style={{ flex: "40 40 0px", minWidth: 0 }}
+                                />
+                                {!isGameFinal &&
+                                    (isOurBatting ||
+                                    opponentScoringMode === "Detailed" ? (
+                                        <Stack
+                                            gap="md"
+                                            style={{
+                                                flex: "60 60 0px",
+                                                minWidth: 0,
+                                            }}
+                                        >
+                                            <CurrentBatterCard
+                                                currentBatter={currentBatter}
+                                                logs={logs}
+                                                isOpponent={!isOurBatting}
+                                                onNotesChange={
+                                                    !isOurBatting
+                                                        ? handleOpponentNotesChange
+                                                        : undefined
+                                                }
+                                            />
+                                            <UpNextCard
+                                                upcomingBatters={
+                                                    upcomingBatters
+                                                }
+                                            />
+                                        </Stack>
+                                    ) : (
+                                        <Box
+                                            style={{
+                                                flex: "60 60 0px",
+                                                minWidth: 0,
+                                            }}
+                                        >
+                                            <DefenseCard
+                                                teamName={team.name}
+                                                dueUpBatters={dueUpBatters}
+                                                style={{ height: "100%" }}
+                                            />
+                                        </Box>
+                                    ))}
+                            </Flex>
+
+                            {/* ROW 2: Action Pad or Fielding Controls */}
+                            {showColumn2 && (
+                                <Box>
+                                    {!isGameFinal &&
+                                        (isOurBatting &&
+                                        currentBatter?.removed &&
+                                        currentBatter?.removalType ===
+                                            "auto-out"
+                                            ? isScorekeeper && (
+                                                  <Card
+                                                      p="md"
+                                                      radius="lg"
+                                                      bg="orange.9"
+                                                      c="white"
+                                                      ta="center"
+                                                  >
+                                                      <Stack
+                                                          align="center"
+                                                          gap="sm"
+                                                      >
+                                                          <IconAlertTriangle
+                                                              size={32}
+                                                          />
+                                                          <Text fw={700}>
+                                                              Injured Player -
+                                                              Automatic Out
+                                                          </Text>
+                                                          <Text
+                                                              size="xs"
+                                                              opacity={0.8}
+                                                          >
+                                                              This slot is
+                                                              marked for
+                                                              automatic out due
+                                                              to player injury.
+                                                              Click below to
+                                                              record the out.
+                                                          </Text>
+                                                          <Button
+                                                              color="red"
+                                                              onClick={() =>
+                                                                  completeAction(
+                                                                      "injury_auto_out",
+                                                                  )
+                                                              }
+                                                              leftSection={
+                                                                  <IconUserMinus
+                                                                      size={16}
+                                                                  />
+                                                              }
+                                                              fullWidth
+                                                              size="md"
+                                                          >
+                                                              Record Automatic
+                                                              Out
+                                                          </Button>
+                                                      </Stack>
+                                                  </Card>
+                                              )
+                                            : isOurBatting ||
+                                                opponentScoringMode ===
+                                                    "Detailed"
+                                              ? isScorekeeper && (
+                                                    <Card radius="lg">
+                                                        <ActionPad
+                                                            onAction={
+                                                                initiateAction
+                                                            }
+                                                            runners={runners}
+                                                            outs={outs}
+                                                            isDesktop={true}
+                                                        />
+                                                    </Card>
+                                                )
+                                              : isScorekeeper && (
+                                                    <Card radius="lg">
+                                                        <FieldingControls
+                                                            onOut={
+                                                                handleOpponentOut
+                                                            }
+                                                            onRun={
+                                                                handleOpponentRun
+                                                            }
+                                                            onSkip={
+                                                                advanceHalfInning
+                                                            }
+                                                            isDesktop={true}
+                                                        />
+                                                    </Card>
+                                                ))}
+                                </Box>
+                            )}
+
+                            {/* ROW 3: Last Play */}
+                            {logs.length > 0 && !isGameFinal && (
                                 <LastPlayCard
                                     lastLog={logs[logs.length - 1]}
                                     onUndo={isScorekeeper ? undoLast : null}
                                     isSubmitting={isSubmitting}
                                     playerChart={playerChart}
+                                    isHomeGame={game.isHomeGame}
                                 />
                             )}
                         </Stack>
-                    </Grid.Col>
 
-                    {/* COLUMN 2: Action Pad */}
-                    <Grid.Col span={{ base: 12, md: 4 }}>
-                        <Stack gap="md">
-                            {!gameFinal &&
-                                (isOurBatting ? (
-                                    isScorekeeper && (
-                                        <Card radius="lg">
-                                            <ActionPad
-                                                onAction={initiateAction}
-                                                runners={runners}
-                                                outs={outs}
+                        {/* COLUMN B: Tabs */}
+                        <Box
+                            flex={{ base: "1 1 auto", lg: "45 45 0px" }}
+                            maw={{ base: "100%", lg: 675 }}
+                            style={{ width: "100%" }}
+                        >
+                            <TabsWrapper
+                                value={activeTab}
+                                onChange={(val) => handleTabChange(val)}
+                                mt={0}
+                                size="sm"
+                            >
+                                {isGameFinal &&
+                                    (game.recap || logs.length > 0) && (
+                                        <Tabs.Tab value="recap">Recap</Tabs.Tab>
+                                    )}
+                                <Tabs.Tab value="plays">Plays</Tabs.Tab>
+                                <Tabs.Tab value="boxscore">Box Score</Tabs.Tab>
+                                <Tabs.Tab value="spray">Spray Chart</Tabs.Tab>
+                                {isGameFinal && (
+                                    <Tabs.Tab value="achievements">
+                                        Achievements
+                                    </Tabs.Tab>
+                                )}
+
+                                <Tabs.Panel value="plays" pt="md">
+                                    <Stack gap="md">
+                                        <Card radius="md" p="xs">
+                                            <PlayHistoryList
+                                                logs={logs}
+                                                playerChart={playerChart}
+                                                isScorekeeper={isScorekeeper}
+                                                onEditPlay={handleEditPlay}
+                                                opponentName={game.opponent}
+                                                isHomeGame={game.isHomeGame}
                                             />
                                         </Card>
-                                    )
-                                ) : (
-                                    <>
-                                        <DefenseCard
-                                            teamName={team.name}
-                                            dueUpBatters={dueUpBatters}
-                                        />
-                                        {isScorekeeper && (
-                                            <FieldingControls
-                                                onOut={handleOpponentOut}
-                                                onRun={handleOpponentRun}
-                                                onSkip={advanceHalfInning}
-                                            />
-                                        )}
-                                    </>
-                                ))}
-                        </Stack>
-                    </Grid.Col>
-
-                    {/* COLUMN 3: Tabs */}
-                    <Grid.Col span={{ base: 12, md: 4 }}>
-                        <TabsWrapper
-                            value={activeTab}
-                            onChange={(val) => handleTabChange(val)}
-                            mt={0}
-                            size="sm"
-                        >
-                            <Tabs.Tab value="plays">Plays</Tabs.Tab>
-                            <Tabs.Tab value="boxscore">Box Score</Tabs.Tab>
-                            <Tabs.Tab value="spray">Spray Chart</Tabs.Tab>
-                            {gameFinal && (
-                                <Tabs.Tab value="achievements">
-                                    Achievements
-                                </Tabs.Tab>
-                            )}
-
-                            <Tabs.Panel value="plays" pt="md">
-                                <Stack gap="md">
-                                    <Card radius="md" p="xs">
-                                        <PlayHistoryList
-                                            logs={logs}
-                                            playerChart={playerChart}
-                                            isScorekeeper={isScorekeeper}
-                                            onEditPlay={handleEditPlay}
-                                        />
-                                    </Card>
-                                </Stack>
-                            </Tabs.Panel>
-
-                            <Tabs.Panel value="boxscore" pt="md">
-                                <BoxScore
-                                    logs={logs}
-                                    playerChart={playerChart}
-                                    currentBatter={currentBatter}
-                                    gameFinal={gameFinal}
-                                />
-                            </Tabs.Panel>
-
-                            <Tabs.Panel value="spray" pt="md">
-                                <ContactSprayChart
-                                    hits={logs}
-                                    showBattingSide={false}
-                                    batters={batters}
-                                />
-                            </Tabs.Panel>
-
-                            {gameFinal && (
-                                <Tabs.Panel value="achievements" pt="md">
-                                    <AchievementsList
-                                        achievements={achievements}
-                                        players={players}
-                                        user={user}
-                                    />
+                                    </Stack>
                                 </Tabs.Panel>
-                            )}
-                        </TabsWrapper>
-                    </Grid.Col>
-                </Grid>
-            </Box>
+
+                                <Tabs.Panel value="boxscore" pt="md">
+                                    <Stack gap="sm">
+                                        <SegmentedControl
+                                            value={boxScoreTeam}
+                                            onChange={setBoxScoreTeam}
+                                            color={
+                                                boxScoreTeam === "us"
+                                                    ? "blue"
+                                                    : "red"
+                                            }
+                                            data={[
+                                                {
+                                                    label: team.name,
+                                                    value: "us",
+                                                },
+                                                {
+                                                    label:
+                                                        game.opponent ||
+                                                        "Opponent",
+                                                    value: "them",
+                                                },
+                                            ]}
+                                            fullWidth
+                                        />
+                                        <BoxScore
+                                            logs={logs}
+                                            playerChart={
+                                                boxScoreTeam === "us"
+                                                    ? playerChart
+                                                    : opponentChart
+                                            }
+                                            currentBatter={currentBatter}
+                                            gameFinal={isGameFinal}
+                                            isOpponent={boxScoreTeam === "them"}
+                                            isHomeGame={game.isHomeGame}
+                                        />
+                                    </Stack>
+                                </Tabs.Panel>
+
+                                <Tabs.Panel value="spray" pt="md">
+                                    <Stack gap="sm">
+                                        <SegmentedControl
+                                            value={sprayChartTeam}
+                                            onChange={setSprayChartTeam}
+                                            color={
+                                                sprayChartTeam === "us"
+                                                    ? "blue"
+                                                    : "red"
+                                            }
+                                            data={[
+                                                {
+                                                    label: team.name,
+                                                    value: "us",
+                                                },
+                                                {
+                                                    label:
+                                                        game.opponent ||
+                                                        "Opponent",
+                                                    value: "them",
+                                                },
+                                            ]}
+                                            fullWidth
+                                        />
+                                        <ContactSprayChart
+                                            hits={sprayHits}
+                                            showBattingSide={false}
+                                            batters={sprayBatters}
+                                        />
+                                    </Stack>
+                                </Tabs.Panel>
+
+                                {isGameFinal &&
+                                    (game.recap || logs.length > 0) && (
+                                        <Tabs.Panel value="recap" pt="md">
+                                            <GameRecapView
+                                                recap={game.recap}
+                                                logs={logs}
+                                                isScorekeeper={isScorekeeper}
+                                            />
+                                        </Tabs.Panel>
+                                    )}
+                                {isGameFinal && (
+                                    <Tabs.Panel value="achievements" pt="md">
+                                        <AchievementsList
+                                            achievements={achievements}
+                                            players={players}
+                                            user={user}
+                                        />
+                                    </Tabs.Panel>
+                                )}
+                            </TabsWrapper>
+                        </Box>
+                    </Flex>
+                </Box>
+            )}
 
             <DesktopPlayActionDrawer
                 opened={drawerOpened}
@@ -306,6 +669,13 @@ export default function DesktopGamedayContainer({
                 onConfirmSub={handleSubCurrentBatter}
             />
 
+            <RemovePlayerDrawer
+                opened={removePlayerOpened}
+                onClose={closeRemovePlayer}
+                playerChart={playerChart}
+                onConfirmRemove={handleRemovePlayer}
+            />
+
             <EditPlayDrawer
                 key={editLog?.$id}
                 opened={editDrawerOpened}
@@ -315,6 +685,14 @@ export default function DesktopGamedayContainer({
                 playerChart={playerChart}
                 onSave={handleSaveEdit}
                 isSubmitting={isSubmitting}
+            />
+
+            <SelectOpponentBatterDrawer
+                opened={selectBatterOpened}
+                onClose={closeSelectBatter}
+                opponentOrderIndex={opponentOrderIndex}
+                onSelectOpponentBatter={handleSelectOpponentBatter}
+                opponentChart={opponentChart}
             />
         </Stack>
     );

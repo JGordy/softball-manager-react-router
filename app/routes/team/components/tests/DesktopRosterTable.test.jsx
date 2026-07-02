@@ -1,4 +1,3 @@
-/* eslint-disable react/display-name */
 import { render, screen, fireEvent } from "@/utils/test-utils";
 import DesktopRosterTable from "../DesktopRosterTable";
 

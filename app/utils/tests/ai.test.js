@@ -5,10 +5,10 @@ import {
     generateContent,
     generateContentStream,
 } from "../ai";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
-// Mock the GoogleGenerativeAI library
-jest.mock("@google/generative-ai");
+// Mock the GoogleGenAI library
+jest.mock("@google/genai");
 
 describe("AI Utilities", () => {
     const OLD_ENV = process.env;
@@ -23,47 +23,44 @@ describe("AI Utilities", () => {
     });
 
     describe("createModel", () => {
-        it("should initialize GoogleGenerativeAI with API key and return model", () => {
+        it("should initialize GoogleGenAI with API key and return model configuration container", () => {
             process.env.GEMINI_API_KEY = "test-api-key";
-            const mockGetGenerativeModel = jest
-                .fn()
-                .mockReturnValue("mock-model");
-
-            GoogleGenerativeAI.mockImplementation(() => ({
-                getGenerativeModel: mockGetGenerativeModel,
-            }));
 
             const model = createModel();
 
-            expect(GoogleGenerativeAI).toHaveBeenCalledWith("test-api-key");
-            expect(mockGetGenerativeModel).toHaveBeenCalledWith({
-                model: "gemini-3-flash-preview",
+            expect(GoogleGenAI).toHaveBeenCalledWith({
+                apiKey: "test-api-key",
+            });
+            expect(model).toEqual({
+                ai: expect.any(Object),
+                modelName: "gemini-3.5-flash",
                 generationConfig: {},
                 systemInstruction: undefined,
+                thinking: "low",
             });
-            expect(model).toBe("mock-model");
         });
 
         it("should accept custom configuration", () => {
             process.env.GEMINI_API_KEY = "test-api-key";
-            const mockGetGenerativeModel = jest.fn();
-
-            GoogleGenerativeAI.mockImplementation(() => ({
-                getGenerativeModel: mockGetGenerativeModel,
-            }));
 
             const config = {
                 modelName: "custom-model",
                 generationConfig: { temperature: 0.5 },
                 systemInstruction: "test instruction",
+                thinking: "high",
             };
 
-            createModel(config);
+            const model = createModel(config);
 
-            expect(mockGetGenerativeModel).toHaveBeenCalledWith({
-                model: "custom-model",
+            expect(GoogleGenAI).toHaveBeenCalledWith({
+                apiKey: "test-api-key",
+            });
+            expect(model).toEqual({
+                ai: expect.any(Object),
+                modelName: "custom-model",
                 generationConfig: { temperature: 0.5 },
                 systemInstruction: "test instruction",
+                thinking: "high",
             });
         });
 
@@ -125,18 +122,34 @@ describe("AI Utilities", () => {
 
     describe("generateContent", () => {
         it("should return text from the response", async () => {
-            const mockText = jest.fn().mockReturnValue("generated text");
-            const mockResponse = { text: mockText };
-            const mockResult = { response: Promise.resolve(mockResponse) };
+            const mockGenerateContent = jest.fn().mockResolvedValue({
+                text: "generated text",
+            });
             const mockModel = {
-                generateContent: jest.fn().mockResolvedValue(mockResult),
+                ai: {
+                    models: {
+                        generateContent: mockGenerateContent,
+                    },
+                },
+                modelName: "gemini-3.5-flash",
+                generationConfig: { temperature: 0.7 },
+                systemInstruction: "system info",
+                thinking: "medium",
             };
 
             const result = await generateContent(mockModel, "test prompt");
 
-            expect(mockModel.generateContent).toHaveBeenCalledWith(
-                "test prompt",
-            );
+            expect(mockGenerateContent).toHaveBeenCalledWith({
+                model: "gemini-3.5-flash",
+                contents: ["test prompt"],
+                config: {
+                    temperature: 0.7,
+                    systemInstruction: "system info",
+                    thinkingConfig: {
+                        thinkingLevel: "medium",
+                    },
+                },
+            });
             expect(result).toBe("generated text");
         });
     });
@@ -146,14 +159,24 @@ describe("AI Utilities", () => {
             // Mock async iterable stream
             const mockStream = {
                 async *[Symbol.asyncIterator]() {
-                    yield { text: () => "chunk1" };
-                    yield { text: () => "chunk2" };
+                    yield { text: "chunk1" };
+                    yield { text: "chunk2" };
                 },
             };
 
-            const mockResult = { stream: mockStream };
+            const mockGenerateContentStream = jest
+                .fn()
+                .mockResolvedValue(mockStream);
             const mockModel = {
-                generateContentStream: jest.fn().mockResolvedValue(mockResult),
+                ai: {
+                    models: {
+                        generateContentStream: mockGenerateContentStream,
+                    },
+                },
+                modelName: "gemini-3.5-flash",
+                generationConfig: { temperature: 0.7 },
+                systemInstruction: "system info",
+                thinking: "medium",
             };
 
             const streamIterator = await generateContentStream(
@@ -161,9 +184,17 @@ describe("AI Utilities", () => {
                 "test prompt",
             );
 
-            expect(mockModel.generateContentStream).toHaveBeenCalledWith(
-                "test prompt",
-            );
+            expect(mockGenerateContentStream).toHaveBeenCalledWith({
+                model: "gemini-3.5-flash",
+                contents: ["test prompt"],
+                config: {
+                    temperature: 0.7,
+                    systemInstruction: "system info",
+                    thinkingConfig: {
+                        thinkingLevel: "medium",
+                    },
+                },
+            });
 
             const chunks = [];
             for await (const chunk of streamIterator) {

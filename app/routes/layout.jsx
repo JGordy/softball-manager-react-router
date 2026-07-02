@@ -11,69 +11,50 @@ import NotificationPromptDrawer from "@/components/NotificationPromptDrawer";
 import InstallAppDrawer from "@/components/InstallAppDrawer";
 import AgreementModal from "@/components/AgreementModal";
 
-import { createSessionClient } from "@/utils/appwrite/server";
+import { userContext, appwriteClientContext } from "@/contexts/router";
 import { getUserById } from "@/loaders/users";
 
 import { isMobileUserAgent } from "@/utils/device";
 
-export async function loader({ request }) {
-    try {
-        const sessionClient = await createSessionClient(request);
-        const { account } = sessionClient;
-        const accountUser = await account.get();
-        let userDoc = {};
-        try {
-            userDoc =
-                (await getUserById({
-                    userId: accountUser.$id,
-                    client: sessionClient,
-                })) || {};
-        } catch (e) {
-            console.error(
-                "Layout loader - Failed to fetch user doc:",
-                e.message,
-            );
-            // new users might not have a doc yet
-        }
+export async function loader({ request, context }) {
+    const sessionClient = context.get(appwriteClientContext);
+    const accountUser = context.get(userContext);
 
-        const user = { ...accountUser, ...userDoc };
-
-        // Check Device
-        const isMobile = isMobileUserAgent(request);
-
-        // Check for "Generic" names (Profile Incomplete)
-        const isProfileIncomplete =
-            !user.name || user.name.trim() === "" || user.name === "User";
-
-        if (isProfileIncomplete) {
-            throw redirect("/auth/setup");
-        }
-
-        return {
-            user,
-            isAuthenticated: true,
-            isVerified: user.emailVerification,
-            isMobile,
-        };
-    } catch (error) {
-        if (error instanceof Response) throw error; // Handle redirects
-
-        // If it's a standard "not logged in" error, redirect silently
-        const isUnauthorized =
-            error.code === "401" ||
-            error.code === 401 ||
-            error.status === 401 ||
-            error.type === "general_unauthorized_scope" ||
-            error.message?.includes('missing scopes (["account"])');
-
-        if (isUnauthorized) {
-            throw redirect("/login");
-        }
-
-        console.error("Layout loader - Auth failure:", error.message);
-        // For other errors, use a generic error code to avoid leaking details in the URL
-        throw redirect(`/login?error=auth_failure`);
+    if (!accountUser || !sessionClient) {
+        throw redirect("/login");
     }
+
+    let userDoc = {};
+    try {
+        userDoc =
+            (await getUserById({
+                userId: accountUser.$id,
+                client: sessionClient,
+            })) || {};
+    } catch (e) {
+        console.error("Layout loader - Failed to fetch user doc:", e.message);
+        // new users might not have a doc yet
+    }
+
+    const user = { ...accountUser, ...userDoc };
+
+    // Check Device
+    const isMobile = isMobileUserAgent(request);
+
+    // Check for "Generic" names (Profile Incomplete)
+    const isProfileIncomplete =
+        !user.name || user.name.trim() === "" || user.name === "User";
+
+    if (isProfileIncomplete) {
+        throw redirect("/auth/setup");
+    }
+
+    return {
+        user,
+        isAuthenticated: true,
+        isVerified: user.emailVerification,
+        isMobile,
+    };
 }
 
 function Layout({ loaderData }) {

@@ -62,14 +62,14 @@ describe("ManageRolesDrawer Component", () => {
 
         // Mantine Select shows the label of the selected value in the input
         // Using a more flexible matcher or searching for the attributes
-        const inputs = screen.getAllByRole("textbox");
+        const inputs = screen.getAllByRole("combobox");
         expect(inputs).toHaveLength(2);
         expect(inputs[0]).toHaveValue("Owner");
         expect(inputs[1]).toHaveValue("Player");
     });
 
     it("submits the correct data when role is changed", async () => {
-        const selects = screen.getAllByRole("textbox");
+        const selects = screen.getAllByRole("combobox");
         const janeSelect = selects[1]; // Jane Smith
 
         fireEvent.click(janeSelect);
@@ -95,7 +95,7 @@ describe("ManageRolesDrawer Component", () => {
     });
 
     it("disables select for the last owner", () => {
-        const selects = screen.getAllByRole("textbox");
+        const selects = screen.getAllByRole("combobox");
         const johnSelect = selects[0]; // John Doe
 
         expect(johnSelect).toBeDisabled(); // John is the last owner

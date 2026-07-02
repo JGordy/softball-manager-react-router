@@ -1,5 +1,4 @@
 import { useOutletContext } from "react-router";
-
 import { Box, Container, Group, Text, Title } from "@mantine/core";
 
 import images from "@/constants/images";
@@ -15,6 +14,7 @@ import {
     updatePreferences,
     updateBulkJerseyNumbers,
     removePlayersFromTeam,
+    updatePlayerLabels,
 } from "@/actions/teams";
 import {
     invitePlayersServer,
@@ -25,24 +25,25 @@ import { getTeamById } from "@/loaders/teams";
 
 import { useResponseNotification } from "@/utils/showNotification";
 
-import { createSessionClient } from "@/utils/appwrite/server";
-
 import TeamMenu from "./components/TeamMenu";
 import MobileTeamDetails from "./components/MobileTeamDetails";
 import DesktopTeamDetails from "./components/DesktopTeamDetails";
+import OnboardingTour from "@/components/OnboardingTour";
+import { appwriteClientContext } from "@/contexts/router";
+import { getTeamDetailsSteps } from "./utils/onboardingSteps";
 
 export function links() {
     const { fieldSrc } = images;
     return [{ rel: "preload", href: fieldSrc, as: "image" }];
 }
 
-export async function loader({ params, request }) {
+export async function loader({ params, context }) {
     const { teamId } = params;
-    const client = await createSessionClient(request);
+    const client = context.get(appwriteClientContext);
     return getTeamById({ teamId, client });
 }
 
-export async function action({ request, params }) {
+export async function action({ request, params, context }) {
     const { teamId } = params;
     const contentType =
         request.headers && typeof request.headers.get === "function"
@@ -64,7 +65,7 @@ export async function action({ request, params }) {
         values = sanitizedValues;
     }
 
-    const client = await createSessionClient(request);
+    const client = context.get(appwriteClientContext);
 
     if (_action === "add-player") {
         return createPlayer({ values, teamId, client });
@@ -73,8 +74,15 @@ export async function action({ request, params }) {
     if (_action === "update-preferences") {
         return updatePreferences({
             teamId,
-            prefs: { maxMaleBatters: values.maxMaleBatters },
+            prefs: {
+                maxMaleBatters: values.maxMaleBatters,
+                lineupStrategy: values.lineupStrategy,
+            },
         });
+    }
+
+    if (_action === "update-player-labels") {
+        return updatePlayerLabels({ teamId, values, client });
     }
 
     if (_action === "invite-player") {
@@ -168,20 +176,30 @@ export default function TeamDetails({ actionData, loaderData }) {
         size: "md",
     };
 
+    const steps = getTeamDetailsSteps();
+
     return (
         <Container pt="md" size="xl">
             <Group justify="space-between" mb="xl">
                 <BackButton to="/dashboard" />
                 {managerView && (
-                    <TeamMenu
-                        team={team}
-                        userId={user.$id}
-                        ownerView={ownerView}
-                        players={players}
-                    />
+                    <Box className="tour-team-menu">
+                        <TeamMenu
+                            team={team}
+                            userId={user.$id}
+                            ownerView={ownerView}
+                            players={players}
+                        />
+                    </Box>
                 )}
             </Group>
-            <Title order={2} align="center" mt="sm" mb="lg">
+            <Title
+                order={2}
+                align="center"
+                mt="sm"
+                mb="lg"
+                className="tour-team-title"
+            >
                 {team.name}
             </Title>
             <Text {...textProps} align="center">
@@ -208,6 +226,21 @@ export default function TeamDetails({ actionData, loaderData }) {
                     teamLogs={teamLogs}
                 />
             </Box>
+            {managerView && (
+                <OnboardingTour
+                    tourKey="team_details"
+                    steps={steps}
+                    user={user}
+                    menuId="team-details-menu"
+                    trackingSuffix="teams"
+                    alwaysIncludeTargets={[
+                        ".tour-team-details-menu-section-team-options",
+                        ".tour-team-details-menu-section-lineup-options",
+                        ".tour-team-details-menu-section-roster",
+                        ".tour-roster-section-desktop",
+                    ]}
+                />
+            )}
         </Container>
     );
 }

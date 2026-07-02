@@ -27,10 +27,13 @@ describe("GamedayCard Component", () => {
     };
 
     it("renders Future Game (Follow The Action) by default", () => {
-        render(<GamedayCard {...defaultProps} />);
+        const { container } = render(<GamedayCard {...defaultProps} />);
 
         expect(screen.getByText("Gameday Hub")).toBeInTheDocument();
         expect(screen.getByText("Follow The Action")).toBeInTheDocument();
+        expect(
+            container.querySelector(".tour-gameday-hub-card"),
+        ).toBeInTheDocument();
     });
 
     it("renders Future Game (Score the Game) if isScorekeeper is true", () => {

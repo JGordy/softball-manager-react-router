@@ -22,10 +22,12 @@ import FieldHighlight from "./FieldHighlight";
 
 import { useRunnerProjection } from "../hooks/useRunnerProjection";
 import { getDrawerTitle, getActionColor } from "../utils/drawerUtils";
+import { UI_KEYS } from "@/constants/scoring";
 import {
     getFieldZone,
     getClampedCoordinates,
     getRelativePointerCoordinates,
+    resolveFlyPopOut,
 } from "../utils/fieldMapping";
 import ConfirmationPanel from "./ConfirmationPanel";
 
@@ -33,7 +35,7 @@ export default function MobilePlayActionDrawer({
     opened,
     onClose,
     onSelect,
-    actionType,
+    actionType: initialActionType,
     runners,
     playerChart,
     currentBatter,
@@ -41,7 +43,7 @@ export default function MobilePlayActionDrawer({
 }) {
     const isSwitchHitter = currentBatter?.bats?.toLowerCase() === "switch";
     const bats = isSwitchHitter
-        ? "left"
+        ? currentBatter?.defaultBats || "right"
         : currentBatter?.bats?.toLowerCase() || "right";
 
     const [selectedPosition, setSelectedPosition] = useState(null);
@@ -49,6 +51,17 @@ export default function MobilePlayActionDrawer({
     const [hitCoordinates, setHitCoordinates] = useState({ x: null, y: null });
     const [isDragging, setIsDragging] = useState(false);
     const containerRef = useRef(null);
+
+    // Resolve combined Fly/Pop dynamically based on current coordinates
+    const getResolvedActionType = () => {
+        if (initialActionType !== UI_KEYS.FLY_POP) return initialActionType;
+        if (hitCoordinates.x == null || hitCoordinates.y == null) {
+            return UI_KEYS.FLY_POP;
+        }
+        return resolveFlyPopOut(hitCoordinates.x, hitCoordinates.y);
+    };
+
+    const actionType = getResolvedActionType();
 
     const hitLocation = getFieldZone(
         hitCoordinates.x,
@@ -72,6 +85,7 @@ export default function MobilePlayActionDrawer({
     }));
 
     // Reset local state when drawer closes
+
     useEffect(() => {
         if (!opened) {
             setSelectedPosition(null);
@@ -99,15 +113,21 @@ export default function MobilePlayActionDrawer({
         const constrainedX = Math.max(0, Math.min(100, x));
         const constrainedY = Math.max(0, Math.min(100, y));
 
-        // Handle hit boundaries and HR floors
+        // Handle hit boundaries and HR floors (pass initialActionType so Fly/Pop Out allows full range)
         const { x: finalX, y: finalY } = getClampedCoordinates(
             constrainedX,
             constrainedY,
-            actionType,
+            initialActionType,
         );
 
+        // Resolve action type dynamically from pointer coordinates
+        const resolvedType =
+            initialActionType === UI_KEYS.FLY_POP
+                ? resolveFlyPopOut(finalX, finalY)
+                : initialActionType;
+
         // Only update if it's fair territory
-        const location = getFieldZone(finalX, finalY, actionType);
+        const location = getFieldZone(finalX, finalY, resolvedType);
         if (location === "foul ball") return false;
 
         setHitCoordinates({ x: finalX, y: finalY });
@@ -119,7 +139,7 @@ export default function MobilePlayActionDrawer({
         // For Fly Outs, only outfielders catch them.
         // For Pop Outs and others, anyone can be the fielder.
         const snapPositions =
-            actionType === "Fly Out"
+            resolvedType === "Fly Out"
                 ? positions.filter((p) =>
                       ["LF", "LC", "RC", "RF"].includes(p.value),
                   )
@@ -167,7 +187,7 @@ export default function MobilePlayActionDrawer({
             <Paper radius="md" p="0">
                 <div
                     ref={containerRef}
-                    className={styles.imageContainer}
+                    className={`${styles.imageContainer} tour-spray-field`}
                     style={{ touchAction: "none", margin: "10px auto" }}
                     onContextMenu={(e) => e.preventDefault()}
                     onPointerDown={(e) => {
@@ -204,7 +224,7 @@ export default function MobilePlayActionDrawer({
                         return (
                             <div
                                 key={pos.value}
-                                className={`${styles.fieldingPosition} ${className}`}
+                                className={`${styles.fieldingPosition} ${className} ${pos.value === "RF" ? "tour-field-position-rf" : ""}`}
                                 onClick={() => {
                                     setSelectedPosition(pos.value);
                                     // If just clicked, set coords to centroid

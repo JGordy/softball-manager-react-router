@@ -360,6 +360,10 @@ export default function createFieldingChart(players, options = {}) {
     }
 
     return playersCopy.map(
-        ({ preferredPositions, dislikedPositions, ...rest }) => rest,
+        ({
+            preferredPositions: _preferredPositions,
+            dislikedPositions: _dislikedPositions,
+            ...rest
+        }) => rest,
     );
 }

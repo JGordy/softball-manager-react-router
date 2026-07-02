@@ -77,4 +77,12 @@ describe("ConfirmationPanel", () => {
             screen.queryByRole("button", { name: /Change/i }),
         ).not.toBeInTheDocument();
     });
+
+    it("renders Confirm Play button with tour hook class (.tour-confirm-play-btn)", () => {
+        render(<ConfirmationPanel {...defaultProps} />);
+        const confirmBtn = screen.getByRole("button", {
+            name: /Confirm Play/i,
+        });
+        expect(confirmBtn).toHaveClass("tour-confirm-play-btn");
+    });
 });

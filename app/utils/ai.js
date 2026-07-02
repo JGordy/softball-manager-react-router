@@ -1,34 +1,40 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 /**
  * Initialize the Google Generative AI client
- * @returns {GoogleGenerativeAI} The initialized AI client
+ * @returns {GoogleGenAI} The initialized AI client
  */
 function initializeAI() {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
         throw new Error("GEMINI_API_KEY environment variable is not set");
     }
-    return new GoogleGenerativeAI(apiKey);
+    return new GoogleGenAI({ apiKey });
 }
 
 /**
- * Create a generative model with the specified configuration
- * @param {string} modelName - The name of the model to use (default: "gemini-2.5-flash")
- * @param {Object} generationConfig - Configuration for the model generation
- * @returns {GenerativeModel} The initialized model
+ * Create a generative model configuration container
+ * @param {Object} params - Configuration options
+ * @param {string} params.modelName - The name of the model to use (default: "gemini-3.5-flash")
+ * @param {Object} params.generationConfig - Configuration for the model generation
+ * @param {string} params.systemInstruction - Optional system instructions
+ * @param {string} params.thinking - Thinking level for the model (default: "low")
+ * @returns {Object} The model configuration container
  */
 export function createModel({
-    modelName = "gemini-3-flash-preview",
+    modelName = "gemini-3.5-flash",
     generationConfig = {},
     systemInstruction,
+    thinking = "low",
 } = {}) {
-    const genAI = initializeAI();
-    return genAI.getGenerativeModel({
-        model: modelName,
+    const ai = initializeAI();
+    return {
+        ai,
+        modelName,
         generationConfig,
         systemInstruction,
-    });
+        thinking,
+    };
 }
 
 /**
@@ -53,29 +59,69 @@ export function parseAIResponse(responseText) {
 
 /**
  * Generate content using the AI model
- * @param {GenerativeModel} model - The generative model to use
- * @param {string} prompt - The prompt to send to the AI
+ * @param {Object} model - The model configuration container
+ * @param {string|Array} prompt - The prompt to send to the AI
  * @returns {Promise<string>} The generated text response
  */
 export async function generateContent(model, prompt) {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text();
+    const { ai, modelName, generationConfig, systemInstruction, thinking } =
+        model;
+
+    const config = {
+        ...generationConfig,
+        systemInstruction,
+    };
+
+    if (thinking) {
+        config.thinkingConfig = {
+            thinkingLevel: thinking,
+        };
+    }
+
+    const contents = Array.isArray(prompt) ? prompt : [prompt];
+
+    const response = await ai.models.generateContent({
+        model: modelName,
+        contents,
+        config,
+    });
+
+    return response.text;
 }
 
 /**
  * Generate content using the AI model with streaming
- * @param {GenerativeModel} model - The generative model to use
+ * @param {Object} model - The model configuration container
  * @param {string|Array} prompt - The prompt to send to the AI
  * @returns {Promise<AsyncGenerator<string>>} An async generator yielding text chunks
  */
 export async function generateContentStream(model, prompt) {
-    const result = await model.generateContentStream(prompt);
+    const { ai, modelName, generationConfig, systemInstruction, thinking } =
+        model;
+
+    const config = {
+        ...generationConfig,
+        systemInstruction,
+    };
+
+    if (thinking) {
+        config.thinkingConfig = {
+            thinkingLevel: thinking,
+        };
+    }
+
+    const contents = Array.isArray(prompt) ? prompt : [prompt];
+
+    const responseStream = await ai.models.generateContentStream({
+        model: modelName,
+        contents,
+        config,
+    });
 
     // Create a generator that yields text chunks as they arrive
     async function* streamIterator() {
-        for await (const chunk of result.stream) {
-            const chunkText = chunk.text();
+        for await (const chunk of responseStream) {
+            const chunkText = chunk.text;
             if (chunkText) {
                 yield chunkText;
             }

@@ -2,6 +2,7 @@ import { render, screen } from "@/utils/test-utils";
 import * as gamesLoaders from "@/loaders/games";
 import * as lineupsActions from "@/actions/lineups";
 import * as addPlayerAvailability from "@/utils/addPlayerAvailability";
+import { mockContext } from "@/utils/mockContext";
 import * as validateLineupUtils from "../utils/validateLineup";
 
 import Lineup, { loader, action } from "../lineup";
@@ -20,7 +21,9 @@ jest.mock("@/utils/showNotification", () => ({
     useResponseNotification: jest.fn(),
 }));
 
-jest.mock("@/components/BackButton", () => () => <button>Back</button>);
+jest.mock("@/components/BackButton", () => ({ text }) => (
+    <button>{text || "Event Details"}</button>
+));
 
 jest.mock("@/loaders/games");
 jest.mock("@/actions/lineups");
@@ -44,6 +47,9 @@ jest.mock("../components/LineupMenu", () => () => (
 ));
 jest.mock("../components/LineupValidationMenu", () => () => (
     <div data-testid="lineup-validation-menu" />
+));
+jest.mock("@/components/OnboardingTour", () => () => (
+    <div data-testid="onboarding-tour" />
 ));
 
 describe("Lineup Route", () => {
@@ -69,6 +75,7 @@ describe("Lineup Route", () => {
     const mockLoaderData = {
         game: {
             $id: "game123",
+            gameDate: "2050-01-01T00:00:00Z",
         },
         managerIds: ["user123"], // Current user is manager
         players: [],
@@ -82,7 +89,7 @@ describe("Lineup Route", () => {
         it("calls getEventWithPlayerCharts with correct params", async () => {
             const params = { eventId: "evt123" };
             const request = { url: "http://test.com" };
-            await loader({ params, request });
+            await loader({ params, request, context: mockContext });
             expect(gamesLoaders.getEventWithPlayerCharts).toHaveBeenCalledWith({
                 eventId: "evt123",
                 client: expect.any(Object),
@@ -100,6 +107,7 @@ describe("Lineup Route", () => {
             await action({
                 request: { formData: () => Promise.resolve(formData) },
                 params: { eventId: "evt1" },
+                context: mockContext,
             });
 
             expect(lineupsActions.savePlayerChart).toHaveBeenCalledWith({
@@ -120,6 +128,7 @@ describe("Lineup Route", () => {
             await action({
                 request: { formData: () => Promise.resolve(formData) },
                 params: { eventId: "evt1" },
+                context: mockContext,
             });
 
             expect(lineupsActions.savePlayerChart).toHaveBeenCalledWith({
@@ -139,6 +148,7 @@ describe("Lineup Route", () => {
             const result = await action({
                 request: { formData: () => Promise.resolve(formData) },
                 params: { eventId: "evt1" },
+                context: mockContext,
             });
 
             expect(result.status).toBe(400);
@@ -155,6 +165,7 @@ describe("Lineup Route", () => {
             await action({
                 request: { formData: () => Promise.resolve(formData) },
                 params: { eventId: "evt1" },
+                context: mockContext,
             });
 
             expect(lineupsActions.savePlayerChart).toHaveBeenCalledWith({
@@ -173,6 +184,7 @@ describe("Lineup Route", () => {
             const result = await action({
                 request: { formData: () => Promise.resolve(formData) },
                 params: { eventId: "evt1" },
+                context: mockContext,
             });
 
             expect(result.status).toBe(400);
@@ -196,6 +208,7 @@ describe("Lineup Route", () => {
             await action({
                 request: { formData: () => Promise.resolve(formData) },
                 params: { eventId: "evt1" },
+                context: mockContext,
             });
 
             expect(gamesLoaders.getEventById).toHaveBeenCalledWith(
@@ -226,6 +239,7 @@ describe("Lineup Route", () => {
             const result = await action({
                 request: { formData: () => Promise.resolve(formData) },
                 params: { eventId: "evt1" },
+                context: mockContext,
             });
 
             expect(result.status).toBe(404);
@@ -244,7 +258,7 @@ describe("Lineup Route", () => {
             );
 
             expect(useResponseNotification).toHaveBeenCalledWith(actionData);
-            expect(screen.getByText("Back")).toBeInTheDocument();
+            expect(screen.getByText("Event Details")).toBeInTheDocument();
             expect(screen.getByTestId("lineup-container")).toBeInTheDocument();
             expect(
                 screen.getByRole("button", { name: /share page/i }),
@@ -270,6 +284,14 @@ describe("Lineup Route", () => {
             expect(
                 screen.queryByTestId("lineup-validation-menu"),
             ).not.toBeInTheDocument();
+            expect(
+                screen.queryByTestId("onboarding-tour"),
+            ).not.toBeInTheDocument();
+        });
+
+        it("renders the OnboardingTour for managers", () => {
+            render(<Lineup loaderData={mockLoaderData} />);
+            expect(screen.getByTestId("onboarding-tour")).toBeInTheDocument();
         });
 
         it("calls validateLineup with correct data", () => {

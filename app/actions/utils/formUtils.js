@@ -3,7 +3,7 @@ export function removeEmptyValues({ values }) {
     const dataToUpdate = {};
     for (const key in values) {
         if (
-            values.hasOwnProperty(key) &&
+            Object.prototype.hasOwnProperty.call(values, key) &&
             values[key] !== undefined &&
             values[key] !== ""
         ) {

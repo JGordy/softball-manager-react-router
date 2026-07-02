@@ -1,5 +1,5 @@
 import { Form } from "react-router";
-import { Text, Button, Group } from "@mantine/core";
+import { Text, Button } from "@mantine/core";
 import { IconLogout2 } from "@tabler/icons-react";
 import DrawerContainer from "@/components/DrawerContainer";
 

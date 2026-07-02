@@ -1,4 +1,5 @@
 import { HITS, WALKS, OUTS, EVENT_TYPE_MAP } from "@/constants/scoring";
+import { isOpponentPlay } from "@/routes/gameday/utils/gamedayUtils";
 
 const formatStat = (val) => val.replace(/^0/, "");
 
@@ -9,7 +10,12 @@ const formatStat = (val) => val.replace(/^0/, "");
  * @param {Array} playerChart - Array of player objects (the lineup)
  * @returns {Array} Array of player stats objects
  */
-export const calculateGameStats = (logs = [], playerChart = []) => {
+export const calculateGameStats = (
+    logs = [],
+    playerChart = [],
+    isOpponent = false,
+    isHomeGame = undefined,
+) => {
     // 1. Initialize stats map for all players in lineup
     const statsMap = {};
 
@@ -33,6 +39,26 @@ export const calculateGameStats = (logs = [], playerChart = []) => {
         OPS: ".000",
     });
 
+    const ensureOpponentBatter = (batterId) => {
+        if (
+            isOpponent &&
+            batterId &&
+            !statsMap[batterId] &&
+            batterId.startsWith("OPP_BAT_")
+        ) {
+            const match = batterId.match(/OPP_BAT_(\d+)/);
+            const batterNum = match ? match[1] : batterId;
+            statsMap[batterId] = initStats({
+                $id: batterId,
+                firstName: "Batter",
+                lastName: batterNum,
+                jerseyNumber: batterNum,
+            });
+            return true;
+        }
+        return false;
+    };
+
     playerChart.forEach((slot) => {
         // Seed entry for the original slot player
         statsMap[slot.$id] = initStats(slot);
@@ -53,11 +79,24 @@ export const calculateGameStats = (logs = [], playerChart = []) => {
 
     // 2. Process logs
     logs.forEach((log) => {
-        // Skip substitution events — they are metadata, not at-bats
-        if (log.eventType === "SUB") return;
+        // Skip substitution, lineup pointer, injury automatic out, and injury removal events
+        if (
+            log.eventType === "SUB" ||
+            log.eventType === "opponent_lineup_pointer" ||
+            log.eventType === "injury_auto_out" ||
+            log.eventType === "INJURY_REMOVE"
+        )
+            return;
+
+        // Filter based on whether we are calculating stats for our team or opponent team
+        if (isOpponentPlay(log, isHomeGame) !== isOpponent) return;
 
         const batterId = log.playerId;
-        if (!statsMap[batterId]) return; // Skip if player not in chart (shouldn't happen)
+        if (!statsMap[batterId]) {
+            if (!ensureOpponentBatter(batterId)) {
+                return; // Skip if player not in chart (shouldn't happen)
+            }
+        }
 
         const batterStats = statsMap[batterId];
         const eventType = log.eventType;
@@ -113,13 +152,14 @@ export const calculateGameStats = (logs = [], playerChart = []) => {
                 typeof log.baseState === "string"
                     ? JSON.parse(log.baseState)
                     : log.baseState || {};
-        } catch (e) {
+        } catch (_e) {
             console.warn("Stats: Failed to parse baseState", log);
         }
 
         // Credit runs to ANY player who scored on this play
         if (baseState.scored && Array.isArray(baseState.scored)) {
             baseState.scored.forEach((scoredPlayerId) => {
+                ensureOpponentBatter(scoredPlayerId);
                 if (statsMap[scoredPlayerId]) {
                     statsMap[scoredPlayerId].R++;
                 }
@@ -225,10 +265,11 @@ export const calculateTeamTotals = (statsArray) => {
  * @param {Array} logs - Array of game log objects for a single player
  * @returns {Object} Stats object
  */
-export const calculatePlayerStats = (logs) => {
+export const calculatePlayerStats = (logs, userId) => {
     let hits = 0;
     let ab = 0; // At Bats
     let rbi = 0;
+    let runs = 0;
     let doubles = 0;
     let triples = 0;
     let homeruns = 0;
@@ -249,11 +290,42 @@ export const calculatePlayerStats = (logs) => {
     };
 
     logs.forEach((log) => {
-        const eventType = log.eventType;
-        const logRbi = log.rbi || 0;
+        if (log.eventType === "opponent_run" || isOpponentPlay(log)) return;
+        if (
+            log.eventType === "injury_auto_out" ||
+            log.eventType === "INJURY_REMOVE" ||
+            log.eventType === "SUB" ||
+            log.eventType === "opponent_lineup_pointer"
+        )
+            return;
 
-        rbi += logRbi;
-        details.RBI += logRbi;
+        const isUsersAtBat = log.playerId === userId;
+
+        // Count RBI only if it's the user's at-bat
+        if (isUsersAtBat) {
+            const logRbi = log.rbi || 0;
+            rbi += logRbi;
+            details.RBI += logRbi;
+        }
+
+        // Parse baseState to check for runs
+        let baseState = {};
+        try {
+            baseState =
+                typeof log.baseState === "string"
+                    ? JSON.parse(log.baseState)
+                    : log.baseState || {};
+        } catch (_e) {}
+
+        const scoredList = log.scored || baseState.scored || [];
+        if (Array.isArray(scoredList) && scoredList.includes(userId)) {
+            runs++;
+        }
+
+        // Only count hitting stats (AB, Hits, etc) if this log belongs to the user's at-bat
+        if (!isUsersAtBat) return;
+
+        const eventType = log.eventType;
 
         // Standardize event type
         let type = eventType;
@@ -338,6 +410,7 @@ export const calculatePlayerStats = (logs) => {
         hits,
         ab,
         rbi,
+        runs,
         doubles,
         triples,
         homeruns,

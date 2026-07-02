@@ -47,8 +47,8 @@ describe("CreateLineupDrawer", () => {
             expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
         });
 
-        it("renders all three option cards", () => {
-            renderDrawer();
+        it("renders all three option cards with correct tour IDs", () => {
+            const { container } = renderDrawer();
             expect(
                 screen.getByRole("button", { name: "Start from Scratch" }),
             ).toBeInTheDocument();
@@ -59,6 +59,16 @@ describe("CreateLineupDrawer", () => {
             ).toBeInTheDocument();
             expect(
                 screen.getByRole("button", { name: "Generate AI Lineup" }),
+            ).toBeInTheDocument();
+
+            expect(
+                container.querySelector("#tour-option-scratch"),
+            ).toBeInTheDocument();
+            expect(
+                container.querySelector("#tour-option-available"),
+            ).toBeInTheDocument();
+            expect(
+                container.querySelector("#tour-option-ai"),
             ).toBeInTheDocument();
         });
     });

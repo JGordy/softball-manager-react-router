@@ -6,6 +6,7 @@ import {
     Card,
     Collapse,
     Chip,
+    Flex,
     Group,
     Image,
     Select,
@@ -84,6 +85,9 @@ const CATEGORIES_DATA = [
  *     ball was hit (e.g., "left field", "center field"); used for location filters.
  * @param {string} [props.hits[].direction] - Optional alternative to `hitLocation`
  *     describing the hit direction (e.g., "right field line").
+ * @param {"flex"|"stacked"} [props.layout="flex"] - Layout mode for the component.
+ *     "flex" displays the chart and legend side-by-side on desktop.
+ *     "stacked" forces them to be vertical (column) regardless of viewport.
  *
  * @returns {JSX.Element} A card containing the filter controls, field image, and
  * plotted contact points with tooltips for each batted-ball event.
@@ -92,11 +96,14 @@ export default function ContactSprayChart({
     hits = [],
     showBattingSide = true,
     batters = [],
+    layout = "flex",
+    games = [],
 }) {
     const [battingSide, setBattingSide] = useState(OVERALL);
     const [categoryFilter, setCategoryFilter] = useState("ALL");
     const [locationFilter, setLocationFilter] = useState("ALL");
     const [playerFilter, setPlayerFilter] = useState("ALL");
+    const [gameFilter, setGameFilter] = useState("ALL");
     const [opened, { toggle }] = useDisclosure(false);
 
     const filteredHits = useMemo(() => {
@@ -131,6 +138,11 @@ export default function ContactSprayChart({
                     hit.battingSide?.toUpperCase() === battingSide;
 
                 if (!sideMatch) return false;
+
+                // Game filter
+                if (gameFilter !== "ALL" && hit.gameId !== gameFilter) {
+                    return false;
+                }
 
                 // Category filter
                 if (categoryFilter === "HITS") {
@@ -174,6 +186,7 @@ export default function ContactSprayChart({
         categoryFilter,
         locationFilter,
         playerFilter,
+        gameFilter,
         showBattingSide,
     ]);
 
@@ -253,12 +266,13 @@ export default function ContactSprayChart({
                     </Button>
                 </Group>
 
-                <Collapse in={opened}>
+                <Collapse expanded={opened}>
                     <Card p="xs" radius="lg">
                         <Stack gap="xs">
-                            <Group grow>
+                            <Group className={styles.filterGroup}>
                                 {batters.length > 0 && (
                                     <Select
+                                        className={styles.batterSelect}
                                         label="Batter"
                                         placeholder="All Batters"
                                         data={[
@@ -271,19 +285,27 @@ export default function ContactSprayChart({
                                         value={playerFilter}
                                         onChange={setPlayerFilter}
                                         size="sm"
-                                        comboboxProps={{ zIndex: 6000 }}
+                                        comboboxProps={{
+                                            zIndex: 6000,
+                                            width: "max-content",
+                                        }}
                                     />
                                 )}
                                 <Select
+                                    className={styles.resultSelect}
                                     label="Result"
                                     placeholder="All"
                                     data={CATEGORIES_DATA}
                                     value={categoryFilter}
                                     onChange={setCategoryFilter}
                                     size="sm"
-                                    comboboxProps={{ zIndex: 6000 }}
+                                    comboboxProps={{
+                                        zIndex: 6000,
+                                        width: "max-content",
+                                    }}
                                 />
                                 <Select
+                                    className={styles.locationSelect}
                                     label="Location"
                                     placeholder="Anywhere"
                                     data={[
@@ -296,18 +318,54 @@ export default function ContactSprayChart({
                                     value={locationFilter}
                                     onChange={setLocationFilter}
                                     size="sm"
-                                    comboboxProps={{ zIndex: 6000 }}
+                                    comboboxProps={{
+                                        zIndex: 6000,
+                                        width: "max-content",
+                                    }}
                                 />
+                                {games.length > 0 && (
+                                    <Select
+                                        className={styles.gameSelect}
+                                        label="Game"
+                                        placeholder="All Games"
+                                        data={[
+                                            { label: "All", value: "ALL" },
+                                            ...games.map((g) => {
+                                                const dateStr = g.gameDate
+                                                    ? new Date(
+                                                          g.gameDate,
+                                                      ).toLocaleDateString(
+                                                          undefined,
+                                                          {
+                                                              month: "numeric",
+                                                              day: "numeric",
+                                                          },
+                                                      )
+                                                    : "";
+                                                const label = `${dateStr ? `${dateStr} - ` : ""}${g.isHomeGame ? "vs" : "@"} ${g.opponent}`;
+                                                return { label, value: g.$id };
+                                            }),
+                                        ]}
+                                        value={gameFilter}
+                                        onChange={setGameFilter}
+                                        size="sm"
+                                        comboboxProps={{
+                                            zIndex: 6000,
+                                            width: "max-content",
+                                        }}
+                                    />
+                                )}
                             </Group>
                             <Button
                                 variant="subtle"
                                 size="sm"
-                                color="red"
+                                c="red"
                                 onClick={() => {
                                     setCategoryFilter("ALL");
                                     setLocationFilter("ALL");
                                     setBattingSide(OVERALL);
                                     setPlayerFilter("ALL");
+                                    setGameFilter("ALL");
                                 }}
                             >
                                 Reset Filters
@@ -317,111 +375,147 @@ export default function ContactSprayChart({
                 </Collapse>
             </Stack>
 
-            <Card className={styles.mapContainer} radius="lg" p="0px" mt="md">
-                <Image
-                    src={images.fieldSrc}
-                    alt="Softball Field"
-                    className={styles.mapImage}
-                    draggable={false}
-                />
+            <Flex
+                direction={
+                    layout === "stacked"
+                        ? "column"
+                        : { base: "column", sm: "row" }
+                }
+                align="stretch"
+                gap="md"
+                mt="md"
+            >
+                <Card
+                    className={styles.mapContainer}
+                    radius="lg"
+                    p="0px"
+                    flex={
+                        layout === "stacked"
+                            ? "none"
+                            : { base: "none", sm: "1 1 300px" }
+                    }
+                    maw={{ base: "100%", sm: 400 }}
+                    w="100%"
+                >
+                    <Image
+                        src={images.fieldSrc}
+                        alt="Softball Field"
+                        className={styles.mapImage}
+                        draggable={false}
+                    />
 
-                <svg className={styles.svgOverlay} viewBox="0 0 100 100">
+                    <svg className={styles.svgOverlay} viewBox="0 0 100 100">
+                        {filteredHits.map((hit) => {
+                            // Home plate coordinates (approximate based on field mapping)
+                            const startX = ORIGIN_X;
+                            const startY = ORIGIN_Y;
+                            const endX = hit.hitX;
+                            const endY = hit.hitY;
+
+                            // Calculate control point for quadratic bezier to create a slight arc
+                            // We offset the control point "up" (lower Y) relative to the midpoint
+                            // to create an "arching" effect towards the outfield
+                            const midX = (startX + endX) / 2;
+                            const midY = (startY + endY) / 2;
+
+                            // Calculate distance to scale the arc
+                            const dx = endX - startX;
+                            const dy = endY - startY;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+
+                            // Offset control point.
+                            // A simple approach is to lift the midpoint "up" (negative Y)
+                            // The amount of lift can be proportional to distance
+                            const arcHeight = dist * 0.2;
+                            const cpX = midX;
+                            const cpY = midY - arcHeight;
+
+                            return (
+                                <path
+                                    key={`path-${hit.$id}`}
+                                    d={`M ${startX} ${startY} Q ${cpX} ${cpY} ${endX} ${endY}`}
+                                    fill="none"
+                                    stroke={hit.color}
+                                    strokeWidth="0.5"
+                                    opacity="0.6"
+                                    strokeLinecap="round"
+                                />
+                            );
+                        })}
+                    </svg>
+
                     {filteredHits.map((hit) => {
-                        // Home plate coordinates (approximate based on field mapping)
-                        const startX = ORIGIN_X;
-                        const startY = ORIGIN_Y;
-                        const endX = hit.hitX;
-                        const endY = hit.hitY;
-
-                        // Calculate control point for quadratic bezier to create a slight arc
-                        // We offset the control point "up" (lower Y) relative to the midpoint
-                        // to create an "arching" effect towards the outfield
-                        const midX = (startX + endX) / 2;
-                        const midY = (startY + endY) / 2;
-
-                        // Calculate distance to scale the arc
-                        const dx = endX - startX;
-                        const dy = endY - startY;
-                        const dist = Math.sqrt(dx * dx + dy * dy);
-
-                        // Offset control point.
-                        // A simple approach is to lift the midpoint "up" (negative Y)
-                        // The amount of lift can be proportional to distance
-                        const arcHeight = dist * 0.2;
-                        const cpX = midX;
-                        const cpY = midY - arcHeight;
-
+                        const location = hit.hitLocation || hit.direction;
                         return (
-                            <path
-                                key={`path-${hit.$id}`}
-                                d={`M ${startX} ${startY} Q ${cpX} ${cpY} ${endX} ${endY}`}
-                                fill="none"
-                                stroke={hit.color}
-                                strokeWidth="0.5"
-                                opacity="0.6"
-                                strokeLinecap="round"
-                            />
+                            <Tooltip
+                                key={hit.$id}
+                                label={
+                                    location
+                                        ? `${hit.label} (${location})`
+                                        : hit.label
+                                }
+                                withArrow
+                            >
+                                <Box
+                                    className={styles.hitMarker}
+                                    tabIndex={0}
+                                    role="img"
+                                    aria-label={`${hit.label}${location ? ` at ${location}` : ""}`}
+                                    style={{
+                                        left: `${hit.hitX}%`,
+                                        top: `${hit.hitY}%`,
+                                        backgroundColor: hit.color,
+                                        borderColor: "white", // ensure border color is applied
+                                    }}
+                                />
+                            </Tooltip>
                         );
                     })}
-                </svg>
+                </Card>
 
-                {filteredHits.map((hit) => {
-                    const location = hit.hitLocation || hit.direction;
-                    return (
-                        <Tooltip
-                            key={hit.$id}
-                            label={
-                                location
-                                    ? `${hit.label} (${location})`
-                                    : hit.label
-                            }
-                            withArrow
-                        >
-                            <Box
-                                className={styles.hitMarker}
-                                tabIndex={0}
-                                role="img"
-                                aria-label={`${hit.label}${location ? ` at ${location}` : ""}`}
-                                style={{
-                                    left: `${hit.hitX}%`,
-                                    top: `${hit.hitY}%`,
-                                    backgroundColor: hit.color,
-                                    borderColor: "white", // ensure border color is applied
-                                }}
-                            />
-                        </Tooltip>
-                    );
-                })}
-            </Card>
-
-            <Card radius="lg" p="sm" mt="md">
-                <Group justify="space-between" mb="xs">
-                    <Text size="xs" fw={700} c="dimmed" tt="uppercase">
-                        Legend
-                    </Text>
-                    <Text size="xs" fw={500} c="dimmed">
-                        {filteredStats.total} events ({filteredStats.hitsCount}{" "}
-                        hits • {filteredStats.avg} AVG) in{" "}
-                        {filteredStats.totalGames}{" "}
-                        {filteredStats.totalGames === 1 ? "game" : "games"}
-                    </Text>
-                </Group>
-                <Group gap="md">
-                    {LEGEND_ITEMS.map((item) => (
-                        <Group key={item.label} gap="xs">
-                            <ColorSwatch
-                                color={item.color}
-                                size={12}
-                                withShadow={false}
-                            />
-                            <Text size="sm">{item.label}</Text>
-                        </Group>
-                    ))}
-                </Group>
-                <Text size="xs" c="dimmed" mt="sm" ta="center">
-                    Arcs represent the ball's flight path from home plate.
-                </Text>
-            </Card>
+                <Card
+                    radius="lg"
+                    p="sm"
+                    flex={
+                        layout === "stacked"
+                            ? "none"
+                            : { base: "none", sm: "1 1 200px" }
+                    }
+                    w="100%"
+                >
+                    <Group justify="space-between" mb="xs">
+                        <Text size="xs" fw={700} c="dimmed" tt="uppercase">
+                            Legend
+                        </Text>
+                        <Text size="xs" fw={500} c="dimmed">
+                            {filteredStats.total} events (
+                            {filteredStats.hitsCount} hits • {filteredStats.avg}{" "}
+                            AVG) in {filteredStats.totalGames}{" "}
+                            {filteredStats.totalGames === 1 ? "game" : "games"}
+                        </Text>
+                    </Group>
+                    <Flex
+                        direction={
+                            layout === "stacked"
+                                ? "row"
+                                : { base: "row", sm: "column" }
+                        }
+                        wrap="wrap"
+                        gap="md"
+                    >
+                        {LEGEND_ITEMS.map((item) => (
+                            <Group key={item.label} gap="xs">
+                                <ColorSwatch
+                                    color={item.color}
+                                    size={12}
+                                    withShadow={false}
+                                />
+                                <Text size="sm">{item.label}</Text>
+                            </Group>
+                        ))}
+                    </Flex>
+                </Card>
+            </Flex>
         </Box>
     );
 }

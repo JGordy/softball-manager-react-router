@@ -43,6 +43,8 @@ describe("useGamedayController", () => {
             setRunners: jest.fn(),
             battingOrderIndex: 0,
             setBattingOrderIndex: jest.fn(),
+            opponentOrderIndex: 0,
+            setOpponentOrderIndex: jest.fn(),
         });
 
         useGamedayActions.mockReturnValue({
@@ -106,7 +108,8 @@ describe("useGamedayController", () => {
     it("calculates dueUpBatters correctly based on battingOrderIndex", () => {
         useGameState.mockReturnValue({
             battingOrderIndex: 1, // Jane Smith is up
-            // ... other values
+            halfInning: "top", // Away team bats top
+            opponentOrderIndex: 0,
         });
 
         const { result } = renderHook(() =>
@@ -122,6 +125,28 @@ describe("useGamedayController", () => {
         expect(result.current.upcomingBatters[1].$id).toBe("p1"); // Wraps around
         expect(result.current.dueUpBatters).toHaveLength(3);
         expect(result.current.dueUpBatters[0].$id).toBe("p2");
+    });
+
+    it("calculates dueUpBatters correctly when on defense (isOurBatting is false)", () => {
+        useGameState.mockReturnValue({
+            battingOrderIndex: 1, // Our next batter is Jane Smith (p2)
+            halfInning: "bottom", // Opponent bats bottom
+            opponentOrderIndex: 0,
+        });
+
+        const { result } = renderHook(() =>
+            useGamedayController({
+                game: { ...mockGame, isHomeGame: false },
+                playerChart: mockPlayerChart,
+                team: mockTeam,
+            }),
+        );
+
+        expect(result.current.isOurBatting).toBe(false);
+        expect(result.current.dueUpBatters).toHaveLength(3);
+        expect(result.current.dueUpBatters[0].$id).toBe("p2");
+        expect(result.current.dueUpBatters[1].$id).toBe("p3");
+        expect(result.current.dueUpBatters[2].$id).toBe("p1");
     });
 
     it("determines isOurBatting correctly", () => {
@@ -247,5 +272,161 @@ describe("useGamedayController", () => {
         );
 
         expect(result.current.updateAction).toBe(mockUpdateAction);
+    });
+
+    it("dynamically pads opponentChart when opponentOrderIndex exceeds default length", () => {
+        useGameState.mockReturnValue({
+            inning: 1,
+            halfInning: "top",
+            outs: 0,
+            score: 0,
+            opponentScore: 0,
+            runners: {},
+            battingOrderIndex: 0,
+            opponentOrderIndex: 12, // 13th batter (past default 12)
+        });
+
+        const { result } = renderHook(() =>
+            useGamedayController({
+                game: mockGame,
+                playerChart: mockPlayerChart,
+                team: mockTeam,
+            }),
+        );
+
+        expect(result.current.opponentChart.length).toBe(13);
+        expect(result.current.opponentChart[12]).toEqual(
+            expect.objectContaining({
+                $id: "OPP_BAT_13",
+                firstName: "Batter",
+                lastName: "13",
+            }),
+        );
+    });
+
+    it("dynamically pads opponentChart based on logs with OPP_BAT_* IDs", () => {
+        useGameState.mockReturnValue({
+            inning: 1,
+            halfInning: "top",
+            outs: 0,
+            score: 0,
+            opponentScore: 0,
+            runners: {},
+            battingOrderIndex: 0,
+            opponentOrderIndex: 0,
+        });
+
+        const initialLogs = [
+            { $id: "log1", playerId: "OPP_BAT_14", eventType: "1B", rbi: 0 },
+        ];
+
+        const { result } = renderHook(() =>
+            useGamedayController({
+                game: mockGame,
+                playerChart: mockPlayerChart,
+                team: mockTeam,
+                initialLogs,
+            }),
+        );
+
+        expect(result.current.opponentChart.length).toBe(14);
+        expect(result.current.opponentChart[13]).toEqual(
+            expect.objectContaining({
+                $id: "OPP_BAT_14",
+                firstName: "Batter",
+                lastName: "14",
+            }),
+        );
+    });
+
+    it("handles undo for INJURY_REMOVE correctly", () => {
+        const mockUndoLast = jest.fn();
+        useGamedayActions.mockReturnValue({
+            pendingAction: null,
+            drawerOpened: false,
+            openDrawer: jest.fn(),
+            closeDrawer: jest.fn(),
+            advanceHalfInning: jest.fn(),
+            handleOpponentRun: jest.fn(),
+            handleOpponentOut: jest.fn(),
+            initiateAction: jest.fn(),
+            completeAction: jest.fn(),
+            undoLast: mockUndoLast,
+            isSubmitting: false,
+            fetcher: { data: null, state: "idle" },
+        });
+
+        const playerChartWithRemoval = [
+            {
+                $id: "p1",
+                firstName: "John",
+                lastName: "Doe",
+                removed: true,
+                removalType: "skip",
+                removalInning: 1,
+            },
+            { $id: "p2", firstName: "Jane", lastName: "Smith" },
+        ];
+
+        const initialLogs = [
+            { $id: "log1", eventType: "INJURY_REMOVE", playerId: "p1" },
+        ];
+
+        const { result } = renderHook(() =>
+            useGamedayController({
+                game: mockGame,
+                playerChart: playerChartWithRemoval,
+                team: mockTeam,
+                initialLogs,
+                isScorekeeper: true,
+            }),
+        );
+
+        act(() => {
+            result.current.undoLast();
+        });
+
+        const expectedRevertedChart = [
+            { $id: "p1", firstName: "John", lastName: "Doe" },
+            { $id: "p2", firstName: "Jane", lastName: "Smith" },
+        ];
+
+        expect(mockUndoLast).toHaveBeenCalledWith(expectedRevertedChart);
+    });
+
+    it("handles undo for other events correctly by calling undoLast without arguments", () => {
+        const mockUndoLast = jest.fn();
+        useGamedayActions.mockReturnValue({
+            pendingAction: null,
+            drawerOpened: false,
+            openDrawer: jest.fn(),
+            closeDrawer: jest.fn(),
+            advanceHalfInning: jest.fn(),
+            handleOpponentRun: jest.fn(),
+            handleOpponentOut: jest.fn(),
+            initiateAction: jest.fn(),
+            completeAction: jest.fn(),
+            undoLast: mockUndoLast,
+            isSubmitting: false,
+            fetcher: { data: null, state: "idle" },
+        });
+
+        const initialLogs = [{ $id: "log1", eventType: "1B", playerId: "p1" }];
+
+        const { result } = renderHook(() =>
+            useGamedayController({
+                game: mockGame,
+                playerChart: mockPlayerChart,
+                team: mockTeam,
+                initialLogs,
+                isScorekeeper: true,
+            }),
+        );
+
+        act(() => {
+            result.current.undoLast();
+        });
+
+        expect(mockUndoLast).toHaveBeenCalledWith();
     });
 });

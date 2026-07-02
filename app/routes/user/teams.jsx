@@ -17,8 +17,7 @@ import useModal from "@/hooks/useModal";
 import { useResponseNotification } from "@/utils/showNotification";
 
 import { getUserTeams } from "@/loaders/teams";
-
-import { createSessionClient } from "@/utils/appwrite/server";
+import { appwriteClientContext } from "@/contexts/router";
 
 import TeamCard from "./components/TeamCard";
 
@@ -29,15 +28,15 @@ export function meta() {
     ];
 }
 
-export async function loader({ request }) {
-    const sessionClient = await createSessionClient(request);
+export async function loader({ context }) {
+    const sessionClient = context.get(appwriteClientContext);
     return getUserTeams({ client: sessionClient });
 }
 
-export async function action({ request }) {
+export async function action({ request, context }) {
     const formData = await request.formData();
     const { _action, userId, ...values } = Object.fromEntries(formData);
-    const sessionClient = await createSessionClient(request);
+    const sessionClient = context.get(appwriteClientContext);
 
     if (_action === "add-team") {
         return createTeam({ values, userId, client: sessionClient });

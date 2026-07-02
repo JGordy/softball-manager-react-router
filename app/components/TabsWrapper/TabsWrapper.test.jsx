@@ -87,4 +87,33 @@ describe("TabsWrapper", () => {
         const tabList = screen.getByRole("tablist");
         expect(tabList).not.toHaveStyle({ margin: "0" });
     });
+
+    it("preserves and merges custom className passed to Tabs.Tab", () => {
+        render(
+            <TabsWrapper defaultValue="tab1">
+                <Tabs.Tab value="tab1" className="custom-test-class">
+                    Tab 1
+                </Tabs.Tab>
+                <Tabs.Panel value="tab1">Content 1</Tabs.Panel>
+            </TabsWrapper>,
+        );
+
+        const tabButton = screen.getByText("Tab 1").closest("button");
+        expect(tabButton).toHaveClass("custom-test-class");
+    });
+
+    it("applies xs classes when size='xs' is passed", () => {
+        render(
+            <TabsWrapper defaultValue="tab1" size="xs">
+                <Tabs.Tab value="tab1">Tab 1</Tabs.Tab>
+                <Tabs.Panel value="tab1">Content 1</Tabs.Panel>
+            </TabsWrapper>,
+        );
+
+        const tabList = screen.getByRole("tablist");
+        const tabButton = screen.getByText("Tab 1").closest("button");
+
+        expect(tabList).toHaveClass("listXs");
+        expect(tabButton).toHaveClass("tabXs");
+    });
 });

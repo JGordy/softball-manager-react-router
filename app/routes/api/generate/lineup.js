@@ -2,10 +2,8 @@ import { Query } from "node-appwrite";
 
 import { createModel, generateContentStream } from "@/utils/ai";
 import { listDocuments, updateDocument } from "@/utils/databases";
-import {
-    createAdminClient,
-    createSessionClient,
-} from "@/utils/appwrite/server";
+import { createAdminClient } from "@/utils/appwrite/server";
+import { appwriteClientContext } from "@/contexts/router";
 import { EVENT_TYPE_MAP, UI_KEYS } from "@/constants/scoring";
 import { MAX_AI_GENERATIONS_PER_GAME } from "@/constants/ai";
 
@@ -36,13 +34,18 @@ const DB_TO_MINIFIED_EVENT = Object.entries(EVENT_TYPE_MAP).reduce(
  * @param {Request} request - The request object containing player data, team info, and game details
  * @returns {Response} JSON response with the generated lineup or error
  */
-export async function action({ request }) {
+export async function action({ request, context }) {
     let rollbackGameId = null;
     let rollbackCount = null;
     let sessionClient;
 
     try {
-        sessionClient = await createSessionClient(request);
+        sessionClient = context.get(appwriteClientContext);
+        if (!sessionClient) {
+            return new Response(JSON.stringify({ error: "Unauthorized" }), {
+                status: 401,
+            });
+        }
         // Parse the request body to get players, team info, and game details
         const body = await request.json();
         const { players, team, gameId } = body;
@@ -124,10 +127,18 @@ export async function action({ request }) {
 
         const { teams } = createAdminClient();
         let maxMaleBatters = 0;
+        let lineupStrategy = "spread"; // default strategy
+        let playerLabels = {};
         try {
             const prefs = await teams.getPrefs(teamId);
             maxMaleBatters = parseInt(prefs.maxMaleBatters, 10) || 0;
-        } catch (e) {
+            if (prefs.lineupStrategy) {
+                lineupStrategy = prefs.lineupStrategy;
+            }
+            if (prefs.playerLabels) {
+                playerLabels = prefs.playerLabels;
+            }
+        } catch (_e) {
             // failed to load prefs or no prefs set, stick to defaults
         }
 
@@ -319,15 +330,31 @@ export async function action({ request }) {
         });
 
         // Minify Available Players
-        const minifiedPlayers = players.map((p) => ({
-            $id: p.$id,
-            f: p.firstName,
-            l: p.lastName,
-            g: p.gender,
-            p: p.preferredPositions || [],
-            d: p.dislikedPositions || [],
-            b: p.bats,
-        }));
+        const minifiedPlayers = players.map((p) => {
+            const entry = {
+                $id: p.$id,
+                f: p.firstName,
+                l: p.lastName,
+                g: p.gender,
+                p: p.preferredPositions || [],
+                d: p.dislikedPositions || [],
+                b: p.bats,
+            };
+
+            // Only add labels if the player has no game logs/stats in history
+            const hasStats = historicalData.some(
+                (g) => g.stats && g.stats[p.$id],
+            );
+            if (
+                !hasStats &&
+                playerLabels[p.$id] &&
+                playerLabels[p.$id].length > 0
+            ) {
+                entry.labels = playerLabels[p.$id];
+            }
+
+            return entry;
+        });
 
         // Team Logic
         let idealPositioning = {};
@@ -368,11 +395,15 @@ export async function action({ request }) {
 
         // Initialize the AI model with System Instructions
         const model = createModel({
+            thinking: "low",
             generationConfig: {
                 responseMimeType: "application/json",
                 responseSchema: lineupSchema,
             },
-            systemInstruction: getLineupSystemInstruction(maxMaleBatters),
+            systemInstruction: getLineupSystemInstruction(
+                maxMaleBatters,
+                lineupStrategy,
+            ),
         });
 
         // Use "Data-as-a-Part" structure

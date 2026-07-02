@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useFetcher } from "react-router";
 
 import { Box, Button, Card, Group, Text } from "@mantine/core";
@@ -37,6 +38,28 @@ export default function LineupContainer({
 
     // Get the team data for ideal lineup/positioning
     const team = teams?.[0] || game?.team;
+
+    useEffect(() => {
+        const handleToggleDrawer = (event) => {
+            const { open } = event.detail || {};
+            if (open) {
+                createLineupHandlers.open();
+            } else {
+                createLineupHandlers.close();
+            }
+        };
+
+        window.addEventListener(
+            "toggle-onboarding-lineup-drawer",
+            handleToggleDrawer,
+        );
+        return () => {
+            window.removeEventListener(
+                "toggle-onboarding-lineup-drawer",
+                handleToggleDrawer,
+            );
+        };
+    }, [createLineupHandlers]);
 
     const availablePlayers = players?.filter(
         (p) => p.availability === "accepted" || p.availability === "tentative",
@@ -147,7 +170,11 @@ export default function LineupContainer({
             <>
                 {managerView ? (
                     <>
-                        <Button onClick={handleOpenCreateLineup} fullWidth>
+                        <Button
+                            id="tour-create-lineup-btn"
+                            onClick={handleOpenCreateLineup}
+                            fullWidth
+                        >
                             Create Lineup
                         </Button>
                         <CreateLineupDrawer
@@ -217,6 +244,7 @@ export default function LineupContainer({
         <Group align="flex-end" gap="sm">
             <Button
                 {...buttonProps}
+                id="tour-reset-btn"
                 color="blue"
                 leftSection={<IconArrowBackUp size={18} />}
                 onClick={handleResetChart}
@@ -226,6 +254,8 @@ export default function LineupContainer({
             </Button>
             <Button
                 {...buttonProps}
+                id="tour-save-btn"
+                className="tour-save-btn"
                 leftSection={<IconDeviceFloppy size={18} />}
                 onClick={() => handleOnSave(lineupState)}
                 variant="light"
@@ -235,6 +265,7 @@ export default function LineupContainer({
             {!isGameInPast && (
                 <Button
                     {...publishButtonProps}
+                    id="tour-publish-btn"
                     color="lime"
                     leftSection={<IconBellRinging size={18} />}
                     onClick={handleSaveAndPublish}
@@ -287,6 +318,7 @@ export default function LineupContainer({
                                 </Button>
                                 <Button
                                     {...buttonProps}
+                                    className="tour-save-btn"
                                     leftSection={<IconDeviceFloppy size={18} />}
                                     onClick={() => handleOnSave(lineupState)}
                                     variant="light"

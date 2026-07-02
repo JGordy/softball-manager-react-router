@@ -32,7 +32,7 @@ export default function getHourlyWeather(weather, gameDate) {
         // Luxon DateTime passed directly
         try {
             gameDateTime = gameDate;
-        } catch (e) {
+        } catch (_e) {
             gameDateTime = null;
         }
     }

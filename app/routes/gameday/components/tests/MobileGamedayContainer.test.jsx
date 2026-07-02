@@ -1,4 +1,3 @@
-/* eslint-disable react/display-name */
 import { render, screen, waitFor, fireEvent, within } from "@/utils/test-utils";
 import * as gameUpdatesHook from "@/hooks/useGameUpdates";
 import * as gameStateHook from "../../hooks/useGameState";
@@ -20,12 +19,35 @@ jest.mock(
             opened ? <div data-testid="edit-play-drawer">Edit Play</div> : null,
 );
 
+export const mockOnboardingTour = jest.fn(
+    ({ tourKey, user, alwaysIncludeTargets }) => {
+        const hasCompleted = user?.prefs?.onboardingTours?.[tourKey] === true;
+        if (hasCompleted) return null;
+        return (
+            <div
+                data-testid={`onboarding-tour-${tourKey}`}
+                data-always-include={JSON.stringify(alwaysIncludeTargets)}
+            />
+        );
+    },
+);
+jest.mock(
+    "@/components/OnboardingTour",
+    () => (props) => mockOnboardingTour(props),
+);
+
 // Mock hooks
 jest.mock("react-router", () => ({
     useFetcher: () => ({ submit: jest.fn(), state: "idle" }),
     useLocation: () => ({ hash: "", pathname: "/gameday", search: "" }),
     useNavigate: () => jest.fn(),
     useParams: () => ({ eventId: "game123" }),
+    useOutletContext: () => ({ isDesktop: false }),
+    Link: ({ to, children, ...props }) => (
+        <a href={to} {...props}>
+            {children}
+        </a>
+    ),
 }));
 
 jest.mock("@/hooks/useGameUpdates");
@@ -73,7 +95,7 @@ describe("MobileGamedayContainer", () => {
             />,
         );
 
-        expect(screen.getByText("Tigers")).toBeInTheDocument();
+        expect(screen.getAllByText("Tigers")[0]).toBeInTheDocument();
         expect(screen.getByLabelText("Runner status")).toBeInTheDocument();
         expect(screen.getByTestId("sub-player-modal")).toBeInTheDocument();
         expect(
@@ -97,7 +119,7 @@ describe("MobileGamedayContainer", () => {
 
         render(
             <MobileGamedayContainer
-                game={mockGame}
+                game={{ ...mockGame, opponentScoringMode: "Basic" }}
                 playerChart={mockPlayerChart}
                 team={mockTeam}
                 initialLogs={[]}
@@ -253,6 +275,253 @@ describe("MobileGamedayContainer", () => {
 
             // Verify drawer content (title is in EditPlayDrawer)
             expect(await screen.findByText("Edit Play")).toBeInTheDocument();
+        });
+    });
+
+    describe("Empty lineup UI features", () => {
+        it("renders page header and Lineup Required card, and shows Create Lineup CTA for scorekeepers", () => {
+            render(
+                <MobileGamedayContainer
+                    game={mockGame}
+                    playerChart={[]}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    isScorekeeper={true}
+                />,
+            );
+
+            // Verify header remains visible
+            expect(screen.getByText("Scoring & Stats")).toBeInTheDocument();
+            expect(
+                screen.getByRole("button", { name: "Back" }),
+            ).toBeInTheDocument();
+            expect(
+                screen.getByRole("button", { name: /share page/i }),
+            ).toBeInTheDocument();
+
+            // Verify Lineup Required notice and Create Lineup button
+            expect(screen.getByText("Lineup Required")).toBeInTheDocument();
+            expect(
+                screen.getByText("You must create a lineup before scoring."),
+            ).toBeInTheDocument();
+
+            const createLineupBtn = screen.getByRole("link", {
+                name: /create lineup/i,
+            });
+            expect(createLineupBtn).toBeInTheDocument();
+            expect(createLineupBtn).toHaveAttribute(
+                "href",
+                "/events/game123/lineup",
+            );
+        });
+
+        it("renders page header and Lineup Required card, but hides Create Lineup CTA for non-scorekeepers", () => {
+            render(
+                <MobileGamedayContainer
+                    game={mockGame}
+                    playerChart={[]}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    isScorekeeper={false}
+                />,
+            );
+
+            // Verify header remains visible
+            expect(screen.getByText("Scoring & Stats")).toBeInTheDocument();
+
+            // Verify Lineup Required notice
+            expect(screen.getByText("Lineup Required")).toBeInTheDocument();
+            expect(
+                screen.queryByRole("link", { name: /create lineup/i }),
+            ).not.toBeInTheDocument();
+        });
+    });
+
+    describe("LastPlayCard rendering", () => {
+        const mockLogs = [
+            {
+                $id: "log1",
+                description: "Alice Smith singles",
+                eventType: "single",
+                rbi: 0,
+                outsOnPlay: 0,
+                inning: 1,
+                halfInning: "top",
+                baseState: "{}",
+            },
+        ];
+
+        it("renders LastPlayCard when batting", () => {
+            gameStateHook.useGameState.mockReturnValue({
+                inning: 1,
+                halfInning: "top",
+                outs: 0,
+                score: 0,
+                opponentScore: 0,
+                runners: { first: null, second: null, third: null },
+                battingOrderIndex: 0,
+            });
+
+            render(
+                <MobileGamedayContainer
+                    game={mockGame}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={mockLogs}
+                    isScorekeeper={true}
+                />,
+            );
+
+            expect(screen.getByText("Last Play")).toBeInTheDocument();
+            expect(
+                screen.getAllByText("Alice Smith singles").length,
+            ).toBeGreaterThan(0);
+        });
+
+        it("renders LastPlayCard when on defense", () => {
+            gameStateHook.useGameState.mockReturnValue({
+                inning: 1,
+                halfInning: "bottom",
+                outs: 0,
+                score: 0,
+                opponentScore: 0,
+                runners: { first: null, second: null, third: null },
+                battingOrderIndex: 0,
+            });
+
+            render(
+                <MobileGamedayContainer
+                    game={mockGame}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={mockLogs}
+                    isScorekeeper={true}
+                />,
+            );
+
+            expect(screen.getByText("Last Play")).toBeInTheDocument();
+            expect(
+                screen.getAllByText("Alice Smith singles").length,
+            ).toBeGreaterThan(0);
+        });
+    });
+
+    describe("OnboardingTour integration", () => {
+        it("renders opponent OnboardingTour when scorekeeper is on defense (opponent batting)", () => {
+            gameStateHook.useGameState.mockReturnValue({
+                inning: 1,
+                halfInning: "top", // top is opponent batting for home team
+                outs: 0,
+                score: 0,
+                opponentScore: 0,
+                runners: { first: null, second: null, third: null },
+                battingOrderIndex: 0,
+            });
+
+            render(
+                <MobileGamedayContainer
+                    game={{ ...mockGame, isHomeGame: true }}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    isScorekeeper={true}
+                />,
+            );
+
+            expect(
+                screen.getByTestId("onboarding-tour-gameday_opponent"),
+            ).toBeInTheDocument();
+        });
+
+        it("renders scoring flow OnboardingTour when batting", () => {
+            gameStateHook.useGameState.mockReturnValue({
+                inning: 1,
+                halfInning: "bottom", // bottom is our batting for home team
+                outs: 0,
+                score: 0,
+                opponentScore: 0,
+                runners: { first: null, second: null, third: null },
+                battingOrderIndex: 0,
+            });
+
+            render(
+                <MobileGamedayContainer
+                    game={{ ...mockGame, isHomeGame: true }}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    isScorekeeper={true}
+                />,
+            );
+
+            expect(
+                screen.getByTestId("onboarding-tour-gameday_scoring_flow"),
+            ).toBeInTheDocument();
+        });
+
+        it("does not render scoring flow OnboardingTour when batting if already completed", () => {
+            gameStateHook.useGameState.mockReturnValue({
+                inning: 1,
+                halfInning: "bottom",
+                outs: 0,
+                score: 0,
+                opponentScore: 0,
+                runners: { first: null, second: null, third: null },
+                battingOrderIndex: 0,
+            });
+
+            render(
+                <MobileGamedayContainer
+                    game={{ ...mockGame, isHomeGame: true }}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    isScorekeeper={true}
+                    user={{
+                        prefs: {
+                            onboardingTours: { gameday_scoring_flow: true },
+                        },
+                    }}
+                />,
+            );
+
+            expect(
+                screen.queryByTestId("onboarding-tour-gameday_scoring_flow"),
+            ).not.toBeInTheDocument();
+        });
+
+        it("includes .tour-last-play-card in alwaysIncludeTargets for scoring flow tour", () => {
+            gameStateHook.useGameState.mockReturnValue({
+                inning: 1,
+                halfInning: "bottom",
+                outs: 0,
+                score: 0,
+                opponentScore: 0,
+                runners: { first: null, second: null, third: null },
+                battingOrderIndex: 0,
+            });
+
+            render(
+                <MobileGamedayContainer
+                    game={{ ...mockGame, isHomeGame: true }}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    isScorekeeper={true}
+                />,
+            );
+
+            const tourElement = screen.getByTestId(
+                "onboarding-tour-gameday_scoring_flow",
+            );
+            expect(tourElement).toBeInTheDocument();
+
+            const alwaysInclude = JSON.parse(
+                tourElement.getAttribute("data-always-include"),
+            );
+            expect(alwaysInclude).toContain(".tour-last-play-card");
+            expect(alwaysInclude).toContain(".tour-action-1b");
+            expect(alwaysInclude).toContain(".tour-confirm-play-btn");
         });
     });
 });

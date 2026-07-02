@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from "@/utils/test-utils";
+import { UI_KEYS } from "@/constants/scoring";
 
 import * as runnerProjectionHook from "../../hooks/useRunnerProjection";
 import * as drawerUtils from "../../utils/drawerUtils";
@@ -30,6 +31,13 @@ jest.mock("../../utils/fieldMapping", () => ({
     getFieldZone: jest.fn().mockReturnValue("left field"),
     getClampedCoordinates: jest.fn().mockImplementation((x, y) => ({ x, y })),
     getRelativePointerCoordinates: jest.fn().mockReturnValue({ x: 50, y: 50 }),
+    resolveFlyPopOut: jest.fn().mockImplementation((x, y) => {
+        if (x === null || y === null) return "Fly Out";
+        const dx = x - 50;
+        const dy = 78 - y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        return dist > 38 ? "Fly Out" : "Pop Out";
+    }),
 }));
 
 jest.mock("../ConfirmationPanel", () => (props) => (
@@ -135,5 +143,200 @@ describe("DesktopPlayActionDrawer", () => {
                 battingSide: "right",
             }),
         );
+    });
+
+    it("resolves Fly/Pop Out to Fly Out or Pop Out based on interaction coordinates", async () => {
+        const fieldMapping = require("../../utils/fieldMapping");
+
+        // 1. Outfield coordinate
+        fieldMapping.getRelativePointerCoordinates.mockReturnValueOnce({
+            x: 50,
+            y: 20,
+        });
+
+        const mockOnSelectOutfield = jest.fn();
+        const { unmount } = render(
+            <DesktopPlayActionDrawer
+                {...defaultProps}
+                actionType={UI_KEYS.FLY_POP}
+                onSelect={mockOnSelectOutfield}
+            />,
+        );
+
+        const fieldImage = screen.getByAltText(
+            /Interactive softball field diagram/i,
+        );
+        const container = fieldImage.parentElement;
+
+        fireEvent.pointerDown(container, {
+            clientX: 100,
+            clientY: 100,
+            pointerId: 1,
+        });
+        fireEvent.click(screen.getByText(/Proceed to Runner Advancement/i));
+        fireEvent.click(screen.getByText("Confirm Play"));
+
+        expect(mockOnSelectOutfield).toHaveBeenCalled();
+        unmount();
+
+        // 2. Infield coordinate
+        fieldMapping.getRelativePointerCoordinates.mockReturnValueOnce({
+            x: 50,
+            y: 65,
+        });
+        const mockOnSelectInfield = jest.fn();
+        render(
+            <DesktopPlayActionDrawer
+                {...defaultProps}
+                actionType={UI_KEYS.FLY_POP}
+                onSelect={mockOnSelectInfield}
+            />,
+        );
+
+        const fieldImage2 = screen.getByAltText(
+            /Interactive softball field diagram/i,
+        );
+        const container2 = fieldImage2.parentElement;
+
+        fireEvent.pointerDown(container2, {
+            clientX: 100,
+            clientY: 100,
+            pointerId: 1,
+        });
+        fireEvent.click(screen.getByText(/Proceed to Runner Advancement/i));
+        fireEvent.click(screen.getByText("Confirm Play"));
+
+        expect(mockOnSelectInfield).toHaveBeenCalled();
+    });
+
+    it("renders with tour class hooks (.tour-spray-field, .tour-field-position-rf, and .tour-proceed-advancement-btn)", () => {
+        render(<DesktopPlayActionDrawer {...defaultProps} />);
+
+        // Find the spray field container by class hook
+        const fieldContainer = document.querySelector(".tour-spray-field");
+        expect(fieldContainer).toBeInTheDocument();
+
+        // RF position button must have the tour-field-position-rf class
+        const rfBtn = document.querySelector(".tour-field-position-rf");
+        expect(rfBtn).toBeInTheDocument();
+
+        // Simulate locking position so proceed button is shown
+        const fieldImage = screen.getByAltText(
+            /Interactive softball field diagram/i,
+        );
+        const container = fieldImage.parentElement;
+        fireEvent.pointerDown(container, {
+            clientX: 100,
+            clientY: 100,
+            pointerId: 1,
+        });
+
+        // Proceed button must have .tour-proceed-advancement-btn
+        const proceedBtn = screen
+            .getByText(/Proceed to Runner Advancement/i)
+            .closest("button");
+        expect(proceedBtn).toHaveClass("tour-proceed-advancement-btn");
+    });
+
+    it("renders touch-specific instructions and handles touch-and-drag location picking on touch devices", () => {
+        const originalMatchMedia = window.matchMedia;
+        const originalMaxTouchPoints = window.navigator.maxTouchPoints;
+
+        window.matchMedia = jest.fn().mockImplementation((query) => ({
+            matches: query === "(pointer: coarse)",
+            media: query,
+            onchange: null,
+            addListener: jest.fn(),
+            removeListener: jest.fn(),
+            addEventListener: jest.fn(),
+            removeEventListener: jest.fn(),
+            dispatchEvent: jest.fn(),
+        }));
+        Object.defineProperty(window.navigator, "maxTouchPoints", {
+            value: 1,
+            configurable: true,
+        });
+
+        render(<DesktopPlayActionDrawer {...defaultProps} />);
+
+        // Verify touch-specific instruction is rendered
+        expect(
+            screen.getByText(/Touch and drag to find the hit location/i),
+        ).toBeInTheDocument();
+
+        const fieldImage = screen.getByAltText(
+            /Interactive softball field diagram/i,
+        );
+        const container = fieldImage.parentElement;
+
+        // Proximity move: Simulate pointerDown on touch device (starts drag, does not lock immediately)
+        fireEvent.pointerDown(container, {
+            clientX: 50,
+            clientY: 50,
+            pointerId: 1,
+        });
+
+        // Instruction is still visible because it's not locked yet
+        expect(
+            screen.getByText(/Touch and drag to find the hit location/i),
+        ).toBeInTheDocument();
+
+        // Drag: Move pointer
+        fireEvent.pointerMove(container, {
+            clientX: 60,
+            clientY: 60,
+            pointerId: 1,
+        });
+
+        // Release: Pointer up locks the coordinates
+        fireEvent.pointerUp(container, {
+            clientX: 60,
+            clientY: 60,
+            pointerId: 1,
+        });
+
+        // Now locked, instruction disappears and 'Unlock' is visible
+        expect(
+            screen.queryByText(/Touch and drag to find the hit location/i),
+        ).not.toBeInTheDocument();
+        expect(screen.getByText(/Hit to/i)).toBeInTheDocument();
+        expect(screen.getByText(/Unlock/i)).toBeInTheDocument();
+
+        // Restore mocks
+        window.matchMedia = originalMatchMedia;
+        Object.defineProperty(window.navigator, "maxTouchPoints", {
+            value: originalMaxTouchPoints,
+            configurable: true,
+        });
+    });
+
+    it("defaults battingSide based on defaultBats for switch hitters (left)", () => {
+        const switchHitterLeft = {
+            ...defaultProps.currentBatter,
+            bats: "Switch",
+            defaultBats: "left",
+        };
+        render(
+            <DesktopPlayActionDrawer
+                {...defaultProps}
+                currentBatter={switchHitterLeft}
+            />,
+        );
+        expect(screen.getByLabelText("Left")).toBeChecked();
+    });
+
+    it("defaults battingSide based on defaultBats for switch hitters (right)", () => {
+        const switchHitterRight = {
+            ...defaultProps.currentBatter,
+            bats: "Switch",
+            defaultBats: "right",
+        };
+        render(
+            <DesktopPlayActionDrawer
+                {...defaultProps}
+                currentBatter={switchHitterRight}
+            />,
+        );
+        expect(screen.getByLabelText("Right")).toBeChecked();
     });
 });

@@ -2,6 +2,7 @@ import { useOutletContext } from "react-router";
 import { render, screen } from "@/utils/test-utils";
 
 import * as teamsLoaders from "@/loaders/teams";
+import { mockContext } from "@/utils/mockContext";
 import EventsList, { loader } from "../list";
 
 jest.mock("react-router", () => ({
@@ -41,7 +42,7 @@ describe("EventsList Route", () => {
                 userId: "u1",
             });
             const request = new Request("http://localhost/events");
-            await loader({ request });
+            await loader({ request, context: mockContext });
             expect(teamsLoaders.getUserTeams).toHaveBeenCalledWith({
                 client: expect.any(Object),
             });
@@ -54,7 +55,7 @@ describe("EventsList Route", () => {
             });
 
             const request = { url: "http://test.com" };
-            const result = await loader({ request });
+            const result = await loader({ request, context: mockContext });
 
             expect(teamsLoaders.getUserTeams).toHaveBeenCalledWith({
                 client: expect.any(Object),

@@ -3,6 +3,7 @@ import { render, screen } from "@/utils/test-utils";
 
 import { createSessionClient } from "@/utils/appwrite/server";
 import { isMobileUserAgent } from "@/utils/device";
+import { mockContext } from "@/utils/mockContext";
 
 import Layout, { loader } from "../layout";
 
@@ -68,9 +69,25 @@ describe("Layout Route", () => {
         emailVerification: true,
     };
 
+    let localMockContext;
+
     beforeEach(() => {
         jest.clearAllMocks();
         useNavigation.mockReturnValue({ state: "idle" });
+
+        localMockContext = {
+            get: jest.fn((ctx) => {
+                if (
+                    (ctx && ctx.name === "userContext") ||
+                    String(ctx).includes("userContext")
+                ) {
+                    return mockUser;
+                }
+                return {
+                    account: { get: jest.fn().mockResolvedValue(mockUser) },
+                };
+            }),
+        };
     });
 
     describe("loader", () => {
@@ -84,6 +101,7 @@ describe("Layout Route", () => {
 
             const result = await loader({
                 request: new Request("http://localhost/"),
+                context: localMockContext,
             });
             expect(result.user).toEqual(expect.objectContaining(mockUser));
             expect(result.isMobile).toBe(false);
@@ -98,7 +116,10 @@ describe("Layout Route", () => {
             });
 
             try {
-                await loader({ request: new Request("http://localhost/") });
+                await loader({
+                    request: new Request("http://localhost/"),
+                    context: localMockContext,
+                });
             } catch (error) {
                 expect(error.url).toBe("/login");
             }
@@ -115,7 +136,10 @@ describe("Layout Route", () => {
             });
 
             try {
-                await loader({ request: new Request("http://localhost/") });
+                await loader({
+                    request: new Request("http://localhost/"),
+                    context: localMockContext,
+                });
             } catch (error) {
                 expect(error.url).toBe("/auth/setup");
             }
@@ -131,6 +155,7 @@ describe("Layout Route", () => {
 
             const result = await loader({
                 request: new Request("http://localhost/"),
+                context: localMockContext,
             });
             expect(result).toEqual({
                 user: expect.objectContaining(mockUser),

@@ -3,6 +3,7 @@ import { render, screen } from "@/utils/test-utils";
 import * as gamesLoaders from "@/loaders/games";
 import * as gamesActions from "@/actions/games";
 import * as gameLogActions from "@/actions/gameLogs";
+import { mockContext } from "@/utils/mockContext";
 
 import Gameday, { loader, action } from "../gameday";
 
@@ -77,7 +78,7 @@ describe("Gameday Route", () => {
         it("calls getEventById with correct params", async () => {
             const params = { eventId: "game123" };
             const request = { url: "http://test.com" };
-            await loader({ params, request });
+            await loader({ params, request, context: mockContext });
             expect(gamesLoaders.getEventById).toHaveBeenCalledWith({
                 eventId: "game123",
                 client: expect.any(Object),
@@ -102,7 +103,7 @@ describe("Gameday Route", () => {
             };
             const params = { eventId: "game123" };
 
-            await action({ request, params });
+            await action({ request, params, context: mockContext });
 
             expect(gameLogActions.logGameEvent).toHaveBeenCalledWith({
                 gameId: "game123",
@@ -129,7 +130,7 @@ describe("Gameday Route", () => {
             const lineupsActions = require("@/actions/lineups");
             jest.spyOn(lineupsActions, "savePlayerChart").mockResolvedValue({});
 
-            await action({ request, params });
+            await action({ request, params, context: mockContext });
 
             expect(gameLogActions.undoGameEvent).toHaveBeenCalled();
             expect(lineupsActions.savePlayerChart).toHaveBeenCalled();
@@ -154,30 +155,102 @@ describe("Gameday Route", () => {
             const lineupsActions = require("@/actions/lineups");
             jest.spyOn(lineupsActions, "savePlayerChart");
 
-            const result = await action({ request, params });
+            const result = await action({
+                request,
+                params,
+                context: mockContext,
+            });
 
             expect(gameLogActions.undoGameEvent).toHaveBeenCalled();
             expect(lineupsActions.savePlayerChart).not.toHaveBeenCalled();
             expect(result.error).toBe("Undo failed");
         });
 
-        it("handles update-game-score action", async () => {
+        it("reverts opponent lineup if log contains revert data", async () => {
             const formData = new FormData();
-            formData.append("_action", "update-game-score");
-            formData.append("score", "10");
+            formData.append("_action", "undo-game-event");
+            formData.append("logId", "log1");
 
             const request = {
                 formData: () => Promise.resolve(formData),
             };
             const params = { eventId: "game123" };
 
-            await action({ request, params });
+            const mockLog = {
+                baseState: JSON.stringify({
+                    revertOpponentLineupLocked: false,
+                    revertOpponentLineup: "[]",
+                }),
+            };
 
-            expect(gamesActions.updateGame).toHaveBeenCalledWith({
-                values: { score: "10" },
-                eventId: "game123",
-                client: expect.any(Object),
+            gameLogActions.undoGameEvent.mockResolvedValue({
+                success: true,
+                log: mockLog,
             });
+            gamesActions.updateGame.mockResolvedValue({});
+
+            await action({ request, params, context: mockContext });
+
+            expect(gameLogActions.undoGameEvent).toHaveBeenCalled();
+            expect(gamesActions.updateGame).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    values: expect.objectContaining({
+                        opponentLineupLocked: false,
+                        opponentLineup: "[]",
+                    }),
+                }),
+            );
+        });
+
+        it("handles update-game-score action", async () => {
+            const formData = new FormData();
+            formData.append("_action", "update-game-score");
+            formData.append("score", "5");
+
+            const request = {
+                formData: () => Promise.resolve(formData),
+            };
+            const params = { eventId: "game123" };
+
+            gamesActions.updateGame.mockResolvedValue({ success: true });
+
+            await action({ request, params, context: mockContext });
+
+            expect(gamesActions.updateGame).toHaveBeenCalled();
+        });
+
+        it("handles lock-opponent-lineup action", async () => {
+            const formData = new FormData();
+            formData.append("_action", "lock-opponent-lineup");
+            formData.append("opponentLineupLocked", "true");
+            formData.append("opponentLineup", "[{}]");
+            formData.append("oldOpponentLineup", "[]");
+            formData.append("teamId", "team1");
+
+            const request = {
+                formData: () => Promise.resolve(formData),
+            };
+            const params = { eventId: "game123" };
+
+            gameLogActions.logGameEvent.mockResolvedValue({ success: true });
+            gamesActions.updateGame.mockResolvedValue({ success: true });
+
+            await action({ request, params, context: mockContext });
+
+            expect(gameLogActions.logGameEvent).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    eventType: "opponent_lineup_wrap",
+                    teamId: "team1",
+                }),
+            );
+            expect(gamesActions.updateGame).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    values: expect.objectContaining({
+                        opponentLineupLocked: "true",
+                        opponentLineup: "[{}]",
+                    }),
+                }),
+            );
         });
 
         it("handles update-game-event action and delegates to updateGameEvent", async () => {
@@ -206,7 +279,7 @@ describe("Gameday Route", () => {
 
             gameLogActions.updateGameEvent.mockResolvedValue({ success: true });
 
-            await action({ request, params });
+            await action({ request, params, context: mockContext });
 
             expect(gameLogActions.updateGameEvent).toHaveBeenCalledWith({
                 logId: "log789",
@@ -231,7 +304,7 @@ describe("Gameday Route", () => {
 
             gameLogActions.updateGameEvent.mockResolvedValue({ success: true });
 
-            await action({ request, params });
+            await action({ request, params, context: mockContext });
 
             expect(gameLogActions.updateGameEvent).toHaveBeenCalledWith(
                 expect.objectContaining({ propagate: false }),
@@ -259,7 +332,7 @@ describe("Gameday Route", () => {
                 success: true,
             });
 
-            await action({ request, params });
+            await action({ request, params, context: mockContext });
 
             expect(gameLogActions.logGameEvent).toHaveBeenCalled();
             expect(lineupsActions.savePlayerChart).toHaveBeenCalled();
@@ -283,7 +356,11 @@ describe("Gameday Route", () => {
             const lineupsActions = require("@/actions/lineups");
             jest.spyOn(lineupsActions, "savePlayerChart");
 
-            const result = await action({ request, params });
+            const result = await action({
+                request,
+                params,
+                context: mockContext,
+            });
 
             expect(gameLogActions.logGameEvent).toHaveBeenCalled();
             expect(lineupsActions.savePlayerChart).not.toHaveBeenCalled();
@@ -310,7 +387,11 @@ describe("Gameday Route", () => {
                 new Error("Chart save failed"),
             );
 
-            const result = await action({ request, params });
+            const result = await action({
+                request,
+                params,
+                context: mockContext,
+            });
 
             expect(gameLogActions.logGameEvent).toHaveBeenCalled();
             expect(lineupsActions.savePlayerChart).toHaveBeenCalled();
@@ -342,7 +423,11 @@ describe("Gameday Route", () => {
                 new Error("Chart save failed"),
             );
 
-            const result = await action({ request, params });
+            const result = await action({
+                request,
+                params,
+                context: mockContext,
+            });
 
             expect(gameLogActions.logGameEvent).toHaveBeenCalled();
             expect(lineupsActions.savePlayerChart).toHaveBeenCalled();
@@ -369,7 +454,7 @@ describe("Gameday Route", () => {
             const lineupsActions = require("@/actions/lineups");
             jest.spyOn(lineupsActions, "savePlayerChart").mockResolvedValue({});
 
-            await action({ request, params });
+            await action({ request, params, context: mockContext });
 
             expect(lineupsActions.savePlayerChart).toHaveBeenCalledWith({
                 values: { playerChart: [{ id: "1" }] },

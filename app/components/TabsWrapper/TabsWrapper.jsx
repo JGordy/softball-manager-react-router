@@ -1,4 +1,4 @@
-import { useState, useCallback, Children, cloneElement } from "react";
+import { useState, useCallback, Children, cloneElement, useRef } from "react";
 import { FloatingIndicator, Tabs } from "@mantine/core";
 import classes from "./TabsWrapper.module.css";
 
@@ -38,6 +38,7 @@ export default function TabsWrapper({
     children,
     mt = "xl",
     align = "center",
+    size = "sm",
 }) {
     const [rootRef, setRootRef] = useState(null);
     const [uncontrolledValue, setUncontrolledValue] = useState(
@@ -50,20 +51,18 @@ export default function TabsWrapper({
     const value = isControlled ? controlledValue : uncontrolledValue;
     const setValue = isControlled ? controlledOnChange : setUncontrolledValue;
 
-    const setControlRef = useCallback(
-        (val) => (node) => {
-            if (node) {
+    const refsRef = useRef({});
+    const setControlRef = useCallback((val) => {
+        if (!refsRef.current[val]) {
+            refsRef.current[val] = (node) => {
                 setControlsRefs((prev) => {
-                    // Only update if the ref actually changed
-                    if (prev[val] !== node) {
-                        return { ...prev, [val]: node };
-                    }
-                    return prev;
+                    if (prev[val] === node) return prev;
+                    return { ...prev, [val]: node };
                 });
-            }
-        },
-        [],
-    );
+            };
+        }
+        return refsRef.current[val];
+    }, []);
 
     // Separate tabs from panels
     const tabs = [];
@@ -96,7 +95,8 @@ export default function TabsWrapper({
                 cloneElement(child, {
                     key: child.props.value,
                     ref: setControlRef(child.props.value),
-                    className: `${classes.tab} ${isActive ? classes.tabActive : ""}`,
+                    className:
+                        `${classes.tab} ${size === "xs" ? classes.tabXs : ""} ${isActive ? classes.tabActive : ""} ${child.props.className || ""}`.trim(),
                     disabled: child.props.disabled,
                     style: {
                         ...child.props.style,
@@ -113,19 +113,22 @@ export default function TabsWrapper({
 
     return (
         <Tabs variant="none" value={value} onChange={setValue} mt={mt}>
-            <Tabs.List
-                ref={setRootRef}
-                className={classes.list}
-                style={align === "left" ? { margin: "0" } : undefined}
-            >
-                {tabs}
-                <FloatingIndicator
-                    target={value ? controlsRefs[value] : null}
-                    parent={rootRef}
-                    className={classes.indicator}
-                    style={{ background: color }}
-                />
-            </Tabs.List>
+            <div className={classes.scrollWrapper}>
+                <Tabs.List
+                    ref={setRootRef}
+                    className={`${classes.list} ${size === "xs" ? classes.listXs : ""}`.trim()}
+                    style={align === "left" ? { margin: "0" } : undefined}
+                >
+                    {tabs}
+                    <FloatingIndicator
+                        key={`${value}-${Object.keys(controlsRefs).filter((k) => !!controlsRefs[k]).length}`}
+                        target={value ? controlsRefs[value] : null}
+                        parent={rootRef}
+                        className={classes.indicator}
+                        style={{ background: color }}
+                    />
+                </Tabs.List>
+            </div>
 
             {panels}
         </Tabs>

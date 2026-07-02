@@ -12,8 +12,6 @@ import { savePlayerChart } from "@/actions/lineups";
 
 import BackButton from "@/components/BackButton";
 
-import { createSessionClient } from "@/utils/appwrite/server";
-
 import addPlayerAvailability from "@/utils/addPlayerAvailability";
 
 import { formatForViewerDate, getGameDayStatus } from "@/utils/dateTime";
@@ -29,20 +27,23 @@ import LineupValidationMenu from "./components/LineupValidationMenu";
 import AILineupDrawer from "./components/AILineupDrawer";
 import AddPlayersDrawer from "./components/AddPlayersDrawer";
 import ShareUrlButton from "@/components/ShareUrlButton";
+import OnboardingTour from "@/components/OnboardingTour";
+import { appwriteClientContext } from "@/contexts/router";
+import { creationSteps, gridSteps } from "./utils/onboardingSteps";
 
 import { validateLineup } from "./utils/validateLineup";
 
-export async function loader({ params, request }) {
+export async function loader({ params, context }) {
     const { eventId } = params;
-    const client = await createSessionClient(request);
+    const client = context.get(appwriteClientContext);
     return await getEventWithPlayerCharts({ eventId, client });
 }
 
-export async function action({ request, params }) {
+export async function action({ request, params, context }) {
     const { eventId } = params;
     const formData = await request.formData();
     const { _action, ...values } = Object.fromEntries(formData);
-    const client = await createSessionClient(request);
+    const client = context.get(appwriteClientContext);
 
     if (_action === "save-chart") {
         const playerChart = parsePlayerChart(values.playerChart);
@@ -193,7 +194,6 @@ function Lineup({ loaderData, actionData }) {
                     positions: [],
                 });
 
-                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setHasBeenEdited(true);
                 closeAllModals();
 
@@ -215,9 +215,35 @@ function Lineup({ loaderData, actionData }) {
 
     return (
         <Container size="xl" p="md">
+            {managerView && (!lineupState || lineupState.length === 0) && (
+                <OnboardingTour
+                    tourKey="lineup_creation"
+                    steps={creationSteps}
+                    user={user}
+                    alwaysIncludeTargets={[
+                        "#tour-create-lineup-btn",
+                        "#tour-option-scratch",
+                        "#tour-option-available",
+                        "#tour-option-ai",
+                    ]}
+                    trackingSuffix="lineup_creation"
+                    disableScrolling={true}
+                />
+            )}
+            {managerView && lineupState && lineupState.length > 0 && (
+                <OnboardingTour
+                    tourKey="lineup_grid"
+                    steps={gridSteps}
+                    user={user}
+                    menuId="lineup-menu"
+                    alwaysIncludeTargets={[".tour-lineup-menu-dropdown"]}
+                    trackingSuffix="lineup_grid"
+                    disableScrolling={true}
+                />
+            )}
             <Stack gap="md" mt="lg" mb="xl">
                 <Group justify="space-between" align="center">
-                    <BackButton text="Back to event details" />
+                    <BackButton text="Event Details" />
                     <Group align="center" gap="xs">
                         <ShareUrlButton />
                         {managerView && (
@@ -252,18 +278,6 @@ function Lineup({ loaderData, actionData }) {
                         )}
                         {managerView && (
                             <Group gap="xs" hiddenFrom="sm">
-                                {isGameActive && (
-                                    <Button
-                                        variant="light"
-                                        component={Link}
-                                        to={`/events/${eventId}/gameday`}
-                                        leftSection={
-                                            <IconDeviceAnalytics size={16} />
-                                        }
-                                    >
-                                        Scoring
-                                    </Button>
-                                )}
                                 <LineupValidationMenu
                                     validationResults={validationResults}
                                 />
@@ -283,12 +297,25 @@ function Lineup({ loaderData, actionData }) {
                     </Group>
                 </Group>
 
-                <Stack gap={0}>
-                    <Title order={4}>vs. {game?.opponent || "TBD"}</Title>
-                    <Text size="sm" c="dimmed">
-                        {formatForViewerDate(game?.gameDate)}
-                    </Text>
-                </Stack>
+                <Group justify="space-between" align="center" wrap="nowrap">
+                    <Stack gap={0}>
+                        <Title order={4}>vs. {game?.opponent || "TBD"}</Title>
+                        <Text size="sm" c="dimmed">
+                            {formatForViewerDate(game?.gameDate)}
+                        </Text>
+                    </Stack>
+                    {managerView && isGameActive && (
+                        <Button
+                            variant="light"
+                            component={Link}
+                            to={`/events/${eventId}/gameday`}
+                            leftSection={<IconDeviceAnalytics size={16} />}
+                            hiddenFrom="sm"
+                        >
+                            Scoring
+                        </Button>
+                    )}
+                </Group>
             </Stack>
 
             <LineupContainer
@@ -318,8 +345,8 @@ function Lineup({ loaderData, actionData }) {
 
             <AddPlayersDrawer
                 opened={addPlayersDrawerOpened}
-                onClose={() => {
-                    if (lineupStateRef.current?.length === 0) {
+                onClose={(submitted = false) => {
+                    if (!submitted && lineupStateRef.current?.length === 0) {
                         lineupHandlers.setState(null);
                     }
                     addPlayersHandlers.close();

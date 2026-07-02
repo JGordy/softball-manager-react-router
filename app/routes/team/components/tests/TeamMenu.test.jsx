@@ -18,6 +18,9 @@ jest.mock("../ManageRolesDrawer", () => () => (
 jest.mock("../PreferencesDrawer", () => () => (
     <div data-testid="preferences-drawer" />
 ));
+jest.mock("../PlayerLabelsDrawer", () => () => (
+    <div data-testid="player-labels-drawer" />
+));
 jest.mock("../BulkJerseyNumberModal", () => () => (
     <div data-testid="bulk-jersey-modal" />
 ));
@@ -112,7 +115,7 @@ describe("TeamMenu Component", () => {
         );
         fireEvent.click(screen.getByRole("button")); // Open menu
         expect(await screen.findByText("Manage Roles")).toBeInTheDocument();
-        expect(screen.getByText("Preferences")).toBeInTheDocument();
+        expect(screen.getByText("Rules")).toBeInTheDocument();
     });
 
     it("hides owner-only options if ownerView is false", async () => {

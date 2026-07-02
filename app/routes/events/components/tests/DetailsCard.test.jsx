@@ -67,35 +67,43 @@ describe("DetailsCard Component", () => {
         expect(screen.getByText("Bring water")).toBeInTheDocument();
     });
 
-    it("opens Calendar drawer when time section is clicked", () => {
-        render(<DetailsCard {...defaultProps} />);
+    it("calls calendarDrawerHandlers.open when time section is clicked", () => {
+        const mockOpen = jest.fn();
+        const handlers = {
+            open: mockOpen,
+            close: jest.fn(),
+            toggle: jest.fn(),
+        };
 
-        // Find section with time heading
+        render(
+            <DetailsCard {...defaultProps} calendarDrawerHandlers={handlers} />,
+        );
+
         const sections = screen.getAllByTestId("card-section");
-        const timeSection = sections[0]; // First one is time
+        const timeSection = sections[0];
 
         fireEvent.click(timeSection);
 
-        expect(
-            screen.getByRole("dialog", { name: "Add Game to Calendar" }),
-        ).toBeInTheDocument();
-        expect(
-            screen.getByTestId("calendar-details-drawer"),
-        ).toBeInTheDocument();
+        expect(mockOpen).toHaveBeenCalled();
     });
 
-    it("opens Location drawer when location section is clicked", () => {
-        render(<DetailsCard {...defaultProps} />);
+    it("calls locationDrawerHandlers.open when location section is clicked", () => {
+        const mockOpen = jest.fn();
+        const handlers = {
+            open: mockOpen,
+            close: jest.fn(),
+            toggle: jest.fn(),
+        };
 
-        // Find section with location heading
+        render(
+            <DetailsCard {...defaultProps} locationDrawerHandlers={handlers} />,
+        );
+
         const sections = screen.getAllByTestId("card-section");
-        const locationSection = sections[1]; // Second one is location
+        const locationSection = sections[1];
 
         fireEvent.click(locationSection);
 
-        expect(
-            screen.getByRole("dialog", { name: "Location Details" }),
-        ).toBeInTheDocument();
-        expect(screen.getByTestId("park-details-drawer")).toBeInTheDocument();
+        expect(mockOpen).toHaveBeenCalled();
     });
 });

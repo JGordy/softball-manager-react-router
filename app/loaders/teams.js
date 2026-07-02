@@ -44,12 +44,12 @@ export async function getUserTeams({ client, isDashboard = false }) {
                         // Fallback: Default to player if we somehow can't verify the role
                         playerTeamIds.push(team.$id);
                     }
-                } catch (error) {
+                } catch (_error) {
                     // Fallback on error too
                     playerTeamIds.push(team.$id);
                 }
             }
-        } catch (teamsApiError) {
+        } catch (_teamsApiError) {
             // Error fetching teams from Appwrite Teams API
         }
 

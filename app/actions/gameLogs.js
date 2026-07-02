@@ -141,7 +141,18 @@ export const logGameEvent = async ({
             hitY: normalizeOptionalField(hitY, parseFloat),
             hitLocation: normalizeOptionalField(hitLocation),
             battingSide: normalizeOptionalField(battingSide),
+            scored:
+                safeBaseState.scored && Array.isArray(safeBaseState.scored)
+                    ? safeBaseState.scored
+                    : [],
         };
+
+        const isHomeTeam =
+            game?.isHomeGame === true || game?.isHomeGame === "true";
+        const isOpponent =
+            eventType === "opponent_run" ||
+            (game != null &&
+                (isHomeTeam ? halfInning === "top" : halfInning === "bottom"));
 
         // If runs > 0, use transaction for atomicity
         if (runs > 0) {
@@ -149,7 +160,8 @@ export const logGameEvent = async ({
             const logId = ID.unique();
 
             // Read current score to calculate new score
-            const currentScore = parseInt(game.score || 0, 10);
+            const scoreField = isOpponent ? "opponentScore" : "score";
+            const currentScore = parseInt(game[scoreField] || 0, 10);
             const newScore = currentScore + runs;
 
             // Stage operations in transaction
@@ -168,7 +180,7 @@ export const logGameEvent = async ({
                     tableId: collections.games,
                     rowId: gameId,
                     data: {
-                        score: String(newScore),
+                        [scoreField]: String(newScore),
                     },
                 },
             ];
@@ -232,7 +244,17 @@ export const undoGameEvent = async ({ logId, client }) => {
 
             // Read current score to calculate reverted score
             const game = await readDocument("games", log.gameId, [], client);
-            const currentScore = parseInt(game.score || 0, 10);
+            const isHomeTeam =
+                game?.isHomeGame === true || game?.isHomeGame === "true";
+            const isOpponent =
+                log.eventType === "opponent_run" ||
+                (game != null &&
+                    (isHomeTeam
+                        ? log.halfInning === "top"
+                        : log.halfInning === "bottom"));
+
+            const scoreField = isOpponent ? "opponentScore" : "score";
+            const currentScore = parseInt(game[scoreField] || 0, 10);
             const newScore = Math.max(0, currentScore - runs);
 
             // Stage operations in transaction: update score first, then delete log
@@ -243,7 +265,7 @@ export const undoGameEvent = async ({ logId, client }) => {
                     tableId: collections.games,
                     rowId: log.gameId,
                     data: {
-                        score: String(newScore),
+                        [scoreField]: String(newScore),
                     },
                 },
                 {
@@ -257,11 +279,11 @@ export const undoGameEvent = async ({ logId, client }) => {
             await createOperations(transaction.$id, operations);
             await commitTransaction(transaction.$id);
 
-            return { success: true };
+            return { success: true, log };
         } else {
             // No score to revert, just delete the log
             await deleteDocument("game_logs", logId, client);
-            return { success: true };
+            return { success: true, log };
         }
     } catch (error) {
         console.error("Error undoing game event:", error);
@@ -390,45 +412,130 @@ export const updateGameEvent = async ({
                     runnerResults: parsedRunnerResults,
                 }),
             }),
+            scored:
+                parsedBase.scored && Array.isArray(parsedBase.scored)
+                    ? parsedBase.scored
+                    : [],
         };
         // Remove runnerResults from payload as it's not a root attribute
         delete logPayload.runnerResults;
+        const wasOpponent =
+            oldLog.eventType === "opponent_run" ||
+            (() => {
+                try {
+                    const parsed =
+                        typeof oldLog.baseState === "string"
+                            ? JSON.parse(oldLog.baseState)
+                            : oldLog.baseState;
+                    return !!parsed?.isOpponent;
+                } catch (_e) {
+                    return false;
+                }
+            })();
+
+        const isOpponent =
+            (newData.eventType || oldLog.eventType) === "opponent_run" ||
+            (() => {
+                try {
+                    const parsed =
+                        typeof logPayload.baseState === "string"
+                            ? JSON.parse(logPayload.baseState)
+                            : logPayload.baseState;
+                    return !!parsed?.isOpponent;
+                } catch (_e) {
+                    return false;
+                }
+            })();
 
         // 4. Update log and game score using the user-scoped client
-        if (rbiDelta !== 0) {
-            // Only fetch game when score update is needed
-            const game = await readDocument("games", gameId, [], client);
-            const currentScore = parseInt(game.score || 0, 10);
-            const newScore = Math.max(0, currentScore + rbiDelta);
+        if (wasOpponent === isOpponent) {
+            // No type transition: update a single field by rbiDelta if rbiDelta is non-zero
+            if (rbiDelta !== 0) {
+                const game = await readDocument("games", gameId, [], client);
+                const scoreField = isOpponent ? "opponentScore" : "score";
+                const currentScore = parseInt(game[scoreField] || 0, 10);
+                const newScore = Math.max(0, currentScore + rbiDelta);
 
-            // Update game score first; if it fails, the log is untouched (no rollback needed)
+                await updateDocument(
+                    "games",
+                    gameId,
+                    { [scoreField]: String(newScore) },
+                    client,
+                );
+                try {
+                    await updateDocument(
+                        "game_logs",
+                        logId,
+                        logPayload,
+                        client,
+                    );
+                } catch (logErr) {
+                    console.error(
+                        "Log update failed after score update; attempting score rollback:",
+                        logErr,
+                    );
+                    try {
+                        await updateDocument(
+                            "games",
+                            gameId,
+                            { [scoreField]: String(currentScore) },
+                            client,
+                        );
+                    } catch (rollbackErr) {
+                        console.error("Score rollback failed:", rollbackErr);
+                    }
+                    throw logErr;
+                }
+            } else {
+                await updateDocument("game_logs", logId, logPayload, client);
+            }
+        } else {
+            // Type transition!
+            // Deduct oldRbi from old score field, and add newRbi to new score field
+            const game = await readDocument("games", gameId, [], client);
+            const oldScoreField = wasOpponent ? "opponentScore" : "score";
+            const newScoreField = isOpponent ? "opponentScore" : "score";
+
+            const currentOldScore = parseInt(game[oldScoreField] || 0, 10);
+            const currentNewScore = parseInt(game[newScoreField] || 0, 10);
+
+            const nextOldScore = Math.max(0, currentOldScore - oldRbi);
+            const nextNewScore = Math.max(0, currentNewScore + newRbi);
+
             await updateDocument(
                 "games",
                 gameId,
-                { score: String(newScore) },
+                {
+                    [oldScoreField]: String(nextOldScore),
+                    [newScoreField]: String(nextNewScore),
+                },
                 client,
             );
             try {
                 await updateDocument("game_logs", logId, logPayload, client);
             } catch (logErr) {
                 console.error(
-                    "Log update failed after score update; attempting score rollback:",
+                    "Log update failed after transition score update; attempting rollback:",
                     logErr,
                 );
                 try {
                     await updateDocument(
                         "games",
                         gameId,
-                        { score: String(currentScore) },
+                        {
+                            [oldScoreField]: String(currentOldScore),
+                            [newScoreField]: String(currentNewScore),
+                        },
                         client,
                     );
                 } catch (rollbackErr) {
-                    console.error("Score rollback failed:", rollbackErr);
+                    console.error(
+                        "Score transition rollback failed:",
+                        rollbackErr,
+                    );
                 }
                 throw logErr;
             }
-        } else {
-            await updateDocument("game_logs", logId, logPayload, client);
         }
 
         // 5. Experimental Propagation logic:

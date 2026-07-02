@@ -44,7 +44,7 @@ export default function PlayerAwards({ awardsPromise, statsPromise }) {
                     setActiveAward(awardsList[index]);
                     setInitialSet(true);
                 }
-            } catch (err) {
+            } catch (_err) {
                 // ignore errors — leave defaults
                 // console.error(err);
             }
@@ -124,7 +124,7 @@ export default function PlayerAwards({ awardsPromise, statsPromise }) {
                         let data;
                         try {
                             data = await statsPromise;
-                        } catch (e) {
+                        } catch (_e) {
                             navigate(`/events/${gameId}?open=awards`);
                             return;
                         }

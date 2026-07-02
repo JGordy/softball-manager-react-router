@@ -90,6 +90,6 @@ describe("AddPlayersDrawer Component", () => {
             }),
         );
         expect(defaultProps.setHasBeenEdited).toHaveBeenCalledWith(true);
-        expect(defaultProps.onClose).toHaveBeenCalled();
+        expect(defaultProps.onClose).toHaveBeenCalledWith(true);
     });
 });

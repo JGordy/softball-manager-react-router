@@ -50,8 +50,8 @@ export function meta() {
 }
 
 // Check if user is already logged in, redirect to home if so
-export async function loader({ request }) {
-    return redirectIfAuthenticated(request);
+export async function loader({ request, context }) {
+    return redirectIfAuthenticated(request, context);
 }
 
 export async function action({ request }) {

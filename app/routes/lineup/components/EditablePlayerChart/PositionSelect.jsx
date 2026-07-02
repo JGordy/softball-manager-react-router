@@ -11,6 +11,7 @@ const PositionSelect = React.memo(
         positionData,
         playerLookup,
         error,
+        id,
     }) => {
         const renderSelectOption = useCallback(
             ({ option }) => {
@@ -43,6 +44,7 @@ const PositionSelect = React.memo(
 
         return (
             <Select
+                id={id}
                 key={`${row.player}-${inning}`}
                 value={row[inning]}
                 onChange={(event) =>
@@ -53,10 +55,16 @@ const PositionSelect = React.memo(
                 className={styles.positionSelect}
                 renderOption={renderSelectOption}
                 error={error}
-                comboboxProps={{ width: "max-content", withinPortal: false }}
+                comboboxProps={{
+                    width: "max-content",
+                    withinPortal: true,
+                    zIndex: 10000,
+                }}
             />
         );
     },
 );
+
+PositionSelect.displayName = "PositionSelect";
 
 export default PositionSelect;

@@ -18,6 +18,7 @@ describe("LastPlayCard", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         gamedayUtils.getRunnerMovement.mockReturnValue(["Runner to 2nd"]);
+        gamedayUtils.isOpponentPlay.mockReturnValue(false);
     });
 
     it("renders last play description", () => {
@@ -29,7 +30,7 @@ describe("LastPlayCard", () => {
                 playerChart={mockPlayerChart}
             />,
         );
-        expect(screen.getByText("LAST PLAY")).toBeInTheDocument();
+        expect(screen.getByText("Last Play")).toBeInTheDocument();
         expect(screen.getByText("John singles to left")).toBeInTheDocument();
     });
 
@@ -82,5 +83,42 @@ describe("LastPlayCard", () => {
             />,
         );
         expect(screen.getByRole("button", { name: "UNDO" })).toBeDisabled();
+    });
+
+    it("applies opponent styling when isOpponentPlay is true", () => {
+        gamedayUtils.isOpponentPlay.mockReturnValue(true);
+        render(
+            <LastPlayCard
+                lastLog={mockLog}
+                onUndo={mockOnUndo}
+                isSubmitting={false}
+                playerChart={mockPlayerChart}
+            />,
+        );
+
+        // Header text c color should be styled red
+        expect(screen.getByText("Opponent's Last Play")).toHaveStyle({
+            color: "var(--mantine-color-red-6)",
+        });
+    });
+
+    it("renders with tour class hooks (.tour-last-play-card and .tour-undo-play-btn)", () => {
+        const { container } = render(
+            <LastPlayCard
+                lastLog={mockLog}
+                onUndo={mockOnUndo}
+                isSubmitting={false}
+                playerChart={mockPlayerChart}
+            />,
+        );
+
+        // Card wrapper must have .tour-last-play-card
+        expect(
+            container.querySelector(".tour-last-play-card"),
+        ).toBeInTheDocument();
+
+        // Undo button must have .tour-undo-play-btn
+        const undoBtn = screen.getByRole("button", { name: "UNDO" });
+        expect(undoBtn).toHaveClass("tour-undo-play-btn");
     });
 });

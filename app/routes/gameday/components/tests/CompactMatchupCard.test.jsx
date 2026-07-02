@@ -1,8 +1,6 @@
 import { render, screen } from "@/utils/test-utils";
 import CompactMatchupCard from "../CompactMatchupCard";
 
-jest.mock("../DiamondView", () => () => <div data-testid="diamond-view" />);
-
 describe("CompactMatchupCard", () => {
     const defaultProps = {
         score: 2,
@@ -33,14 +31,16 @@ describe("CompactMatchupCard", () => {
         render(<CompactMatchupCard {...defaultProps} />);
         expect(screen.getByText("3")).toBeInTheDocument(); // inning
         expect(screen.getByText("Live")).toBeInTheDocument(); // realtime status
-        expect(screen.getByTestId("diamond-view")).toBeInTheDocument();
+        expect(screen.getByLabelText("Runner status")).toBeInTheDocument();
     });
 
     it("renders FINAL badge when gameFinal is true", () => {
         render(<CompactMatchupCard {...defaultProps} gameFinal={true} />);
         expect(screen.getByText("FINAL")).toBeInTheDocument();
         expect(screen.queryByText("3")).not.toBeInTheDocument(); // inning
-        expect(screen.queryByTestId("diamond-view")).not.toBeInTheDocument();
+        expect(
+            screen.queryByLabelText("Runner status"),
+        ).not.toBeInTheDocument();
     });
 
     it("renders batter cards when isOurBatting is true", () => {
@@ -55,5 +55,12 @@ describe("CompactMatchupCard", () => {
         render(<CompactMatchupCard {...defaultProps} isOurBatting={false} />);
         expect(screen.queryByText("CURRENT BATTER")).not.toBeInTheDocument();
         expect(screen.queryByText("UP NEXT")).not.toBeInTheDocument();
+    });
+
+    it("hides both current batter and up next cards when splitBatter is true", () => {
+        render(<CompactMatchupCard {...defaultProps} splitBatter={true} />);
+        expect(screen.queryByText("CURRENT BATTER")).not.toBeInTheDocument();
+        expect(screen.queryByText("UP NEXT")).not.toBeInTheDocument();
+        expect(screen.queryByText("Jane D.")).not.toBeInTheDocument();
     });
 });

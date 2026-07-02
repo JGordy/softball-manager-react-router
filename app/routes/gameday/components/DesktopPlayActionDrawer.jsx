@@ -22,10 +22,12 @@ import FieldHighlight from "./FieldHighlight";
 
 import { useRunnerProjection } from "../hooks/useRunnerProjection";
 import { getDrawerTitle, getActionColor } from "../utils/drawerUtils";
+import { UI_KEYS } from "@/constants/scoring";
 import {
     getFieldZone,
     getClampedCoordinates,
     getRelativePointerCoordinates,
+    resolveFlyPopOut,
 } from "../utils/fieldMapping";
 import ConfirmationPanel from "./ConfirmationPanel";
 
@@ -33,7 +35,7 @@ export default function DesktopPlayActionDrawer({
     opened,
     onClose,
     onSelect,
-    actionType,
+    actionType: initialActionType,
     runners,
     playerChart,
     currentBatter,
@@ -41,7 +43,7 @@ export default function DesktopPlayActionDrawer({
 }) {
     const isSwitchHitter = currentBatter?.bats?.toLowerCase() === "switch";
     const bats = isSwitchHitter
-        ? "left"
+        ? currentBatter?.defaultBats || "right"
         : currentBatter?.bats?.toLowerCase() || "right";
 
     const [selectedPosition, setSelectedPosition] = useState(null);
@@ -49,7 +51,29 @@ export default function DesktopPlayActionDrawer({
     const [hitCoordinates, setHitCoordinates] = useState({ x: null, y: null });
     const [isLocked, setIsLocked] = useState(false);
     const [showConfirmation, setShowConfirmation] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
+    const [isTouchDevice, setIsTouchDevice] = useState(false);
     const containerRef = useRef(null);
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            setIsTouchDevice(
+                window.matchMedia("(pointer: coarse)").matches ||
+                    navigator.maxTouchPoints > 0,
+            );
+        }
+    }, []);
+
+    // Resolve combined Fly/Pop dynamically based on current coordinates
+    const getResolvedActionType = () => {
+        if (initialActionType !== UI_KEYS.FLY_POP) return initialActionType;
+        if (hitCoordinates.x == null || hitCoordinates.y == null) {
+            return UI_KEYS.FLY_POP;
+        }
+        return resolveFlyPopOut(hitCoordinates.x, hitCoordinates.y);
+    };
+
+    const actionType = getResolvedActionType();
 
     const hitLocation = getFieldZone(
         hitCoordinates.x,
@@ -73,6 +97,7 @@ export default function DesktopPlayActionDrawer({
     }));
 
     // Reset state when drawer closes
+
     useEffect(() => {
         if (!opened) {
             setSelectedPosition(null);
@@ -80,6 +105,7 @@ export default function DesktopPlayActionDrawer({
             setBattingSide(bats || "right");
             setIsLocked(false);
             setShowConfirmation(false);
+            setIsDragging(false);
         }
     }, [opened, bats]);
 
@@ -102,15 +128,21 @@ export default function DesktopPlayActionDrawer({
         const constrainedX = Math.max(0, Math.min(100, x));
         const constrainedY = Math.max(0, Math.min(100, y));
 
-        // Handle hit boundaries and HR floors
+        // Handle hit boundaries and HR floors (pass initialActionType so Fly/Pop Out allows full range)
         const { x: finalX, y: finalY } = getClampedCoordinates(
             constrainedX,
             constrainedY,
-            actionType,
+            initialActionType,
         );
 
+        // Resolve action type dynamically from pointer coordinates
+        const resolvedType =
+            initialActionType === UI_KEYS.FLY_POP
+                ? resolveFlyPopOut(finalX, finalY)
+                : initialActionType;
+
         // Only update if it's fair territory
-        const location = getFieldZone(finalX, finalY, actionType);
+        const location = getFieldZone(finalX, finalY, resolvedType);
         if (location === "foul ball") return false;
 
         setHitCoordinates({ x: finalX, y: finalY });
@@ -122,7 +154,7 @@ export default function DesktopPlayActionDrawer({
         // For Fly Outs, only outfielders catch them.
         // For Pop Outs and others, anyone can be the fielder.
         const snapPositions =
-            actionType === "Fly Out"
+            resolvedType === "Fly Out"
                 ? positions.filter((p) =>
                       ["LF", "LC", "RC", "RF"].includes(p.value),
                   )
@@ -170,25 +202,49 @@ export default function DesktopPlayActionDrawer({
             <Paper radius="md" p="0">
                 <div
                     ref={containerRef}
-                    className={styles.imageContainer}
+                    className={`${styles.imageContainer} tour-spray-field`}
                     style={{ touchAction: "none", margin: "10px auto" }}
                     onContextMenu={(e) => e.preventDefault()}
                     onPointerDown={(e) => {
-                        if (!isLocked) {
-                            if (handlePointerEvent(e)) {
-                                setIsLocked(true);
+                        if (isTouchDevice) {
+                            setIsDragging(true);
+                            handlePointerEvent(e);
+                        } else {
+                            if (!isLocked) {
+                                if (handlePointerEvent(e)) {
+                                    setIsLocked(true);
+                                }
                             }
                         }
                     }}
                     onPointerMove={(e) => {
-                        if (!isLocked) {
-                            handlePointerEvent(e);
+                        if (isTouchDevice) {
+                            if (isDragging) {
+                                handlePointerEvent(e);
+                            }
+                        } else {
+                            if (!isLocked) {
+                                handlePointerEvent(e);
+                            }
+                        }
+                    }}
+                    onPointerUp={() => {
+                        if (isTouchDevice && isDragging) {
+                            setIsDragging(false);
+                            setIsLocked(true);
                         }
                     }}
                     onPointerLeave={() => {
-                        if (!isLocked) {
-                            setHitCoordinates({ x: null, y: null });
-                            setSelectedPosition(null);
+                        if (isTouchDevice) {
+                            if (isDragging) {
+                                setIsDragging(false);
+                                setIsLocked(true);
+                            }
+                        } else {
+                            if (!isLocked) {
+                                setHitCoordinates({ x: null, y: null });
+                                setSelectedPosition(null);
+                            }
                         }
                     }}
                 >
@@ -214,7 +270,7 @@ export default function DesktopPlayActionDrawer({
                         return (
                             <div
                                 key={pos.value}
-                                className={`${styles.fieldingPosition} ${className}`}
+                                className={`${styles.fieldingPosition} ${className} ${pos.value === "RF" ? "tour-field-position-rf" : ""}`}
                                 onClick={() => {
                                     if (!isLocked) {
                                         setSelectedPosition(pos.value);
@@ -259,7 +315,10 @@ export default function DesktopPlayActionDrawer({
                     {hitCoordinates.x !== null && (
                         <Tooltip
                             label={hitLocation || "Touch the field"}
-                            opened={!!hitLocation && !isLocked}
+                            opened={
+                                !!hitLocation &&
+                                (isTouchDevice ? isDragging : !isLocked)
+                            }
                             position="top"
                             offset={40}
                             withinPortal={false}
@@ -314,8 +373,9 @@ export default function DesktopPlayActionDrawer({
 
                 {!isLocked && !showConfirmation && (
                     <Text size="sm" ta="center" c="dimmed" my="sm">
-                        Hover over the field to find the hit location, then
-                        click to lock it in
+                        {isTouchDevice
+                            ? "Touch and drag to find the hit location, then release to lock it in"
+                            : "Hover over the field to find the hit location, then click to lock it in"}
                     </Text>
                 )}
 
@@ -338,6 +398,7 @@ export default function DesktopPlayActionDrawer({
                                     </Button>
                                 </Group>
                                 <Button
+                                    className="tour-proceed-advancement-btn"
                                     fullWidth
                                     color="blue"
                                     onClick={() => setShowConfirmation(true)}

@@ -1,12 +1,4 @@
-import {
-    Group,
-    Indicator,
-    Paper,
-    Grid,
-    Text,
-    Title,
-    Stack,
-} from "@mantine/core";
+import { Indicator, Paper, Grid, Text, Title, Stack } from "@mantine/core";
 
 export const KPIGrid = ({ stats }) => {
     const kpis = [
@@ -21,7 +13,7 @@ export const KPIGrid = ({ stats }) => {
     ];
 
     return (
-        <Grid gutter="xs">
+        <Grid gap="xs">
             {kpis.map((kpi) => (
                 <Grid.Col key={kpi.label} span={3}>
                     <Paper

@@ -1,12 +1,14 @@
 import { useState, useCallback } from "react";
 import { useFetcher } from "react-router";
 import { useDisclosure } from "@mantine/hooks";
-import { UI_BATTED_OUTS, UI_WALKS } from "@/constants/scoring";
+import { UI_BATTED_OUTS, UI_WALKS, UI_KEYS } from "@/constants/scoring";
+import { resolveFlyPopOut } from "../utils/fieldMapping";
 import {
     getEventDescription,
     getActivePlayerInSlot,
     handleWalk,
     handleRunnerResults,
+    getNextBatterIndex,
 } from "../utils/gamedayUtils";
 
 /**
@@ -34,7 +36,7 @@ export function useGamedayActions({
     outs,
     setOuts,
     setScore,
-    opponentScore,
+    opponentScore: _opponentScore,
     setOpponentScore,
     runners,
     setRunners,
@@ -42,6 +44,12 @@ export function useGamedayActions({
     setBattingOrderIndex,
     logs,
     isScorekeeper = false,
+    game,
+    currentBatter,
+    isOurBatting,
+    opponentOrderIndex,
+    setOpponentOrderIndex,
+    opponentChart,
 }) {
     const fetcher = useFetcher();
     const [pendingAction, setPendingAction] = useState(null);
@@ -61,14 +69,78 @@ export function useGamedayActions({
         }
     }, [halfInning, setHalfInning, setInning, setOuts, setRunners]);
 
-    const handleOpponentRun = useCallback(() => {
-        setOpponentScore((prev) => prev + 1);
+    const handleOpponentRun = useCallback(
+        (runs = 1) => {
+            const increment =
+                typeof runs === "number" && !isNaN(runs) ? runs : 1;
 
-        fetcher.submit(
-            { _action: "update-game-score", opponentScore: opponentScore + 1 },
-            { method: "post" },
-        );
-    }, [fetcher, opponentScore, setOpponentScore]);
+            if (!team?.$id) return;
+
+            fetcher.submit(
+                {
+                    _action: "log-game-event",
+                    teamId: team?.$id,
+                    inning,
+                    halfInning,
+                    eventType: "opponent_run",
+                    rbi: increment,
+                    outsOnPlay: 0,
+                    description: `${game?.opponent || "Opponent"} scored ${increment} ${increment === 1 ? "run" : "runs"}`,
+                    baseState: JSON.stringify({ isOpponent: true }),
+                },
+                { method: "post" },
+            );
+
+            // Update local state ONLY if the user isScorekeeper
+            if (isScorekeeper) {
+                setOpponentScore((prev) => prev + increment);
+            }
+        },
+        [
+            fetcher,
+            game?.opponent,
+            halfInning,
+            inning,
+            isScorekeeper,
+            setOpponentScore,
+            team?.$id,
+        ],
+    );
+    const handleSelectOpponentBatter = useCallback(
+        (index) => {
+            if (!isScorekeeper || !team?.$id) return;
+
+            const opponentId =
+                opponentChart?.[index]?.$id || `OPP_BAT_${index + 1}`;
+
+            fetcher.submit(
+                {
+                    _action: "log-game-event",
+                    teamId: team?.$id,
+                    inning,
+                    halfInning,
+                    eventType: "opponent_lineup_pointer",
+                    playerId: opponentId,
+                    rbi: 0,
+                    outsOnPlay: 0,
+                    description: `Lineup advanced to Batter ${index + 1}`,
+                    baseState: JSON.stringify({ isOpponent: true }),
+                },
+                { method: "post" },
+            );
+
+            setOpponentOrderIndex(index);
+        },
+        [
+            fetcher,
+            team?.$id,
+            inning,
+            halfInning,
+            isScorekeeper,
+            setOpponentOrderIndex,
+            opponentChart,
+        ],
+    );
 
     const handleOpponentOut = useCallback(() => {
         let isInningOver = false;
@@ -87,7 +159,7 @@ export function useGamedayActions({
     }, [advanceHalfInning, outs, setOuts]);
 
     const completeAction = useCallback(
-        (actionType, payload = null) => {
+        (actionTypeInput, payload = null) => {
             const position = payload?.position || null;
             const runnerResults = payload?.runnerResults || null;
             const hitCoordinates = payload?.hitCoordinates || {
@@ -97,9 +169,19 @@ export function useGamedayActions({
             const hitLocation = payload?.hitLocation || null;
             const battingSide = payload?.battingSide || "right";
 
+            // Resolve combined Fly/Pop Out
+            let actionType = actionTypeInput;
+            if (actionTypeInput === UI_KEYS.FLY_POP) {
+                actionType = resolveFlyPopOut(
+                    hitCoordinates.x,
+                    hitCoordinates.y,
+                );
+            }
+
             // Resolve the active player for this slot (may be a substitute)
-            const slot = playerChart[battingOrderIndex];
-            const activePlayer = getActivePlayerInSlot(slot);
+            const activePlayer = isOurBatting
+                ? getActivePlayerInSlot(currentBatter)
+                : currentBatter;
             const activePlayerId = activePlayer.playerId ?? activePlayer.$id;
             const batterName =
                 `${activePlayer.firstName || ""}${activePlayer.lastName ? " " + activePlayer.lastName : ""}`.trim();
@@ -124,6 +206,7 @@ export function useGamedayActions({
                 );
             } else if (
                 actionType === "K" ||
+                actionType === "injury_auto_out" ||
                 UI_BATTED_OUTS.includes(actionType)
             ) {
                 result = handleAutomaticOut(runners);
@@ -140,10 +223,12 @@ export function useGamedayActions({
 
             const { newRunners, runsOnPlay, outsRecorded } = result;
 
+            if (!team?.$id) return;
+
             fetcher.submit(
                 {
                     _action: "log-game-event",
-                    teamId: team.$id,
+                    teamId: team?.$id,
                     inning,
                     halfInning,
                     playerId: activePlayerId,
@@ -155,7 +240,10 @@ export function useGamedayActions({
                     hitY: hitCoordinates.y,
                     hitLocation,
                     battingSide,
-                    baseState: JSON.stringify(newRunners),
+                    baseState: JSON.stringify({
+                        ...newRunners,
+                        isOpponent: !isOurBatting,
+                    }),
                     ...(runnerResults
                         ? { runnerResults: JSON.stringify(runnerResults) }
                         : {}),
@@ -173,10 +261,25 @@ export function useGamedayActions({
                     setRunners(newRunners);
                 }
 
-                setScore((prev) => prev + runsOnPlay);
-                setBattingOrderIndex(
-                    (battingOrderIndex + 1) % playerChart.length,
-                );
+                if (isOurBatting) {
+                    setScore((prev) => prev + runsOnPlay);
+                    setBattingOrderIndex(
+                        getNextBatterIndex(battingOrderIndex, playerChart),
+                    );
+                } else {
+                    setOpponentScore((prev) => prev + runsOnPlay);
+                    if (game.opponentLineupLocked) {
+                        const chartLength = Math.max(
+                            opponentChart?.length || 1,
+                            1,
+                        );
+                        setOpponentOrderIndex(
+                            (opponentOrderIndex + 1) % chartLength,
+                        );
+                    } else {
+                        setOpponentOrderIndex(opponentOrderIndex + 1);
+                    }
+                }
             }
 
             setPendingAction(null);
@@ -194,10 +297,17 @@ export function useGamedayActions({
             playerChart,
             runners,
             setBattingOrderIndex,
+            setOpponentOrderIndex,
             setOuts,
             setRunners,
             setScore,
-            team.$id,
+            setOpponentScore,
+            team?.$id,
+            isOurBatting,
+            currentBatter,
+            opponentChart,
+            game,
+            opponentOrderIndex,
         ],
     );
 
@@ -211,7 +321,7 @@ export function useGamedayActions({
      */
     const handleSubCurrentBatter = useCallback(
         (incomingPlayer, slotIndex, currentPlayerChart, onChartUpdate) => {
-            if (!isScorekeeper) return;
+            if (!isScorekeeper || !team?.$id) return;
 
             const slot = currentPlayerChart[slotIndex];
             const outgoingPlayer = getActivePlayerInSlot(slot);
@@ -244,7 +354,7 @@ export function useGamedayActions({
                 {
                     _action: "substitute-player",
                     playerChart: JSON.stringify(updatedChart),
-                    teamId: team.$id,
+                    teamId: team?.$id,
                     inning,
                     halfInning,
                     playerId: incomingPlayer.$id,
@@ -261,7 +371,60 @@ export function useGamedayActions({
                 { method: "post" },
             );
         },
-        [fetcher, halfInning, inning, isScorekeeper, runners, team.$id],
+        [fetcher, halfInning, inning, isScorekeeper, runners, team?.$id],
+    );
+
+    const handleRemovePlayer = useCallback(
+        (slotIndex, removalType, currentPlayerChart, onChartUpdate) => {
+            if (!isScorekeeper || !team?.$id) return;
+
+            const slot = currentPlayerChart[slotIndex];
+            const activePlayer = getActivePlayerInSlot(slot);
+            const activePlayerId = activePlayer.playerId ?? activePlayer.$id;
+            const playerName =
+                `${activePlayer.firstName || ""}${activePlayer.lastName ? " " + activePlayer.lastName : ""}`.trim();
+
+            const updatedChart = currentPlayerChart.map((s, idx) => {
+                if (idx !== slotIndex) return s;
+                return {
+                    ...s,
+                    removed: true,
+                    removalType,
+                    removalInning: inning,
+                };
+            });
+
+            // Notify parent to update local state
+            onChartUpdate(updatedChart);
+
+            const descType =
+                removalType === "skip"
+                    ? "skip future at-bats"
+                    : "automatic out";
+            const description = `${playerName} removed due to injury (${descType})`;
+
+            fetcher.submit(
+                {
+                    _action: "substitute-player",
+                    playerChart: JSON.stringify(updatedChart),
+                    teamId: team?.$id,
+                    inning,
+                    halfInning,
+                    playerId: activePlayerId,
+                    eventType: "INJURY_REMOVE",
+                    rbi: 0,
+                    outsOnPlay: 0,
+                    description,
+                    hitX: null,
+                    hitY: null,
+                    hitLocation: null,
+                    battingSide: null,
+                    baseState: JSON.stringify(runners),
+                },
+                { method: "post" },
+            );
+        },
+        [fetcher, halfInning, inning, isScorekeeper, runners, team?.$id],
     );
 
     const initiateAction = useCallback(
@@ -331,9 +494,11 @@ export function useGamedayActions({
         advanceHalfInning,
         handleOpponentRun,
         handleOpponentOut,
+        handleSelectOpponentBatter,
         initiateAction,
         completeAction,
         handleSubCurrentBatter,
+        handleRemovePlayer,
         undoLast,
         updateAction,
         isSubmitting,

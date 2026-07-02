@@ -10,7 +10,7 @@ export default function CardSection({
     rightSection = <IconChevronRight size={18} />,
 }) {
     return (
-        <Card.Section my="xs" inheritPadding>
+        <Card.Section my="xs" px="md">
             <Group justify="space-between" c="lime" onClick={onClick}>
                 <Group gap="xs" c="lime">
                     {leftSection}

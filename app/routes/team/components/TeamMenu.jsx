@@ -13,6 +13,7 @@ import {
     IconSettings,
     IconShirtSport,
     IconUserMinus,
+    IconTags,
 } from "@tabler/icons-react";
 
 import AddTeam from "@/forms/AddTeam";
@@ -25,6 +26,7 @@ import useModal from "@/hooks/useModal";
 import MenuContainer from "@/components/MenuContainer";
 
 import ManageRolesDrawer from "./ManageRolesDrawer";
+import PlayerLabelsDrawer from "./PlayerLabelsDrawer";
 import PreferencesDrawer from "./PreferencesDrawer";
 import BulkJerseyNumberModal from "./BulkJerseyNumberModal";
 import RemovePlayersDrawer from "./RemovePlayersDrawer";
@@ -39,6 +41,8 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
         { open: openPreferences, close: closePreferences },
     ] = useDisclosure(false);
     const [removeOpened, { open: openRemove, close: closeRemove }] =
+        useDisclosure(false);
+    const [labelsOpened, { open: openLabels, close: closeLabels }] =
         useDisclosure(false);
 
     const { $id: teamId, name: teamName, seasons, primaryColor } = team;
@@ -132,7 +136,7 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
             ],
         },
         {
-            label: "Roster",
+            label: "Lineup Options",
             items: [
                 {
                     key: "ideal-lineup",
@@ -140,12 +144,27 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                     leftSection: <IconClipboardList size={18} />,
                     content: <Text>Set Lineups</Text>,
                 },
-                // {
-                //     key: "add-player",
-                //     onClick: openAddPlayerModal,
-                //     leftSection: <IconUserFilled size={18} />,
-                //     content: <Text>Add Player</Text>,
-                // },
+                ...(ownerView
+                    ? [
+                          {
+                              key: "manage-labels",
+                              onClick: openLabels,
+                              leftSection: <IconTags size={18} />,
+                              content: <Text>Player Labels</Text>,
+                          },
+                          {
+                              key: "preferences",
+                              onClick: openPreferences,
+                              leftSection: <IconSettings size={18} />,
+                              content: <Text>Rules</Text>,
+                          },
+                      ]
+                    : []),
+            ],
+        },
+        {
+            label: "Roster",
+            items: [
                 {
                     key: "invite-player",
                     onClick: openInvitePlayerModal,
@@ -164,33 +183,23 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                     leftSection: <IconUserMinus size={18} />,
                     content: <Text>Remove Players</Text>,
                 },
+                ...(ownerView
+                    ? [
+                          {
+                              key: "manage-roles",
+                              onClick: openRoles,
+                              leftSection: <IconShieldLock size={18} />,
+                              content: <Text>Manage Roles</Text>,
+                          },
+                      ]
+                    : []),
             ],
         },
     ];
 
-    if (ownerView) {
-        sections.push({
-            label: "Admin",
-            items: [
-                {
-                    key: "manage-roles",
-                    onClick: openRoles,
-                    leftSection: <IconShieldLock size={18} />,
-                    content: <Text>Manage Roles</Text>,
-                },
-                {
-                    key: "preferences",
-                    onClick: openPreferences,
-                    leftSection: <IconSettings size={18} />,
-                    content: <Text>Preferences</Text>,
-                },
-            ],
-        });
-    }
-
     return (
         <>
-            <MenuContainer sections={sections} />
+            <MenuContainer sections={sections} id="team-details-menu" />
             <ManageRolesDrawer
                 opened={rolesOpened}
                 onClose={closeRoles}
@@ -209,6 +218,12 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                 players={players}
                 teamId={teamId}
                 userId={userId}
+            />
+            <PlayerLabelsDrawer
+                opened={labelsOpened}
+                onClose={closeLabels}
+                team={team}
+                players={players}
             />
         </>
     );

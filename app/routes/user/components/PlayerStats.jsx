@@ -84,7 +84,12 @@ export default function PlayerStats({ statsPromise, isDesktop }) {
                     );
                 }
 
-                const { logs = [], games = [], teams = [] } = data || {};
+                const {
+                    userId,
+                    logs = [],
+                    games = [],
+                    teams = [],
+                } = data || {};
 
                 if (!logs.length) {
                     return (
@@ -119,16 +124,27 @@ export default function PlayerStats({ statsPromise, isDesktop }) {
                     return new Date(gameB.gameDate) - new Date(gameA.gameDate);
                 });
 
-                // Take up to the last 10 games
-                const last10GameIds = sortedGameIds.slice(0, 10);
+                // Take up to the last 20 games
+                const recentGameIds = sortedGameIds.slice(0, 20);
+                const recentGameIdsSet = new Set(recentGameIds);
 
-                const overallStats = calculatePlayerStats(logs);
+                // Filter logs to only include the recent games so the overall stats match the "Last X Games" label
+                const recentLogs = logs.filter((log) =>
+                    recentGameIdsSet.has(log.gameId),
+                );
+
+                const overallStats = calculatePlayerStats(recentLogs, userId);
+
+                // Filter logs to only include the user's at-bats for the spray chart
+                const userRecentLogs = recentLogs.filter(
+                    (log) => log.playerId === userId,
+                );
 
                 return (
                     <Stack gap="md" mt="md">
                         <Paper withBorder p="md" radius="md">
                             <Text fw={700} mb="xs">
-                                Last {last10GameIds.length} Games
+                                Last {recentGameIds.length} Games
                             </Text>
                             <Group my="md" grow>
                                 <Stack gap={0} align="center">
@@ -189,6 +205,7 @@ export default function PlayerStats({ statsPromise, isDesktop }) {
                                     <Table.Tr>
                                         <Table.Th>AB</Table.Th>
                                         <Table.Th>H</Table.Th>
+                                        <Table.Th>R</Table.Th>
                                         <Table.Th>RBI</Table.Th>
                                         <Table.Th>2B</Table.Th>
                                         <Table.Th>3B</Table.Th>
@@ -200,6 +217,7 @@ export default function PlayerStats({ statsPromise, isDesktop }) {
                                     <Table.Tr>
                                         <Table.Td>{overallStats.ab}</Table.Td>
                                         <Table.Td>{overallStats.hits}</Table.Td>
+                                        <Table.Td>{overallStats.runs}</Table.Td>
                                         <Table.Td>{overallStats.rbi}</Table.Td>
                                         <Table.Td>
                                             {overallStats.doubles}
@@ -227,7 +245,7 @@ export default function PlayerStats({ statsPromise, isDesktop }) {
                             </Button>
                         </Paper>
 
-                        {last10GameIds.map((gameId) => {
+                        {recentGameIds.map((gameId) => {
                             const game = gamesMap[gameId];
                             const gameLogs = logsByGame[gameId];
 
@@ -238,6 +256,7 @@ export default function PlayerStats({ statsPromise, isDesktop }) {
                                     key={gameId}
                                     game={game}
                                     logs={gameLogs}
+                                    userId={userId}
                                     onClick={() =>
                                         handleGameClick(game, gameLogs)
                                     }
@@ -250,6 +269,7 @@ export default function PlayerStats({ statsPromise, isDesktop }) {
                             onClose={close}
                             game={selectedGame?.game}
                             logs={selectedGame?.logs}
+                            userId={userId}
                         />
 
                         <DrawerContainer
@@ -258,7 +278,10 @@ export default function PlayerStats({ statsPromise, isDesktop }) {
                             title="Contact Spray Chart"
                             size={isDesktop ? "md" : "xl"}
                         >
-                            <ContactSprayChart hits={logs} />
+                            <ContactSprayChart
+                                hits={userRecentLogs}
+                                layout="stacked"
+                            />
                         </DrawerContainer>
                     </Stack>
                 );
