@@ -21,7 +21,10 @@ const mockCreateSession = jest.fn().mockResolvedValue({
     secret: "test-session-secret",
 });
 jest.mock("node-appwrite", () => ({
-    Query: { equal: jest.fn((k, v) => ({ key: k, value: v })) },
+    Query: {
+        equal: jest.fn((k, v) => ({ key: k, value: v })),
+        limit: jest.fn((v) => ({ limit: v })),
+    },
     Permission: {
         read: jest.fn(),
         write: jest.fn(),
