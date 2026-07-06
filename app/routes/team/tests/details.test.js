@@ -318,6 +318,63 @@ describe("TeamDetails Route", () => {
                 invitationsActions.syncInvitedPlayersServer,
             ).not.toHaveBeenCalled();
         });
+
+        it("calls removePlayersFromTeam for remove-players action when membershipIds is a JSON string", async () => {
+            const formData = new FormData();
+            formData.append("_action", "remove-players");
+            formData.append("membershipIds", JSON.stringify(["m1", "m2"]));
+            const request = {
+                formData: () => Promise.resolve(formData),
+                headers: { get: jest.fn() },
+            };
+
+            await action({ request, params, context: mockContext });
+            expect(teamsActions.removePlayersFromTeam).toHaveBeenCalledWith({
+                teamId: "team1",
+                membershipIds: ["m1", "m2"],
+                client: expect.any(Object),
+            });
+        });
+
+        it("calls removePlayersFromTeam for remove-players action when membershipIds is already an array in JSON request", async () => {
+            const request = {
+                url: "http://localhost/team/team1",
+                json: () =>
+                    Promise.resolve({
+                        _action: "remove-players",
+                        membershipIds: ["m1", "m2"],
+                    }),
+                headers: { get: jest.fn(() => "application/json") },
+            };
+
+            await action({ request, params, context: mockContext });
+            expect(teamsActions.removePlayersFromTeam).toHaveBeenCalledWith({
+                teamId: "team1",
+                membershipIds: ["m1", "m2"],
+                client: expect.any(Object),
+            });
+        });
+
+        it("returns error response for remove-players action with invalid membershipIds", async () => {
+            const formData = new FormData();
+            formData.append("_action", "remove-players");
+            formData.append("membershipIds", "invalid-json");
+            const request = {
+                formData: () => Promise.resolve(formData),
+                headers: { get: jest.fn() },
+            };
+
+            const result = await action({
+                request,
+                params,
+                context: mockContext,
+            });
+            expect(result).toEqual({
+                success: false,
+                message: "Invalid membershipIds format",
+            });
+            expect(teamsActions.removePlayersFromTeam).not.toHaveBeenCalled();
+        });
     });
 
     describe("Component", () => {

@@ -149,9 +149,10 @@ export async function action({ request, params, context }) {
     if (_action === "remove-players") {
         let membershipIds = [];
         try {
-            membershipIds = values.membershipIds
-                ? JSON.parse(values.membershipIds)
-                : [];
+            membershipIds =
+                typeof values.membershipIds === "string"
+                    ? JSON.parse(values.membershipIds)
+                    : values.membershipIds || [];
             if (!Array.isArray(membershipIds)) {
                 throw new Error("membershipIds must be an array");
             }

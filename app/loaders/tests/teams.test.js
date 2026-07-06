@@ -248,6 +248,7 @@ describe("Teams Loader", () => {
             expect(result.isArchiveView).toBe(true);
             expect(result.teamData.$id).toBe("team1");
             expect(result.teamData.seasons).toHaveLength(1);
+            expect(result.players).toEqual([]);
         });
 
         it("should throw original permission error if no season_rosters records exist", async () => {

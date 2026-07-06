@@ -117,7 +117,7 @@ export async function getSeasonById({ seasonId, client }) {
         let logs = [];
         if (season.teamId) {
             try {
-                const { getTeamById } = await import("./teams");
+                const { getTeamById } = await import("@/loaders/teams");
                 const teamInfo = await getTeamById({
                     teamId: season.teamId,
                     client: activeClient,
@@ -134,10 +134,29 @@ export async function getSeasonById({ seasonId, client }) {
                 });
                 const seasonPlayerIds = seasonRoster.map((r) => r.playerId);
 
-                // Filter team players to only those who are on the season roster
-                players = teamPlayers.filter((p) =>
-                    seasonPlayerIds.includes(p.$id),
-                );
+                if (isArchiveView) {
+                    // Hydrate players directly from user documents to include historical/former players
+                    if (seasonPlayerIds.length > 0) {
+                        const { listDocuments: listDocs } = await import(
+                            "@/utils/databases"
+                        );
+                        const usersResponse = await listDocs(
+                            "users",
+                            [
+                                Query.equal("$id", seasonPlayerIds),
+                                Query.limit(100),
+                            ],
+                            activeClient,
+                        );
+                        players = usersResponse.rows || [];
+                    }
+                    teamPlayers = []; // Clear current roster to protect PII
+                } else {
+                    // Filter team players to only those who are on the season roster
+                    players = teamPlayers.filter((p) =>
+                        seasonPlayerIds.includes(p.$id),
+                    );
+                }
 
                 const gameIds = season.games.map((g) => g.$id);
                 if (gameIds.length > 0) {

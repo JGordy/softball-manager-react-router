@@ -510,6 +510,10 @@ export async function getTeamById({ teamId, client }) {
         // Attach seasons to teamData
         teamData.seasons = seasons;
 
+        if (isArchiveView) {
+            players = [];
+        }
+
         return {
             teamData,
             players,

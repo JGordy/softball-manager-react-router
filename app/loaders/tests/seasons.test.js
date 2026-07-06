@@ -23,6 +23,9 @@ jest.mock("@/utils/appwrite/server", () => ({
 jest.mock("@/actions/rosterHistory", () => ({
     getSeasonRoster: jest.fn(),
 }));
+jest.mock("@/loaders/teams", () => ({
+    getTeamById: jest.fn(),
+}));
 
 describe("Seasons Loader", () => {
     const mockSessionClient = {
@@ -48,6 +51,9 @@ describe("Seasons Loader", () => {
 
         const { getSeasonRoster } = require("@/actions/rosterHistory");
         getSeasonRoster.mockResolvedValue([]);
+
+        const { getTeamById } = require("@/loaders/teams");
+        getTeamById.mockResolvedValue({ players: [], teamLogs: [] });
     });
 
     describe("getSeasonById", () => {
@@ -108,13 +114,55 @@ describe("Seasons Loader", () => {
 
             expect(result.isArchiveView).toBe(true);
             expect(result.season.$id).toBe("season1");
-            // The team should be read using the admin client
             expect(readDocument).toHaveBeenLastCalledWith(
                 "teams",
                 "team1",
                 [],
                 mockAdminClient,
             );
+        });
+
+        it("should shield PII by clearing teamPlayers and hydrating players directly from users collection if isArchiveView is true", async () => {
+            const mockSeason = {
+                $id: "season1",
+                name: "Fall 2023",
+                teamId: "team1",
+            };
+            const mockTeam = { $id: "team1", name: "Team 1" };
+
+            // User client fails with permission error
+            readDocument.mockRejectedValueOnce(new Error("Permission denied"));
+
+            // Admin client succeeds
+            listDocuments
+                .mockResolvedValueOnce({ rows: [{ playerId: "user-123" }] }) // for season_rosters check
+                .mockResolvedValueOnce({ rows: [] }) // for games list
+                .mockResolvedValueOnce({
+                    rows: [
+                        {
+                            $id: "user-123",
+                            firstName: "Archived",
+                            email: "archived@example.com",
+                        },
+                    ],
+                }); // for users list
+
+            readDocument
+                .mockResolvedValueOnce(mockSeason) // for season read
+                .mockResolvedValueOnce(mockTeam); // for team read
+
+            const { getSeasonRoster } = require("@/actions/rosterHistory");
+            getSeasonRoster.mockResolvedValueOnce([{ playerId: "user-123" }]);
+
+            const result = await getSeasonById({
+                seasonId: "season1",
+                client: mockSessionClient,
+            });
+
+            expect(result.isArchiveView).toBe(true);
+            expect(result.players).toHaveLength(1);
+            expect(result.players[0].firstName).toBe("Archived");
+            expect(result.teamPlayers).toEqual([]); // teamPlayers is cleared!
         });
 
         it("should throw original permission error if user is not in season_rosters", async () => {
