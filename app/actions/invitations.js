@@ -478,6 +478,42 @@ export async function invitePlayersServer({ players, teamId, url, client }) {
                         adminClient,
                     );
                 }
+
+                // Auto-add to active/upcoming seasons
+                try {
+                    const { listDocuments } = await import("@/utils/databases");
+                    const seasonsResponse = await listDocuments(
+                        "seasons",
+                        [Query.equal("teamId", teamId)],
+                        adminClient,
+                    );
+                    const activeSeasons = seasonsResponse.rows || [];
+                    const nowIso = new Date().toISOString();
+                    const currentActiveSeasons = activeSeasons.filter(
+                        (s) => !s.endDate || s.endDate >= nowIso,
+                    );
+
+                    if (currentActiveSeasons.length > 0) {
+                        const { addPlayersToSeasonRoster } = await import(
+                            "@/actions/rosterHistory"
+                        );
+                        const seasonPromises = currentActiveSeasons.map(
+                            (season) =>
+                                addPlayersToSeasonRoster({
+                                    playerIds: [currentUserId],
+                                    teamId,
+                                    seasonId: season.$id,
+                                    client: adminClient,
+                                }),
+                        );
+                        await Promise.all(seasonPromises);
+                    }
+                } catch (seasonErr) {
+                    console.error(
+                        "Failed to auto-add invited player to active seasons:",
+                        seasonErr,
+                    );
+                }
             } catch (shadowError) {
                 console.error("Shadow sync failed:", shadowError);
             }
