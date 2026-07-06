@@ -161,6 +161,34 @@ describe("rosterHistory Actions", () => {
                 mockClient,
             );
         });
+
+        it("should normalize, filter, and deduplicate playerIds inputs", async () => {
+            listDocuments.mockResolvedValue({
+                rows: [{ $id: "season-456_player-1", playerId: "player-1" }],
+            });
+            createDocument.mockResolvedValue({});
+            deleteDocument.mockResolvedValue({});
+
+            // Target roster has duplicate "player-2", empty string, and nulls
+            const result = await updateSeasonRoster({
+                playerIds: ["player-1", "player-2", "player-2", "", null, 123],
+                teamId,
+                seasonId,
+                client: mockClient,
+            });
+
+            expect(result.success).toBe(true);
+            // Verify addition of only one player-2 (no duplicate addition, no empty/invalid additions)
+            expect(createDocument).toHaveBeenCalledTimes(1);
+            expect(createDocument).toHaveBeenCalledWith(
+                "season_rosters",
+                "unique()",
+                expect.objectContaining({ playerId: "player-2" }),
+                expect.any(Array),
+                "admin-client-mock",
+            );
+            expect(deleteDocument).not.toHaveBeenCalled();
+        });
     });
 
     describe("getSeasonRoster", () => {

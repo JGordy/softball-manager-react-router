@@ -63,10 +63,52 @@ export async function action({ request, params, context }) {
     }
 
     if (_action === "update-season-roster") {
-        const { updateSeasonRoster } = await import("@/actions/rosterHistory");
-        const playerIds = values.playerIds ? JSON.parse(values.playerIds) : [];
-        const { teamId } = values;
-        return updateSeasonRoster({ playerIds, teamId, seasonId, client });
+        let playerIds = [];
+        try {
+            playerIds = values.playerIds ? JSON.parse(values.playerIds) : [];
+            if (!Array.isArray(playerIds)) {
+                throw new Error("playerIds must be an array");
+            }
+        } catch {
+            return { success: false, message: "Invalid playerIds format" };
+        }
+
+        try {
+            const { getSeasonById } = await import("@/loaders/seasons");
+            const { season } = await getSeasonById({ seasonId, client });
+            if (!season || !season.teamId) {
+                return { success: false, message: "Season not found" };
+            }
+
+            const { getTeamById } = await import("@/loaders/teams");
+            const { managerIds } = await getTeamById({
+                teamId: season.teamId,
+                client,
+            });
+
+            const { account } = client;
+            const currentUser = await account.get();
+            const userId = currentUser?.$id;
+
+            if (!userId || !managerIds.includes(userId)) {
+                return {
+                    success: false,
+                    message:
+                        "Unauthorized: You do not have permission to manage this roster.",
+                };
+            }
+
+            const { updateSeasonRoster } = await import(
+                "@/actions/rosterHistory"
+            );
+            const { teamId } = values;
+            return updateSeasonRoster({ playerIds, teamId, seasonId, client });
+        } catch (err) {
+            return {
+                success: false,
+                message: err.message || "Failed to update roster",
+            };
+        }
     }
 }
 

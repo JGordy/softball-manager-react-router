@@ -76,14 +76,25 @@ export async function updateSeasonRoster({
     seasonId,
     client,
 }) {
+    // 0. Normalize playerIds safely (deduplicate and filter out falsy/non-string items)
+    const normalizedPlayerIds = Array.isArray(playerIds)
+        ? Array.from(
+              new Set(
+                  playerIds.filter(
+                      (id) => typeof id === "string" && id.trim() !== "",
+                  ),
+              ),
+          )
+        : [];
+
     // 1. Get current season roster entries
     const currentRoster = await getSeasonRoster({ seasonId, client });
     const currentIds = currentRoster.map((r) => r.playerId);
 
     // 2. Identify additions and removals
-    const toAdd = playerIds.filter((id) => !currentIds.includes(id));
+    const toAdd = normalizedPlayerIds.filter((id) => !currentIds.includes(id));
     const toRemove = currentRoster.filter(
-        (r) => !playerIds.includes(r.playerId),
+        (r) => !normalizedPlayerIds.includes(r.playerId),
     );
 
     // 3. Perform additions

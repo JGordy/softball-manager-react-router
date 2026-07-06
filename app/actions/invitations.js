@@ -484,7 +484,7 @@ export async function invitePlayersServer({ players, teamId, url, client }) {
                     const { listDocuments } = await import("@/utils/databases");
                     const seasonsResponse = await listDocuments(
                         "seasons",
-                        [Query.equal("teamId", teamId)],
+                        [Query.equal("teamId", teamId), Query.limit(100)],
                         adminClient,
                     );
                     const activeSeasons = seasonsResponse.rows || [];

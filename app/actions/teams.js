@@ -431,15 +431,15 @@ export async function removePlayersFromTeam({ teamId, membershipIds, client }) {
         }
 
         // Perform removals
-        const removePromises = membershipIds.map((membershipId) =>
-            removeTeamMember({ teamId, membershipId }),
+        const removePromises = targetMemberships.map((m) =>
+            removeTeamMember({ teamId, membershipId: m.$id }),
         );
 
         await Promise.all(removePromises);
 
         return {
             success: true,
-            message: `${membershipIds.length} player(s) removed successfully`,
+            message: `${targetMemberships.length} player(s) removed successfully`,
         };
     } catch (error) {
         console.error("Error removing players from team:", error);

@@ -147,9 +147,17 @@ export async function action({ request, params, context }) {
     }
 
     if (_action === "remove-players") {
-        const membershipIds = values.membershipIds
-            ? JSON.parse(values.membershipIds)
-            : [];
+        let membershipIds = [];
+        try {
+            membershipIds = values.membershipIds
+                ? JSON.parse(values.membershipIds)
+                : [];
+            if (!Array.isArray(membershipIds)) {
+                throw new Error("membershipIds must be an array");
+            }
+        } catch {
+            return { success: false, message: "Invalid membershipIds format" };
+        }
         return removePlayersFromTeam({ teamId, membershipIds, client });
     }
 }
