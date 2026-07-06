@@ -101,8 +101,12 @@ export async function action({ request, params, context }) {
             const { updateSeasonRoster } = await import(
                 "@/actions/rosterHistory"
             );
-            const { teamId } = values;
-            return updateSeasonRoster({ playerIds, teamId, seasonId, client });
+            return updateSeasonRoster({
+                playerIds,
+                teamId: season.teamId,
+                seasonId,
+                client,
+            });
         } catch (err) {
             return {
                 success: false,

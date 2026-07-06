@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
     Stack,
     Group,
@@ -38,6 +38,15 @@ export default function RemovePlayersDrawer({
 }) {
     const [selectedIds, setSelectedIds] = useState([]);
     const [confirming, setConfirming] = useState(false);
+    const resetTimeoutRef = useRef(null);
+
+    useEffect(() => {
+        return () => {
+            if (resetTimeoutRef.current) {
+                clearTimeout(resetTimeoutRef.current);
+            }
+        };
+    }, []);
 
     // Only allow removal of players who have a membership record
     const eligiblePlayers = players.filter((p) => p.membershipId);
@@ -69,8 +78,11 @@ export default function RemovePlayersDrawer({
 
     const handleClose = () => {
         onClose();
+        if (resetTimeoutRef.current) {
+            clearTimeout(resetTimeoutRef.current);
+        }
         // Delay resetting state to avoid flash while drawer is closing
-        setTimeout(resetState, 300);
+        resetTimeoutRef.current = setTimeout(resetState, 300);
     };
 
     return (
