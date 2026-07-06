@@ -54,6 +54,12 @@ jest.mock("@/forms/BulkDeleteGames", () => ({
         />
     ),
 }));
+jest.mock("../ManageSeasonRosterDrawer", () => ({
+    __esModule: true,
+    default: ({ opened }) => (
+        <div data-testid="manage-season-roster-drawer" data-opened={opened} />
+    ),
+}));
 
 describe("SeasonMenu", () => {
     const mockSeason = {

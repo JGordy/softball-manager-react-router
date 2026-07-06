@@ -9,9 +9,9 @@
 }
 
 .root[data-checked] {
-    background-color: rgba(250, 82, 82, 0.1);
-    border-color: var(--mantine-color-red-6);
-    box-shadow: 0 0 0 1px var(--mantine-color-red-6);
+    background-color: rgba(204, 255, 51, 0.1);
+    border-color: var(--mantine-color-lime-6);
+    box-shadow: 0 0 0 1px var(--mantine-color-lime-6);
 }
 
 .root:hover {
@@ -20,5 +20,5 @@
 }
 
 .root[data-checked]:hover {
-    background-color: rgba(250, 82, 82, 0.15);
+    background-color: rgba(204, 255, 51, 0.15);
 }

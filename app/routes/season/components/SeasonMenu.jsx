@@ -9,19 +9,26 @@ import {
     IconEdit,
     IconRun,
     IconTrash,
+    IconUsers,
 } from "@tabler/icons-react";
 
 import AddSingleGame from "@/forms/AddSingleGame";
 import AddSeason from "@/forms/AddSeason";
 import GenerateSeasonGames from "@/forms/GenerateSeasonGames";
 import BulkDeleteGames from "@/forms/BulkDeleteGames";
+import ManageSeasonRosterDrawer from "./ManageSeasonRosterDrawer";
 
 import useModal from "@/hooks/useModal";
 
 import MenuContainer from "@/components/MenuContainer";
 import DrawerContainer from "@/components/DrawerContainer";
 
-export default function SeasonMenu({ season }) {
+export default function SeasonMenu({
+    season,
+    players = [],
+    teamPlayers = [],
+    isManager = false,
+}) {
     const { openModal } = useModal();
     const actionData = useActionData();
 
@@ -30,11 +37,22 @@ export default function SeasonMenu({ season }) {
         { open: openDeleteDrawer, close: closeDeleteDrawer },
     ] = useDisclosure(false);
 
+    const [
+        rosterDrawerOpened,
+        { open: openRosterDrawer, close: closeRosterDrawer },
+    ] = useDisclosure(players.length === 0 && isManager);
+
     useEffect(() => {
-        if (actionData?.success && actionData?.deleted) {
-            closeDeleteDrawer();
+        if (actionData?.success) {
+            if (actionData.deleted) {
+                closeDeleteDrawer();
+            }
+            // Auto close roster drawer if roster was updated successfully
+            if (actionData.message?.includes("Season roster updated")) {
+                closeRosterDrawer();
+            }
         }
-    }, [actionData, closeDeleteDrawer]);
+    }, [actionData, closeDeleteDrawer, closeRosterDrawer]);
 
     const { $id: seasonId, teams, teamId } = season;
     const [team] = teams;
@@ -93,6 +111,12 @@ export default function SeasonMenu({ season }) {
                     onClick: openEditSeasonModal,
                     leftSection: <IconEdit size={18} />,
                     content: <Text>Edit Season</Text>,
+                },
+                {
+                    key: "manage-roster",
+                    onClick: openRosterDrawer,
+                    leftSection: <IconUsers size={18} />,
+                    content: <Text>Manage Roster</Text>,
                 },
             ],
         },
@@ -166,6 +190,15 @@ export default function SeasonMenu({ season }) {
                     onCancel={closeDeleteDrawer}
                 />
             </DrawerContainer>
+            <ManageSeasonRosterDrawer
+                opened={rosterDrawerOpened}
+                onClose={closeRosterDrawer}
+                teamPlayers={teamPlayers}
+                currentPlayers={players}
+                teamId={teamId}
+                seasonId={seasonId}
+                primaryColor="lime"
+            />
         </>
     );
 }

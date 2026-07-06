@@ -43,7 +43,9 @@ export default function DesktopSeasonDetails({
     record,
     detailsConfig,
     players = [],
+    teamPlayers = [],
     logs = [],
+    isArchiveView = false,
 }) {
     const { futureGames: upcomingGames, pastGames } = splitGames(season.games);
 
@@ -61,8 +63,24 @@ export default function DesktopSeasonDetails({
     return (
         <Container size="xl" pt="md">
             <Group justify="space-between">
-                <BackButton text="Team Details" to={`/team/${season.teamId}`} />
-                {isManager && <SeasonMenu season={season} />}
+                {!isArchiveView ? (
+                    <BackButton
+                        text="Team Details"
+                        to={`/team/${season.teamId}`}
+                    />
+                ) : (
+                    <Badge color="blue" variant="light" size="lg">
+                        Historical Archive View
+                    </Badge>
+                )}
+                {isManager && (
+                    <SeasonMenu
+                        season={season}
+                        players={players}
+                        teamPlayers={teamPlayers}
+                        isManager={isManager}
+                    />
+                )}
             </Group>
 
             <Group justify="space-between" align="flex-end" mb="xl" mt="lg">
@@ -216,11 +234,29 @@ export default function DesktopSeasonDetails({
                         </Tabs.Tab>
 
                         <Tabs.Panel value="stats" pt="md">
-                            <BoxScore
-                                logs={logs}
-                                players={players}
-                                seasonView={true}
-                            />
+                            {players.length === 0 ? (
+                                <Paper
+                                    p="lg"
+                                    radius="md"
+                                    withBorder
+                                    style={{ textAlign: "center" }}
+                                >
+                                    <Text fw={500} size="lg" mb="xs">
+                                        Roster is Empty
+                                    </Text>
+                                    <Text size="sm" c="dimmed">
+                                        {isManager
+                                            ? "Add players to this season using the 'Manage Roster' option in the Season Menu."
+                                            : "No roster has been configured for this season yet."}
+                                    </Text>
+                                </Paper>
+                            ) : (
+                                <BoxScore
+                                    logs={logs}
+                                    players={players}
+                                    seasonView={true}
+                                />
+                            )}
                         </Tabs.Panel>
                         <Tabs.Panel value="spray" pt="md">
                             <ContactSprayChart

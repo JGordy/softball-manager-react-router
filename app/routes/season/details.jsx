@@ -26,7 +26,8 @@ export async function loader({ params, context }) {
     const client = context.get(appwriteClientContext);
 
     let park = null;
-    const { season, players, logs } = await getSeasonById({ seasonId, client });
+    const { season, players, teamPlayers, logs, isArchiveView } =
+        await getSeasonById({ seasonId, client });
 
     if (season.parkId) {
         park = await getParkById({
@@ -35,7 +36,7 @@ export async function loader({ params, context }) {
         });
     }
 
-    return { season, park, players, logs };
+    return { season, park, players, teamPlayers, logs, isArchiveView };
 }
 
 export async function action({ request, params, context }) {
@@ -60,16 +61,24 @@ export async function action({ request, params, context }) {
     if (_action === "add-single-game") {
         return createSingleGame({ values, client });
     }
+
+    if (_action === "update-season-roster") {
+        const { updateSeasonRoster } = await import("@/actions/rosterHistory");
+        const playerIds = values.playerIds ? JSON.parse(values.playerIds) : [];
+        const { teamId } = values;
+        return updateSeasonRoster({ playerIds, teamId, seasonId, client });
+    }
 }
 
 export default function SeasonDetails({ loaderData, actionData }) {
     const { isDesktop, user } = useOutletContext();
-    const { season, park, players, logs } = loaderData;
+    const { season, park, players, teamPlayers, logs, isArchiveView } =
+        loaderData;
     const { teams = [] } = season;
     const [team] = teams;
     const { primaryColor, managerIds = [] } = team || { primaryColor: "lime" };
 
-    const isManager = managerIds.includes(user?.$id);
+    const isManager = !isArchiveView && managerIds.includes(user?.$id);
 
     useResponseNotification(actionData);
 
@@ -132,7 +141,9 @@ export default function SeasonDetails({ loaderData, actionData }) {
         record,
         detailsConfig,
         players,
+        teamPlayers,
         logs,
+        isArchiveView,
     };
 
     if (isDesktop) {

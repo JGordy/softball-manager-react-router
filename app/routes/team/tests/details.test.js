@@ -376,5 +376,23 @@ describe("TeamDetails Route", () => {
                 screen.queryByTestId("onboarding-tour"),
             ).not.toBeInTheDocument();
         });
+
+        it("renders Archive View notice and hides TeamMenu/OnboardingTour when isArchiveView is true", () => {
+            const archiveLoaderData = {
+                ...mockLoaderData,
+                isArchiveView: true,
+            };
+            render(<TeamDetails loaderData={archiveLoaderData} />);
+
+            expect(
+                screen.getByText(
+                    /You are viewing a read-only archive of this team's seasons/i,
+                ),
+            ).toBeInTheDocument();
+            expect(screen.queryByTestId("team-menu")).not.toBeInTheDocument();
+            expect(
+                screen.queryByTestId("onboarding-tour"),
+            ).not.toBeInTheDocument();
+        });
     });
 });
