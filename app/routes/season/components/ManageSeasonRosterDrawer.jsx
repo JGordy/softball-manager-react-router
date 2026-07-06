@@ -9,7 +9,7 @@ import {
     Checkbox,
     ScrollArea,
 } from "@mantine/core";
-import { IconUsers, IconCheck, IconSquare } from "@tabler/icons-react";
+import { IconCheck, IconSquare } from "@tabler/icons-react";
 import DrawerContainer from "@/components/DrawerContainer";
 import FormWrapper from "@/forms/FormWrapper";
 import classes from "@/styles/CheckboxCard.module.css";

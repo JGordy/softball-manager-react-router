@@ -19,7 +19,7 @@ export async function addPlayersToSeasonRoster({
     playerIds,
     teamId,
     seasonId,
-    client,
+    client: _client,
 }) {
     if (!playerIds || playerIds.length === 0) return { success: true };
 

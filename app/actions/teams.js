@@ -8,6 +8,7 @@ import {
     getTeamMembers,
     updateMembershipRoles,
     updateTeamPreferences,
+    removeTeamMember,
 } from "@/utils/teams.js";
 
 import { hasBadWords } from "@/utils/badWordsApi";
