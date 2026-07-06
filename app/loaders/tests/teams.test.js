@@ -212,6 +212,66 @@ describe("Teams Loader", () => {
             expect(result.teamData.seasons[0].games[0].displayName).toBe("T1");
         });
 
+        it("should fall back to adminClient if reading team data fails and season_rosters has matching record", async () => {
+            const mockUser = { $id: "user-123" };
+            createSessionClient.mockResolvedValue({
+                account: { get: jest.fn().mockResolvedValue(mockUser) },
+            });
+
+            const mockTeamData = {
+                $id: "team1",
+                name: "Team 1",
+            };
+
+            // Session client fails
+            readDocument.mockRejectedValueOnce(new Error("Permission denied"));
+
+            // Admin client success check
+            listDocuments
+                .mockResolvedValueOnce({
+                    rows: [{ $id: "user-123", name: "Former Player" }],
+                }) // users query
+                .mockResolvedValueOnce({ rows: [{ seasonId: "season1" }] }) // season_rosters check
+                .mockResolvedValueOnce({
+                    rows: [{ $id: "season1", teamId: "team1" }],
+                }) // seasons list
+                .mockResolvedValueOnce({ rows: [] }); // games list
+
+            // Admin client team read
+            readDocument.mockResolvedValueOnce(mockTeamData);
+
+            const result = await getTeamById({
+                teamId: "team1",
+                client: await createSessionClient(),
+            });
+
+            expect(result.isArchiveView).toBe(true);
+            expect(result.teamData.$id).toBe("team1");
+            expect(result.teamData.seasons).toHaveLength(1);
+        });
+
+        it("should throw original permission error if no season_rosters records exist", async () => {
+            const mockUser = { $id: "user-123" };
+            createSessionClient.mockResolvedValue({
+                account: { get: jest.fn().mockResolvedValue(mockUser) },
+            });
+
+            // Session client fails
+            readDocument.mockRejectedValueOnce(new Error("Permission denied"));
+
+            // Mock users query and empty season_rosters check
+            listDocuments
+                .mockResolvedValueOnce({ rows: [{ $id: "user-123" }] }) // users query
+                .mockResolvedValueOnce({ rows: [] }); // season_rosters check (empty)
+
+            await expect(
+                getTeamById({
+                    teamId: "team1",
+                    client: await createSessionClient(),
+                }),
+            ).rejects.toThrow("Permission denied");
+        });
+
         it("should return empty object if teamId is missing", async () => {
             const result = await getTeamById({
                 teamId: null,

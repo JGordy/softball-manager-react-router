@@ -9,7 +9,62 @@ export async function getSeasonById({ seasonId, client }) {
     }
 
     if (seasonId) {
-        const season = await readDocument("seasons", seasonId, [], client);
+        let season;
+        let isArchiveView = false;
+
+        // Try reading using user's client first
+        try {
+            season = await readDocument("seasons", seasonId, [], client);
+        } catch (err) {
+            // Fallback: check if they are a former player who participated in this season
+            try {
+                const { createAdminClient } = await import(
+                    "@/utils/appwrite/server"
+                );
+                const adminClient = createAdminClient();
+
+                // Get logged-in user ID
+                const { account } = client;
+                const user = await account.get();
+                const userId = user?.$id;
+
+                if (!userId) throw err;
+
+                const response = await listDocuments(
+                    "season_rosters",
+                    [
+                        Query.equal("seasonId", seasonId),
+                        Query.equal("playerId", userId),
+                        Query.limit(1),
+                    ],
+                    adminClient,
+                );
+
+                if (response.rows && response.rows.length > 0) {
+                    const { readDocument: adminReadDocument } = await import(
+                        "@/utils/databases"
+                    );
+                    season = await adminReadDocument(
+                        "seasons",
+                        seasonId,
+                        [],
+                        adminClient,
+                    );
+                    isArchiveView = true;
+                } else {
+                    throw err;
+                }
+            } catch (fallbackErr) {
+                console.error("Access check failed for season:", fallbackErr);
+                throw err;
+            }
+        }
+
+        const activeClient = isArchiveView
+            ? await import("@/utils/appwrite/server").then((m) =>
+                  m.createAdminClient(),
+              )
+            : client;
 
         // Manually fetch teams since TablesDB doesn't auto-populate relationships
         if (season.teamId) {
@@ -17,7 +72,7 @@ export async function getSeasonById({ seasonId, client }) {
                 "teams",
                 season.teamId,
                 [],
-                client,
+                activeClient,
             ).catch(() => null);
             season.teams = team ? [team] : [];
 
@@ -52,21 +107,38 @@ export async function getSeasonById({ seasonId, client }) {
                 Query.equal("seasons", seasonId),
                 Query.limit(100), // Increase limit to get all games
             ],
-            client,
+            activeClient,
         );
         season.games = gamesResponse.rows || [];
 
         // Fetch team players and logs for stats aggregation
         let players = [];
+        let teamPlayers = [];
         let logs = [];
         if (season.teamId) {
             try {
                 const { getTeamById } = await import("./teams");
                 const teamInfo = await getTeamById({
                     teamId: season.teamId,
-                    client,
+                    client: activeClient,
                 });
-                players = teamInfo.players || [];
+                teamPlayers = teamInfo.players || [];
+
+                // Fetch season-specific roster from database
+                const { getSeasonRoster } = await import(
+                    "@/actions/rosterHistory"
+                );
+                const seasonRoster = await getSeasonRoster({
+                    seasonId,
+                    client: activeClient,
+                });
+                const seasonPlayerIds = seasonRoster.map((r) => r.playerId);
+
+                // Filter team players to only those who are on the season roster
+                players = teamPlayers.filter((p) =>
+                    seasonPlayerIds.includes(p.$id),
+                );
+
                 const gameIds = season.games.map((g) => g.$id);
                 if (gameIds.length > 0) {
                     logs = (teamInfo.teamLogs || []).filter((log) =>
@@ -81,8 +153,14 @@ export async function getSeasonById({ seasonId, client }) {
             }
         }
 
-        return { season, players, logs };
+        return { season, players, teamPlayers, logs, isArchiveView };
     } else {
-        return { season: {}, players: [], logs: [] };
+        return {
+            season: {},
+            players: [],
+            teamPlayers: [],
+            logs: [],
+            isArchiveView: false,
+        };
     }
 }
