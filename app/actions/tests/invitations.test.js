@@ -552,6 +552,45 @@ describe("Invitations Actions", () => {
             });
         });
 
+        it("should auto-add invited player to seasons ending today using date-only comparison", async () => {
+            const { listDocuments } = require("@/utils/databases");
+            const {
+                addPlayersToSeasonRoster,
+            } = require("@/actions/rosterHistory");
+
+            mockAdminUsers.list.mockResolvedValue({ total: 0, users: [] });
+            mockSessionTeams.createMembership.mockResolvedValue({
+                $id: "m1",
+                userId: "u1",
+            });
+
+            // Mock season ending today (using date-only format YYYY-MM-DD)
+            const todayStr = new Date().toISOString().split("T")[0];
+            const mockSeasons = [
+                { $id: "season-ends-today", endDate: todayStr },
+            ];
+            listDocuments.mockResolvedValue({ rows: mockSeasons });
+
+            const result = await invitePlayersServer({
+                players,
+                teamId,
+                url,
+                client: {
+                    teams: mockSessionTeams,
+                    account: mockSessionAccount,
+                },
+            });
+
+            expect(result.success).toBe(true);
+            expect(addPlayersToSeasonRoster).toHaveBeenCalledTimes(1);
+            expect(addPlayersToSeasonRoster).toHaveBeenCalledWith({
+                playerIds: ["u1"],
+                teamId,
+                seasonId: "season-ends-today",
+                client: expect.any(Object),
+            });
+        });
+
         it("should handle season database errors gracefully without failing player invitation", async () => {
             const { listDocuments } = require("@/utils/databases");
 

@@ -488,10 +488,12 @@ export async function invitePlayersServer({ players, teamId, url, client }) {
                         adminClient,
                     );
                     const activeSeasons = seasonsResponse.rows || [];
-                    const nowIso = new Date().toISOString();
-                    const currentActiveSeasons = activeSeasons.filter(
-                        (s) => !s.endDate || s.endDate >= nowIso,
-                    );
+                    const todayStr = new Date().toISOString().split("T")[0];
+                    const currentActiveSeasons = activeSeasons.filter((s) => {
+                        if (!s.endDate) return true;
+                        const endStr = s.endDate.split("T")[0];
+                        return endStr >= todayStr;
+                    });
 
                     if (currentActiveSeasons.length > 0) {
                         const { addPlayersToSeasonRoster } = await import(
