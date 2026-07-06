@@ -49,12 +49,18 @@ jest.mock("@/loaders/seasons", () => ({
 jest.mock("@/loaders/parks", () => ({
     getParkById: jest.fn(),
 }));
+jest.mock("@/loaders/teams", () => ({
+    getTeamById: jest.fn(),
+}));
 jest.mock("@/actions/seasons", () => ({
     updateSeason: jest.fn(),
 }));
 jest.mock("@/actions/games", () => ({
     createGames: jest.fn(),
     createSingleGame: jest.fn(),
+}));
+jest.mock("@/actions/rosterHistory", () => ({
+    updateSeasonRoster: jest.fn(),
 }));
 
 // Mock global components
@@ -142,6 +148,86 @@ describe("SeasonDetails Route", () => {
 
             expect(updateSeason).toHaveBeenCalledWith({
                 values: { seasonName: "New Name" },
+                seasonId: "season-123",
+                client: expect.any(Object),
+            });
+        });
+
+        it("fails update-season-roster if playerIds format is invalid", async () => {
+            const formData = new FormData();
+            formData.append("_action", "update-season-roster");
+            formData.append("playerIds", "not-json");
+
+            const result = await action({
+                request: new Request("http://localhost/", {
+                    method: "POST",
+                    body: formData,
+                }),
+                params: { seasonId: "season-123" },
+                context: mockContext,
+            });
+
+            expect(result).toEqual({
+                success: false,
+                message: "Invalid playerIds format",
+            });
+        });
+
+        it("fails update-season-roster if user is not a manager", async () => {
+            const { getSeasonById } = require("@/loaders/seasons");
+            const { getTeamById } = require("@/loaders/teams");
+
+            getSeasonById.mockResolvedValue({ season: mockSeason });
+            getTeamById.mockResolvedValue({ managerIds: ["other-manager"] });
+
+            const formData = new FormData();
+            formData.append("_action", "update-season-roster");
+            formData.append("playerIds", JSON.stringify(["player-1"]));
+
+            const result = await action({
+                request: new Request("http://localhost/", {
+                    method: "POST",
+                    body: formData,
+                }),
+                params: { seasonId: "season-123" },
+                context: mockContext,
+            });
+
+            expect(result).toEqual({
+                success: false,
+                message:
+                    "Unauthorized: You do not have permission to manage this roster.",
+            });
+        });
+
+        it("performs update-season-roster successfully and uses server teamId instead of values teamId", async () => {
+            const { getSeasonById } = require("@/loaders/seasons");
+            const { getTeamById } = require("@/loaders/teams");
+            const { updateSeasonRoster } = require("@/actions/rosterHistory");
+
+            getSeasonById.mockResolvedValue({ season: mockSeason }); // teamId is "team-123"
+            getTeamById.mockResolvedValue({ managerIds: ["user-123"] });
+            updateSeasonRoster.mockResolvedValue({ success: true });
+
+            const formData = new FormData();
+            formData.append("_action", "update-season-roster");
+            formData.append("playerIds", JSON.stringify(["player-1"]));
+            formData.append("teamId", "malicious-tampered-team-id"); // Tampered form data!
+
+            const result = await action({
+                request: new Request("http://localhost/", {
+                    method: "POST",
+                    body: formData,
+                }),
+                params: { seasonId: "season-123" },
+                context: mockContext,
+            });
+
+            expect(result).toEqual({ success: true });
+            // Assert that updateSeasonRoster was called with "team-123" (from server) and NOT the tampered "malicious-tampered-team-id"!
+            expect(updateSeasonRoster).toHaveBeenCalledWith({
+                playerIds: ["player-1"],
+                teamId: "team-123",
                 seasonId: "season-123",
                 client: expect.any(Object),
             });

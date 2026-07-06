@@ -21,7 +21,10 @@ const mockCreateSession = jest.fn().mockResolvedValue({
     secret: "test-session-secret",
 });
 jest.mock("node-appwrite", () => ({
-    Query: { equal: jest.fn((k, v) => ({ key: k, value: v })) },
+    Query: {
+        equal: jest.fn((k, v) => ({ key: k, value: v })),
+        limit: jest.fn((v) => ({ limit: v })),
+    },
     Permission: {
         read: jest.fn(),
         write: jest.fn(),
@@ -65,6 +68,12 @@ jest.mock("@/utils/appwrite/server", () => ({
 jest.mock("@/utils/databases", () => ({
     createDocument: jest.fn().mockResolvedValue({}),
     readDocument: jest.fn().mockRejectedValue(new Error("Not found")),
+    listDocuments: jest.fn().mockResolvedValue({ rows: [] }),
+}));
+
+// Mock rosterHistory actions
+jest.mock("@/actions/rosterHistory", () => ({
+    addPlayersToSeasonRoster: jest.fn().mockResolvedValue({ success: true }),
 }));
 
 describe("Invitations Actions", () => {
@@ -496,6 +505,115 @@ describe("Invitations Actions", () => {
             });
 
             expect(mockSessionTeams.createMembership).toHaveBeenCalled();
+        });
+
+        it("should auto-add invited player to active and upcoming seasons", async () => {
+            const { listDocuments } = require("@/utils/databases");
+            const {
+                addPlayersToSeasonRoster,
+            } = require("@/actions/rosterHistory");
+
+            mockAdminUsers.list.mockResolvedValue({ total: 0, users: [] });
+            mockSessionTeams.createMembership.mockResolvedValue({
+                $id: "m1",
+                userId: "u1",
+            });
+
+            // Mock active seasons (one active, one ended)
+            const mockSeasons = [
+                { $id: "season-active", endDate: "2028-01-01T00:00:00.000Z" },
+                { $id: "season-ended", endDate: "2020-01-01T00:00:00.000Z" },
+            ];
+            listDocuments.mockResolvedValue({ rows: mockSeasons });
+
+            const result = await invitePlayersServer({
+                players,
+                teamId,
+                url,
+                client: {
+                    teams: mockSessionTeams,
+                    account: mockSessionAccount,
+                },
+            });
+
+            expect(result.success).toBe(true);
+            expect(listDocuments).toHaveBeenCalledWith(
+                "seasons",
+                expect.any(Array),
+                expect.any(Object),
+            );
+            // Verify addPlayersToSeasonRoster was called for the active season but NOT the ended one
+            expect(addPlayersToSeasonRoster).toHaveBeenCalledTimes(1);
+            expect(addPlayersToSeasonRoster).toHaveBeenCalledWith({
+                playerIds: ["u1"],
+                teamId,
+                seasonId: "season-active",
+                client: expect.any(Object),
+            });
+        });
+
+        it("should auto-add invited player to seasons ending today using date-only comparison", async () => {
+            const { listDocuments } = require("@/utils/databases");
+            const {
+                addPlayersToSeasonRoster,
+            } = require("@/actions/rosterHistory");
+
+            mockAdminUsers.list.mockResolvedValue({ total: 0, users: [] });
+            mockSessionTeams.createMembership.mockResolvedValue({
+                $id: "m1",
+                userId: "u1",
+            });
+
+            // Mock season ending today (using date-only format YYYY-MM-DD)
+            const todayStr = new Date().toISOString().split("T")[0];
+            const mockSeasons = [
+                { $id: "season-ends-today", endDate: todayStr },
+            ];
+            listDocuments.mockResolvedValue({ rows: mockSeasons });
+
+            const result = await invitePlayersServer({
+                players,
+                teamId,
+                url,
+                client: {
+                    teams: mockSessionTeams,
+                    account: mockSessionAccount,
+                },
+            });
+
+            expect(result.success).toBe(true);
+            expect(addPlayersToSeasonRoster).toHaveBeenCalledTimes(1);
+            expect(addPlayersToSeasonRoster).toHaveBeenCalledWith({
+                playerIds: ["u1"],
+                teamId,
+                seasonId: "season-ends-today",
+                client: expect.any(Object),
+            });
+        });
+
+        it("should handle season database errors gracefully without failing player invitation", async () => {
+            const { listDocuments } = require("@/utils/databases");
+
+            mockAdminUsers.list.mockResolvedValue({ total: 0, users: [] });
+            mockSessionTeams.createMembership.mockResolvedValue({
+                $id: "m1",
+                userId: "u1",
+            });
+
+            // Mock database to throw error
+            listDocuments.mockRejectedValue(new Error("Database error"));
+
+            const result = await invitePlayersServer({
+                players,
+                teamId,
+                url,
+                client: {
+                    teams: mockSessionTeams,
+                    account: mockSessionAccount,
+                },
+            });
+
+            // The invitation should still succeed!
             expect(result.success).toBe(true);
         });
     });

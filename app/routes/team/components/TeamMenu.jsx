@@ -12,6 +12,7 @@ import {
     IconClipboardList,
     IconSettings,
     IconShirtSport,
+    IconUserMinus,
     IconTags,
 } from "@tabler/icons-react";
 
@@ -28,6 +29,7 @@ import ManageRolesDrawer from "./ManageRolesDrawer";
 import PlayerLabelsDrawer from "./PlayerLabelsDrawer";
 import PreferencesDrawer from "./PreferencesDrawer";
 import BulkJerseyNumberModal from "./BulkJerseyNumberModal";
+import RemovePlayersDrawer from "./RemovePlayersDrawer";
 
 export default function TeamMenu({ userId, team, ownerView, players }) {
     const navigate = useNavigate();
@@ -38,6 +40,8 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
         preferencesOpened,
         { open: openPreferences, close: closePreferences },
     ] = useDisclosure(false);
+    const [removeOpened, { open: openRemove, close: closeRemove }] =
+        useDisclosure(false);
     const [labelsOpened, { open: openLabels, close: closeLabels }] =
         useDisclosure(false);
 
@@ -173,6 +177,12 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                     leftSection: <IconShirtSport size={18} />,
                     content: <Text>Assign Numbers</Text>,
                 },
+                {
+                    key: "remove-players",
+                    onClick: openRemove,
+                    leftSection: <IconUserMinus size={18} />,
+                    content: <Text>Remove Players</Text>,
+                },
                 ...(ownerView
                     ? [
                           {
@@ -201,6 +211,13 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                 opened={preferencesOpened}
                 onClose={closePreferences}
                 team={team}
+            />
+            <RemovePlayersDrawer
+                opened={removeOpened}
+                onClose={closeRemove}
+                players={players}
+                teamId={teamId}
+                userId={userId}
             />
             <PlayerLabelsDrawer
                 opened={labelsOpened}

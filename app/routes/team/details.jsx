@@ -1,5 +1,5 @@
 import { useOutletContext } from "react-router";
-import { Box, Container, Group, Text, Title } from "@mantine/core";
+import { Alert, Box, Container, Group, Text, Title } from "@mantine/core";
 
 import images from "@/constants/images";
 
@@ -13,6 +13,7 @@ import {
     updateMemberRole,
     updatePreferences,
     updateBulkJerseyNumbers,
+    removePlayersFromTeam,
     updatePlayerLabels,
 } from "@/actions/teams";
 import {
@@ -140,8 +141,25 @@ export async function action({ request, params, context }) {
     if (_action === "update-role") {
         return updateMemberRole({ values, teamId, client });
     }
+
     if (_action === "update-bulk-jersey-numbers") {
         return updateBulkJerseyNumbers({ teamId, values, client });
+    }
+
+    if (_action === "remove-players") {
+        let membershipIds = [];
+        try {
+            membershipIds =
+                typeof values.membershipIds === "string"
+                    ? JSON.parse(values.membershipIds)
+                    : values.membershipIds || [];
+            if (!Array.isArray(membershipIds)) {
+                throw new Error("membershipIds must be an array");
+            }
+        } catch {
+            return { success: false, message: "Invalid membershipIds format" };
+        }
+        return removePlayersFromTeam({ teamId, membershipIds, client });
     }
 }
 
@@ -152,13 +170,13 @@ export default function TeamDetails({ actionData, loaderData }) {
         managerIds,
         ownerIds,
         teamLogs,
+        isArchiveView,
     } = loaderData;
-    // console.log('/team/details >', { players, team, managerIds });
 
     const { user } = useOutletContext();
 
     const userId = user && user.$id;
-    const managerView = managerIds.indexOf(userId) !== -1;
+    const managerView = !isArchiveView && managerIds.indexOf(userId) !== -1;
     const ownerView = ownerIds && ownerIds.indexOf(userId) !== -1;
 
     useResponseNotification(actionData);
@@ -184,6 +202,17 @@ export default function TeamDetails({ actionData, loaderData }) {
                     </Box>
                 )}
             </Group>
+            {isArchiveView && (
+                <Alert
+                    color="blue"
+                    variant="light"
+                    mb="md"
+                    title="Historical Archive View"
+                >
+                    You are viewing a read-only archive of this team's seasons
+                    that you participated in.
+                </Alert>
+            )}
             <Title
                 order={2}
                 align="center"
