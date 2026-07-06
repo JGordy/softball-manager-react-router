@@ -48,7 +48,7 @@ export default function SeasonMenu({
                 closeDeleteDrawer();
             }
             // Auto close roster drawer if roster was updated successfully
-            if (actionData.message?.includes("Season roster updated")) {
+            if (actionData.rosterUpdated) {
                 closeRosterDrawer();
             }
         }

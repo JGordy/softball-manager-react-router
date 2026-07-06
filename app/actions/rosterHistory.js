@@ -114,6 +114,7 @@ export async function updateSeasonRoster({
     return {
         success: true,
         message: "Season roster updated successfully",
+        rosterUpdated: true,
     };
 }
 

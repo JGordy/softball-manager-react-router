@@ -430,16 +430,30 @@ export async function removePlayersFromTeam({ teamId, membershipIds, client }) {
             };
         }
 
-        // Perform removals
+        // Perform removals — use allSettled so a single failure doesn't abort the rest
         const removePromises = targetMemberships.map((m) =>
             removeTeamMember({ teamId, membershipId: m.$id }),
         );
 
-        await Promise.all(removePromises);
+        const results = await Promise.allSettled(removePromises);
+        const succeeded = results.filter(
+            (r) => r.status === "fulfilled",
+        ).length;
+        const failed = results.filter((r) => r.status === "rejected").length;
+
+        if (failed > 0 && succeeded === 0) {
+            return {
+                success: false,
+                message: `Failed to remove ${failed} player(s)`,
+            };
+        }
 
         return {
             success: true,
-            message: `${targetMemberships.length} player(s) removed successfully`,
+            message:
+                failed > 0
+                    ? `${succeeded} player(s) removed successfully, ${failed} failed`
+                    : `${succeeded} player(s) removed successfully`,
         };
     } catch (error) {
         console.error("Error removing players from team:", error);
