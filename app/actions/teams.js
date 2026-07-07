@@ -604,7 +604,7 @@ export async function archiveTeam({ teamId, client }) {
 
 /**
  * Smartly removes a team:
- * - If the team has no seasons and no game_logs, and has only one member
+ * - If the team has no seasons and no games, and has only one member
  *   (the creator), it performs a hard delete: removes the DB document,
  *   the Appwrite Team record, and the notification topic.
  * - Otherwise, it falls back to a soft archive to preserve historical data.
