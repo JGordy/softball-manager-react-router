@@ -15,13 +15,15 @@ import { logoutAction } from "@/actions/logout";
 
 import UserHeader from "@/components/UserHeader";
 import { appwriteClientContext } from "@/contexts/router";
+import { readDocument } from "@/utils/databases";
 
 import DesktopSettingsDashboard from "./components/DesktopSettingsDashboard";
 import MobileSettingsContainer from "./components/MobileSettingsContainer";
 
 export async function loader({ context }) {
     try {
-        const { teams } = context.get(appwriteClientContext);
+        const client = context.get(appwriteClientContext);
+        const { teams } = client;
         // Fetch all teams with pagination to avoid only loading the first page.
         const pageSize = 100;
         const allTeams = [];
@@ -49,7 +51,16 @@ export async function loader({ context }) {
             }
         }
 
-        return { teams: allTeams };
+        // Cross-reference DB documents to filter out archived teams.
+        // The Appwrite Teams API doesn't carry the `archived` flag, only the DB document does.
+        const dbDocs = await Promise.all(
+            allTeams.map((t) =>
+                readDocument("teams", t.$id, [], client).catch(() => null),
+            ),
+        );
+        const activeTeams = allTeams.filter((_, i) => !dbDocs[i]?.archived);
+
+        return { teams: activeTeams };
     } catch (error) {
         console.error("Settings loader error:", error);
         return { teams: [] };

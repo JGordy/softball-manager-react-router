@@ -1,3 +1,4 @@
+import { redirect } from "react-router";
 import { Query } from "node-appwrite";
 import { DateTime } from "luxon";
 import { listDocuments, readDocument } from "@/utils/databases";
@@ -64,9 +65,9 @@ export async function getUserTeams({ client, isDashboard = false }) {
             const teamPromises = teamIds.map((id) =>
                 readDocument("teams", id, [], client).catch(() => null),
             );
-            const teams = (await Promise.all(teamPromises)).filter(
-                (t) => t !== null,
-            );
+            const teams = (await Promise.all(teamPromises))
+                .filter((t) => t !== null)
+                .filter((t) => !t.archived); // Exclude archived teams from all views
 
             // 1. Batch fetch seasons for all teams
             const allTeamIds = teams.map((t) => t.$id);
@@ -369,6 +370,11 @@ export async function getTeamById({ teamId, client }) {
         }
 
         const teamData = await readDocument("teams", teamId, [], client);
+
+        // Guard: redirect if team has been archived
+        if (teamData?.archived) {
+            throw redirect("/dashboard");
+        }
 
         try {
             const { teams } = createAdminClient();

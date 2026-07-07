@@ -1,6 +1,11 @@
-import { ID, Permission, Role } from "node-appwrite";
+import { ID, Permission, Role, Query } from "node-appwrite";
 import { createAdminClient } from "@/utils/appwrite/server";
-import { createDocument, updateDocument } from "@/utils/databases.js";
+import {
+    createDocument,
+    updateDocument,
+    deleteDocument,
+    listDocuments,
+} from "@/utils/databases.js";
 import {
     createAppwriteTeam,
     addExistingUserToTeam,
@@ -8,6 +13,7 @@ import {
     getTeamMembers,
     updateMembershipRoles,
     updateTeamPreferences,
+    deleteAppwriteTeam,
 } from "@/utils/teams.js";
 
 import { hasBadWords } from "@/utils/badWordsApi";
@@ -434,6 +440,166 @@ export async function updatePlayerLabels({ teamId, values, client }) {
         return {
             success: false,
             message: "Failed to update player labels",
+        };
+    }
+}
+
+/**
+ * Checks whether a team has any meaningful associated data that would make
+ * a hard delete unsafe. Returns true if seasons or game_logs exist for the team.
+ *
+ * @param {Object} params
+ * @param {string} params.teamId - The team ID to check
+ * @param {Object} params.client - The session client
+ * @returns {Promise<boolean>} True if associated data exists
+ */
+async function hasAssociatedData({ teamId, client }) {
+    const seasonsResult = await listDocuments(
+        "seasons",
+        [Query.equal("teamId", teamId), Query.limit(1)],
+        client,
+    );
+
+    return (seasonsResult?.total ?? 0) > 0;
+}
+
+/**
+ * Soft-deletes a team by setting `archived: true` on the database document.
+ * The Appwrite Team record and all memberships are preserved so permissions
+ * remain intact, but the team will be filtered from all application views.
+ *
+ * Only team owners may archive a team.
+ *
+ * @param {Object} params
+ * @param {string} params.teamId - The team ID to archive
+ * @param {Object} params.client - The session client
+ * @returns {Promise<Object>} Result object with success flag and message
+ */
+export async function archiveTeam({ teamId, client }) {
+    if (!client) {
+        throw new Error(
+            "A constructed 'client' object is strictly required for authorization.",
+        );
+    }
+
+    try {
+        const auth = await verifyManager(teamId, client);
+        if (!auth.success) return auth;
+
+        // Verify the requesting user is an owner, not just a manager
+        const { account } = client;
+        const requestingUser = await account.get();
+        const memberships = await getTeamMembers({ teamId });
+        const requestingMembership = memberships.memberships.find(
+            (m) => m.userId === requestingUser.$id,
+        );
+
+        if (!requestingMembership?.roles.includes("owner")) {
+            return {
+                success: false,
+                message: "Only team owners can archive a team.",
+            };
+        }
+
+        await updateDocument("teams", teamId, { archived: true }, client);
+
+        return {
+            success: true,
+            archived: true,
+            message:
+                "Team archived. It will no longer appear in your dashboard. Contact support if you need to restore it.",
+        };
+    } catch (error) {
+        console.error("Error archiving team:", error);
+        return {
+            success: false,
+            message: error.message || "Failed to archive team.",
+        };
+    }
+}
+
+/**
+ * Smartly removes a team:
+ * - If the team has no seasons and no game_logs, and has only one member
+ *   (the creator), it performs a hard delete: removes the DB document,
+ *   the Appwrite Team record, and the notification topic.
+ * - Otherwise, it falls back to a soft archive to preserve historical data.
+ *
+ * Only team owners may call this action.
+ *
+ * @param {Object} params
+ * @param {string} params.teamId - The team ID to remove
+ * @param {Object} params.client - The session client
+ * @returns {Promise<Object>} Result with success flag, archived boolean, and message
+ */
+export async function deleteTeamCompletely({ teamId, client }) {
+    if (!client) {
+        throw new Error(
+            "A constructed 'client' object is strictly required for authorization.",
+        );
+    }
+
+    try {
+        const auth = await verifyManager(teamId, client);
+        if (!auth.success) return auth;
+
+        // Verify the requesting user is an owner
+        const { account } = client;
+        const requestingUser = await account.get();
+        const memberships = await getTeamMembers({ teamId });
+        const requestingMembership = memberships.memberships.find(
+            (m) => m.userId === requestingUser.$id,
+        );
+
+        if (!requestingMembership?.roles.includes("owner")) {
+            return {
+                success: false,
+                message: "Only team owners can remove a team.",
+            };
+        }
+
+        // Determine whether a hard delete is safe
+        const isSolo = memberships.total === 1;
+        const dataExists = await hasAssociatedData({ teamId, client });
+
+        if (dataExists || !isSolo) {
+            // Fall back to soft archive to preserve historical data
+            await updateDocument("teams", teamId, { archived: true }, client);
+
+            return {
+                success: true,
+                archived: true,
+                message:
+                    "This team has existing data and has been archived. It will no longer appear in your dashboard. Contact support if you need to restore it.",
+            };
+        }
+
+        // Safe to hard delete — remove DB document first, then Appwrite Team
+        await deleteDocument("teams", teamId, client);
+        await deleteAppwriteTeam({ teamId });
+
+        // Non-blocking: clean up the notification topic created alongside the team
+        try {
+            const { messaging } = createAdminClient();
+            const { buildTeamTopic } = await import("@/utils/notifications");
+            await messaging.deleteTopic(buildTeamTopic(teamId));
+        } catch (topicError) {
+            console.warn(
+                `[deleteTeamCompletely] Failed to delete notification topic for team ${teamId}:`,
+                topicError,
+            );
+        }
+
+        return {
+            success: true,
+            archived: false,
+            message: "Team permanently removed.",
+        };
+    } catch (error) {
+        console.error("Error deleting team:", error);
+        return {
+            success: false,
+            message: error.message || "Failed to remove team.",
         };
     }
 }
