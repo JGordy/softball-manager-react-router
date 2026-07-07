@@ -265,6 +265,49 @@ describe("Users Loader", () => {
             );
             expect(result).toEqual(mockCreatedDoc);
         });
+
+        it("should re-read and return doc on 409 conflict during self-heal", async () => {
+            // Simulate: first read returns 404 (doc missing), create returns 409
+            // (another request created it concurrently), second read returns the doc.
+            const existingDoc = {
+                $id: "user1",
+                userId: "user1",
+                email: "test@example.com",
+                firstName: "Test",
+                lastName: "User",
+                status: "verified",
+            };
+
+            readDocument
+                .mockRejectedValueOnce({
+                    code: 404,
+                    message: "Document not found",
+                })
+                .mockResolvedValueOnce(existingDoc);
+
+            createDocument.mockRejectedValue({
+                code: 409,
+                message: "Document already exists",
+            });
+
+            const testClient = {
+                tablesDB: { id: "mock-session-db" },
+                account: {
+                    get: jest.fn().mockResolvedValue({
+                        $id: "user1",
+                        name: "Test User",
+                        email: "test@example.com",
+                    }),
+                },
+            };
+
+            const result = await getOrCreateUser({
+                userId: "user1",
+                client: testClient,
+            });
+
+            expect(result).toEqual(existingDoc);
+        });
     });
 
     describe("getInvitedUserStatus", () => {
@@ -277,17 +320,15 @@ describe("Users Loader", () => {
         });
 
         it("returns userDocExists and hasPassword when user document and password exist", async () => {
-            const mockUsersInstance = {
+            const mockUsers = {
                 get: jest.fn().mockResolvedValue({
                     email: "test@example.com",
                     name: "Test User",
                     passwordUpdate: "2026-07-07T12:00:00.000Z",
                 }),
             };
-            const { Users } = require("node-appwrite");
-            Users.mockImplementation(() => mockUsersInstance);
 
-            const mockAdminClient = { account: { client: {} } };
+            const mockAdminClient = { users: mockUsers };
             createAdminClient.mockReturnValue(mockAdminClient);
 
             readDocument.mockResolvedValue({ $id: "user123" });
@@ -295,7 +336,7 @@ describe("Users Loader", () => {
             const result = await getInvitedUserStatus({ userId: "user123" });
 
             expect(createAdminClient).toHaveBeenCalled();
-            expect(mockUsersInstance.get).toHaveBeenCalledWith("user123");
+            expect(mockUsers.get).toHaveBeenCalledWith("user123");
             expect(readDocument).toHaveBeenCalledWith(
                 "users",
                 "user123",
@@ -309,17 +350,15 @@ describe("Users Loader", () => {
         });
 
         it("returns false for userDocExists and hasPassword if read fails and passwordUpdate is empty", async () => {
-            const mockUsersInstance = {
+            const mockUsers = {
                 get: jest.fn().mockResolvedValue({
                     email: "test@example.com",
                     name: "Test User",
                     passwordUpdate: "",
                 }),
             };
-            const { Users } = require("node-appwrite");
-            Users.mockImplementation(() => mockUsersInstance);
 
-            const mockAdminClient = { account: { client: {} } };
+            const mockAdminClient = { users: mockUsers };
             createAdminClient.mockReturnValue(mockAdminClient);
 
             readDocument.mockRejectedValue(new Error("Not found"));

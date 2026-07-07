@@ -131,15 +131,13 @@ export async function updateUser({ values, userId, client }) {
             wasComplete = isUserProfileComplete(existingUser);
         } catch (fetchError) {
             // Only treat as missing (and eligible for self-heal) on a definitive 404.
-            // All other errors (network, permissions, etc.) are re-thrown to avoid
-            // accidentally creating a duplicate document on transient failures.
+            // All other errors (network, permissions, etc.) are re-thrown — continuing
+            // without a baseline document would break the preferred/disliked position
+            // invariant and could result in data corruption.
             if (fetchError?.code === 404) {
                 userDocMissing = true;
             } else {
-                console.warn(
-                    "Unable to fetch existing user before update:",
-                    fetchError,
-                );
+                throw fetchError;
             }
         }
 

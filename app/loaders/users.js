@@ -1,4 +1,4 @@
-import { Query, Permission, Role, Users } from "node-appwrite";
+import { Query, Permission, Role } from "node-appwrite";
 import { readDocument, listDocuments, createDocument } from "@/utils/databases";
 import { joinAchievements } from "@/utils/achievements.server";
 import { createAdminClient } from "@/utils/appwrite/server";
@@ -56,6 +56,16 @@ export async function getOrCreateUser({ userId, client }) {
                 client,
             );
         } catch (healError) {
+            // Handle race condition: if another request already created the document
+            // between our 404 and our create attempt, a 409 conflict is returned.
+            // In that case the doc now exists — re-read and return it.
+            if (healError?.code === 409) {
+                console.warn(
+                    "getOrCreateUser - Document already created by concurrent request, re-reading:",
+                    healError.message,
+                );
+                return await readDocument("users", userId, [], client);
+            }
             console.error(
                 "getOrCreateUser - Failed to self-heal missing user document:",
                 healError.message,
@@ -74,10 +84,11 @@ export async function getInvitedUserStatus({ userId }) {
 
     try {
         const adminClient = createAdminClient();
-        const users = new Users(adminClient.account.client);
 
-        // Get user account details from Appwrite Auth
-        const userAccount = await users.get(userId);
+        // Get user account details from Appwrite Auth.
+        // Use adminClient.users (the wrapper's getter) rather than constructing
+        // a Users SDK instance manually, to keep the admin client as the single source of truth.
+        const userAccount = await adminClient.users.get(userId);
 
         // Check if user document exists in database
         let userDocExists = false;

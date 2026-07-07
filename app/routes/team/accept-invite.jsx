@@ -30,8 +30,11 @@ export async function loader({ request }) {
     const secret = url.searchParams.get("secret");
     const membershipId = url.searchParams.get("membershipId");
 
-    // Require all invite params before hitting the admin API.
-    // Without this guard, anyone could probe for userId existence (user enumeration).
+    // Require all three invite params to be present before hitting the admin API.
+    // Note: this only checks presence, not validity. A determined attacker could
+    // supply arbitrary secret/membershipId values to probe userId status.
+    // TODO: Validate the invite against the Teams API (teamId + membershipId + userId)
+    // before calling getInvitedUserStatus to fully prevent user enumeration.
     if (!userId || !secret || !membershipId) {
         return { userDocExists: false, hasPassword: false };
     }
