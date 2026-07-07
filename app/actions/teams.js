@@ -573,10 +573,11 @@ export async function archiveTeam({ teamId, client }) {
         // Verify the requesting user is an owner, not just a manager
         const { account } = client;
         const requestingUser = await account.get();
-        const memberships = await getTeamMembers({ teamId });
-        const requestingMembership = memberships.memberships.find(
-            (m) => m.userId === requestingUser.$id,
-        );
+        const memberships = await getTeamMembers({
+            teamId,
+            queries: [Query.equal("userId", [requestingUser.$id])],
+        });
+        const requestingMembership = memberships.memberships[0];
 
         if (!requestingMembership?.roles.includes("owner")) {
             return {
@@ -630,10 +631,11 @@ export async function deleteTeamCompletely({ teamId, client }) {
         // Verify the requesting user is an owner
         const { account } = client;
         const requestingUser = await account.get();
-        const memberships = await getTeamMembers({ teamId });
-        const requestingMembership = memberships.memberships.find(
-            (m) => m.userId === requestingUser.$id,
-        );
+        const userMemberships = await getTeamMembers({
+            teamId,
+            queries: [Query.equal("userId", [requestingUser.$id])],
+        });
+        const requestingMembership = userMemberships.memberships[0];
 
         if (!requestingMembership?.roles.includes("owner")) {
             return {
@@ -643,7 +645,11 @@ export async function deleteTeamCompletely({ teamId, client }) {
         }
 
         // Determine whether a hard delete is safe
-        const isSolo = memberships.total === 1;
+        const allMemberships = await getTeamMembers({
+            teamId,
+            queries: [Query.limit(1)],
+        });
+        const isSolo = allMemberships.total === 1;
         const dataExists = await hasAssociatedData({ teamId, client });
 
         if (dataExists || !isSolo) {

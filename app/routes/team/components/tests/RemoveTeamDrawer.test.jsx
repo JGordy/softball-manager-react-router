@@ -8,6 +8,17 @@ jest.mock("react-router", () => ({
     useFetcher: jest.fn(),
 }));
 
+jest.mock(
+    "@/components/DrawerContainer",
+    () =>
+        ({ children, opened, title }) =>
+            opened ? (
+                <div data-testid="drawer" data-title={title}>
+                    {children}
+                </div>
+            ) : null,
+);
+
 const mockTeam = { $id: "team-123", name: "Thunder Cats" };
 
 describe("RemoveTeamDrawer", () => {
