@@ -67,9 +67,20 @@ export async function loader({ context }) {
                         client,
                     );
                     if (result.rows) {
+                        const fetchedDocIds = new Set(
+                            result.rows.map((doc) => doc.$id),
+                        );
                         result.rows.forEach((doc) => {
                             if (!doc.archived) {
                                 unarchivedIds.add(doc.$id);
+                            }
+                        });
+
+                        // Fail open for any team IDs that were not returned by the DB query
+                        // (e.g. missing document or permission mismatch)
+                        batchIds.forEach((id) => {
+                            if (!fetchedDocIds.has(id)) {
+                                unarchivedIds.add(id);
                             }
                         });
                     }
