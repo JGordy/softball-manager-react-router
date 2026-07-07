@@ -531,13 +531,20 @@ export async function updatePlayerLabels({ teamId, values, client }) {
  * @returns {Promise<boolean>} True if associated data exists
  */
 async function hasAssociatedData({ teamId, client }) {
-    const seasonsResult = await listDocuments(
-        "seasons",
-        [Query.equal("teamId", teamId), Query.limit(1)],
-        client,
-    );
+    const [seasonsResult, gamesResult] = await Promise.all([
+        listDocuments(
+            "seasons",
+            [Query.equal("teamId", teamId), Query.limit(1)],
+            client,
+        ),
+        listDocuments(
+            "games",
+            [Query.equal("teamId", teamId), Query.limit(1)],
+            client,
+        ),
+    ]);
 
-    return (seasonsResult?.total ?? 0) > 0;
+    return (seasonsResult?.total ?? 0) > 0 || (gamesResult?.total ?? 0) > 0;
 }
 
 /**

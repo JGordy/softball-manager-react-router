@@ -15,7 +15,7 @@ import { logoutAction } from "@/actions/logout";
 
 import UserHeader from "@/components/UserHeader";
 import { appwriteClientContext } from "@/contexts/router";
-import { readDocument } from "@/utils/databases";
+import { listDocuments } from "@/utils/databases";
 
 import DesktopSettingsDashboard from "./components/DesktopSettingsDashboard";
 import MobileSettingsContainer from "./components/MobileSettingsContainer";
@@ -53,12 +53,33 @@ export async function loader({ context }) {
 
         // Cross-reference DB documents to filter out archived teams.
         // The Appwrite Teams API doesn't carry the `archived` flag, only the DB document does.
-        const dbDocs = await Promise.all(
-            allTeams.map((t) =>
-                readDocument("teams", t.$id, [], client).catch(() => null),
-            ),
-        );
-        const activeTeams = allTeams.filter((_, i) => !dbDocs[i]?.archived);
+        const allTeamIds = allTeams.map((t) => t.$id);
+        const unarchivedIds = new Set();
+
+        if (allTeamIds.length > 0) {
+            const batchSize = 100;
+            for (let i = 0; i < allTeamIds.length; i += batchSize) {
+                const batchIds = allTeamIds.slice(i, i + batchSize);
+                try {
+                    const result = await listDocuments(
+                        "teams",
+                        [Query.equal("$id", batchIds)],
+                        client,
+                    );
+                    if (result.rows) {
+                        result.rows.forEach((doc) => {
+                            if (!doc.archived) {
+                                unarchivedIds.add(doc.$id);
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.error("Failed to batch fetch teams", e);
+                }
+            }
+        }
+
+        const activeTeams = allTeams.filter((t) => unarchivedIds.has(t.$id));
 
         return { teams: activeTeams };
     } catch (error) {

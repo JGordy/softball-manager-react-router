@@ -20,7 +20,7 @@ export default function FormWrapper({
 }) {
     const { closeAllModals } = useModal();
     const navigation = useNavigation();
-    const isSubmitting = navigation.state === "submitting";
+    const isSubmitting = navigation.state !== "idle";
 
     const submit = useSubmit();
 

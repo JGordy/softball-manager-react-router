@@ -31,6 +31,15 @@ jest.mock("@/actions/users", () => ({
     resetPassword: jest.fn(),
 }));
 
+jest.mock("@/utils/databases", () => ({
+    listDocuments: jest.fn().mockResolvedValue({
+        rows: [
+            { $id: "team-1", archived: false },
+            { $id: "team-101", archived: false },
+        ],
+    }),
+}));
+
 jest.mock("@/utils/appwrite/server", () => ({
     createSessionClient: jest.fn(),
 }));

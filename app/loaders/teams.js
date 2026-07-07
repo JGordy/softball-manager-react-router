@@ -376,14 +376,16 @@ export async function getTeamById({ teamId, client }) {
         let isArchiveView = false;
         let participatedSeasonIds = [];
 
-        // Guard: redirect if team has been archived
-        if (teamData?.archived) {
-            throw redirect("/dashboard");
-        }
-
         try {
             teamData = await readDocument("teams", teamId, [], client);
+            // Guard: redirect if team has been archived
+            if (teamData?.archived) {
+                throw redirect("/dashboard");
+            }
         } catch (err) {
+            // Guard: throw err if it's our redirect
+            if (err instanceof Response) throw err;
+
             // Fallback: check if they are a former player who participated in at least one season of this team
             try {
                 const { createAdminClient } = await import(
@@ -418,6 +420,10 @@ export async function getTeamById({ teamId, client }) {
                         [],
                         adminClient,
                     );
+                    // Guard: redirect if team has been archived, even in fallback
+                    if (teamData?.archived) {
+                        throw redirect("/dashboard");
+                    }
                     isArchiveView = true;
                     participatedSeasonIds = response.rows.map(
                         (r) => r.seasonId,
@@ -426,6 +432,9 @@ export async function getTeamById({ teamId, client }) {
                     throw err;
                 }
             } catch (fallbackErr) {
+                // Forward the redirect response if thrown in the fallback
+                if (fallbackErr instanceof Response) throw fallbackErr;
+
                 console.error("Access check failed for team:", fallbackErr);
                 throw err;
             }
