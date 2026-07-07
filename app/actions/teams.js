@@ -523,7 +523,7 @@ export async function updatePlayerLabels({ teamId, values, client }) {
 
 /**
  * Checks whether a team has any meaningful associated data that would make
- * a hard delete unsafe. Returns true if seasons or game_logs exist for the team.
+ * a hard delete unsafe. Returns true if seasons or games exist for the team.
  *
  * @param {Object} params
  * @param {string} params.teamId - The team ID to check

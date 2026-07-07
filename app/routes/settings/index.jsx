@@ -63,7 +63,7 @@ export async function loader({ context }) {
                 try {
                     const result = await listDocuments(
                         "teams",
-                        [Query.equal("$id", batchIds)],
+                        [Query.equal("$id", batchIds), Query.limit(100)],
                         client,
                     );
                     if (result.rows) {
@@ -75,6 +75,9 @@ export async function loader({ context }) {
                     }
                 } catch (e) {
                     console.error("Failed to batch fetch teams", e);
+                    // Fail open: assume teams are active if the DB query fails
+                    // to prevent users from losing access to teams due to transient errors.
+                    batchIds.forEach((id) => unarchivedIds.add(id));
                 }
             }
         }
