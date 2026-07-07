@@ -64,13 +64,13 @@ export default function RemoveTeamDrawer({ opened, onClose, team, players }) {
                     title={
                         hasData
                             ? "This team will be archived"
-                            : "Are you sure you want to remove this team?"
+                            : "This action cannot be undone"
                     }
                 >
                     <Text size="sm">
                         {hasData
                             ? "This team has existing data (seasons, games, or players) and will be archived to preserve its history. It will disappear from your dashboard."
-                            : "If this team is completely empty, it will be permanently deleted. Otherwise, it will be archived to preserve historical data."}
+                            : "This team is completely empty. It will be permanently deleted and cannot be recovered."}
                     </Text>
                 </Alert>
 
