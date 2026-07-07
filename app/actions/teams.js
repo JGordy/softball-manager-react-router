@@ -14,6 +14,7 @@ import {
     updateMembershipRoles,
     updateTeamPreferences,
     deleteAppwriteTeam,
+    removeTeamMember,
 } from "@/utils/teams.js";
 
 import { hasBadWords } from "@/utils/badWordsApi";
@@ -389,6 +390,82 @@ export async function updateBulkJerseyNumbers({ teamId, values, client }) {
         return {
             success: false,
             message: "Failed to update jersey numbers",
+        };
+    }
+}
+
+/**
+ * Batch remove players from a team
+ * @param {Object} params
+ * @param {string} params.teamId
+ * @param {string[]} params.membershipIds
+ * @param {Object} params.client
+ */
+export async function removePlayersFromTeam({ teamId, membershipIds, client }) {
+    if (!client) {
+        throw new Error(
+            "A constructed 'client' object is strictly required for authorization.",
+        );
+    }
+
+    try {
+        const auth = await verifyManager(teamId, client);
+        if (!auth.success) return auth;
+
+        const memberships = await getTeamMembers({ teamId });
+        const targetMemberships = memberships.memberships.filter((m) =>
+            membershipIds.includes(m.$id),
+        );
+
+        // Safety check: Don't allow removing the last owner
+        const owners = memberships.memberships.filter((m) =>
+            m.roles.includes("owner"),
+        );
+        const ownersBeingRemoved = targetMemberships.filter((m) =>
+            m.roles.includes("owner"),
+        );
+
+        if (
+            ownersBeingRemoved.length > 0 &&
+            owners.length <= ownersBeingRemoved.length
+        ) {
+            return {
+                success: false,
+                message:
+                    "Cannot remove the last owner(s). Assign another owner first.",
+            };
+        }
+
+        // Perform removals — use allSettled so a single failure doesn't abort the rest
+        const removePromises = targetMemberships.map((m) =>
+            removeTeamMember({ teamId, membershipId: m.$id }),
+        );
+
+        const results = await Promise.allSettled(removePromises);
+        const succeeded = results.filter(
+            (r) => r.status === "fulfilled",
+        ).length;
+        const failed = results.filter((r) => r.status === "rejected").length;
+
+        if (failed > 0 && succeeded === 0) {
+            return {
+                success: false,
+                message: `Failed to remove ${failed} player(s)`,
+            };
+        }
+
+        return {
+            success: true,
+            message:
+                failed > 0
+                    ? `${succeeded} player(s) removed successfully, ${failed} failed`
+                    : `${succeeded} player(s) removed successfully`,
+        };
+    } catch (error) {
+        console.error("Error removing players from team:", error);
+        return {
+            success: false,
+            message: error.message || "Failed to remove players",
         };
     }
 }

@@ -1,14 +1,12 @@
 import { Query } from "node-appwrite";
-
 import { listDocuments, readDocument } from "@/utils/databases";
-
 import { getSeasonById } from "../seasons";
 
 // Mock dependencies
 jest.mock("node-appwrite", () => ({
     Query: {
-        equal: jest.fn(),
-        limit: jest.fn(),
+        equal: jest.fn((field, val) => `equal(${field},${val})`),
+        limit: jest.fn((val) => `limit(${val})`),
     },
 }));
 
@@ -22,8 +20,25 @@ jest.mock("@/utils/appwrite/server", () => ({
     createAdminClient: jest.fn(),
 }));
 
+jest.mock("@/actions/rosterHistory", () => ({
+    getSeasonRoster: jest.fn(),
+}));
+jest.mock("@/loaders/teams", () => ({
+    getTeamById: jest.fn(),
+}));
+
 describe("Seasons Loader", () => {
-    const mockSessionClient = { tablesDB: { id: "mock-session-db" } };
+    const mockSessionClient = {
+        tablesDB: { id: "mock-session-db" },
+        account: {
+            get: jest.fn().mockResolvedValue({ $id: "user-123" }),
+        },
+    };
+    const mockAdminClient = {
+        teams: {
+            listMemberships: jest.fn().mockResolvedValue({ memberships: [] }),
+        },
+    };
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -32,13 +47,13 @@ describe("Seasons Loader", () => {
             createAdminClient,
         } = require("@/utils/appwrite/server");
         createSessionClient.mockResolvedValue(mockSessionClient);
-        createAdminClient.mockReturnValue({
-            teams: {
-                listMemberships: jest
-                    .fn()
-                    .mockResolvedValue({ memberships: [] }),
-            },
-        });
+        createAdminClient.mockReturnValue(mockAdminClient);
+
+        const { getSeasonRoster } = require("@/actions/rosterHistory");
+        getSeasonRoster.mockResolvedValue([]);
+
+        const { getTeamById } = require("@/loaders/teams");
+        getTeamById.mockResolvedValue({ players: [], teamLogs: [] });
     });
 
     describe("getSeasonById", () => {
@@ -69,7 +84,99 @@ describe("Seasons Loader", () => {
             );
             expect(result.season.$id).toBe("season1");
             expect(result.season.teams[0].$id).toBe("team1");
-            expect(Query.equal).toHaveBeenCalledWith("seasons", "season1");
+            expect(result.isArchiveView).toBe(false);
+        });
+
+        it("should check season_rosters using adminClient if reading with session client throws error, and return isArchiveView: true on success", async () => {
+            const mockSeason = {
+                $id: "season1",
+                name: "Fall 2023",
+                teamId: "team1",
+            };
+            const mockTeam = { $id: "team1", name: "Team 1" };
+
+            // User client fails with permission error
+            readDocument.mockRejectedValueOnce(new Error("Permission denied"));
+
+            // Admin client succeeds
+            listDocuments
+                .mockResolvedValueOnce({ rows: [{ playerId: "user-123" }] }) // for season_rosters check
+                .mockResolvedValueOnce({ rows: [] }); // for games list
+
+            readDocument
+                .mockResolvedValueOnce(mockSeason) // for season read using admin client
+                .mockResolvedValueOnce(mockTeam); // for team read using admin client
+
+            const result = await getSeasonById({
+                seasonId: "season1",
+                client: mockSessionClient,
+            });
+
+            expect(result.isArchiveView).toBe(true);
+            expect(result.season.$id).toBe("season1");
+            expect(readDocument).toHaveBeenLastCalledWith(
+                "teams",
+                "team1",
+                [],
+                mockAdminClient,
+            );
+        });
+
+        it("should shield PII by clearing teamPlayers and hydrating players directly from users collection if isArchiveView is true", async () => {
+            const mockSeason = {
+                $id: "season1",
+                name: "Fall 2023",
+                teamId: "team1",
+            };
+            const mockTeam = { $id: "team1", name: "Team 1" };
+
+            // User client fails with permission error
+            readDocument.mockRejectedValueOnce(new Error("Permission denied"));
+
+            // Admin client succeeds
+            listDocuments
+                .mockResolvedValueOnce({ rows: [{ playerId: "user-123" }] }) // for season_rosters check
+                .mockResolvedValueOnce({ rows: [] }) // for games list
+                .mockResolvedValueOnce({
+                    rows: [
+                        {
+                            $id: "user-123",
+                            firstName: "Archived",
+                            email: "archived@example.com",
+                        },
+                    ],
+                }); // for users list
+
+            readDocument
+                .mockResolvedValueOnce(mockSeason) // for season read
+                .mockResolvedValueOnce(mockTeam); // for team read
+
+            const { getSeasonRoster } = require("@/actions/rosterHistory");
+            getSeasonRoster.mockResolvedValueOnce([{ playerId: "user-123" }]);
+
+            const result = await getSeasonById({
+                seasonId: "season1",
+                client: mockSessionClient,
+            });
+
+            expect(result.isArchiveView).toBe(true);
+            expect(result.players).toHaveLength(1);
+            expect(result.players[0].firstName).toBe("Archived");
+            expect(result.teamPlayers).toEqual([]); // teamPlayers is cleared!
+        });
+
+        it("should throw original permission error if user is not in season_rosters", async () => {
+            readDocument.mockRejectedValueOnce(new Error("Permission denied"));
+
+            // No records in season_rosters
+            listDocuments.mockResolvedValueOnce({ rows: [] });
+
+            await expect(
+                getSeasonById({
+                    seasonId: "season1",
+                    client: mockSessionClient,
+                }),
+            ).rejects.toThrow("Permission denied");
         });
 
         it("should return empty object when seasonId is missing", async () => {

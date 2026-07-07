@@ -11,6 +11,7 @@ import {
     getTeamMembers,
     updateMembershipRoles,
     updateTeamPreferences,
+    removeTeamMember,
 } from "@/utils/teams";
 
 import {
@@ -22,6 +23,7 @@ import {
     updateJerseyNumber,
     updatePreferences,
     updatePlayerLabels,
+    removePlayersFromTeam,
 } from "../teams";
 import { verifyManager } from "../utils/teamAuth.js";
 
@@ -42,6 +44,7 @@ jest.mock("@/utils/teams", () => ({
     getTeamMembers: jest.fn(),
     updateMembershipRoles: jest.fn(),
     updateTeamPreferences: jest.fn(),
+    removeTeamMember: jest.fn(),
 }));
 
 jest.mock("@/utils/appwrite/server", () => ({
@@ -736,6 +739,83 @@ describe("Teams Actions", () => {
                 },
             });
             expect(result.success).toBe(true);
+        });
+    });
+
+    describe("removePlayersFromTeam", () => {
+        const teamId = "team1";
+        const membershipIds = ["member1", "member2", "invalid-member"];
+
+        it("should fail if user is not authorized", async () => {
+            verifyManager.mockResolvedValue({
+                success: false,
+                message: "No permission",
+            });
+
+            const result = await removePlayersFromTeam({
+                teamId,
+                membershipIds,
+                client: mockSessionClient,
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.message).toBe("No permission");
+        });
+
+        it("should fail if trying to remove the last owner", async () => {
+            verifyManager.mockResolvedValue({ success: true });
+
+            // Mock getTeamMembers
+            getTeamMembers.mockResolvedValue({
+                memberships: [
+                    { $id: "member1", userId: "u1", roles: ["owner"] },
+                    { $id: "member2", userId: "u2", roles: ["player"] },
+                ],
+            });
+
+            const result = await removePlayersFromTeam({
+                teamId,
+                membershipIds: ["member1"], // Removing the only owner
+                client: mockSessionClient,
+            });
+
+            expect(result.success).toBe(false);
+            expect(result.message).toContain("Cannot remove the last owner(s)");
+        });
+
+        it("should remove valid memberships and return accurate success count", async () => {
+            verifyManager.mockResolvedValue({ success: true });
+
+            // Mock getTeamMembers (contains member1, member2, and member3)
+            getTeamMembers.mockResolvedValue({
+                memberships: [
+                    { $id: "member1", userId: "u1", roles: ["owner"] },
+                    { $id: "member2", userId: "u2", roles: ["player"] },
+                    { $id: "member3", userId: "u3", roles: ["owner"] }, // Another owner exists
+                ],
+            });
+
+            removeTeamMember.mockResolvedValue({ success: true });
+
+            const result = await removePlayersFromTeam({
+                teamId,
+                membershipIds, // contains member1, member2, and invalid-member
+                client: mockSessionClient,
+            });
+
+            expect(result.success).toBe(true);
+            expect(result.message).toBe("2 player(s) removed successfully"); // only member1 and member2 are valid
+
+            // removeTeamMember should be called for only the 2 valid memberships
+            expect(removeTeamMember).toHaveBeenCalledTimes(2);
+            expect(removeTeamMember).toHaveBeenCalledWith({
+                teamId,
+                membershipId: "member1",
+            });
+            expect(removeTeamMember).toHaveBeenCalledWith({
+                teamId,
+                membershipId: "member2",
+            });
         });
     });
 });

@@ -285,7 +285,6 @@ export async function getTeamById({ teamId, client }) {
         const userRoles = {};
         let firstMemberships = null;
 
-        // Try to get memberships from Appwrite Teams API first (for new teams)
         try {
             // Use Admin client to bypass permission checks for listing team members
             const { teams } = createAdminClient();
@@ -345,18 +344,22 @@ export async function getTeamById({ teamId, client }) {
             // Map all IDs to either a DB record or a virtual player
             players = userIds.map((id) => {
                 const dbPlayer = dbPlayersMap.get(id);
+                const member = membershipMap.get(id);
+                const membershipId = member?.$id;
+
                 if (dbPlayer) {
                     return {
                         ...dbPlayer,
+                        membershipId,
                         roles: userRoles[id] || [],
                     };
                 }
 
                 // Virtual player for unverified/invited users
-                const member = membershipMap.get(id);
                 return {
                     $id: id,
                     userId: id,
+                    membershipId,
                     firstName:
                         member?.userName ||
                         member?.userEmail?.split("@")[0] ||
@@ -369,7 +372,9 @@ export async function getTeamById({ teamId, client }) {
             });
         }
 
-        const teamData = await readDocument("teams", teamId, [], client);
+        let teamData;
+        let isArchiveView = false;
+        let participatedSeasonIds = [];
 
         // Guard: redirect if team has been archived
         if (teamData?.archived) {
@@ -377,7 +382,65 @@ export async function getTeamById({ teamId, client }) {
         }
 
         try {
-            const { teams } = createAdminClient();
+            teamData = await readDocument("teams", teamId, [], client);
+        } catch (err) {
+            // Fallback: check if they are a former player who participated in at least one season of this team
+            try {
+                const { createAdminClient } = await import(
+                    "@/utils/appwrite/server"
+                );
+                const adminClient = createAdminClient();
+
+                // Get logged-in user ID
+                const { account } = client;
+                const user = await account.get();
+                const userId = user?.$id;
+
+                if (!userId) throw err;
+
+                const response = await listDocuments(
+                    "season_rosters",
+                    [
+                        Query.equal("teamId", teamId),
+                        Query.equal("playerId", userId),
+                        Query.limit(100),
+                    ],
+                    adminClient,
+                );
+
+                if (response.rows && response.rows.length > 0) {
+                    const { readDocument: adminReadDocument } = await import(
+                        "@/utils/databases"
+                    );
+                    teamData = await adminReadDocument(
+                        "teams",
+                        teamId,
+                        [],
+                        adminClient,
+                    );
+                    isArchiveView = true;
+                    participatedSeasonIds = response.rows.map(
+                        (r) => r.seasonId,
+                    );
+                } else {
+                    throw err;
+                }
+            } catch (fallbackErr) {
+                console.error("Access check failed for team:", fallbackErr);
+                throw err;
+            }
+        }
+
+        const activeClient = isArchiveView
+            ? await import("@/utils/appwrite/server").then((m) =>
+                  m.createAdminClient(),
+              )
+            : client;
+
+        try {
+            const { teams } = await import("@/utils/appwrite/server").then(
+                (m) => m.createAdminClient(),
+            );
             const prefs = await teams.getPrefs(teamId);
             teamData.prefs = prefs;
 
@@ -396,9 +459,16 @@ export async function getTeamById({ teamId, client }) {
         const seasonsResponse = await listDocuments(
             "seasons",
             [Query.equal("teamId", teamId)],
-            client,
+            activeClient,
         );
-        const seasons = seasonsResponse.rows || [];
+        let seasons = seasonsResponse.rows || [];
+
+        // If archive view, filter seasons to only those they participated in
+        if (isArchiveView) {
+            seasons = seasons.filter((s) =>
+                participatedSeasonIds.includes(s.$id),
+            );
+        }
 
         // Batch fetch games for all seasons
         const seasonIds = seasons.map((s) => s.$id);
@@ -410,7 +480,7 @@ export async function getTeamById({ teamId, client }) {
                     Query.equal("seasons", seasonIds),
                     Query.limit(100), // Increase limit to get all games
                 ],
-                client,
+                activeClient,
             );
             allGames = gamesResponse.rows || [];
         }
@@ -420,13 +490,10 @@ export async function getTeamById({ teamId, client }) {
         let allLogs = [];
         if (gameIds.length > 0) {
             // Fetch logs in batches if needed, or increase limit.
-            // For now, assuming < 5000 logs for a team view or using a reasonable limit.
-            // Appwrite limit is typically 5000 with offset, or 100 default.
-            // We use a safe high number.
             const logsResponse = await listDocuments(
                 "game_logs",
                 [Query.equal("gameId", gameIds), Query.limit(5000)],
-                client,
+                activeClient,
             );
             allLogs = logsResponse?.rows || [];
         }
@@ -449,6 +516,10 @@ export async function getTeamById({ teamId, client }) {
         // Attach seasons to teamData
         teamData.seasons = seasons;
 
+        if (isArchiveView) {
+            players = [];
+        }
+
         return {
             teamData,
             players,
@@ -456,6 +527,7 @@ export async function getTeamById({ teamId, client }) {
             ownerIds,
             scorekeeperIds,
             teamLogs: allLogs,
+            isArchiveView,
         };
     } else {
         return { teamData: {} };
