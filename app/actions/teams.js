@@ -617,7 +617,7 @@ export async function archiveTeam({ teamId, client }) {
  * @param {Object} params.client - The session client
  * @returns {Promise<Object>} Result with success flag, archived boolean, and message
  */
-export async function deleteTeamCompletely({ teamId, client }) {
+export async function removeTeam({ teamId, client }) {
     if (!client) {
         throw new Error(
             "A constructed 'client' object is strictly required for authorization.",
@@ -675,7 +675,7 @@ export async function deleteTeamCompletely({ teamId, client }) {
             await messaging.deleteTopic(buildTeamTopic(teamId));
         } catch (topicError) {
             console.warn(
-                `[deleteTeamCompletely] Failed to delete notification topic for team ${teamId}:`,
+                `[removeTeam] Failed to delete notification topic for team ${teamId}:`,
                 topicError,
             );
         }

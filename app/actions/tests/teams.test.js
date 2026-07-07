@@ -2,7 +2,12 @@ import {
     createAdminClient,
     createSessionClient,
 } from "@/utils/appwrite/server";
-import { createDocument, updateDocument } from "@/utils/databases";
+import {
+    createDocument,
+    updateDocument,
+    deleteDocument,
+    listDocuments,
+} from "@/utils/databases";
 import { hasBadWords } from "@/utils/badWordsApi";
 import {
     createAppwriteTeam,
@@ -12,6 +17,7 @@ import {
     updateMembershipRoles,
     updateTeamPreferences,
     removeTeamMember,
+    deleteAppwriteTeam,
 } from "@/utils/teams";
 
 import {
@@ -24,6 +30,8 @@ import {
     updatePreferences,
     updatePlayerLabels,
     removePlayersFromTeam,
+    archiveTeam,
+    removeTeam,
 } from "../teams";
 import { verifyManager } from "../utils/teamAuth.js";
 
@@ -824,11 +832,8 @@ describe("Teams Actions", () => {
 });
 
 // ---------------------------------------------------------------------------
-// archiveTeam & deleteTeamCompletely
+// archiveTeam & removeTeam
 // ---------------------------------------------------------------------------
-import { archiveTeam, deleteTeamCompletely } from "../teams";
-import { deleteDocument, listDocuments } from "@/utils/databases";
-import { deleteAppwriteTeam } from "@/utils/teams";
 
 /** Shared mock client for removal tests */
 const makeRemovalClient = (userId = "user1") => ({
@@ -906,7 +911,7 @@ describe("archiveTeam", () => {
     });
 });
 
-describe("deleteTeamCompletely", () => {
+describe("removeTeam", () => {
     const teamId = "team-xyz";
 
     beforeEach(() => {
@@ -924,9 +929,9 @@ describe("deleteTeamCompletely", () => {
     });
 
     it("should throw if no client is provided", async () => {
-        await expect(
-            deleteTeamCompletely({ teamId, client: null }),
-        ).rejects.toThrow("A constructed 'client' object is strictly required");
+        await expect(removeTeam({ teamId, client: null })).rejects.toThrow(
+            "A constructed 'client' object is strictly required",
+        );
     });
 
     it("should return failure if the user is not an owner", async () => {
@@ -936,7 +941,7 @@ describe("deleteTeamCompletely", () => {
             memberships: [{ userId: "user1", roles: ["manager", "player"] }],
         });
         // listDocuments not called for data check if auth fails
-        const result = await deleteTeamCompletely({ teamId, client });
+        const result = await removeTeam({ teamId, client });
         expect(result.success).toBe(false);
         expect(result.message).toMatch(/only team owners/i);
     });
@@ -950,7 +955,7 @@ describe("deleteTeamCompletely", () => {
             .mockResolvedValueOnce({ total: 0, rows: [] }); // game_logs
         updateDocument.mockResolvedValue({ $id: teamId, archived: true });
 
-        const result = await deleteTeamCompletely({ teamId, client });
+        const result = await removeTeam({ teamId, client });
 
         expect(result.success).toBe(true);
         expect(result.archived).toBe(true);
@@ -978,7 +983,7 @@ describe("deleteTeamCompletely", () => {
             .mockResolvedValueOnce({ total: 0, rows: [] });
         updateDocument.mockResolvedValue({ $id: teamId, archived: true });
 
-        const result = await deleteTeamCompletely({ teamId, client });
+        const result = await removeTeam({ teamId, client });
 
         expect(result.archived).toBe(true);
         expect(deleteDocument).not.toHaveBeenCalled();
@@ -992,7 +997,7 @@ describe("deleteTeamCompletely", () => {
             .mockResolvedValueOnce({ total: 0, rows: [] })
             .mockResolvedValueOnce({ total: 0, rows: [] });
 
-        const result = await deleteTeamCompletely({ teamId, client });
+        const result = await removeTeam({ teamId, client });
 
         expect(deleteDocument).toHaveBeenCalledWith("teams", teamId, client);
         expect(deleteAppwriteTeam).toHaveBeenCalledWith({ teamId });

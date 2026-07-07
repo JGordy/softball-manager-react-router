@@ -16,7 +16,7 @@ import {
     removePlayersFromTeam,
     updatePlayerLabels,
     archiveTeam,
-    deleteTeamCompletely,
+    removeTeam,
 } from "@/actions/teams";
 import {
     invitePlayersServer,
@@ -155,7 +155,7 @@ export async function action({ request, params, context }) {
     }
 
     if (_action === "delete-team") {
-        const result = await deleteTeamCompletely({ teamId, client });
+        const result = await removeTeam({ teamId, client });
         if (result.success) return redirect("/dashboard");
         return result;
     }
