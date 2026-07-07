@@ -27,6 +27,14 @@ import { getInvitedUserStatus } from "@/loaders/users";
 export async function loader({ request }) {
     const url = new URL(request.url);
     const userId = url.searchParams.get("userId");
+    const secret = url.searchParams.get("secret");
+    const membershipId = url.searchParams.get("membershipId");
+
+    // Require all invite params before hitting the admin API.
+    // Without this guard, anyone could probe for userId existence (user enumeration).
+    if (!userId || !secret || !membershipId) {
+        return { userDocExists: false, hasPassword: false };
+    }
 
     return await getInvitedUserStatus({ userId });
 }
@@ -177,7 +185,7 @@ export default function AcceptInvite({ loaderData, actionData, params }) {
                 setUserName(actionData.name);
             }
         }
-    }, [actionData, loaderData]);
+    }, [actionData]);
 
     // Validation errors
     if (!userId || !secret || !membershipId) {

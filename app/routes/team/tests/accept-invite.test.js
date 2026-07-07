@@ -62,7 +62,7 @@ describe("AcceptInvite Route", () => {
             getInvitedUserStatus.mockResolvedValue(mockStatus);
 
             const request = new Request(
-                "http://localhost/team/accept-invite?userId=user123",
+                "http://localhost/team/accept-invite?userId=user123&secret=abc&membershipId=mem456",
             );
             const result = await loader({ request });
 
@@ -70,6 +70,19 @@ describe("AcceptInvite Route", () => {
                 userId: "user123",
             });
             expect(result).toEqual(mockStatus);
+        });
+
+        it("returns empty status without calling getInvitedUserStatus when invite params are missing", async () => {
+            const request = new Request(
+                "http://localhost/team/accept-invite?userId=user123",
+            );
+            const result = await loader({ request });
+
+            expect(getInvitedUserStatus).not.toHaveBeenCalled();
+            expect(result).toEqual({
+                userDocExists: false,
+                hasPassword: false,
+            });
         });
     });
 

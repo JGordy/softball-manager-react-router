@@ -125,15 +125,22 @@ export async function updateUser({ values, userId, client }) {
         // Fetch the existing user to determine prior profile completion state
         let wasComplete = false;
         let existingUser = null;
+        let userDocMissing = false;
         try {
             existingUser = await readDocument("users", userId, [], client);
             wasComplete = isUserProfileComplete(existingUser);
         } catch (fetchError) {
-            // If we can't fetch the existing user, assume it was not complete
-            console.warn(
-                "Unable to fetch existing user before update:",
-                fetchError,
-            );
+            // Only treat as missing (and eligible for self-heal) on a definitive 404.
+            // All other errors (network, permissions, etc.) are re-thrown to avoid
+            // accidentally creating a duplicate document on transient failures.
+            if (fetchError?.code === 404) {
+                userDocMissing = true;
+            } else {
+                console.warn(
+                    "Unable to fetch existing user before update:",
+                    fetchError,
+                );
+            }
         }
 
         // Apply cross-field validation against existing data to maintain invariant
@@ -170,9 +177,9 @@ export async function updateUser({ values, userId, client }) {
         }
 
         let updatedUser;
-        if (!existingUser) {
-            // Self-heal: If the document doesn't exist, create it instead of updating.
-            // Fetch account info using the client to get name/email if not provided in values.
+        if (userDocMissing) {
+            // Self-heal: The document is definitively missing (404). Create it instead
+            // of updating. Fetch account info to fill in name/email if not in values.
             let email = values.email || "";
             let firstName = values.firstName || "";
             let lastName = values.lastName || "";
@@ -192,12 +199,16 @@ export async function updateUser({ values, userId, client }) {
                 );
             }
 
+            // Apply removeEmptyValues so we don't write empty strings to the new
+            // document for fields that updateUser would normally strip.
+            const cleanValues = removeEmptyValues({ values });
+
             const createResult = await createPlayer({
                 values: {
                     email,
                     firstName,
                     lastName,
-                    ...values,
+                    ...cleanValues,
                     // Ensure status is always "verified" and cannot be overridden by caller values
                     status: "verified",
                 },

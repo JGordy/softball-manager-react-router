@@ -60,7 +60,9 @@ export async function getOrCreateUser({ userId, client }) {
                 "getOrCreateUser - Failed to self-heal missing user document:",
                 healError.message,
             );
-            throw e;
+            // Throw healError (the actual create failure) rather than the original
+            // 404 so callers and logs see the real reason the operation failed.
+            throw healError;
         }
     }
 }
