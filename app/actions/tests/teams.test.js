@@ -31,6 +31,8 @@ import { verifyManager } from "../utils/teamAuth.js";
 jest.mock("@/utils/databases", () => ({
     createDocument: jest.fn(),
     updateDocument: jest.fn(),
+    deleteDocument: jest.fn(),
+    listDocuments: jest.fn(),
 }));
 
 jest.mock("@/utils/badWordsApi", () => ({
@@ -45,6 +47,7 @@ jest.mock("@/utils/teams", () => ({
     updateMembershipRoles: jest.fn(),
     updateTeamPreferences: jest.fn(),
     removeTeamMember: jest.fn(),
+    deleteAppwriteTeam: jest.fn(),
 }));
 
 jest.mock("@/utils/appwrite/server", () => ({
@@ -826,23 +829,6 @@ describe("Teams Actions", () => {
 import { archiveTeam, deleteTeamCompletely } from "../teams";
 import { deleteDocument, listDocuments } from "@/utils/databases";
 import { deleteAppwriteTeam } from "@/utils/teams";
-
-jest.mock("@/utils/databases", () => ({
-    createDocument: jest.fn(),
-    updateDocument: jest.fn(),
-    deleteDocument: jest.fn(),
-    listDocuments: jest.fn(),
-}));
-
-jest.mock("@/utils/teams", () => ({
-    createAppwriteTeam: jest.fn(),
-    addExistingUserToTeam: jest.fn(),
-    inviteNewMemberByEmail: jest.fn(),
-    getTeamMembers: jest.fn(),
-    updateMembershipRoles: jest.fn(),
-    updateTeamPreferences: jest.fn(),
-    deleteAppwriteTeam: jest.fn(),
-}));
 
 /** Shared mock client for removal tests */
 const makeRemovalClient = (userId = "user1") => ({
