@@ -11,6 +11,7 @@ jest.mock("react-router", () => ({
     useNavigate: jest.fn(),
     useSearchParams: jest.fn(),
     useSubmit: jest.fn(),
+    useNavigation: () => ({ state: "idle" }),
     Form: ({ children, ...props }) => <form {...props}>{children}</form>,
 }));
 

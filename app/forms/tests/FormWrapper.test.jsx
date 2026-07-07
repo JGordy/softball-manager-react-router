@@ -3,9 +3,12 @@ import { render, screen, fireEvent } from "@/utils/test-utils";
 import FormWrapper from "../FormWrapper";
 
 const mockSubmit = jest.fn();
+const mockUseNavigation = jest.fn(() => ({ state: "idle" }));
+
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
     useSubmit: () => mockSubmit,
+    useNavigation: () => mockUseNavigation(),
     Form: ({ children, onSubmit, ...props }) => (
         <form onSubmit={onSubmit} {...props}>
             {children}
@@ -86,5 +89,44 @@ describe("FormWrapper", () => {
         expect(
             screen.queryByRole("button", { name: /confirm/i }),
         ).not.toBeInTheDocument();
+    });
+
+    it("disables and shows loading on submit button while navigation is submitting", () => {
+        mockUseNavigation.mockReturnValue({ state: "submitting" });
+
+        render(
+            <FormWrapper action="test-action">
+                <input name="field" defaultValue="val" />
+            </FormWrapper>,
+        );
+
+        const submitButton = screen.getByRole("button", { name: /confirm/i });
+        expect(submitButton).toBeDisabled();
+    });
+
+    it("enables the submit button when navigation returns to idle", () => {
+        mockUseNavigation.mockReturnValue({ state: "idle" });
+
+        render(
+            <FormWrapper action="test-action">
+                <input name="field" defaultValue="val" />
+            </FormWrapper>,
+        );
+
+        const submitButton = screen.getByRole("button", { name: /confirm/i });
+        expect(submitButton).not.toBeDisabled();
+    });
+
+    it("disables the submit button when confirmDisabled prop is true regardless of navigation state", () => {
+        mockUseNavigation.mockReturnValue({ state: "idle" });
+
+        render(
+            <FormWrapper action="test-action" confirmDisabled={true}>
+                <input name="field" defaultValue="val" />
+            </FormWrapper>,
+        );
+
+        const submitButton = screen.getByRole("button", { name: /confirm/i });
+        expect(submitButton).toBeDisabled();
     });
 });

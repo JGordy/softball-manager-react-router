@@ -15,13 +15,15 @@ import { logoutAction } from "@/actions/logout";
 
 import UserHeader from "@/components/UserHeader";
 import { appwriteClientContext } from "@/contexts/router";
+import { listDocuments } from "@/utils/databases";
 
 import DesktopSettingsDashboard from "./components/DesktopSettingsDashboard";
 import MobileSettingsContainer from "./components/MobileSettingsContainer";
 
 export async function loader({ context }) {
     try {
-        const { teams } = context.get(appwriteClientContext);
+        const client = context.get(appwriteClientContext);
+        const { teams } = client;
         // Fetch all teams with pagination to avoid only loading the first page.
         const pageSize = 100;
         const allTeams = [];
@@ -49,7 +51,51 @@ export async function loader({ context }) {
             }
         }
 
-        return { teams: allTeams };
+        // Cross-reference DB documents to filter out archived teams.
+        // The Appwrite Teams API doesn't carry the `archived` flag, only the DB document does.
+        const allTeamIds = allTeams.map((t) => t.$id);
+        const unarchivedIds = new Set();
+
+        if (allTeamIds.length > 0) {
+            const batchSize = 100;
+            for (let i = 0; i < allTeamIds.length; i += batchSize) {
+                const batchIds = allTeamIds.slice(i, i + batchSize);
+                try {
+                    const result = await listDocuments(
+                        "teams",
+                        [Query.equal("$id", batchIds), Query.limit(100)],
+                        client,
+                    );
+                    if (result.rows) {
+                        const fetchedDocIds = new Set(
+                            result.rows.map((doc) => doc.$id),
+                        );
+                        result.rows.forEach((doc) => {
+                            if (!doc.archived) {
+                                unarchivedIds.add(doc.$id);
+                            }
+                        });
+
+                        // Fail open for any team IDs that were not returned by the DB query
+                        // (e.g. missing document or permission mismatch)
+                        batchIds.forEach((id) => {
+                            if (!fetchedDocIds.has(id)) {
+                                unarchivedIds.add(id);
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.error("Failed to batch fetch teams", e);
+                    // Fail open: assume teams are active if the DB query fails
+                    // to prevent users from losing access to teams due to transient errors.
+                    batchIds.forEach((id) => unarchivedIds.add(id));
+                }
+            }
+        }
+
+        const activeTeams = allTeams.filter((t) => unarchivedIds.has(t.$id));
+
+        return { teams: activeTeams };
     } catch (error) {
         console.error("Settings loader error:", error);
         return { teams: [] };

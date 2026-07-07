@@ -2,7 +2,12 @@ import {
     createAdminClient,
     createSessionClient,
 } from "@/utils/appwrite/server";
-import { createDocument, updateDocument } from "@/utils/databases";
+import {
+    createDocument,
+    updateDocument,
+    deleteDocument,
+    listDocuments,
+} from "@/utils/databases";
 import { hasBadWords } from "@/utils/badWordsApi";
 import {
     createAppwriteTeam,
@@ -12,6 +17,7 @@ import {
     updateMembershipRoles,
     updateTeamPreferences,
     removeTeamMember,
+    deleteAppwriteTeam,
 } from "@/utils/teams";
 
 import {
@@ -24,6 +30,8 @@ import {
     updatePreferences,
     updatePlayerLabels,
     removePlayersFromTeam,
+    archiveTeam,
+    removeTeam,
 } from "../teams";
 import { verifyManager } from "../utils/teamAuth.js";
 
@@ -31,6 +39,8 @@ import { verifyManager } from "../utils/teamAuth.js";
 jest.mock("@/utils/databases", () => ({
     createDocument: jest.fn(),
     updateDocument: jest.fn(),
+    deleteDocument: jest.fn(),
+    listDocuments: jest.fn(),
 }));
 
 jest.mock("@/utils/badWordsApi", () => ({
@@ -45,6 +55,7 @@ jest.mock("@/utils/teams", () => ({
     updateMembershipRoles: jest.fn(),
     updateTeamPreferences: jest.fn(),
     removeTeamMember: jest.fn(),
+    deleteAppwriteTeam: jest.fn(),
 }));
 
 jest.mock("@/utils/appwrite/server", () => ({
@@ -817,5 +828,180 @@ describe("Teams Actions", () => {
                 membershipId: "member2",
             });
         });
+    });
+});
+
+// ---------------------------------------------------------------------------
+// archiveTeam & removeTeam
+// ---------------------------------------------------------------------------
+
+/** Shared mock client for removal tests */
+const makeRemovalClient = (userId = "user1") => ({
+    tablesDB: { id: "mock-db" },
+    account: { get: jest.fn().mockResolvedValue({ $id: userId }) },
+});
+
+/** Membership where the user is the sole owner */
+const ownerOnlyMemberships = (userId = "user1") => ({
+    total: 1,
+    memberships: [{ userId, roles: ["owner", "manager", "player"] }],
+});
+
+describe("archiveTeam", () => {
+    const teamId = "team-abc";
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        jest.spyOn(console, "error").mockImplementation(() => {});
+        verifyManager.mockResolvedValue({ success: true });
+    });
+
+    afterEach(() => {
+        console.error.mockRestore();
+    });
+
+    it("should return an error if no client is provided", async () => {
+        await expect(archiveTeam({ teamId, client: null })).rejects.toThrow(
+            "A constructed 'client' object is strictly required",
+        );
+    });
+
+    it("should return failure if the user is not an owner", async () => {
+        const client = makeRemovalClient("user1");
+        getTeamMembers.mockResolvedValue({
+            total: 2,
+            memberships: [
+                { userId: "user1", roles: ["manager", "player"] }, // manager, not owner
+                { userId: "user2", roles: ["owner", "manager", "player"] },
+            ],
+        });
+
+        const result = await archiveTeam({ teamId, client });
+        expect(result.success).toBe(false);
+        expect(result.message).toMatch(/only team owners/i);
+    });
+
+    it("should set archived: true on the DB document and return success", async () => {
+        const client = makeRemovalClient("user1");
+        getTeamMembers.mockResolvedValue(ownerOnlyMemberships("user1"));
+        updateDocument.mockResolvedValue({ $id: teamId, archived: true });
+
+        const result = await archiveTeam({ teamId, client });
+
+        expect(updateDocument).toHaveBeenCalledWith(
+            "teams",
+            teamId,
+            { archived: true },
+            client,
+        );
+        expect(result.success).toBe(true);
+        expect(result.archived).toBe(true);
+    });
+
+    it("should return failure if verifyManager fails", async () => {
+        verifyManager.mockResolvedValue({
+            success: false,
+            message: "Not a manager",
+        });
+        const client = makeRemovalClient("user1");
+
+        const result = await archiveTeam({ teamId, client });
+        expect(result.success).toBe(false);
+        expect(updateDocument).not.toHaveBeenCalled();
+    });
+});
+
+describe("removeTeam", () => {
+    const teamId = "team-xyz";
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        jest.spyOn(console, "error").mockImplementation(() => {});
+        jest.spyOn(console, "warn").mockImplementation(() => {});
+        verifyManager.mockResolvedValue({ success: true });
+        deleteDocument.mockResolvedValue({});
+        deleteAppwriteTeam.mockResolvedValue({ success: true });
+    });
+
+    afterEach(() => {
+        console.error.mockRestore();
+        console.warn.mockRestore();
+    });
+
+    it("should throw if no client is provided", async () => {
+        await expect(removeTeam({ teamId, client: null })).rejects.toThrow(
+            "A constructed 'client' object is strictly required",
+        );
+    });
+
+    it("should return failure if the user is not an owner", async () => {
+        const client = makeRemovalClient("user1");
+        getTeamMembers.mockResolvedValue({
+            total: 1,
+            memberships: [{ userId: "user1", roles: ["manager", "player"] }],
+        });
+        // listDocuments not called for data check if auth fails
+        const result = await removeTeam({ teamId, client });
+        expect(result.success).toBe(false);
+        expect(result.message).toMatch(/only team owners/i);
+    });
+
+    it("should archive (not hard-delete) when seasons exist", async () => {
+        const client = makeRemovalClient("user1");
+        getTeamMembers.mockResolvedValue(ownerOnlyMemberships("user1"));
+        // seasons exist
+        listDocuments
+            .mockResolvedValueOnce({ total: 1, rows: [{ $id: "s1" }] }) // seasons
+            .mockResolvedValueOnce({ total: 0, rows: [] }); // game_logs
+        updateDocument.mockResolvedValue({ $id: teamId, archived: true });
+
+        const result = await removeTeam({ teamId, client });
+
+        expect(result.success).toBe(true);
+        expect(result.archived).toBe(true);
+        expect(updateDocument).toHaveBeenCalledWith(
+            "teams",
+            teamId,
+            { archived: true },
+            client,
+        );
+        expect(deleteDocument).not.toHaveBeenCalled();
+        expect(deleteAppwriteTeam).not.toHaveBeenCalled();
+    });
+
+    it("should archive when other members exist even with no data", async () => {
+        const client = makeRemovalClient("user1");
+        getTeamMembers.mockResolvedValue({
+            total: 2, // two members
+            memberships: [
+                { userId: "user1", roles: ["owner", "manager", "player"] },
+                { userId: "user2", roles: ["player"] },
+            ],
+        });
+        listDocuments
+            .mockResolvedValueOnce({ total: 0, rows: [] })
+            .mockResolvedValueOnce({ total: 0, rows: [] });
+        updateDocument.mockResolvedValue({ $id: teamId, archived: true });
+
+        const result = await removeTeam({ teamId, client });
+
+        expect(result.archived).toBe(true);
+        expect(deleteDocument).not.toHaveBeenCalled();
+    });
+
+    it("should hard-delete when team is solo and has no data", async () => {
+        const client = makeRemovalClient("user1");
+        getTeamMembers.mockResolvedValue(ownerOnlyMemberships("user1"));
+        // No seasons, no logs
+        listDocuments
+            .mockResolvedValueOnce({ total: 0, rows: [] })
+            .mockResolvedValueOnce({ total: 0, rows: [] });
+
+        const result = await removeTeam({ teamId, client });
+
+        expect(deleteDocument).toHaveBeenCalledWith("teams", teamId, client);
+        expect(deleteAppwriteTeam).toHaveBeenCalledWith({ teamId });
+        expect(result.success).toBe(true);
+        expect(result.archived).toBe(false);
     });
 });

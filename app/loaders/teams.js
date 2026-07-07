@@ -1,3 +1,4 @@
+import { redirect } from "react-router";
 import { Query } from "node-appwrite";
 import { DateTime } from "luxon";
 import { listDocuments, readDocument } from "@/utils/databases";
@@ -64,9 +65,9 @@ export async function getUserTeams({ client, isDashboard = false }) {
             const teamPromises = teamIds.map((id) =>
                 readDocument("teams", id, [], client).catch(() => null),
             );
-            const teams = (await Promise.all(teamPromises)).filter(
-                (t) => t !== null,
-            );
+            const teams = (await Promise.all(teamPromises))
+                .filter((t) => t !== null)
+                .filter((t) => !t.archived); // Exclude archived teams from all views
 
             // 1. Batch fetch seasons for all teams
             const allTeamIds = teams.map((t) => t.$id);
@@ -377,7 +378,14 @@ export async function getTeamById({ teamId, client }) {
 
         try {
             teamData = await readDocument("teams", teamId, [], client);
+            // Guard: redirect if team has been archived
+            if (teamData?.archived) {
+                throw redirect("/dashboard");
+            }
         } catch (err) {
+            // Guard: throw err if it's our redirect
+            if (err instanceof Response) throw err;
+
             // Fallback: check if they are a former player who participated in at least one season of this team
             try {
                 const { createAdminClient } = await import(
@@ -412,6 +420,10 @@ export async function getTeamById({ teamId, client }) {
                         [],
                         adminClient,
                     );
+                    // Guard: redirect if team has been archived, even in fallback
+                    if (teamData?.archived) {
+                        throw redirect("/dashboard");
+                    }
                     isArchiveView = true;
                     participatedSeasonIds = response.rows.map(
                         (r) => r.seasonId,
@@ -420,6 +432,9 @@ export async function getTeamById({ teamId, client }) {
                     throw err;
                 }
             } catch (fallbackErr) {
+                // Forward the redirect response if thrown in the fallback
+                if (fallbackErr instanceof Response) throw fallbackErr;
+
                 console.error("Access check failed for team:", fallbackErr);
                 throw err;
             }
