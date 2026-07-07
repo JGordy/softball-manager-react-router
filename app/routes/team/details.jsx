@@ -1,4 +1,4 @@
-import { useOutletContext } from "react-router";
+import { useOutletContext, redirect } from "react-router";
 import { Box, Container, Group, Text, Title } from "@mantine/core";
 
 import images from "@/constants/images";
@@ -14,6 +14,8 @@ import {
     updatePreferences,
     updateBulkJerseyNumbers,
     updatePlayerLabels,
+    archiveTeam,
+    deleteTeamCompletely,
 } from "@/actions/teams";
 import {
     invitePlayersServer,
@@ -142,6 +144,18 @@ export async function action({ request, params, context }) {
     }
     if (_action === "update-bulk-jersey-numbers") {
         return updateBulkJerseyNumbers({ teamId, values, client });
+    }
+
+    if (_action === "archive-team") {
+        const result = await archiveTeam({ teamId, client });
+        if (result.success) return redirect("/dashboard");
+        return result;
+    }
+
+    if (_action === "delete-team") {
+        const result = await deleteTeamCompletely({ teamId, client });
+        if (result.success) return redirect("/dashboard");
+        return result;
     }
 }
 

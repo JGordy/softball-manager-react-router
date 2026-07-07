@@ -13,6 +13,7 @@ import {
     IconSettings,
     IconShirtSport,
     IconTags,
+    IconTrash,
 } from "@tabler/icons-react";
 
 import AddTeam from "@/forms/AddTeam";
@@ -28,6 +29,7 @@ import ManageRolesDrawer from "./ManageRolesDrawer";
 import PlayerLabelsDrawer from "./PlayerLabelsDrawer";
 import PreferencesDrawer from "./PreferencesDrawer";
 import BulkJerseyNumberModal from "./BulkJerseyNumberModal";
+import RemoveTeamDrawer from "./RemoveTeamDrawer";
 
 export default function TeamMenu({ userId, team, ownerView, players }) {
     const navigate = useNavigate();
@@ -39,6 +41,8 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
         { open: openPreferences, close: closePreferences },
     ] = useDisclosure(false);
     const [labelsOpened, { open: openLabels, close: closeLabels }] =
+        useDisclosure(false);
+    const [removeTeamOpened, { open: openRemoveTeam, close: closeRemoveTeam }] =
         useDisclosure(false);
 
     const { $id: teamId, name: teamName, seasons, primaryColor } = team;
@@ -185,6 +189,22 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                     : []),
             ],
         },
+        ...(ownerView
+            ? [
+                  {
+                      label: "Danger Zone",
+                      items: [
+                          {
+                              key: "remove-team",
+                              color: "red",
+                              onClick: openRemoveTeam,
+                              leftSection: <IconTrash size={18} />,
+                              content: "Remove Team",
+                          },
+                      ],
+                  },
+              ]
+            : []),
     ];
 
     return (
@@ -205,6 +225,12 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
             <PlayerLabelsDrawer
                 opened={labelsOpened}
                 onClose={closeLabels}
+                team={team}
+                players={players}
+            />
+            <RemoveTeamDrawer
+                opened={removeTeamOpened}
+                onClose={closeRemoveTeam}
                 team={team}
                 players={players}
             />
