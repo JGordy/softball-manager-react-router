@@ -116,7 +116,7 @@ export async function clientAction({ request, params, serverAction }) {
     return serverAction();
 }
 
-export default function AcceptInvite({ loaderData, actionData, params }) {
+export default function AcceptInvite({ actionData, params }) {
     const [searchParams] = useSearchParams();
     const [inviteAccepted, setInviteAccepted] = useState(false);
     const [userEmail, setUserEmail] = useState("");
