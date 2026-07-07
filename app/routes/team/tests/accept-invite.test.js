@@ -54,35 +54,11 @@ describe("AcceptInvite Route", () => {
     });
 
     describe("loader", () => {
-        it("delegates invite status check to getInvitedUserStatus", async () => {
-            const mockStatus = {
-                userDocExists: true,
-                hasPassword: true,
-            };
-            getInvitedUserStatus.mockResolvedValue(mockStatus);
-
-            const request = new Request(
-                "http://localhost/team/accept-invite?userId=user123&secret=abc&membershipId=mem456",
-            );
-            const result = await loader({ request });
-
-            expect(getInvitedUserStatus).toHaveBeenCalledWith({
-                userId: "user123",
-            });
-            expect(result).toEqual(mockStatus);
-        });
-
-        it("returns empty status without calling getInvitedUserStatus when invite params are missing", async () => {
-            const request = new Request(
-                "http://localhost/team/accept-invite?userId=user123",
-            );
-            const result = await loader({ request });
+        it("returns an empty object without calling getInvitedUserStatus", async () => {
+            const result = await loader();
 
             expect(getInvitedUserStatus).not.toHaveBeenCalled();
-            expect(result).toEqual({
-                userDocExists: false,
-                hasPassword: false,
-            });
+            expect(result).toEqual({});
         });
     });
 
@@ -206,13 +182,15 @@ describe("AcceptInvite Route", () => {
         });
 
         it("redirects to team page if already confirmed and user has password and doc exists", () => {
-            const actionData = { alreadyConfirmed: true };
-            const loaderData = { hasPassword: true, userDocExists: true };
+            const actionData = {
+                alreadyConfirmed: true,
+                hasPassword: true,
+                userDocExists: true,
+            };
             render(
                 <AcceptInvite
                     params={{ teamId: "team123" }}
                     actionData={actionData}
-                    loaderData={loaderData}
                 />,
             );
 
@@ -220,13 +198,15 @@ describe("AcceptInvite Route", () => {
         });
 
         it("redirects to login if already confirmed but user doc is missing", () => {
-            const actionData = { alreadyConfirmed: true };
-            const loaderData = { hasPassword: true, userDocExists: false };
+            const actionData = {
+                alreadyConfirmed: true,
+                hasPassword: true,
+                userDocExists: false,
+            };
             render(
                 <AcceptInvite
                     params={{ teamId: "team123" }}
                     actionData={actionData}
-                    loaderData={loaderData}
                 />,
             );
 
