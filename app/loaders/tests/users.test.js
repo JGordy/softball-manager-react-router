@@ -1,17 +1,25 @@
-import { listDocuments, readDocument } from "@/utils/databases";
+import { listDocuments, readDocument, createDocument } from "@/utils/databases";
 
 import {
     getUserById,
+    getOrCreateUser,
+    getInvitedUserStatus,
     getAttendanceByUserId,
     getAwardsByUserId,
     getStatsByUserId,
     getAchievementsByUserId,
 } from "../users";
+import { createAdminClient } from "@/utils/appwrite/server";
 
 // Mock dependencies
 jest.mock("@/utils/databases", () => ({
     listDocuments: jest.fn(),
     readDocument: jest.fn(),
+    createDocument: jest.fn(),
+}));
+
+jest.mock("@/utils/appwrite/server", () => ({
+    createAdminClient: jest.fn(),
 }));
 
 jest.mock("node-appwrite", () => ({
@@ -25,6 +33,18 @@ jest.mock("node-appwrite", () => ({
         or: jest.fn((queries) => `or([${queries.join(",")}])`),
         contains: jest.fn((attr, value) => `contains("${attr}", "${value}")`),
     },
+    Permission: {
+        read: jest.fn((role) => `read("${role}")`),
+        update: jest.fn((role) => `update("${role}")`),
+        delete: jest.fn((role) => `delete("${role}")`),
+    },
+    Role: {
+        any: jest.fn(() => "any"),
+        user: jest.fn((id) => `user:${id}`),
+    },
+    Users: jest.fn().mockImplementation(() => ({
+        get: jest.fn(),
+    })),
 }));
 
 describe("Users Loader", () => {
@@ -176,6 +196,144 @@ describe("Users Loader", () => {
                 mockClient,
             );
             expect(result).toEqual(mockUser);
+        });
+    });
+
+    describe("getOrCreateUser", () => {
+        it("should return user document if it exists", async () => {
+            const mockUser = { $id: "user1", name: "Test User" };
+            readDocument.mockResolvedValue(mockUser);
+
+            const result = await getOrCreateUser({
+                userId: "user1",
+                client: mockClient,
+            });
+
+            expect(readDocument).toHaveBeenCalledWith(
+                "users",
+                "user1",
+                [],
+                mockClient,
+            );
+            expect(result).toEqual(mockUser);
+        });
+
+        it("should self-heal and create user document if it does not exist", async () => {
+            readDocument.mockRejectedValue({
+                code: 404,
+                message: "Document not found",
+            });
+
+            const testClient = {
+                tablesDB: { id: "mock-session-db" },
+                account: {
+                    get: jest.fn().mockResolvedValue({
+                        $id: "user1",
+                        name: "Test User",
+                        email: "test@example.com",
+                    }),
+                },
+            };
+
+            const mockCreatedDoc = {
+                $id: "user1",
+                userId: "user1",
+                email: "test@example.com",
+                firstName: "Test",
+                lastName: "User",
+                status: "verified",
+            };
+            createDocument.mockResolvedValue(mockCreatedDoc);
+
+            const result = await getOrCreateUser({
+                userId: "user1",
+                client: testClient,
+            });
+
+            expect(createDocument).toHaveBeenCalledWith(
+                "users",
+                "user1",
+                expect.objectContaining({
+                    userId: "user1",
+                    email: "test@example.com",
+                    firstName: "Test",
+                    lastName: "User",
+                    status: "verified",
+                }),
+                expect.any(Array),
+                testClient,
+            );
+            expect(result).toEqual(mockCreatedDoc);
+        });
+    });
+
+    describe("getInvitedUserStatus", () => {
+        it("returns early if no userId provided", async () => {
+            const result = await getInvitedUserStatus({ userId: null });
+            expect(result).toEqual({
+                userDocExists: false,
+                hasPassword: false,
+            });
+        });
+
+        it("returns userDocExists and hasPassword when user document and password exist", async () => {
+            const mockUsersInstance = {
+                get: jest.fn().mockResolvedValue({
+                    email: "test@example.com",
+                    name: "Test User",
+                    passwordUpdate: "2026-07-07T12:00:00.000Z",
+                }),
+            };
+            const { Users } = require("node-appwrite");
+            Users.mockImplementation(() => mockUsersInstance);
+
+            const mockAdminClient = { account: { client: {} } };
+            createAdminClient.mockReturnValue(mockAdminClient);
+
+            readDocument.mockResolvedValue({ $id: "user123" });
+
+            const result = await getInvitedUserStatus({ userId: "user123" });
+
+            expect(createAdminClient).toHaveBeenCalled();
+            expect(mockUsersInstance.get).toHaveBeenCalledWith("user123");
+            expect(readDocument).toHaveBeenCalledWith(
+                "users",
+                "user123",
+                [],
+                mockAdminClient,
+            );
+            expect(result).toEqual({
+                userDocExists: true,
+                hasPassword: true,
+                email: "test@example.com",
+                name: "Test User",
+            });
+        });
+
+        it("returns false for userDocExists and hasPassword if read fails and passwordUpdate is empty", async () => {
+            const mockUsersInstance = {
+                get: jest.fn().mockResolvedValue({
+                    email: "test@example.com",
+                    name: "Test User",
+                    passwordUpdate: "",
+                }),
+            };
+            const { Users } = require("node-appwrite");
+            Users.mockImplementation(() => mockUsersInstance);
+
+            const mockAdminClient = { account: { client: {} } };
+            createAdminClient.mockReturnValue(mockAdminClient);
+
+            readDocument.mockRejectedValue(new Error("Not found"));
+
+            const result = await getInvitedUserStatus({ userId: "user123" });
+
+            expect(result).toEqual({
+                userDocExists: false,
+                hasPassword: false,
+                email: "test@example.com",
+                name: "Test User",
+            });
         });
     });
 

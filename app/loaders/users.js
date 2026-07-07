@@ -1,9 +1,103 @@
-import { Query } from "node-appwrite";
-import { readDocument, listDocuments } from "@/utils/databases";
+import { Query, Permission, Role, Users } from "node-appwrite";
+import { readDocument, listDocuments, createDocument } from "@/utils/databases";
 import { joinAchievements } from "@/utils/achievements.server";
+import { createAdminClient } from "@/utils/appwrite/server";
 
 export async function getUserById({ userId, client }) {
     return await readDocument("users", userId, [], client);
+}
+
+export async function getOrCreateUser({ userId, client }) {
+    try {
+        return await readDocument("users", userId, [], client);
+    } catch (e) {
+        console.warn(
+            "getOrCreateUser - User document not found, attempting self-heal:",
+            e.message,
+        );
+
+        try {
+            // Get user account details from Appwrite Auth
+            const userAccount = await client.account.get();
+
+            const docPermissions = [
+                Permission.read(Role.any()),
+                Permission.update(Role.user(userId)),
+                Permission.delete(Role.user(userId)),
+            ];
+
+            let firstName = "";
+            let lastName = "";
+            if (userAccount.name) {
+                const parts = userAccount.name.trim().split(" ");
+                firstName = parts[0] || "";
+                lastName = parts.slice(1).join(" ") || "";
+            }
+
+            return await createDocument(
+                "users",
+                userId,
+                {
+                    userId,
+                    email: userAccount.email,
+                    firstName,
+                    lastName,
+                    status: "verified",
+                    preferredPositions: [],
+                    dislikedPositions: [],
+                },
+                docPermissions,
+                client,
+            );
+        } catch (healError) {
+            console.error(
+                "getOrCreateUser - Failed to self-heal missing user document:",
+                healError.message,
+            );
+            throw e;
+        }
+    }
+}
+
+export async function getInvitedUserStatus({ userId }) {
+    if (!userId) {
+        return { userDocExists: false, hasPassword: false };
+    }
+
+    try {
+        const adminClient = createAdminClient();
+        const users = new Users(adminClient.account.client);
+
+        // Get user account details from Appwrite Auth
+        const userAccount = await users.get(userId);
+
+        // Check if user document exists in database
+        let userDocExists = false;
+        try {
+            await readDocument("users", userId, [], adminClient);
+            userDocExists = true;
+        } catch (_e) {
+            userDocExists = false;
+        }
+
+        // Check if user has a password set (passwordUpdate represents password change date/time)
+        const hasPassword =
+            userAccount.passwordUpdate &&
+            new Date(userAccount.passwordUpdate).getTime() > 0;
+
+        return {
+            userDocExists,
+            hasPassword: !!hasPassword,
+            email: userAccount.email,
+            name: userAccount.name,
+        };
+    } catch (error) {
+        console.error(
+            "getInvitedUserStatus - Failed to fetch user status:",
+            error.message,
+        );
+        return { userDocExists: false, hasPassword: false };
+    }
 }
 
 export async function getAttendanceByUserId({ userId, client }) {
