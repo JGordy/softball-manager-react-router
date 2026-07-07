@@ -58,8 +58,6 @@ describe("AcceptInvite Route", () => {
             const mockStatus = {
                 userDocExists: true,
                 hasPassword: true,
-                email: "test@example.com",
-                name: "Test User",
             };
             getInvitedUserStatus.mockResolvedValue(mockStatus);
 

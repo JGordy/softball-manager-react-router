@@ -305,8 +305,6 @@ describe("Users Loader", () => {
             expect(result).toEqual({
                 userDocExists: true,
                 hasPassword: true,
-                email: "test@example.com",
-                name: "Test User",
             });
         });
 
@@ -331,8 +329,6 @@ describe("Users Loader", () => {
             expect(result).toEqual({
                 userDocExists: false,
                 hasPassword: false,
-                email: "test@example.com",
-                name: "Test User",
             });
         });
     });

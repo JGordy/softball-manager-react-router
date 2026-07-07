@@ -197,8 +197,9 @@ export async function updateUser({ values, userId, client }) {
                     email,
                     firstName,
                     lastName,
-                    status: "verified",
                     ...values,
+                    // Ensure status is always "verified" and cannot be overridden by caller values
+                    status: "verified",
                 },
                 teamId: "self", // Passed to force permissions generation
                 userId,

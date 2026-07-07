@@ -138,6 +138,10 @@ export default function AcceptInvite({ loaderData, actionData, params }) {
                 // Self-healing: they have a password, but database doc is missing.
                 // Redirect to login where they will log in and self-heal automatically.
                 navigate("/login");
+            } else {
+                // Unhandled already-confirmed state (no password or unknown);
+                // fall back to login so the user is not stuck indefinitely.
+                navigate("/login");
             }
         }
     }, [actionData, loaderData, params.teamId, navigate]);
@@ -168,13 +172,9 @@ export default function AcceptInvite({ loaderData, actionData, params }) {
             setInviteAccepted(true);
             if (actionData.email) {
                 setUserEmail(actionData.email);
-            } else if (loaderData?.email) {
-                setUserEmail(loaderData.email);
             }
             if (actionData.name) {
                 setUserName(actionData.name);
-            } else if (loaderData?.name) {
-                setUserName(loaderData.name);
             }
         }
     }, [actionData, loaderData]);

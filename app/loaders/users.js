@@ -11,6 +11,12 @@ export async function getOrCreateUser({ userId, client }) {
     try {
         return await readDocument("users", userId, [], client);
     } catch (e) {
+        // Only attempt self-heal for missing document errors (404);
+        // re-throw permission, network, or other errors immediately.
+        if (e?.code !== 404) {
+            throw e;
+        }
+
         console.warn(
             "getOrCreateUser - User document not found, attempting self-heal:",
             e.message,
@@ -85,11 +91,11 @@ export async function getInvitedUserStatus({ userId }) {
             userAccount.passwordUpdate &&
             new Date(userAccount.passwordUpdate).getTime() > 0;
 
+        // Return only the minimal booleans needed for flow control.
+        // Avoid returning PII (email/name) from this public route loader.
         return {
             userDocExists,
             hasPassword: !!hasPassword,
-            email: userAccount.email,
-            name: userAccount.name,
         };
     } catch (error) {
         console.error(
