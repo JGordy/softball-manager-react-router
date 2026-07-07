@@ -660,7 +660,7 @@ export async function removeTeam({ teamId, client }) {
                 success: true,
                 archived: true,
                 message:
-                    "This team has existing data and has been archived. It will no longer appear in your dashboard. Contact support if you need to restore it.",
+                    "This team has been archived. It will no longer appear in your dashboard. Contact support if you need to restore it.",
             };
         }
 
