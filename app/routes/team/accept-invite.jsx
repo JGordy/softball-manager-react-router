@@ -19,6 +19,7 @@ import {
 
 import { useResponseNotification } from "@/utils/showNotification";
 import { getInvitedUserStatus } from "@/loaders/users";
+import { createAdminClient } from "@/utils/appwrite/server";
 
 /**
  * Handle team invitation acceptance
@@ -58,7 +59,46 @@ export async function action({ request }) {
 
     if (_action === "check-invited-status") {
         const userId = formData.get("userId");
-        return await getInvitedUserStatus({ userId });
+        const teamId = formData.get("teamId");
+        const membershipId = formData.get("membershipId");
+
+        // Validate the request parameters are present
+        if (!userId || !teamId || !membershipId) {
+            return {
+                success: false,
+                message: "Missing required validation parameters",
+            };
+        }
+
+        try {
+            const adminClient = createAdminClient();
+            // Fetch membership details using the admin Teams API to validate caller has access
+            const membership = await adminClient.teams.getMembership(
+                teamId,
+                membershipId,
+            );
+
+            // Confirm that the membership actually belongs to the user being queried
+            if (membership.userId !== userId) {
+                return {
+                    success: false,
+                    message: "Invalid user membership association",
+                };
+            }
+
+            // Ensure the invitation is actually confirmed (completed)
+            if (!membership.confirm) {
+                return {
+                    success: false,
+                    message: "Membership is not confirmed",
+                };
+            }
+
+            return await getInvitedUserStatus({ userId });
+        } catch (error) {
+            console.error("check-invited-status validation failed:", error);
+            return { success: false, message: "Validation failed" };
+        }
     }
 
     return { success: false, message: "Unknown action" };
@@ -95,11 +135,15 @@ export async function clientAction({ request, params, serverAction }) {
         // to redirect to the team page or to login for self-healing.
         // This avoids exposing per-user status from the public loader, and runs
         // server-side via a POST fetch to prevent client-side bundling of server-only modules.
+        // It passes teamId and membershipId so the server can validate that the caller
+        // is authorized to query this userId's status.
         let userStatus = {};
         if (result?.alreadyConfirmed) {
             const statusFormData = new FormData();
             statusFormData.append("_action", "check-invited-status");
             statusFormData.append("userId", userId);
+            statusFormData.append("teamId", teamId);
+            statusFormData.append("membershipId", membershipId);
 
             try {
                 const response = await fetch(request.url, {

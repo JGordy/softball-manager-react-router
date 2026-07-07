@@ -9,6 +9,11 @@ import {
 
 import AcceptInvite, { loader, action, clientAction } from "../accept-invite";
 import { getInvitedUserStatus } from "@/loaders/users";
+import { createAdminClient } from "@/utils/appwrite/server";
+
+jest.mock("@/utils/appwrite/server", () => ({
+    createAdminClient: jest.fn(),
+}));
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
@@ -82,10 +87,12 @@ describe("AcceptInvite Route", () => {
             });
         });
 
-        it("calls getInvitedUserStatus for check-invited-status action", async () => {
+        it("calls getInvitedUserStatus for check-invited-status action when membership is valid and confirmed", async () => {
             const formData = new FormData();
             formData.append("_action", "check-invited-status");
             formData.append("userId", "user123");
+            formData.append("teamId", "team123");
+            formData.append("membershipId", "mem123");
 
             const request = { formData: () => Promise.resolve(formData) };
             getInvitedUserStatus.mockResolvedValue({
@@ -93,14 +100,91 @@ describe("AcceptInvite Route", () => {
                 hasPassword: true,
             });
 
+            const mockGetMembership = jest.fn().mockResolvedValue({
+                userId: "user123",
+                confirm: true,
+            });
+            createAdminClient.mockReturnValue({
+                teams: {
+                    getMembership: mockGetMembership,
+                },
+            });
+
             const result = await action({ request });
 
+            expect(mockGetMembership).toHaveBeenCalledWith("team123", "mem123");
             expect(getInvitedUserStatus).toHaveBeenCalledWith({
                 userId: "user123",
             });
             expect(result).toEqual({
                 userDocExists: true,
                 hasPassword: true,
+            });
+        });
+
+        it("fails to check status when validation parameters are missing", async () => {
+            const formData = new FormData();
+            formData.append("_action", "check-invited-status");
+            formData.append("userId", "user123");
+
+            const request = { formData: () => Promise.resolve(formData) };
+            const result = await action({ request });
+
+            expect(result).toEqual({
+                success: false,
+                message: "Missing required validation parameters",
+            });
+        });
+
+        it("fails to check status when membership belongs to a different user", async () => {
+            const formData = new FormData();
+            formData.append("_action", "check-invited-status");
+            formData.append("userId", "user123");
+            formData.append("teamId", "team123");
+            formData.append("membershipId", "mem123");
+
+            const request = { formData: () => Promise.resolve(formData) };
+            const mockGetMembership = jest.fn().mockResolvedValue({
+                userId: "different_user",
+                confirm: true,
+            });
+            createAdminClient.mockReturnValue({
+                teams: {
+                    getMembership: mockGetMembership,
+                },
+            });
+
+            const result = await action({ request });
+
+            expect(result).toEqual({
+                success: false,
+                message: "Invalid user membership association",
+            });
+        });
+
+        it("fails to check status when membership is not confirmed", async () => {
+            const formData = new FormData();
+            formData.append("_action", "check-invited-status");
+            formData.append("userId", "user123");
+            formData.append("teamId", "team123");
+            formData.append("membershipId", "mem123");
+
+            const request = { formData: () => Promise.resolve(formData) };
+            const mockGetMembership = jest.fn().mockResolvedValue({
+                userId: "user123",
+                confirm: false,
+            });
+            createAdminClient.mockReturnValue({
+                teams: {
+                    getMembership: mockGetMembership,
+                },
+            });
+
+            const result = await action({ request });
+
+            expect(result).toEqual({
+                success: false,
+                message: "Membership is not confirmed",
             });
         });
 
@@ -208,10 +292,12 @@ describe("AcceptInvite Route", () => {
                 }),
             );
 
-            // Verify the FormData sent to fetch has correct intent
+            // Verify the FormData sent to fetch has correct intent and validation params
             const fetchedFormData = mockFetch.mock.calls[0][1].body;
             expect(fetchedFormData.get("_action")).toBe("check-invited-status");
             expect(fetchedFormData.get("userId")).toBe("user123");
+            expect(fetchedFormData.get("teamId")).toBe("team123");
+            expect(fetchedFormData.get("membershipId")).toBe("mem123");
 
             expect(result).toEqual({
                 success: true,
