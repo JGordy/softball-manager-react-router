@@ -18,6 +18,7 @@ import {
 } from "@/actions/invitations";
 
 import { useResponseNotification } from "@/utils/showNotification";
+import { getInvitedUserStatus } from "@/loaders/users";
 
 /**
  * Handle team invitation acceptance
@@ -55,6 +56,11 @@ export async function action({ request }) {
         return result;
     }
 
+    if (_action === "check-invited-status") {
+        const userId = formData.get("userId");
+        return await getInvitedUserStatus({ userId });
+    }
+
     return { success: false, message: "Unknown action" };
 }
 
@@ -87,11 +93,25 @@ export async function clientAction({ request, params, serverAction }) {
         // When the invite was already confirmed, fetch the user's status here —
         // after Appwrite has validated the invite credentials — so we know whether
         // to redirect to the team page or to login for self-healing.
-        // This avoids exposing per-user status from the public loader.
+        // This avoids exposing per-user status from the public loader, and runs
+        // server-side via a POST fetch to prevent client-side bundling of server-only modules.
         let userStatus = {};
         if (result?.alreadyConfirmed) {
-            const { getInvitedUserStatus } = await import("@/loaders/users");
-            userStatus = await getInvitedUserStatus({ userId });
+            const statusFormData = new FormData();
+            statusFormData.append("_action", "check-invited-status");
+            statusFormData.append("userId", userId);
+
+            try {
+                const response = await fetch(request.url, {
+                    method: "POST",
+                    body: statusFormData,
+                });
+                if (response.ok) {
+                    userStatus = await response.json();
+                }
+            } catch (err) {
+                console.error("Failed to check invited user status:", err);
+            }
         }
 
         return {

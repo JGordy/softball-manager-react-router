@@ -82,6 +82,28 @@ describe("AcceptInvite Route", () => {
             });
         });
 
+        it("calls getInvitedUserStatus for check-invited-status action", async () => {
+            const formData = new FormData();
+            formData.append("_action", "check-invited-status");
+            formData.append("userId", "user123");
+
+            const request = { formData: () => Promise.resolve(formData) };
+            getInvitedUserStatus.mockResolvedValue({
+                userDocExists: true,
+                hasPassword: true,
+            });
+
+            const result = await action({ request });
+
+            expect(getInvitedUserStatus).toHaveBeenCalledWith({
+                userId: "user123",
+            });
+            expect(result).toEqual({
+                userDocExists: true,
+                hasPassword: true,
+            });
+        });
+
         it("returns error for unknown action", async () => {
             const formData = new FormData();
             formData.append("_action", "invalid");
@@ -136,6 +158,67 @@ describe("AcceptInvite Route", () => {
 
             await clientAction({ request, serverAction, params: {} });
             expect(serverAction).toHaveBeenCalled();
+        });
+
+        it("calls server action via fetch and returns status on alreadyConfirmed success", async () => {
+            const formData = new FormData();
+            formData.append("_action", "accept-invite");
+            formData.append("membershipId", "mem123");
+            formData.append("userId", "user123");
+            formData.append("secret", "secret123");
+
+            const request = {
+                clone: () => ({
+                    formData: () => Promise.resolve(formData),
+                }),
+                formData: () => Promise.resolve(formData),
+                url: "http://localhost/team/accept-invite",
+            };
+            const params = { teamId: "team123" };
+
+            acceptTeamInvitation.mockResolvedValue({
+                success: true,
+                alreadyConfirmed: true,
+            });
+
+            const mockResponseJson = {
+                userDocExists: true,
+                hasPassword: true,
+            };
+
+            const mockFetch = jest.fn().mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve(mockResponseJson),
+            });
+            global.fetch = mockFetch;
+
+            const result = await clientAction({ request, params });
+
+            expect(acceptTeamInvitation).toHaveBeenCalledWith({
+                teamId: "team123",
+                membershipId: "mem123",
+                userId: "user123",
+                secret: "secret123",
+            });
+            expect(mockFetch).toHaveBeenCalledWith(
+                "http://localhost/team/accept-invite",
+                expect.objectContaining({
+                    method: "POST",
+                    body: expect.any(FormData),
+                }),
+            );
+
+            // Verify the FormData sent to fetch has correct intent
+            const fetchedFormData = mockFetch.mock.calls[0][1].body;
+            expect(fetchedFormData.get("_action")).toBe("check-invited-status");
+            expect(fetchedFormData.get("userId")).toBe("user123");
+
+            expect(result).toEqual({
+                success: true,
+                alreadyConfirmed: true,
+                userDocExists: true,
+                hasPassword: true,
+            });
         });
     });
 
