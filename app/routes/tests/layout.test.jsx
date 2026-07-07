@@ -4,6 +4,7 @@ import { render, screen } from "@/utils/test-utils";
 import { createSessionClient } from "@/utils/appwrite/server";
 import { isMobileUserAgent } from "@/utils/device";
 import { mockContext } from "@/utils/mockContext";
+import { getOrCreateUser } from "@/loaders/users";
 
 import Layout, { loader } from "../layout";
 
@@ -35,7 +36,7 @@ jest.mock("@/utils/device", () => ({
 }));
 
 jest.mock("@/loaders/users", () => ({
-    getUserById: jest.fn().mockResolvedValue({ agreedToTerms: true }),
+    getOrCreateUser: jest.fn().mockResolvedValue({ agreedToTerms: true }),
 }));
 
 // Mock child components to simplify layout testing
@@ -163,6 +164,36 @@ describe("Layout Route", () => {
                 isVerified: true,
                 isMobile: true,
             });
+        });
+
+        it("calls getOrCreateUser to fetch or self-heal user document", async () => {
+            isMobileUserAgent.mockReturnValue(false);
+            createSessionClient.mockResolvedValue({
+                account: {
+                    get: jest.fn().mockResolvedValue(mockUser),
+                },
+            });
+
+            const mockUserDoc = {
+                $id: "user-123",
+                userId: "user-123",
+                email: "test@example.com",
+                firstName: "Test",
+                lastName: "User",
+                status: "verified",
+            };
+            getOrCreateUser.mockResolvedValue(mockUserDoc);
+
+            const result = await loader({
+                request: new Request("http://localhost/"),
+                context: localMockContext,
+            });
+
+            expect(getOrCreateUser).toHaveBeenCalledWith({
+                userId: "user-123",
+                client: expect.any(Object),
+            });
+            expect(result.user).toEqual(expect.objectContaining(mockUserDoc));
         });
     });
 

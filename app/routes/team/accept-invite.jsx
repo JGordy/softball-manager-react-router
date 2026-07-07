@@ -18,14 +18,17 @@ import {
 } from "@/actions/invitations";
 
 import { useResponseNotification } from "@/utils/showNotification";
+import { getInvitedUserStatus } from "@/loaders/users";
 
 /**
  * Handle team invitation acceptance
  * This route is accessed when users click the invitation link in their email
  */
-export async function loader() {
-    // Just return empty - we'll handle everything in clientAction
-    return {};
+export async function loader({ request }) {
+    const url = new URL(request.url);
+    const userId = url.searchParams.get("userId");
+
+    return await getInvitedUserStatus({ userId });
 }
 
 export async function action({ request }) {
@@ -103,7 +106,7 @@ export async function clientAction({ request, params, serverAction }) {
     return serverAction();
 }
 
-export default function AcceptInvite({ actionData, params }) {
+export default function AcceptInvite({ loaderData, actionData, params }) {
     const [searchParams] = useSearchParams();
     const [inviteAccepted, setInviteAccepted] = useState(false);
     const [userEmail, setUserEmail] = useState("");
@@ -126,12 +129,18 @@ export default function AcceptInvite({ actionData, params }) {
         }
     }, [userId, secret, membershipId, inviteAccepted]);
 
-    // Redirect to team page if invitation was already confirmed
+    // Redirect conditionally if invitation was already confirmed
     useEffect(() => {
         if (actionData?.alreadyConfirmed) {
-            navigate(`/team/${params.teamId}`);
+            if (loaderData?.hasPassword && loaderData?.userDocExists) {
+                navigate(`/team/${params.teamId}`);
+            } else if (loaderData?.hasPassword && !loaderData?.userDocExists) {
+                // Self-healing: they have a password, but database doc is missing.
+                // Redirect to login where they will log in and self-heal automatically.
+                navigate("/login");
+            }
         }
-    }, [actionData, params.teamId, navigate]);
+    }, [actionData, loaderData, params.teamId, navigate]);
 
     // Auto-subscribe to team notifications if global notifications are enabled
     const { pushTargetId, subscribeToTeam } = useNotifications();
@@ -159,12 +168,16 @@ export default function AcceptInvite({ actionData, params }) {
             setInviteAccepted(true);
             if (actionData.email) {
                 setUserEmail(actionData.email);
+            } else if (loaderData?.email) {
+                setUserEmail(loaderData.email);
             }
             if (actionData.name) {
                 setUserName(actionData.name);
+            } else if (loaderData?.name) {
+                setUserName(loaderData.name);
             }
         }
-    }, [actionData]);
+    }, [actionData, loaderData]);
 
     // Validation errors
     if (!userId || !secret || !membershipId) {

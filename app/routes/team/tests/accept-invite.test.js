@@ -7,7 +7,8 @@ import {
     setPasswordForInvitedUser,
 } from "@/actions/invitations";
 
-import AcceptInvite, { action, clientAction } from "../accept-invite";
+import AcceptInvite, { loader, action, clientAction } from "../accept-invite";
+import { getInvitedUserStatus } from "@/loaders/users";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
@@ -18,6 +19,10 @@ jest.mock("react-router", () => ({
             {children}
         </form>
     ),
+}));
+
+jest.mock("@/loaders/users", () => ({
+    getInvitedUserStatus: jest.fn(),
 }));
 
 jest.mock("@/actions/invitations");
@@ -45,6 +50,28 @@ describe("AcceptInvite Route", () => {
         // Mock document.getElementById().requestSubmit()
         document.getElementById = jest.fn().mockReturnValue({
             requestSubmit: jest.fn(),
+        });
+    });
+
+    describe("loader", () => {
+        it("delegates invite status check to getInvitedUserStatus", async () => {
+            const mockStatus = {
+                userDocExists: true,
+                hasPassword: true,
+                email: "test@example.com",
+                name: "Test User",
+            };
+            getInvitedUserStatus.mockResolvedValue(mockStatus);
+
+            const request = new Request(
+                "http://localhost/team/accept-invite?userId=user123",
+            );
+            const result = await loader({ request });
+
+            expect(getInvitedUserStatus).toHaveBeenCalledWith({
+                userId: "user123",
+            });
+            expect(result).toEqual(mockStatus);
         });
     });
 
@@ -167,16 +194,32 @@ describe("AcceptInvite Route", () => {
             ).toBeInTheDocument();
         });
 
-        it("redirects to team page if already confirmed", () => {
+        it("redirects to team page if already confirmed and user has password and doc exists", () => {
             const actionData = { alreadyConfirmed: true };
+            const loaderData = { hasPassword: true, userDocExists: true };
             render(
                 <AcceptInvite
                     params={{ teamId: "team123" }}
                     actionData={actionData}
+                    loaderData={loaderData}
                 />,
             );
 
             expect(mockNavigate).toHaveBeenCalledWith("/team/team123");
+        });
+
+        it("redirects to login if already confirmed but user doc is missing", () => {
+            const actionData = { alreadyConfirmed: true };
+            const loaderData = { hasPassword: true, userDocExists: false };
+            render(
+                <AcceptInvite
+                    params={{ teamId: "team123" }}
+                    actionData={actionData}
+                    loaderData={loaderData}
+                />,
+            );
+
+            expect(mockNavigate).toHaveBeenCalledWith("/login");
         });
 
         it("subscribes to team notifications on success", async () => {
