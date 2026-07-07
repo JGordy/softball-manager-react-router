@@ -169,12 +169,54 @@ export async function updateUser({ values, userId, client }) {
             }
         }
 
-        const updatedUser = await updateDocument(
-            "users",
-            userId,
-            dataToUpdate,
-            client,
-        );
+        let updatedUser;
+        if (!existingUser) {
+            // Self-heal: If the document doesn't exist, create it instead of updating.
+            // Fetch account info using the client to get name/email if not provided in values.
+            let email = values.email || "";
+            let firstName = values.firstName || "";
+            let lastName = values.lastName || "";
+
+            try {
+                const userAccount = await client.account.get();
+                email = email || userAccount.email;
+                if (userAccount.name) {
+                    const parts = userAccount.name.trim().split(" ");
+                    firstName = firstName || parts[0] || "";
+                    lastName = lastName || parts.slice(1).join(" ") || "";
+                }
+            } catch (accountErr) {
+                console.error(
+                    "updateUser - Failed to get account info before create:",
+                    accountErr,
+                );
+            }
+
+            const createResult = await createPlayer({
+                values: {
+                    email,
+                    firstName,
+                    lastName,
+                    status: "verified",
+                    ...values,
+                },
+                teamId: "self", // Passed to force permissions generation
+                userId,
+                client,
+            });
+
+            if (!createResult.success) {
+                return createResult;
+            }
+            updatedUser = createResult.response.player;
+        } else {
+            updatedUser = await updateDocument(
+                "users",
+                userId,
+                dataToUpdate,
+                client,
+            );
+        }
 
         // Check if the profile is now considered "complete"
         const isNowComplete = isUserProfileComplete(updatedUser);
