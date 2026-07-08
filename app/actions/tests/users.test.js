@@ -452,6 +452,60 @@ describe("Users Actions", () => {
                 mockClient,
             );
         });
+
+        it("should self-heal and create the user document if it does not exist in the database", async () => {
+            const mockValues = {
+                firstName: "Jane",
+            };
+            const userId = "user1";
+
+            readDocument.mockRejectedValue({
+                code: 404,
+                message: "Document not found",
+            });
+
+            const testClient = {
+                tablesDB: { id: "mock-session-db" },
+                account: {
+                    get: jest.fn().mockResolvedValue({
+                        $id: userId,
+                        name: "Jane Doe",
+                        email: "jane@example.com",
+                    }),
+                },
+            };
+
+            createDocument.mockResolvedValue({
+                $id: userId,
+                userId,
+                email: "jane@example.com",
+                firstName: "Jane",
+                lastName: "Doe",
+                status: "verified",
+            });
+
+            const result = await updateUser({
+                values: mockValues,
+                userId,
+                client: testClient,
+            });
+
+            expect(createDocument).toHaveBeenCalledWith(
+                "users",
+                userId,
+                expect.objectContaining({
+                    userId,
+                    email: "jane@example.com",
+                    firstName: "Jane",
+                    lastName: "Doe",
+                    status: "verified",
+                }),
+                expect.any(Array),
+                testClient,
+            );
+            expect(result.success).toBe(true);
+            expect(result.status).toBe(204);
+        });
     });
 
     describe("updateAccountInfo", () => {

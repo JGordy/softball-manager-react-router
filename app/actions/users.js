@@ -125,15 +125,20 @@ export async function updateUser({ values, userId, client }) {
         // Fetch the existing user to determine prior profile completion state
         let wasComplete = false;
         let existingUser = null;
+        let userDocMissing = false;
         try {
             existingUser = await readDocument("users", userId, [], client);
             wasComplete = isUserProfileComplete(existingUser);
         } catch (fetchError) {
-            // If we can't fetch the existing user, assume it was not complete
-            console.warn(
-                "Unable to fetch existing user before update:",
-                fetchError,
-            );
+            // Only treat as missing (and eligible for self-heal) on a definitive 404.
+            // All other errors (network, permissions, etc.) are re-thrown — continuing
+            // without a baseline document would break the preferred/disliked position
+            // invariant and could result in data corruption.
+            if (fetchError?.code === 404) {
+                userDocMissing = true;
+            } else {
+                throw fetchError;
+            }
         }
 
         // Apply cross-field validation against existing data to maintain invariant
@@ -169,12 +174,72 @@ export async function updateUser({ values, userId, client }) {
             }
         }
 
-        const updatedUser = await updateDocument(
-            "users",
-            userId,
-            dataToUpdate,
-            client,
-        );
+        let updatedUser;
+        if (userDocMissing) {
+            // Self-heal: The document is definitively missing (404). Create it instead
+            // of updating. Fetch account info to fill in name/email if not in values.
+            let email = values.email || "";
+            let firstName = values.firstName || "";
+            let lastName = values.lastName || "";
+
+            try {
+                const userAccount = await client.account.get();
+                if (userAccount?.$id && userAccount.$id !== userId) {
+                    const mismatchError = new Error(
+                        "updateUser - Auth userId mismatch; refusing to create user document.",
+                    );
+                    mismatchError.code = 400;
+                    throw mismatchError;
+                }
+                email = email || userAccount.email;
+                if (userAccount.name) {
+                    const parts = userAccount.name.trim().split(" ");
+                    firstName = firstName || parts[0] || "";
+                    lastName = lastName || parts.slice(1).join(" ") || "";
+                }
+            } catch (accountErr) {
+                if (accountErr.code === 400) {
+                    throw accountErr;
+                }
+                console.error(
+                    "updateUser - Failed to get account info before create:",
+                    accountErr,
+                );
+            }
+
+            // Apply removeEmptyValues on the final combined values so we don't write empty strings
+            // to the new document for any fields (including email, firstName, or lastName).
+            // Spread values first so that non-empty derived values will override any empty values from the caller.
+            const cleanMergedValues = removeEmptyValues({
+                values: {
+                    ...values,
+                    email,
+                    firstName,
+                    lastName,
+                    // Ensure status is always "verified" and cannot be overridden by caller values
+                    status: "verified",
+                },
+            });
+
+            const createResult = await createPlayer({
+                values: cleanMergedValues,
+                teamId: "self", // Passed to force permissions generation
+                userId,
+                client,
+            });
+
+            if (!createResult.success) {
+                return createResult;
+            }
+            updatedUser = createResult.response.player;
+        } else {
+            updatedUser = await updateDocument(
+                "users",
+                userId,
+                dataToUpdate,
+                client,
+            );
+        }
 
         // Check if the profile is now considered "complete"
         const isNowComplete = isUserProfileComplete(updatedUser);

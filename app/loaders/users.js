@@ -1,9 +1,87 @@
-import { Query } from "node-appwrite";
-import { readDocument, listDocuments } from "@/utils/databases";
+import { Query, Permission, Role } from "node-appwrite";
+import { readDocument, listDocuments, createDocument } from "@/utils/databases";
 import { joinAchievements } from "@/utils/achievements.server";
 
 export async function getUserById({ userId, client }) {
     return await readDocument("users", userId, [], client);
+}
+
+export async function getOrCreateUser({ userId, client }) {
+    try {
+        return await readDocument("users", userId, [], client);
+    } catch (e) {
+        // Only attempt self-heal for missing document errors (404);
+        // re-throw permission, network, or other errors immediately.
+        if (e?.code !== 404) {
+            throw e;
+        }
+
+        console.warn(
+            "getOrCreateUser - User document not found, attempting self-heal:",
+            e.message,
+        );
+
+        try {
+            // Get user account details from Appwrite Auth
+            const userAccount = await client.account.get();
+
+            if (userAccount?.$id && userAccount.$id !== userId) {
+                const mismatchError = new Error(
+                    "getOrCreateUser - Auth userId mismatch; refusing to create user document.",
+                );
+                mismatchError.code = 400;
+                throw mismatchError;
+            }
+
+            const docPermissions = [
+                Permission.read(Role.any()),
+                Permission.update(Role.user(userId)),
+                Permission.delete(Role.user(userId)),
+            ];
+
+            let firstName = "";
+            let lastName = "";
+            if (userAccount.name) {
+                const parts = userAccount.name.trim().split(" ");
+                firstName = parts[0] || "";
+                lastName = parts.slice(1).join(" ") || "";
+            }
+
+            return await createDocument(
+                "users",
+                userId,
+                {
+                    userId,
+                    email: userAccount.email,
+                    firstName,
+                    lastName,
+                    status: "verified",
+                    preferredPositions: [],
+                    dislikedPositions: [],
+                },
+                docPermissions,
+                client,
+            );
+        } catch (healError) {
+            // Handle race condition: if another request already created the document
+            // between our 404 and our create attempt, a 409 conflict is returned.
+            // In that case the doc now exists — re-read and return it.
+            if (healError?.code === 409) {
+                console.warn(
+                    "getOrCreateUser - Document already created by concurrent request, re-reading:",
+                    healError.message,
+                );
+                return await readDocument("users", userId, [], client);
+            }
+            console.error(
+                "getOrCreateUser - Failed to self-heal missing user document:",
+                healError.message,
+            );
+            // Throw healError (the actual create failure) rather than the original
+            // 404 so callers and logs see the real reason the operation failed.
+            throw healError;
+        }
+    }
 }
 
 export async function getAttendanceByUserId({ userId, client }) {

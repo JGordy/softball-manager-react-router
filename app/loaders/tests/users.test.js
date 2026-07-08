@@ -1,7 +1,8 @@
-import { listDocuments, readDocument } from "@/utils/databases";
+import { listDocuments, readDocument, createDocument } from "@/utils/databases";
 
 import {
     getUserById,
+    getOrCreateUser,
     getAttendanceByUserId,
     getAwardsByUserId,
     getStatsByUserId,
@@ -12,7 +13,10 @@ import {
 jest.mock("@/utils/databases", () => ({
     listDocuments: jest.fn(),
     readDocument: jest.fn(),
+    createDocument: jest.fn(),
 }));
+
+jest.mock("@/utils/appwrite/server", () => ({}));
 
 jest.mock("node-appwrite", () => ({
     Query: {
@@ -25,6 +29,18 @@ jest.mock("node-appwrite", () => ({
         or: jest.fn((queries) => `or([${queries.join(",")}])`),
         contains: jest.fn((attr, value) => `contains("${attr}", "${value}")`),
     },
+    Permission: {
+        read: jest.fn((role) => `read("${role}")`),
+        update: jest.fn((role) => `update("${role}")`),
+        delete: jest.fn((role) => `delete("${role}")`),
+    },
+    Role: {
+        any: jest.fn(() => "any"),
+        user: jest.fn((id) => `user:${id}`),
+    },
+    Users: jest.fn().mockImplementation(() => ({
+        get: jest.fn(),
+    })),
 }));
 
 describe("Users Loader", () => {
@@ -176,6 +192,144 @@ describe("Users Loader", () => {
                 mockClient,
             );
             expect(result).toEqual(mockUser);
+        });
+    });
+
+    describe("getOrCreateUser", () => {
+        it("should return user document if it exists", async () => {
+            const mockUser = { $id: "user1", name: "Test User" };
+            readDocument.mockResolvedValue(mockUser);
+
+            const result = await getOrCreateUser({
+                userId: "user1",
+                client: mockClient,
+            });
+
+            expect(readDocument).toHaveBeenCalledWith(
+                "users",
+                "user1",
+                [],
+                mockClient,
+            );
+            expect(result).toEqual(mockUser);
+        });
+
+        it("should self-heal and create user document if it does not exist", async () => {
+            readDocument.mockRejectedValue({
+                code: 404,
+                message: "Document not found",
+            });
+
+            const testClient = {
+                tablesDB: { id: "mock-session-db" },
+                account: {
+                    get: jest.fn().mockResolvedValue({
+                        $id: "user1",
+                        name: "Test User",
+                        email: "test@example.com",
+                    }),
+                },
+            };
+
+            const mockCreatedDoc = {
+                $id: "user1",
+                userId: "user1",
+                email: "test@example.com",
+                firstName: "Test",
+                lastName: "User",
+                status: "verified",
+            };
+            createDocument.mockResolvedValue(mockCreatedDoc);
+
+            const result = await getOrCreateUser({
+                userId: "user1",
+                client: testClient,
+            });
+
+            expect(createDocument).toHaveBeenCalledWith(
+                "users",
+                "user1",
+                expect.objectContaining({
+                    userId: "user1",
+                    email: "test@example.com",
+                    firstName: "Test",
+                    lastName: "User",
+                    status: "verified",
+                }),
+                expect.any(Array),
+                testClient,
+            );
+            expect(result).toEqual(mockCreatedDoc);
+        });
+
+        it("should refuse self-heal and throw 400 mismatch error when Auth userId does not match the userId parameter", async () => {
+            readDocument.mockRejectedValueOnce({
+                code: 404,
+                message: "Document not found",
+            });
+
+            const testClient = {
+                tablesDB: { id: "mock-session-db" },
+                account: {
+                    get: jest.fn().mockResolvedValue({
+                        $id: "differentUser",
+                        name: "Test User",
+                        email: "test@example.com",
+                    }),
+                },
+            };
+
+            await expect(
+                getOrCreateUser({
+                    userId: "user1",
+                    client: testClient,
+                }),
+            ).rejects.toThrow(
+                "getOrCreateUser - Auth userId mismatch; refusing to create user document.",
+            );
+        });
+
+        it("should re-read and return doc on 409 conflict during self-heal", async () => {
+            // Simulate: first read returns 404 (doc missing), create returns 409
+            // (another request created it concurrently), second read returns the doc.
+            const existingDoc = {
+                $id: "user1",
+                userId: "user1",
+                email: "test@example.com",
+                firstName: "Test",
+                lastName: "User",
+                status: "verified",
+            };
+
+            readDocument
+                .mockRejectedValueOnce({
+                    code: 404,
+                    message: "Document not found",
+                })
+                .mockResolvedValueOnce(existingDoc);
+
+            createDocument.mockRejectedValue({
+                code: 409,
+                message: "Document already exists",
+            });
+
+            const testClient = {
+                tablesDB: { id: "mock-session-db" },
+                account: {
+                    get: jest.fn().mockResolvedValue({
+                        $id: "user1",
+                        name: "Test User",
+                        email: "test@example.com",
+                    }),
+                },
+            };
+
+            const result = await getOrCreateUser({
+                userId: "user1",
+                client: testClient,
+            });
+
+            expect(result).toEqual(existingDoc);
         });
     });
 

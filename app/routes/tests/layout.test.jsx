@@ -1,9 +1,8 @@
 import { useNavigation } from "react-router";
 import { render, screen } from "@/utils/test-utils";
 
-import { createSessionClient } from "@/utils/appwrite/server";
 import { isMobileUserAgent } from "@/utils/device";
-import { mockContext } from "@/utils/mockContext";
+import { getOrCreateUser } from "@/loaders/users";
 
 import Layout, { loader } from "../layout";
 
@@ -24,18 +23,13 @@ jest.mock("react-router", () => ({
     }),
 }));
 
-// Mock Appwrite server utils
-jest.mock("@/utils/appwrite/server", () => ({
-    createSessionClient: jest.fn(),
-}));
-
 // Mock device utils
 jest.mock("@/utils/device", () => ({
     isMobileUserAgent: jest.fn(),
 }));
 
 jest.mock("@/loaders/users", () => ({
-    getUserById: jest.fn().mockResolvedValue({ agreedToTerms: true }),
+    getOrCreateUser: jest.fn().mockResolvedValue({ agreedToTerms: true }),
 }));
 
 // Mock child components to simplify layout testing
@@ -93,11 +87,6 @@ describe("Layout Route", () => {
     describe("loader", () => {
         it("allows access on non-mobile devices", async () => {
             isMobileUserAgent.mockReturnValue(false);
-            createSessionClient.mockResolvedValue({
-                account: {
-                    get: jest.fn().mockResolvedValue(mockUser),
-                },
-            });
 
             const result = await loader({
                 request: new Request("http://localhost/"),
@@ -109,49 +98,55 @@ describe("Layout Route", () => {
 
         it("redirects to login if unauthorized (401)", async () => {
             isMobileUserAgent.mockReturnValue(true);
-            createSessionClient.mockResolvedValue({
-                account: {
-                    get: jest.fn().mockRejectedValue({ code: 401 }),
-                },
-            });
+            const unauthMockContext = {
+                get: jest.fn().mockReturnValue(null),
+            };
 
+            let thrownError;
             try {
                 await loader({
                     request: new Request("http://localhost/"),
-                    context: localMockContext,
+                    context: unauthMockContext,
                 });
             } catch (error) {
-                expect(error.url).toBe("/login");
+                thrownError = error;
             }
+
+            expect(thrownError).toBeDefined();
+            expect(thrownError.url).toBe("/login");
         });
 
         it("redirects to auth setup if profile is incomplete", async () => {
             isMobileUserAgent.mockReturnValue(true);
-            createSessionClient.mockResolvedValue({
-                account: {
-                    get: jest
-                        .fn()
-                        .mockResolvedValue({ ...mockUser, name: "User" }),
-                },
-            });
+            const incompleteUser = { ...mockUser, name: "User" };
+            const incompleteMockContext = {
+                get: jest.fn((ctx) => {
+                    if (
+                        (ctx && ctx.name === "userContext") ||
+                        String(ctx).includes("userContext")
+                    ) {
+                        return incompleteUser;
+                    }
+                    return {};
+                }),
+            };
 
+            let thrownError;
             try {
                 await loader({
                     request: new Request("http://localhost/"),
-                    context: localMockContext,
+                    context: incompleteMockContext,
                 });
             } catch (error) {
-                expect(error.url).toBe("/auth/setup");
+                thrownError = error;
             }
+
+            expect(thrownError).toBeDefined();
+            expect(thrownError.url).toBe("/auth/setup");
         });
 
         it("returns user data when authenticated and profile complete", async () => {
             isMobileUserAgent.mockReturnValue(true);
-            createSessionClient.mockResolvedValue({
-                account: {
-                    get: jest.fn().mockResolvedValue(mockUser),
-                },
-            });
 
             const result = await loader({
                 request: new Request("http://localhost/"),
@@ -163,6 +158,31 @@ describe("Layout Route", () => {
                 isVerified: true,
                 isMobile: true,
             });
+        });
+
+        it("calls getOrCreateUser to fetch or self-heal user document", async () => {
+            isMobileUserAgent.mockReturnValue(false);
+
+            const mockUserDoc = {
+                $id: "user-123",
+                userId: "user-123",
+                email: "test@example.com",
+                firstName: "Test",
+                lastName: "User",
+                status: "verified",
+            };
+            getOrCreateUser.mockResolvedValue(mockUserDoc);
+
+            const result = await loader({
+                request: new Request("http://localhost/"),
+                context: localMockContext,
+            });
+
+            expect(getOrCreateUser).toHaveBeenCalledWith({
+                userId: "user-123",
+                client: expect.any(Object),
+            });
+            expect(result.user).toEqual(expect.objectContaining(mockUserDoc));
         });
     });
 

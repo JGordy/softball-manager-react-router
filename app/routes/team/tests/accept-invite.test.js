@@ -7,7 +7,7 @@ import {
     setPasswordForInvitedUser,
 } from "@/actions/invitations";
 
-import AcceptInvite, { action, clientAction } from "../accept-invite";
+import AcceptInvite, { loader, action, clientAction } from "../accept-invite";
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
@@ -45,6 +45,14 @@ describe("AcceptInvite Route", () => {
         // Mock document.getElementById().requestSubmit()
         document.getElementById = jest.fn().mockReturnValue({
             requestSubmit: jest.fn(),
+        });
+    });
+
+    describe("loader", () => {
+        it("returns an empty object", async () => {
+            const result = await loader();
+
+            expect(result).toEqual({});
         });
     });
 
@@ -167,8 +175,10 @@ describe("AcceptInvite Route", () => {
             ).toBeInTheDocument();
         });
 
-        it("redirects to team page if already confirmed", () => {
-            const actionData = { alreadyConfirmed: true };
+        it("redirects to login if already confirmed", () => {
+            const actionData = {
+                alreadyConfirmed: true,
+            };
             render(
                 <AcceptInvite
                     params={{ teamId: "team123" }}
@@ -176,7 +186,7 @@ describe("AcceptInvite Route", () => {
                 />,
             );
 
-            expect(mockNavigate).toHaveBeenCalledWith("/team/team123");
+            expect(mockNavigate).toHaveBeenCalledWith("/login");
         });
 
         it("subscribes to team notifications on success", async () => {

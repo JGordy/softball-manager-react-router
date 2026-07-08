@@ -12,7 +12,7 @@ import InstallAppDrawer from "@/components/InstallAppDrawer";
 import AgreementModal from "@/components/AgreementModal";
 
 import { userContext, appwriteClientContext } from "@/contexts/router";
-import { getUserById } from "@/loaders/users";
+import { getOrCreateUser } from "@/loaders/users";
 
 import { isMobileUserAgent } from "@/utils/device";
 
@@ -27,12 +27,15 @@ export async function loader({ request, context }) {
     let userDoc = {};
     try {
         userDoc =
-            (await getUserById({
+            (await getOrCreateUser({
                 userId: accountUser.$id,
                 client: sessionClient,
             })) || {};
     } catch (e) {
-        console.error("Layout loader - Failed to fetch user doc:", e.message);
+        console.error(
+            "Layout loader - Failed to fetch or create user doc:",
+            e.message,
+        );
         // new users might not have a doc yet
     }
 

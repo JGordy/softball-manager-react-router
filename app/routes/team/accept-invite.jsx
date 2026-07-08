@@ -24,7 +24,8 @@ import { useResponseNotification } from "@/utils/showNotification";
  * This route is accessed when users click the invitation link in their email
  */
 export async function loader() {
-    // Just return empty - we'll handle everything in clientAction
+    // No per-user status is returned here to prevent unauthenticated user enumeration.
+    // If the invite is already confirmed, the clientAction redirects directly to /login.
     return {};
 }
 
@@ -126,12 +127,15 @@ export default function AcceptInvite({ actionData, params }) {
         }
     }, [userId, secret, membershipId, inviteAccepted]);
 
-    // Redirect to team page if invitation was already confirmed
+    // Redirect conditionally if invitation was already confirmed.
+    // If invitation is already confirmed, redirect directly to /login to prevent
+    // user status enumeration. If user is logged in, they will be redirected to
+    // dashboard/profile; otherwise they can log in to self-heal.
     useEffect(() => {
         if (actionData?.alreadyConfirmed) {
-            navigate(`/team/${params.teamId}`);
+            navigate("/login");
         }
-    }, [actionData, params.teamId, navigate]);
+    }, [actionData, navigate]);
 
     // Auto-subscribe to team notifications if global notifications are enabled
     const { pushTargetId, subscribeToTeam } = useNotifications();
