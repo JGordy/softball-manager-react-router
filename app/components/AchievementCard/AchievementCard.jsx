@@ -62,6 +62,12 @@ export default function AchievementCard({
 
     const { name, description, rarity, icon } = achievement;
 
+    const dates = Array.isArray(unlockedAt)
+        ? unlockedAt
+        : unlockedAt
+          ? [unlockedAt]
+          : [];
+
     const rarityColor = rarity
         ? rarityColors[rarity.toLowerCase()] || defaultColor
         : defaultColor;
@@ -190,18 +196,35 @@ export default function AchievementCard({
                         {/* Footer: Metadata Box */}
                         {!isLocked && (
                             <Box className={classes.innerBox}>
-                                <Group justify="space-between" align="center">
+                                <Stack gap={4}>
                                     <Text className={classes.statLabel}>
-                                        Unlocked
+                                        Unlocked (x{dates.length})
                                     </Text>
-                                    <Text className={classes.statValue}>
-                                        {unlockedAt
-                                            ? DateTime.fromISO(
-                                                  unlockedAt,
-                                              ).toFormat("LLL dd, yyyy")
-                                            : "---"}
-                                    </Text>
-                                </Group>
+                                    <Group
+                                        gap="md"
+                                        wrap="wrap"
+                                        justify="space-between"
+                                    >
+                                        {dates.length > 0 ? (
+                                            dates.map((date) => (
+                                                <Text
+                                                    key={date}
+                                                    className={
+                                                        classes.statValue
+                                                    }
+                                                >
+                                                    {DateTime.fromISO(
+                                                        date,
+                                                    ).toFormat("LLL dd, yyyy")}
+                                                </Text>
+                                            ))
+                                        ) : (
+                                            <Text className={classes.statValue}>
+                                                ---
+                                            </Text>
+                                        )}
+                                    </Group>
+                                </Stack>
                             </Box>
                         )}
                     </Stack>

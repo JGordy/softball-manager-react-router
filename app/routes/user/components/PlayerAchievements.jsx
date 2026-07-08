@@ -61,7 +61,32 @@ export default function PlayerAchievements({
                         );
                     }
 
-                    // Calculate stats for the dashboard from VALID achievements only
+                    // Group valid achievements by base achievement ID
+                    const groupedMap = new Map();
+                    for (const ua of validAchievements) {
+                        const achId = ua.achievementId || ua.achievement.$id;
+                        if (!groupedMap.has(achId)) {
+                            groupedMap.set(achId, {
+                                ...ua,
+                                unlockedDates: [],
+                            });
+                        }
+                        groupedMap.get(achId).unlockedDates.push(ua.$createdAt);
+                    }
+
+                    const groupedAchievements = Array.from(
+                        groupedMap.values(),
+                    ).map((group) => {
+                        // Sort dates descending (newest first)
+                        group.unlockedDates.sort(
+                            (a, b) => new Date(b) - new Date(a),
+                        );
+                        // Set $createdAt to the newest date so sortAchievements sorts correctly
+                        group.$createdAt = group.unlockedDates[0];
+                        return group;
+                    });
+
+                    // Calculate stats for the dashboard from VALID achievements (total unlocks)
                     const stats = validAchievements.reduce(
                         (acc, ua) => {
                             const rarity =
@@ -82,7 +107,7 @@ export default function PlayerAchievements({
                         },
                     );
 
-                    const sorted = sortAchievements(validAchievements);
+                    const sorted = sortAchievements(groupedAchievements);
 
                     const filtered =
                         activeFilter === "all"
@@ -217,9 +242,12 @@ export default function PlayerAchievements({
                                 {filtered.length > 0 ? (
                                     filtered.map((ua) => (
                                         <AchievementCard
-                                            key={ua.$id}
+                                            key={
+                                                ua.achievementId ||
+                                                ua.achievement.$id
+                                            }
                                             achievement={ua.achievement}
-                                            unlockedAt={ua.$createdAt}
+                                            unlockedAt={ua.unlockedDates}
                                             playerName={playerName}
                                             isMe={isMe}
                                         />
