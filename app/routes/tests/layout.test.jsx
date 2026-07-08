@@ -99,28 +99,51 @@ describe("Layout Route", () => {
 
         it("redirects to login if unauthorized (401)", async () => {
             isMobileUserAgent.mockReturnValue(true);
+            const unauthMockContext = {
+                get: jest.fn().mockReturnValue(null),
+            };
 
+            let thrownError;
             try {
                 await loader({
                     request: new Request("http://localhost/"),
-                    context: localMockContext,
+                    context: unauthMockContext,
                 });
             } catch (error) {
-                expect(error.url).toBe("/login");
+                thrownError = error;
             }
+
+            expect(thrownError).toBeDefined();
+            expect(thrownError.url).toBe("/login");
         });
 
         it("redirects to auth setup if profile is incomplete", async () => {
             isMobileUserAgent.mockReturnValue(true);
+            const incompleteUser = { ...mockUser, name: "User" };
+            const incompleteMockContext = {
+                get: jest.fn((ctx) => {
+                    if (
+                        (ctx && ctx.name === "userContext") ||
+                        String(ctx).includes("userContext")
+                    ) {
+                        return incompleteUser;
+                    }
+                    return {};
+                }),
+            };
 
+            let thrownError;
             try {
                 await loader({
                     request: new Request("http://localhost/"),
-                    context: localMockContext,
+                    context: incompleteMockContext,
                 });
             } catch (error) {
-                expect(error.url).toBe("/auth/setup");
+                thrownError = error;
             }
+
+            expect(thrownError).toBeDefined();
+            expect(thrownError.url).toBe("/auth/setup");
         });
 
         it("returns user data when authenticated and profile complete", async () => {

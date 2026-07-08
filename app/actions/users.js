@@ -199,12 +199,13 @@ export async function updateUser({ values, userId, client }) {
 
             // Apply removeEmptyValues on the final combined values so we don't write empty strings
             // to the new document for any fields (including email, firstName, or lastName).
+            // Spread values first so that non-empty derived values will override any empty values from the caller.
             const cleanMergedValues = removeEmptyValues({
                 values: {
+                    ...values,
                     email,
                     firstName,
                     lastName,
-                    ...values,
                     // Ensure status is always "verified" and cannot be overridden by caller values
                     status: "verified",
                 },
