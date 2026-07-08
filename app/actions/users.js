@@ -184,6 +184,13 @@ export async function updateUser({ values, userId, client }) {
 
             try {
                 const userAccount = await client.account.get();
+                if (userAccount?.$id && userAccount.$id !== userId) {
+                    const mismatchError = new Error(
+                        "updateUser - Auth userId mismatch; refusing to create user document.",
+                    );
+                    mismatchError.code = 400;
+                    throw mismatchError;
+                }
                 email = email || userAccount.email;
                 if (userAccount.name) {
                     const parts = userAccount.name.trim().split(" ");
@@ -191,6 +198,9 @@ export async function updateUser({ values, userId, client }) {
                     lastName = lastName || parts.slice(1).join(" ") || "";
                 }
             } catch (accountErr) {
+                if (accountErr.code === 400) {
+                    throw accountErr;
+                }
                 console.error(
                     "updateUser - Failed to get account info before create:",
                     accountErr,

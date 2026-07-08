@@ -262,6 +262,33 @@ describe("Users Loader", () => {
             expect(result).toEqual(mockCreatedDoc);
         });
 
+        it("should refuse self-heal and throw 400 mismatch error when Auth userId does not match the userId parameter", async () => {
+            readDocument.mockRejectedValueOnce({
+                code: 404,
+                message: "Document not found",
+            });
+
+            const testClient = {
+                tablesDB: { id: "mock-session-db" },
+                account: {
+                    get: jest.fn().mockResolvedValue({
+                        $id: "differentUser",
+                        name: "Test User",
+                        email: "test@example.com",
+                    }),
+                },
+            };
+
+            await expect(
+                getOrCreateUser({
+                    userId: "user1",
+                    client: testClient,
+                }),
+            ).rejects.toThrow(
+                "getOrCreateUser - Auth userId mismatch; refusing to create user document.",
+            );
+        });
+
         it("should re-read and return doc on 409 conflict during self-heal", async () => {
             // Simulate: first read returns 404 (doc missing), create returns 409
             // (another request created it concurrently), second read returns the doc.

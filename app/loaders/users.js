@@ -25,6 +25,14 @@ export async function getOrCreateUser({ userId, client }) {
             // Get user account details from Appwrite Auth
             const userAccount = await client.account.get();
 
+            if (userAccount?.$id && userAccount.$id !== userId) {
+                const mismatchError = new Error(
+                    "getOrCreateUser - Auth userId mismatch; refusing to create user document.",
+                );
+                mismatchError.code = 400;
+                throw mismatchError;
+            }
+
             const docPermissions = [
                 Permission.read(Role.any()),
                 Permission.update(Role.user(userId)),
