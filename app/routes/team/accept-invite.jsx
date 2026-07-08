@@ -25,8 +25,7 @@ import { useResponseNotification } from "@/utils/showNotification";
  */
 export async function loader() {
     // No per-user status is returned here to prevent unauthenticated user enumeration.
-    // User status (hasPassword, userDocExists) is fetched inside clientAction only
-    // after Appwrite has validated the invite credentials (teamId + membershipId + userId + secret).
+    // If the invite is already confirmed, the clientAction redirects directly to /login.
     return {};
 }
 
