@@ -68,7 +68,48 @@ describe("PlayerAchievements", () => {
         expect(screen.getByText("RBI King")).toBeInTheDocument();
 
         // Date check (split nodes)
-        expect(screen.getAllByText("Unlocked")).toHaveLength(2);
+        expect(screen.getAllByText(/Unlocked \(x\d+\)/i)).toHaveLength(2);
+        expect(screen.getByText("Jan 01, 2024")).toBeInTheDocument();
+    });
+
+    it("groups duplicate achievements correctly", async () => {
+        const duplicateAchievements = [
+            ...mockAchievements,
+            {
+                $id: "ua3",
+                achievementId: "ach1",
+                $createdAt: "2024-01-03T10:00:00Z",
+                achievement: {
+                    name: "Multi HR Game",
+                    description: "Hit 2 HRs",
+                    rarity: "Legendary",
+                },
+            },
+        ];
+        const promise = Promise.resolve(duplicateAchievements);
+        renderComponent(promise);
+
+        expect(await screen.findByText("Multi HR Game")).toBeInTheDocument();
+        expect(screen.getByText("RBI King")).toBeInTheDocument();
+
+        // Dashboard filter bar counters should reflect total unlocks (3 total, 2 legendary, 1 rare)
+        expect(screen.getByTestId("rarity-filter-all")).toHaveTextContent(
+            /All\s*3/i,
+        );
+        expect(screen.getByTestId("rarity-filter-legendary")).toHaveTextContent(
+            /Legendary\s*02/i,
+        );
+        expect(screen.getByTestId("rarity-filter-rare")).toHaveTextContent(
+            /Rare\s*01/i,
+        );
+
+        expect(screen.getAllByText(/Unlocked \(x\d+\)/i)).toHaveLength(2);
+
+        expect(screen.getByText("Unlocked (x2)")).toBeInTheDocument();
+        expect(screen.getByText("Unlocked (x1)")).toBeInTheDocument();
+
+        expect(screen.getByText("Jan 03, 2024")).toBeInTheDocument();
+        expect(screen.getByText("Jan 02, 2024")).toBeInTheDocument();
         expect(screen.getByText("Jan 01, 2024")).toBeInTheDocument();
     });
 
