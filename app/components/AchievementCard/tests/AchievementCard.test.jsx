@@ -21,7 +21,21 @@ describe("AchievementCard", () => {
         expect(
             screen.getByText("Hit 2 or more home runs in a single game."),
         ).toBeInTheDocument();
-        expect(screen.getByText("Unlocked")).toBeInTheDocument();
+        expect(screen.getByText("Unlocked (x1)")).toBeInTheDocument();
+        expect(screen.getByText("Jan 01, 2024")).toBeInTheDocument();
+    });
+
+    it("renders multiple unlock dates correctly", () => {
+        render(
+            <AchievementCard
+                achievement={mockAchievement}
+                unlockedAt={["2024-01-03T10:00:00Z", "2024-01-01T10:00:00Z"]}
+            />,
+        );
+
+        expect(screen.getByText("Multi HR Game")).toBeInTheDocument();
+        expect(screen.getByText("Unlocked (x2)")).toBeInTheDocument();
+        expect(screen.getByText("Jan 03, 2024")).toBeInTheDocument();
         expect(screen.getByText("Jan 01, 2024")).toBeInTheDocument();
     });
 
