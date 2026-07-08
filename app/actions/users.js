@@ -197,19 +197,21 @@ export async function updateUser({ values, userId, client }) {
                 );
             }
 
-            // Apply removeEmptyValues so we don't write empty strings to the new
-            // document for fields that updateUser would normally strip.
-            const cleanValues = removeEmptyValues({ values });
-
-            const createResult = await createPlayer({
+            // Apply removeEmptyValues on the final combined values so we don't write empty strings
+            // to the new document for any fields (including email, firstName, or lastName).
+            const cleanMergedValues = removeEmptyValues({
                 values: {
                     email,
                     firstName,
                     lastName,
-                    ...cleanValues,
+                    ...values,
                     // Ensure status is always "verified" and cannot be overridden by caller values
                     status: "verified",
                 },
+            });
+
+            const createResult = await createPlayer({
+                values: cleanMergedValues,
                 teamId: "self", // Passed to force permissions generation
                 userId,
                 client,

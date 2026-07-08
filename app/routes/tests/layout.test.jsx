@@ -1,7 +1,6 @@
 import { useNavigation } from "react-router";
 import { render, screen } from "@/utils/test-utils";
 
-import { createSessionClient } from "@/utils/appwrite/server";
 import { isMobileUserAgent } from "@/utils/device";
 import { mockContext } from "@/utils/mockContext";
 import { getOrCreateUser } from "@/loaders/users";
@@ -23,11 +22,6 @@ jest.mock("react-router", () => ({
         response.url = url;
         return response;
     }),
-}));
-
-// Mock Appwrite server utils
-jest.mock("@/utils/appwrite/server", () => ({
-    createSessionClient: jest.fn(),
 }));
 
 // Mock device utils
@@ -94,11 +88,6 @@ describe("Layout Route", () => {
     describe("loader", () => {
         it("allows access on non-mobile devices", async () => {
             isMobileUserAgent.mockReturnValue(false);
-            createSessionClient.mockResolvedValue({
-                account: {
-                    get: jest.fn().mockResolvedValue(mockUser),
-                },
-            });
 
             const result = await loader({
                 request: new Request("http://localhost/"),
@@ -110,11 +99,6 @@ describe("Layout Route", () => {
 
         it("redirects to login if unauthorized (401)", async () => {
             isMobileUserAgent.mockReturnValue(true);
-            createSessionClient.mockResolvedValue({
-                account: {
-                    get: jest.fn().mockRejectedValue({ code: 401 }),
-                },
-            });
 
             try {
                 await loader({
@@ -128,13 +112,6 @@ describe("Layout Route", () => {
 
         it("redirects to auth setup if profile is incomplete", async () => {
             isMobileUserAgent.mockReturnValue(true);
-            createSessionClient.mockResolvedValue({
-                account: {
-                    get: jest
-                        .fn()
-                        .mockResolvedValue({ ...mockUser, name: "User" }),
-                },
-            });
 
             try {
                 await loader({
@@ -148,11 +125,6 @@ describe("Layout Route", () => {
 
         it("returns user data when authenticated and profile complete", async () => {
             isMobileUserAgent.mockReturnValue(true);
-            createSessionClient.mockResolvedValue({
-                account: {
-                    get: jest.fn().mockResolvedValue(mockUser),
-                },
-            });
 
             const result = await loader({
                 request: new Request("http://localhost/"),
@@ -168,11 +140,6 @@ describe("Layout Route", () => {
 
         it("calls getOrCreateUser to fetch or self-heal user document", async () => {
             isMobileUserAgent.mockReturnValue(false);
-            createSessionClient.mockResolvedValue({
-                account: {
-                    get: jest.fn().mockResolvedValue(mockUser),
-                },
-            });
 
             const mockUserDoc = {
                 $id: "user-123",
