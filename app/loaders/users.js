@@ -1,7 +1,6 @@
 import { Query, Permission, Role } from "node-appwrite";
 import { readDocument, listDocuments, createDocument } from "@/utils/databases";
 import { joinAchievements } from "@/utils/achievements.server";
-import { createAdminClient } from "@/utils/appwrite/server";
 
 export async function getUserById({ userId, client }) {
     return await readDocument("users", userId, [], client);
@@ -74,48 +73,6 @@ export async function getOrCreateUser({ userId, client }) {
             // 404 so callers and logs see the real reason the operation failed.
             throw healError;
         }
-    }
-}
-
-export async function getInvitedUserStatus({ userId }) {
-    if (!userId) {
-        return { userDocExists: false, hasPassword: false };
-    }
-
-    try {
-        const adminClient = createAdminClient();
-
-        // Get user account details from Appwrite Auth.
-        // Use adminClient.users (the wrapper's getter) rather than constructing
-        // a Users SDK instance manually, to keep the admin client as the single source of truth.
-        const userAccount = await adminClient.users.get(userId);
-
-        // Check if user document exists in database
-        let userDocExists = false;
-        try {
-            await readDocument("users", userId, [], adminClient);
-            userDocExists = true;
-        } catch (_e) {
-            userDocExists = false;
-        }
-
-        // Check if user has a password set (passwordUpdate represents password change date/time)
-        const hasPassword =
-            userAccount.passwordUpdate &&
-            new Date(userAccount.passwordUpdate).getTime() > 0;
-
-        // Return only the minimal booleans needed for flow control.
-        // Avoid returning PII (email/name) from this public route loader.
-        return {
-            userDocExists,
-            hasPassword: !!hasPassword,
-        };
-    } catch (error) {
-        console.error(
-            "getInvitedUserStatus - Failed to fetch user status:",
-            error.message,
-        );
-        return { userDocExists: false, hasPassword: false };
     }
 }
 

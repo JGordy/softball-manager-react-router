@@ -3,13 +3,11 @@ import { listDocuments, readDocument, createDocument } from "@/utils/databases";
 import {
     getUserById,
     getOrCreateUser,
-    getInvitedUserStatus,
     getAttendanceByUserId,
     getAwardsByUserId,
     getStatsByUserId,
     getAchievementsByUserId,
 } from "../users";
-import { createAdminClient } from "@/utils/appwrite/server";
 
 // Mock dependencies
 jest.mock("@/utils/databases", () => ({
@@ -18,9 +16,7 @@ jest.mock("@/utils/databases", () => ({
     createDocument: jest.fn(),
 }));
 
-jest.mock("@/utils/appwrite/server", () => ({
-    createAdminClient: jest.fn(),
-}));
+jest.mock("@/utils/appwrite/server", () => ({}));
 
 jest.mock("node-appwrite", () => ({
     Query: {
@@ -307,68 +303,6 @@ describe("Users Loader", () => {
             });
 
             expect(result).toEqual(existingDoc);
-        });
-    });
-
-    describe("getInvitedUserStatus", () => {
-        it("returns early if no userId provided", async () => {
-            const result = await getInvitedUserStatus({ userId: null });
-            expect(result).toEqual({
-                userDocExists: false,
-                hasPassword: false,
-            });
-        });
-
-        it("returns userDocExists and hasPassword when user document and password exist", async () => {
-            const mockUsers = {
-                get: jest.fn().mockResolvedValue({
-                    email: "test@example.com",
-                    name: "Test User",
-                    passwordUpdate: "2026-07-07T12:00:00.000Z",
-                }),
-            };
-
-            const mockAdminClient = { users: mockUsers };
-            createAdminClient.mockReturnValue(mockAdminClient);
-
-            readDocument.mockResolvedValue({ $id: "user123" });
-
-            const result = await getInvitedUserStatus({ userId: "user123" });
-
-            expect(createAdminClient).toHaveBeenCalled();
-            expect(mockUsers.get).toHaveBeenCalledWith("user123");
-            expect(readDocument).toHaveBeenCalledWith(
-                "users",
-                "user123",
-                [],
-                mockAdminClient,
-            );
-            expect(result).toEqual({
-                userDocExists: true,
-                hasPassword: true,
-            });
-        });
-
-        it("returns false for userDocExists and hasPassword if read fails and passwordUpdate is empty", async () => {
-            const mockUsers = {
-                get: jest.fn().mockResolvedValue({
-                    email: "test@example.com",
-                    name: "Test User",
-                    passwordUpdate: "",
-                }),
-            };
-
-            const mockAdminClient = { users: mockUsers };
-            createAdminClient.mockReturnValue(mockAdminClient);
-
-            readDocument.mockRejectedValue(new Error("Not found"));
-
-            const result = await getInvitedUserStatus({ userId: "user123" });
-
-            expect(result).toEqual({
-                userDocExists: false,
-                hasPassword: false,
-            });
         });
     });
 

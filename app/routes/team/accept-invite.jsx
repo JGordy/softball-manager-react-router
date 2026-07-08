@@ -18,8 +18,6 @@ import {
 } from "@/actions/invitations";
 
 import { useResponseNotification } from "@/utils/showNotification";
-import { getInvitedUserStatus } from "@/loaders/users";
-import { createAdminClient } from "@/utils/appwrite/server";
 
 /**
  * Handle team invitation acceptance
@@ -57,50 +55,6 @@ export async function action({ request }) {
         return result;
     }
 
-    if (_action === "check-invited-status") {
-        const userId = formData.get("userId");
-        const teamId = formData.get("teamId");
-        const membershipId = formData.get("membershipId");
-
-        // Validate the request parameters are present
-        if (!userId || !teamId || !membershipId) {
-            return {
-                success: false,
-                message: "Missing required validation parameters",
-            };
-        }
-
-        try {
-            const adminClient = createAdminClient();
-            // Fetch membership details using the admin Teams API to validate caller has access
-            const membership = await adminClient.teams.getMembership(
-                teamId,
-                membershipId,
-            );
-
-            // Confirm that the membership actually belongs to the user being queried
-            if (membership.userId !== userId) {
-                return {
-                    success: false,
-                    message: "Invalid user membership association",
-                };
-            }
-
-            // Ensure the invitation is actually confirmed (completed)
-            if (!membership.confirm) {
-                return {
-                    success: false,
-                    message: "Membership is not confirmed",
-                };
-            }
-
-            return await getInvitedUserStatus({ userId });
-        } catch (error) {
-            console.error("check-invited-status validation failed:", error);
-            return { success: false, message: "Validation failed" };
-        }
-    }
-
     return { success: false, message: "Unknown action" };
 }
 
@@ -130,37 +84,8 @@ export async function clientAction({ request, params, serverAction }) {
             result.success === true &&
             result.alreadyConfirmed !== true;
 
-        // When the invite was already confirmed, fetch the user's status here —
-        // after Appwrite has validated the invite credentials — so we know whether
-        // to redirect to the team page or to login for self-healing.
-        // This avoids exposing per-user status from the public loader, and runs
-        // server-side via a POST fetch to prevent client-side bundling of server-only modules.
-        // It passes teamId and membershipId so the server can validate that the caller
-        // is authorized to query this userId's status.
-        let userStatus = {};
-        if (result?.alreadyConfirmed) {
-            const statusFormData = new FormData();
-            statusFormData.append("_action", "check-invited-status");
-            statusFormData.append("userId", userId);
-            statusFormData.append("teamId", teamId);
-            statusFormData.append("membershipId", membershipId);
-
-            try {
-                const response = await fetch(request.url, {
-                    method: "POST",
-                    body: statusFormData,
-                });
-                if (response.ok) {
-                    userStatus = await response.json();
-                }
-            } catch (err) {
-                console.error("Failed to check invited user status:", err);
-            }
-        }
-
         return {
             ...result,
-            ...userStatus,
             ...(isNewlyAccepted
                 ? {
                       event: {
@@ -204,23 +129,14 @@ export default function AcceptInvite({ actionData, params }) {
     }, [userId, secret, membershipId, inviteAccepted]);
 
     // Redirect conditionally if invitation was already confirmed.
-    // hasPassword and userDocExists are now returned from clientAction (not loaderData)
-    // so this data is only available after Appwrite validates the invite credentials.
+    // If invitation is already confirmed, redirect directly to /login to prevent
+    // user status enumeration. If user is logged in, they will be redirected to
+    // dashboard/profile; otherwise they can log in to self-heal.
     useEffect(() => {
         if (actionData?.alreadyConfirmed) {
-            if (actionData?.hasPassword && actionData?.userDocExists) {
-                navigate(`/team/${params.teamId}`);
-            } else if (actionData?.hasPassword && !actionData?.userDocExists) {
-                // Self-healing: they have a password, but database doc is missing.
-                // Redirect to login where they will log in and self-heal automatically.
-                navigate("/login");
-            } else {
-                // Unhandled already-confirmed state (no password or unknown);
-                // fall back to login so the user is not stuck indefinitely.
-                navigate("/login");
-            }
+            navigate("/login");
         }
-    }, [actionData, params.teamId, navigate]);
+    }, [actionData, navigate]);
 
     // Auto-subscribe to team notifications if global notifications are enabled
     const { pushTargetId, subscribeToTeam } = useNotifications();
