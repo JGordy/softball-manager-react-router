@@ -2,7 +2,6 @@ import { useNavigation } from "react-router";
 import { render, screen } from "@/utils/test-utils";
 
 import { isMobileUserAgent } from "@/utils/device";
-import { mockContext } from "@/utils/mockContext";
 import { getOrCreateUser } from "@/loaders/users";
 
 import Layout, { loader } from "../layout";
