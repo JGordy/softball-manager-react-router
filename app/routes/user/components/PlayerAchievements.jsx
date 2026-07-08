@@ -242,7 +242,10 @@ export default function PlayerAchievements({
                                 {filtered.length > 0 ? (
                                     filtered.map((ua) => (
                                         <AchievementCard
-                                            key={ua.$id}
+                                            key={
+                                                ua.achievementId ||
+                                                ua.achievement.$id
+                                            }
                                             achievement={ua.achievement}
                                             unlockedAt={ua.unlockedDates}
                                             playerName={playerName}

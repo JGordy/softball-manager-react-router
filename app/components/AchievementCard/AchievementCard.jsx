@@ -206,9 +206,9 @@ export default function AchievementCard({
                                         justify="space-between"
                                     >
                                         {dates.length > 0 ? (
-                                            dates.map((date, idx) => (
+                                            dates.map((date) => (
                                                 <Text
-                                                    key={idx}
+                                                    key={date}
                                                     className={
                                                         classes.statValue
                                                     }
