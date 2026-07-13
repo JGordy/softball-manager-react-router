@@ -29,4 +29,27 @@ describe("SupportPanel Component", () => {
         );
         expect(trackEvent).toHaveBeenCalledWith("email-support");
     });
+
+    it("renders beta feedback link button", () => {
+        render(<SupportPanel />);
+
+        const link = screen.getByRole("link", {
+            name: /Share Beta Feedback/i,
+        });
+        expect(link).toBeInTheDocument();
+        expect(link).toHaveAttribute(
+            "href",
+            "https://docs.google.com/forms/d/1rdlF1Cx73AOz79W5q6stVBCSUIjni6zVy-0yuhein74/viewform",
+        );
+        expect(link).toHaveAttribute("target", "_blank");
+    });
+
+    it("tracks click on beta feedback link", () => {
+        render(<SupportPanel />);
+
+        fireEvent.click(
+            screen.getByRole("link", { name: /Share Beta Feedback/i }),
+        );
+        expect(trackEvent).toHaveBeenCalledWith("submit-beta-feedback");
+    });
 });

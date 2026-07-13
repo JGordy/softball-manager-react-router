@@ -132,14 +132,25 @@ export default function DesktopSettingsDashboard({ actionData, teams }) {
                     icon={IconHelp}
                     iconColor="grape"
                     title="Resources & Support"
-                    description="Need help or want to review our policies?"
+                    description="Need help, want to review policies, or share feedback?"
                 >
                     <Stack gap="md">
                         <Button
                             component="a"
+                            href="https://docs.google.com/forms/d/1rdlF1Cx73AOz79W5q6stVBCSUIjni6zVy-0yuhein74/viewform"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            variant="filled"
+                            color="grape"
+                            fullWidth
+                        >
+                            Share Beta Feedback
+                        </Button>
+                        <Button
+                            component="a"
                             href="mailto:support@rostrhq.app"
                             variant="light"
-                            color="grape"
+                            color="gray"
                             fullWidth
                         >
                             Contact Support

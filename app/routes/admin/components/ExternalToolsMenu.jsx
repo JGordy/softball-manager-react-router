@@ -28,6 +28,11 @@ const EXTERNAL_TOOLS = [
         href: "https://joseph-gordy.sentry.io/issues/?project=4510845363814400",
         icon: IconBug,
     },
+    {
+        label: "Beta Survey Responses",
+        href: "https://docs.google.com/forms/d/1rdlF1Cx73AOz79W5q6stVBCSUIjni6zVy-0yuhein74/edit#responses",
+        icon: IconExternalLink,
+    },
 ];
 
 export function ExternalToolsMenu() {

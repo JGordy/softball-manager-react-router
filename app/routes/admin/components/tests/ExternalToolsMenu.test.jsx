@@ -86,4 +86,18 @@ describe("ExternalToolsMenu", () => {
         expect(link).toHaveAttribute("target", "_blank");
         expect(link).toHaveAttribute("rel", "noopener noreferrer");
     });
+
+    it("renders the Beta Survey Responses link", async () => {
+        await openMenu();
+        const link = screen.getByRole("menuitem", {
+            name: /beta survey responses/i,
+            hidden: true,
+        });
+        expect(link).toHaveAttribute(
+            "href",
+            "https://docs.google.com/forms/d/1rdlF1Cx73AOz79W5q6stVBCSUIjni6zVy-0yuhein74/edit#responses",
+        );
+        expect(link).toHaveAttribute("target", "_blank");
+        expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    });
 });
