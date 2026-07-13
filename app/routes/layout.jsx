@@ -14,13 +14,23 @@ import AgreementModal from "@/components/AgreementModal";
 import { userContext, appwriteClientContext } from "@/contexts/router";
 import { getOrCreateUser } from "@/loaders/users";
 
-import { isMobileUserAgent } from "@/utils/device";
+import { isMobileUserAgent, isBotUserAgent } from "@/utils/device";
 
 export async function loader({ request, context }) {
     const sessionClient = context.get(appwriteClientContext);
     const accountUser = context.get(userContext);
+    const isBot = isBotUserAgent(request);
 
     if (!accountUser || !sessionClient) {
+        if (isBot) {
+            return {
+                user: null,
+                isAuthenticated: false,
+                isVerified: false,
+                isMobile: false,
+                isBot: true,
+            };
+        }
         throw redirect("/login");
     }
 
@@ -49,6 +59,15 @@ export async function loader({ request, context }) {
         !user.name || user.name.trim() === "" || user.name === "User";
 
     if (isProfileIncomplete) {
+        if (isBot) {
+            return {
+                user,
+                isAuthenticated: true,
+                isVerified: user.emailVerification,
+                isMobile,
+                isBot: true,
+            };
+        }
         throw redirect("/auth/setup");
     }
 
@@ -66,6 +85,14 @@ function Layout({ loaderData }) {
     const isDesktop = useMediaQuery("(min-width: 62em)", !loaderData.isMobile);
 
     const isNavigating = navigation.state !== "idle";
+
+    if (!loaderData.isAuthenticated) {
+        return (
+            <Container px={0} mih="90vh" size="xl" pb="7rem">
+                <Outlet context={{ ...loaderData, isDesktop }} />
+            </Container>
+        );
+    }
 
     return (
         <AppShell
