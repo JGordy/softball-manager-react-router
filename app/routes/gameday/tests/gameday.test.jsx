@@ -71,6 +71,7 @@ describe("Gameday Route", () => {
         require("react-router").useLoaderData.mockReturnValue(mockLoaderData);
         require("react-router").useOutletContext.mockReturnValue({
             user: mockUser,
+            isAuthenticated: true,
         });
     });
 
@@ -468,6 +469,57 @@ describe("Gameday Route", () => {
         it("renders gameday container", () => {
             render(<Gameday />);
             expect(screen.getByTestId("gameday-container")).toBeInTheDocument();
+        });
+
+        it("renders private page prompt when isAuthenticated is false", () => {
+            require("react-router").useOutletContext.mockReturnValue({
+                user: null,
+                isAuthenticated: false,
+            });
+
+            render(<Gameday />);
+
+            expect(
+                screen.getByText("Private Live Scoring Page"),
+            ).toBeInTheDocument();
+            expect(
+                screen.getByText(
+                    "You must be logged in to view live scoring for this game.",
+                ),
+            ).toBeInTheDocument();
+            expect(
+                screen.getByRole("button", { name: "Log In" }),
+            ).toBeInTheDocument();
+        });
+    });
+
+    describe("meta", () => {
+        it("generates correct metadata elements", () => {
+            const { meta } = require("../gameday");
+            const result = meta({
+                data: {
+                    game: {
+                        opponent: "Red Hots",
+                        gameDate: "2026-07-15T19:00:00.000Z",
+                    },
+                    teams: [{ name: "Thunder" }],
+                },
+            });
+
+            expect(result).toContainEqual(
+                expect.objectContaining({
+                    property: "og:title",
+                    content: expect.stringContaining(
+                        "Live Gameday: Thunder vs Red Hots",
+                    ),
+                }),
+            );
+            expect(result).toContainEqual(
+                expect.objectContaining({
+                    name: "description",
+                    content: expect.stringContaining("Thunder vs Red Hots"),
+                }),
+            );
         });
     });
 });
