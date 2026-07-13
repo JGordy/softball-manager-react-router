@@ -1,4 +1,5 @@
 import { Stack, Text, Button } from "@mantine/core";
+import { IconClipboardList } from "@tabler/icons-react";
 
 import { trackEvent } from "@/utils/analytics";
 
@@ -14,18 +15,34 @@ export default function SupportPanel() {
                 before reporting issues. If you are submitting a bug report,
                 please include details and screenshots if available.
             </Text>
-            <div>
+            <Stack gap="sm">
                 <Button
                     component="a"
-                    href="mailto:support@rostrhq.app"
-                    onClick={() => trackEvent("email-support")}
-                    variant="light"
+                    href="https://docs.google.com/forms/d/1rdlF1Cx73AOz79W5q6stVBCSUIjni6zVy-0yuhein74/viewform"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => trackEvent("submit-beta-feedback")}
+                    variant="filled"
+                    color="grape"
                     radius="md"
-                    justify="flex-start"
+                    leftSection={<IconClipboardList size={18} />}
                 >
-                    support@rostrhq.app
+                    Share Beta Feedback
                 </Button>
-            </div>
+                <div>
+                    <Button
+                        component="a"
+                        href="mailto:support@rostrhq.app"
+                        onClick={() => trackEvent("email-support")}
+                        variant="light"
+                        radius="md"
+                        color="gray"
+                        justify="flex-start"
+                    >
+                        support@rostrhq.app
+                    </Button>
+                </div>
+            </Stack>
         </Stack>
     );
 }
