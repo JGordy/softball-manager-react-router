@@ -5,6 +5,7 @@ import {
     useNavigate,
     useNavigation,
     useOutletContext,
+    Link,
 } from "react-router";
 
 import { Box, Button, Container, Group, Text, Title } from "@mantine/core";
@@ -59,14 +60,55 @@ export async function action({ request, params, context }) {
     }
 }
 
-export async function loader({ params, context }) {
+export function meta({ data, loaderData }) {
+    const routeData = loaderData || data;
+    if (!routeData || !routeData.game) return [];
+    const { game, teams } = routeData;
+    const team = teams?.[0] || {};
+    const teamName = team.name || "Our Team";
+    const opponentName = game.opponent || "Opponent";
+    const gameDateFormatted = game.gameDate
+        ? new Date(game.gameDate).toLocaleDateString(undefined, {
+              weekday: "long",
+              month: "short",
+              day: "numeric",
+          })
+        : "";
+
+    const title = `${teamName} vs ${opponentName} - ${gameDateFormatted || "Game Details"} | RostrHQ`;
+    const description = `Live score, rosters, and lineups for ${teamName} vs ${opponentName} on ${gameDateFormatted || "game day"}.`;
+
+    return [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:image", content: "/android-chrome-icon-512x512.png" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: "/android-chrome-icon-512x512.png" },
+    ];
+}
+
+export async function loader({ request, params, context }) {
     const { eventId } = params;
-    const client = context.get(appwriteClientContext);
+    const { isBotUserAgent } = await import("@/utils/device");
+    const isBot = isBotUserAgent(request);
+
+    let client = context.get(appwriteClientContext);
+    if ((isBot || !client) && eventId) {
+        const { createAdminClient } = await import("@/utils/appwrite/server");
+        client = createAdminClient();
+    }
 
     return await getEventById({ eventId, client });
 }
 
 export default function EventDetails({ loaderData, actionData }) {
+    const outletContext = useOutletContext();
+    const user = outletContext?.user;
+    const isAuthenticated = outletContext?.isAuthenticated;
+
     // console.log("/events/:eventId > ", loaderData);
 
     const [deleteDrawerOpened, deleteDrawerHandlers] = useDisclosure(false);
@@ -78,8 +120,6 @@ export default function EventDetails({ loaderData, actionData }) {
     const location = useLocation();
     const { closeAllModals } = useModal();
 
-    const outletContext = useOutletContext();
-    const user = outletContext?.user;
     const currentUserId = user?.$id;
 
     const hasPromptedRef = useRef(false);
@@ -190,6 +230,27 @@ export default function EventDetails({ loaderData, actionData }) {
             console.error("Error handling actionData:", jsonError);
         }
     }, [actionData, closeAllModals, navigate, loaderData?.gameDeleted]);
+
+    if (isAuthenticated === false) {
+        return (
+            <Container size="sm" py="xl" ta="center">
+                <Title order={2} mb="md">
+                    Private Event Page
+                </Title>
+                <Text size="lg" c="dimmed" mb="xl">
+                    You must be logged in to view this game's details.
+                </Text>
+                <Button
+                    component={Link}
+                    to="/login"
+                    variant="filled"
+                    color="lime"
+                >
+                    Log In
+                </Button>
+            </Container>
+        );
+    }
 
     // Check if game was deleted
     if (loaderData?.gameDeleted) {
