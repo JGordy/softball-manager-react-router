@@ -45,8 +45,8 @@ jest.mock("../components/TeamMenu", () => () => (
 jest.mock("@/components/BackButton", () => () => (
     <div data-testid="back-button" />
 ));
-jest.mock("../components/MobileTeamDetails", () => () => (
-    <div data-testid="mobile-team-details" />
+jest.mock("../components/MobileTeamDetails", () => (props) => (
+    <div data-testid="mobile-team-details" data-tab={props.tab} />
 ));
 jest.mock("../components/DesktopTeamDetails", () => () => (
     <div data-testid="desktop-team-details" />
@@ -382,8 +382,22 @@ describe("TeamDetails Route", () => {
     });
 
     describe("Component", () => {
+        const renderComponent = (
+            loaderData = mockLoaderData,
+            actionData = null,
+        ) => {
+            return render(
+                <MemoryRouter>
+                    <TeamDetails
+                        loaderData={loaderData}
+                        actionData={actionData}
+                    />
+                </MemoryRouter>,
+            );
+        };
+
         it("renders team details correctly", () => {
-            render(<TeamDetails loaderData={mockLoaderData} />);
+            renderComponent();
 
             expect(screen.getByText("Test Team")).toBeInTheDocument();
             expect(screen.getByText("Test League")).toBeInTheDocument();
@@ -393,12 +407,7 @@ describe("TeamDetails Route", () => {
 
         it("calls useResponseNotification with actionData", () => {
             const actionData = { success: true };
-            render(
-                <TeamDetails
-                    loaderData={mockLoaderData}
-                    actionData={actionData}
-                />,
-            );
+            renderComponent(mockLoaderData, actionData);
             expect(useResponseNotification).toHaveBeenCalledWith(actionData);
         });
 
@@ -407,12 +416,12 @@ describe("TeamDetails Route", () => {
                 ...mockLoaderData,
                 managerIds: ["other-user"],
             };
-            render(<TeamDetails loaderData={nonManagerLoaderData} />);
+            renderComponent(nonManagerLoaderData);
             expect(screen.queryByTestId("team-menu")).not.toBeInTheDocument();
         });
 
         it("renders Mobile and Desktop details components", () => {
-            render(<TeamDetails loaderData={mockLoaderData} />);
+            renderComponent();
 
             expect(
                 screen.getByTestId("mobile-team-details"),
@@ -423,7 +432,7 @@ describe("TeamDetails Route", () => {
         });
 
         it("renders OnboardingTour component for managers", () => {
-            render(<TeamDetails loaderData={mockLoaderData} />);
+            renderComponent();
             expect(screen.getByTestId("onboarding-tour")).toBeInTheDocument();
         });
 
@@ -432,7 +441,7 @@ describe("TeamDetails Route", () => {
                 ...mockLoaderData,
                 managerIds: ["other-user"],
             };
-            render(<TeamDetails loaderData={nonManagerLoaderData} />);
+            renderComponent(nonManagerLoaderData);
             expect(
                 screen.queryByTestId("onboarding-tour"),
             ).not.toBeInTheDocument();
@@ -443,7 +452,7 @@ describe("TeamDetails Route", () => {
                 ...mockLoaderData,
                 isArchiveView: true,
             };
-            render(<TeamDetails loaderData={archiveLoaderData} />);
+            renderComponent(archiveLoaderData);
 
             expect(
                 screen.getByText(
@@ -479,6 +488,23 @@ describe("TeamDetails Route", () => {
                 screen.getByRole("link", { name: "Log In" }),
             ).toBeInTheDocument();
         });
+
+        it("syncs the tab state based on the URL hash", () => {
+            useOutletContext.mockReturnValue({
+                user: mockUser,
+                isDesktop: false,
+                isAuthenticated: true,
+            });
+
+            render(
+                <MemoryRouter initialEntries={["/team/team1#games"]}>
+                    <TeamDetails loaderData={mockLoaderData} />
+                </MemoryRouter>,
+            );
+
+            const mobileDetails = screen.getByTestId("mobile-team-details");
+            expect(mobileDetails).toHaveAttribute("data-tab", "games");
+        });
     });
 
     describe("meta", () => {
@@ -503,6 +529,28 @@ describe("TeamDetails Route", () => {
                     content: expect.stringContaining("Thunder"),
                 }),
             );
+        });
+    });
+
+    describe("shouldRevalidate", () => {
+        it("returns false if only hash changes", () => {
+            const { shouldRevalidate } = require("../details");
+            const result = shouldRevalidate({
+                currentUrl: new URL("http://localhost/team/team1#seasons"),
+                nextUrl: new URL("http://localhost/team/team1#games"),
+                defaultShouldRevalidate: true,
+            });
+            expect(result).toBe(false);
+        });
+
+        it("returns defaultShouldRevalidate if path changes", () => {
+            const { shouldRevalidate } = require("../details");
+            const result = shouldRevalidate({
+                currentUrl: new URL("http://localhost/team/team1"),
+                nextUrl: new URL("http://localhost/team/team2"),
+                defaultShouldRevalidate: true,
+            });
+            expect(result).toBe(true);
         });
     });
 });
