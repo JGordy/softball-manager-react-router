@@ -1,4 +1,11 @@
-import { useOutletContext, redirect, Link } from "react-router";
+import { useState, useEffect } from "react";
+import {
+    useOutletContext,
+    redirect,
+    Link,
+    useLocation,
+    useNavigate,
+} from "react-router";
 import {
     Alert,
     Box,
@@ -214,8 +221,32 @@ export async function action({ request, params, context }) {
 
 export default function TeamDetails({ actionData, loaderData }) {
     const { user, isAuthenticated } = useOutletContext();
+    const location = useLocation();
+    const navigate = useNavigate();
 
     useResponseNotification(actionData);
+
+    const validTabs = ["roster", "seasons", "games"];
+    const hash = location.hash.replace(/^#/, "") || null;
+    const defaultTab = validTabs.includes(hash) ? hash : "seasons";
+    const [tab, setTab] = useState(defaultTab);
+
+    useEffect(() => {
+        const current = location?.hash?.replace(/^#/, "") || null;
+        if (current && validTabs.includes(current) && current !== tab) {
+            setTab(current);
+        }
+    }, [location.hash, tab]);
+
+    const handleTabChange = (value) => {
+        if (!value) return;
+        if (value === tab) return;
+        setTab(value);
+
+        const newHash = `#${value}`;
+        const url = `${location.pathname}${location.search}${newHash}`;
+        navigate(url, { replace: false });
+    };
 
     if (isAuthenticated === false) {
         return (
@@ -314,6 +345,8 @@ export default function TeamDetails({ actionData, loaderData }) {
                     managerView={managerView}
                     user={user}
                     teamLogs={teamLogs}
+                    tab={tab}
+                    onTabChange={handleTabChange}
                 />
             </Box>
             {managerView && (
@@ -333,4 +366,18 @@ export default function TeamDetails({ actionData, loaderData }) {
             )}
         </Container>
     );
+}
+
+export function shouldRevalidate({
+    currentUrl,
+    nextUrl,
+    defaultShouldRevalidate,
+}) {
+    if (
+        currentUrl.pathname === nextUrl.pathname &&
+        currentUrl.search === nextUrl.search
+    ) {
+        return false;
+    }
+    return defaultShouldRevalidate;
 }

@@ -17,12 +17,18 @@ export default function MobileTeamDetails({
     managerView,
     user,
     teamLogs,
+    tab,
+    onTabChange,
 }) {
     const { primaryColor, seasons } = team;
 
     return (
         <Box className="tour-mobile-tabs">
-            <TabsWrapper color={primaryColor} defaultValue="seasons">
+            <TabsWrapper
+                color={primaryColor}
+                value={tab}
+                onChange={onTabChange}
+            >
                 <Tabs.Tab value="roster" className="tour-mobile-tab-roster">
                     <Group gap="xs" align="center" justify="center">
                         <IconUsersGroup size={16} />

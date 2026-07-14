@@ -45,4 +45,17 @@ describe("MobileTeamDetails Component", () => {
         // Since TabsWrapper defaults to seasons, check if season list is present
         expect(screen.getByTestId("season-list")).toBeInTheDocument();
     });
+
+    it("renders the active tab panel based on tab prop", () => {
+        const onTabChange = jest.fn();
+        render(
+            <MobileTeamDetails
+                {...mockProps}
+                tab="games"
+                onTabChange={onTabChange}
+            />,
+        );
+        expect(screen.getByTestId("games-list")).toBeVisible();
+        expect(screen.getByTestId("season-list")).not.toBeVisible();
+    });
 });

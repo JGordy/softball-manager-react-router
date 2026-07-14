@@ -105,6 +105,7 @@ describe("UserProfile Route Component", () => {
                 client: expect.any(Object),
             });
             expect(result.player).toEqual(mockPlayer);
+            expect(result.headerStatsPromise).toEqual(expect.any(Promise));
             expect(result.defaultTab).toBe("stats");
         });
 
@@ -201,6 +202,28 @@ describe("UserProfile Route Component", () => {
             expect(
                 screen.queryByTestId("profile-menu"),
             ).not.toBeInTheDocument();
+        });
+    });
+
+    describe("shouldRevalidate", () => {
+        it("returns false if only hash changes", () => {
+            const { shouldRevalidate } = require("../profile");
+            const result = shouldRevalidate({
+                currentUrl: new URL("http://localhost/user/user-1#player"),
+                nextUrl: new URL("http://localhost/user/user-1#stats"),
+                defaultShouldRevalidate: true,
+            });
+            expect(result).toBe(false);
+        });
+
+        it("returns defaultShouldRevalidate if path changes", () => {
+            const { shouldRevalidate } = require("../profile");
+            const result = shouldRevalidate({
+                currentUrl: new URL("http://localhost/user/user-1"),
+                nextUrl: new URL("http://localhost/user/user-2"),
+                defaultShouldRevalidate: true,
+            });
+            expect(result).toBe(true);
         });
     });
 });

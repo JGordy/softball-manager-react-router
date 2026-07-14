@@ -194,6 +194,30 @@ export default function MobileDashboard({ teamList, openAddTeamModal }) {
             </Grid.Col>
 
             <Grid.Col span={12} pb="xl">
+                {activeTeam && (
+                    <Group grow gap="xs" mb="lg">
+                        {[
+                            { label: "Seasons", hash: "seasons" },
+                            { label: "Games", hash: "games" },
+                            { label: "Roster", hash: "roster" },
+                        ].map(({ label, hash }) => (
+                            <Button
+                                key={hash}
+                                component={Link}
+                                to={`/team/${activeTeamId}#${hash}`}
+                                style={{
+                                    backgroundColor: "var(--bg-card)",
+                                    color: "var(--mantine-color-text)",
+                                    border: "1px solid var(--border-card)",
+                                }}
+                                radius="md"
+                                size="sm"
+                            >
+                                {label}
+                            </Button>
+                        ))}
+                    </Group>
+                )}
                 <Stack gap="md">
                     {/* Next Game (for active team) */}
                     {nextGame && Object.keys(nextGame).length > 0 && (

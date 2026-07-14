@@ -182,4 +182,15 @@ describe("MobileDashboard Component", () => {
         renderDashboard([]);
         expect(screen.getByText("Create your first team")).toBeInTheDocument();
     });
+
+    it("renders quick link buttons (Seasons, Games, Roster) for the active team", () => {
+        renderDashboard();
+        expect(
+            screen.getByRole("link", { name: "Seasons" }),
+        ).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "Games" })).toBeInTheDocument();
+        expect(
+            screen.getByRole("link", { name: "Roster" }),
+        ).toBeInTheDocument();
+    });
 });

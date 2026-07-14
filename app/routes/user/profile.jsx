@@ -65,6 +65,58 @@ export async function loader({ params, request, context }) {
 
     const sessionClient = context.get(appwriteClientContext);
 
+    const headerStatsPromise = (async () => {
+        const { Query } = await import("node-appwrite");
+        const serverModule = await import("@/utils/appwrite/server");
+        const createAdminClient =
+            serverModule.createAdminClient ||
+            serverModule.default?.createAdminClient;
+        const { listDocuments } = await import("@/utils/databases");
+
+        const [awardsResult, gameLogsResult] = await Promise.all([
+            listDocuments(
+                "awards",
+                [Query.equal("winner_user_id", userId), Query.limit(1)],
+                sessionClient,
+            ).catch(() => ({ total: 0 })),
+            listDocuments(
+                "game_logs",
+                [Query.equal("playerId", userId), Query.limit(1)],
+                sessionClient,
+            ).catch(() => ({ total: 0 })),
+        ]);
+
+        let teamCount = 0;
+        try {
+            const userAccount = await sessionClient.account
+                .get()
+                .catch(() => null);
+            if (userAccount && userAccount.$id === userId) {
+                const userTeams = await sessionClient.teams.list();
+                teamCount = userTeams.total || userTeams.teams?.length || 0;
+            } else if (createAdminClient) {
+                const adminClient = createAdminClient();
+                const rosters = await listDocuments(
+                    "season_rosters",
+                    [Query.equal("playerId", userId), Query.limit(100)],
+                    adminClient,
+                ).catch(() => ({ rows: [] }));
+                const uniqueTeamIds = new Set(
+                    rosters.rows?.map((r) => r.teamId) || [],
+                );
+                teamCount = uniqueTeamIds.size;
+            }
+        } catch (e) {
+            console.error("Error getting team count for profile stats:", e);
+        }
+
+        return {
+            awardsCount: awardsResult.total || 0,
+            gameCount: gameLogsResult.total || 0,
+            teamCount,
+        };
+    })();
+
     return {
         player: await getUserById({ userId, client: sessionClient }),
         awardsPromise: getAwardsByUserId({ userId, client: sessionClient }),
@@ -77,6 +129,7 @@ export async function loader({ params, request, context }) {
             userId,
             client: sessionClient,
         }),
+        headerStatsPromise,
         defaultTab,
     };
 }
@@ -88,6 +141,7 @@ export default function UserProfile({ loaderData }) {
         attendancePromise,
         statsPromise,
         achievementsPromise,
+        headerStatsPromise,
         player,
         defaultTab,
     } = loaderData;
@@ -138,7 +192,10 @@ export default function UserProfile({ loaderData }) {
     return (
         !!Object.keys(player).length && (
             <Box px="md" py="md">
-                <UserHeader subText="Here are your personal and player details">
+                <UserHeader
+                    subText="Here are your personal and player details"
+                    stats={headerStatsPromise}
+                >
                     {isCurrentUser && <ProfileMenu player={player} />}
                 </UserHeader>
 
@@ -174,4 +231,18 @@ export default function UserProfile({ loaderData }) {
             </Box>
         )
     );
+}
+
+export function shouldRevalidate({
+    currentUrl,
+    nextUrl,
+    defaultShouldRevalidate,
+}) {
+    if (
+        currentUrl.pathname === nextUrl.pathname &&
+        currentUrl.search === nextUrl.search
+    ) {
+        return false;
+    }
+    return defaultShouldRevalidate;
 }

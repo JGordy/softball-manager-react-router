@@ -26,14 +26,13 @@ export function meta() {
 
 export async function loader({ context }) {
     const sessionClient = context.get(appwriteClientContext);
-    const { managing, playing, userId, stats } = await getUserTeams({
+    const { managing, playing, userId } = await getUserTeams({
         client: sessionClient,
         isDashboard: true,
     });
     return {
         teams: { managing, playing },
         userId,
-        stats,
     };
 }
 
@@ -104,7 +103,6 @@ export default function Dashboard({ loaderData, actionData }) {
     const userId = user?.$id;
 
     const teams = loaderData?.teams;
-    const stats = loaderData?.stats;
     const teamList = [
         ...(teams?.managing?.map((t) => ({ ...t, isManager: true })) || []),
         ...(teams?.playing?.map((t) => ({ ...t, isManager: false })) || []),
@@ -132,7 +130,7 @@ export default function Dashboard({ loaderData, actionData }) {
 
     return (
         <Box px="md">
-            <UserHeader subText="Team and events summary" stats={stats}>
+            <UserHeader subText="Team and events summary">
                 <Box hiddenFrom="md">
                     <DashboardMenu userId={userId} />
                 </Box>
