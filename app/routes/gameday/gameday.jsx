@@ -1,5 +1,10 @@
-import { useLoaderData, useOutletContext, useActionData } from "react-router";
-import { Container, Title, Text, Box } from "@mantine/core";
+import {
+    useLoaderData,
+    useOutletContext,
+    useActionData,
+    Link,
+} from "react-router";
+import { Container, Title, Text, Box, Button } from "@mantine/core";
 
 import BackButton from "@/components/BackButton";
 import DeferredLoader from "@/components/DeferredLoader";
@@ -22,9 +27,47 @@ import GamedayContainer from "./components/GamedayContainer";
 import GamedayLoadingSkeleton from "./components/GamedayLoadingSkeleton";
 import { parsePlayerChart } from "./utils/gamedayUtils";
 
-export async function loader({ params, context }) {
+export function meta({ data, loaderData }) {
+    const routeData = loaderData || data;
+    if (!routeData || !routeData.game) return [];
+    const { game, teams } = routeData;
+    const team = teams?.[0] || {};
+    const teamName = team.name || "Our Team";
+    const opponentName = game.opponent || "Opponent";
+    const gameDateFormatted = game.gameDate
+        ? new Date(game.gameDate).toLocaleDateString(undefined, {
+              weekday: "long",
+              month: "short",
+              day: "numeric",
+          })
+        : "";
+
+    const title = `Live Gameday: ${teamName} vs ${opponentName} | RostrHQ`;
+    const description = `Follow live scoring, play-by-play, and lineups for ${teamName} vs ${opponentName} on ${gameDateFormatted || "game day"}.`;
+
+    return [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:image", content: "/android-chrome-icon-512x512.png" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: "/android-chrome-icon-512x512.png" },
+    ];
+}
+
+export async function loader({ request, params, context }) {
     const { eventId } = params;
-    const client = context.get(appwriteClientContext);
+    const { isBotUserAgent } = await import("@/utils/device");
+    const isBot = isBotUserAgent(request);
+
+    let client = context.get(appwriteClientContext);
+    if ((isBot || !client) && eventId) {
+        const { createAdminClient } = await import("@/utils/appwrite/server");
+        client = createAdminClient();
+    }
+
     return await getEventById({
         eventId,
         client,
@@ -326,10 +369,31 @@ export async function action({ request, params, context }) {
 
 export default function Gameday() {
     const loaderData = useLoaderData();
-    const { user, isDesktop } = useOutletContext();
+    const { user, isDesktop, isAuthenticated } = useOutletContext();
     const actionData = useActionData();
 
     useResponseNotification(actionData);
+
+    if (isAuthenticated === false) {
+        return (
+            <Container size="sm" py="xl" ta="center">
+                <Title order={2} mb="md">
+                    Private Live Scoring Page
+                </Title>
+                <Text size="lg" c="dimmed" mb="xl">
+                    You must be logged in to view live scoring for this game.
+                </Text>
+                <Button
+                    component={Link}
+                    to="/login"
+                    variant="filled"
+                    color="lime"
+                >
+                    Log In
+                </Button>
+            </Container>
+        );
+    }
 
     if (!loaderData || loaderData.gameDeleted || !loaderData.game) {
         return (

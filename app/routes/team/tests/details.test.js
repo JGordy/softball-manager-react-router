@@ -1,4 +1,4 @@
-import { useOutletContext } from "react-router";
+import { useOutletContext, MemoryRouter } from "react-router";
 import { render, screen } from "@/utils/test-utils";
 
 import * as teamsLoaders from "@/loaders/teams";
@@ -92,7 +92,11 @@ describe("TeamDetails Route", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        useOutletContext.mockReturnValue({ user: mockUser, isDesktop: true });
+        useOutletContext.mockReturnValue({
+            user: mockUser,
+            isDesktop: true,
+            isAuthenticated: true,
+        });
     });
 
     describe("loader", () => {
@@ -450,6 +454,55 @@ describe("TeamDetails Route", () => {
             expect(
                 screen.queryByTestId("onboarding-tour"),
             ).not.toBeInTheDocument();
+        });
+
+        it("renders private page prompt when isAuthenticated is false", () => {
+            useOutletContext.mockReturnValue({
+                user: null,
+                isDesktop: true,
+                isAuthenticated: false,
+            });
+
+            render(
+                <MemoryRouter>
+                    <TeamDetails loaderData={mockLoaderData} />
+                </MemoryRouter>,
+            );
+
+            expect(screen.getByText("Private Team Page")).toBeInTheDocument();
+            expect(
+                screen.getByText(
+                    "You must be logged in to view this team's details.",
+                ),
+            ).toBeInTheDocument();
+            expect(
+                screen.getByRole("link", { name: "Log In" }),
+            ).toBeInTheDocument();
+        });
+    });
+
+    describe("meta", () => {
+        it("generates correct metadata elements", () => {
+            const { meta } = require("../details");
+            const result = meta({
+                data: {
+                    teamData: {
+                        name: "Thunder",
+                    },
+                },
+            });
+
+            expect(result).toContainEqual(
+                expect.objectContaining({
+                    title: "Thunder | RostrHQ",
+                }),
+            );
+            expect(result).toContainEqual(
+                expect.objectContaining({
+                    name: "description",
+                    content: expect.stringContaining("Thunder"),
+                }),
+            );
         });
     });
 });

@@ -1,7 +1,7 @@
 import { useNavigation } from "react-router";
 import { render, screen } from "@/utils/test-utils";
 
-import { isMobileUserAgent } from "@/utils/device";
+import { isMobileUserAgent, isBotUserAgent } from "@/utils/device";
 import { getOrCreateUser } from "@/loaders/users";
 
 import Layout, { loader } from "../layout";
@@ -26,6 +26,7 @@ jest.mock("react-router", () => ({
 // Mock device utils
 jest.mock("@/utils/device", () => ({
     isMobileUserAgent: jest.fn(),
+    isBotUserAgent: jest.fn(),
 }));
 
 jest.mock("@/loaders/users", () => ({
@@ -68,6 +69,7 @@ describe("Layout Route", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         useNavigation.mockReturnValue({ state: "idle" });
+        isBotUserAgent.mockReturnValue(false);
 
         localMockContext = {
             get: jest.fn((ctx) => {
@@ -187,7 +189,9 @@ describe("Layout Route", () => {
     });
 
     describe("Component", () => {
-        const renderLayout = (loaderData = { user: mockUser }) => {
+        const renderLayout = (
+            loaderData = { user: mockUser, isAuthenticated: true },
+        ) => {
             return render(<Layout loaderData={loaderData} />);
         };
 

@@ -1,5 +1,13 @@
-import { useOutletContext, redirect } from "react-router";
-import { Alert, Box, Container, Group, Text, Title } from "@mantine/core";
+import { useOutletContext, redirect, Link } from "react-router";
+import {
+    Alert,
+    Box,
+    Container,
+    Group,
+    Text,
+    Title,
+    Button,
+} from "@mantine/core";
 
 import images from "@/constants/images";
 
@@ -39,9 +47,36 @@ export function links() {
     return [{ rel: "preload", href: fieldSrc, as: "image" }];
 }
 
-export async function loader({ params, context }) {
+export function meta({ data, loaderData }) {
+    const routeData = loaderData || data;
+    if (!routeData || !routeData.teamData) return [];
+    const { teamData } = routeData;
+    const title = `${teamData.name || "Team Details"} | RostrHQ`;
+    const description = `View stats, schedules, rosters, and details for ${teamData.name || "softball team"}.`;
+
+    return [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:image", content: "/android-chrome-icon-512x512.png" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: "/android-chrome-icon-512x512.png" },
+    ];
+}
+
+export async function loader({ request, params, context }) {
     const { teamId } = params;
-    const client = context.get(appwriteClientContext);
+    const { isBotUserAgent } = await import("@/utils/device");
+    const isBot = isBotUserAgent(request);
+
+    let client = context.get(appwriteClientContext);
+    if ((isBot || !client) && teamId) {
+        const { createAdminClient } = await import("@/utils/appwrite/server");
+        client = createAdminClient();
+    }
+
     return getTeamById({ teamId, client });
 }
 
@@ -178,6 +213,31 @@ export async function action({ request, params, context }) {
 }
 
 export default function TeamDetails({ actionData, loaderData }) {
+    const { user, isAuthenticated } = useOutletContext();
+
+    useResponseNotification(actionData);
+
+    if (isAuthenticated === false) {
+        return (
+            <Container size="sm" py="xl" ta="center">
+                <Title order={2} mb="md">
+                    Private Team Page
+                </Title>
+                <Text size="lg" c="dimmed" mb="xl">
+                    You must be logged in to view this team's details.
+                </Text>
+                <Button
+                    component={Link}
+                    to="/login"
+                    variant="filled"
+                    color="lime"
+                >
+                    Log In
+                </Button>
+            </Container>
+        );
+    }
+
     const {
         teamData: team,
         players,
@@ -187,13 +247,9 @@ export default function TeamDetails({ actionData, loaderData }) {
         isArchiveView,
     } = loaderData;
 
-    const { user } = useOutletContext();
-
     const userId = user && user.$id;
     const managerView = !isArchiveView && managerIds.indexOf(userId) !== -1;
     const ownerView = ownerIds && ownerIds.indexOf(userId) !== -1;
-
-    useResponseNotification(actionData);
 
     const textProps = {
         size: "md",

@@ -234,9 +234,59 @@ describe("SeasonDetails Route", () => {
         });
     });
 
+    describe("meta", () => {
+        it("generates correct metadata elements", () => {
+            const { meta } = require("../details");
+            const result = meta({
+                data: {
+                    season: {
+                        seasonName: "Spring Season 2026",
+                        teams: [{ name: "Thunder" }],
+                    },
+                },
+            });
+
+            expect(result).toContainEqual({
+                title: "Spring Season 2026 - Thunder | RostrHQ",
+            });
+            expect(result).toContainEqual({
+                name: "description",
+                content:
+                    "View stats, schedules, rosters, and details for the Spring Season 2026 season of Thunder.",
+            });
+        });
+    });
+
     describe("Component", () => {
         beforeEach(() => {
-            useOutletContext.mockReturnValue({ isDesktop: false });
+            useOutletContext.mockReturnValue({
+                isDesktop: false,
+                isAuthenticated: true,
+            });
+        });
+
+        it("renders private season page prompt if isAuthenticated is false", () => {
+            useOutletContext.mockReturnValue({
+                isDesktop: false,
+                isAuthenticated: false,
+            });
+            render(
+                <MemoryRouter>
+                    <SeasonDetails
+                        loaderData={{ season: mockSeason, park: null }}
+                    />
+                </MemoryRouter>,
+            );
+
+            expect(screen.getByText("Private Season Page")).toBeInTheDocument();
+            expect(
+                screen.getByText(
+                    "You must be logged in to view this season's details.",
+                ),
+            ).toBeInTheDocument();
+            expect(
+                screen.getByRole("link", { name: "Log In" }),
+            ).toBeInTheDocument();
         });
 
         it("renders MobileSeasonDetails based on context", () => {

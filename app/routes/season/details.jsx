@@ -1,4 +1,4 @@
-import { Group, Text } from "@mantine/core";
+import { Group, Text, Title, Container, Button } from "@mantine/core";
 import {
     IconCalendarRepeat,
     IconCurrencyDollar,
@@ -7,7 +7,7 @@ import {
     IconMapPin,
 } from "@tabler/icons-react";
 
-import { useOutletContext } from "react-router";
+import { useOutletContext, Link } from "react-router";
 
 import { createGames, createSingleGame, deleteGames } from "@/actions/games";
 import { updateSeason } from "@/actions/seasons";
@@ -21,9 +21,37 @@ import { appwriteClientContext } from "@/contexts/router";
 import DesktopSeasonDetails from "./components/DesktopSeasonDetails";
 import MobileSeasonDetails from "./components/MobileSeasonDetails";
 
-export async function loader({ params, context }) {
+export function meta({ data, loaderData }) {
+    const routeData = loaderData || data;
+    if (!routeData || !routeData.season) return [];
+    const { season } = routeData;
+    const team = season.teams?.[0] || {};
+    const teamName = team.name || "Our Team";
+    const title = `${season.seasonName || "Season Details"} - ${teamName} | RostrHQ`;
+    const description = `View stats, schedules, rosters, and details for the ${season.seasonName || "softball"} season of ${teamName}.`;
+
+    return [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:image", content: "/android-chrome-icon-512x512.png" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: "/android-chrome-icon-512x512.png" },
+    ];
+}
+
+export async function loader({ request, params, context }) {
     const { seasonId } = params;
-    const client = context.get(appwriteClientContext);
+    const { isBotUserAgent } = await import("@/utils/device");
+    const isBot = isBotUserAgent(request);
+
+    let client = context.get(appwriteClientContext);
+    if ((isBot || !client) && seasonId) {
+        const { createAdminClient } = await import("@/utils/appwrite/server");
+        client = createAdminClient();
+    }
 
     let park = null;
     const { season, players, teamPlayers, logs, isArchiveView } =
@@ -117,16 +145,38 @@ export async function action({ request, params, context }) {
 }
 
 export default function SeasonDetails({ loaderData, actionData }) {
-    const { isDesktop, user } = useOutletContext();
+    const { isDesktop, user, isAuthenticated } = useOutletContext();
+
+    useResponseNotification(actionData);
+
+    if (isAuthenticated === false) {
+        return (
+            <Container size="sm" py="xl" ta="center">
+                <Title order={2} mb="md">
+                    Private Season Page
+                </Title>
+                <Text size="lg" c="dimmed" mb="xl">
+                    You must be logged in to view this season's details.
+                </Text>
+                <Button
+                    component={Link}
+                    to="/login"
+                    variant="filled"
+                    color="lime"
+                >
+                    Log In
+                </Button>
+            </Container>
+        );
+    }
+
     const { season, park, players, teamPlayers, logs, isArchiveView } =
         loaderData;
-    const { teams = [] } = season;
+    const { teams = [] } = season || {};
     const [team] = teams;
     const { primaryColor, managerIds = [] } = team || { primaryColor: "lime" };
 
     const isManager = !isArchiveView && managerIds.includes(user?.$id);
-
-    useResponseNotification(actionData);
 
     const hasGames = season?.games?.length > 0;
 
