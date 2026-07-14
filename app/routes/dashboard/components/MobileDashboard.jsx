@@ -194,6 +194,49 @@ export default function MobileDashboard({ teamList, openAddTeamModal }) {
             </Grid.Col>
 
             <Grid.Col span={12} pb="xl">
+                {activeTeam && (
+                    <Group grow gap="xs" mb="lg">
+                        <Button
+                            component={Link}
+                            to={`/team/${activeTeamId}#seasons`}
+                            style={{
+                                backgroundColor: "var(--bg-card)",
+                                color: "var(--mantine-color-text)",
+                                border: "1px solid var(--border-card)",
+                            }}
+                            radius="md"
+                            size="sm"
+                        >
+                            Seasons
+                        </Button>
+                        <Button
+                            component={Link}
+                            to={`/team/${activeTeamId}#games`}
+                            style={{
+                                backgroundColor: "var(--bg-card)",
+                                color: "var(--mantine-color-text)",
+                                border: "1px solid var(--border-card)",
+                            }}
+                            radius="md"
+                            size="sm"
+                        >
+                            Games
+                        </Button>
+                        <Button
+                            component={Link}
+                            to={`/team/${activeTeamId}#roster`}
+                            style={{
+                                backgroundColor: "var(--bg-card)",
+                                color: "var(--mantine-color-text)",
+                                border: "1px solid var(--border-card)",
+                            }}
+                            radius="md"
+                            size="sm"
+                        >
+                            Roster
+                        </Button>
+                    </Group>
+                )}
                 <Stack gap="md">
                     {/* Next Game (for active team) */}
                     {nextGame && Object.keys(nextGame).length > 0 && (
