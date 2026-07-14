@@ -132,7 +132,7 @@ export default function Dashboard({ loaderData, actionData }) {
 
     return (
         <Box px="md">
-            <UserHeader subText="Team and events summary" stats={stats}>
+            <UserHeader subText="Team and events summary">
                 <Box hiddenFrom="md">
                     <DashboardMenu userId={userId} />
                 </Box>

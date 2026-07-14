@@ -74,4 +74,21 @@ describe("UserHeader Component", () => {
             screen.getByRole("button", { name: "Resend Verification Email" }),
         ).toBeInTheDocument();
     });
+
+    it("renders stats when stats is a promise", async () => {
+        useOutletContext.mockReturnValue({
+            user: mockUser,
+            isVerified: true,
+        });
+        useFetcher.mockReturnValue({ submit: jest.fn(), state: "idle" });
+
+        const mockStats = { awardsCount: 10, teamCount: 5, gameCount: 20 };
+        const statsPromise = Promise.resolve(mockStats);
+
+        render(<UserHeader subText="Welcome back" stats={statsPromise} />);
+
+        expect(await screen.findByText("10")).toBeInTheDocument();
+        expect(screen.getByText("5")).toBeInTheDocument();
+        expect(screen.getByText("20")).toBeInTheDocument();
+    });
 });

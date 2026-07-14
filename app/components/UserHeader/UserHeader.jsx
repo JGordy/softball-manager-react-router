@@ -12,11 +12,39 @@ import {
     Text,
     Title,
     useMantineTheme,
+    Skeleton,
 } from "@mantine/core";
 
 import { IconRosetteDiscountCheckFilled } from "@tabler/icons-react";
 import classes from "./UserHeader.module.css";
 import UserStatsRow from "../UserStatsRow";
+import DeferredLoader from "@/components/DeferredLoader";
+
+function UserStatsRowSkeleton() {
+    return (
+        <Group justify="center" gap="md" mt="md" mb="sm">
+            {[1, 2, 3].map((i) => (
+                <Group
+                    key={i}
+                    gap="sm"
+                    style={{
+                        padding: "8px 12px",
+                        border: "1px solid rgba(255,255,255,0.05)",
+                        borderRadius: "8px",
+                        minWidth: 100,
+                        backgroundColor: "rgba(255,255,255,0.02)",
+                    }}
+                >
+                    <Skeleton height={28} width={28} radius="sm" />
+                    <Stack gap={4}>
+                        <Skeleton height={14} width={20} radius="xl" />
+                        <Skeleton height={10} width={35} radius="xl" />
+                    </Stack>
+                </Group>
+            ))}
+        </Group>
+    );
+}
 
 export default function UserHeader({ children, subText, stats }) {
     const context = useOutletContext();
@@ -32,6 +60,21 @@ export default function UserHeader({ children, subText, stats }) {
             { method: "post", action: "/api/resend-verification" },
         );
         setEmailSent(true);
+    };
+
+    const renderStatsRow = () => {
+        if (!stats) return null;
+        if (typeof stats.then === "function") {
+            return (
+                <DeferredLoader
+                    resolve={stats}
+                    fallback={<UserStatsRowSkeleton />}
+                >
+                    {(resolvedStats) => <UserStatsRow stats={resolvedStats} />}
+                </DeferredLoader>
+            );
+        }
+        return <UserStatsRow stats={stats} />;
     };
 
     return (
@@ -89,7 +132,7 @@ export default function UserHeader({ children, subText, stats }) {
                             justifyContent: "center",
                         }}
                     >
-                        {stats && <UserStatsRow stats={stats} />}
+                        {renderStatsRow()}
                     </Box>
 
                     <Group justify="flex-end" style={{ flex: 1 }}>
@@ -134,7 +177,7 @@ export default function UserHeader({ children, subText, stats }) {
                         )}
                     </Stack>
 
-                    {stats && <UserStatsRow stats={stats} />}
+                    {renderStatsRow()}
                 </Stack>
             )}
 
