@@ -196,45 +196,26 @@ export default function MobileDashboard({ teamList, openAddTeamModal }) {
             <Grid.Col span={12} pb="xl">
                 {activeTeam && (
                     <Group grow gap="xs" mb="lg">
-                        <Button
-                            component={Link}
-                            to={`/team/${activeTeamId}#seasons`}
-                            style={{
-                                backgroundColor: "var(--bg-card)",
-                                color: "var(--mantine-color-text)",
-                                border: "1px solid var(--border-card)",
-                            }}
-                            radius="md"
-                            size="sm"
-                        >
-                            Seasons
-                        </Button>
-                        <Button
-                            component={Link}
-                            to={`/team/${activeTeamId}#games`}
-                            style={{
-                                backgroundColor: "var(--bg-card)",
-                                color: "var(--mantine-color-text)",
-                                border: "1px solid var(--border-card)",
-                            }}
-                            radius="md"
-                            size="sm"
-                        >
-                            Games
-                        </Button>
-                        <Button
-                            component={Link}
-                            to={`/team/${activeTeamId}#roster`}
-                            style={{
-                                backgroundColor: "var(--bg-card)",
-                                color: "var(--mantine-color-text)",
-                                border: "1px solid var(--border-card)",
-                            }}
-                            radius="md"
-                            size="sm"
-                        >
-                            Roster
-                        </Button>
+                        {[
+                            { label: "Seasons", hash: "seasons" },
+                            { label: "Games", hash: "games" },
+                            { label: "Roster", hash: "roster" },
+                        ].map(({ label, hash }) => (
+                            <Button
+                                key={hash}
+                                component={Link}
+                                to={`/team/${activeTeamId}#${hash}`}
+                                style={{
+                                    backgroundColor: "var(--bg-card)",
+                                    color: "var(--mantine-color-text)",
+                                    border: "1px solid var(--border-card)",
+                                }}
+                                radius="md"
+                                size="sm"
+                            >
+                                {label}
+                            </Button>
+                        ))}
                     </Group>
                 )}
                 <Stack gap="md">
