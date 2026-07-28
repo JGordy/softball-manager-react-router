@@ -48,6 +48,7 @@ import { NotificationsProvider } from "@/context/NotificationsContext";
 import { createSessionClient } from "@/utils/appwrite/server";
 import { userContext, appwriteClientContext } from "@/contexts/router";
 import UmamiTracker from "@/components/UmamiTracker";
+import PresenceTracker from "@/components/PresenceTracker";
 
 import theme from "./theme";
 
@@ -250,6 +251,7 @@ export default function App() {
             {import.meta.env.PROD &&
                 import.meta.env.VITE_UMAMI_WEBSITE_ID &&
                 import.meta.env.VITE_UMAMI_SCRIPT_URL && <UmamiTracker />}
+            <PresenceTracker />
             <Outlet />
         </NotificationsProvider>
     );

@@ -7,6 +7,7 @@ import {
     createAdminClient,
 } from "@/utils/appwrite/server";
 import { mockContext } from "@/utils/mockContext";
+import { Presences } from "node-appwrite";
 
 import AdminDashboard, { loader } from "../dashboard";
 
@@ -147,6 +148,55 @@ describe("AdminDashboard Route", () => {
                 context: localMockContext,
             });
             expect(result.recentUsers.length).toBe(1);
+        });
+
+        it("fetches active online users count from Appwrite presences", async () => {
+            const localMockContext = {
+                get: jest.fn((ctx) => {
+                    if (
+                        ctx === "userContext" ||
+                        String(ctx).includes("userContext")
+                    ) {
+                        return { labels: ["admin"] };
+                    }
+                    return {};
+                }),
+            };
+
+            const mockAdminClient = {
+                users: {
+                    list: jest.fn().mockResolvedValue({
+                        total: 1,
+                        users: [],
+                    }),
+                },
+                tablesDB: {
+                    listRows: jest
+                        .fn()
+                        .mockResolvedValue({ total: 10, rows: [] }),
+                },
+            };
+            createAdminClient.mockReturnValue(mockAdminClient);
+
+            const mockList = jest
+                .fn()
+                .mockResolvedValue({ total: 42, presences: [] });
+            Presences.mockImplementation(() => ({
+                list: mockList,
+            }));
+
+            const result = await loader({
+                request: new Request("http://localhost/"),
+                context: localMockContext,
+            });
+            expect(result.stats.activeUsers).toBe(42);
+            expect(mockList).toHaveBeenCalledWith({
+                queries: [
+                    expect.stringContaining(
+                        'Query.equal("status", ["online"])',
+                    ),
+                ],
+            });
         });
     });
 

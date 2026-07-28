@@ -3,7 +3,7 @@ import { ColorSchemeScript, MantineProvider } from "@mantine/core";
 import { parse } from "cookie";
 import { createSessionClient } from "@/utils/appwrite/server";
 
-import { Layout, loader, getThemePreference } from "./root";
+import App, { Layout, loader, getThemePreference } from "./root";
 
 // Mock Mantine components
 jest.mock("@mantine/core", () => ({
@@ -23,6 +23,7 @@ jest.mock("react-router", () => ({
     Links: () => <div data-testid="mock-links" />,
     ScrollRestoration: () => null,
     Scripts: () => null,
+    Outlet: () => <div data-testid="mock-outlet" />,
 }));
 
 // Mock Appwrite
@@ -40,6 +41,18 @@ jest.mock("@mantine/modals", () => ({
         <div data-testid="mock-modals">{children}</div>
     ),
 }));
+
+// Mock hooks and tracking components
+jest.mock("@/hooks/usePushNotificationListener", () => ({
+    usePushNotificationListener: jest.fn(),
+}));
+
+jest.mock("@/components/PresenceTracker", () => () => (
+    <div data-testid="presence-tracker" />
+));
+jest.mock("@/components/UmamiTracker", () => () => (
+    <div data-testid="umami-tracker" />
+));
 
 import { useLoaderData } from "react-router";
 
@@ -161,6 +174,14 @@ describe("Root Route Logic", () => {
             expect(MantineProvider.mock.calls[0][0]).toEqual(
                 expect.objectContaining({ defaultColorScheme: "auto" }),
             );
+        });
+    });
+
+    describe("App Component", () => {
+        it("renders without crashing, including PresenceTracker", () => {
+            render(<App />);
+            expect(screen.getByTestId("presence-tracker")).toBeInTheDocument();
+            expect(screen.getByTestId("mock-outlet")).toBeInTheDocument();
         });
     });
 });
