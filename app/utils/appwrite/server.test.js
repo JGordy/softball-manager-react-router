@@ -99,6 +99,7 @@ describe("appwrite server utility", () => {
             expect(client.databases).toBeInstanceOf(Databases);
             expect(client.tablesDB).toBeInstanceOf(TablesDB);
             expect(client.functions).toBeInstanceOf(Functions);
+            expect(client.client).toBe(mockClientInstance);
         });
 
         it("should create client without session if cookie missing", async () => {
@@ -135,6 +136,7 @@ describe("appwrite server utility", () => {
             expect(client.databases).toBeInstanceOf(Databases);
             expect(client.tablesDB).toBeInstanceOf(TablesDB);
             expect(client.functions).toBeInstanceOf(Functions);
+            expect(client.client).toBe(mockClientInstance);
         });
     });
 
@@ -156,6 +158,7 @@ describe("appwrite server utility", () => {
             expect(client.databases).toBeInstanceOf(Databases);
             expect(client.tablesDB).toBeInstanceOf(TablesDB);
             expect(client.functions).toBeInstanceOf(Functions);
+            expect(client.client).toBe(mockClientInstance);
         });
     });
 });

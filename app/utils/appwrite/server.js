@@ -90,6 +90,9 @@ export async function createSessionClient(request) {
         get functions() {
             return new Functions(client);
         },
+        get client() {
+            return client;
+        },
     };
 }
 
@@ -127,6 +130,9 @@ export function createSessionClientFromSecret(secret) {
         get functions() {
             return new Functions(client);
         },
+        get client() {
+            return client;
+        },
     };
 }
 
@@ -163,6 +169,9 @@ export function createAdminClient() {
         },
         get functions() {
             return new Functions(client);
+        },
+        get client() {
+            return client;
         },
     };
 }
