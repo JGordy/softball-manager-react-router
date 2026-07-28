@@ -6,6 +6,13 @@ module.exports = {
     TablesDB: jest.fn(),
     Messaging: jest.fn(),
     Functions: jest.fn(),
+    Presences: jest.fn(() => ({
+        list: jest.fn().mockResolvedValue({ total: 0, presences: [] }),
+        get: jest.fn(),
+        upsert: jest.fn(),
+        updatePresence: jest.fn(),
+        delete: jest.fn(),
+    })),
     ID: {
         unique: jest.fn(() => "unique-id"),
     },

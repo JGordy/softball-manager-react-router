@@ -1,10 +1,19 @@
-import { Query } from "node-appwrite";
+import { Query, Presences } from "node-appwrite";
 import { listDocuments } from "@/utils/databases";
 
-export async function getAdminDashboardData({ users, client, range = "24h" }) {
+export async function getAdminDashboardData({
+    users,
+    client,
+    sessionClient,
+    range = "24h",
+}) {
     // 1. Calculate timeframe for Umami and normalize range
     const VALID_RANGES = ["24h", "7d", "30d"];
     const normalizedRange = VALID_RANGES.includes(range) ? range : "24h";
+
+    const activeClient = sessionClient || client;
+    const rawClient = activeClient ? activeClient.client || activeClient : {};
+    const presencesService = new Presences(rawClient);
 
     // 2. Fetch Appwrite Stats & metrics in parallel
     const [
@@ -15,6 +24,7 @@ export async function getAdminDashboardData({ users, client, range = "24h" }) {
         declinedAtt,
         tentativeAtt,
         recentGames,
+        onlinePresences,
     ] = await Promise.all([
         users.list([Query.limit(1)]),
         listDocuments("teams", [Query.limit(1)], client),
@@ -39,6 +49,9 @@ export async function getAdminDashboardData({ users, client, range = "24h" }) {
             [Query.orderDesc("gameDate"), Query.limit(100)],
             client,
         ),
+        presencesService.list({
+            queries: [Query.equal("status", ["online"])],
+        }),
     ]);
 
     // Park Popularity - Fallback to Season parkId if game parkId is missing
@@ -117,7 +130,7 @@ export async function getAdminDashboardData({ users, client, range = "24h" }) {
                 total:
                     acceptedAtt.total + declinedAtt.total + tentativeAtt.total,
             },
-            activeUsers: activeUsersList.length,
+            activeUsers: onlinePresences?.total || 0,
         },
         recentUsers,
         activeUsers: activeUsersList,

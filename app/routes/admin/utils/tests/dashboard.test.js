@@ -1,5 +1,6 @@
 import { listDocuments } from "@/utils/databases";
 import { getAdminDashboardData } from "../dashboard";
+import { Presences } from "node-appwrite";
 
 // Mock dependencies
 jest.mock("@/utils/databases", () => ({
@@ -17,6 +18,14 @@ describe("Admin Dashboard Utils", () => {
 
     describe("getAdminDashboardData", () => {
         it("fetches and aggregates data correctly", async () => {
+            const mockPresencesInstance = {
+                list: jest.fn().mockResolvedValue({
+                    total: 2,
+                    presences: [],
+                }),
+            };
+            Presences.mockImplementation(() => mockPresencesInstance);
+
             // Mock Appwrite initial stats (6 listDocuments calls in Promise.all)
             mockUsersService.list.mockResolvedValueOnce({
                 total: 100,

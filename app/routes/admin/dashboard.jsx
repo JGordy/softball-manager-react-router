@@ -18,7 +18,7 @@ import {
     Loader,
 } from "@mantine/core";
 import { createAdminClient } from "@/utils/appwrite/server";
-import { userContext } from "@/contexts/router";
+import { userContext, appwriteClientContext } from "@/contexts/router";
 
 import { getAdminDashboardData } from "./utils/dashboard";
 import { ItemCard } from "./components/ItemCard";
@@ -46,8 +46,14 @@ export async function loader({ request, context }) {
 
     const adminClient = createAdminClient();
     const { users } = adminClient;
+    const sessionClient = context.get(appwriteClientContext);
 
-    return await getAdminDashboardData({ users, client: adminClient, range });
+    return await getAdminDashboardData({
+        users,
+        client: adminClient,
+        sessionClient,
+        range,
+    });
 }
 
 export default function AdminDashboard() {
