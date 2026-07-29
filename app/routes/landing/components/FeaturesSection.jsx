@@ -142,7 +142,7 @@ export default function FeaturesSection() {
                         <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
                             <Stack gap={4}>
                                 <Text fw={700} size="md">
-                                    AI-Powered Lineups
+                                    Smart Lineups
                                 </Text>
                                 <Text size="sm" c="dimmed" lh="1.6">
                                     Generate the best lineup available using
@@ -151,7 +151,7 @@ export default function FeaturesSection() {
                             </Stack>
                             <Stack gap={4}>
                                 <Text fw={700} size="md">
-                                    AI-Powered Game Recaps
+                                    Game Recaps
                                 </Text>
                                 <Text size="sm" c="dimmed" lh="1.6">
                                     Receive automatically generated,
