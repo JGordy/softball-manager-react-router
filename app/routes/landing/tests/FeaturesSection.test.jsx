@@ -16,8 +16,8 @@ describe("FeaturesSection", () => {
         ).toBeInTheDocument();
     });
 
-    it("renders AI Powered Lineups feature", () => {
-        expect(screen.getByText("AI Powered Lineups")).toBeInTheDocument();
+    it("renders AI-Powered Lineups feature", () => {
+        expect(screen.getByText("AI-Powered Lineups")).toBeInTheDocument();
         expect(
             screen.getByText(
                 /Generate the best lineup available using in-depth game and individual player history/i,

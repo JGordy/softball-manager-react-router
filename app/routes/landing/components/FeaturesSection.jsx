@@ -94,94 +94,75 @@ export default function FeaturesSection() {
                 </Text>
             </Stack>
 
-            <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg" mb={30}>
-                <Card
-                    shadow="sm"
-                    padding="xl"
-                    radius="md"
-                    style={{
-                        border: "2px solid transparent",
-                        backgroundImage:
-                            "linear-gradient(white, white), linear-gradient(135deg, var(--mantine-color-grape-6) 0%, var(--mantine-color-cyan-6) 100%)",
-                        backgroundOrigin: "border-box",
-                        backgroundClip: "padding-box, border-box",
-                    }}
+            <Card
+                shadow="sm"
+                padding="xl"
+                radius="md"
+                mb={30}
+                style={{
+                    border: "2px solid transparent",
+                    backgroundImage:
+                        "linear-gradient(white, white), linear-gradient(135deg, var(--mantine-color-grape-6) 0%, var(--mantine-color-cyan-6) 100%)",
+                    backgroundOrigin: "border-box",
+                    backgroundClip: "padding-box, border-box",
+                }}
+            >
+                <Flex
+                    direction={{ base: "column", md: "row" }}
+                    align={{ base: "flex-start", md: "center" }}
+                    gap="xl"
                 >
-                    <Flex
-                        direction={{ base: "column", sm: "row" }}
-                        align={{ base: "flex-start", sm: "center" }}
-                        gap="xl"
+                    <ThemeIcon
+                        size={60}
+                        radius="md"
+                        variant="gradient"
+                        gradient={{ from: "grape", to: "cyan", deg: 135 }}
                     >
-                        <ThemeIcon
-                            size={60}
-                            radius="md"
+                        <IconSparkles
+                            style={{
+                                width: rem(32),
+                                height: rem(32),
+                                color: "white",
+                            }}
+                        />
+                    </ThemeIcon>
+                    <Stack gap="md" style={{ flex: 1 }}>
+                        <Text
+                            fw={900}
+                            size="xl"
                             variant="gradient"
-                            gradient={{ from: "grape", to: "cyan", deg: 135 }}
+                            gradient={{
+                                from: "grape.6",
+                                to: "cyan.6",
+                                deg: 135,
+                            }}
                         >
-                            <IconSparkles
-                                style={{
-                                    width: rem(32),
-                                    height: rem(32),
-                                    color: "white",
-                                }}
-                            />
-                        </ThemeIcon>
-                        <Stack gap={4}>
-                            <Text fw={700} size="xl">
-                                AI Powered Lineups
-                            </Text>
-                            <Text size="md" c="dimmed" lh="1.6">
-                                Generate the best lineup available using
-                                in-depth game and individual player history.
-                            </Text>
-                        </Stack>
-                    </Flex>
-                </Card>
-
-                <Card
-                    shadow="sm"
-                    padding="xl"
-                    radius="md"
-                    style={{
-                        border: "2px solid transparent",
-                        backgroundImage:
-                            "linear-gradient(white, white), linear-gradient(135deg, var(--mantine-color-grape-6) 0%, var(--mantine-color-cyan-6) 100%)",
-                        backgroundOrigin: "border-box",
-                        backgroundClip: "padding-box, border-box",
-                    }}
-                >
-                    <Flex
-                        direction={{ base: "column", sm: "row" }}
-                        align={{ base: "flex-start", sm: "center" }}
-                        gap="xl"
-                    >
-                        <ThemeIcon
-                            size={60}
-                            radius="md"
-                            variant="gradient"
-                            gradient={{ from: "grape", to: "cyan", deg: 135 }}
-                        >
-                            <IconSparkles
-                                style={{
-                                    width: rem(32),
-                                    height: rem(32),
-                                    color: "white",
-                                }}
-                            />
-                        </ThemeIcon>
-                        <Stack gap={4}>
-                            <Text fw={700} size="xl">
-                                AI-Powered Game Recaps
-                            </Text>
-                            <Text size="md" c="dimmed" lh="1.6">
-                                Receive automatically generated, newspaper-style
-                                editorial game summaries instantly after the
-                                final out.
-                            </Text>
-                        </Stack>
-                    </Flex>
-                </Card>
-            </SimpleGrid>
+                            AI-Powered Features
+                        </Text>
+                        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
+                            <Stack gap={4}>
+                                <Text fw={700} size="md">
+                                    AI-Powered Lineups
+                                </Text>
+                                <Text size="sm" c="dimmed" lh="1.6">
+                                    Generate the best lineup available using
+                                    in-depth game and individual player history.
+                                </Text>
+                            </Stack>
+                            <Stack gap={4}>
+                                <Text fw={700} size="md">
+                                    AI-Powered Game Recaps
+                                </Text>
+                                <Text size="sm" c="dimmed" lh="1.6">
+                                    Receive automatically generated,
+                                    newspaper-style editorial game summaries
+                                    instantly after the final out.
+                                </Text>
+                            </Stack>
+                        </SimpleGrid>
+                    </Stack>
+                </Flex>
+            </Card>
 
             <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing={30}>
                 {features.map((feature) => (
