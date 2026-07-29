@@ -16,6 +16,15 @@ describe("FeaturesSection", () => {
         ).toBeInTheDocument();
     });
 
+    it("renders AI Powered Lineups feature", () => {
+        expect(screen.getByText("AI Powered Lineups")).toBeInTheDocument();
+        expect(
+            screen.getByText(
+                /Generate the best lineup available using in-depth game and individual player history/i,
+            ),
+        ).toBeInTheDocument();
+    });
+
     it("renders Dynamic Game Scoring feature", () => {
         expect(screen.getByText("Dynamic Game Scoring")).toBeInTheDocument();
         expect(
