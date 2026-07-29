@@ -11,6 +11,8 @@ import {
     rem,
 } from "@mantine/core";
 import {
+    IconAward,
+    IconBell,
     IconCalendarStats,
     IconChartBar,
     IconClipboardList,
@@ -60,6 +62,20 @@ export default function FeaturesSection() {
             title: "Game Awards & Voting",
             description:
                 "Keep the friendly rivalry alive with peer-voted MVPs and superlatives.",
+        },
+        {
+            icon: IconAward,
+            color: "violet",
+            title: "In-Game Achievements",
+            description:
+                "Unlock unique milestone awards and track rarity tiers on your player profile.",
+        },
+        {
+            icon: IconBell,
+            color: "cyan",
+            title: "Push Notifications",
+            description:
+                "Receive instant mobile alerts for RSVP requests, schedule changes, and real-time game updates.",
         },
     ];
 
@@ -112,11 +128,12 @@ export default function FeaturesSection() {
                     </ThemeIcon>
                     <Stack gap={4}>
                         <Text fw={700} size="xl">
-                            AI Powered Lineups
+                            AI-Powered Game Recaps
                         </Text>
                         <Text size="md" c="dimmed" lh="1.6">
-                            Generate the best lineup available using in-depth
-                            game and individual player history.
+                            Receive automatically generated, newspaper-style
+                            editorial game summaries instantly after the final
+                            out.
                         </Text>
                     </Stack>
                 </Flex>

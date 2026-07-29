@@ -32,6 +32,21 @@ describe("ShowcaseSection", () => {
         ).toBeInTheDocument();
     });
 
+    it("renders 'Your personal sports journalist' section", () => {
+        render(<ShowcaseSection />);
+        expect(
+            screen.getByText("Your personal sports journalist"),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByText(
+                /No more boring box scores. Get automatically generated, professional sports columns/i,
+            ),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByText("Automated newspaper-style editorial write-ups"),
+        ).toBeInTheDocument();
+    });
+
     it("renders 'Advanced batting analytics' section", () => {
         render(<ShowcaseSection />);
         expect(
@@ -47,16 +62,18 @@ describe("ShowcaseSection", () => {
         ).toBeInTheDocument();
     });
 
-    it("renders 'Celebrate team heroes' section", () => {
+    it("renders 'Achievements & awards' section", () => {
         render(<ShowcaseSection />);
-        expect(screen.getByText("Celebrate team heroes")).toBeInTheDocument();
+        expect(screen.getByText("Achievements & awards")).toBeInTheDocument();
         expect(
             screen.getByText(
-                /Recognize outstanding performances with post-game awards/i,
+                /Track player milestones and celebrate outstanding performances/i,
             ),
         ).toBeInTheDocument();
         expect(
-            screen.getByText("Post-game voting for MVP & accolades"),
+            screen.getByText(
+                "In-game achievements with color-coded rarity tiers",
+            ),
         ).toBeInTheDocument();
     });
 });
