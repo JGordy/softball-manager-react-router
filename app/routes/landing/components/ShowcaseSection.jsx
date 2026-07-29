@@ -25,6 +25,8 @@ import sprayChartImg from "@/assets/spray-chart.png";
 import awardVoteImg from "@/assets/award-vote.png";
 import gameAwardImg from "@/assets/game-award.png";
 import playerAwardsImg from "@/assets/player-awards.png";
+import aiSportsColumnImg from "@/assets/ai-sports-column.png";
+import playerAchievementsImg from "@/assets/player-achievements.png";
 
 const AUTOPLAY_DELAY_DEFAULT = 4000;
 const AUTOPLAY_DELAY_AWARDS = 5000;
@@ -116,6 +118,7 @@ function ImageCarousel({ images, delay = AUTOPLAY_DELAY_DEFAULT }) {
 export default function ShowcaseSection() {
     return (
         <Container size="lg" py={100} style={{ overflow: "hidden" }}>
+            {/* Showcase 1: Game Day */}
             <Flex
                 direction={{ base: "column", md: "row" }}
                 gap={60}
@@ -126,11 +129,11 @@ export default function ShowcaseSection() {
                     badge="Game Day"
                     color="blue"
                     title="Score games in real-time"
-                    description="An intuitive, touch-first interface designed for mobile. Track every hit and play with a couple of taps."
+                    description="An intuitive, touch-first interface designed for mobile. Track every hit, play, and runner advancement with a couple of taps."
                     features={[
                         "Live play-by-play tracking",
-                        "Precise field location input",
-                        "Intelligent runner advancement",
+                        "Precise hit location input",
+                        "Intelligent runner advancement paths",
                     ]}
                 />
 
@@ -152,13 +155,62 @@ export default function ShowcaseSection() {
                 />
             </Flex>
 
+            {/* Showcase 2: AI Recaps */}
             <Flex
                 direction={{ base: "column-reverse", md: "row" }}
                 gap={60}
                 align="center"
+                mb={120}
             >
-                <Box flex={1}>
-                    <Card padding="lg" bg="gray.0">
+                <Box flex={1} w="100%">
+                    <Card padding="lg" bg="gray.0" shadow="xl" radius="md">
+                        <Image
+                            src={aiSportsColumnImg}
+                            alt="AI Sports Column newspaper-style write-up for a game final"
+                            radius="md"
+                            h={{ base: 400, md: 500 }}
+                            w="auto"
+                            fit="contain"
+                            mx="auto"
+                            loading="lazy"
+                        />
+                    </Card>
+                </Box>
+
+                <ShowcaseText
+                    badge="AI Coverage"
+                    color="grape"
+                    title="Your personal sports journalist"
+                    description="No more boring box scores. Get automatically generated, professional sports columns summarizing your team's performance immediately after the final out."
+                    features={[
+                        "Automated newspaper-style editorial write-ups",
+                        "Highlights key plays and game-changing moments",
+                        "Makes every recreational league feel like the pros",
+                    ]}
+                />
+            </Flex>
+
+            {/* Showcase 3: Insights */}
+            <Flex
+                direction={{ base: "column", md: "row" }}
+                gap={60}
+                align="center"
+                mb={120}
+            >
+                <ShowcaseText
+                    badge="Insights"
+                    color="red"
+                    title="Advanced batting analytics"
+                    description="Go beyond the box score. Visualize player tendencies with generated spray charts and advanced stats."
+                    features={[
+                        "Visual spray charts for every player",
+                        "Filter by batting side (Left/Right), hit type or location",
+                        "Identify gaps and hitting preferences",
+                    ]}
+                />
+
+                <Box flex={1} w="100%">
+                    <Card padding="lg" bg="gray.0" shadow="xl" radius="md">
                         <Image
                             src={sprayChartImg}
                             alt="Visual spray chart showing a player's hit distribution across the field"
@@ -171,40 +223,20 @@ export default function ShowcaseSection() {
                         />
                     </Card>
                 </Box>
-
-                <ShowcaseText
-                    badge="Insights"
-                    color="red"
-                    title="Advanced batting analytics"
-                    description="Go beyond the box score. Visualize player tendencies with generated spray charts and advanced stats."
-                    features={[
-                        "Visual spray charts for every player",
-                        "Filter by batting side (Left/Right), hit type or location",
-                        "Identify gaps and weaknesses",
-                    ]}
-                />
             </Flex>
 
+            {/* Showcase 4: Recognition & Achievements */}
             <Flex
-                direction={{ base: "column", md: "row" }}
+                direction={{ base: "column-reverse", md: "row" }}
                 gap={60}
                 align="center"
-                mt={120}
             >
-                <ShowcaseText
-                    badge="Recognition"
-                    color="orange"
-                    title="Celebrate team heroes"
-                    description="Recognize outstanding performances with post-game awards. Build team morale by voting for MVPs and key plays."
-                    features={[
-                        "Post-game voting for MVP & accolades",
-                        "Track award history on player profiles",
-                        "Fun, interactive celebration screens",
-                    ]}
-                />
-
                 <ImageCarousel
                     images={[
+                        {
+                            src: playerAchievementsImg,
+                            alt: "Player profile view showing unlocked milestones and achievements with rarity tags",
+                        },
                         {
                             src: awardVoteImg,
                             alt: "Interface for voting on post-game awards and MVPs",
@@ -219,6 +251,18 @@ export default function ShowcaseSection() {
                         },
                     ]}
                     delay={AUTOPLAY_DELAY_AWARDS}
+                />
+
+                <ShowcaseText
+                    badge="Recognition"
+                    color="orange"
+                    title="Achievements & awards"
+                    description="Track player milestones and celebrate outstanding performances. Build team engagement with real-time achievements and post-game awards."
+                    features={[
+                        "In-game achievements with color-coded rarity tiers",
+                        "Fun, unlockable milestones on player profiles",
+                        "Post-game voting for MVP and key accolades",
+                    ]}
                 />
             </Flex>
         </Container>

@@ -11,6 +11,8 @@ import {
     rem,
 } from "@mantine/core";
 import {
+    IconAward,
+    IconBell,
     IconCalendarStats,
     IconChartBar,
     IconClipboardList,
@@ -61,6 +63,20 @@ export default function FeaturesSection() {
             description:
                 "Keep the friendly rivalry alive with peer-voted MVPs and superlatives.",
         },
+        {
+            icon: IconAward,
+            color: "violet",
+            title: "In-Game Achievements",
+            description:
+                "Unlock unique milestone awards and track rarity tiers on your player profile.",
+        },
+        {
+            icon: IconBell,
+            color: "cyan",
+            title: "Push Notifications",
+            description:
+                "Receive instant mobile alerts for RSVP requests, schedule changes, and real-time game updates.",
+        },
     ];
 
     return (
@@ -110,14 +126,40 @@ export default function FeaturesSection() {
                             }}
                         />
                     </ThemeIcon>
-                    <Stack gap={4}>
-                        <Text fw={700} size="xl">
-                            AI Powered Lineups
+                    <Stack gap="md" style={{ flex: 1 }}>
+                        <Text
+                            fw={900}
+                            size="xl"
+                            variant="gradient"
+                            gradient={{
+                                from: "grape.6",
+                                to: "cyan.6",
+                                deg: 135,
+                            }}
+                        >
+                            AI-Powered Features
                         </Text>
-                        <Text size="md" c="dimmed" lh="1.6">
-                            Generate the best lineup available using in-depth
-                            game and individual player history.
-                        </Text>
+                        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
+                            <Stack gap={4}>
+                                <Text fw={700} size="md">
+                                    Smart Lineups
+                                </Text>
+                                <Text size="sm" c="dimmed" lh="1.6">
+                                    Generate the best lineup available using
+                                    in-depth game and individual player history.
+                                </Text>
+                            </Stack>
+                            <Stack gap={4}>
+                                <Text fw={700} size="md">
+                                    Game Recaps
+                                </Text>
+                                <Text size="sm" c="dimmed" lh="1.6">
+                                    Receive automatically generated,
+                                    newspaper-style editorial game summaries
+                                    instantly after the final out.
+                                </Text>
+                            </Stack>
+                        </SimpleGrid>
                     </Stack>
                 </Flex>
             </Card>

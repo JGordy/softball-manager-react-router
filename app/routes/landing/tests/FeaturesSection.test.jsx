@@ -7,8 +7,21 @@ describe("FeaturesSection", () => {
         render(<FeaturesSection />);
     });
 
-    it("renders AI Powered Lineups feature", () => {
-        expect(screen.getByText("AI Powered Lineups")).toBeInTheDocument();
+    it("renders AI-Powered Features section", () => {
+        expect(screen.getByText("AI-Powered Features")).toBeInTheDocument();
+    });
+
+    it("renders Game Recaps feature", () => {
+        expect(screen.getByText("Game Recaps")).toBeInTheDocument();
+        expect(
+            screen.getByText(
+                /Receive automatically generated, newspaper-style editorial game summaries instantly after the final out/i,
+            ),
+        ).toBeInTheDocument();
+    });
+
+    it("renders Smart Lineups feature", () => {
+        expect(screen.getByText("Smart Lineups")).toBeInTheDocument();
         expect(
             screen.getByText(
                 /Generate the best lineup available using in-depth game and individual player history/i,
@@ -60,6 +73,24 @@ describe("FeaturesSection", () => {
         expect(
             screen.getByText(
                 /Keep the friendly rivalry alive with peer-voted MVPs and superlatives/i,
+            ),
+        ).toBeInTheDocument();
+    });
+
+    it("renders In-Game Achievements feature", () => {
+        expect(screen.getByText("In-Game Achievements")).toBeInTheDocument();
+        expect(
+            screen.getByText(
+                /Unlock unique milestone awards and track rarity tiers on your player profile/i,
+            ),
+        ).toBeInTheDocument();
+    });
+
+    it("renders Push Notifications feature", () => {
+        expect(screen.getByText("Push Notifications")).toBeInTheDocument();
+        expect(
+            screen.getByText(
+                /Receive instant mobile alerts for RSVP requests, schedule changes, and real-time game updates/i,
             ),
         ).toBeInTheDocument();
     });
