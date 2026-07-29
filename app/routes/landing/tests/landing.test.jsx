@@ -51,6 +51,8 @@ jest.mock("@tabler/icons-react", () => ({
     IconShieldLock: () => <div data-testid="icon-shield-lock" />,
     IconBallBaseball: () => null,
     IconUserCircle: () => null,
+    IconAward: () => null,
+    IconBell: () => null,
 }));
 
 // Mock analytics
