@@ -19,7 +19,23 @@ describe("HeroSection", () => {
             </MemoryRouter>,
         );
 
-        expect(screen.getByText(/RostrHQ/i)).toBeInTheDocument();
+        expect(
+            screen.getByRole("heading", { name: "RostrHQ" }),
+        ).toBeInTheDocument();
+    });
+
+    it("renders entity disambiguation text for search/AI crawlers", () => {
+        render(
+            <MemoryRouter>
+                <HeroSection isAuthenticated={false} isDesktop={true} />
+            </MemoryRouter>,
+        );
+
+        expect(
+            screen.getByText(
+                "RostrHQ is a dedicated softball team management application built for coaches, players, and scorekeepers.",
+            ),
+        ).toBeInTheDocument();
     });
 
     it("shows 'Go to Dashboard' if authenticated and on mobile", () => {

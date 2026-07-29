@@ -3,8 +3,6 @@ import { LoadingOverlay } from "@mantine/core";
 
 import { logoutAction } from "@/actions/logout";
 
-import branding from "@/constants/branding";
-
 import FeaturesSection from "./components/FeaturesSection";
 import ShowcaseSection from "./components/ShowcaseSection";
 import HeroSection from "./components/HeroSection";
@@ -19,9 +17,9 @@ export const links = () => [
 ];
 
 export const meta = () => {
-    const title = `${branding.name} - ${branding.tagline}`;
+    const title = "RostrHQ | Softball Team Management & Stat Tracking App";
     const description =
-        "The ultimate app for softball team management. Track stats, manage lineups, handle RSVPs, and score games in real-time.";
+        "RostrHQ is the premier softball team management app. Score games in real time, track player stats, manage lineups, and collect RSVPs.";
     const image = "/hero-desktop.jpg"; // Ensure this matches your deployment domain for best results
 
     return [
@@ -30,12 +28,12 @@ export const meta = () => {
         {
             name: "keywords",
             content:
-                "softball, team manager, stats tracker, lineup builder, scorekeeper",
+                "softball team management, softball stat tracker, softball lineup generator, softball lineup builder, scorekeeper",
         },
 
         // Open Graph / Facebook
         { property: "og:type", content: "website" },
-        { property: "og:url", content: "https://www.rostrhq.app/" },
+        { property: "og:url", content: "https://rostrhq.app" },
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:image", content: image },
@@ -92,16 +90,19 @@ export default function Landing() {
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
         name: "RostrHQ",
+        alternateName: ["RostrHQ Softball App", "RostrHQ Team Management"],
+        url: "https://rostrhq.app",
         applicationCategory: "SportsApplication",
-        operatingSystem: "Web", // Since it's a PWA/Web App
+        operatingSystem: "Web, iOS, Android",
         description:
-            "The ultimate app for softball team management. Track stats, manage lineups, handle RSVPs, and score games in real-time.",
+            "RostrHQ is a softball team management platform for tracking stats, managing lineups, scoring games, and handling RSVPs.",
+        keywords:
+            "softball team management, softball stat tracker, softball lineup generator",
         offers: {
             "@type": "Offer",
             price: "0",
             priceCurrency: "USD",
         },
-        screenshot: "https://www.rostrhq.app/scoring-dashboard.jpg",
     };
 
     return (

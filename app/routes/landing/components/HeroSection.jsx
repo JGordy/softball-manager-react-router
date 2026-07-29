@@ -112,6 +112,20 @@ export default function HeroSection({ isAuthenticated, isDesktop, isAdmin }) {
                 >
                     {branding.tagline}
                 </Text>
+                <Text
+                    size="md"
+                    mt="md"
+                    opacity={0.8}
+                    style={{
+                        maxWidth: 600,
+                        margin: "auto",
+                        fontSize: rem(16),
+                        fontWeight: 500,
+                    }}
+                >
+                    RostrHQ is a dedicated softball team management application
+                    built for coaches, players, and scorekeepers.
+                </Text>
 
                 <Group justify="center" mt={50} w="100%">
                     {isAuthenticated ? (
