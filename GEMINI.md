@@ -84,3 +84,12 @@ Code is considered "Complete" only when it meets the following criteria:
 - **Deployment Pre-check**: Run `npm run build` locally to ensure SSR bundles are correctly generated before pushing to production.
 - **Full Testing Duration**: Running the full test suite (`npm run test` or during git push hooks) takes **at least 2 minutes (120 seconds)**. AI agents must always set a timer of at least 2 minutes (120 seconds) when waiting for global test suite or git push executions to complete.
 - **NEVER SKIP TESTS ON PUSH**: Under absolutely no circumstances should any developer or AI agent use the `--no-verify` or any other test-skipping flag when committing or pushing. All git hooks and verification suites must run fully to completion. This is a critical quality rule.
+
+## Antigravity Execution Rules (v2.4+ Fix)
+
+### Terminal & Subshell Protocol
+
+- **Non-blocking stdout:** Always append `| cat` to inspection commands (`git diff`, `git status`, `wc -l`, `node -e`) to force an explicit EOF signal and prevent subshell stream deadlocks.
+- **Git commands:** Always run git with non-interactive flags (e.g., `git --no-pager diff | cat`).
+- **Linters & Formatters:** Always pass explicit non-interactive/CI flags so processes exit immediately upon completion (e.g., `npx prettier --write <file>`).
+- **No Background Watchers:** Never invoke terminal commands that initiate active file watchers or persistent daemon processes inside the subagent runner.

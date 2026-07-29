@@ -90,7 +90,7 @@ export default function OnboardingTour({
             if (typeof step.target === "function") {
                 try {
                     const res = step.target();
-                    if (typeof res === "string") {
+                    if (res) {
                         resolvedTarget = res;
                     }
                 } catch (err) {

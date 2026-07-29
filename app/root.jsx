@@ -78,7 +78,10 @@ if (
                     useLocation,
                     useMatches,
                 }),
-                Sentry.replayIntegration(),
+                Sentry.replayIntegration({
+                    maskAllText: false,
+                    blockAllMedia: false,
+                }),
             ],
             tracesSampleRate: validatedSampleRate,
             replaysSessionSampleRate: 0.1,
