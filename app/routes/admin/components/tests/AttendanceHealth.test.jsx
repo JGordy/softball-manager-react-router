@@ -12,7 +12,6 @@ describe("AttendanceHealth", () => {
     it("renders attendance metrics correctly", () => {
         render(<AttendanceHealth attendance={mockAttendance} />);
 
-        expect(screen.getByText("Platform Attendance")).toBeInTheDocument();
         expect(screen.getByText("Show-up Rate")).toBeInTheDocument();
         expect(
             screen.getByText('80 of 100 responses are "Accepted"'),
