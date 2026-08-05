@@ -1,33 +1,20 @@
-import { useEffect } from "react";
-import {
-    useLoaderData,
-    redirect,
-    useRevalidator,
-    useSearchParams,
-} from "react-router";
+import { useLoaderData, redirect } from "react-router";
 
-import {
-    Badge,
-    Container,
-    Group,
-    SimpleGrid,
-    Title,
-    Text,
-    SegmentedControl,
-    Stack,
-    Loader,
-} from "@mantine/core";
+import { Container, SimpleGrid, Title, Text } from "@mantine/core";
 import { createAdminClient } from "@/utils/appwrite/server";
 import { userContext, appwriteClientContext } from "@/contexts/router";
 
 import { getAdminDashboardData } from "./utils/dashboard";
-import { ItemCard } from "./components/ItemCard";
-import { DashboardSection } from "./components/DashboardSection";
+import { UserDirectory } from "./components/UserDirectory";
 import { KPIGrid } from "./components/KPIGrid";
 import { AttendanceHealth } from "./components/AttendanceHealth";
 import { ParkLeaderboard } from "./components/ParkLeaderboard";
-import { MobileDashboardNav } from "./components/DashboardNav";
-import { ExternalToolsMenu } from "./components/ExternalToolsMenu";
+import { TeamRoster } from "./components/TeamRoster";
+import { NotificationHealth } from "./components/NotificationHealth";
+import { FunctionHealth } from "./components/FunctionHealth";
+import { RecognitionStats } from "./components/RecognitionStats";
+import { GameLogsBreakdown } from "./components/GameLogsBreakdown";
+import { ExternalToolsPanel } from "./components/ExternalToolsMenu";
 
 export async function loader({ request, context }) {
     const url = new URL(request.url);
@@ -57,139 +44,68 @@ export async function loader({ request, context }) {
 }
 
 export default function AdminDashboard() {
-    const { stats, recentUsers, activeUsers, activeParks, range } =
-        useLoaderData();
-    const revalidator = useRevalidator();
-    const [, setSearchParams] = useSearchParams();
-
-    // Auto-refresh the dashboard every 10 seconds for "live" updates
-    useEffect(() => {
-        const interval = setInterval(() => {
-            if (revalidator.state === "idle") {
-                revalidator.revalidate();
-            }
-        }, 10000);
-
-        return () => clearInterval(interval);
-    }, [revalidator]);
-
-    const handleRangeChange = (value) => {
-        setSearchParams((prev) => {
-            prev.set("range", value);
-            return prev;
-        });
-    };
+    const {
+        stats,
+        recentUsers,
+        activeUsers,
+        activeParks,
+        teamsRoster,
+        notificationStats,
+        cloudFunctions,
+        gameLogsStats,
+        recognitionStats,
+    } = useLoaderData();
 
     return (
         <Container size="lg" py="xl">
-            <Stack gap="xs" mb="xl">
-                <Group justify="space-between" align="center" mb="md">
-                    <Title order={2}>Admin Dashboard</Title>
-                    <Group gap="xs">
-                        {revalidator.state === "loading" ? (
-                            <Loader
-                                color="yellow"
-                                size="sm"
-                                type="dots"
-                                aria-label="Updating..."
-                            />
-                        ) : (
-                            <Badge color="lime" size="sm" variant="dot">
-                                Live
-                            </Badge>
-                        )}
-                        <ExternalToolsMenu />
-                    </Group>
-                </Group>
-                <Group justify={{ base: "center", sm: "flex-start" }}>
-                    <SegmentedControl
-                        color="lime"
-                        value={range}
-                        onChange={handleRangeChange}
-                        data={[
-                            { label: "24h", value: "24h" },
-                            { label: "7d", value: "7d" },
-                            { label: "30d", value: "30d" },
-                        ]}
-                        radius="md"
-                        size="sm"
-                        w={{ base: "100%", sm: "auto" }}
-                    />
-                </Group>
-            </Stack>
+            <Title order={2} mb="xl">
+                Admin Dashboard
+            </Title>
 
-            <MobileDashboardNav />
+            <ExternalToolsPanel />
 
-            {/* Section 1: Platform Totals (Appwrite Data) */}
-            <Stack id="platform-totals" gap="sm" mb="xl">
-                <Text size="xs" c="dimmed" fw={700} tt="uppercase">
+            {/* ── Platform Totals ── */}
+            <div id="platform-totals">
+                <Text size="xs" c="dimmed" fw={700} tt="uppercase" mb="sm">
                     Platform Totals
                 </Text>
                 <KPIGrid stats={stats} />
-                <SimpleGrid cols={{ base: 1, md: 2 }} gap="sm">
+                <SimpleGrid cols={{ base: 1, md: 2 }} gap="sm" mt="sm" mb="xl">
                     <AttendanceHealth attendance={stats.attendance} />
                     <ParkLeaderboard topParks={activeParks} />
                 </SimpleGrid>
-            </Stack>
+            </div>
 
-            <SimpleGrid cols={{ base: 1, md: 2, lg: 3 }} gap="xl">
-                <DashboardSection
-                    id="user-sections"
-                    title="Recent Signups"
-                    items={recentUsers}
-                    renderItem={(u) => (
-                        <ItemCard
-                            key={`signup-${u.$id}`}
-                            text={u.name || "Unknown"}
-                            subText={u.email}
-                            rightSection={
-                                <Text size="sm">
-                                    {new Date(
-                                        u.registration,
-                                    ).toLocaleDateString()}
-                                </Text>
-                            }
-                        />
-                    )}
-                />
+            {/* ── Engagement & Recognition ── */}
+            <Text size="xs" c="dimmed" fw={700} tt="uppercase" mb="sm">
+                Engagement &amp; Recognition
+            </Text>
+            <RecognitionStats stats={recognitionStats} />
+            <GameLogsBreakdown logsStats={gameLogsStats} />
 
-                <DashboardSection
-                    id="active-users-section"
-                    title="Recently Active"
-                    items={activeUsers}
-                    renderItem={(u) => (
-                        <ItemCard
-                            key={`active-${u.$id}`}
-                            text={u.name || "Unknown"}
-                            subText={u.email}
-                            rightSection={
-                                <Badge
-                                    size="xs"
-                                    variant="light"
-                                    color={
-                                        new Date() - new Date(u.accessedAt) <
-                                        10 * 60 * 1000
-                                            ? "lime"
-                                            : "gray"
-                                    }
-                                >
-                                    {u.accessedAt
-                                        ? new Date(u.accessedAt).toLocaleString(
-                                              [],
-                                              {
-                                                  month: "numeric",
-                                                  day: "numeric",
-                                                  hour: "2-digit",
-                                                  minute: "2-digit",
-                                              },
-                                          )
-                                        : "Never"}
-                                </Badge>
-                            }
-                        />
-                    )}
-                />
+            {/* ── Teams & Notifications ── */}
+            <Text size="xs" c="dimmed" fw={700} tt="uppercase" mb="sm">
+                Teams &amp; Notifications
+            </Text>
+            <SimpleGrid cols={{ base: 1, md: 2 }} gap="sm" mb="xl">
+                <TeamRoster teams={teamsRoster} />
+                <NotificationHealth stats={notificationStats} />
             </SimpleGrid>
+
+            {/* ── Cloud Functions ── */}
+            <Text size="xs" c="dimmed" fw={700} tt="uppercase" mb="sm">
+                Infrastructure
+            </Text>
+            <FunctionHealth functions={cloudFunctions} />
+
+            {/* ── User Activity ── */}
+            <Text size="xs" c="dimmed" fw={700} tt="uppercase" mb="sm">
+                User Activity
+            </Text>
+            <UserDirectory
+                recentUsers={recentUsers}
+                activeUsers={activeUsers}
+            />
         </Container>
     );
 }

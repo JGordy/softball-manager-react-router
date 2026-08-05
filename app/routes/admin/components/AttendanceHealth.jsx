@@ -21,10 +21,7 @@ export const AttendanceHealth = ({ attendance }) => {
         <Paper withBorder p="md" radius="md">
             <Group justify="space-between" align="center">
                 <Stack gap={0}>
-                    <Text size="xs" c="dimmed" fw={700} tt="uppercase">
-                        Platform Attendance
-                    </Text>
-                    <Title order={2}>Show-up Rate</Title>
+                    <Title order={3}>Show-up Rate</Title>
                     <Text size="sm" mt="xs" c="dimmed">
                         {accepted.toLocaleString()} of {total.toLocaleString()}{" "}
                         responses are "Accepted"

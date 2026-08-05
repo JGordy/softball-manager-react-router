@@ -11,17 +11,31 @@ import { Presences } from "node-appwrite";
 
 import AdminDashboard, { loader } from "../dashboard";
 
-// Mock Appwrite
 jest.mock("@/utils/appwrite/server", () => ({
     createSessionClient: jest.fn(),
     createAdminClient: jest.fn(),
+}));
+
+jest.mock("node-appwrite", () => ({
+    Query: {
+        equal: jest.fn(
+            (attr, val) => `equal("${attr}", ${JSON.stringify(val)})`,
+        ),
+        isNotNull: jest.fn((attr) => `isNotNull("${attr}")`),
+        select: jest.fn((attrs) => `select(${JSON.stringify(attrs)})`),
+        limit: jest.fn((l) => `limit(${l})`),
+        orderDesc: jest.fn((attr) => `orderDesc("${attr}")`),
+        orderAsc: jest.fn((attr) => `orderAsc("${attr}")`),
+    },
+    Presences: jest.fn().mockImplementation(() => ({
+        list: jest.fn().mockResolvedValue({ total: 0, presences: [] }),
+    })),
 }));
 
 // Mock react-router hooks
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
     useLoaderData: jest.fn(),
-    useRevalidator: jest.fn(() => ({ state: "idle", revalidate: jest.fn() })),
     redirect: jest.fn((url) => {
         const err = new Error("redirect");
         err.url = url;
@@ -140,6 +154,23 @@ describe("AdminDashboard Route", () => {
                         .fn()
                         .mockResolvedValue({ total: 10, rows: [] }),
                 },
+                teams: {
+                    list: jest.fn().mockResolvedValue({ teams: [], total: 0 }),
+                },
+                messaging: {
+                    listMessages: jest
+                        .fn()
+                        .mockResolvedValue({ messages: [], total: 0 }),
+                },
+                functions: {
+                    list: jest
+                        .fn()
+                        .mockResolvedValue({ functions: [], total: 0 }),
+                    listExecutions: jest
+                        .fn()
+                        .mockResolvedValue({ executions: [], total: 0 }),
+                },
+                client: {},
             };
             createAdminClient.mockReturnValue(mockAdminClient);
 
@@ -175,6 +206,23 @@ describe("AdminDashboard Route", () => {
                         .fn()
                         .mockResolvedValue({ total: 10, rows: [] }),
                 },
+                teams: {
+                    list: jest.fn().mockResolvedValue({ teams: [], total: 0 }),
+                },
+                messaging: {
+                    listMessages: jest
+                        .fn()
+                        .mockResolvedValue({ messages: [], total: 0 }),
+                },
+                functions: {
+                    list: jest
+                        .fn()
+                        .mockResolvedValue({ functions: [], total: 0 }),
+                    listExecutions: jest
+                        .fn()
+                        .mockResolvedValue({ executions: [], total: 0 }),
+                },
+                client: {},
             };
             createAdminClient.mockReturnValue(mockAdminClient);
 
@@ -192,9 +240,7 @@ describe("AdminDashboard Route", () => {
             expect(result.stats.activeUsers).toBe(42);
             expect(mockList).toHaveBeenCalledWith({
                 queries: [
-                    expect.stringContaining(
-                        'Query.equal("status", ["online"])',
-                    ),
+                    expect.stringContaining('equal("status", ["online"])'),
                 ],
             });
         });
@@ -215,21 +261,20 @@ describe("AdminDashboard Route", () => {
             expect(screen.getByText("5")).toBeInTheDocument();
 
             // ParkLeaderboard checks
-            expect(screen.getByText("Park Activity")).toBeInTheDocument();
+            expect(screen.getByText("Field Hubs")).toBeInTheDocument();
             expect(screen.getByText("Central Park")).toBeInTheDocument();
 
-            // DashboardSection checks
-            expect(screen.getByText("Recent Signups")).toBeInTheDocument();
+            // UserDirectory checks
+            expect(screen.getByText("User Directory")).toBeInTheDocument();
+            expect(screen.getByText("Newest Signups")).toBeInTheDocument();
             expect(screen.getByText("Newbie User")).toBeInTheDocument();
             expect(screen.getByText("Recently Active")).toBeInTheDocument();
             expect(screen.getByText("Active User")).toBeInTheDocument();
 
-            // Revalidator check
-            expect(screen.getByText("Live")).toBeInTheDocument();
-
-            // External Tools Menu check
+            // External Tools Panel check
+            expect(screen.getByText(/external services/i)).toBeInTheDocument();
             expect(
-                screen.getByRole("button", { name: /external tools/i }),
+                screen.getByRole("link", { name: /appwrite/i }),
             ).toBeInTheDocument();
         });
     });

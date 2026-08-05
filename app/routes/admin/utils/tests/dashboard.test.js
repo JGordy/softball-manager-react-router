@@ -7,13 +7,60 @@ jest.mock("@/utils/databases", () => ({
     listDocuments: jest.fn(),
 }));
 
+jest.mock("node-appwrite", () => ({
+    Query: {
+        equal: jest.fn(
+            (attr, val) => `equal("${attr}", ${JSON.stringify(val)})`,
+        ),
+        isNotNull: jest.fn((attr) => `isNotNull("${attr}")`),
+        select: jest.fn((attrs) => `select(${JSON.stringify(attrs)})`),
+        limit: jest.fn((l) => `limit(${l})`),
+        orderDesc: jest.fn((attr) => `orderDesc("${attr}")`),
+        orderAsc: jest.fn((attr) => `orderAsc("${attr}")`),
+    },
+    Presences: jest.fn(),
+}));
+
 describe("Admin Dashboard Utils", () => {
     const mockUsersService = {
         list: jest.fn(),
     };
 
+    /** Stub client providing the new teams/messaging/functions services */
+    const mockClient = {
+        teams: {
+            list: jest.fn().mockResolvedValue({ teams: [], total: 0 }),
+        },
+        messaging: {
+            listMessages: jest
+                .fn()
+                .mockResolvedValue({ messages: [], total: 0 }),
+        },
+        functions: {
+            list: jest.fn().mockResolvedValue({ functions: [], total: 0 }),
+            listExecutions: jest
+                .fn()
+                .mockResolvedValue({ executions: [], total: 0 }),
+        },
+        client: {},
+    };
+
     beforeEach(() => {
         jest.clearAllMocks();
+        // Re-apply default resolved values after clearAllMocks
+        mockClient.teams.list.mockResolvedValue({ teams: [], total: 0 });
+        mockClient.messaging.listMessages.mockResolvedValue({
+            messages: [],
+            total: 0,
+        });
+        mockClient.functions.list.mockResolvedValue({
+            functions: [],
+            total: 0,
+        });
+        mockClient.functions.listExecutions.mockResolvedValue({
+            executions: [],
+            total: 0,
+        });
     });
 
     describe("getAdminDashboardData", () => {
@@ -25,6 +72,8 @@ describe("Admin Dashboard Utils", () => {
                 }),
             };
             Presences.mockImplementation(() => mockPresencesInstance);
+
+            listDocuments.mockResolvedValue({ total: 0, rows: [] });
 
             // Mock Appwrite initial stats (6 listDocuments calls in Promise.all)
             mockUsersService.list.mockResolvedValueOnce({
@@ -44,7 +93,14 @@ describe("Admin Dashboard Utils", () => {
                         { $id: "g2", parkId: null, seasonId: "s1" }, // fallback to park-1 from season s1
                         { $id: "g3", parkId: "park-2", seasonId: "s2" },
                     ],
-                }); // recent games
+                }) // recent games
+                .mockResolvedValueOnce({
+                    total: 10,
+                    rows: [{ eventType: "single" }],
+                }) // game_logs
+                .mockResolvedValueOnce({ total: 5, rows: [] }) // votes
+                .mockResolvedValueOnce({ total: 3, rows: [] }) // awards
+                .mockResolvedValueOnce({ total: 8, rows: [] }); // user_achievements
 
             // Mock Season resolution (Sequential call 1) - New
             listDocuments.mockResolvedValueOnce({
@@ -96,6 +152,7 @@ describe("Admin Dashboard Utils", () => {
 
             const result = await getAdminDashboardData({
                 users: mockUsersService,
+                client: mockClient,
             });
 
             // Verify Stats
@@ -130,12 +187,14 @@ describe("Admin Dashboard Utils", () => {
 
             const result7d = await getAdminDashboardData({
                 users: mockUsersService,
+                client: mockClient,
                 range: "7d",
             });
             expect(result7d.range).toBe("7d");
 
             const resultInvalid = await getAdminDashboardData({
                 users: mockUsersService,
+                client: mockClient,
                 range: "invalid",
             });
             expect(resultInvalid.range).toBe("24h");
@@ -148,6 +207,7 @@ describe("Admin Dashboard Utils", () => {
             // 1. Valid range (7d)
             const result7d = await getAdminDashboardData({
                 users: mockUsersService,
+                client: mockClient,
                 range: "7d",
             });
             expect(result7d.range).toBe("7d");
@@ -155,6 +215,7 @@ describe("Admin Dashboard Utils", () => {
             // 2. Invalid range (foo) -> defaults to 24h
             const resultInvalid = await getAdminDashboardData({
                 users: mockUsersService,
+                client: mockClient,
                 range: "foo",
             });
             expect(resultInvalid.range).toBe("24h");

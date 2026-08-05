@@ -18,12 +18,7 @@ export const ParkLeaderboard = ({ topParks }) => {
         <Paper withBorder p="md" radius="md">
             <Stack gap="sm">
                 <Group justify="space-between">
-                    <Stack gap={0}>
-                        <Text size="xs" c="dimmed" fw={700} tt="uppercase">
-                            Park Activity
-                        </Text>
-                        <Title order={3}>Field Hubs</Title>
-                    </Stack>
+                    <Title order={3}>Field Hubs</Title>
                 </Group>
 
                 <Table withRowBorders={false} verticalSpacing="xs">

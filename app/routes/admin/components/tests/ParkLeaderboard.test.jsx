@@ -11,18 +11,18 @@ describe("ParkLeaderboard", () => {
     it("renders park names and game counts", () => {
         render(<ParkLeaderboard topParks={mockParks} />);
 
-        expect(screen.getByText("Park Activity")).toBeInTheDocument();
+        expect(screen.getByText("Field Hubs")).toBeInTheDocument();
         expect(screen.getByText("Central Park")).toBeInTheDocument();
         expect(screen.getByText(/15/)).toBeInTheDocument();
     });
 
     it("returns null if no parks are provided", () => {
         render(<ParkLeaderboard topParks={[]} />);
-        expect(screen.queryByText("Park Activity")).not.toBeInTheDocument();
+        expect(screen.queryByText("Field Hubs")).not.toBeInTheDocument();
     });
 
     it("returns null if topParks is missing", () => {
         render(<ParkLeaderboard topParks={null} />);
-        expect(screen.queryByText("Park Activity")).not.toBeInTheDocument();
+        expect(screen.queryByText("Field Hubs")).not.toBeInTheDocument();
     });
 });
