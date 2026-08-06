@@ -34,8 +34,8 @@ describe("GameLogsBreakdown", () => {
         expect(screen.getByText("All Plays")).toBeInTheDocument();
         expect(screen.getByText("Hits")).toBeInTheDocument();
         expect(screen.getByText("Outs")).toBeInTheDocument();
-        expect(screen.getByText("Single (1B) (10)")).toBeInTheDocument();
-        expect(screen.getByText("Strikeout (K) (10)")).toBeInTheDocument();
+        expect(screen.getByText("Single (1B)")).toBeInTheDocument();
+        expect(screen.getByText("Strikeout (K)")).toBeInTheDocument();
     });
 
     it("returns null if logsStats is missing", () => {

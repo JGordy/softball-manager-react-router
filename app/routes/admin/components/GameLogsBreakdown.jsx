@@ -6,6 +6,7 @@ import {
     Stack,
     Text,
     Title,
+    useComputedColorScheme,
 } from "@mantine/core";
 import { SankeyChart } from "@mantine/charts";
 import { IconActivity, IconArrowsLeftRight } from "@tabler/icons-react";
@@ -76,9 +77,9 @@ function buildSankeyData(byType = [], total = 0) {
 
         const nodeIndex = nodes.length;
         const color = SPECIFIC_COLORS[type] || "#94A3B8";
-        nodes.push({ name: `${label} (${count})`, color });
+        nodes.push({ name: label, color });
 
-        // Tier 2 ➔ Tier 3 link (subtle stream color inherited via linkColor/linkOpacity)
+        // Tier 2 ➔ Tier 3 link
         links.push({
             source: parentIndex,
             target: nodeIndex,
@@ -124,7 +125,15 @@ function buildSankeyData(byType = [], total = 0) {
  * @returns {JSX.Element|null}
  */
 export const GameLogsBreakdown = ({ logsStats }) => {
+    const computedColorScheme = useComputedColorScheme("dark");
+    const isDark = computedColorScheme === "dark";
+
     if (!logsStats) return null;
+
+    const textColor = isDark ? "#FFFFFF" : "#0F172A";
+    const streamStroke = isDark
+        ? "rgba(255, 255, 255, 0.15)"
+        : "rgba(15, 23, 42, 0.15)";
 
     const { total = 0, avgPerGame = "0", byType = [] } = logsStats;
     const sankeyData = buildSankeyData(byType, total);
@@ -173,7 +182,7 @@ export const GameLogsBreakdown = ({ logsStats }) => {
                         >
                             <div
                                 style={{
-                                    minWidth: 460,
+                                    minWidth: 520,
                                     paddingTop: 8,
                                     paddingBottom: 8,
                                 }}
@@ -181,15 +190,16 @@ export const GameLogsBreakdown = ({ logsStats }) => {
                                 <SankeyChart
                                     data={sankeyData}
                                     height={360}
-                                    nodeWidth={12}
-                                    nodePadding={16}
+                                    nodeWidth={14}
+                                    nodePadding={14}
                                     sankeyProps={{
                                         link: {
-                                            fill: "rgba(255, 255, 255, 0.08)",
-                                            stroke: "none",
+                                            stroke: streamStroke,
+                                            strokeOpacity: 0.25,
+                                            fill: "none",
                                         },
                                     }}
-                                    textColor="#FFFFFF"
+                                    textColor={textColor}
                                 />
                             </div>
                         </ScrollArea>
