@@ -1,5 +1,6 @@
 import { Query, Presences } from "node-appwrite";
 import { listDocuments } from "@/utils/databases";
+import { LOG_EVENT_TYPES, EVENT_LABELS } from "@/constants/scoring";
 
 /** Notification type → human-readable label */
 const NOTIF_TYPE_LABELS = {
@@ -254,40 +255,6 @@ export async function getAdminDashboardData({
     // 8. Engagement & Play Analytics (Strict Team Batting Filter via isOpponent)
     const totalGamesNum = allGames.total || 1;
     const teamBattingTotal = gameLogsResult?.total || 0;
-
-    const LOG_EVENT_TYPES = [
-        "single",
-        "double",
-        "triple",
-        "homerun",
-        "walk",
-        "strikeout",
-        "ground_out",
-        "fly_out",
-        "line_out",
-        "pop_out",
-        "error",
-        "fielders_choice",
-        "sacrifice_fly",
-        "injury_remove",
-    ];
-
-    const EVENT_LABELS = {
-        single: "Single (1B)",
-        double: "Double (2B)",
-        triple: "Triple (3B)",
-        homerun: "Home Run (HR)",
-        walk: "Walk (BB)",
-        strikeout: "Strikeout (K)",
-        ground_out: "Ground Out",
-        fly_out: "Fly Out",
-        line_out: "Line Out",
-        pop_out: "Pop Out",
-        error: "Error (E)",
-        fielders_choice: "Fielder's Choice",
-        sacrifice_fly: "Sacrifice Fly",
-        injury_remove: "Injury Remove",
-    };
 
     const eventTypeCounts = await Promise.all(
         LOG_EVENT_TYPES.map((type) =>

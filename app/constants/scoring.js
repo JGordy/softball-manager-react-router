@@ -114,3 +114,22 @@ export const RESULT_COLORS = {
     error: "#FF9800", // Orange
     sacrifice_fly: "#E57373", // Red
 };
+
+export const EVENT_LABELS = {
+    single: "Single (1B)",
+    double: "Double (2B)",
+    triple: "Triple (3B)",
+    homerun: "Home Run (HR)",
+    walk: "Walk (BB)",
+    strikeout: "Strikeout (K)",
+    ground_out: "Ground Out",
+    fly_out: "Fly Out",
+    line_out: "Line Out",
+    pop_out: "Pop Out",
+    error: "Error (E)",
+    fielders_choice: "Fielder's Choice",
+    sacrifice_fly: "Sacrifice Fly",
+    injury_remove: "Injury Remove",
+};
+
+export const LOG_EVENT_TYPES = Object.keys(EVENT_LABELS);
