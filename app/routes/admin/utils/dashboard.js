@@ -88,18 +88,19 @@ export async function getAdminDashboardData({
             [Query.orderDesc("gameDate"), Query.limit(100)],
             client,
         ),
-        presencesService.list({
-            queries: [Query.equal("status", ["online"])],
-        }),
+        presencesService
+            .list({
+                queries: [Query.equal("status", ["online"])],
+            })
+            .catch(() => ({ total: 0, presences: [] })),
         // Teams Roster: Appwrite native Teams service (includes member counts)
-        client.teams.list(),
+        client.teams.list().catch(() => ({ total: 0, teams: [] })),
         // Push Notification stats: last 100 messages for type & failure analysis
-        client.messaging.listMessages([
-            Query.limit(100),
-            Query.orderDesc("$createdAt"),
-        ]),
+        client.messaging
+            .listMessages([Query.limit(100), Query.orderDesc("$createdAt")])
+            .catch(() => ({ total: 0, messages: [] })),
         // Cloud Functions: enabled state + last deployment
-        client.functions.list(),
+        client.functions.list().catch(() => ({ total: 0, functions: [] })),
         // Engagement & Recognition: game_logs (up to 1000 for half-inning analysis), votes, awards, user_achievements
         listDocuments(
             "game_logs",
