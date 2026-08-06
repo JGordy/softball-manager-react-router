@@ -173,18 +173,22 @@ export const GameLogsBreakdown = ({ logsStats }) => {
                         >
                             <div
                                 style={{
-                                    minWidth: 580,
+                                    minWidth: 460,
                                     paddingTop: 8,
                                     paddingBottom: 8,
                                 }}
                             >
                                 <SankeyChart
                                     data={sankeyData}
-                                    height={380}
-                                    nodeWidth={14}
-                                    nodePadding={18}
-                                    linkColor="gray.7"
-                                    linkOpacity={0.15}
+                                    height={360}
+                                    nodeWidth={12}
+                                    nodePadding={16}
+                                    sankeyProps={{
+                                        link: {
+                                            fill: "rgba(255, 255, 255, 0.08)",
+                                            stroke: "none",
+                                        },
+                                    }}
                                     textColor="#FFFFFF"
                                 />
                             </div>
