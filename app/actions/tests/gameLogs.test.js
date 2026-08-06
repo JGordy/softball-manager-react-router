@@ -88,6 +88,7 @@ describe("gameLogs actions", () => {
                             rbi: 1,
                             outsOnPlay: 0,
                             description: "John Doe singles",
+                            isOpponent: false,
                             scored: ["player789"],
                             baseState: JSON.stringify(mockPayload.baseState),
                         }),

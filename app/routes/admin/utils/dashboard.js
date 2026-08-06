@@ -101,14 +101,10 @@ export async function getAdminDashboardData({
             .catch(() => ({ total: 0, messages: [] })),
         // Cloud Functions: enabled state + last deployment
         client.functions.list().catch(() => ({ total: 0, functions: [] })),
-        // Engagement & Recognition: game_logs (up to 1000 for half-inning analysis), votes, awards, user_achievements
+        // Engagement & Recognition: game_logs (team plays count), votes, awards, user_achievements
         listDocuments(
             "game_logs",
-            [
-                Query.select(["eventType", "playerId", "halfInning", "gameId"]),
-                Query.limit(1000),
-                Query.orderDesc("$createdAt"),
-            ],
+            [Query.equal("isOpponent", false), Query.limit(1)],
             client,
         ).catch(() => ({
             total: 0,
@@ -255,8 +251,26 @@ export async function getAdminDashboardData({
         }),
     );
 
-    // 8. Engagement & Play Analytics (Strict Team Batting Filter)
+    // 8. Engagement & Play Analytics (Strict Team Batting Filter via isOpponent)
     const totalGamesNum = allGames.total || 1;
+    const teamBattingTotal = gameLogsResult?.total || 0;
+
+    const LOG_EVENT_TYPES = [
+        "single",
+        "double",
+        "triple",
+        "homerun",
+        "walk",
+        "strikeout",
+        "ground_out",
+        "fly_out",
+        "line_out",
+        "pop_out",
+        "error",
+        "fielders_choice",
+        "sacrifice_fly",
+        "injury_remove",
+    ];
 
     const EVENT_LABELS = {
         single: "Single (1B)",
@@ -275,34 +289,23 @@ export async function getAdminDashboardData({
         injury_remove: "Injury Remove",
     };
 
-    const gameMap = (games || []).reduce((acc, g) => {
-        acc[g.$id] = g;
-        return acc;
-    }, {});
+    const eventTypeCounts = await Promise.all(
+        LOG_EVENT_TYPES.map((type) =>
+            listDocuments(
+                "game_logs",
+                [
+                    Query.equal("eventType", type),
+                    Query.equal("isOpponent", false),
+                    Query.limit(1),
+                ],
+                client,
+            ).catch(() => ({ total: 0 })),
+        ),
+    );
 
-    const allLogRows = gameLogsResult?.rows || [];
-    const teamEventCounts = {};
-    let teamBattingTotal = 0;
-
-    for (const log of allLogRows) {
-        if (!log.playerId || log.eventType === "opponent_run") continue;
-        const game = gameMap[log.gameId];
-        const isHome = game?.isHomeGame === true || game?.isHomeGame === "true";
-        // In baseball: Home team fields in "top" (opponent at bat), Away team fields in "bottom" (opponent at bat)
-        const isOpponentHalfInning = isHome
-            ? log.halfInning === "top"
-            : log.halfInning === "bottom";
-
-        if (isOpponentHalfInning) continue;
-
-        teamBattingTotal++;
-        const type = log.eventType || "other";
-        teamEventCounts[type] = (teamEventCounts[type] || 0) + 1;
-    }
-
-    const byType = Object.entries(teamEventCounts)
-        .sort((a, b) => b[1] - a[1])
-        .map(([type, count]) => ({
+    const byType = LOG_EVENT_TYPES.map((type, idx) => {
+        const count = eventTypeCounts[idx]?.total || 0;
+        return {
             type,
             label: EVENT_LABELS[type] || type.replace(/_/g, " "),
             count,
@@ -310,7 +313,10 @@ export async function getAdminDashboardData({
                 teamBattingTotal > 0
                     ? Math.round((count / teamBattingTotal) * 100)
                     : 0,
-        }));
+        };
+    })
+        .filter((item) => item.count > 0)
+        .sort((a, b) => b.count - a.count);
 
     const gameLogsStats = {
         total: teamBattingTotal,
