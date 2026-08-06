@@ -2,127 +2,207 @@ import {
     Badge,
     Group,
     Paper,
-    Progress,
+    ScrollArea,
     Stack,
-    Table,
     Text,
     Title,
+    useComputedColorScheme,
 } from "@mantine/core";
-import { IconActivity } from "@tabler/icons-react";
+import { SankeyChart } from "@mantine/charts";
+import { IconActivity, IconArrowsLeftRight } from "@tabler/icons-react";
 
-/** Maps event types to Mantine color tokens */
-const EVENT_COLORS = {
-    single: "lime",
-    double: "blue",
-    triple: "grape",
-    homerun: "yellow",
-    walk: "cyan",
-    strikeout: "red",
-    ground_out: "orange",
-    fly_out: "orange",
-    line_out: "orange",
-    pop_out: "orange",
-    error: "pink",
-    opponent_run: "gray",
+/** Node color mapping matching Velocity Dark theme */
+const CATEGORY_COLORS = {
+    hits: "#4ADE80", // Green
+    outs: "#F87171", // Red / Coral
+    misc: "#38BDF8", // Cyan
 };
 
+const SPECIFIC_COLORS = {
+    single: "#84CC16", // Lime
+    double: "#60A5FA", // Blue
+    triple: "#C084FC", // Purple
+    homerun: "#FACC15", // Gold
+    walk: "#38BDF8", // Cyan
+    strikeout: "#EF4444", // Deep Red
+    ground_out: "#F97316", // Orange
+    fly_out: "#FB923C", // Light Orange
+    line_out: "#F43F5E", // Rose
+    pop_out: "#EA580C", // Dark Orange
+    error: "#EC4899", // Pink
+    fielders_choice: "#F59E0B", // Amber
+    sacrifice_fly: "#A855F7", // Purple
+    injury_remove: "#64748B", // Slate
+};
+
+const HIT_TYPES = ["single", "double", "triple", "homerun"];
+const OUT_TYPES = ["strikeout", "ground_out", "fly_out", "line_out", "pop_out"];
+
 /**
- * Displays a breakdown of live scoring events logged during games, including
- * total plays logged, average per game, and percentage distribution by type.
+ * Builds Sankey nodes and links data for 3-tier play-by-play flow:
+ * Tier 1: "All Plays"
+ * Tier 2: "Hits", "Outs", "Misc"
+ * Tier 3: Individual outcome types (Single, Double, HR, Ground Out, Walk, etc.)
+ */
+function buildSankeyData(byType = [], total = 0) {
+    if (!byType || byType.length === 0 || total === 0) {
+        return { nodes: [], links: [] };
+    }
+
+    const nodes = [
+        { name: "All Plays", color: "#CCFF33" }, // Node 0
+        { name: "Hits", color: CATEGORY_COLORS.hits }, // Node 1
+        { name: "Outs", color: CATEGORY_COLORS.outs }, // Node 2
+        { name: "Misc", color: CATEGORY_COLORS.misc }, // Node 3
+    ];
+
+    const links = [];
+    let hitsTotal = 0;
+    let outsTotal = 0;
+    let miscTotal = 0;
+
+    byType.forEach(({ type, label, count }) => {
+        if (!count || count <= 0) return;
+
+        let parentIndex = 3; // Default to Misc
+        if (HIT_TYPES.includes(type)) {
+            parentIndex = 1;
+            hitsTotal += count;
+        } else if (OUT_TYPES.includes(type)) {
+            parentIndex = 2;
+            outsTotal += count;
+        } else {
+            miscTotal += count;
+        }
+
+        const nodeIndex = nodes.length;
+        const color = SPECIFIC_COLORS[type] || "#94A3B8";
+        nodes.push({ name: label, color });
+
+        // Tier 2 ➔ Tier 3 link
+        links.push({
+            source: parentIndex,
+            target: nodeIndex,
+            value: count,
+        });
+    });
+
+    // Tier 1 ➔ Tier 2 links
+    if (hitsTotal > 0) {
+        links.unshift({
+            source: 0,
+            target: 1,
+            value: hitsTotal,
+        });
+    }
+    if (outsTotal > 0) {
+        links.unshift({
+            source: 0,
+            target: 2,
+            value: outsTotal,
+        });
+    }
+    if (miscTotal > 0) {
+        links.unshift({
+            source: 0,
+            target: 3,
+            value: miscTotal,
+        });
+    }
+
+    return { nodes, links };
+}
+
+/**
+ * Displays an interactive 3-tier Sankey Flow Chart visualizing how total team plays
+ * flow into play categories (Hits, Outs, Misc) and specific play outcomes.
  *
  * @param {{ logsStats: {
  *   total: number,
- *   sampleSize: number,
  *   avgPerGame: string,
  *   byType: Array<{type: string, label: string, count: number, percentage: number}>
  * }}} props
  * @returns {JSX.Element|null}
  */
 export const GameLogsBreakdown = ({ logsStats }) => {
+    const computedColorScheme = useComputedColorScheme("dark");
+    const isDark = computedColorScheme === "dark";
+
     if (!logsStats) return null;
 
+    const textColor = isDark ? "#FFFFFF" : "#0F172A";
+    const streamStroke = isDark
+        ? "rgba(255, 255, 255, 0.15)"
+        : "rgba(15, 23, 42, 0.15)";
+
     const { total = 0, avgPerGame = "0", byType = [] } = logsStats;
+    const sankeyData = buildSankeyData(byType, total);
 
     return (
         <Paper withBorder p="md" radius="md" mb="xl">
             <Stack gap="md">
                 <Group justify="space-between" align="flex-start">
                     <Stack gap={0}>
-                        <Title order={3}>Play-by-Play Logs</Title>
+                        <Title order={3}>Play-by-Play Flow</Title>
                         <Text size="xs" c="dimmed" mt={2}>
                             {total.toLocaleString()} total logged events (
                             {avgPerGame} per game)
                         </Text>
                     </Stack>
-                    <Badge
-                        variant="light"
-                        color="lime"
-                        size="sm"
-                        leftSection={<IconActivity size={12} />}
-                    >
-                        {total.toLocaleString()} events
-                    </Badge>
+                    <Group gap="xs">
+                        <Badge
+                            variant="light"
+                            color="cyan"
+                            size="xs"
+                            leftSection={<IconArrowsLeftRight size={10} />}
+                        >
+                            Swipe to view flow
+                        </Badge>
+                        <Badge
+                            variant="light"
+                            color="lime"
+                            size="sm"
+                            leftSection={<IconActivity size={12} />}
+                        >
+                            {total.toLocaleString()} events
+                        </Badge>
+                    </Group>
                 </Group>
 
-                {byType.length > 0 ? (
+                {byType.length > 0 && sankeyData.nodes.length > 0 ? (
                     <Stack gap="xs">
                         <Text size="xs" c="dimmed" fw={700} tt="uppercase">
-                            Team Event Distribution (All-Time)
+                            Team Outcome Flow (All-Time)
                         </Text>
-                        <Table withRowBorders={false} verticalSpacing={4}>
-                            <Table.Tbody>
-                                {byType.map(
-                                    ({ type, label, count, percentage }) => (
-                                        <Table.Tr key={type}>
-                                            <Table.Td p={0}>
-                                                <Group
-                                                    justify="space-between"
-                                                    mb={2}
-                                                >
-                                                    <Text size="sm" fw={500}>
-                                                        {label}
-                                                    </Text>
-                                                    <Group gap="xs">
-                                                        <Badge
-                                                            variant="light"
-                                                            color={
-                                                                EVENT_COLORS[
-                                                                    type
-                                                                ] || "gray"
-                                                            }
-                                                            size="xs"
-                                                        >
-                                                            {count}
-                                                        </Badge>
-                                                        <Text
-                                                            size="xs"
-                                                            c="dimmed"
-                                                            style={{
-                                                                width: 36,
-                                                                textAlign:
-                                                                    "right",
-                                                            }}
-                                                        >
-                                                            {percentage}%
-                                                        </Text>
-                                                    </Group>
-                                                </Group>
-                                                <Progress
-                                                    value={percentage}
-                                                    size="xs"
-                                                    radius="xl"
-                                                    color={
-                                                        EVENT_COLORS[type] ||
-                                                        "gray"
-                                                    }
-                                                    mb="xs"
-                                                />
-                                            </Table.Td>
-                                        </Table.Tr>
-                                    ),
-                                )}
-                            </Table.Tbody>
-                        </Table>
+
+                        <ScrollArea
+                            type="auto"
+                            offsetScrollbars
+                            style={{ width: "100%" }}
+                        >
+                            <div
+                                style={{
+                                    minWidth: 520,
+                                    paddingTop: 8,
+                                    paddingBottom: 8,
+                                }}
+                            >
+                                <SankeyChart
+                                    data={sankeyData}
+                                    height={360}
+                                    nodeWidth={14}
+                                    nodePadding={14}
+                                    sankeyProps={{
+                                        link: {
+                                            stroke: streamStroke,
+                                            strokeOpacity: 0.25,
+                                            fill: "none",
+                                        },
+                                    }}
+                                    textColor={textColor}
+                                />
+                            </div>
+                        </ScrollArea>
                     </Stack>
                 ) : (
                     <Text size="sm" c="dimmed">

@@ -1,6 +1,16 @@
 import { render, screen } from "@/utils/test-utils";
 import { GameLogsBreakdown } from "../GameLogsBreakdown";
 
+jest.mock("@mantine/charts", () => ({
+    SankeyChart: ({ data }) => (
+        <div data-testid="sankey-chart">
+            {data?.nodes?.map((node) => (
+                <span key={node.name}>{node.name}</span>
+            ))}
+        </div>
+    ),
+}));
+
 describe("GameLogsBreakdown", () => {
     const mockLogsStats = {
         total: 120,
@@ -17,16 +27,19 @@ describe("GameLogsBreakdown", () => {
         ],
     };
 
-    it("renders play-by-play log totals and event distribution", () => {
+    it("renders play-by-play log totals and event flow chart", () => {
         render(<GameLogsBreakdown logsStats={mockLogsStats} />);
-        expect(screen.getByText("Play-by-Play Logs")).toBeInTheDocument();
+        expect(screen.getByText("Play-by-Play Flow")).toBeInTheDocument();
+        expect(screen.getByTestId("sankey-chart")).toBeInTheDocument();
+        expect(screen.getByText("All Plays")).toBeInTheDocument();
+        expect(screen.getByText("Hits")).toBeInTheDocument();
+        expect(screen.getByText("Outs")).toBeInTheDocument();
         expect(screen.getByText("Single (1B)")).toBeInTheDocument();
         expect(screen.getByText("Strikeout (K)")).toBeInTheDocument();
-        expect(screen.getAllByText("50%").length).toBeGreaterThan(0);
     });
 
     it("returns null if logsStats is missing", () => {
         render(<GameLogsBreakdown logsStats={null} />);
-        expect(screen.queryByText("Play-by-Play Logs")).not.toBeInTheDocument();
+        expect(screen.queryByText("Play-by-Play Flow")).not.toBeInTheDocument();
     });
 });
