@@ -119,6 +119,14 @@ export const logGameEvent = async ({
             }
         }
 
+        const isHomeTeam =
+            game?.isHomeGame === true || game?.isHomeGame === "true";
+        const isOpponent =
+            !playerId ||
+            eventType === "opponent_run" ||
+            (game != null &&
+                (isHomeTeam ? halfInning === "top" : halfInning === "bottom"));
+
         // Create log payload
         // Note: runnerResults is bundled into baseState to avoid schema errors
         // while preserving movement intent data.
@@ -131,6 +139,7 @@ export const logGameEvent = async ({
             rbi: runs,
             outsOnPlay: parseInt(outsOnPlay, 10),
             description,
+            isOpponent,
             baseState: parsedRunnerResults
                 ? JSON.stringify({
                       ...JSON.parse(serializedBaseState),
@@ -146,13 +155,6 @@ export const logGameEvent = async ({
                     ? safeBaseState.scored
                     : [],
         };
-
-        const isHomeTeam =
-            game?.isHomeGame === true || game?.isHomeGame === "true";
-        const isOpponent =
-            eventType === "opponent_run" ||
-            (game != null &&
-                (isHomeTeam ? halfInning === "top" : halfInning === "bottom"));
 
         // If runs > 0, use transaction for atomicity
         if (runs > 0) {
