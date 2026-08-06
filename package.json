@@ -52,7 +52,7 @@
         "react-joyride": "^3.1.0",
         "react-markdown": "^10.1.0",
         "react-router": "^8.0.1",
-        "recharts": "^2.15.4"
+        "recharts": "^3.2.1"
     },
     "devDependencies": {
         "@babel/preset-env": "^7.29.7",
