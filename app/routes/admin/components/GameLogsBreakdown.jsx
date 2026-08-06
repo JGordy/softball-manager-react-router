@@ -1,6 +1,14 @@
-import { Badge, Group, Paper, Stack, Text, Title } from "@mantine/core";
+import {
+    Badge,
+    Group,
+    Paper,
+    ScrollArea,
+    Stack,
+    Text,
+    Title,
+} from "@mantine/core";
 import { SankeyChart } from "@mantine/charts";
-import { IconActivity } from "@tabler/icons-react";
+import { IconActivity, IconArrowsLeftRight } from "@tabler/icons-react";
 
 /** Node color mapping matching Velocity Dark theme */
 const CATEGORY_COLORS = {
@@ -25,8 +33,6 @@ const SPECIFIC_COLORS = {
     sacrifice_fly: "#A855F7", // Purple
     injury_remove: "#64748B", // Slate
 };
-
-const STREAM_COLOR = "rgba(255, 255, 255, 0.08)";
 
 const HIT_TYPES = ["single", "double", "triple", "homerun"];
 const OUT_TYPES = ["strikeout", "ground_out", "fly_out", "line_out", "pop_out"];
@@ -72,22 +78,20 @@ function buildSankeyData(byType = [], total = 0) {
         const color = SPECIFIC_COLORS[type] || "#94A3B8";
         nodes.push({ name: `${label} (${count})`, color });
 
-        // Tier 2 ➔ Tier 3 link (subtle stream)
+        // Tier 2 ➔ Tier 3 link (subtle stream color inherited via linkColor/linkOpacity)
         links.push({
             source: parentIndex,
             target: nodeIndex,
             value: count,
-            color: STREAM_COLOR,
         });
     });
 
-    // Tier 1 ➔ Tier 2 links (subtle stream)
+    // Tier 1 ➔ Tier 2 links
     if (hitsTotal > 0) {
         links.unshift({
             source: 0,
             target: 1,
             value: hitsTotal,
-            color: STREAM_COLOR,
         });
     }
     if (outsTotal > 0) {
@@ -95,7 +99,6 @@ function buildSankeyData(byType = [], total = 0) {
             source: 0,
             target: 2,
             value: outsTotal,
-            color: STREAM_COLOR,
         });
     }
     if (miscTotal > 0) {
@@ -103,7 +106,6 @@ function buildSankeyData(byType = [], total = 0) {
             source: 0,
             target: 3,
             value: miscTotal,
-            color: STREAM_COLOR,
         });
     }
 
@@ -138,14 +140,24 @@ export const GameLogsBreakdown = ({ logsStats }) => {
                             {avgPerGame} per game)
                         </Text>
                     </Stack>
-                    <Badge
-                        variant="light"
-                        color="lime"
-                        size="sm"
-                        leftSection={<IconActivity size={12} />}
-                    >
-                        {total.toLocaleString()} events
-                    </Badge>
+                    <Group gap="xs">
+                        <Badge
+                            variant="light"
+                            color="cyan"
+                            size="xs"
+                            leftSection={<IconArrowsLeftRight size={10} />}
+                        >
+                            Swipe to view flow
+                        </Badge>
+                        <Badge
+                            variant="light"
+                            color="lime"
+                            size="sm"
+                            leftSection={<IconActivity size={12} />}
+                        >
+                            {total.toLocaleString()} events
+                        </Badge>
+                    </Group>
                 </Group>
 
                 {byType.length > 0 && sankeyData.nodes.length > 0 ? (
@@ -154,14 +166,29 @@ export const GameLogsBreakdown = ({ logsStats }) => {
                             Team Outcome Flow (All-Time)
                         </Text>
 
-                        <div style={{ width: "100%", overflow: "hidden" }}>
-                            <SankeyChart
-                                data={sankeyData}
-                                height={320}
-                                textColor="#FFFFFF"
-                                nodePadding={14}
-                            />
-                        </div>
+                        <ScrollArea
+                            type="auto"
+                            offsetScrollbars
+                            style={{ width: "100%" }}
+                        >
+                            <div
+                                style={{
+                                    minWidth: 580,
+                                    paddingTop: 8,
+                                    paddingBottom: 8,
+                                }}
+                            >
+                                <SankeyChart
+                                    data={sankeyData}
+                                    height={380}
+                                    nodeWidth={14}
+                                    nodePadding={18}
+                                    linkColor="gray.7"
+                                    linkOpacity={0.15}
+                                    textColor="#FFFFFF"
+                                />
+                            </div>
+                        </ScrollArea>
                     </Stack>
                 ) : (
                     <Text size="sm" c="dimmed">
