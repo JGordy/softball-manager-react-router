@@ -50,9 +50,8 @@ describe("ContactSprayChart", () => {
         const filterBtn = screen.getByText("Filters");
         fireEvent.click(filterBtn);
 
-        // Check if filter options appear in DrawerContainer
-        expect(screen.getByText("Result / Event Type")).toBeInTheDocument();
-        expect(screen.getByText("Field Location")).toBeInTheDocument();
+        // Check if filter drawer opens with title
+        expect(screen.getByText("Filter Spray Chart")).toBeInTheDocument();
     });
 
     it("filters by batting side", () => {

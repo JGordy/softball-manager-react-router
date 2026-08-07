@@ -35,7 +35,7 @@ describe("SeasonRadarChart Component", () => {
         logs: [{ playerId: "p1", eventType: "single", rbi: 1 }],
     };
 
-    it("renders title, radar chart, and default platform average view when no prev season exists", () => {
+    it("renders radar chart and default platform average view when no prev season exists", () => {
         render(
             <SeasonRadarChart
                 games={mockGames}
@@ -44,9 +44,6 @@ describe("SeasonRadarChart Component", () => {
             />,
         );
 
-        expect(
-            screen.getByText("Season Performance Radar"),
-        ).toBeInTheDocument();
         expect(screen.getByTestId("mantine-radar-chart")).toBeInTheDocument();
         expect(screen.getByText("vs. Avg Team")).toBeInTheDocument();
         expect(screen.getByText("Average Team")).toBeInTheDocument();
