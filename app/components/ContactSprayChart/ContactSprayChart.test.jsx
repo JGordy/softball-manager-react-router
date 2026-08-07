@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@/utils/test-utils";
+import { render, screen, fireEvent, waitFor } from "@/utils/test-utils";
 import ContactSprayChart from "./ContactSprayChart";
 
 describe("ContactSprayChart", () => {
@@ -44,14 +44,16 @@ describe("ContactSprayChart", () => {
         ).toBeInTheDocument();
     });
 
-    it("opens filters when filter button is clicked", () => {
+    it("opens filters when filter button is clicked", async () => {
         render(<ContactSprayChart hits={mockHits} />);
 
         const filterBtn = screen.getByText("Filters");
         fireEvent.click(filterBtn);
 
         // Check if filter drawer opens with title
-        expect(screen.getByText("Filter Spray Chart")).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByText("Filter Spray Chart")).toBeInTheDocument();
+        });
     });
 
     it("filters by batting side", () => {
