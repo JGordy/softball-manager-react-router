@@ -3,7 +3,6 @@ import {
     Card,
     Group,
     Text,
-    Title,
     SegmentedControl,
     Badge,
     Stack,
@@ -11,7 +10,6 @@ import {
     SimpleGrid,
     Paper,
     Box,
-    useMantineColorScheme,
 } from "@mantine/core";
 import { RadarChart } from "@mantine/charts";
 import {
@@ -45,9 +43,6 @@ export default function SeasonRadarChart({
     players = [],
     previousSeasonData = null,
 }) {
-    const { colorScheme } = useMantineColorScheme();
-    const isDark = colorScheme === "dark";
-
     const hasPrevSeason = Boolean(previousSeasonData?.season);
     const [comparisonMode, setComparisonMode] = useState(
         hasPrevSeason ? "prev" : "platform",

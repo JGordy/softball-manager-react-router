@@ -236,7 +236,7 @@ export async function getSeasonById({ seasonId, client }) {
 export async function getPreviousSeasonSummary({
     teamId,
     currentSeasonId,
-    client,
+    client: _client,
 }) {
     if (!teamId || !currentSeasonId) return null;
     try {

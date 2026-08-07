@@ -1,14 +1,5 @@
 import { useState } from "react";
-import {
-    SimpleGrid,
-    Box,
-    Card,
-    Stack,
-    Title,
-    Text,
-    Group,
-    Badge,
-} from "@mantine/core";
+import { Box, Card, Title, Text, Group, Badge } from "@mantine/core";
 import { Carousel } from "@mantine/carousel";
 
 import SeasonRadarChart from "./SeasonRadarChart";
