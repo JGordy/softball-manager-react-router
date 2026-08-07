@@ -54,8 +54,14 @@ export async function loader({ request, params, context }) {
     }
 
     let park = null;
-    const { season, players, teamPlayers, logs, isArchiveView } =
-        await getSeasonById({ seasonId, client });
+    const {
+        season,
+        players,
+        teamPlayers,
+        logs,
+        isArchiveView,
+        previousSeasonData,
+    } = await getSeasonById({ seasonId, client });
 
     if (season.parkId) {
         park = await getParkById({
@@ -64,7 +70,15 @@ export async function loader({ request, params, context }) {
         });
     }
 
-    return { season, park, players, teamPlayers, logs, isArchiveView };
+    return {
+        season,
+        park,
+        players,
+        teamPlayers,
+        logs,
+        isArchiveView,
+        previousSeasonData,
+    };
 }
 
 export async function action({ request, params, context }) {
@@ -170,8 +184,15 @@ export default function SeasonDetails({ loaderData, actionData }) {
         );
     }
 
-    const { season, park, players, teamPlayers, logs, isArchiveView } =
-        loaderData;
+    const {
+        season,
+        park,
+        players,
+        teamPlayers,
+        logs,
+        isArchiveView,
+        previousSeasonData,
+    } = loaderData;
     const { teams = [] } = season || {};
     const [team] = teams;
     const { primaryColor, managerIds = [] } = team || { primaryColor: "lime" };
@@ -240,6 +261,7 @@ export default function SeasonDetails({ loaderData, actionData }) {
         teamPlayers,
         logs,
         isArchiveView,
+        previousSeasonData,
     };
 
     if (isDesktop) {

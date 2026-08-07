@@ -66,11 +66,20 @@ export async function getSeasonById({ seasonId, client }) {
               )
             : client;
 
+        const rawTeamId =
+            season.teamId ||
+            (Array.isArray(season.teams) && season.teams[0]
+                ? typeof season.teams[0] === "string"
+                    ? season.teams[0]
+                    : season.teams[0].$id
+                : null);
+
         // Manually fetch teams since TablesDB doesn't auto-populate relationships
-        if (season.teamId) {
+        if (rawTeamId) {
+            season.teamId = rawTeamId;
             const team = await readDocument(
                 "teams",
-                season.teamId,
+                rawTeamId,
                 [],
                 activeClient,
             ).catch(() => null);
@@ -81,7 +90,7 @@ export async function getSeasonById({ seasonId, client }) {
                 const { teams } = await import("@/utils/appwrite/server").then(
                     (m) => m.createAdminClient(),
                 );
-                const memberships = await teams.listMemberships(season.teamId);
+                const memberships = await teams.listMemberships(rawTeamId);
                 const managerIds = memberships.memberships
                     .filter(
                         (m) =>
@@ -172,7 +181,37 @@ export async function getSeasonById({ seasonId, client }) {
             }
         }
 
-        return { season, players, teamPlayers, logs, isArchiveView };
+        let previousSeasonData = null;
+        let targetTeamId = season.teamId;
+        if (
+            !targetTeamId &&
+            Array.isArray(season.teams) &&
+            season.teams.length > 0
+        ) {
+            const firstTeam = season.teams[0];
+            targetTeamId =
+                typeof firstTeam === "string" ? firstTeam : firstTeam?.$id;
+        }
+        if (!targetTeamId && season.games && season.games.length > 0) {
+            targetTeamId = season.games[0].teamId;
+        }
+
+        if (targetTeamId) {
+            previousSeasonData = await getPreviousSeasonSummary({
+                teamId: targetTeamId,
+                currentSeasonId: seasonId,
+                client: activeClient,
+            });
+        }
+
+        return {
+            season,
+            players,
+            teamPlayers,
+            logs,
+            isArchiveView,
+            previousSeasonData,
+        };
     } else {
         return {
             season: {},
@@ -180,6 +219,122 @@ export async function getSeasonById({ seasonId, client }) {
             teamPlayers: [],
             logs: [],
             isArchiveView: false,
+            previousSeasonData: null,
         };
+    }
+}
+
+/**
+ * Fetch lightweight summary statistics for a team's previous season.
+ *
+ * @param {Object} params - Input parameters
+ * @param {string} params.teamId - Team ID
+ * @param {string} params.currentSeasonId - Current season ID to compare against
+ * @param {Object} [params.client] - Appwrite client
+ * @returns {Object|null} Previous season info, games, and logs if found
+ */
+export async function getPreviousSeasonSummary({
+    teamId,
+    currentSeasonId,
+    client,
+}) {
+    if (!teamId || !currentSeasonId) return null;
+    try {
+        const { createAdminClient } = await import("@/utils/appwrite/server");
+        const adminClient = createAdminClient();
+
+        // 1. Query seasons specifically for this team (bypassing global DB limit)
+        const [byTeamId, byTeamsArr] = await Promise.all([
+            listDocuments(
+                "seasons",
+                [Query.equal("teamId", teamId), Query.limit(100)],
+                adminClient,
+            ).catch(() => ({ rows: [] })),
+            listDocuments(
+                "seasons",
+                [Query.equal("teams", teamId), Query.limit(100)],
+                adminClient,
+            ).catch(() => ({ rows: [] })),
+        ]);
+
+        // Merge & deduplicate by $id
+        const seasonsMap = new Map();
+        [...(byTeamId.rows || []), ...(byTeamsArr.rows || [])].forEach((s) => {
+            if (s && s.$id) seasonsMap.set(s.$id, s);
+        });
+        const fetchedTeamSeasons = Array.from(seasonsMap.values());
+
+        const teamSeasons = fetchedTeamSeasons.sort((a, b) => {
+            const timeA = new Date(
+                a.startDate || a.created_at || a.$createdAt || 0,
+            ).getTime();
+            const timeB = new Date(
+                b.startDate || b.created_at || b.$createdAt || 0,
+            ).getTime();
+            return timeB - timeA;
+        });
+
+        const currIndex = teamSeasons.findIndex(
+            (s) => s.$id === currentSeasonId,
+        );
+        let prevSeason = null;
+        if (currIndex !== -1 && currIndex + 1 < teamSeasons.length) {
+            prevSeason = teamSeasons[currIndex + 1];
+        } else if (teamSeasons.length > 1) {
+            prevSeason = teamSeasons.find((s) => s.$id !== currentSeasonId);
+        }
+
+        if (!prevSeason) return null;
+
+        // 2. Fetch games for previous season with broad matching
+        const allGamesRes = await listDocuments(
+            "games",
+            [Query.limit(500)],
+            adminClient,
+        ).catch(() => ({ rows: [] }));
+
+        const prevGames = (allGamesRes.rows || []).filter((g) => {
+            if (g.seasons === prevSeason.$id || g.seasonId === prevSeason.$id)
+                return true;
+            if (Array.isArray(g.seasons)) {
+                return g.seasons.some((s) =>
+                    typeof s === "string"
+                        ? s === prevSeason.$id
+                        : s?.$id === prevSeason.$id,
+                );
+            }
+            if (g.teamId === teamId && g.gameDate) {
+                const gTime = new Date(g.gameDate).getTime();
+                const sStart = new Date(prevSeason.startDate || 0).getTime();
+                const sEnd = new Date(prevSeason.endDate || 0).getTime();
+                if (sStart && sEnd && gTime >= sStart && gTime <= sEnd)
+                    return true;
+            }
+            return false;
+        });
+
+        const prevGameIds = prevGames.map((g) => g.$id);
+
+        let prevLogs = [];
+        if (prevGameIds.length > 0) {
+            const logsRes = await listDocuments(
+                "game_logs",
+                [Query.equal("gameId", prevGameIds), Query.limit(1000)],
+                adminClient,
+            ).catch(() => ({ rows: [] }));
+            prevLogs = logsRes.rows || [];
+        }
+
+        return {
+            season: prevSeason,
+            games: prevGames,
+            logs: prevLogs,
+            allPreviousSeasons: teamSeasons.filter(
+                (s) => s.$id !== currentSeasonId,
+            ),
+        };
+    } catch (err) {
+        console.error("Error loading previous season summary:", err);
+        return null;
     }
 }
