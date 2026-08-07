@@ -119,6 +119,25 @@ const getGameStatus = (
     return { status: "future", text: null };
 };
 
+/**
+ * Renders a compact game summary card with date inset, team/opponent info, time, and result badge.
+ *
+ * @param {Object} props - Component props
+ * @param {string} props.$id - Game ID
+ * @param {string} props.gameDate - Game ISO date string
+ * @param {string} [props.teamName] - Optional team name override
+ * @param {string} [props.displayName] - Optional event display name
+ * @param {boolean} [props.isHomeGame] - True if home game
+ * @param {string} [props.result] - Game result ("won", "lost", "tied")
+ * @param {number} [props.score] - Team score
+ * @param {string} [props.opponent] - Opponent team name
+ * @param {number} [props.opponentScore] - Opponent score
+ * @param {string} [props.timeZone] - Timezone string
+ * @param {string} [props.primaryColor] - Primary branding color
+ * @param {string} [props.eventType="game"] - Event type ("game" or "practice")
+ * @param {string|number} [props.mb="md"] - Bottom margin spacing token or pixel value
+ * @returns {JSX.Element} The rendered game card element
+ */
 export default function GameCard({
     $id,
     gameDate,
@@ -132,6 +151,7 @@ export default function GameCard({
     timeZone,
     primaryColor,
     eventType = "game",
+    mb = "md",
 }) {
     const isPractice = eventType === "practice";
     const formattedHeader = isPractice
@@ -161,7 +181,7 @@ export default function GameCard({
             to={`/events/${$id}`}
             style={{ textDecoration: "none", color: "inherit" }}
         >
-            <Card className="game-card" mb="md" radius="md" p="xs">
+            <Card className="game-card" mb={mb} radius="md" p="xs">
                 <Flex align="stretch" gap="xs">
                     {/* Left Column: Team Branding & Date Inset */}
                     <Stack

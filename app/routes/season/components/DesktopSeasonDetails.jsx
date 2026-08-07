@@ -17,14 +17,14 @@ import {
     IconCalendarMonth,
     IconInfoCircle,
     IconTable,
-    IconMap2,
+    IconActivity,
 } from "@tabler/icons-react";
 
 import BackButton from "@/components/BackButton";
 import GamesList from "@/components/GamesList";
 import BoxScore from "@/components/BoxScore";
-import ContactSprayChart from "@/components/ContactSprayChart";
 import TabsWrapper from "@/components/TabsWrapper";
+import SeasonChartsPanel from "./SeasonChartsPanel";
 
 import { splitGames } from "@/utils/getGames";
 import { formatForViewerDate } from "@/utils/dateTime";
@@ -34,7 +34,7 @@ import SeasonMenu from "./SeasonMenu";
 /**
  * Renders the desktop version of the Season Details page.
  * Displays a three-column layout: Season Info, Game Tabs (Upcoming / Past),
- * and Stats Tabs (Roster Stats / Season Spray Chart).
+ * and Stats Tabs (Roster Stats / Season Charts).
  */
 export default function DesktopSeasonDetails({
     season,
@@ -46,6 +46,7 @@ export default function DesktopSeasonDetails({
     teamPlayers = [],
     logs = [],
     isArchiveView = false,
+    previousSeasonData = null,
 }) {
     const { futureGames: upcomingGames, pastGames } = splitGames(season.games);
 
@@ -203,21 +204,19 @@ export default function DesktopSeasonDetails({
                         <Tabs.Panel value="upcoming" pt="md">
                             <GamesList
                                 games={upcomingGames}
-                                height="calc(100vh - 290px)"
                                 primaryColor={primaryColor}
                             />
                         </Tabs.Panel>
                         <Tabs.Panel value="past" pt="md">
                             <GamesList
                                 games={pastGames}
-                                height="calc(100vh - 290px)"
                                 primaryColor={primaryColor}
                             />
                         </Tabs.Panel>
                     </TabsWrapper>
                 </Grid.Col>
 
-                {/* Column 3: Stats Tabs */}
+                {/* Column 3: Stats & Charts Tabs */}
                 <Grid.Col span={{ base: 12, md: 6, lg: 5 }}>
                     <TabsWrapper defaultValue="stats" color={primaryColor}>
                         <Tabs.Tab value="stats">
@@ -226,10 +225,10 @@ export default function DesktopSeasonDetails({
                                 Stats
                             </Group>
                         </Tabs.Tab>
-                        <Tabs.Tab value="spray">
+                        <Tabs.Tab value="charts">
                             <Group gap="xs" align="center" justify="center">
-                                <IconMap2 size={16} />
-                                Spray
+                                <IconActivity size={16} />
+                                Charts
                             </Group>
                         </Tabs.Tab>
 
@@ -258,12 +257,16 @@ export default function DesktopSeasonDetails({
                                 />
                             )}
                         </Tabs.Panel>
-                        <Tabs.Panel value="spray" pt="md">
-                            <ContactSprayChart
-                                hits={logs}
-                                batters={battersList}
-                                layout="stacked"
+
+                        <Tabs.Panel value="charts" pt="md">
+                            <SeasonChartsPanel
+                                season={season}
                                 games={season.games}
+                                logs={logs}
+                                players={players}
+                                battersList={battersList}
+                                previousSeasonData={previousSeasonData}
+                                primaryColor={primaryColor}
                             />
                         </Tabs.Panel>
                     </TabsWrapper>

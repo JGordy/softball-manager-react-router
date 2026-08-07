@@ -423,3 +423,148 @@ export const calculatePlayerStats = (logs, userId) => {
         },
     };
 };
+
+/**
+ * Default platform benchmark statistics for amateur softball.
+ */
+export const PLATFORM_BENCHMARKS = {
+    RPG: 11.5,
+    HitsPerGame: 14.0,
+    AVG: 0.475,
+    SLG: 0.72,
+    NetDiffPerGame: 0.0,
+    RAPG: 11.5,
+};
+
+/**
+ * Calculate normalized season metrics (0-100 scale) and raw values for the Season Radar Chart.
+ *
+ * @param {Object} params - Input parameters
+ * @param {Array} params.games - Array of game documents for the season
+ * @param {Object} [params.totals] - Pre-calculated team totals object from calculateTeamTotals
+ * @param {Object} [params.platformBenchmarks] - Optional platform benchmark overrides
+ * @returns {Object} Metric values including normalized scores (0-100) and formatted raw numbers
+ */
+export function calculateSeasonRadarMetrics({
+    games = [],
+    totals = {},
+    logs = [],
+    platformBenchmarks = PLATFORM_BENCHMARKS,
+}) {
+    const completedGames = games.filter(
+        (g) => g.result != null || g.score != null || g.opponentScore != null,
+    );
+    const gamesPlayed = completedGames.length || games.length || 0;
+
+    const totalRunsScored = completedGames.reduce(
+        (acc, g) => acc + (Number(g.score) || 0),
+        0,
+    );
+    const totalRunsAllowed = completedGames.reduce(
+        (acc, g) => acc + (Number(g.opponentScore) || 0),
+        0,
+    );
+
+    const rpg = gamesPlayed > 0 ? totalRunsScored / gamesPlayed : 0;
+    const rapg = gamesPlayed > 0 ? totalRunsAllowed / gamesPlayed : 0;
+    const netDiff = rpg - rapg;
+
+    // Filter games with play-by-play logs to avoid diluting hitting stats for legacy games
+    const loggedGameIds = new Set(
+        logs.map((log) => log.gameId).filter(Boolean),
+    );
+    const loggedGamesCount =
+        loggedGameIds.size || (totals.AB > 0 ? gamesPlayed : 0);
+    const hittingGamesDenominator =
+        loggedGamesCount > 0 ? loggedGamesCount : gamesPlayed;
+
+    const totalHits = totals.H || 0;
+    const hpg =
+        hittingGamesDenominator > 0 ? totalHits / hittingGamesDenominator : 0;
+
+    const avgVal = parseFloat(totals.AVG || "0");
+    const slgVal = parseFloat(totals.SLG || "0");
+
+    // Standard ceiling normalization (0-100 scale)
+    const scaledRPG = Math.min(100, Math.max(0, Math.round((rpg / 20) * 100)));
+    const scaledHPG = Math.min(100, Math.max(0, Math.round((hpg / 25) * 100)));
+    const scaledAVG = Math.min(
+        100,
+        Math.max(0, Math.round((avgVal / 0.7) * 100)),
+    );
+    const scaledSLG = Math.min(
+        100,
+        Math.max(0, Math.round((slgVal / 1.2) * 100)),
+    );
+    const scaledNetDiff = Math.min(
+        100,
+        Math.max(0, Math.round(((netDiff + 15) / 30) * 100)),
+    );
+    const scaledDef = Math.min(
+        100,
+        Math.max(0, Math.round((1 - Math.min(rapg, 20) / 20) * 100)),
+    );
+
+    // Platform relative scores (where 50 = platform average)
+    const pRpg = platformBenchmarks.RPG || 11.5;
+    const pHpg = platformBenchmarks.HitsPerGame || 14.0;
+    const pAvg = platformBenchmarks.AVG || 0.475;
+    const pSlg = platformBenchmarks.SLG || 0.72;
+    const pRapg = platformBenchmarks.RAPG || 11.5;
+
+    const relRPG = Math.min(
+        100,
+        Math.max(0, Math.round((rpg / (pRpg * 2)) * 100)),
+    );
+    const relHPG = Math.min(
+        100,
+        Math.max(0, Math.round((hpg / (pHpg * 2)) * 100)),
+    );
+    const relAVG = Math.min(
+        100,
+        Math.max(0, Math.round((avgVal / (pAvg * 2)) * 100)),
+    );
+    const relSLG = Math.min(
+        100,
+        Math.max(0, Math.round((slgVal / (pSlg * 2)) * 100)),
+    );
+    const relNetDiff = scaledNetDiff;
+    const relDef = Math.min(
+        100,
+        Math.max(
+            0,
+            Math.round((1 - Math.min(rapg, pRapg * 2) / (pRapg * 2)) * 100),
+        ),
+    );
+
+    return {
+        gamesPlayed,
+        loggedGamesCount,
+        hasLegacyUnloggedGames:
+            loggedGamesCount < gamesPlayed && gamesPlayed > 0,
+        raw: {
+            RPG: parseFloat(rpg.toFixed(1)),
+            HPG: parseFloat(hpg.toFixed(1)),
+            AVG: avgVal > 0 ? totals.AVG : ".000",
+            SLG: slgVal > 0 ? totals.SLG : ".000",
+            NetDiff: parseFloat(netDiff.toFixed(1)),
+            RAPG: parseFloat(rapg.toFixed(1)),
+        },
+        fixedScores: {
+            RPG: scaledRPG,
+            HPG: scaledHPG,
+            AVG: scaledAVG,
+            SLG: scaledSLG,
+            NetDiff: scaledNetDiff,
+            Defense: scaledDef,
+        },
+        platformScores: {
+            RPG: relRPG,
+            HPG: relHPG,
+            AVG: relAVG,
+            SLG: relSLG,
+            NetDiff: relNetDiff,
+            Defense: relDef,
+        },
+    };
+}

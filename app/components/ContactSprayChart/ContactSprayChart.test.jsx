@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@/utils/test-utils";
+import { render, screen, fireEvent, waitFor } from "@/utils/test-utils";
 import ContactSprayChart from "./ContactSprayChart";
 
 describe("ContactSprayChart", () => {
@@ -44,25 +44,21 @@ describe("ContactSprayChart", () => {
         ).toBeInTheDocument();
     });
 
-    it("opens filters when filter button is clicked", () => {
+    it("opens filters when filter button is clicked", async () => {
         render(<ContactSprayChart hits={mockHits} />);
 
         const filterBtn = screen.getByText("Filters");
         fireEvent.click(filterBtn);
 
-        // Check if filter options appear (e.g., Result select)
-        // Mantine Select might need specific handling or just finding by label
-        // Since Select label is "Result", we can look for it.
-        // However, Mantine Select renders label as text.
-        // Also "Batter", "Location"
-        expect(screen.getByText("Result")).toBeInTheDocument();
-        expect(screen.getByText("Location")).toBeInTheDocument();
+        // Check if filter drawer opens with title
+        await waitFor(() => {
+            expect(screen.getByText("Filter Spray Chart")).toBeInTheDocument();
+        });
     });
 
-    it("filters by batting side", () => {
+    it("filters by batting side and displays active filter count badge", () => {
         render(<ContactSprayChart hits={mockHits} />);
 
-        // Assuming chips are rendered.
         // Click "Left" chip
         const leftChip = screen.getByText("Left");
         fireEvent.click(leftChip);
@@ -72,6 +68,9 @@ describe("ContactSprayChart", () => {
             screen.queryByLabelText(/1B at Left Field/i),
         ).not.toBeInTheDocument();
         expect(screen.getByLabelText(/2B at Right Field/i)).toBeInTheDocument();
+
+        // Expect active filter badge to be displayed and accessible
+        expect(screen.getByLabelText("Filters active: 1")).toBeInTheDocument();
     });
 
     it("renders legend labels and stats correctly", () => {

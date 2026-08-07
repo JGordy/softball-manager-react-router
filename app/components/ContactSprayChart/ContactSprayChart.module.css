@@ -42,11 +42,10 @@
 .filterGroup {
     display: flex;
     gap: var(--mantine-spacing-xs);
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    -webkit-overflow-scrolling: touch;
-    flex-wrap: nowrap;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    flex-wrap: wrap;
 }
 
 .filterGroup::-webkit-scrollbar {

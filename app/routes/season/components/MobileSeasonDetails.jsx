@@ -16,14 +16,14 @@ import {
     IconBallBaseball,
     IconInfoCircle,
     IconTable,
-    IconMap2,
+    IconActivity,
 } from "@tabler/icons-react";
 
 import BackButton from "@/components/BackButton";
 import GamesList from "@/components/GamesList";
 import TabsWrapper from "@/components/TabsWrapper";
 import BoxScore from "@/components/BoxScore";
-import ContactSprayChart from "@/components/ContactSprayChart";
+import SeasonChartsPanel from "./SeasonChartsPanel";
 
 import { formatForViewerDate } from "@/utils/dateTime";
 
@@ -61,7 +61,7 @@ function DetailCard({ icon: Icon, label, value, color, href, rightSection }) {
 
 /**
  * Renders the mobile version of the Season Details page.
- * Displays a tabs interface with Details, Games, Stats, and Spray Chart.
+ * Displays a tabs interface with Details, Games, Stats, and Charts.
  */
 export default function MobileSeasonDetails({
     season,
@@ -73,6 +73,7 @@ export default function MobileSeasonDetails({
     teamPlayers = [],
     logs = [],
     isArchiveView = false,
+    previousSeasonData = null,
 }) {
     const battersList = useMemo(() => {
         return (players || []).map((p) => ({
@@ -134,10 +135,10 @@ export default function MobileSeasonDetails({
                         Stats
                     </Group>
                 </Tabs.Tab>
-                <Tabs.Tab value="spray">
+                <Tabs.Tab value="charts">
                     <Group gap="xs" align="center" justify="center">
-                        <IconMap2 size={16} />
-                        Spray
+                        <IconActivity size={16} />
+                        Charts
                     </Group>
                 </Tabs.Tab>
 
@@ -168,7 +169,6 @@ export default function MobileSeasonDetails({
 
                     <GamesList
                         games={season.games}
-                        height="50vh"
                         primaryColor={primaryColor}
                     />
                 </Tabs.Panel>
@@ -199,12 +199,15 @@ export default function MobileSeasonDetails({
                     )}
                 </Tabs.Panel>
 
-                <Tabs.Panel value="spray" pt="md">
-                    <ContactSprayChart
-                        hits={logs}
-                        batters={battersList}
-                        layout="stacked"
+                <Tabs.Panel value="charts" pt="md">
+                    <SeasonChartsPanel
+                        season={season}
                         games={season.games}
+                        logs={logs}
+                        players={players}
+                        battersList={battersList}
+                        previousSeasonData={previousSeasonData}
+                        primaryColor={primaryColor}
                     />
                 </Tabs.Panel>
             </TabsWrapper>

@@ -2,6 +2,8 @@ import {
     calculateGameStats,
     calculateTeamTotals,
     calculatePlayerStats,
+    calculateSeasonRadarMetrics,
+    PLATFORM_BENCHMARKS,
 } from "../stats";
 
 describe("calculateGameStats", () => {
@@ -929,5 +931,71 @@ describe("calculatePlayerStats", () => {
         const stats = calculatePlayerStats(mappedLogs, "player1");
         expect(stats.ab).toBe(1);
         expect(stats.hits).toBe(1);
+    });
+});
+
+describe("calculateSeasonRadarMetrics", () => {
+    it("should calculate normalized scores and raw metrics correctly", () => {
+        const games = [
+            { score: 14, opponentScore: 6, result: "W" },
+            { score: 10, opponentScore: 8, result: "W" },
+        ];
+        const totals = {
+            H: 30,
+            AVG: ".500",
+            SLG: ".800",
+        };
+
+        const metrics = calculateSeasonRadarMetrics({ games, totals });
+
+        expect(metrics.gamesPlayed).toBe(2);
+        expect(metrics.raw.RPG).toBe(12);
+        expect(metrics.raw.RAPG).toBe(7);
+        expect(metrics.raw.HPG).toBe(15);
+        expect(metrics.raw.AVG).toBe(".500");
+        expect(metrics.raw.SLG).toBe(".800");
+
+        // Fixed scores (0-100 scale)
+        // RPG: 12 / 20 * 100 = 60
+        expect(metrics.fixedScores.RPG).toBe(60);
+        // HPG: 15 / 25 * 100 = 60
+        expect(metrics.fixedScores.HPG).toBe(60);
+        // AVG: .500 / .700 * 100 = 71
+        expect(metrics.fixedScores.AVG).toBe(71);
+        // SLG: .800 / 1.200 * 100 = 67
+        expect(metrics.fixedScores.SLG).toBe(67);
+    });
+
+    it("should handle empty games and totals gracefully", () => {
+        const metrics = calculateSeasonRadarMetrics({});
+        expect(metrics.gamesPlayed).toBe(0);
+        expect(metrics.raw.RPG).toBe(0);
+        expect(metrics.raw.AVG).toBe(".000");
+        expect(metrics.fixedScores.RPG).toBe(0);
+    });
+
+    it("should filter out legacy unlogged games when calculating Hits per Game", () => {
+        const games = [
+            { $id: "g1", score: 10, opponentScore: 5 },
+            { $id: "g2", score: 8, opponentScore: 6 },
+            { $id: "g3", score: 12, opponentScore: 4 },
+        ];
+        const logs = [
+            { gameId: "g1", eventType: "single" },
+            { gameId: "g2", eventType: "double" },
+        ];
+        const totals = { H: 20, AVG: ".500", SLG: ".750" };
+
+        const metrics = calculateSeasonRadarMetrics({ games, totals, logs });
+
+        expect(metrics.gamesPlayed).toBe(3);
+        expect(metrics.loggedGamesCount).toBe(2);
+        expect(metrics.hasLegacyUnloggedGames).toBe(true);
+        expect(metrics.raw.HPG).toBe(10);
+    });
+
+    it("should include platform benchmark defaults", () => {
+        expect(PLATFORM_BENCHMARKS).toBeDefined();
+        expect(PLATFORM_BENCHMARKS.RPG).toBeGreaterThan(0);
     });
 });
