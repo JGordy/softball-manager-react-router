@@ -1,4 +1,4 @@
-import { Card, Center, ScrollArea, Text } from "@mantine/core";
+import { Card, Center, ScrollArea, Text, Stack } from "@mantine/core";
 
 import GameCard from "@/components/GameCard";
 import { DateTime } from "luxon";
@@ -6,7 +6,7 @@ import { DateTime } from "luxon";
 export default function GamesList({
     games,
     primaryColor,
-    height = "48vh",
+    height = null,
     sortOrder = "asc",
 }) {
     if (!games.length) {
@@ -48,8 +48,8 @@ export default function GamesList({
         return dateA.toMillis() - dateB.toMillis();
     });
 
-    return (
-        <ScrollArea h={height}>
+    const content = (
+        <Stack gap="xs">
             {sortedGames.map((game) => (
                 <GameCard
                     key={game.$id}
@@ -57,6 +57,12 @@ export default function GamesList({
                     {...game}
                 />
             ))}
-        </ScrollArea>
+        </Stack>
     );
+
+    if (height && height !== "auto") {
+        return <ScrollArea h={height}>{content}</ScrollArea>;
+    }
+
+    return content;
 }
