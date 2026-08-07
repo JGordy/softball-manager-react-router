@@ -50,13 +50,9 @@ describe("ContactSprayChart", () => {
         const filterBtn = screen.getByText("Filters");
         fireEvent.click(filterBtn);
 
-        // Check if filter options appear (e.g., Result select)
-        // Mantine Select might need specific handling or just finding by label
-        // Since Select label is "Result", we can look for it.
-        // However, Mantine Select renders label as text.
-        // Also "Batter", "Location"
-        expect(screen.getByText("Result")).toBeInTheDocument();
-        expect(screen.getByText("Location")).toBeInTheDocument();
+        // Check if filter options appear in DrawerContainer
+        expect(screen.getByText("Result / Event Type")).toBeInTheDocument();
+        expect(screen.getByText("Field Location")).toBeInTheDocument();
     });
 
     it("filters by batting side", () => {

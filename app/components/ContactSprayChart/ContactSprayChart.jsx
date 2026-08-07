@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 
 import {
+    Badge,
     Box,
     Button,
     Card,
-    Collapse,
     Chip,
     Flex,
     Group,
@@ -16,12 +16,9 @@ import {
     ColorSwatch,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import {
-    IconFilter,
-    IconChevronDown,
-    IconChevronUp,
-} from "@tabler/icons-react";
+import { IconFilter } from "@tabler/icons-react";
 
+import DrawerContainer from "@/components/DrawerContainer/DrawerContainer";
 import images from "@/constants/images";
 import { ORIGIN_X, ORIGIN_Y } from "@/constants/fieldMapping";
 import {
@@ -105,6 +102,21 @@ export default function ContactSprayChart({
     const [playerFilter, setPlayerFilter] = useState("ALL");
     const [gameFilter, setGameFilter] = useState("ALL");
     const [opened, { toggle }] = useDisclosure(false);
+
+    const activeFilterCount =
+        (playerFilter !== "ALL" ? 1 : 0) +
+        (categoryFilter !== "ALL" ? 1 : 0) +
+        (locationFilter !== "ALL" ? 1 : 0) +
+        (gameFilter !== "ALL" ? 1 : 0) +
+        (battingSide !== OVERALL ? 1 : 0);
+
+    const resetFilters = () => {
+        setCategoryFilter("ALL");
+        setLocationFilter("ALL");
+        setBattingSide(OVERALL);
+        setPlayerFilter("ALL");
+        setGameFilter("ALL");
+    };
 
     const filteredHits = useMemo(() => {
         return hits
@@ -249,15 +261,15 @@ export default function ContactSprayChart({
                     )}
 
                     <Button
-                        variant="subtle"
-                        color="gray"
+                        variant={activeFilterCount > 0 ? "light" : "subtle"}
+                        color={activeFilterCount > 0 ? "lime" : "gray"}
                         size="sm"
                         leftSection={<IconFilter size={14} />}
                         rightSection={
-                            opened ? (
-                                <IconChevronUp size={14} />
-                            ) : (
-                                <IconChevronDown size={14} />
+                            activeFilterCount > 0 && (
+                                <Badge size="xs" color="lime" variant="filled">
+                                    {activeFilterCount}
+                                </Badge>
                             )
                         }
                         onClick={toggle}
@@ -266,113 +278,163 @@ export default function ContactSprayChart({
                     </Button>
                 </Group>
 
-                <Collapse expanded={opened}>
-                    <Card p="xs" radius="lg">
-                        <Stack gap="xs">
-                            <Group className={styles.filterGroup}>
-                                {batters.length > 0 && (
-                                    <Select
-                                        className={styles.batterSelect}
-                                        label="Batter"
-                                        placeholder="All Batters"
-                                        data={[
-                                            {
-                                                label: "All",
-                                                value: "ALL",
-                                            },
-                                            ...batters,
-                                        ]}
-                                        value={playerFilter}
-                                        onChange={setPlayerFilter}
-                                        size="sm"
-                                        comboboxProps={{
-                                            zIndex: 6000,
-                                            width: "max-content",
-                                        }}
-                                    />
-                                )}
-                                <Select
-                                    className={styles.resultSelect}
-                                    label="Result"
-                                    placeholder="All"
-                                    data={CATEGORIES_DATA}
-                                    value={categoryFilter}
-                                    onChange={setCategoryFilter}
-                                    size="sm"
-                                    comboboxProps={{
-                                        zIndex: 6000,
-                                        width: "max-content",
-                                    }}
-                                />
-                                <Select
-                                    className={styles.locationSelect}
-                                    label="Location"
-                                    placeholder="Anywhere"
-                                    data={[
-                                        { label: "All", value: "ALL" },
-                                        { label: "Left Field", value: "LF" },
-                                        { label: "Center Field", value: "CF" },
-                                        { label: "Right Field", value: "RF" },
-                                        { label: "Infield", value: "IF" },
-                                    ]}
-                                    value={locationFilter}
-                                    onChange={setLocationFilter}
-                                    size="sm"
-                                    comboboxProps={{
-                                        zIndex: 6000,
-                                        width: "max-content",
-                                    }}
-                                />
-                                {games.length > 0 && (
-                                    <Select
-                                        className={styles.gameSelect}
-                                        label="Game"
-                                        placeholder="All Games"
-                                        data={[
-                                            { label: "All", value: "ALL" },
-                                            ...games.map((g) => {
-                                                const dateStr = g.gameDate
-                                                    ? new Date(
-                                                          g.gameDate,
-                                                      ).toLocaleDateString(
-                                                          undefined,
-                                                          {
-                                                              month: "numeric",
-                                                              day: "numeric",
-                                                          },
-                                                      )
-                                                    : "";
-                                                const label = `${dateStr ? `${dateStr} - ` : ""}${g.isHomeGame ? "vs" : "@"} ${g.opponent}`;
-                                                return { label, value: g.$id };
-                                            }),
-                                        ]}
-                                        value={gameFilter}
-                                        onChange={setGameFilter}
-                                        size="sm"
-                                        comboboxProps={{
-                                            zIndex: 6000,
-                                            width: "max-content",
-                                        }}
-                                    />
-                                )}
-                            </Group>
-                            <Button
-                                variant="subtle"
-                                size="sm"
-                                c="red"
-                                onClick={() => {
-                                    setCategoryFilter("ALL");
-                                    setLocationFilter("ALL");
-                                    setBattingSide(OVERALL);
-                                    setPlayerFilter("ALL");
-                                    setGameFilter("ALL");
+                <DrawerContainer
+                    opened={opened}
+                    onClose={toggle}
+                    size="auto"
+                    title={
+                        <Group gap="xs">
+                            <IconFilter size={18} />
+                            <Text fw={700}>Filter Spray Chart</Text>
+                        </Group>
+                    }
+                >
+                    <Stack gap="md" py="xs">
+                        {showBattingSide && (
+                            <Box>
+                                <Text
+                                    size="xs"
+                                    fw={700}
+                                    c="dimmed"
+                                    mb="xs"
+                                    tt="uppercase"
+                                >
+                                    Batting Side
+                                </Text>
+                                <Chip.Group
+                                    value={battingSide}
+                                    onChange={setBattingSide}
+                                >
+                                    <Group gap="xs">
+                                        <Chip
+                                            value={OVERALL}
+                                            variant="light"
+                                            color="lime"
+                                        >
+                                            All
+                                        </Chip>
+                                        <Chip
+                                            value={BATS_RIGHT}
+                                            variant="light"
+                                            color="lime"
+                                        >
+                                            Right
+                                        </Chip>
+                                        <Chip
+                                            value={BATS_LEFT}
+                                            variant="light"
+                                            color="lime"
+                                        >
+                                            Left
+                                        </Chip>
+                                    </Group>
+                                </Chip.Group>
+                            </Box>
+                        )}
+
+                        {batters.length > 0 && (
+                            <Select
+                                label="Batter"
+                                placeholder="All Batters"
+                                data={[
+                                    { label: "All", value: "ALL" },
+                                    ...batters,
+                                ]}
+                                value={playerFilter}
+                                onChange={setPlayerFilter}
+                                size="md"
+                                comboboxProps={{
+                                    zIndex: 6000,
+                                    withinPortal: true,
                                 }}
+                            />
+                        )}
+
+                        <Select
+                            label="Result / Event Type"
+                            placeholder="All Results"
+                            data={CATEGORIES_DATA}
+                            value={categoryFilter}
+                            onChange={setCategoryFilter}
+                            size="md"
+                            comboboxProps={{
+                                zIndex: 6000,
+                                withinPortal: true,
+                            }}
+                        />
+
+                        <Select
+                            label="Field Location"
+                            placeholder="Any Location"
+                            data={[
+                                { label: "All Locations", value: "ALL" },
+                                { label: "Left Field", value: "LF" },
+                                { label: "Center Field", value: "CF" },
+                                { label: "Right Field", value: "RF" },
+                                { label: "Infield", value: "IF" },
+                            ]}
+                            value={locationFilter}
+                            onChange={setLocationFilter}
+                            size="md"
+                            comboboxProps={{
+                                zIndex: 6000,
+                                withinPortal: true,
+                            }}
+                        />
+
+                        {games.length > 0 && (
+                            <Select
+                                label="Game"
+                                placeholder="All Games"
+                                data={[
+                                    { label: "All Games", value: "ALL" },
+                                    ...games.map((g) => {
+                                        const dateStr = g.gameDate
+                                            ? new Date(
+                                                  g.gameDate,
+                                              ).toLocaleDateString(undefined, {
+                                                  month: "numeric",
+                                                  day: "numeric",
+                                              })
+                                            : "";
+                                        const label = `${dateStr ? `${dateStr} - ` : ""}${g.isHomeGame ? "vs" : "@"} ${g.opponent}`;
+                                        return { label, value: g.$id };
+                                    }),
+                                ]}
+                                value={gameFilter}
+                                onChange={setGameFilter}
+                                size="md"
+                                comboboxProps={{
+                                    zIndex: 6000,
+                                    withinPortal: true,
+                                }}
+                            />
+                        )}
+
+                        <Stack gap="xs" mt="lg" pb="md">
+                            <Button
+                                variant="filled"
+                                color="lime"
+                                size="md"
+                                fullWidth
+                                onClick={toggle}
                             >
-                                Reset Filters
+                                Apply Filters
                             </Button>
+                            {activeFilterCount > 0 && (
+                                <Button
+                                    variant="subtle"
+                                    color="red"
+                                    size="md"
+                                    fullWidth
+                                    onClick={resetFilters}
+                                >
+                                    Reset All Filters
+                                </Button>
+                            )}
                         </Stack>
-                    </Card>
-                </Collapse>
+                    </Stack>
+                </DrawerContainer>
             </Stack>
 
             <Flex
@@ -394,8 +456,11 @@ export default function ContactSprayChart({
                             ? "none"
                             : { base: "none", sm: "1 1 300px" }
                     }
-                    maw={{ base: "100%", sm: 400 }}
-                    w="100%"
+                    style={{
+                        width: "100%",
+                        maxWidth: 340,
+                        margin: "0 auto",
+                    }}
                 >
                     <Image
                         src={images.fieldSrc}
