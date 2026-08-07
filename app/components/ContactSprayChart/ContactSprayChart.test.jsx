@@ -56,10 +56,9 @@ describe("ContactSprayChart", () => {
         });
     });
 
-    it("filters by batting side", () => {
+    it("filters by batting side and displays active filter count badge", () => {
         render(<ContactSprayChart hits={mockHits} />);
 
-        // Assuming chips are rendered.
         // Click "Left" chip
         const leftChip = screen.getByText("Left");
         fireEvent.click(leftChip);
@@ -69,6 +68,9 @@ describe("ContactSprayChart", () => {
             screen.queryByLabelText(/1B at Left Field/i),
         ).not.toBeInTheDocument();
         expect(screen.getByLabelText(/2B at Right Field/i)).toBeInTheDocument();
+
+        // Expect active filter badge to be displayed and accessible
+        expect(screen.getByLabelText("Filters active: 1")).toBeInTheDocument();
     });
 
     it("renders legend labels and stats correctly", () => {

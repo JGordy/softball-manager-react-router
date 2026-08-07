@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 
 import {
     Badge,
@@ -110,13 +110,13 @@ export default function ContactSprayChart({
         (gameFilter !== "ALL" ? 1 : 0) +
         (battingSide !== OVERALL ? 1 : 0);
 
-    const resetFilters = () => {
+    const resetFilters = useCallback(() => {
         setCategoryFilter("ALL");
         setLocationFilter("ALL");
         setBattingSide(OVERALL);
         setPlayerFilter("ALL");
         setGameFilter("ALL");
-    };
+    }, []);
 
     const filteredHits = useMemo(() => {
         return hits
@@ -267,7 +267,13 @@ export default function ContactSprayChart({
                         leftSection={<IconFilter size={14} />}
                         rightSection={
                             activeFilterCount > 0 && (
-                                <Badge size="xs" color="lime" variant="filled">
+                                <Badge
+                                    size="xs"
+                                    color="lime"
+                                    variant="filled"
+                                    aria-label={`Filters active: ${activeFilterCount}`}
+                                    aria-live="polite"
+                                >
                                     {activeFilterCount}
                                 </Badge>
                             )
