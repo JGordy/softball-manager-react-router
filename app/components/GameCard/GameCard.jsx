@@ -132,6 +132,7 @@ export default function GameCard({
     timeZone,
     primaryColor,
     eventType = "game",
+    mb = "md",
 }) {
     const isPractice = eventType === "practice";
     const formattedHeader = isPractice
@@ -161,7 +162,7 @@ export default function GameCard({
             to={`/events/${$id}`}
             style={{ textDecoration: "none", color: "inherit" }}
         >
-            <Card className="game-card" radius="md" p="xs">
+            <Card className="game-card" mb={mb} radius="md" p="xs">
                 <Flex align="stretch" gap="xs">
                     {/* Left Column: Team Branding & Date Inset */}
                     <Stack

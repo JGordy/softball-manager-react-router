@@ -54,6 +54,7 @@ export default function GamesList({
                 <GameCard
                     key={game.$id}
                     primaryColor={primaryColor}
+                    mb={0}
                     {...game}
                 />
             ))}
