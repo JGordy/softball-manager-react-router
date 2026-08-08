@@ -38,6 +38,7 @@ import GamedayMenu from "./GamedayMenu";
 import AchievementsList from "./AchievementsList";
 import EditPlayDrawer from "./EditPlayDrawer";
 import SelectOpponentBatterDrawer from "./SelectOpponentBatterDrawer";
+import ScoringModeNudgeDrawer from "./ScoringModeNudgeDrawer";
 import ShareUrlButton from "@/components/ShareUrlButton";
 import GameRecapView from "./GameRecapView";
 
@@ -108,6 +109,7 @@ export default function MobileGamedayContainer({
     });
 
     const [tourInitialMode] = useState(opponentScoringMode);
+
     const [sprayChartTeam, setSprayChartTeam] = useState("us");
     const [boxScoreTeam, setBoxScoreTeam] = useState("us");
 
@@ -143,6 +145,26 @@ export default function MobileGamedayContainer({
 
     const isGameFinal =
         game.gameFinal !== undefined ? !!game.gameFinal : gameFinal;
+
+    /**
+     * True only when inning 1 is active, the opponent is at bat, and no
+     * opponent plays have been recorded yet. Once a play is logged the
+     * condition becomes permanently false for this game — no storage needed.
+     */
+    const showScoringNudge = useMemo(() => {
+        if (isGameFinal || !isScorekeeper || isOurBatting || inning !== 1)
+            return false;
+        return (
+            logs.filter((l) => isOpponentPlay(l, game.isHomeGame)).length === 0
+        );
+    }, [
+        isGameFinal,
+        isScorekeeper,
+        isOurBatting,
+        inning,
+        logs,
+        game.isHomeGame,
+    ]);
 
     const [subModalOpened, { open: openSubModal, close: closeSubModal }] =
         useDisclosure(false);
@@ -650,6 +672,13 @@ export default function MobileGamedayContainer({
                 onSelectOpponentBatter={handleSelectOpponentBatter}
                 opponentChart={opponentChart}
             />
+
+            {showScoringNudge && (
+                <ScoringModeNudgeDrawer
+                    opponentScoringMode={opponentScoringMode}
+                    onSwitchMode={toggleOpponentScoringMode}
+                />
+            )}
         </Stack>
     );
 }

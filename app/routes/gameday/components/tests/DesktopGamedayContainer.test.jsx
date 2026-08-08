@@ -12,6 +12,10 @@ jest.mock("../SubPlayerDrawer", () => () => (
     <div data-testid="sub-player-modal" />
 ));
 
+jest.mock("../ScoringModeNudgeDrawer", () => () => (
+    <div data-testid="scoring-mode-nudge-drawer" />
+));
+
 export const mockOnboardingTour = jest.fn(
     ({ tourKey, user, alwaysIncludeTargets }) => {
         const hasCompleted = user?.prefs?.onboardingTours?.[tourKey] === true;
@@ -578,6 +582,141 @@ describe("DesktopGamedayContainer", () => {
             expect(screen.queryByText("ON DEFENSE")).not.toBeInTheDocument();
             expect(screen.getByText("CURRENT BATTER")).toBeInTheDocument();
             expect(screen.getByText("UP NEXT")).toBeInTheDocument();
+        });
+    });
+    describe("ScoringModeNudgeDrawer integration", () => {
+        // Home game setup: opponent bats in top half-inning, we bat in bottom.
+        const homeGame = { ...mockGame, isHomeGame: true };
+        const opponentLog = {
+            $id: "opp1",
+            halfInning: "top",
+            inning: 1,
+            eventType: "strikeout",
+            outsOnPlay: 1,
+            rbi: 0,
+            baseState: "{}",
+        };
+
+        beforeEach(() => {
+            // Put the state in: inning 1, top half (opponent batting for home team)
+            gameStateHook.useGameState.mockReturnValue({
+                inning: 1,
+                halfInning: "top",
+                outs: 0,
+                score: 0,
+                opponentScore: 0,
+                runners: { first: null, second: null, third: null },
+                battingOrderIndex: 0,
+            });
+        });
+
+        it("renders the nudge drawer when inning 1, opponent batting, no opponent logs, and isScorekeeper", () => {
+            render(
+                <DesktopGamedayContainer
+                    game={homeGame}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    isScorekeeper={true}
+                />,
+            );
+            expect(
+                screen.getByTestId("scoring-mode-nudge-drawer"),
+            ).toBeInTheDocument();
+        });
+
+        it("does not render the nudge drawer when the game is final", () => {
+            render(
+                <DesktopGamedayContainer
+                    game={homeGame}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    isScorekeeper={true}
+                    gameFinal={true}
+                />,
+            );
+            expect(
+                screen.queryByTestId("scoring-mode-nudge-drawer"),
+            ).not.toBeInTheDocument();
+        });
+
+        it("does not render the nudge drawer when our team is batting", () => {
+            gameStateHook.useGameState.mockReturnValue({
+                inning: 1,
+                halfInning: "bottom", // bottom = our batting for home team
+                outs: 0,
+                score: 0,
+                opponentScore: 0,
+                runners: { first: null, second: null, third: null },
+                battingOrderIndex: 0,
+            });
+            render(
+                <DesktopGamedayContainer
+                    game={homeGame}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    isScorekeeper={true}
+                />,
+            );
+            expect(
+                screen.queryByTestId("scoring-mode-nudge-drawer"),
+            ).not.toBeInTheDocument();
+        });
+
+        it("does not render the nudge drawer when it is not inning 1", () => {
+            gameStateHook.useGameState.mockReturnValue({
+                inning: 2,
+                halfInning: "top",
+                outs: 0,
+                score: 0,
+                opponentScore: 0,
+                runners: { first: null, second: null, third: null },
+                battingOrderIndex: 0,
+            });
+            render(
+                <DesktopGamedayContainer
+                    game={homeGame}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    isScorekeeper={true}
+                />,
+            );
+            expect(
+                screen.queryByTestId("scoring-mode-nudge-drawer"),
+            ).not.toBeInTheDocument();
+        });
+
+        it("does not render the nudge drawer when opponent logs already exist", () => {
+            render(
+                <DesktopGamedayContainer
+                    game={homeGame}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={[opponentLog]}
+                    isScorekeeper={true}
+                />,
+            );
+            expect(
+                screen.queryByTestId("scoring-mode-nudge-drawer"),
+            ).not.toBeInTheDocument();
+        });
+
+        it("does not render the nudge drawer for non-scorekeepers", () => {
+            render(
+                <DesktopGamedayContainer
+                    game={homeGame}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    isScorekeeper={false}
+                />,
+            );
+            expect(
+                screen.queryByTestId("scoring-mode-nudge-drawer"),
+            ).not.toBeInTheDocument();
         });
     });
 });
