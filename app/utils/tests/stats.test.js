@@ -3,7 +3,11 @@ import {
     calculateTeamTotals,
     calculatePlayerStats,
     calculateSeasonRadarMetrics,
-    PLATFORM_BENCHMARKS,
+    calculatePlayerRadarMetrics,
+    calculatePlatformBenchmarks,
+    applyLogToAggregate,
+    applyLogToPlatformBenchmark,
+    PLAYER_PLATFORM_BENCHMARKS,
 } from "../stats";
 
 describe("calculateGameStats", () => {
@@ -995,7 +999,122 @@ describe("calculateSeasonRadarMetrics", () => {
     });
 
     it("should include platform benchmark defaults", () => {
-        expect(PLATFORM_BENCHMARKS).toBeDefined();
-        expect(PLATFORM_BENCHMARKS.RPG).toBeGreaterThan(0);
+        expect(PLAYER_PLATFORM_BENCHMARKS).toBeDefined();
+        expect(PLAYER_PLATFORM_BENCHMARKS.RPG).toBeGreaterThan(0);
+    });
+});
+
+describe("calculatePlayerRadarMetrics", () => {
+    const mockOverallStats = {
+        hits: 30,
+        ab: 41,
+        rbi: 25,
+        runs: 20,
+        calculated: {
+            avg: ".732",
+            slg: "1.268",
+            ops: "1.995",
+        },
+    };
+
+    it("should calculate raw per-game metrics and 0-100 radar scores correctly", () => {
+        const result = calculatePlayerRadarMetrics({
+            overallStats: mockOverallStats,
+            gameCountWithLogs: 10,
+        });
+
+        expect(result.gameCountWithLogs).toBe(10);
+        expect(result.raw.HPG).toBe("3.00"); // 30 / 10
+        expect(result.raw.RBIPG).toBe("2.50"); // 25 / 10
+        expect(result.raw.RPG).toBe("2.00"); // 20 / 10
+        expect(result.raw.AVG).toBe(".732");
+        expect(result.raw.SLG).toBe("1.268");
+        expect(result.raw.OPS).toBe("1.995");
+
+        expect(result.radarData.length).toBe(6);
+        const hpgItem = result.radarData.find((item) => item.metric === "HPG");
+        expect(hpgItem.playerRaw).toBe("3.00");
+        expect(hpgItem.playerScore).toBe(75); // (3.0 / 4.0) * 100
+    });
+
+    it("should handle empty or zero game count gracefully", () => {
+        const result = calculatePlayerRadarMetrics({
+            overallStats: null,
+            gameCountWithLogs: 0,
+        });
+
+        expect(result.radarData).toEqual([]);
+        expect(result.raw.HPG).toBe("0.00");
+    });
+});
+
+describe("calculatePlatformBenchmarks", () => {
+    it("should calculate dynamic benchmarks from platform game logs", () => {
+        const mockLogs = [
+            { playerId: "p1", gameId: "g1", eventType: "single", rbi: 1 },
+            { playerId: "p1", gameId: "g1", eventType: "double", rbi: 2 },
+            { playerId: "p1", gameId: "g2", eventType: "out", rbi: 0 },
+            { playerId: "p1", gameId: "g2", eventType: "homerun", rbi: 3 },
+        ];
+
+        const benchmarks = calculatePlatformBenchmarks(mockLogs);
+
+        expect(benchmarks.HPG).toBe(1.5); // 3 hits / 2 player-game appearances
+        expect(benchmarks.RBIPG).toBe(3); // 6 rbi / 2 player-game appearances
+        expect(benchmarks.AVG).toBe(0.75); // 3 hits / 4 ab
+    });
+
+    it("should return default benchmarks if logs array is empty", () => {
+        const result = calculatePlatformBenchmarks([]);
+        expect(result).toEqual(PLAYER_PLATFORM_BENCHMARKS);
+    });
+});
+
+describe("applyLogToAggregate and applyLogToPlatformBenchmark", () => {
+    it("should correctly increment user stats aggregate on +1 event and decrement on -1 undo", () => {
+        const initial = { hits: 0, ab: 0, tb: 0, rbi: 0, gameCount: 5 };
+        const singleLog = { playerId: "user1", eventType: "single", rbi: 1 };
+
+        // +1 event
+        const afterAdd = applyLogToAggregate(initial, singleLog, 1);
+        expect(afterAdd.hits).toBe(1);
+        expect(afterAdd.ab).toBe(1);
+        expect(afterAdd.tb).toBe(1);
+        expect(afterAdd.rbi).toBe(1);
+        expect(afterAdd.avg).toBe(1.0);
+
+        // -1 undo event
+        const afterUndo = applyLogToAggregate(afterAdd, singleLog, -1);
+        expect(afterUndo.hits).toBe(0);
+        expect(afterUndo.ab).toBe(0);
+        expect(afterUndo.tb).toBe(0);
+        expect(afterUndo.rbi).toBe(0);
+        expect(afterUndo.avg).toBe(0);
+    });
+
+    it("should correctly increment and decrement platform benchmarks on +1 and -1", () => {
+        const initial = {
+            totalHits: 10,
+            totalAB: 20,
+            totalTB: 30,
+            totalRBIs: 15,
+            totalRuns: 10,
+            totalPlayerGames: 10,
+        };
+        const doubleLog = { playerId: "user1", eventType: "double", rbi: 2 };
+
+        // +1 event
+        const afterAdd = applyLogToPlatformBenchmark(initial, doubleLog, 1);
+        expect(afterAdd.totalHits).toBe(11);
+        expect(afterAdd.totalAB).toBe(21);
+        expect(afterAdd.totalTB).toBe(32);
+        expect(afterAdd.totalRBIs).toBe(17);
+
+        // -1 undo event
+        const afterUndo = applyLogToPlatformBenchmark(afterAdd, doubleLog, -1);
+        expect(afterUndo.totalHits).toBe(10);
+        expect(afterUndo.totalAB).toBe(20);
+        expect(afterUndo.totalTB).toBe(30);
+        expect(afterUndo.totalRBIs).toBe(15);
     });
 });

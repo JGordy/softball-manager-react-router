@@ -25,8 +25,13 @@ jest.mock("@/components/ContactSprayChart", () => ({
 jest.mock(
     "@/components/DrawerContainer",
     () =>
-        ({ children, opened }) =>
-            opened ? <div data-testid="drawer">{children}</div> : null,
+        ({ children, opened, title }) =>
+            opened ? (
+                <div data-testid="drawer">
+                    {title && <div>{title}</div>}
+                    {children}
+                </div>
+            ) : null,
 );
 
 jest.mock("../stats/StatsDetailDrawer", () => () => (
@@ -93,14 +98,26 @@ describe("PlayerStats Component", () => {
         render(<PlayerStats statsPromise={mockStatsData} />);
 
         expect(screen.getByText(/Last 1 Games/i)).toBeInTheDocument();
-        expect(screen.getByText("AVG")).toBeInTheDocument();
-        expect(screen.getByText("View Spray Chart")).toBeInTheDocument();
+        expect(screen.getAllByText("AVG").length).toBeGreaterThan(0);
+        expect(screen.getByText("Radar Chart")).toBeInTheDocument();
+        expect(screen.getByText("Spray Chart")).toBeInTheDocument();
+    });
+
+    it("opens performance radar drawer when button is clicked", () => {
+        render(<PlayerStats statsPromise={mockStatsData} />);
+
+        const radarButton = screen.getByText("Radar Chart");
+        fireEvent.click(radarButton);
+
+        expect(
+            screen.getByText("Hitting Performance Radar"),
+        ).toBeInTheDocument();
     });
 
     it("opens spray chart drawer when button is clicked", () => {
         render(<PlayerStats statsPromise={mockStatsData} />);
 
-        const sprayButton = screen.getByText("View Spray Chart");
+        const sprayButton = screen.getByText("Spray Chart");
         fireEvent.click(sprayButton);
 
         expect(screen.getByTestId("spray-chart")).toBeInTheDocument();
@@ -122,7 +139,7 @@ describe("PlayerStats Component", () => {
         };
         render(<PlayerStats statsPromise={complexData} />);
 
-        const sprayButton = screen.getByText("View Spray Chart");
+        const sprayButton = screen.getByText("Spray Chart");
         fireEvent.click(sprayButton);
 
         // Ensure ContactSprayChart was called

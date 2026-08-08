@@ -11,7 +11,7 @@ import {
     Table,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { IconMap2 } from "@tabler/icons-react";
+import { IconMap2, IconRadar } from "@tabler/icons-react";
 
 import DeferredLoader from "@/components/DeferredLoader";
 import ContactSprayChart from "@/components/ContactSprayChart";
@@ -21,10 +21,13 @@ import { calculatePlayerStats } from "@/utils/stats";
 
 import GameStatsCard from "./stats/GameStatsCard";
 import StatsDetailDrawer from "./stats/StatsDetailDrawer";
+import PlayerRadarChart from "./stats/PlayerRadarChart";
 
 export default function PlayerStats({ statsPromise, isDesktop }) {
     const [opened, { open, close }] = useDisclosure(false);
     const [sprayOpened, { open: openSpray, close: closeSpray }] =
+        useDisclosure(false);
+    const [radarOpened, { open: openRadar, close: closeRadar }] =
         useDisclosure(false);
     const [selectedGame, setSelectedGame] = useState(null);
 
@@ -89,6 +92,7 @@ export default function PlayerStats({ statsPromise, isDesktop }) {
                     logs = [],
                     games = [],
                     teams = [],
+                    platformBenchmarks,
                 } = data || {};
 
                 if (!logs.length) {
@@ -234,15 +238,23 @@ export default function PlayerStats({ statsPromise, isDesktop }) {
                                     </Table.Tr>
                                 </Table.Tbody>
                             </Table>
-                            <Button
-                                leftSection={<IconMap2 size={16} />}
-                                variant="light"
-                                onClick={openSpray}
-                                mt="xs"
-                                fullWidth
-                            >
-                                View Spray Chart
-                            </Button>
+                            <Group grow mt="xs">
+                                <Button
+                                    leftSection={<IconRadar size={16} />}
+                                    variant="light"
+                                    color="lime"
+                                    onClick={openRadar}
+                                >
+                                    Radar Chart
+                                </Button>
+                                <Button
+                                    leftSection={<IconMap2 size={16} />}
+                                    variant="light"
+                                    onClick={openSpray}
+                                >
+                                    Spray Chart
+                                </Button>
+                            </Group>
                         </Paper>
 
                         {recentGameIds.map((gameId) => {
@@ -271,6 +283,19 @@ export default function PlayerStats({ statsPromise, isDesktop }) {
                             logs={selectedGame?.logs}
                             userId={userId}
                         />
+
+                        <DrawerContainer
+                            opened={radarOpened}
+                            onClose={closeRadar}
+                            title="Hitting Performance Radar"
+                            size={isDesktop ? "md" : "xl"}
+                        >
+                            <PlayerRadarChart
+                                overallStats={overallStats}
+                                gameCountWithLogs={recentGameIds.length}
+                                platformBenchmarks={platformBenchmarks}
+                            />
+                        </DrawerContainer>
 
                         <DrawerContainer
                             opened={sprayOpened}
