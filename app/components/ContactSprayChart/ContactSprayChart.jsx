@@ -287,7 +287,7 @@ export default function ContactSprayChart({
                 <DrawerContainer
                     opened={opened}
                     onClose={toggle}
-                    size="auto"
+                    size="xl"
                     title={
                         <Group gap="xs">
                             <IconFilter size={18} />
