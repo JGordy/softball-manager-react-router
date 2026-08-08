@@ -18,6 +18,12 @@ export const collections = {
     achievements: process.env.APPWRITE_ACHIEVEMENTS_COLLECTION_ID,
     user_achievements: process.env.APPWRITE_USER_ACHIEVEMENTS_COLLECTION_ID,
     season_rosters: process.env.APPWRITE_SEASON_ROSTERS_COLLECTION_ID,
+    user_stats_summary:
+        process.env.APPWRITE_USER_STATS_SUMMARY_COLLECTION_ID ||
+        "user_stats_summary",
+    platform_benchmarks:
+        process.env.APPWRITE_PLATFORM_BENCHMARKS_COLLECTION_ID ||
+        "platform_benchmarks",
 };
 
 // Helper function to create a document
@@ -99,7 +105,9 @@ export const readDocument = async (
         });
         return response;
     } catch (error) {
-        console.error(`Error reading ${collectionType} document:`, error);
+        if (error?.code !== 404) {
+            console.error(`Error reading ${collectionType} document:`, error);
+        }
         throw error;
     }
 };

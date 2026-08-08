@@ -1,5 +1,5 @@
-import { HITS, WALKS, OUTS, EVENT_TYPE_MAP } from "@/constants/scoring";
-import { isOpponentPlay } from "@/routes/gameday/utils/gamedayUtils";
+import { HITS, WALKS, OUTS, EVENT_TYPE_MAP } from "../constants/scoring.js";
+import { isOpponentPlay } from "../routes/gameday/utils/gamedayUtils.js";
 
 const formatStat = (val) => val.replace(/^0/, "");
 
@@ -566,5 +566,776 @@ export function calculateSeasonRadarMetrics({
             NetDiff: relNetDiff,
             Defense: relDef,
         },
+    };
+}
+
+/**
+ * Default platform hitter benchmark statistics.
+ */
+export const PLAYER_PLATFORM_BENCHMARKS = {
+    HPG: 1.68,
+    RBIPG: 1.21,
+    RPG: 1.14,
+    AVG: 0.438,
+    SLG: 0.627,
+    OPS: 1.082,
+};
+
+/**
+ * Calculate dynamic platform hitter benchmarks from a sample of platform game logs.
+ *
+ * @param {Array<Object>} logs - Array of game logs across the platform
+ * @returns {Object} Hitter benchmark stats (HPG, RBIPG, RPG, AVG, SLG, OPS)
+ */
+export function calculatePlatformBenchmarks(logs = []) {
+    if (!Array.isArray(logs) || logs.length === 0) {
+        return PLAYER_PLATFORM_BENCHMARKS;
+    }
+
+    const hittingLogs = logs.filter((log) => {
+        const type = (log.eventType || "").toUpperCase();
+        return (
+            type &&
+            type !== "SUB" &&
+            type !== "INJURY_AUTO_OUT" &&
+            type !== "INJURY_REMOVE"
+        );
+    });
+
+    if (hittingLogs.length === 0) {
+        return PLAYER_PLATFORM_BENCHMARKS;
+    }
+
+    // Group logs by player to calculate total player-game appearances across the platform sample
+    const playerGameMap = {};
+    let hits = 0;
+    let ab = 0;
+    let rbi = 0;
+    let runs = 0;
+    let tb = 0;
+    let bb = 0;
+    let sf = 0;
+    let singles = 0;
+    let doubles = 0;
+    let triples = 0;
+    let hr = 0;
+    let k = 0;
+    let go = 0;
+    let fo = 0;
+    let lo = 0;
+    let po = 0;
+    let e = 0;
+    let fc = 0;
+
+    hittingLogs.forEach((log) => {
+        if (log.playerId && log.gameId) {
+            if (!playerGameMap[log.playerId]) {
+                playerGameMap[log.playerId] = new Set();
+            }
+            playerGameMap[log.playerId].add(log.gameId);
+        }
+
+        const rawType = log.eventType || "";
+        let type = rawType.toLowerCase();
+        if (Object.keys(EVENT_TYPE_MAP).includes(rawType)) {
+            type = EVENT_TYPE_MAP[rawType];
+        }
+
+        switch (type) {
+            case "single":
+            case "1b":
+                hits++;
+                singles++;
+                ab++;
+                tb += 1;
+                break;
+            case "double":
+            case "2b":
+                hits++;
+                doubles++;
+                ab++;
+                tb += 2;
+                break;
+            case "triple":
+            case "3b":
+                hits++;
+                triples++;
+                ab++;
+                tb += 3;
+                break;
+            case "homerun":
+            case "hr":
+                hits++;
+                hr++;
+                ab++;
+                tb += 4;
+                break;
+            case "walk":
+            case "bb":
+                bb++;
+                break;
+            case "strikeout":
+            case "k":
+                ab++;
+                k++;
+                break;
+            case "ground_out":
+                ab++;
+                go++;
+                break;
+            case "fly_out":
+            case "fly_pop":
+                ab++;
+                fo++;
+                break;
+            case "line_out":
+                ab++;
+                lo++;
+                break;
+            case "pop_out":
+                ab++;
+                po++;
+                break;
+            case "error":
+            case "e":
+                ab++;
+                e++;
+                break;
+            case "fielders_choice":
+            case "fc":
+                ab++;
+                fc++;
+                break;
+            case "out":
+                ab++;
+                break;
+            case "sacrifice_fly":
+            case "sf":
+                sf++;
+                break;
+            default:
+                break;
+        }
+
+        rbi += log.rbi || 0;
+
+        if (Array.isArray(log.baseState?.scored)) {
+            runs += log.baseState.scored.length;
+        } else if (typeof log.baseState === "string") {
+            try {
+                const parsed = JSON.parse(log.baseState);
+                if (Array.isArray(parsed.scored)) runs += parsed.scored.length;
+            } catch (_e) {
+                // Ignore parse errors
+            }
+        }
+    });
+
+    const totalPlayerGames =
+        Object.values(playerGameMap).reduce((sum, set) => sum + set.size, 0) ||
+        1;
+
+    const hpg = hits / totalPlayerGames;
+    const rbipg = rbi / totalPlayerGames;
+    const rpg = runs / totalPlayerGames;
+    const avg = ab > 0 ? hits / ab : 0.438;
+    const obp = ab + bb + sf > 0 ? (hits + bb) / (ab + bb + sf) : 0.45;
+    const slg = ab > 0 ? tb / ab : 0.627;
+    const ops = obp + slg;
+
+    return {
+        totalHits: hits,
+        totalAB: ab,
+        totalTB: tb,
+        totalRBIs: rbi,
+        totalRuns: runs,
+        totalPlayerGames,
+        totalSingles: singles,
+        totalDoubles: doubles,
+        totalTriples: triples,
+        totalHR: hr,
+        totalBB: bb,
+        totalK: k,
+        totalSF: sf,
+        totalGO: go,
+        totalFO: fo,
+        totalLO: lo,
+        totalPO: po,
+        totalE: e,
+        totalFC: fc,
+        HPG: parseFloat(hpg.toFixed(2)),
+        RBIPG: parseFloat(rbipg.toFixed(2)),
+        RPG: parseFloat(rpg.toFixed(2)),
+        AVG: parseFloat(avg.toFixed(3)),
+        SLG: parseFloat(slg.toFixed(3)),
+        OPS: parseFloat(ops.toFixed(3)),
+    };
+}
+
+/**
+ * Apply a play log event or undo action to a user_stats_summary document payload.
+ *
+ * @param {Object} currentDoc - Existing aggregate document data (or empty initial object)
+ * @param {Object} log - Play log document/event
+ * @param {number} [direction=1] - +1 for adding an event, -1 for undoing an event
+ * @returns {Object} Updated aggregate data payload
+ */
+export function applyLogToAggregate(currentDoc = {}, log = {}, direction = 1) {
+    const dir = direction >= 0 ? 1 : -1;
+    const rawType = log.eventType || "";
+    let type = rawType.toLowerCase();
+    if (Object.keys(EVENT_TYPE_MAP).includes(rawType)) {
+        type = EVENT_TYPE_MAP[rawType];
+    }
+
+    let hitsDelta = 0;
+    let abDelta = 0;
+    let tbDelta = 0;
+    let bbDelta = 0;
+    let sfDelta = 0;
+    let kDelta = 0;
+    let singleDelta = 0;
+    let doubleDelta = 0;
+    let tripleDelta = 0;
+    let hrDelta = 0;
+    let goDelta = 0;
+    let foDelta = 0;
+    let loDelta = 0;
+    let poDelta = 0;
+    let eDelta = 0;
+    let fcDelta = 0;
+
+    switch (type) {
+        case "single":
+        case "1b":
+            hitsDelta = 1;
+            abDelta = 1;
+            tbDelta = 1;
+            singleDelta = 1;
+            break;
+        case "double":
+        case "2b":
+            hitsDelta = 1;
+            abDelta = 1;
+            tbDelta = 2;
+            doubleDelta = 1;
+            break;
+        case "triple":
+        case "3b":
+            hitsDelta = 1;
+            abDelta = 1;
+            tbDelta = 3;
+            tripleDelta = 1;
+            break;
+        case "homerun":
+        case "hr":
+            hitsDelta = 1;
+            abDelta = 1;
+            tbDelta = 4;
+            hrDelta = 1;
+            break;
+        case "walk":
+        case "bb":
+            bbDelta = 1;
+            break;
+        case "strikeout":
+        case "k":
+            abDelta = 1;
+            kDelta = 1;
+            break;
+        case "ground_out":
+            abDelta = 1;
+            goDelta = 1;
+            break;
+        case "fly_out":
+        case "fly_pop":
+            abDelta = 1;
+            foDelta = 1;
+            break;
+        case "line_out":
+            abDelta = 1;
+            loDelta = 1;
+            break;
+        case "pop_out":
+            abDelta = 1;
+            poDelta = 1;
+            break;
+        case "error":
+        case "e":
+            abDelta = 1;
+            eDelta = 1;
+            break;
+        case "fielders_choice":
+        case "fc":
+            abDelta = 1;
+            fcDelta = 1;
+            break;
+        case "out":
+            abDelta = 1;
+            break;
+        case "sacrifice_fly":
+        case "sf":
+            sfDelta = 1;
+            break;
+        default:
+            break;
+    }
+
+    let runsDelta = 0;
+    if (Array.isArray(log.baseState?.scored)) {
+        runsDelta = log.baseState.scored.length;
+    } else if (typeof log.baseState === "string") {
+        try {
+            const parsed = JSON.parse(log.baseState);
+            if (Array.isArray(parsed.scored)) runsDelta = parsed.scored.length;
+        } catch (_e) {
+            // Ignore
+        }
+    }
+
+    const rbiDelta = log.rbi || 0;
+
+    const newHits = Math.max(0, (currentDoc.hits || 0) + hitsDelta * dir);
+    const newAB = Math.max(0, (currentDoc.ab || 0) + abDelta * dir);
+    const newTB = Math.max(0, (currentDoc.tb || 0) + tbDelta * dir);
+    const newBB = Math.max(0, (currentDoc.walks || 0) + bbDelta * dir);
+    const newSF = Math.max(0, (currentDoc.sf || 0) + sfDelta * dir);
+    const newK = Math.max(0, (currentDoc.strikeouts || 0) + kDelta * dir);
+    const newSingles = Math.max(
+        0,
+        (currentDoc.singles || 0) + singleDelta * dir,
+    );
+    const newDoubles = Math.max(
+        0,
+        (currentDoc.doubles || 0) + doubleDelta * dir,
+    );
+    const newTriples = Math.max(
+        0,
+        (currentDoc.triples || 0) + tripleDelta * dir,
+    );
+    const newHR = Math.max(0, (currentDoc.homeruns || 0) + hrDelta * dir);
+    const newGO = Math.max(0, (currentDoc.groundOuts || 0) + goDelta * dir);
+    const newFO = Math.max(0, (currentDoc.flyOuts || 0) + foDelta * dir);
+    const newLO = Math.max(0, (currentDoc.lineOuts || 0) + loDelta * dir);
+    const newPO = Math.max(0, (currentDoc.popOuts || 0) + poDelta * dir);
+    const newE = Math.max(0, (currentDoc.errors || 0) + eDelta * dir);
+    const newFC = Math.max(0, (currentDoc.fieldersChoice || 0) + fcDelta * dir);
+    const newRBI = Math.max(0, (currentDoc.rbi || 0) + rbiDelta * dir);
+    const newRuns = Math.max(0, (currentDoc.runs || 0) + runsDelta * dir);
+    const gameCount = currentDoc.gameCount || 0;
+
+    const avg = newAB > 0 ? newHits / newAB : 0;
+    const obp =
+        newAB + newBB + newSF > 0
+            ? (newHits + newBB) / (newAB + newBB + newSF)
+            : 0;
+    const slg = newAB > 0 ? newTB / newAB : 0;
+    const ops = obp + slg;
+
+    return {
+        ...currentDoc,
+        userId: log.playerId || currentDoc.userId,
+        hits: newHits,
+        ab: newAB,
+        tb: newTB,
+        walks: newBB,
+        sf: newSF,
+        strikeouts: newK,
+        singles: newSingles,
+        doubles: newDoubles,
+        triples: newTriples,
+        homeruns: newHR,
+        groundOuts: newGO,
+        flyOuts: newFO,
+        lineOuts: newLO,
+        popOuts: newPO,
+        errors: newE,
+        fieldersChoice: newFC,
+        rbi: newRBI,
+        runs: newRuns,
+        gameCount,
+        avg: parseFloat(avg.toFixed(3)),
+        slg: parseFloat(slg.toFixed(3)),
+        ops: parseFloat(ops.toFixed(3)),
+    };
+}
+
+/**
+ * Apply a play log event or undo action to a platform_benchmarks document payload.
+ *
+ * @param {Object} currentBench - Existing platform benchmark document data (or empty initial object)
+ * @param {Object} log - Play log document/event
+ * @param {number} [direction=1] - +1 for adding an event, -1 for undoing an event
+ * @returns {Object} Updated platform benchmark payload
+ */
+export function applyLogToPlatformBenchmark(
+    currentBench = {},
+    log = {},
+    direction = 1,
+) {
+    const dir = direction >= 0 ? 1 : -1;
+    const rawType = log.eventType || "";
+    let type = rawType.toLowerCase();
+    if (Object.keys(EVENT_TYPE_MAP).includes(rawType)) {
+        type = EVENT_TYPE_MAP[rawType];
+    }
+
+    let hitsDelta = 0;
+    let abDelta = 0;
+    let tbDelta = 0;
+    let bbDelta = 0;
+    let sfDelta = 0;
+    let kDelta = 0;
+    let singleDelta = 0;
+    let doubleDelta = 0;
+    let tripleDelta = 0;
+    let hrDelta = 0;
+    let goDelta = 0;
+    let foDelta = 0;
+    let loDelta = 0;
+    let poDelta = 0;
+    let eDelta = 0;
+    let fcDelta = 0;
+
+    switch (type) {
+        case "single":
+        case "1b":
+            hitsDelta = 1;
+            abDelta = 1;
+            tbDelta = 1;
+            singleDelta = 1;
+            break;
+        case "double":
+        case "2b":
+            hitsDelta = 1;
+            abDelta = 1;
+            tbDelta = 2;
+            doubleDelta = 1;
+            break;
+        case "triple":
+        case "3b":
+            hitsDelta = 1;
+            abDelta = 1;
+            tbDelta = 3;
+            tripleDelta = 1;
+            break;
+        case "homerun":
+        case "hr":
+            hitsDelta = 1;
+            abDelta = 1;
+            tbDelta = 4;
+            hrDelta = 1;
+            break;
+        case "walk":
+        case "bb":
+            bbDelta = 1;
+            break;
+        case "strikeout":
+        case "k":
+            abDelta = 1;
+            kDelta = 1;
+            break;
+        case "ground_out":
+            abDelta = 1;
+            goDelta = 1;
+            break;
+        case "fly_out":
+        case "fly_pop":
+            abDelta = 1;
+            foDelta = 1;
+            break;
+        case "line_out":
+            abDelta = 1;
+            loDelta = 1;
+            break;
+        case "pop_out":
+            abDelta = 1;
+            poDelta = 1;
+            break;
+        case "error":
+        case "e":
+            abDelta = 1;
+            eDelta = 1;
+            break;
+        case "fielders_choice":
+        case "fc":
+            abDelta = 1;
+            fcDelta = 1;
+            break;
+        case "out":
+            abDelta = 1;
+            break;
+        case "sacrifice_fly":
+        case "sf":
+            sfDelta = 1;
+            break;
+        default:
+            break;
+    }
+
+    let runsDelta = 0;
+    if (Array.isArray(log.baseState?.scored)) {
+        runsDelta = log.baseState.scored.length;
+    } else if (typeof log.baseState === "string") {
+        try {
+            const parsed = JSON.parse(log.baseState);
+            if (Array.isArray(parsed.scored)) runsDelta = parsed.scored.length;
+        } catch (_e) {
+            // Ignore
+        }
+    }
+
+    const rbiDelta = log.rbi || 0;
+
+    const totalHits = Math.max(
+        0,
+        (currentBench.totalHits || 0) + hitsDelta * dir,
+    );
+    const totalAB = Math.max(0, (currentBench.totalAB || 0) + abDelta * dir);
+    const totalTB = Math.max(0, (currentBench.totalTB || 0) + tbDelta * dir);
+    const totalBB = Math.max(0, (currentBench.totalBB || 0) + bbDelta * dir);
+    const totalSF = Math.max(0, (currentBench.totalSF || 0) + sfDelta * dir);
+    const totalK = Math.max(0, (currentBench.totalK || 0) + kDelta * dir);
+    const totalSingles = Math.max(
+        0,
+        (currentBench.totalSingles || 0) + singleDelta * dir,
+    );
+    const totalDoubles = Math.max(
+        0,
+        (currentBench.totalDoubles || 0) + doubleDelta * dir,
+    );
+    const totalTriples = Math.max(
+        0,
+        (currentBench.totalTriples || 0) + tripleDelta * dir,
+    );
+    const totalHR = Math.max(0, (currentBench.totalHR || 0) + hrDelta * dir);
+    const totalGO = Math.max(0, (currentBench.totalGO || 0) + goDelta * dir);
+    const totalFO = Math.max(0, (currentBench.totalFO || 0) + foDelta * dir);
+    const totalLO = Math.max(0, (currentBench.totalLO || 0) + loDelta * dir);
+    const totalPO = Math.max(0, (currentBench.totalPO || 0) + poDelta * dir);
+    const totalE = Math.max(0, (currentBench.totalE || 0) + eDelta * dir);
+    const totalFC = Math.max(0, (currentBench.totalFC || 0) + fcDelta * dir);
+    const totalRBIs = Math.max(
+        0,
+        (currentBench.totalRBIs || 0) + rbiDelta * dir,
+    );
+    const totalRuns = Math.max(
+        0,
+        (currentBench.totalRuns || 0) + runsDelta * dir,
+    );
+    const totalPlayerGames = Math.max(1, currentBench.totalPlayerGames || 1);
+
+    const hpg = totalHits / totalPlayerGames;
+    const rbipg = totalRBIs / totalPlayerGames;
+    const rpg = totalRuns / totalPlayerGames;
+    const avg = totalAB > 0 ? totalHits / totalAB : 0.438;
+    const obp =
+        totalAB + totalBB + totalSF > 0
+            ? (totalHits + totalBB) / (totalAB + totalBB + totalSF)
+            : 0.45;
+    const slg = totalAB > 0 ? totalTB / totalAB : 0.627;
+    const ops = obp + slg;
+
+    return {
+        ...currentBench,
+        totalHits,
+        totalAB,
+        totalTB,
+        totalBB,
+        totalSF,
+        totalK,
+        totalSingles,
+        totalDoubles,
+        totalTriples,
+        totalHR,
+        totalGO,
+        totalFO,
+        totalLO,
+        totalPO,
+        totalE,
+        totalFC,
+        totalRBIs,
+        totalRuns,
+        totalPlayerGames,
+        HPG: parseFloat(hpg.toFixed(2)),
+        RBIPG: parseFloat(rbipg.toFixed(2)),
+        RPG: parseFloat(rpg.toFixed(2)),
+        AVG: parseFloat(avg.toFixed(3)),
+        SLG: parseFloat(slg.toFixed(3)),
+        OPS: parseFloat(ops.toFixed(3)),
+    };
+}
+
+/**
+ * Calculate normalized player hitting metrics (0-100 scale) and raw values for the Player Performance Radar Chart.
+ *
+ * @param {Object} params - Input parameters
+ * @param {Object} params.overallStats - Calculated player stats from calculatePlayerStats
+ * @param {number} params.gameCountWithLogs - Count of unique games with detailed logs for the player
+ * @param {Object} [params.platformBenchmarks] - Platform hitter benchmark averages
+ * @returns {Object} Calculated raw values, radar data array, and platform baseline
+ */
+export function calculatePlayerRadarMetrics({
+    overallStats,
+    gameCountWithLogs = 0,
+    platformBenchmarks = PLAYER_PLATFORM_BENCHMARKS,
+}) {
+    if (!overallStats || gameCountWithLogs <= 0) {
+        return {
+            radarData: [],
+            raw: {
+                HPG: "0.00",
+                RBIPG: "0.00",
+                RPG: "0.00",
+                AVG: ".000",
+                SLG: ".000",
+                OPS: ".000",
+            },
+            platformRaw: {
+                HPG: "1.68",
+                RBIPG: "1.21",
+                RPG: "1.14",
+                AVG: ".438",
+                SLG: ".627",
+                OPS: "1.082",
+            },
+        };
+    }
+
+    const hits = overallStats.hits || 0;
+    const rbi = overallStats.rbi || 0;
+    const runs = overallStats.runs || 0;
+
+    const hpg = hits / gameCountWithLogs;
+    const rbipg = rbi / gameCountWithLogs;
+    const rpg = runs / gameCountWithLogs;
+
+    const avgVal = parseFloat(overallStats.calculated?.avg || "0");
+    const slgVal = parseFloat(overallStats.calculated?.slg || "0");
+    const opsVal = parseFloat(overallStats.calculated?.ops || "0");
+
+    // Platform benchmark values
+    const pHpg = platformBenchmarks.HPG ?? 1.68;
+    const pRbipg = platformBenchmarks.RBIPG ?? 1.21;
+    const pRpg = platformBenchmarks.RPG ?? 1.14;
+    const pAvg = platformBenchmarks.AVG ?? 0.438;
+    const pSlg = platformBenchmarks.SLG ?? 0.627;
+    const pOps = platformBenchmarks.OPS ?? 1.082;
+
+    // Scale mapping to 0-100 range
+    const normPlayerHPG = Math.min(
+        100,
+        Math.max(0, Math.round((hpg / 4.0) * 100)),
+    );
+    const normPlayerRBIPG = Math.min(
+        100,
+        Math.max(0, Math.round((rbipg / 3.5) * 100)),
+    );
+    const normPlayerRPG = Math.min(
+        100,
+        Math.max(0, Math.round((rpg / 3.5) * 100)),
+    );
+    const normPlayerAVG = Math.min(100, Math.max(0, Math.round(avgVal * 100)));
+    const normPlayerSLG = Math.min(
+        100,
+        Math.max(0, Math.round((slgVal / 2.0) * 100)),
+    );
+    const normPlayerOPS = Math.min(
+        100,
+        Math.max(0, Math.round((opsVal / 3.0) * 100)),
+    );
+
+    const normPlatformHPG = Math.min(
+        100,
+        Math.max(0, Math.round((pHpg / 4.0) * 100)),
+    );
+    const normPlatformRBIPG = Math.min(
+        100,
+        Math.max(0, Math.round((pRbipg / 3.5) * 100)),
+    );
+    const normPlatformRPG = Math.min(
+        100,
+        Math.max(0, Math.round((pRpg / 3.5) * 100)),
+    );
+    const normPlatformAVG = Math.min(100, Math.max(0, Math.round(pAvg * 100)));
+    const normPlatformSLG = Math.min(
+        100,
+        Math.max(0, Math.round((pSlg / 2.0) * 100)),
+    );
+    const normPlatformOPS = Math.min(
+        100,
+        Math.max(0, Math.round((pOps / 3.0) * 100)),
+    );
+
+    const radarData = [
+        {
+            metric: "HPG",
+            fullMetric: "Hits / Gm",
+            playerScore: normPlayerHPG,
+            platformScore: normPlatformHPG,
+            playerRaw: hpg.toFixed(2),
+            platformRaw: pHpg.toFixed(2),
+        },
+        {
+            metric: "RBIPG",
+            fullMetric: "RBIs / Gm",
+            playerScore: normPlayerRBIPG,
+            platformScore: normPlatformRBIPG,
+            playerRaw: rbipg.toFixed(2),
+            platformRaw: pRbipg.toFixed(2),
+        },
+        {
+            metric: "RPG",
+            fullMetric: "Runs / Gm",
+            playerScore: normPlayerRPG,
+            platformScore: normPlatformRPG,
+            playerRaw: rpg.toFixed(2),
+            platformRaw: pRpg.toFixed(2),
+        },
+        {
+            metric: "AVG",
+            fullMetric: "Batting AVG",
+            playerScore: normPlayerAVG,
+            platformScore: normPlatformAVG,
+            playerRaw: overallStats.calculated?.avg || ".000",
+            platformRaw: pAvg.toFixed(3).replace(/^0/, ""),
+        },
+        {
+            metric: "SLG",
+            fullMetric: "Slugging",
+            playerScore: normPlayerSLG,
+            platformScore: normPlatformSLG,
+            playerRaw: overallStats.calculated?.slg || ".000",
+            platformRaw: pSlg.toFixed(3).replace(/^0/, ""),
+        },
+        {
+            metric: "OPS",
+            fullMetric: "OPS",
+            playerScore: normPlayerOPS,
+            platformScore: normPlatformOPS,
+            playerRaw: overallStats.calculated?.ops || ".000",
+            platformRaw: pOps.toFixed(3).replace(/^0/, ""),
+        },
+    ];
+
+    return {
+        gameCountWithLogs,
+        raw: {
+            HPG: hpg.toFixed(2),
+            RBIPG: rbipg.toFixed(2),
+            RPG: rpg.toFixed(2),
+            AVG: overallStats.calculated?.avg || ".000",
+            SLG: overallStats.calculated?.slg || ".000",
+            OPS: overallStats.calculated?.ops || ".000",
+        },
+        platformRaw: {
+            HPG: pHpg.toFixed(2),
+            RBIPG: pRbipg.toFixed(2),
+            RPG: pRpg.toFixed(2),
+            AVG: pAvg.toFixed(3).replace(/^0/, ""),
+            SLG: pSlg.toFixed(3).replace(/^0/, ""),
+            OPS: pOps.toFixed(3).replace(/^0/, ""),
+        },
+        radarData,
     };
 }
