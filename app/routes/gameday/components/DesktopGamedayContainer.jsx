@@ -39,6 +39,7 @@ import GamedayMenu from "./GamedayMenu";
 import AchievementsList from "./AchievementsList";
 import EditPlayDrawer from "./EditPlayDrawer";
 import SelectOpponentBatterDrawer from "./SelectOpponentBatterDrawer";
+import ScoringModeNudgeDrawer from "./ScoringModeNudgeDrawer";
 import ShareUrlButton from "@/components/ShareUrlButton";
 import GameRecapView from "./GameRecapView";
 
@@ -118,6 +119,26 @@ export default function DesktopGamedayContainer({
             (!isOurBatting && opponentScoringMode !== "Detailed"));
 
     const [tourInitialMode] = useState(opponentScoringMode);
+
+    /**
+     * True only when inning 1 is active, the opponent is at bat, and no
+     * opponent plays have been recorded yet. Once a play is logged the
+     * condition becomes permanently false for this game — no storage needed.
+     */
+    const showScoringNudge = useMemo(() => {
+        if (isGameFinal || !isScorekeeper || isOurBatting || inning !== 1)
+            return false;
+        return (
+            logs.filter((l) => isOpponentPlay(l, game.isHomeGame)).length === 0
+        );
+    }, [
+        isGameFinal,
+        isScorekeeper,
+        isOurBatting,
+        inning,
+        logs,
+        game.isHomeGame,
+    ]);
 
     const [sprayChartTeam, setSprayChartTeam] = useState("us");
     const [boxScoreTeam, setBoxScoreTeam] = useState("us");
@@ -694,6 +715,13 @@ export default function DesktopGamedayContainer({
                 onSelectOpponentBatter={handleSelectOpponentBatter}
                 opponentChart={opponentChart}
             />
+
+            {showScoringNudge && (
+                <ScoringModeNudgeDrawer
+                    opponentScoringMode={opponentScoringMode}
+                    onSwitchMode={toggleOpponentScoringMode}
+                />
+            )}
         </Stack>
     );
 }
