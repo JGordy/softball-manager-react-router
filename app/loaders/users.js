@@ -1,6 +1,10 @@
 import { Query, Permission, Role } from "node-appwrite";
 import { readDocument, listDocuments, createDocument } from "@/utils/databases";
 import { joinAchievements } from "@/utils/achievements.server";
+import {
+    calculatePlatformBenchmarks,
+    applyLogToAggregate,
+} from "@/utils/stats";
 
 export async function getUserById({ userId, client }) {
     return await readDocument("users", userId, [], client);
@@ -143,7 +147,21 @@ export async function getStatsByUserId({ userId, client }) {
         const logs = logsResponse.rows;
 
         if (logs.length === 0) {
-            return { userId, logs: [], games: [], teams: [] };
+            const currentYear = String(new Date().getFullYear());
+            const platformBenchmarks = await readDocument(
+                "platform_benchmarks",
+                currentYear,
+                [],
+                client,
+            ).catch(() => null);
+            return {
+                userId,
+                logs: [],
+                games: [],
+                teams: [],
+                platformBenchmarks:
+                    platformBenchmarks || calculatePlatformBenchmarks([]),
+            };
         }
 
         // 2. Extract unique game IDs
@@ -191,11 +209,92 @@ export async function getStatsByUserId({ userId, client }) {
             teams.push(...batchResults.filter(Boolean));
         }
 
+        // 6. Fetch persisted platform benchmark document (1ms read) with self-healing fallback
+        const currentYear = String(new Date().getFullYear());
+        let platformBenchmarks = await readDocument(
+            "platform_benchmarks",
+            currentYear,
+            [],
+            client,
+        ).catch(() => null);
+
+        if (!platformBenchmarks) {
+            // Self-healing fallback: calculate once from game_logs and persist to Appwrite
+            const platformLogsResponse = await listDocuments(
+                "game_logs",
+                [Query.orderDesc("$createdAt"), Query.limit(2500)],
+                client,
+            ).catch(() => null);
+
+            platformBenchmarks = calculatePlatformBenchmarks(
+                platformLogsResponse?.rows || [],
+            );
+
+            // Persist the calculated benchmark permanently to Appwrite
+            await createDocument(
+                "platform_benchmarks",
+                currentYear,
+                { year: currentYear, ...platformBenchmarks },
+                [],
+                client,
+            ).catch(() => null);
+        }
+
+        // 7. Fetch or create player's user_stats_summary document (1ms read with self-healing fallback)
+        const userSummaryDocId = `${userId}_${currentYear}`;
+        let userStatsSummary = await readDocument(
+            "user_stats_summary",
+            userSummaryDocId,
+            [],
+            client,
+        ).catch(() => null);
+
+        if (!userStatsSummary && logs.length > 0) {
+            let initialSummary = {
+                userId,
+                year: currentYear,
+                hits: 0,
+                ab: 0,
+                tb: 0,
+                rbi: 0,
+                runs: 0,
+                doubles: 0,
+                triples: 0,
+                homeruns: 0,
+                walks: 0,
+                strikeouts: 0,
+                sf: 0,
+                gameCount: 0,
+                avg: 0,
+                slg: 0,
+                ops: 0,
+            };
+
+            const userAtBats = logs.filter((log) => log.playerId === userId);
+            for (const log of userAtBats) {
+                initialSummary = applyLogToAggregate(initialSummary, log, 1);
+            }
+
+            try {
+                userStatsSummary = await createDocument(
+                    "user_stats_summary",
+                    userSummaryDocId,
+                    initialSummary,
+                    [],
+                    client,
+                );
+            } catch (_e) {
+                userStatsSummary = initialSummary;
+            }
+        }
+
         return {
             userId,
             logs,
             games,
             teams,
+            platformBenchmarks,
+            userStatsSummary,
         };
     } catch (err) {
         console.error("[getStatsByUserId] Error:", err);

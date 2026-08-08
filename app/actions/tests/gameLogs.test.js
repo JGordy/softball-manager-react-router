@@ -226,6 +226,45 @@ describe("gameLogs actions", () => {
             );
         });
 
+        it("should sync user_stats_summary and platform_benchmarks aggregate documents on logGameEvent", async () => {
+            const mockPayload = {
+                gameId: "game123",
+                inning: "1",
+                halfInning: "top",
+                playerId: "player456",
+                eventType: "1B",
+                rbi: 0,
+                outsOnPlay: 0,
+                description: "Single",
+                baseState: { scored: [] },
+            };
+
+            createDocument.mockResolvedValue({ $id: "log790", ...mockPayload });
+            readDocument.mockResolvedValue({
+                $id: "game123",
+                teamId: "team789",
+                score: "0",
+            });
+
+            await logGameEvent({
+                ...mockPayload,
+                client: { mockedClient: true },
+            });
+
+            expect(readDocument).toHaveBeenCalledWith(
+                "user_stats_summary",
+                expect.stringContaining("player456"),
+                [],
+                { mockedClient: true },
+            );
+            expect(readDocument).toHaveBeenCalledWith(
+                "platform_benchmarks",
+                expect.any(String),
+                [],
+                { mockedClient: true },
+            );
+        });
+
         it("should handle errors and rollback transaction when logging fails", async () => {
             const mockPayload = {
                 gameId: "game123",

@@ -14,6 +14,121 @@ import {
 } from "@/utils/databases";
 
 import { EVENT_TYPE_MAP } from "@/constants/scoring";
+import {
+    applyLogToAggregate,
+    applyLogToPlatformBenchmark,
+} from "@/utils/stats";
+
+/**
+ * Safely updates user_stats_summary and platform_benchmarks aggregate documents in Appwrite.
+ * Handles both new events (+1) and undo events (-1).
+ */
+async function syncAggregateDocuments({ logPayload, direction = 1, client }) {
+    if (!logPayload?.playerId) return;
+    const year = String(new Date().getFullYear());
+    const userYearDocId = `${logPayload.playerId}_${year}`;
+    const userMasterDocId = `${logPayload.playerId}_master`;
+    const platformDocId = year;
+
+    // 1. Sync User Yearly Summary
+    try {
+        const userYearDoc = await readDocument(
+            "user_stats_summary",
+            userYearDocId,
+            [],
+            client,
+        ).catch(() => null);
+        const updatedUserYearPayload = applyLogToAggregate(
+            userYearDoc || {},
+            logPayload,
+            direction,
+        );
+        if (userYearDoc) {
+            await updateDocument(
+                "user_stats_summary",
+                userYearDocId,
+                updatedUserYearPayload,
+                client,
+            ).catch(() => null);
+        } else {
+            await createDocument(
+                "user_stats_summary",
+                userYearDocId,
+                updatedUserYearPayload,
+                [],
+                client,
+            ).catch(() => null);
+        }
+    } catch (_e) {
+        // Ignore aggregate sync errors to prevent blocking primary play logging
+    }
+
+    // 2. Sync User Master Summary
+    try {
+        const userMasterDoc = await readDocument(
+            "user_stats_summary",
+            userMasterDocId,
+            [],
+            client,
+        ).catch(() => null);
+        const updatedUserMasterPayload = applyLogToAggregate(
+            userMasterDoc || {},
+            logPayload,
+            direction,
+        );
+        if (userMasterDoc) {
+            await updateDocument(
+                "user_stats_summary",
+                userMasterDocId,
+                updatedUserMasterPayload,
+                client,
+            ).catch(() => null);
+        } else {
+            await createDocument(
+                "user_stats_summary",
+                userMasterDocId,
+                updatedUserMasterPayload,
+                [],
+                client,
+            ).catch(() => null);
+        }
+    } catch (_e) {
+        // Ignore aggregate sync errors
+    }
+
+    // 3. Sync Platform Benchmark
+    try {
+        const platformDoc = await readDocument(
+            "platform_benchmarks",
+            platformDocId,
+            [],
+            client,
+        ).catch(() => null);
+        const updatedPlatformPayload = applyLogToPlatformBenchmark(
+            platformDoc || {},
+            logPayload,
+            direction,
+        );
+        if (platformDoc) {
+            await updateDocument(
+                "platform_benchmarks",
+                platformDocId,
+                updatedPlatformPayload,
+                client,
+            ).catch(() => null);
+        } else {
+            await createDocument(
+                "platform_benchmarks",
+                platformDocId,
+                updatedPlatformPayload,
+                [],
+                client,
+            ).catch(() => null);
+        }
+    } catch (_e) {
+        // Ignore aggregate sync errors
+    }
+}
 
 /**
  * Normalizes optional form fields (e.g. hitX, hitY) that may be "null" strings,
@@ -190,6 +305,8 @@ export const logGameEvent = async ({
             await createOperations(transaction.$id, operations);
             await commitTransaction(transaction.$id);
 
+            await syncAggregateDocuments({ logPayload, direction: 1, client });
+
             return { success: true, log: { $id: logId } };
         } else {
             const response = await createDocument(
@@ -199,6 +316,8 @@ export const logGameEvent = async ({
                 permissions,
                 client,
             );
+
+            await syncAggregateDocuments({ logPayload, direction: 1, client });
 
             return { success: true, log: response };
         }
@@ -281,10 +400,23 @@ export const undoGameEvent = async ({ logId, client }) => {
             await createOperations(transaction.$id, operations);
             await commitTransaction(transaction.$id);
 
+            await syncAggregateDocuments({
+                logPayload: log,
+                direction: -1,
+                client,
+            });
+
             return { success: true, log };
         } else {
             // No score to revert, just delete the log
             await deleteDocument("game_logs", logId, client);
+
+            await syncAggregateDocuments({
+                logPayload: log,
+                direction: -1,
+                client,
+            });
+
             return { success: true, log };
         }
     } catch (error) {

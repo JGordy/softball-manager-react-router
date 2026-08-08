@@ -66,18 +66,39 @@ describe("Users Loader", () => {
                 { $id: "team2", name: "Team B" },
             ];
 
-            // Mock first call (logs)
+            // Mock listDocuments call for user logs
             listDocuments.mockResolvedValueOnce({ rows: mockLogs });
 
-            // Mock individual readDocument calls for games
-            readDocument
-                .mockResolvedValueOnce(mockGames[0])
-                .mockResolvedValueOnce(mockGames[1]);
-
-            // Mock individual readDocument calls for teams
-            readDocument
-                .mockResolvedValueOnce(mockTeams[0])
-                .mockResolvedValueOnce(mockTeams[1]);
+            // Mock readDocument to return appropriate collection documents
+            readDocument.mockImplementation((collection, id) => {
+                if (collection === "platform_benchmarks") {
+                    return Promise.resolve({
+                        HPG: 1.68,
+                        RBIPG: 1.21,
+                        RPG: 1.14,
+                        AVG: 0.438,
+                        SLG: 0.627,
+                        OPS: 1.082,
+                    });
+                }
+                if (collection === "games") {
+                    const game = mockGames.find((g) => g.$id === id);
+                    return Promise.resolve(game || null);
+                }
+                if (collection === "teams") {
+                    const team = mockTeams.find((t) => t.$id === id);
+                    return Promise.resolve(team || null);
+                }
+                if (collection === "user_stats_summary") {
+                    return Promise.resolve({
+                        userId: "user1",
+                        year: "2026",
+                        avg: 0.5,
+                        ops: 1.2,
+                    });
+                }
+                return Promise.resolve(null);
+            });
 
             const result = await getStatsByUserId({
                 userId: "user1",
@@ -87,9 +108,7 @@ describe("Users Loader", () => {
             expect(listDocuments).toHaveBeenCalledWith(
                 "game_logs",
                 expect.arrayContaining([
-                    expect.stringContaining(
-                        'or([equal("playerId", "user1"),contains("scored", "user1")])',
-                    ),
+                    expect.stringContaining('equal("playerId", "user1")'),
                     expect.stringContaining('orderDesc("$createdAt")'),
                     expect.stringContaining("limit(500)"),
                 ]),
@@ -128,6 +147,7 @@ describe("Users Loader", () => {
             expect(result.logs).toEqual(mockLogs);
             expect(result.games).toEqual(mockGames);
             expect(result.teams).toEqual(mockTeams);
+            expect(result.platformBenchmarks).toBeDefined();
         });
 
         it("should handle multi-batch processing for large game sets", async () => {
@@ -141,11 +161,23 @@ describe("Users Loader", () => {
                 teamId: "team1",
             }));
 
-            listDocuments.mockResolvedValueOnce({ rows: manyLogs });
-            manyGames.forEach((game) =>
-                readDocument.mockResolvedValueOnce(game),
-            );
-            readDocument.mockResolvedValue({ $id: "team1", name: "Team 1" });
+            listDocuments
+                .mockResolvedValueOnce({ rows: manyLogs })
+                .mockResolvedValueOnce({ rows: [] });
+
+            readDocument.mockImplementation((collection, id) => {
+                if (collection === "platform_benchmarks") {
+                    return Promise.resolve({ HPG: 1.68, AVG: 0.438 });
+                }
+                if (collection === "games") {
+                    const game = manyGames.find((g) => g.$id === id);
+                    return Promise.resolve(game || null);
+                }
+                if (collection === "teams") {
+                    return Promise.resolve({ $id: "team1", name: "Team 1" });
+                }
+                return Promise.resolve(null);
+            });
 
             const result = await getStatsByUserId({
                 userId: "user1",
@@ -153,12 +185,22 @@ describe("Users Loader", () => {
             });
 
             expect(result.games).toHaveLength(11);
-            // Verify readDocument was called 11 times for games + 1 for team
-            expect(readDocument).toHaveBeenCalledTimes(12);
         });
 
         it("should return empty arrays if no logs found", async () => {
+            listDocuments.mockReset();
+            readDocument.mockReset();
+
             listDocuments.mockResolvedValueOnce({ rows: [] });
+            readDocument.mockImplementation((collection) => {
+                if (collection === "platform_benchmarks") {
+                    return Promise.resolve({ HPG: 1.68, AVG: 0.438 });
+                }
+                if (collection === "user_stats_summary") {
+                    return Promise.resolve({ avg: 0, ops: 0 });
+                }
+                return Promise.resolve(null);
+            });
 
             const result = await getStatsByUserId({
                 userId: "user1",
@@ -166,12 +208,10 @@ describe("Users Loader", () => {
             });
 
             expect(listDocuments).toHaveBeenCalledTimes(1);
-            expect(result).toEqual({
-                userId: "user1",
-                logs: [],
-                games: [],
-                teams: [],
-            });
+            expect(result.logs).toEqual([]);
+            expect(result.games).toEqual([]);
+            expect(result.teams).toEqual([]);
+            expect(result.platformBenchmarks).toBeDefined();
         });
     });
 
