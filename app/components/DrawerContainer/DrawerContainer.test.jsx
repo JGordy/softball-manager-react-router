@@ -1,5 +1,6 @@
 import { screen, fireEvent, cleanup, waitFor } from "@testing-library/react";
 import { render } from "@/utils/test-utils";
+import * as MantineHooks from "@mantine/hooks";
 import DrawerContainer from "./DrawerContainer";
 
 describe("DrawerContainer Component", () => {
@@ -62,5 +63,40 @@ describe("DrawerContainer Component", () => {
         await waitFor(() => {
             expect(handleClose).toHaveBeenCalledTimes(1);
         });
+    });
+
+    it("does not change position mid-open when useMediaQuery re-evaluates (regression: mobile flicker)", async () => {
+        // Simulate starting as mobile (not desktop)
+        let simulatedIsDesktop = false;
+        const useMediaQuerySpy = jest
+            .spyOn(MantineHooks, "useMediaQuery")
+            .mockImplementation(() => simulatedIsDesktop);
+
+        const { rerender } = render(
+            <DrawerContainer opened={true} title="Test">
+                <div />
+            </DrawerContainer>,
+        );
+
+        // Grab the drawer element and capture its initial position attribute
+        const drawerContent = document.querySelector("[data-drawer]");
+        const initialPosition = drawerContent?.getAttribute("data-position");
+
+        // Now simulate the virtual keyboard causing useMediaQuery to toggle
+        simulatedIsDesktop = true;
+        rerender(
+            <DrawerContainer opened={true} title="Test">
+                <div />
+            </DrawerContainer>,
+        );
+
+        const positionAfterToggle = document
+            .querySelector("[data-drawer]")
+            ?.getAttribute("data-position");
+
+        // The position should NOT have changed while the drawer is open
+        expect(positionAfterToggle).toBe(initialPosition);
+
+        useMediaQuerySpy.mockRestore();
     });
 });
