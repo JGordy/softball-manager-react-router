@@ -350,8 +350,7 @@ export default function ContactSprayChart({
                                 onChange={setPlayerFilter}
                                 size="md"
                                 comboboxProps={{
-                                    zIndex: 6000,
-                                    withinPortal: true,
+                                    withinPortal: false,
                                 }}
                             />
                         )}
@@ -364,8 +363,7 @@ export default function ContactSprayChart({
                             onChange={setCategoryFilter}
                             size="md"
                             comboboxProps={{
-                                zIndex: 6000,
-                                withinPortal: true,
+                                withinPortal: false,
                             }}
                         />
 
@@ -383,8 +381,7 @@ export default function ContactSprayChart({
                             onChange={setLocationFilter}
                             size="md"
                             comboboxProps={{
-                                zIndex: 6000,
-                                withinPortal: true,
+                                withinPortal: false,
                             }}
                         />
 
@@ -411,8 +408,7 @@ export default function ContactSprayChart({
                                 onChange={setGameFilter}
                                 size="md"
                                 comboboxProps={{
-                                    zIndex: 6000,
-                                    withinPortal: true,
+                                    withinPortal: false,
                                 }}
                             />
                         )}
