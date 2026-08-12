@@ -1,6 +1,26 @@
+import { useRef } from "react";
+
 import { Drawer } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 
+/**
+ * A responsive Drawer wrapper that automatically positions itself at the bottom
+ * on mobile and on the right on desktop. The position and size are "frozen" for
+ * the lifetime of a single open session so that secondary viewport changes
+ * (e.g., the virtual keyboard opening when a Select inside the drawer gains
+ * focus) cannot trigger a mid-open flicker.
+ *
+ * @param {Object}   props
+ * @param {React.ReactNode} props.children
+ * @param {Object}   [props.classes]    - Mantine classNames map.
+ * @param {boolean}  [props.opened=false]
+ * @param {Function} [props.onClose]
+ * @param {string}   [props.padding="xl"]
+ * @param {string}   [props.position]  - Overrides automatic position detection.
+ * @param {string}   [props.size]      - Overrides automatic size selection.
+ * @param {React.ReactNode} [props.title]
+ * @param {number}   [props.zIndex=5000]
+ */
 export default function DrawerContainer({
     children,
     classes,
@@ -13,10 +33,31 @@ export default function DrawerContainer({
     zIndex = 5000,
     ...props
 }) {
-    const isDesktop = useMediaQuery("(min-width: 62em)");
+    // getInitialValueInEffect: false evaluates the query synchronously on mount
+    // (when window.matchMedia is available) so there is no undefined → boolean
+    // transition that would cause an extra render on first paint.
+    const isDesktop = useMediaQuery("(min-width: 62em)", false, {
+        getInitialValueInEffect: false,
+    });
 
-    const finalPosition = position || (isDesktop ? "right" : "bottom");
-    const finalSize = size || (isDesktop ? "md" : "100%");
+    const derivedPosition = position || (isDesktop ? "right" : "bottom");
+    const derivedSize = size || (isDesktop ? "md" : "100%");
+
+    // Snapshot the position and size the moment the drawer opens and hold them
+    // steady for the entire open session.  This prevents secondary viewport
+    // changes (e.g. the virtual keyboard appearing when a Select is tapped)
+    // from re-evaluating useMediaQuery and toggling the drawer dimensions while
+    // it is visible, which would cause the flickering reported on mobile.
+    const frozenPosition = useRef(derivedPosition);
+    const frozenSize = useRef(derivedSize);
+
+    if (opened) {
+        frozenPosition.current = derivedPosition;
+        frozenSize.current = derivedSize;
+    }
+
+    const finalPosition = frozenPosition.current;
+    const finalSize = frozenSize.current;
 
     return (
         <Drawer
