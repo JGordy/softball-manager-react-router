@@ -107,8 +107,23 @@ export const links = () => [
     {
         rel: "icon",
         type: "image/png",
-        sizes: "192x192",
-        href: "/android-chrome-icon192x192.png",
+        sizes: "32x32",
+        href: "/favicon-32x32.png",
+    },
+    {
+        rel: "icon",
+        type: "image/png",
+        sizes: "16x16",
+        href: "/favicon-16x16.png",
+    },
+    {
+        rel: "shortcut icon",
+        href: "/favicon.ico",
+    },
+    {
+        rel: "apple-touch-icon",
+        sizes: "180x180",
+        href: "/apple-touch-icon.png",
     },
 ];
 
@@ -200,6 +215,17 @@ export function Layout({ children }) {
         // useLoaderData might throw in some error contexts or during initial SSR states
     }
 
+    useEffect(() => {
+        const splash = document.getElementById("pwa-splash-overlay");
+        if (splash) {
+            splash.classList.add("pwa-splash-hidden");
+            const timer = setTimeout(() => {
+                splash.remove();
+            }, 400);
+            return () => clearTimeout(timer);
+        }
+    }, []);
+
     return (
         <html lang="en" {...mantineHtmlProps}>
             <head>
@@ -207,6 +233,12 @@ export function Layout({ children }) {
                 <meta
                     name="viewport"
                     content="width=device-width, initial-scale=1"
+                />
+                <meta name="theme-color" content="#111827" />
+                <meta name="apple-mobile-web-app-capable" content="yes" />
+                <meta
+                    name="apple-mobile-web-app-status-bar-style"
+                    content="black-translucent"
                 />
 
                 {/* Umami Tracking Script */}
@@ -228,6 +260,22 @@ export function Layout({ children }) {
                 <Links />
             </head>
             <body>
+                <div id="pwa-splash-overlay">
+                    <div className="pwa-splash-content">
+                        <div className="pwa-splash-logo-wrapper">
+                            <img
+                                src="/images/splash-shield-icon.png"
+                                alt="RostrHQ Shield"
+                            />
+                        </div>
+                        <div className="pwa-splash-title">
+                            ROSTR<span>HQ</span>
+                        </div>
+                        <div className="pwa-splash-tagline">
+                            The Advantage Starts Here
+                        </div>
+                    </div>
+                </div>
                 <MantineProvider
                     defaultColorScheme={themePreference}
                     theme={theme}

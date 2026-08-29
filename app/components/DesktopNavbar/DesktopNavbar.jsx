@@ -1,5 +1,11 @@
 import { useLocation, useNavigate } from "react-router";
-import { Button, Group, Image, Text, Title } from "@mantine/core";
+import {
+    Button,
+    Group,
+    Image,
+    Text,
+    useComputedColorScheme,
+} from "@mantine/core";
 import {
     IconBallBaseball,
     IconCalendar,
@@ -10,9 +16,9 @@ import {
 
 import classes from "./DesktopNavbar.module.css";
 import branding from "@/constants/branding";
-import images from "@/constants/images";
 
-const { brandIcon192 } = images;
+const headerLogoDark = "/images/header-logo-dark.png";
+const headerLogoLight = "/images/header-logo-light.png";
 
 function NavbarLink({ icon: Icon, label, active, onClick }) {
     return (
@@ -42,6 +48,9 @@ const defaultLinks = [
 export default function DesktopNavbar({ user }) {
     const navigate = useNavigate();
     const location = useLocation();
+    const computedColorScheme = useComputedColorScheme("light");
+    const headerLogo =
+        computedColorScheme === "light" ? headerLogoLight : headerLogoDark;
 
     const getInitialValue = () => {
         if (location.pathname.toLowerCase().includes("user")) return "user";
@@ -85,11 +94,18 @@ export default function DesktopNavbar({ user }) {
     return (
         <header className={classes.header}>
             <Group justify="space-between" h="100%" px="md">
-                <Group gap="xs">
-                    <div style={{ width: 32, height: 32 }}>
-                        <Image src={brandIcon192} alt={branding.name} />
-                    </div>
-                    <Title order={3}>{branding.name}</Title>
+                <Group
+                    gap="xs"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => navigate("/dashboard")}
+                >
+                    <Image
+                        src={headerLogo}
+                        alt={branding.name}
+                        h={34}
+                        w="auto"
+                        fit="contain"
+                    />
                 </Group>
 
                 <Group gap="sm">{items}</Group>
