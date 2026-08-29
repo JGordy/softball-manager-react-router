@@ -16,9 +16,9 @@ import {
 
 import classes from "./DesktopNavbar.module.css";
 import branding from "@/constants/branding";
-import images from "@/constants/images";
 
-const { brandLogoDark, brandLogoLight } = images;
+const headerLogoDark = "/images/header-logo-dark.png";
+const headerLogoLight = "/images/header-logo-light.png";
 
 function NavbarLink({ icon: Icon, label, active, onClick }) {
     return (
@@ -49,8 +49,8 @@ export default function DesktopNavbar({ user }) {
     const navigate = useNavigate();
     const location = useLocation();
     const computedColorScheme = useComputedColorScheme("light");
-    const brandLogo =
-        computedColorScheme === "light" ? brandLogoLight : brandLogoDark;
+    const headerLogo =
+        computedColorScheme === "light" ? headerLogoLight : headerLogoDark;
 
     const getInitialValue = () => {
         if (location.pathname.toLowerCase().includes("user")) return "user";
@@ -100,7 +100,7 @@ export default function DesktopNavbar({ user }) {
                     onClick={() => navigate("/dashboard")}
                 >
                     <Image
-                        src={brandLogo}
+                        src={headerLogo}
                         alt={branding.name}
                         h={34}
                         w="auto"
