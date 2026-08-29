@@ -1,6 +1,5 @@
 import { NavLink } from "react-router";
 import {
-    IconBallBaseball,
     IconCalendar,
     IconSettings,
     IconUserSquareRounded,
@@ -9,14 +8,35 @@ import {
 
 import classes from "./NavLinks.module.css";
 
+function HomePlateIcon({ size = 24, active }) {
+    return (
+        <img
+            src="/images/home-plate-icon.png"
+            alt="Home"
+            width={size}
+            height={size}
+            style={{
+                objectFit: "contain",
+                display: "block",
+                filter: active
+                    ? "drop-shadow(0 0 4px rgba(204, 255, 51, 0.6))"
+                    : "opacity(0.85)",
+                transition: "filter 0.2s ease, transform 0.2s ease",
+                transform: active ? "scale(1.1)" : "scale(1)",
+            }}
+        />
+    );
+}
+
 function NavLinks({ user }) {
     const isAdmin = user?.labels?.includes("admin");
 
     const links = [
         {
             label: "Home",
-            icon: IconBallBaseball,
+            icon: HomePlateIcon,
             path: "/dashboard",
+            isCustomIcon: true,
         },
         {
             label: "Events",
@@ -63,10 +83,14 @@ function NavLinks({ user }) {
                             {({ isActive }) => (
                                 <>
                                     <div className={classes.iconWrapper}>
-                                        <Icon
-                                            size={24}
-                                            stroke={isActive ? 2.5 : 1.5}
-                                        />
+                                        {link.isCustomIcon ? (
+                                            <Icon size={24} active={isActive} />
+                                        ) : (
+                                            <Icon
+                                                size={24}
+                                                stroke={isActive ? 2.5 : 1.5}
+                                            />
+                                        )}
                                     </div>
                                     <span className={classes.linkLabel}>
                                         {link.label}
