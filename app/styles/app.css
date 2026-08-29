@@ -224,3 +224,92 @@ main {
 .tour-opponent-notes-input input::placeholder {
     color: rgba(255, 255, 255, 0.85) !important;
 }
+
+/* PWA / App Pre-Hydration Splash Screen Overlay */
+#pwa-splash-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: radial-gradient(circle at center, #1f2937 0%, #111827 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition:
+        opacity 0.4s ease-out,
+        visibility 0.4s ease-out;
+}
+
+#pwa-splash-overlay.pwa-splash-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.pwa-splash-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    max-width: 320px;
+    padding: 0 16px;
+}
+
+.pwa-splash-logo-wrapper {
+    position: relative;
+    width: 130px;
+    height: 130px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pwa-splash-logo-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 20px rgba(204, 255, 51, 0.35));
+    animation: pwa-pulse 2.4s infinite ease-in-out;
+}
+
+@keyframes pwa-pulse {
+    0%,
+    100% {
+        filter: drop-shadow(0 0 15px rgba(204, 255, 51, 0.25));
+        transform: scale(1);
+    }
+    50% {
+        filter: drop-shadow(0 0 35px rgba(204, 255, 51, 0.5));
+        transform: scale(1.04);
+    }
+}
+
+.pwa-splash-title {
+    font-family: var(--font-sans);
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    margin-right: -4px;
+    color: #ffffff;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.pwa-splash-title span {
+    color: #ccff33;
+}
+
+.pwa-splash-tagline {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    margin-right: -1.5px;
+    color: #9ca3af;
+    margin-top: 8px;
+    text-transform: uppercase;
+    text-align: center;
+}

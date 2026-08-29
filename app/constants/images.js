@@ -6,9 +6,15 @@ const getSrc = (fileId) =>
 
 import imageManifest from "./imageManifest.json";
 
-const images = {};
+const images = {
+    brandLogoDark: "/images/brand-logo-dark.png",
+    brandLogoLight: "/images/brand-logo-light.png",
+};
+
 for (const [key, fileId] of Object.entries(imageManifest)) {
-    images[key] = getSrc(fileId);
+    if (!images[key]) {
+        images[key] = getSrc(fileId);
+    }
 }
 
 export default images;
