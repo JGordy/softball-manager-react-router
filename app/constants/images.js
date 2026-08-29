@@ -9,6 +9,8 @@ import imageManifest from "./imageManifest.json";
 const images = {
     brandLogoDark: "/images/brand-logo-dark.png",
     brandLogoLight: "/images/brand-logo-light.png",
+    brandIcon192: "/android-chrome-icon-192x192.png",
+    brandIcon350: "/android-chrome-icon-512x512.png",
 };
 
 for (const [key, fileId] of Object.entries(imageManifest)) {
