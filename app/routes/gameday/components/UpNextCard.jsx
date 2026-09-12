@@ -73,17 +73,6 @@ export default function UpNextCard({ upcomingBatters = [], ...props }) {
                                         SUB
                                     </Badge>
                                 )}
-                                {isAutoOut && (
-                                    <Badge
-                                        component="span"
-                                        size="xs"
-                                        color="orange"
-                                        variant="light"
-                                        ml={4}
-                                    >
-                                        Auto Out
-                                    </Badge>
-                                )}
                             </span>
                         );
                     })}

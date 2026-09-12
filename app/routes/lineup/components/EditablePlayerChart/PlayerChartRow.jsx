@@ -1,6 +1,6 @@
 import React from "react";
 import { Draggable } from "@hello-pangea/dnd";
-import { Badge, Group, Table, Text, ThemeIcon } from "@mantine/core";
+import { Group, Table, Text, ThemeIcon } from "@mantine/core";
 import { IconAlertTriangle, IconGripVertical } from "@tabler/icons-react";
 import PositionSelect from "./PositionSelect";
 
@@ -98,15 +98,6 @@ const PlayerChartRow = ({
                                         >
                                             {row.player}
                                         </Text>
-                                        {row.isAutoOut && (
-                                            <Badge
-                                                color="orange"
-                                                variant="light"
-                                                size="xs"
-                                            >
-                                                Auto Out
-                                            </Badge>
-                                        )}
                                         {row.hasBattingError && (
                                             <ThemeIcon
                                                 color="red"
