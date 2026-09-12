@@ -137,7 +137,10 @@ export default function createFieldingChart(players, options = {}) {
         }
     }
 
-    const numPlayers = players.length;
+    const activeFielders = players.filter(
+        (p) => !p.isAutoOut && !p.$id?.startsWith("auto-out"),
+    );
+    const numPlayers = activeFielders.length;
     const numPositions = positions.length;
     let MAX_OUTS;
 
@@ -151,22 +154,35 @@ export default function createFieldingChart(players, options = {}) {
     // NOTE: We don't want all of the player data to be duplicated, so we create a copy of the players array with the relevant values
     // This allows us to modify the positions without affecting the original player data.
     const playersCopy = [
-        ...players.map((player) => ({
-            $id: player.$id,
-            firstName: player.firstName,
-            lastName: player.lastName,
-            gender: player.gender,
-            bats: player.bats,
-            preferredPositions: player.preferredPositions || [],
-            dislikedPositions: player.dislikedPositions || [],
-            positions: [...(player?.positions || [])], // Create a new array to avoid mutating original
-        })),
+        ...players.map((player) => {
+            const isAutoOut =
+                player.isAutoOut || player.$id?.startsWith("auto-out");
+            return {
+                $id: player.$id,
+                firstName: player.firstName,
+                lastName: player.lastName,
+                gender: player.gender,
+                bats: player.bats,
+                isAutoOut,
+                preferredPositions: player.preferredPositions || [],
+                dislikedPositions: player.dislikedPositions || [],
+                positions: isAutoOut ? [] : [...(player?.positions || [])], // Create a new array to avoid mutating original
+            };
+        }),
     ];
 
     // Loop through the number of innings
     for (let inning = 0; inning < innings; inning++) {
         let assignedPlayers = [];
         let availablePositions = [...positions];
+
+        // Assign "Out" to all auto-out slots first
+        playersCopy.forEach((player) => {
+            if (player.isAutoOut) {
+                player.positions.push("Out");
+                assignedPlayers.push(player.lastName);
+            }
+        });
 
         // 0. Assign Locked ("Never Sub") Players First
         for (const [playerId, position] of Object.entries(

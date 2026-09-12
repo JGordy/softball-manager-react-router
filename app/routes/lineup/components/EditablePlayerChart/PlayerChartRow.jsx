@@ -1,6 +1,6 @@
 import React from "react";
 import { Draggable } from "@hello-pangea/dnd";
-import { Group, Table, Text, ThemeIcon } from "@mantine/core";
+import { Badge, Group, Table, Text, ThemeIcon } from "@mantine/core";
 import { IconAlertTriangle, IconGripVertical } from "@tabler/icons-react";
 import PositionSelect from "./PositionSelect";
 
@@ -32,6 +32,16 @@ const PlayerChartRow = ({
                     {columns.map((column) => {
                         if (column.accessor.startsWith("inning")) {
                             const inning = column.accessor;
+                            if (row.isAutoOut) {
+                                return (
+                                    <Table.Td key={column.accessor}>
+                                        <Text c="dimmed" size="sm">
+                                            Out
+                                        </Text>
+                                    </Table.Td>
+                                );
+                            }
+
                             const player = playerLookup[row.playerId];
 
                             const preferredPositions =
@@ -77,8 +87,26 @@ const PlayerChartRow = ({
                         } else if (column.accessor === "player") {
                             return (
                                 <Table.Td key={column.accessor}>
-                                    <Group gap="xs">
-                                        <Text>{row.player}</Text>
+                                    <Group gap="xs" wrap="nowrap">
+                                        <Text
+                                            fw={row.isAutoOut ? 600 : undefined}
+                                            c={
+                                                row.isAutoOut
+                                                    ? "orange.4"
+                                                    : undefined
+                                            }
+                                        >
+                                            {row.player}
+                                        </Text>
+                                        {row.isAutoOut && (
+                                            <Badge
+                                                color="orange"
+                                                variant="light"
+                                                size="xs"
+                                            >
+                                                Auto Out
+                                            </Badge>
+                                        )}
                                         {row.hasBattingError && (
                                             <ThemeIcon
                                                 color="red"

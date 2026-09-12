@@ -57,6 +57,9 @@ export function validateLineup(generatedLineup, players) {
             lastName: player.lastName,
             gender: player.gender,
             bats: player.bats,
+            ...(player.isAutoOut || player.$id?.startsWith("auto-out")
+                ? { isAutoOut: true }
+                : {}),
             positions: player.positions,
         };
     });

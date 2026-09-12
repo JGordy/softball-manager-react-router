@@ -571,5 +571,28 @@ describe("createFieldingChart utility", () => {
             const p1Assignment = result[0].positions[0];
             expect(p1Assignment).toBeDefined();
         });
+
+        it("should assign Out for all innings to isAutoOut slots", () => {
+            const players = Array.from({ length: 9 }, (_, i) =>
+                createPlayer(`${i + 1}`),
+            );
+            const autoOutSlot = {
+                $id: "auto-out-123",
+                firstName: "Automatic Out",
+                lastName: "",
+                gender: "Female",
+                isAutoOut: true,
+                preferredPositions: [],
+                dislikedPositions: [],
+                positions: [],
+            };
+            players.push(autoOutSlot);
+
+            const result = createFieldingChart(players, { innings: 7 });
+            const autoOutResult = result.find((p) => p.$id === "auto-out-123");
+
+            expect(autoOutResult).toBeDefined();
+            expect(autoOutResult.positions).toEqual(Array(7).fill("Out"));
+        });
     });
 });
