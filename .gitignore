@@ -10,3 +10,6 @@
 
 # Local Netlify folder
 .netlify
+
+# MCP secrets
+.agents/**/mcp_config.json

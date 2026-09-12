@@ -423,9 +423,13 @@ export default function MobileGamedayContainer({
                                     {isScorekeeper && !isGameFinal && (
                                         <Stack flex={1} gap="md">
                                             {isOurBatting &&
-                                            currentBatter?.removed &&
-                                            currentBatter?.removalType ===
-                                                "auto-out" ? (
+                                            (currentBatter?.isAutoOut ||
+                                                currentBatter?.$id?.startsWith(
+                                                    "auto-out",
+                                                ) ||
+                                                (currentBatter?.removed &&
+                                                    currentBatter?.removalType ===
+                                                        "auto-out")) ? (
                                                 <Card
                                                     p="md"
                                                     radius="lg"
@@ -441,24 +445,25 @@ export default function MobileGamedayContainer({
                                                             size={32}
                                                         />
                                                         <Text fw={700}>
-                                                            Injured Player -
-                                                            Automatic Out
+                                                            {currentBatter?.removed
+                                                                ? "Injured Player - Automatic Out"
+                                                                : "Automatic Out"}
                                                         </Text>
                                                         <Text
                                                             size="xs"
                                                             opacity={0.8}
                                                         >
-                                                            This slot is marked
-                                                            for automatic out
-                                                            due to player
-                                                            injury. Click below
-                                                            to record the out.
+                                                            {currentBatter?.removed
+                                                                ? "This slot is marked for automatic out due to player injury. Click below to record the out."
+                                                                : "This slot is configured as an automatic out. Click below to record the out."}
                                                         </Text>
                                                         <Button
                                                             color="red"
                                                             onClick={() =>
                                                                 completeAction(
-                                                                    "injury_auto_out",
+                                                                    currentBatter?.removed
+                                                                        ? "injury_auto_out"
+                                                                        : "auto_out",
                                                                 )
                                                             }
                                                             leftSection={

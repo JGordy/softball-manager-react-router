@@ -110,16 +110,21 @@ export default function CurrentBatterCard({
                                     SUB
                                 </Badge>
                             )}
-                            {currentBatter.removed &&
-                                currentBatter.removalType === "auto-out" && (
-                                    <Badge
-                                        size="xs"
-                                        color="red"
-                                        variant="filled"
-                                    >
-                                        INJURED - AUTO OUT
-                                    </Badge>
-                                )}
+                            {currentBatter.isAutoOut ||
+                            currentBatter.$id?.startsWith("auto-out") ? (
+                                <Badge
+                                    size="xs"
+                                    color="orange"
+                                    variant="filled"
+                                >
+                                    AUTO OUT
+                                </Badge>
+                            ) : currentBatter.removed &&
+                              currentBatter.removalType === "auto-out" ? (
+                                <Badge size="xs" color="red" variant="filled">
+                                    INJURED - AUTO OUT
+                                </Badge>
+                            ) : null}
                         </Group>
                         <Text
                             size="xl"
@@ -153,48 +158,55 @@ export default function CurrentBatterCard({
                         )}
                     </Stack>
                 </Group>
-                <Stack gap={2} align="flex-end" style={{ flexShrink: 0 }}>
-                    <Text
-                        size="xs"
-                        fw={700}
-                        c="white"
-                        tt="uppercase"
-                        opacity={0.7}
-                        lts={1}
-                        style={{ whiteSpace: "nowrap" }}
-                    >
-                        Game Stats
-                    </Text>
-                    <Group gap={6} align="flex-end" wrap="nowrap">
-                        <Text
-                            size="md"
-                            fw={800}
-                            c="white"
-                            style={{ whiteSpace: "nowrap" }}
+                {!currentBatter.isAutoOut &&
+                    !currentBatter.$id?.startsWith("auto-out") && (
+                        <Stack
+                            gap={2}
+                            align="flex-end"
+                            style={{ flexShrink: 0 }}
                         >
-                            {hits.length}/{ab}
-                        </Text>
-                        {rbis > 0 && (
-                            <Badge
+                            <Text
                                 size="xs"
-                                color={badgeColor}
-                                variant="filled"
+                                fw={700}
+                                c="white"
+                                tt="uppercase"
+                                opacity={0.7}
+                                lts={1}
+                                style={{ whiteSpace: "nowrap" }}
                             >
-                                {rbis} RBI
-                            </Badge>
-                        )}
-                    </Group>
-                    {hits.length > 0 && (
-                        <Text
-                            size="xs"
-                            c={textMutedColor}
-                            fw={600}
-                            truncate="end"
-                        >
-                            [{hitTypes}]
-                        </Text>
+                                Game Stats
+                            </Text>
+                            <Group gap={6} align="flex-end" wrap="nowrap">
+                                <Text
+                                    size="md"
+                                    fw={800}
+                                    c="white"
+                                    style={{ whiteSpace: "nowrap" }}
+                                >
+                                    {hits.length}/{ab}
+                                </Text>
+                                {rbis > 0 && (
+                                    <Badge
+                                        size="xs"
+                                        color={badgeColor}
+                                        variant="filled"
+                                    >
+                                        {rbis} RBI
+                                    </Badge>
+                                )}
+                            </Group>
+                            {hits.length > 0 && (
+                                <Text
+                                    size="xs"
+                                    c={textMutedColor}
+                                    fw={600}
+                                    truncate="end"
+                                >
+                                    [{hitTypes}]
+                                </Text>
+                            )}
+                        </Stack>
                     )}
-                </Stack>
             </Group>
             {isOpponent && (
                 <Stack mt="md" gap="xs">

@@ -207,6 +207,7 @@ export function useGamedayActions({
             } else if (
                 actionType === "K" ||
                 actionType === "injury_auto_out" ||
+                actionType === "auto_out" ||
                 UI_BATTED_OUTS.includes(actionType)
             ) {
                 result = handleAutomaticOut(runners);

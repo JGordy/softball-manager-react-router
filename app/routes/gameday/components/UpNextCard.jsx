@@ -35,11 +35,14 @@ export default function UpNextCard({ upcomingBatters = [], ...props }) {
                         const isFirst = index === 0;
                         const activePlayer = getActivePlayerInSlot(slot);
                         const isSub = !!slot.substitutions?.length;
+                        const isAutoOut =
+                            slot.isAutoOut || slot.$id?.startsWith("auto-out");
                         const lastInitial = activePlayer.lastName
                             ? `${activePlayer.lastName.charAt(0)}.`
                             : "";
-                        const name =
-                            `${activePlayer.firstName} ${lastInitial}`.trim();
+                        const name = isAutoOut
+                            ? "Automatic Out"
+                            : `${activePlayer.firstName} ${lastInitial}`.trim();
                         return (
                             <span key={`${slot.$id}`}>
                                 {index > 0 && (
@@ -68,6 +71,17 @@ export default function UpNextCard({ upcomingBatters = [], ...props }) {
                                         ml={4}
                                     >
                                         SUB
+                                    </Badge>
+                                )}
+                                {isAutoOut && (
+                                    <Badge
+                                        component="span"
+                                        size="xs"
+                                        color="orange"
+                                        variant="light"
+                                        ml={4}
+                                    >
+                                        Auto Out
                                     </Badge>
                                 )}
                             </span>
