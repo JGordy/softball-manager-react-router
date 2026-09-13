@@ -1,13 +1,128 @@
-import { useMemo, Fragment } from "react";
-import { Table, ScrollArea, Text, Card, Group } from "@mantine/core";
-import { IconCornerDownRight } from "@tabler/icons-react";
+import { useMemo, useState, useEffect, Fragment } from "react";
+import {
+    Table,
+    ScrollArea,
+    Text,
+    Card,
+    Group,
+    Select,
+    ActionIcon,
+    Tooltip,
+} from "@mantine/core";
+import {
+    IconCornerDownRight,
+    IconSortAscending,
+    IconSortDescending,
+    IconArrowsSort,
+    IconChevronUp,
+    IconChevronDown,
+    IconSelector,
+} from "@tabler/icons-react";
 
 import { calculateGameStats, calculateTeamTotals } from "@/utils/stats";
-
 import { getActivePlayerId } from "@/routes/gameday/utils/gamedayUtils";
 
+import styles from "./BoxScore.module.css";
+
+const GAMEDAY_SORT_OPTIONS = [
+    { value: "lineup", label: "Lineup Order" },
+    { value: "player", label: "Batter" },
+    { value: "AB", label: "AB - At Bats" },
+    { value: "H", label: "H - Hits" },
+    { value: "RBI", label: "RBI - Runs Batted In" },
+    { value: "R", label: "R - Runs" },
+    { value: "HR", label: "HR - Home Runs" },
+    { value: "BB", label: "BB - Walks" },
+    { value: "K", label: "K - Strikeouts" },
+    { value: "AVG", label: "AVG - Batting Average" },
+    { value: "OBP", label: "OBP - On-Base %" },
+    { value: "OPS", label: "OPS - On-Base + Slugging" },
+];
+
+const SEASON_SORT_OPTIONS = [
+    { value: "AVG", label: "AVG - Batting Average" },
+    { value: "player", label: "Batter" },
+    { value: "AB", label: "AB - At Bats" },
+    { value: "H", label: "H - Hits" },
+    { value: "RBI", label: "RBI - Runs Batted In" },
+    { value: "R", label: "R - Runs" },
+    { value: "HR", label: "HR - Home Runs" },
+    { value: "BB", label: "BB - Walks" },
+    { value: "K", label: "K - Strikeouts" },
+    { value: "OBP", label: "OBP - On-Base %" },
+    { value: "OPS", label: "OPS - On-Base + Slugging" },
+];
+
+const COLUMNS = [
+    { key: "player", label: "Batter", align: "left", width: undefined },
+    { key: "AB", label: "AB", align: "center", width: 50 },
+    { key: "H", label: "H", align: "center", width: 50 },
+    { key: "RBI", label: "RBI", align: "center", width: 50 },
+    { key: "R", label: "R", align: "center", width: 50 },
+    { key: "HR", label: "HR", align: "center", width: 50 },
+    { key: "BB", label: "BB", align: "center", width: 50 },
+    { key: "K", label: "K", align: "center", width: 50 },
+    { key: "AVG", label: "AVG", align: "center", width: 70 },
+    { key: "OBP", label: "OBP", align: "center", width: 70 },
+    { key: "OPS", label: "OPS", align: "center", width: 70 },
+];
+
 /**
- * Renders a Box Score statistics table for a game or a season.
+ * Comparator function to sort player stat objects.
+ *
+ * @param {Object} a - First player stat object
+ * @param {Object} b - Second player stat object
+ * @param {string} col - Column key to sort by
+ * @param {"asc"|"desc"} dir - Sort direction
+ * @returns {number} Comparison result
+ */
+export const compareStats = (a, b, col, dir) => {
+    const multiplier = dir === "asc" ? 1 : -1;
+
+    if (col === "player") {
+        const nameA = `${a.player?.firstName || ""} ${a.player?.lastName || ""}`
+            .trim()
+            .toLowerCase();
+        const nameB = `${b.player?.firstName || ""} ${b.player?.lastName || ""}`
+            .trim()
+            .toLowerCase();
+        return multiplier * nameA.localeCompare(nameB);
+    }
+
+    // Rate stats (AVG, OBP, OPS)
+    if (col === "AVG" || col === "OBP" || col === "OPS") {
+        const valA = parseFloat(a[col]) || 0;
+        const valB = parseFloat(b[col]) || 0;
+        if (valA !== valB) {
+            return multiplier * (valA - valB);
+        }
+        // Secondary tiebreaker: AB (higher volume first)
+        if (b.AB !== a.AB) return b.AB - a.AB;
+        return (a.player?.firstName || "").localeCompare(
+            b.player?.firstName || "",
+        );
+    }
+
+    // Counting stats (AB, H, RBI, R, HR, BB, K)
+    const valA = Number(a[col]) || 0;
+    const valB = Number(b[col]) || 0;
+    if (valA !== valB) {
+        return multiplier * (valA - valB);
+    }
+    // Secondary tiebreaker: AB
+    if (col !== "AB" && b.AB !== a.AB) {
+        return b.AB - a.AB;
+    }
+    // Tertiary tiebreaker: AVG
+    const avgA = parseFloat(a.AVG) || 0;
+    const avgB = parseFloat(b.AVG) || 0;
+    if (avgA !== avgB) return avgB - avgA;
+
+    return (a.player?.firstName || "").localeCompare(b.player?.firstName || "");
+};
+
+/**
+ * Renders a Box Score statistics table for a game or a season with interactive column sorting.
  *
  * @param {Object} props - Component props
  * @param {Array} props.logs - Array of game log objects
@@ -30,6 +145,14 @@ export default function BoxScore({
     seasonView = false,
     players = [],
 }) {
+    const [sortColumn, setSortColumn] = useState(seasonView ? "AVG" : "lineup");
+    const [sortDirection, setSortDirection] = useState("desc");
+
+    useEffect(() => {
+        setSortColumn(seasonView ? "AVG" : "lineup");
+        setSortDirection("desc");
+    }, [seasonView]);
+
     const { stats, totals } = useMemo(() => {
         const stats = calculateGameStats(
             logs,
@@ -48,6 +171,17 @@ export default function BoxScore({
         return map;
     }, [stats]);
 
+    // Set of sub player IDs for game view
+    const subIdSet = useMemo(() => {
+        const set = new Set();
+        playerChart.forEach((slot) => {
+            slot.substitutions?.forEach((sub) => {
+                if (sub.playerId) set.add(sub.playerId);
+            });
+        });
+        return set;
+    }, [playerChart]);
+
     // Check for duplicate first names
     const firstNameCounts = useMemo(() => {
         const counts = {};
@@ -57,6 +191,76 @@ export default function BoxScore({
         });
         return counts;
     }, [stats]);
+
+    const isLineupOrder = !seasonView && sortColumn === "lineup";
+
+    /**
+     * Handles selection of a sort field from the dropdown.
+     *
+     * @param {string|null} value - The selected column key
+     */
+    const handleSelectSort = (value) => {
+        if (!value || value === "lineup") {
+            setSortColumn(seasonView ? "AVG" : "lineup");
+            setSortDirection("desc");
+            return;
+        }
+        setSortColumn(value);
+        setSortDirection(value === "player" ? "asc" : "desc");
+    };
+
+    /**
+     * Toggles the current sort direction between asc and desc.
+     */
+    const toggleSortDirection = () => {
+        if (isLineupOrder) return;
+        setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+    };
+
+    /**
+     * Handles clicking on a table header to sort or cycle sort states.
+     *
+     * @param {string} colKey - The column key clicked
+     */
+    const handleHeaderClick = (colKey) => {
+        if (sortColumn === colKey) {
+            if (colKey === "player") {
+                // Text column cycle: asc -> desc -> reset
+                if (sortDirection === "asc") {
+                    setSortDirection("desc");
+                } else {
+                    // Reset to default
+                    if (seasonView) {
+                        setSortColumn("AVG");
+                        setSortDirection("desc");
+                    } else {
+                        setSortColumn("lineup");
+                        setSortDirection("desc");
+                    }
+                }
+            } else if (colKey === "AVG" && seasonView) {
+                // Season view default column toggles between desc and asc
+                setSortDirection((prev) => (prev === "desc" ? "asc" : "desc"));
+            } else {
+                // Numeric stats cycle: desc -> asc -> reset
+                if (sortDirection === "desc") {
+                    setSortDirection("asc");
+                } else {
+                    // Reset to default
+                    if (seasonView) {
+                        setSortColumn("AVG");
+                        setSortDirection("desc");
+                    } else {
+                        setSortColumn("lineup");
+                        setSortDirection("desc");
+                    }
+                }
+            }
+        } else {
+            setSortColumn(colKey);
+            setSortDirection(colKey === "player" ? "asc" : "desc");
+        }
+    };
 
     // Helper to render a single row
     const renderRow = (stat, isSub = false) => {
@@ -138,26 +342,21 @@ export default function BoxScore({
     };
 
     const sortedStats = useMemo(() => {
-        if (!seasonView) return stats;
-        return [...stats].sort((a, b) => {
-            const avgA = parseFloat(a.AVG) || 0;
-            const avgB = parseFloat(b.AVG) || 0;
-            if (avgB !== avgA) return avgB - avgA;
-            if (b.AB !== a.AB) return b.AB - a.AB;
-            return a.player.firstName.localeCompare(b.player.firstName);
-        });
-    }, [stats, seasonView]);
+        if (isLineupOrder) return stats;
+        return [...stats].sort((a, b) =>
+            compareStats(a, b, sortColumn, sortDirection),
+        );
+    }, [stats, isLineupOrder, sortColumn, sortDirection]);
 
     const rows = useMemo(() => {
-        if (seasonView) {
-            return sortedStats.map((stat) => renderRow(stat, false));
+        if (seasonView || sortColumn !== "lineup") {
+            return sortedStats.map((stat) =>
+                renderRow(stat, !seasonView && subIdSet.has(stat.player.$id)),
+            );
         }
 
         return playerChart.map((slot) => {
-            // Find starter stats in O(1)
             const starterStat = statsMap.get(slot.$id);
-
-            // Find unique substitutes for this slot
             const subIds = Array.from(
                 new Set(slot.substitutions?.map((s) => s.playerId) || []),
             );
@@ -172,45 +371,137 @@ export default function BoxScore({
                 </Fragment>
             );
         });
-    }, [seasonView, sortedStats, playerChart, statsMap]);
+    }, [seasonView, sortColumn, sortedStats, playerChart, statsMap, subIdSet]);
+
+    const sortOptions = seasonView ? SEASON_SORT_OPTIONS : GAMEDAY_SORT_OPTIONS;
 
     return (
         <Card p={0} radius="md">
+            <div className={styles.toolbar}>
+                <Group justify="space-between" align="center" w="100%">
+                    <Text size="xs" c="dimmed" fw={600} tt="uppercase">
+                        Sort
+                    </Text>
+                    <Group gap="xs" wrap="nowrap">
+                        <Select
+                            size="xs"
+                            aria-label="Sort by column"
+                            data={sortOptions}
+                            value={sortColumn}
+                            onChange={handleSelectSort}
+                            allowDeselect={false}
+                            leftSection={<IconArrowsSort size={14} />}
+                            className={styles.sortSelect}
+                        />
+                        <Tooltip
+                            label={
+                                isLineupOrder
+                                    ? "Lineup order cannot be reversed"
+                                    : sortDirection === "asc"
+                                      ? "Sorted Low to High (Click to sort High to Low)"
+                                      : "Sorted High to Low (Click to sort Low to High)"
+                            }
+                        >
+                            <ActionIcon
+                                size="input-xs"
+                                variant="default"
+                                onClick={toggleSortDirection}
+                                disabled={isLineupOrder}
+                                aria-label={
+                                    sortDirection === "asc"
+                                        ? "Sort descending"
+                                        : "Sort ascending"
+                                }
+                            >
+                                {sortDirection === "asc" ? (
+                                    <IconSortAscending size={16} />
+                                ) : (
+                                    <IconSortDescending size={16} />
+                                )}
+                            </ActionIcon>
+                        </Tooltip>
+                    </Group>
+                </Group>
+            </div>
             <ScrollArea>
                 <Table striped highlightOnHover verticalSpacing="xs">
                     <Table.Thead>
                         <Table.Tr>
-                            <Table.Th>Batter</Table.Th>
-                            <Table.Th ta="center" w={50}>
-                                AB
-                            </Table.Th>
-                            <Table.Th ta="center" w={50}>
-                                H
-                            </Table.Th>
-                            <Table.Th ta="center" w={50}>
-                                RBI
-                            </Table.Th>
-                            <Table.Th ta="center" w={50}>
-                                R
-                            </Table.Th>
-                            <Table.Th ta="center" w={50}>
-                                HR
-                            </Table.Th>
-                            <Table.Th ta="center" w={50}>
-                                BB
-                            </Table.Th>
-                            <Table.Th ta="center" w={50}>
-                                K
-                            </Table.Th>
-                            <Table.Th ta="center" w={70}>
-                                AVG
-                            </Table.Th>
-                            <Table.Th ta="center" w={70}>
-                                OBP
-                            </Table.Th>
-                            <Table.Th ta="center" w={70}>
-                                OPS
-                            </Table.Th>
+                            {COLUMNS.map(({ key, label, align, width }) => {
+                                const isSorted = sortColumn === key;
+                                return (
+                                    <Table.Th
+                                        key={key}
+                                        ta={align}
+                                        w={width}
+                                        aria-sort={
+                                            isSorted
+                                                ? sortDirection === "asc"
+                                                    ? "ascending"
+                                                    : "descending"
+                                                : "none"
+                                        }
+                                    >
+                                        <button
+                                            type="button"
+                                            className={`${styles.thButton} ${align === "left" ? styles.thButtonLeft : styles.thButtonCenter}`}
+                                            onClick={() =>
+                                                handleHeaderClick(key)
+                                            }
+                                            aria-label={`Sort by ${label}`}
+                                        >
+                                            <Group
+                                                gap={2}
+                                                wrap="nowrap"
+                                                justify={
+                                                    align === "left"
+                                                        ? "flex-start"
+                                                        : "center"
+                                                }
+                                            >
+                                                <Text
+                                                    inherit
+                                                    fw={
+                                                        isSorted
+                                                            ? 700
+                                                            : undefined
+                                                    }
+                                                    c={
+                                                        isSorted
+                                                            ? "var(--mantine-primary-color-filled)"
+                                                            : undefined
+                                                    }
+                                                >
+                                                    {label}
+                                                </Text>
+                                                <span
+                                                    className={`${styles.sortIcon} ${isSorted ? styles.sortIconActive : styles.sortIconInactive}`}
+                                                >
+                                                    {isSorted ? (
+                                                        sortDirection ===
+                                                        "asc" ? (
+                                                            <IconChevronUp
+                                                                size={14}
+                                                                stroke={2.5}
+                                                            />
+                                                        ) : (
+                                                            <IconChevronDown
+                                                                size={14}
+                                                                stroke={2.5}
+                                                            />
+                                                        )
+                                                    ) : (
+                                                        <IconSelector
+                                                            size={14}
+                                                            stroke={1.5}
+                                                        />
+                                                    )}
+                                                </span>
+                                            </Group>
+                                        </button>
+                                    </Table.Th>
+                                );
+                            })}
                         </Table.Tr>
                     </Table.Thead>
                     <Table.Tbody>{rows}</Table.Tbody>
