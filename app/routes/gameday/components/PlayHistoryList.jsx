@@ -185,7 +185,10 @@ export default function PlayHistoryList({
                                         </Badge>
                                     )}
                                     {isScorekeeper &&
-                                        log.eventType !== "SUB" && (
+                                        log.eventType !== "SUB" &&
+                                        log.eventType !== "INJURY_REMOVE" &&
+                                        log.eventType !== "auto_out" &&
+                                        log.eventType !== "injury_auto_out" && (
                                             <Tooltip
                                                 label="Edit Play"
                                                 withArrow
