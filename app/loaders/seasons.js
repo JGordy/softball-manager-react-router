@@ -286,14 +286,28 @@ export async function getPreviousSeasonSummary({
 
         if (!prevSeason) return null;
 
-        // 2. Fetch games for previous season with broad matching
-        const allGamesRes = await listDocuments(
-            "games",
-            [Query.limit(500)],
-            adminClient,
-        ).catch(() => ({ rows: [] }));
+        // 2. Fetch games for previous season with targeted & broad matching
+        const [bySeasonRes, byTeamRes] = await Promise.all([
+            listDocuments(
+                "games",
+                [Query.equal("seasons", prevSeason.$id), Query.limit(100)],
+                adminClient,
+            ).catch(() => ({ rows: [] })),
+            listDocuments(
+                "games",
+                [Query.equal("teamId", teamId), Query.limit(200)],
+                adminClient,
+            ).catch(() => ({ rows: [] })),
+        ]);
 
-        const prevGames = (allGamesRes.rows || []).filter((g) => {
+        const candidateGames = new Map();
+        [...(bySeasonRes.rows || []), ...(byTeamRes.rows || [])].forEach(
+            (g) => {
+                if (g && g.$id) candidateGames.set(g.$id, g);
+            },
+        );
+
+        const prevGames = Array.from(candidateGames.values()).filter((g) => {
             if (g.seasons === prevSeason.$id || g.seasonId === prevSeason.$id)
                 return true;
             if (Array.isArray(g.seasons)) {
@@ -317,12 +331,20 @@ export async function getPreviousSeasonSummary({
 
         let prevLogs = [];
         if (prevGameIds.length > 0) {
-            const logsRes = await listDocuments(
-                "game_logs",
-                [Query.equal("gameId", prevGameIds), Query.limit(1000)],
-                adminClient,
-            ).catch(() => ({ rows: [] }));
-            prevLogs = logsRes.rows || [];
+            const batchSize = 100;
+            const logPromises = [];
+            for (let i = 0; i < prevGameIds.length; i += batchSize) {
+                const batchIds = prevGameIds.slice(i, i + batchSize);
+                logPromises.push(
+                    listDocuments(
+                        "game_logs",
+                        [Query.equal("gameId", batchIds), Query.limit(5000)],
+                        adminClient,
+                    ).catch(() => ({ rows: [] })),
+                );
+            }
+            const logResults = await Promise.all(logPromises);
+            prevLogs = logResults.flatMap((res) => res.rows || []);
         }
 
         return {
