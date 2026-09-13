@@ -1,0 +1,71 @@
+.toolbar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--mantine-spacing-xs);
+    padding: var(--mantine-spacing-xs);
+    border-bottom: 1px solid var(--mantine-color-default-border);
+}
+
+.sortSelect {
+    width: 200px;
+}
+
+@media (max-width: 48em) {
+    .sortSelect {
+        flex: 1;
+        max-width: 240px;
+    }
+}
+
+.thButton {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: inherit;
+    font-weight: inherit;
+    color: inherit;
+    padding: 4px 2px;
+    border-radius: var(--mantine-radius-xs);
+    transition:
+        background-color 150ms ease,
+        color 150ms ease;
+    user-select: none;
+}
+
+.thButton:hover {
+    background-color: var(--mantine-color-default-hover);
+}
+
+.thButton:focus-visible {
+    outline: 2px solid var(--mantine-color-blue-filled);
+    outline-offset: -2px;
+}
+
+.thButtonCenter {
+    justify-content: center;
+}
+
+.thButtonLeft {
+    justify-content: flex-start;
+}
+
+.sortIcon {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    transition:
+        transform 150ms ease,
+        opacity 150ms ease;
+}
+
+.sortIconInactive {
+    opacity: 0.35;
+}
+
+.sortIconActive {
+    color: var(--mantine-primary-color-filled);
+}
