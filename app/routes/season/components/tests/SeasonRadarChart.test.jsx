@@ -80,4 +80,64 @@ describe("SeasonRadarChart Component", () => {
 
         expect(screen.getByText("Average Team")).toBeInTheDocument();
     });
+
+    it("correctly calculates hitting metrics and deltas for previous season from logs", () => {
+        render(
+            <SeasonRadarChart
+                games={mockGames}
+                logs={mockLogs}
+                players={mockPlayers}
+                previousSeasonData={mockPrevSeasonData}
+            />,
+        );
+
+        // Previous season has 1 hit / 1 at-bat (SLG 1.000) vs current season (SLG 1.500)
+        // Diff should be +0.5, NOT +1.5 (which would indicate prev season SLG was 0)
+        expect(screen.getByText("SLG: +0.5")).toBeInTheDocument();
+        // AVG: current 1.000 vs prev 1.000 -> diff 0
+        expect(screen.getByText("AVG: 0")).toBeInTheDocument();
+        // RPG: current 13 vs prev 10 -> diff +3
+        expect(screen.getByText("RPG: +3")).toBeInTheDocument();
+    });
+
+    it("displays 'No Data' for hitting delta badges when previous season has no logs (legacy unlogged games)", () => {
+        const unloggedPrevSeasonData = {
+            season: { $id: "prev-s2", seasonName: "Spring 2024" },
+            games: [{ score: 8, opponentScore: 5, result: "W" }],
+            logs: [],
+        };
+
+        render(
+            <SeasonRadarChart
+                games={mockGames}
+                logs={mockLogs}
+                players={mockPlayers}
+                previousSeasonData={unloggedPrevSeasonData}
+            />,
+        );
+
+        // Hitting metrics should display 'No Data' rather than skewed comparisons against 0
+        expect(screen.getByText("AVG: No Data")).toBeInTheDocument();
+        expect(screen.getByText("SLG: No Data")).toBeInTheDocument();
+        // Non-hitting metrics (RPG) are still computed from game scores: current 13 vs prev 8 -> +5
+        expect(screen.getByText("RPG: +5")).toBeInTheDocument();
+    });
+
+    it("includes uncharted/substitute player logs in current season metrics without dropping them", () => {
+        const logsWithUnchartedPlayer = [
+            ...mockLogs,
+            { playerId: "uncharted-player-99", eventType: "single", rbi: 1 },
+        ];
+
+        render(
+            <SeasonRadarChart
+                games={mockGames}
+                logs={logsWithUnchartedPlayer}
+                players={mockPlayers} // uncharted-player-99 is not in mockPlayers
+            />,
+        );
+
+        // 3 hits across 2 games = 1.5 Hits / Gm (rounded to 1.5 in card)
+        expect(screen.getByText("1.5")).toBeInTheDocument();
+    });
 });
