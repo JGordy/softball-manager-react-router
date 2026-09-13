@@ -8,6 +8,9 @@ const formatStat = (val) => val.replace(/^0/, "");
  *
  * @param {Array} logs - Array of game log objects
  * @param {Array} playerChart - Array of player objects (the lineup)
+ * @param {boolean} [isOpponent=false] - Whether calculating for opponent plays
+ * @param {boolean} [isHomeGame=undefined] - Home or away game context
+ * @param {boolean} [allowUnchartedPlayers=undefined] - Whether to auto-seed players not found in playerChart (defaults to true if playerChart is empty)
  * @returns {Array} Array of player stats objects
  */
 export const calculateGameStats = (
@@ -15,7 +18,13 @@ export const calculateGameStats = (
     playerChart = [],
     isOpponent = false,
     isHomeGame = undefined,
+    allowUnchartedPlayers = undefined,
 ) => {
+    const shouldAllowUncharted =
+        allowUnchartedPlayers !== undefined
+            ? Boolean(allowUnchartedPlayers)
+            : !playerChart || playerChart.length === 0;
+
     // 1. Initialize stats map for all players in lineup
     const statsMap = {};
 
@@ -99,7 +108,17 @@ export const calculateGameStats = (
         const batterId = log.playerId;
         if (!statsMap[batterId]) {
             if (!ensureOpponentBatter(batterId)) {
-                return; // Skip if player not in chart (shouldn't happen)
+                if (shouldAllowUncharted && batterId) {
+                    statsMap[batterId] = initStats({
+                        $id: batterId,
+                        firstName:
+                            log.playerName ||
+                            (isOpponent ? "Batter" : "Player"),
+                        lastName: isOpponent ? `${batterId}` : "",
+                    });
+                } else {
+                    return;
+                }
             }
         }
 
@@ -164,7 +183,15 @@ export const calculateGameStats = (
         // Credit runs to ANY player who scored on this play
         if (baseState.scored && Array.isArray(baseState.scored)) {
             baseState.scored.forEach((scoredPlayerId) => {
+                if (!scoredPlayerId) return;
                 ensureOpponentBatter(scoredPlayerId);
+                if (!statsMap[scoredPlayerId] && shouldAllowUncharted) {
+                    statsMap[scoredPlayerId] = initStats({
+                        $id: scoredPlayerId,
+                        firstName: isOpponent ? "Batter" : "Player",
+                        lastName: isOpponent ? `${scoredPlayerId}` : "",
+                    });
+                }
                 if (statsMap[scoredPlayerId]) {
                     statsMap[scoredPlayerId].R++;
                 }
