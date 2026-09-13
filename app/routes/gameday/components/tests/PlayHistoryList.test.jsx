@@ -141,6 +141,45 @@ describe("PlayHistoryList", () => {
             ).not.toBeInTheDocument();
         });
 
+        it("does not show edit button on auto_out, injury_auto_out, and INJURY_REMOVE log rows even for scorekeepers", () => {
+            const specialLogs = [
+                {
+                    $id: "log-auto",
+                    description: "Automatic Out",
+                    eventType: "auto_out",
+                    outsOnPlay: 1,
+                    inning: 1,
+                    halfInning: "top",
+                },
+                {
+                    $id: "log-injury-auto",
+                    description: "Jane D. - Automatic Out (Injury)",
+                    eventType: "injury_auto_out",
+                    outsOnPlay: 1,
+                    inning: 1,
+                    halfInning: "top",
+                },
+                {
+                    $id: "log-injury-remove",
+                    description: "Jane D. removed from lineup (Injury)",
+                    eventType: "INJURY_REMOVE",
+                    inning: 1,
+                    halfInning: "top",
+                },
+            ];
+            render(
+                <PlayHistoryList
+                    logs={specialLogs}
+                    playerChart={[]}
+                    isScorekeeper={true}
+                    onEditPlay={jest.fn()}
+                />,
+            );
+            expect(
+                screen.queryByRole("button", { name: /edit play/i }),
+            ).not.toBeInTheDocument();
+        });
+
         it("does not show edit button on opponent_run log rows even for scorekeepers", () => {
             const opponentLog = {
                 $id: "log-opp",

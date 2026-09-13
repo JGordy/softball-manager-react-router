@@ -110,4 +110,26 @@ describe("validateLineup", () => {
             summary.some((s) => s.includes("4th consecutive male batter")),
         ).toBe(true);
     });
+
+    it("should reset consecutive male count when an isAutoOut slot is present", () => {
+        const autoOutSlot = {
+            $id: "auto-out-123",
+            firstName: "Automatic Out",
+            lastName: "",
+            isAutoOut: true,
+            positions: ["Out", "Out"],
+        };
+
+        const lineup = [
+            mockPlayers[0], // Male 1
+            mockPlayers[1], // Male 2
+            mockPlayers[2], // Male 3
+            autoOutSlot, // Auto out resets streak
+            mockPlayers[3], // Male 4 (now count 1)
+        ];
+
+        const team = { prefs: { maxMaleBatters: 3 } };
+        const { battingErrors } = validateLineup(lineup, team);
+        expect(battingErrors).toHaveLength(0);
+    });
 });

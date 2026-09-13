@@ -365,4 +365,25 @@ describe("useGamedayActions", () => {
             { method: "post" },
         );
     });
+
+    it("handles auto_out action correctly", () => {
+        const { result } = renderHook(() => useGamedayActions(defaultProps));
+
+        act(() => {
+            result.current.completeAction("auto_out");
+        });
+
+        expect(defaultProps.setOuts).toHaveBeenCalledWith(1);
+        expect(defaultProps.setBattingOrderIndex).toHaveBeenCalledWith(1);
+        expect(mockSubmit).toHaveBeenCalledWith(
+            expect.objectContaining({
+                _action: "log-game-event",
+                eventType: "auto_out",
+                outsOnPlay: 1,
+                rbi: 0,
+                description: "Alice Player - Automatic Out",
+            }),
+            { method: "post" },
+        );
+    });
 });

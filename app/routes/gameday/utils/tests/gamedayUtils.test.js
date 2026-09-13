@@ -176,6 +176,19 @@ describe("getEventDescription", () => {
         expect(getEventDescription("K", "Joseph")).toBe("Joseph strikes out");
     });
 
+    it("should format auto_out and injury_auto_out correctly", () => {
+        expect(getEventDescription("auto_out", "Automatic Out")).toBe(
+            "Automatic Out",
+        );
+        expect(getEventDescription("auto_out", "")).toBe("Automatic Out");
+        expect(getEventDescription("injury_auto_out", "Jane Doe")).toBe(
+            "Jane Doe - Automatic Out (Injury)",
+        );
+        expect(getEventDescription("injury_auto_out", "Automatic Out")).toBe(
+            "Automatic Out (Injury)",
+        );
+    });
+
     it("should fallback to generic format for unknown codes", () => {
         expect(getEventDescription("XYZ", "Joseph", "SS")).toBe(
             "Joseph: XYZ (SS)",

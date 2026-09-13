@@ -60,6 +60,9 @@ export const calculateGameStats = (
     };
 
     playerChart.forEach((slot) => {
+        // Skip auto-out slots from individual player stats map
+        if (slot.isAutoOut || slot.$id?.startsWith("auto-out")) return;
+
         // Seed entry for the original slot player
         statsMap[slot.$id] = initStats(slot);
 
@@ -79,12 +82,14 @@ export const calculateGameStats = (
 
     // 2. Process logs
     logs.forEach((log) => {
-        // Skip substitution, lineup pointer, injury automatic out, and injury removal events
+        // Skip substitution, lineup pointer, automatic out, injury automatic out, and injury removal events
         if (
             log.eventType === "SUB" ||
             log.eventType === "opponent_lineup_pointer" ||
             log.eventType === "injury_auto_out" ||
-            log.eventType === "INJURY_REMOVE"
+            log.eventType === "auto_out" ||
+            log.eventType === "INJURY_REMOVE" ||
+            log.playerId?.startsWith("auto-out")
         )
             return;
 
@@ -293,9 +298,11 @@ export const calculatePlayerStats = (logs, userId) => {
         if (log.eventType === "opponent_run" || isOpponentPlay(log)) return;
         if (
             log.eventType === "injury_auto_out" ||
+            log.eventType === "auto_out" ||
             log.eventType === "INJURY_REMOVE" ||
             log.eventType === "SUB" ||
-            log.eventType === "opponent_lineup_pointer"
+            log.eventType === "opponent_lineup_pointer" ||
+            log.playerId?.startsWith("auto-out")
         )
             return;
 
@@ -598,6 +605,7 @@ export function calculatePlatformBenchmarks(logs = []) {
             type &&
             type !== "SUB" &&
             type !== "INJURY_AUTO_OUT" &&
+            type !== "AUTO_OUT" &&
             type !== "INJURY_REMOVE"
         );
     });

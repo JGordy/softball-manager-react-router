@@ -130,6 +130,8 @@ export const EVENT_LABELS = {
     fielders_choice: "Fielder's Choice",
     sacrifice_fly: "Sacrifice Fly",
     injury_remove: "Injury Remove",
+    auto_out: "Automatic Out",
+    injury_auto_out: "Automatic Out (Injury)",
 };
 
 export const LOG_EVENT_TYPES = Object.keys(EVENT_LABELS);

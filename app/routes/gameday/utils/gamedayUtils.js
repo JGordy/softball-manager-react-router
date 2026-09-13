@@ -149,7 +149,15 @@ export function getEventDescription(
     } else if (actionType === "BB") baseDesc = `${batterName} walks`;
     else if (actionType === "K") baseDesc = `${batterName} strikes out`;
     else if (actionType === "injury_auto_out")
-        baseDesc = `${batterName} - Automatic Out (Injury)`;
+        baseDesc =
+            batterName && batterName !== "Automatic Out"
+                ? `${batterName} - Automatic Out (Injury)`
+                : "Automatic Out (Injury)";
+    else if (actionType === "auto_out")
+        baseDesc =
+            batterName && batterName !== "Automatic Out"
+                ? `${batterName} - Automatic Out`
+                : "Automatic Out";
     else baseDesc = `${batterName}: ${actionType}${loc ? ` (${loc})` : ""}`;
 
     // Add advancement context if batter moved further than expected

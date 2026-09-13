@@ -507,11 +507,23 @@ describe("calculateGameStats", () => {
         expect(oppStats.RBI).toBe(2);
     });
 
-    it("should skip injury_auto_out and INJURY_REMOVE event types entirely and not increment at-bats or plate appearances", () => {
+    it("should skip injury_auto_out, auto_out, and INJURY_REMOVE event types entirely and not increment at-bats or plate appearances", () => {
         const logs = [
             {
                 playerId: "player1",
                 eventType: "injury_auto_out",
+                rbi: 0,
+                baseState: "{}",
+            },
+            {
+                playerId: "player1",
+                eventType: "auto_out",
+                rbi: 0,
+                baseState: "{}",
+            },
+            {
+                playerId: "auto-out-123",
+                eventType: "auto_out",
                 rbi: 0,
                 baseState: "{}",
             },
@@ -532,6 +544,38 @@ describe("calculateGameStats", () => {
         const player1Stats = stats.find((s) => s.player.$id === "player1");
         expect(player1Stats.PA).toBe(1);
         expect(player1Stats.AB).toBe(1);
+    });
+
+    it("should exclude isAutoOut slots from calculateGameStats player results", () => {
+        const chartWithAutoOut = [
+            ...mockPlayerChart,
+            {
+                $id: "auto-out-123",
+                firstName: "Automatic Out",
+                lastName: "",
+                isAutoOut: true,
+                positions: Array(7).fill("Out"),
+            },
+        ];
+        const logs = [
+            {
+                playerId: "auto-out-123",
+                eventType: "auto_out",
+                rbi: 0,
+                baseState: "{}",
+            },
+            {
+                playerId: "player1",
+                eventType: "single",
+                rbi: 0,
+                baseState: "{}",
+            },
+        ];
+        const stats = calculateGameStats(logs, chartWithAutoOut);
+        expect(
+            stats.find((s) => s.player.$id === "auto-out-123"),
+        ).toBeUndefined();
+        expect(stats.find((s) => s.player.$id === "player1")).toBeDefined();
     });
 });
 

@@ -10,6 +10,7 @@ import {
     Stack,
     Tabs,
     Text,
+    ThemeIcon,
     Title,
     SegmentedControl,
 } from "@mantine/core";
@@ -435,44 +436,65 @@ export default function DesktopGamedayContainer({
                                 <Box>
                                     {!isGameFinal &&
                                         (isOurBatting &&
-                                        currentBatter?.removed &&
-                                        currentBatter?.removalType ===
-                                            "auto-out"
+                                        (currentBatter?.isAutoOut ||
+                                            currentBatter?.$id?.startsWith(
+                                                "auto-out",
+                                            ) ||
+                                            (currentBatter?.removed &&
+                                                currentBatter?.removalType ===
+                                                    "auto-out"))
                                             ? isScorekeeper && (
                                                   <Card
-                                                      p="md"
+                                                      p="lg"
                                                       radius="lg"
-                                                      bg="orange.9"
-                                                      c="white"
+                                                      withBorder
+                                                      style={{
+                                                          borderColor:
+                                                              "rgba(239, 68, 68, 0.3)",
+                                                          background:
+                                                              "rgba(229, 115, 115, 0.05)",
+                                                      }}
                                                       ta="center"
                                                   >
                                                       <Stack
                                                           align="center"
-                                                          gap="sm"
+                                                          gap="xs"
                                                       >
-                                                          <IconAlertTriangle
-                                                              size={32}
-                                                          />
-                                                          <Text fw={700}>
-                                                              Injured Player -
-                                                              Automatic Out
+                                                          <ThemeIcon
+                                                              size={44}
+                                                              radius="xl"
+                                                              color="red"
+                                                              variant="light"
+                                                          >
+                                                              <IconAlertTriangle
+                                                                  size={22}
+                                                              />
+                                                          </ThemeIcon>
+                                                          <Text
+                                                              fw={700}
+                                                              size="md"
+                                                          >
+                                                              {currentBatter?.removed
+                                                                  ? "Injured Player - Automatic Out"
+                                                                  : "Automatic Out"}
                                                           </Text>
                                                           <Text
                                                               size="xs"
-                                                              opacity={0.8}
+                                                              c="dimmed"
+                                                              maw={320}
                                                           >
-                                                              This slot is
-                                                              marked for
-                                                              automatic out due
-                                                              to player injury.
-                                                              Click below to
-                                                              record the out.
+                                                              {currentBatter?.removed
+                                                                  ? "This slot is marked for automatic out due to player injury. Click below to record the out."
+                                                                  : "This slot is configured as an automatic out. Click below to record the out."}
                                                           </Text>
                                                           <Button
                                                               color="red"
+                                                              mt="xs"
                                                               onClick={() =>
                                                                   completeAction(
-                                                                      "injury_auto_out",
+                                                                      currentBatter?.removed
+                                                                          ? "injury_auto_out"
+                                                                          : "auto_out",
                                                                   )
                                                               }
                                                               leftSection={

@@ -157,6 +157,25 @@ export default function AddPlayersDrawer({
             >
                 Add Selected Players
             </Button>
+            <Button
+                variant="subtle"
+                color="orange"
+                onClick={() => {
+                    lineupHandlers.append({
+                        $id: `auto-out-${Date.now()}`,
+                        firstName: "Automatic Out",
+                        lastName: "",
+                        isAutoOut: true,
+                        positions: Array(7).fill("Out"),
+                    });
+                    setHasBeenEdited(true);
+                    onClose(true);
+                }}
+                mt="xs"
+                fullWidth
+            >
+                + Add Automatic Out Slot
+            </Button>
         </DrawerContainer>
     );
 }

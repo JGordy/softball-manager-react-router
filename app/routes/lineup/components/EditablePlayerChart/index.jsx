@@ -58,10 +58,15 @@ const EditablePlayerChart = ({
                 );
             }
 
+            const isAutoOut =
+                player.isAutoOut || player.$id?.startsWith("auto-out");
             const row = {
                 battingOrder: index + 1,
                 playerId: player.$id,
-                player: `${player.firstName} ${player.lastName}`,
+                player: player.lastName
+                    ? `${player.firstName} ${player.lastName}`
+                    : player.firstName,
+                isAutoOut,
                 hasBattingError: battingErrors?.some(
                     (e) => e.playerId === player.$id,
                 ),

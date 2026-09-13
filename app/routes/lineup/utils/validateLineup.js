@@ -16,7 +16,7 @@ export const validateLineup = (lineup, team) => {
     if (maxConsecutiveMales > 0) {
         let consecutiveMales = 0;
         lineup.forEach((player) => {
-            if (player.gender === "Male") {
+            if (player.gender === "Male" && !player.isAutoOut) {
                 consecutiveMales++;
             } else {
                 consecutiveMales = 0;

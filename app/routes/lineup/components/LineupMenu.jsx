@@ -86,6 +86,21 @@ export default function LineupMenu({
                 content: <Text>Add Guest Player</Text>,
             },
             {
+                key: "add-automatic-out",
+                onClick: () => {
+                    lineupHandlers.append({
+                        $id: `auto-out-${Date.now()}`,
+                        firstName: "Automatic Out",
+                        lastName: "",
+                        isAutoOut: true,
+                        positions: Array(7).fill("Out"),
+                    });
+                    setHasBeenEdited(true);
+                },
+                leftSection: <IconUserMinus size={20} />,
+                content: <Text>Add Automatic Out</Text>,
+            },
+            {
                 key: "remove-players",
                 onClick: removePlayersHandlers.open,
                 leftSection: <IconUserMinus size={20} />,
