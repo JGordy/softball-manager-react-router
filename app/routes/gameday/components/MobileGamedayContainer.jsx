@@ -10,6 +10,7 @@ import {
     Stack,
     Tabs,
     Text,
+    ThemeIcon,
     Title,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
@@ -431,27 +432,43 @@ export default function MobileGamedayContainer({
                                                     currentBatter?.removalType ===
                                                         "auto-out")) ? (
                                                 <Card
-                                                    p="md"
+                                                    p="lg"
                                                     radius="lg"
-                                                    bg="orange.9"
-                                                    c="white"
+                                                    withBorder
+                                                    style={{
+                                                        borderColor:
+                                                            "rgba(239, 68, 68, 0.3)",
+                                                        background:
+                                                            "rgba(229, 115, 115, 0.05)",
+                                                    }}
                                                     ta="center"
                                                 >
                                                     <Stack
                                                         align="center"
-                                                        gap="sm"
+                                                        gap="xs"
                                                     >
-                                                        <IconAlertTriangle
-                                                            size={32}
-                                                        />
-                                                        <Text fw={700}>
+                                                        <ThemeIcon
+                                                            size={44}
+                                                            radius="xl"
+                                                            color="red"
+                                                            variant="light"
+                                                        >
+                                                            <IconAlertTriangle
+                                                                size={22}
+                                                            />
+                                                        </ThemeIcon>
+                                                        <Text
+                                                            fw={700}
+                                                            size="md"
+                                                        >
                                                             {currentBatter?.removed
                                                                 ? "Injured Player - Automatic Out"
                                                                 : "Automatic Out"}
                                                         </Text>
                                                         <Text
                                                             size="xs"
-                                                            opacity={0.8}
+                                                            c="dimmed"
+                                                            maw={320}
                                                         >
                                                             {currentBatter?.removed
                                                                 ? "This slot is marked for automatic out due to player injury. Click below to record the out."
@@ -459,6 +476,7 @@ export default function MobileGamedayContainer({
                                                         </Text>
                                                         <Button
                                                             color="red"
+                                                            mt="xs"
                                                             onClick={() =>
                                                                 completeAction(
                                                                     currentBatter?.removed
