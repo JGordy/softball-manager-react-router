@@ -577,6 +577,128 @@ describe("calculateGameStats", () => {
         ).toBeUndefined();
         expect(stats.find((s) => s.player.$id === "player1")).toBeDefined();
     });
+
+    it("should calculate stats from logs even when playerChart is empty or unprovided", () => {
+        const logs = [
+            {
+                playerId: "p1",
+                eventType: "single",
+                rbi: 1,
+                baseState: "{}",
+            },
+            {
+                playerId: "p1",
+                eventType: "homerun",
+                rbi: 2,
+                baseState: JSON.stringify({ scored: ["p1", "p2"] }),
+            },
+            {
+                playerId: "p2",
+                eventType: "double",
+                rbi: 0,
+                baseState: "{}",
+            },
+        ];
+
+        const stats = calculateGameStats(logs, []);
+        expect(stats).toHaveLength(2);
+
+        const p1Stats = stats.find((s) => s.player.$id === "p1");
+        expect(p1Stats).toBeDefined();
+        expect(p1Stats.H).toBe(2);
+        expect(p1Stats.HR).toBe(1);
+        expect(p1Stats.RBI).toBe(3);
+        expect(p1Stats.R).toBe(1);
+        expect(p1Stats.AVG).toBe("1.000");
+
+        const p2Stats = stats.find((s) => s.player.$id === "p2");
+        expect(p2Stats).toBeDefined();
+        expect(p2Stats.H).toBe(1);
+        expect(p2Stats["2B"]).toBe(1);
+        expect(p2Stats.R).toBe(1);
+
+        const totals = calculateTeamTotals(stats);
+        expect(totals.H).toBe(3);
+        expect(totals.HR).toBe(1);
+        expect(totals.R).toBe(2);
+        expect(totals.AVG).toBe("1.000");
+    });
+
+    it("should include both charted and uncharted players when allowUnchartedPlayers is explicitly true", () => {
+        const logs = [
+            {
+                playerId: "player1",
+                eventType: "single",
+                rbi: 0,
+                baseState: "{}",
+            },
+            {
+                playerId: "unlisted-sub",
+                eventType: "triple",
+                rbi: 1,
+                baseState: "{}",
+            },
+        ];
+
+        // mockPlayerChart only has player1, player2, player3
+        const stats = calculateGameStats(
+            logs,
+            mockPlayerChart,
+            false,
+            undefined,
+            true,
+        );
+        expect(stats).toHaveLength(4); // 3 from chart + 1 unlisted
+        expect(stats.find((s) => s.player.$id === "unlisted-sub")?.H).toBe(1);
+        expect(stats.find((s) => s.player.$id === "player1")?.H).toBe(1);
+    });
+
+    it("should skip uncharted players when allowUnchartedPlayers is explicitly false", () => {
+        const logs = [
+            {
+                playerId: "player1",
+                eventType: "single",
+                rbi: 0,
+                baseState: "{}",
+            },
+            {
+                playerId: "unlisted-sub",
+                eventType: "triple",
+                rbi: 1,
+                baseState: "{}",
+            },
+        ];
+
+        const stats = calculateGameStats(
+            logs,
+            mockPlayerChart,
+            false,
+            undefined,
+            false,
+        );
+        expect(stats).toHaveLength(3); // only player1, player2, player3
+        expect(
+            stats.find((s) => s.player.$id === "unlisted-sub"),
+        ).toBeUndefined();
+    });
+
+    it("should auto-seed and credit runs to uncharted scoring runners when allowUncharted is active", () => {
+        const logs = [
+            {
+                playerId: "player1",
+                eventType: "single",
+                rbi: 1,
+                baseState: JSON.stringify({ scored: ["unlisted-runner"] }),
+            },
+        ];
+
+        const stats = calculateGameStats(logs, [], false, undefined, true);
+        const runnerStats = stats.find(
+            (s) => s.player.$id === "unlisted-runner",
+        );
+        expect(runnerStats).toBeDefined();
+        expect(runnerStats.R).toBe(1);
+    });
 });
 
 describe("calculateTeamTotals", () => {

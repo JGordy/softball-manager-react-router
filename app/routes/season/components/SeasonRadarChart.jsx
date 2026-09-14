@@ -56,7 +56,7 @@ export default function SeasonRadarChart({
 
     // 1. Calculate Current Season Radar Metrics
     const currentMetrics = useMemo(() => {
-        const stats = calculateGameStats(logs, players);
+        const stats = calculateGameStats(logs, players, false, undefined, true);
         const totals = calculateTeamTotals(stats);
         return calculateSeasonRadarMetrics({ games, totals, logs });
     }, [games, logs, players]);
@@ -64,14 +64,20 @@ export default function SeasonRadarChart({
     // 2. Calculate Previous Season Radar Metrics
     const prevMetrics = useMemo(() => {
         if (!hasPrevSeason) return null;
-        const prevStats = calculateGameStats(previousSeasonData.logs || [], []);
+        const prevStats = calculateGameStats(
+            previousSeasonData.logs || [],
+            previousSeasonData.players || players || [],
+            false,
+            undefined,
+            true,
+        );
         const prevTotals = calculateTeamTotals(prevStats);
         return calculateSeasonRadarMetrics({
             games: previousSeasonData.games || [],
             totals: prevTotals,
             logs: previousSeasonData.logs || [],
         });
-    }, [hasPrevSeason, previousSeasonData]);
+    }, [hasPrevSeason, previousSeasonData, players]);
 
     // 3. Calculate Platform Benchmark Metrics
     const platformMetrics = useMemo(() => {
@@ -179,7 +185,10 @@ export default function SeasonRadarChart({
     const renderDeltaBadge = (label, diff, suffix = "") => {
         const isHittingMetric =
             label === "AVG" || label === "SLG" || label === "HPG";
-        if (isHittingMetric && !hasHittingData) {
+        const hasComparisonHittingData =
+            comparisonMode !== "prev" ||
+            (activeComparison && activeComparison.loggedGamesCount > 0);
+        if (isHittingMetric && (!hasHittingData || !hasComparisonHittingData)) {
             return (
                 <Tooltip
                     label={`No game log hitting data available for ${label}`}

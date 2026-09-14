@@ -1,6 +1,6 @@
 import { Query } from "node-appwrite";
 import { listDocuments, readDocument } from "@/utils/databases";
-import { getSeasonById } from "../seasons";
+import { getSeasonById, getPreviousSeasonSummary } from "../seasons";
 
 // Mock dependencies
 jest.mock("node-appwrite", () => ({
@@ -187,6 +187,130 @@ describe("Seasons Loader", () => {
 
             expect(readDocument).not.toHaveBeenCalled();
             expect(result.season).toEqual({});
+        });
+    });
+
+    describe("getPreviousSeasonSummary", () => {
+        it("should return null if teamId or currentSeasonId is missing", async () => {
+            expect(
+                await getPreviousSeasonSummary({
+                    teamId: null,
+                    currentSeasonId: "s1",
+                }),
+            ).toBeNull();
+            expect(
+                await getPreviousSeasonSummary({
+                    teamId: "t1",
+                    currentSeasonId: null,
+                }),
+            ).toBeNull();
+        });
+
+        it("should return null if team has only one season", async () => {
+            listDocuments
+                .mockResolvedValueOnce({
+                    rows: [{ $id: "curr-s", startDate: "2026-09-01" }],
+                }) // byTeamId
+                .mockResolvedValueOnce({ rows: [] }); // byTeamsArr
+
+            const result = await getPreviousSeasonSummary({
+                teamId: "team-1",
+                currentSeasonId: "curr-s",
+            });
+
+            expect(result).toBeNull();
+        });
+
+        it("should correctly identify previous season, query targeted games, batch logs, and return summary", async () => {
+            const currentSeason = {
+                $id: "curr-s",
+                startDate: "2026-09-01",
+                seasonName: "Fall 2026",
+            };
+            const prevSeason = {
+                $id: "prev-s",
+                startDate: "2026-04-01",
+                seasonName: "Spring 2026",
+            };
+            const olderSeason = {
+                $id: "old-s",
+                startDate: "2025-09-01",
+                seasonName: "Fall 2025",
+            };
+
+            // 1. Seasons queries
+            listDocuments
+                .mockResolvedValueOnce({
+                    rows: [currentSeason, prevSeason, olderSeason],
+                }) // byTeamId
+                .mockResolvedValueOnce({ rows: [] }) // byTeamsArr
+                // 2. Games queries (by season, by team)
+                .mockResolvedValueOnce({
+                    rows: [
+                        {
+                            $id: "game-1",
+                            seasons: "prev-s",
+                            score: 10,
+                            opponentScore: 6,
+                        },
+                        {
+                            $id: "game-2",
+                            seasons: "prev-s",
+                            score: 12,
+                            opponentScore: 8,
+                        },
+                    ],
+                }) // games by season
+                .mockResolvedValueOnce({ rows: [] }) // games by team
+                // 3. Logs query (batch limit 5000)
+                .mockResolvedValueOnce({
+                    rows: [
+                        {
+                            $id: "log-1",
+                            gameId: "game-1",
+                            playerId: "p1",
+                            eventType: "single",
+                        },
+                        {
+                            $id: "log-2",
+                            gameId: "game-2",
+                            playerId: "p1",
+                            eventType: "double",
+                        },
+                    ],
+                });
+
+            const result = await getPreviousSeasonSummary({
+                teamId: "team-1",
+                currentSeasonId: "curr-s",
+            });
+
+            expect(result).not.toBeNull();
+            expect(result.season.$id).toBe("prev-s");
+            expect(result.season.seasonName).toBe("Spring 2026");
+            expect(result.games).toHaveLength(2);
+            expect(result.logs).toHaveLength(2);
+            expect(result.allPreviousSeasons).toHaveLength(2);
+            expect(result.allPreviousSeasons.map((s) => s.$id)).toEqual([
+                "prev-s",
+                "old-s",
+            ]);
+
+            // Verify Query was called with 5000 limit for logs
+            expect(Query.limit).toHaveBeenCalledWith(5000);
+        });
+
+        it("should handle error gracefully and return null", async () => {
+            listDocuments.mockRejectedValueOnce(
+                new Error("Appwrite DB connection failure"),
+            );
+
+            const result = await getPreviousSeasonSummary({
+                teamId: "team-1",
+                currentSeasonId: "curr-s",
+            });
+
+            expect(result).toBeNull();
         });
     });
 });
