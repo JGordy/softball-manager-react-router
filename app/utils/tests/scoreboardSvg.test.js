@@ -1,6 +1,35 @@
-import { generateScoreboardSvg, getLogoDataUri } from "../scoreboardSvg";
+import {
+    generateScoreboardSvg,
+    getLogoDataUri,
+    splitTeamName,
+} from "../scoreboardSvg";
 
 describe("scoreboardSvg utils", () => {
+    describe("splitTeamName", () => {
+        it("handles multi-word names by splitting last word into main", () => {
+            expect(splitTeamName("Ormewood Park Sliders")).toEqual({
+                prefix: "ORMEWOOD PARK",
+                main: "SLIDERS",
+            });
+            expect(splitTeamName("Decatur Raiders")).toEqual({
+                prefix: "DECATUR",
+                main: "RAIDERS",
+            });
+        });
+
+        it("handles single-word names", () => {
+            expect(splitTeamName("Thunder")).toEqual({
+                prefix: "",
+                main: "THUNDER",
+            });
+        });
+
+        it("handles empty or null names gracefully", () => {
+            expect(splitTeamName("")).toEqual({ prefix: "", main: "TEAM" });
+            expect(splitTeamName(null)).toEqual({ prefix: "", main: "TEAM" });
+        });
+    });
+
     it("returns a non-empty string or fallback for getLogoDataUri", () => {
         const uri = getLogoDataUri();
         expect(typeof uri).toBe("string");
@@ -13,9 +42,6 @@ describe("scoreboardSvg utils", () => {
             teamScore: 14,
             opponentScore: 8,
             isGameFinal: true,
-            venue: "Grant Park",
-            seasonName: "Fall 2026 Season",
-            inningText: "7 Innings",
         });
 
         expect(svg).toContain('width="1200"');
@@ -23,12 +49,13 @@ describe("scoreboardSvg utils", () => {
         expect(svg).toContain("#111827"); // midnight navy
         expect(svg).toContain("#CCFF33"); // neon volt
         expect(svg).toContain("FINAL");
-        expect(svg).toContain("ORMEWOOD PARK SLIDERS");
-        expect(svg).toContain("DECATUR RAIDERS");
+        expect(svg).toContain("ORMEWOOD PARK");
+        expect(svg).toContain("SLIDERS");
+        expect(svg).toContain("DECATUR");
+        expect(svg).toContain("RAIDERS");
         expect(svg).toContain(">14<");
         expect(svg).toContain(">8<");
-        expect(svg).toContain("Grant Park");
-        expect(svg).toContain("Fall 2026 Season");
+        expect(svg).toContain('font-size="110"'); // large score numbers
     });
 
     it("handles XML characters safely by escaping them", () => {
@@ -39,8 +66,10 @@ describe("scoreboardSvg utils", () => {
             opponentScore: 2,
         });
 
-        expect(svg).toContain("AT&amp;T &lt;TEAM&gt;");
-        expect(svg).toContain("THE &quot;SLUGGERS&quot;");
+        expect(svg).toContain("AT&amp;T");
+        expect(svg).toContain("&lt;TEAM&gt;");
+        expect(svg).toContain("THE");
+        expect(svg).toContain("&quot;SLUGGERS&quot;");
     });
 
     it("generates LIVE badge when game has score but is not final", () => {
