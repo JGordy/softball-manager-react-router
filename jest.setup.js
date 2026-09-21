@@ -30,6 +30,24 @@ if (typeof globalThis.Response === "undefined") {
                 ? JSON.parse(this.body)
                 : this.body;
         }
+        async text() {
+            if (typeof this.body === "string") return this.body;
+            if (Buffer.isBuffer(this.body)) return this.body.toString("utf-8");
+            return String(this.body || "");
+        }
+        async arrayBuffer() {
+            if (Buffer.isBuffer(this.body)) {
+                return this.body.buffer.slice(
+                    this.body.byteOffset,
+                    this.body.byteOffset + this.body.byteLength,
+                );
+            }
+            const str =
+                typeof this.body === "string"
+                    ? this.body
+                    : String(this.body || "");
+            return new TextEncoder().encode(str).buffer;
+        }
         static json(data, init = {}) {
             return new Response(JSON.stringify(data), {
                 ...init,
