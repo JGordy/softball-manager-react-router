@@ -41,8 +41,10 @@ describe("/api/og/game route loader", () => {
         expect(response.headers.get("Cache-Control")).toContain("max-age=3600");
 
         const text = await response.text();
-        expect(text).toContain("ORMEWOOD PARK SLIDERS");
-        expect(text).toContain("DECATUR RAIDERS");
+        expect(text).toContain("ORMEWOOD PARK");
+        expect(text).toContain("SLIDERS");
+        expect(text).toContain("DECATUR");
+        expect(text).toContain("RAIDERS");
         expect(text).toContain("FINAL");
         expect(text).toContain("14");
         expect(text).toContain("8");

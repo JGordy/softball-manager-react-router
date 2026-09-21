@@ -49,6 +49,30 @@ function escapeXml(str) {
 }
 
 /**
+ * Splits a team name into a prefix (location/city) and primary mascot name.
+ * e.g., "Ormewood Park Sliders" -> { prefix: "ORMEWOOD PARK", main: "SLIDERS" }
+ *
+ * @param {string} name - Raw team name.
+ * @returns {{ prefix: string, main: string }} Split name components.
+ */
+export function splitTeamName(name) {
+    if (!name || typeof name !== "string") {
+        return { prefix: "", main: "TEAM" };
+    }
+    const trimmed = name.trim();
+    const parts = trimmed.split(/\s+/);
+    if (parts.length === 1) {
+        return { prefix: "", main: parts[0].toUpperCase() };
+    }
+    const main = parts[parts.length - 1].toUpperCase();
+    const prefix = parts
+        .slice(0, parts.length - 1)
+        .join(" ")
+        .toUpperCase();
+    return { prefix, main };
+}
+
+/**
  * Generates an SVG string representing the high-resolution, Velocity Dark virtual scoreboard.
  *
  * @param {Object} params - Scoreboard data parameters.
@@ -58,9 +82,6 @@ function escapeXml(str) {
  * @param {number|string} [params.opponentScore=0] - Opponent score.
  * @param {boolean} [params.isGameFinal=false] - Whether the game is final.
  * @param {string} [params.statusBadge] - Custom badge text override (e.g. "FINAL", "LIVE").
- * @param {string} [params.venue] - Park or field name.
- * @param {string} [params.seasonName] - Season name (e.g. "Fall 2026").
- * @param {string} [params.inningText] - Inning count or status (e.g. "7 Innings").
  * @param {string} [params.logoDataUri] - Optional custom data URI for the logo.
  * @returns {string} Complete valid SVG markup.
  */
@@ -71,9 +92,6 @@ export function generateScoreboardSvg({
     opponentScore = 0,
     isGameFinal = false,
     statusBadge = null,
-    venue = "",
-    seasonName = "",
-    inningText = "",
     logoDataUri = null,
 } = {}) {
     const logoUri = logoDataUri || getLogoDataUri();
@@ -91,35 +109,25 @@ export function generateScoreboardSvg({
     const team1Bold = isGameFinal ? tScore >= oScore : true;
     const team2Bold = isGameFinal ? oScore > tScore : true;
 
-    const team1Color = team1Bold ? "#FFFFFF" : "#9CA3AF";
-    const team2Color = team2Bold ? "#FFFFFF" : "#9CA3AF";
-    const team1ScoreColor = team1Bold ? "#FFFFFF" : "#9CA3AF";
-    const team2ScoreColor = team2Bold ? "#FFFFFF" : "#9CA3AF";
+    const team1Color = team1Bold ? "#FFFFFF" : "#8A99AD";
+    const team2Color = team2Bold ? "#FFFFFF" : "#8A99AD";
+    const team1PrefixColor = team1Bold ? "#FFFFFF" : "#8A99AD";
+    const team2PrefixColor = team2Bold ? "#8A99AD" : "#6B7280";
+    const team1ScoreColor = team1Bold ? "#FFFFFF" : "#8A99AD";
+    const team2ScoreColor = team2Bold ? "#FFFFFF" : "#8A99AD";
 
-    // Build context line
-    const contextItems = [];
-    if (venue) contextItems.push(venue);
-    if (inningText) contextItems.push(inningText);
-    else if (isGameFinal) contextItems.push("7 Innings");
-    if (seasonName) contextItems.push(seasonName);
-    const contextLine = contextItems.join("  •  ") || "RostrHQ Gameday";
+    const team1Split = splitTeamName(teamName);
+    const team2Split = splitTeamName(opponentName);
 
-    // Truncate names if overly long for 650px container, uppercase, then escape XML
-    const rawTeam =
-        teamName.length > 22 ? `${teamName.slice(0, 20)}...` : teamName;
-    const rawOpponent =
-        opponentName.length > 22
-            ? `${opponentName.slice(0, 20)}...`
-            : opponentName;
-
-    const safeTeamName = escapeXml(rawTeam.toUpperCase());
-    const safeOpponentName = escapeXml(rawOpponent.toUpperCase());
-    const safeContext = escapeXml(contextLine);
+    const safeTeam1Prefix = escapeXml(team1Split.prefix);
+    const safeTeam1Main = escapeXml(team1Split.main);
+    const safeTeam2Prefix = escapeXml(team2Split.prefix);
+    const safeTeam2Main = escapeXml(team2Split.main);
 
     return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
   <defs>
     <filter id="neon-glow" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feGaussianBlur stdDeviation="14" result="blur" />
       <feMerge>
         <feMergeNode in="blur" />
         <feMergeNode in="SourceGraphic" />
@@ -133,13 +141,13 @@ export function generateScoreboardSvg({
       <stop offset="100%" stop-color="#1A2332" />
     </linearGradient>
     <linearGradient id="border-neon" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#CCFF33" stop-opacity="0.8" />
+      <stop offset="0%" stop-color="#CCFF33" stop-opacity="0.85" />
       <stop offset="40%" stop-color="#374151" stop-opacity="0.4" />
       <stop offset="80%" stop-color="#374151" stop-opacity="0.4" />
       <stop offset="100%" stop-color="#CCFF33" stop-opacity="0.9" />
     </linearGradient>
     <clipPath id="card-clip">
-      <rect x="80" y="85" width="1040" height="460" rx="24" ry="24" />
+      <rect x="60" y="55" width="1080" height="520" rx="28" ry="28" />
     </clipPath>
   </defs>
 
@@ -147,50 +155,61 @@ export function generateScoreboardSvg({
   <rect width="1200" height="630" fill="#111827" />
 
   <!-- Unified Elevated Scoreboard Container -->
-  <rect x="80" y="85" width="1040" height="460" rx="24" ry="24" fill="url(#card-grad)" filter="url(#card-shadow)" />
+  <rect x="60" y="55" width="1080" height="520" rx="28" ry="28" fill="url(#card-grad)" filter="url(#card-shadow)" />
   
   <!-- Subtle Neon Accent Rim -->
-  <rect x="80" y="85" width="1040" height="460" rx="24" ry="24" fill="none" stroke="url(#border-neon)" stroke-width="2.5" />
+  <rect x="60" y="55" width="1080" height="520" rx="28" ry="28" fill="none" stroke="url(#border-neon)" stroke-width="2.5" />
 
   <!-- Content Group clipped to card bounds for clean corners -->
   <g clip-path="url(#card-clip)">
-    <!-- Bottom Footer Bar -->
-    <rect x="80" y="475" width="1040" height="70" fill="#141B26" />
-    <line x1="80" y1="475" x2="1120" y2="475" stroke="#2B3648" stroke-width="1.5" />
-    <text x="600" y="518" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Open Sans', sans-serif" font-size="21" font-weight="600" fill="#9CA3AF" text-anchor="middle" letter-spacing="0.5">${safeContext}</text>
-
-    <!-- Left Column: Shield Logo & Status Badge (x: 80 to 390) -->
-    <!-- Center of left column is x = 235. Center of scoreboard area (y: 85 to 475) is y = 280 -->
-    <g transform="translate(145, 140)">
+    <!-- Left Column: Shield Logo & Status Badge (x: 60 to 370) -->
+    <g transform="translate(85, 95)">
       ${
           logoUri
-              ? `<image href="${logoUri}" x="0" y="0" width="180" height="180" />`
-              : `<rect x="0" y="0" width="180" height="180" rx="20" fill="#111827" stroke="#CCFF33" stroke-width="3" />
-                 <text x="90" y="105" font-family="-apple-system, BlinkMacSystemFont, Roboto, sans-serif" font-size="72" font-weight="900" fill="#CCFF33" text-anchor="middle">R</text>`
+              ? `<image href="${logoUri}" x="0" y="0" width="260" height="260" />`
+              : `<rect x="0" y="0" width="260" height="260" rx="32" fill="#111827" stroke="#CCFF33" stroke-width="3.5" />
+                 <text x="130" y="165" font-family="system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif" font-size="115" font-weight="900" fill="#CCFF33" text-anchor="middle">R</text>`
       }
       
       <!-- Glowing FINAL / LIVE status badge directly centered below shield -->
-      <g transform="translate(10, 205)">
-        <rect x="0" y="0" width="160" height="48" rx="14" fill="#CCFF33" filter="url(#neon-glow)" />
-        <rect x="0" y="0" width="160" height="48" rx="14" fill="#CCFF33" />
-        <text x="80" y="32" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="900" fill="#111827" text-anchor="middle" letter-spacing="2.5">${escapeXml(badgeText)}</text>
+      <g transform="translate(40, 285)">
+        <rect x="0" y="0" width="180" height="56" rx="16" fill="#CCFF33" filter="url(#neon-glow)" />
+        <rect x="0" y="0" width="180" height="56" rx="16" fill="#CCFF33" />
+        <text x="90" y="38" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="26" font-weight="900" fill="#111827" text-anchor="middle" letter-spacing="3">${escapeXml(badgeText)}</text>
       </g>
     </g>
 
     <!-- Vertical Column Divider -->
-    <line x1="390" y1="125" x2="390" y2="435" stroke="#2B3648" stroke-width="2" />
+    <line x1="370" y1="55" x2="370" y2="575" stroke="#2B3648" stroke-width="2" />
 
-    <!-- Right Column: Matchup Rows (x: 430 to 1060) -->
+    <!-- Vertical Divider between Team Names and Scores -->
+    <line x1="880" y1="55" x2="880" y2="575" stroke="#2B3648" stroke-width="1.5" />
+
+    <!-- Right Column: Matchup Rows -->
     <!-- Row 1: Team 1 -->
-    <text x="440" y="215" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Open Sans', sans-serif" font-size="36" font-weight="800" fill="${team1Color}" letter-spacing="1">${safeTeamName}</text>
-    <text x="1050" y="225" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Open Sans', sans-serif" font-size="76" font-weight="900" fill="${team1ScoreColor}" text-anchor="end">${tScore}</text>
+    <g transform="translate(420, 0)">
+      ${
+          safeTeam1Prefix
+              ? `<text x="0" y="155" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="38" font-weight="800" fill="${team1PrefixColor}" letter-spacing="1">${safeTeam1Prefix}</text>
+                 <text x="0" y="240" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="70" font-weight="900" fill="${team1Color}" letter-spacing="1">${safeTeam1Main}</text>`
+              : `<text x="0" y="210" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="76" font-weight="900" fill="${team1Color}" letter-spacing="1">${safeTeam1Main}</text>`
+      }
+    </g>
+    <text x="1010" y="222" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="110" font-weight="900" fill="${team1ScoreColor}" text-anchor="middle">${tScore}</text>
 
     <!-- Horizontal Team Divider -->
-    <line x1="440" y1="280" x2="1050" y2="280" stroke="#2B3648" stroke-width="2" />
+    <line x1="370" y1="315" x2="1140" y2="315" stroke="#2B3648" stroke-width="2" />
 
     <!-- Row 2: Team 2 (Opponent) -->
-    <text x="440" y="375" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Open Sans', sans-serif" font-size="36" font-weight="800" fill="${team2Color}" letter-spacing="1">${safeOpponentName}</text>
-    <text x="1050" y="385" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Open Sans', sans-serif" font-size="76" font-weight="900" fill="${team2ScoreColor}" text-anchor="end">${oScore}</text>
+    <g transform="translate(420, 0)">
+      ${
+          safeTeam2Prefix
+              ? `<text x="0" y="415" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="38" font-weight="800" fill="${team2PrefixColor}" letter-spacing="1">${safeTeam2Prefix}</text>
+                 <text x="0" y="500" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="70" font-weight="900" fill="${team2Color}" letter-spacing="1">${safeTeam2Main}</text>`
+              : `<text x="0" y="470" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="76" font-weight="900" fill="${team2Color}" letter-spacing="1">${safeTeam2Main}</text>`
+      }
+    </g>
+    <text x="1010" y="482" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="110" font-weight="900" fill="${team2ScoreColor}" text-anchor="middle">${oScore}</text>
   </g>
 </svg>`;
 }
