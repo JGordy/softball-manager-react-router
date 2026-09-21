@@ -6,7 +6,7 @@ import { getSeasonById } from "@/loaders/seasons";
 import { getParkById } from "@/loaders/parks";
 import { mockContext } from "@/utils/mockContext";
 
-import SeasonDetails, { loader, action } from "../details";
+import SeasonDetails, { loader, action, meta } from "../details";
 
 // Mock react-router
 jest.mock("react-router", () => ({
@@ -44,6 +44,7 @@ jest.mock("@tabler/icons-react", () => ({
     IconArrowUpRight: () => <div data-testid="icon-up" />,
     IconArrowDownRight: () => <div data-testid="icon-down" />,
     IconMinus: () => <div data-testid="icon-minus" />,
+    IconShare: () => <div data-testid="icon-share" />,
 }));
 
 // Mock loaders and actions
@@ -131,7 +132,21 @@ describe("SeasonDetails Route", () => {
             expect(result).toEqual({
                 season: { ...mockSeason, parkId: "park-123" },
                 park: mockPark,
+                origin: "",
             });
+        });
+
+        it("extracts origin from request.url", async () => {
+            getSeasonById.mockResolvedValue({ season: mockSeason });
+            getParkById.mockResolvedValue(null);
+
+            const result = await loader({
+                params: { seasonId: "season-123" },
+                request: new Request("https://rostrhq.app/season/season-123"),
+                context: mockContext,
+            });
+
+            expect(result.origin).toBe("https://rostrhq.app");
         });
     });
 
@@ -346,6 +361,74 @@ describe("SeasonDetails Route", () => {
             expect(container.textContent).toMatch(/Upcoming/i);
             expect(container.textContent).toMatch(/Past/i);
             expect(screen.getAllByTestId("games-list").length).toBe(2);
+        });
+    });
+
+    describe("meta", () => {
+        it("returns empty array if no data", () => {
+            expect(meta({})).toEqual([]);
+        });
+
+        it("generates correct social preview tags with absolute URLs when origin is provided", () => {
+            const mockData = {
+                season: {
+                    seasonName: "Summer 2026",
+                    teams: [{ name: "Sliders" }],
+                },
+                origin: "https://rostrhq.app",
+            };
+
+            const tags = meta({ data: mockData });
+            expect(tags).toEqual([
+                { title: "Summer 2026 - Sliders | RostrHQ" },
+                {
+                    name: "description",
+                    content:
+                        "View stats, schedules, rosters, and details for the Summer 2026 season of Sliders.",
+                },
+                {
+                    property: "og:title",
+                    content: "Summer 2026 - Sliders | RostrHQ",
+                },
+                {
+                    property: "og:description",
+                    content:
+                        "View stats, schedules, rosters, and details for the Summer 2026 season of Sliders.",
+                },
+                {
+                    property: "og:image",
+                    content:
+                        "https://rostrhq.app/android-chrome-icon-512x512.png",
+                },
+                { property: "og:type", content: "website" },
+                { name: "twitter:card", content: "summary" },
+                {
+                    name: "twitter:title",
+                    content: "Summer 2026 - Sliders | RostrHQ",
+                },
+                {
+                    name: "twitter:description",
+                    content:
+                        "View stats, schedules, rosters, and details for the Summer 2026 season of Sliders.",
+                },
+                {
+                    name: "twitter:image",
+                    content:
+                        "https://rostrhq.app/android-chrome-icon-512x512.png",
+                },
+            ]);
+        });
+
+        it("falls back to relative path if origin is missing", () => {
+            const mockData = {
+                season: {
+                    seasonName: "Fall 2025",
+                },
+            };
+
+            const tags = meta({ data: mockData });
+            const ogImage = tags.find((t) => t.property === "og:image");
+            expect(ogImage.content).toBe("/android-chrome-icon-512x512.png");
         });
     });
 });
