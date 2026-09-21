@@ -24,6 +24,7 @@ import BackButton from "@/components/BackButton";
 import GamesList from "@/components/GamesList";
 import BoxScore from "@/components/BoxScore";
 import TabsWrapper from "@/components/TabsWrapper";
+import ShareUrlButton from "@/components/ShareUrlButton";
 import SeasonChartsPanel from "./SeasonChartsPanel";
 
 import { splitGames } from "@/utils/getGames";
@@ -74,14 +75,17 @@ export default function DesktopSeasonDetails({
                         Historical Archive View
                     </Badge>
                 )}
-                {isManager && (
-                    <SeasonMenu
-                        season={season}
-                        players={players}
-                        teamPlayers={teamPlayers}
-                        isManager={isManager}
-                    />
-                )}
+                <Group gap="xs">
+                    <ShareUrlButton />
+                    {isManager && (
+                        <SeasonMenu
+                            season={season}
+                            players={players}
+                            teamPlayers={teamPlayers}
+                            isManager={isManager}
+                        />
+                    )}
+                </Group>
             </Group>
 
             <Group justify="space-between" align="flex-end" mb="xl" mt="lg">
