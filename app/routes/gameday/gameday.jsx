@@ -26,35 +26,21 @@ import { appwriteClientContext } from "@/contexts/router";
 import GamedayContainer from "./components/GamedayContainer";
 import GamedayLoadingSkeleton from "./components/GamedayLoadingSkeleton";
 import { parsePlayerChart } from "./utils/gamedayUtils";
+import { buildGamedayMeta } from "@/utils/gamedayMeta";
 
 export function meta({ data, loaderData }) {
     const routeData = loaderData || data;
     if (!routeData || !routeData.game) return [];
-    const { game, teams } = routeData;
-    const team = teams?.[0] || {};
-    const teamName = team.name || "Our Team";
-    const opponentName = game.opponent || "Opponent";
-    const gameDateFormatted = game.gameDate
-        ? new Date(game.gameDate).toLocaleDateString(undefined, {
-              weekday: "long",
-              month: "short",
-              day: "numeric",
-          })
-        : "";
+    const { game, teams, season, location, origin } = routeData;
 
-    const title = `Live Gameday: ${teamName} vs ${opponentName} | RostrHQ`;
-    const description = `Follow live scoring, play-by-play, and lineups for ${teamName} vs ${opponentName} on ${gameDateFormatted || "game day"}.`;
-
-    return [
-        { title },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { property: "og:image", content: "/android-chrome-icon-512x512.png" },
-        { name: "twitter:title", content: title },
-        { name: "twitter:description", content: description },
-        { name: "twitter:image", content: "/android-chrome-icon-512x512.png" },
-    ];
+    return buildGamedayMeta({
+        game,
+        teams,
+        season,
+        location,
+        origin,
+        isGamedayView: true,
+    });
 }
 
 export async function loader({ request, params, context }) {
@@ -68,7 +54,7 @@ export async function loader({ request, params, context }) {
         client = createAdminClient();
     }
 
-    return await getEventById({
+    const eventData = await getEventById({
         eventId,
         client,
         includeWeather: false,
@@ -77,6 +63,13 @@ export async function loader({ request, params, context }) {
         includeVotes: false,
         includePark: false,
     });
+
+    const origin = new URL(request.url).origin;
+
+    return {
+        ...eventData,
+        origin,
+    };
 }
 
 export async function action({ request, params, context }) {

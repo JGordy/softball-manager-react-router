@@ -17,6 +17,9 @@ export default [
     route("/team/:teamId/accept-invite", "routes/team/accept-invite.jsx"),
     route("/auth/setup", "routes/auth/setup.jsx"),
 
+    // Dynamic Open Graph preview image (public for social crawlers)
+    route("/api/og/game/:eventId", "routes/api/og/game.js"),
+
     // The App shell (NavBar) in layout.jsx - protected routes
     layout("routes/layout.jsx", [
         // index('routes/dashboard/dashboard.jsx'),
