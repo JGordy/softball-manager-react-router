@@ -22,9 +22,6 @@ export async function loader({ request, params }) {
     let teamScore = 0;
     let opponentScore = 0;
     let isGameFinal = false;
-    let venue = "";
-    let seasonName = "";
-    let inningText = "";
 
     if (cleanEventId) {
         try {
@@ -44,15 +41,13 @@ export async function loader({ request, params }) {
             });
 
             if (eventData && eventData.game) {
-                const { game, teams, season, location } = eventData;
+                const { game, teams } = eventData;
                 const primaryTeam = teams?.[0] || {};
                 teamName = primaryTeam.name || "Our Team";
                 opponentName = game.opponent || "Opponent";
                 teamScore = Number(game.score || 0);
                 opponentScore = Number(game.opponentScore || 0);
                 isGameFinal = Boolean(game.gameFinal);
-                venue = game.location || location || season?.location || "";
-                seasonName = season?.name || "";
             }
         } catch (error) {
             console.error(
@@ -68,9 +63,6 @@ export async function loader({ request, params }) {
         teamScore,
         opponentScore,
         isGameFinal,
-        venue,
-        seasonName,
-        inningText,
     });
 
     const cacheControl = isGameFinal
