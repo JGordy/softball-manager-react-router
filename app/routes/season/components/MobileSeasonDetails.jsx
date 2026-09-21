@@ -23,6 +23,7 @@ import BackButton from "@/components/BackButton";
 import GamesList from "@/components/GamesList";
 import TabsWrapper from "@/components/TabsWrapper";
 import BoxScore from "@/components/BoxScore";
+import ShareUrlButton from "@/components/ShareUrlButton";
 import SeasonChartsPanel from "./SeasonChartsPanel";
 
 import { formatForViewerDate } from "@/utils/dateTime";
@@ -97,14 +98,17 @@ export default function MobileSeasonDetails({
                         Historical Archive View
                     </Badge>
                 )}
-                {isManager && (
-                    <SeasonMenu
-                        season={season}
-                        players={players}
-                        teamPlayers={teamPlayers}
-                        isManager={isManager}
-                    />
-                )}
+                <Group gap="xs">
+                    <ShareUrlButton />
+                    {isManager && (
+                        <SeasonMenu
+                            season={season}
+                            players={players}
+                            teamPlayers={teamPlayers}
+                            isManager={isManager}
+                        />
+                    )}
+                </Group>
             </Group>
 
             <Title order={2} align="center" mt="lg">

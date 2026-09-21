@@ -24,26 +24,33 @@ import MobileSeasonDetails from "./components/MobileSeasonDetails";
 export function meta({ data, loaderData }) {
     const routeData = loaderData || data;
     if (!routeData || !routeData.season) return [];
-    const { season } = routeData;
+    const { season, origin } = routeData;
     const team = season.teams?.[0] || {};
     const teamName = team.name || "Our Team";
     const title = `${season.seasonName || "Season Details"} - ${teamName} | RostrHQ`;
     const description = `View stats, schedules, rosters, and details for the ${season.seasonName || "softball"} season of ${teamName}.`;
+
+    const imageUrl = origin
+        ? `${origin}/android-chrome-icon-512x512.png`
+        : "/android-chrome-icon-512x512.png";
 
     return [
         { title },
         { name: "description", content: description },
         { property: "og:title", content: title },
         { property: "og:description", content: description },
-        { property: "og:image", content: "/android-chrome-icon-512x512.png" },
+        { property: "og:image", content: imageUrl },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary" },
         { name: "twitter:title", content: title },
         { name: "twitter:description", content: description },
-        { name: "twitter:image", content: "/android-chrome-icon-512x512.png" },
+        { name: "twitter:image", content: imageUrl },
     ];
 }
 
 export async function loader({ request, params, context }) {
     const { seasonId } = params;
+    const origin = request?.url ? new URL(request.url).origin : "";
     const { isBotUserAgent } = await import("@/utils/device");
     const isBot = isBotUserAgent(request);
 
@@ -78,6 +85,7 @@ export async function loader({ request, params, context }) {
         logs,
         isArchiveView,
         previousSeasonData,
+        origin,
     };
 }
 

@@ -13,6 +13,7 @@ jest.mock("@tabler/icons-react", () => ({
     IconArrowUpRight: () => <div data-testid="icon-up" />,
     IconArrowDownRight: () => <div data-testid="icon-down" />,
     IconMinus: () => <div data-testid="icon-minus" />,
+    IconShare: () => <div data-testid="icon-share" />,
 }));
 
 // Mock global components
@@ -84,6 +85,9 @@ describe("DesktopSeasonDetails", () => {
 
         expect(screen.getByText("Fall Season 2025")).toBeInTheDocument();
         expect(screen.getByTestId("back-button")).toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: /share page/i }),
+        ).toBeInTheDocument();
         expect(container.textContent).toMatch(/Upcoming/i);
         expect(container.textContent).toMatch(/Past/i);
         expect(container.textContent).toMatch(/Record/i);
