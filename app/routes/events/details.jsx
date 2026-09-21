@@ -27,6 +27,7 @@ import useModal from "@/hooks/useModal";
 
 import { usePrintVisibility } from "./hooks/usePrintVisibility";
 import { useAvailabilityPrompt } from "./hooks/useAvailabilityPrompt";
+import { buildGamedayMeta } from "@/utils/gamedayMeta";
 
 import GameMenu from "./components/GameMenu";
 import Scoreboard from "./components/Scoreboard";
@@ -63,31 +64,16 @@ export async function action({ request, params, context }) {
 export function meta({ data, loaderData }) {
     const routeData = loaderData || data;
     if (!routeData || !routeData.game) return [];
-    const { game, teams } = routeData;
-    const team = teams?.[0] || {};
-    const teamName = team.name || "Our Team";
-    const opponentName = game.opponent || "Opponent";
-    const gameDateFormatted = game.gameDate
-        ? new Date(game.gameDate).toLocaleDateString(undefined, {
-              weekday: "long",
-              month: "short",
-              day: "numeric",
-          })
-        : "";
+    const { game, teams, season, location, origin } = routeData;
 
-    const title = `${teamName} vs ${opponentName} - ${gameDateFormatted || "Game Details"} | RostrHQ`;
-    const description = `Live score, rosters, and lineups for ${teamName} vs ${opponentName} on ${gameDateFormatted || "game day"}.`;
-
-    return [
-        { title },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { property: "og:image", content: "/android-chrome-icon-512x512.png" },
-        { name: "twitter:title", content: title },
-        { name: "twitter:description", content: description },
-        { name: "twitter:image", content: "/android-chrome-icon-512x512.png" },
-    ];
+    return buildGamedayMeta({
+        game,
+        teams,
+        season,
+        location,
+        origin,
+        isGamedayView: false,
+    });
 }
 
 export async function loader({ request, params, context }) {
@@ -101,7 +87,13 @@ export async function loader({ request, params, context }) {
         client = createAdminClient();
     }
 
-    return await getEventById({ eventId, client });
+    const eventData = await getEventById({ eventId, client });
+    const origin = new URL(request.url).origin;
+
+    return {
+        ...eventData,
+        origin,
+    };
 }
 
 export default function EventDetails({ loaderData, actionData }) {
