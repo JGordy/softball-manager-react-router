@@ -663,4 +663,51 @@ describe("MobileGamedayContainer", () => {
             ).not.toBeInTheDocument();
         });
     });
+
+    describe("Default team selection in stats when game is final", () => {
+        it("defaults box score and spray chart to user's team when game is final even if opponent was batting", async () => {
+            gameStateHook.useGameState.mockReturnValue({
+                inning: 7,
+                halfInning: "top",
+                outs: 3,
+                score: 11,
+                opponentScore: 21,
+                runners: { first: null, second: null, third: null },
+                battingOrderIndex: 0,
+            });
+
+            render(
+                <MobileGamedayContainer
+                    game={{
+                        ...mockGame,
+                        opponent: "Edgewood",
+                        isHomeGame: true,
+                    }}
+                    playerChart={mockPlayerChart}
+                    team={mockTeam}
+                    initialLogs={[]}
+                    gameFinal={true}
+                    isScorekeeper={false}
+                />,
+            );
+
+            // Switch to Box Score tab
+            const boxScoreTab = screen.getByText("Box Score");
+            fireEvent.click(boxScoreTab);
+
+            const userRadios = screen.getAllByRole("radio", {
+                name: mockTeam.name,
+            });
+            const oppRadios = screen.getAllByRole("radio", {
+                name: "Edgewood",
+            });
+
+            userRadios.forEach((radio) => {
+                expect(radio).toBeChecked();
+            });
+            oppRadios.forEach((radio) => {
+                expect(radio).not.toBeChecked();
+            });
+        });
+    });
 });

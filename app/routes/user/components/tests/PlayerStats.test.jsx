@@ -99,14 +99,14 @@ describe("PlayerStats Component", () => {
 
         expect(screen.getByText(/Last 1 Games/i)).toBeInTheDocument();
         expect(screen.getAllByText("AVG").length).toBeGreaterThan(0);
-        expect(screen.getByText("Radar Chart")).toBeInTheDocument();
+        expect(screen.getByText("Performance")).toBeInTheDocument();
         expect(screen.getByText("Spray Chart")).toBeInTheDocument();
     });
 
     it("opens performance radar drawer when button is clicked", () => {
         render(<PlayerStats statsPromise={mockStatsData} />);
 
-        const radarButton = screen.getByText("Radar Chart");
+        const radarButton = screen.getByText("Performance");
         fireEvent.click(radarButton);
 
         expect(

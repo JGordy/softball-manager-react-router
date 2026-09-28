@@ -245,7 +245,7 @@ export default function PlayerStats({ statsPromise, isDesktop }) {
                                     color="lime"
                                     onClick={openRadar}
                                 >
-                                    Radar Chart
+                                    Performance
                                 </Button>
                                 <Button
                                     leftSection={<IconMap2 size={16} />}

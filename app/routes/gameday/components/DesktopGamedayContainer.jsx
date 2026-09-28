@@ -146,9 +146,14 @@ export default function DesktopGamedayContainer({
 
     // Auto-switch tabs to active team when batting side changes
     useEffect(() => {
-        setSprayChartTeam(isOurBatting ? "us" : "them");
-        setBoxScoreTeam(isOurBatting ? "us" : "them");
-    }, [isOurBatting]);
+        if (isGameFinal) {
+            setSprayChartTeam("us");
+            setBoxScoreTeam("us");
+        } else {
+            setSprayChartTeam(isOurBatting ? "us" : "them");
+            setBoxScoreTeam(isOurBatting ? "us" : "them");
+        }
+    }, [isOurBatting, isGameFinal]);
 
     const sprayHits = useMemo(() => {
         return logs.filter(

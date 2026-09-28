@@ -109,6 +109,9 @@ export default function MobileGamedayContainer({
         players,
     });
 
+    const isGameFinal =
+        game.gameFinal !== undefined ? !!game.gameFinal : gameFinal;
+
     const [tourInitialMode] = useState(opponentScoringMode);
 
     const [sprayChartTeam, setSprayChartTeam] = useState("us");
@@ -116,9 +119,14 @@ export default function MobileGamedayContainer({
 
     // Auto-switch tabs to active team when batting side changes
     useEffect(() => {
-        setSprayChartTeam(isOurBatting ? "us" : "them");
-        setBoxScoreTeam(isOurBatting ? "us" : "them");
-    }, [isOurBatting]);
+        if (isGameFinal) {
+            setSprayChartTeam("us");
+            setBoxScoreTeam("us");
+        } else {
+            setSprayChartTeam(isOurBatting ? "us" : "them");
+            setBoxScoreTeam(isOurBatting ? "us" : "them");
+        }
+    }, [isOurBatting, isGameFinal]);
 
     const sprayHits = useMemo(() => {
         return logs.filter(
@@ -143,9 +151,6 @@ export default function MobileGamedayContainer({
             return Array.from(batterMap.values());
         }
     }, [sprayChartTeam, batters, opponentChart]);
-
-    const isGameFinal =
-        game.gameFinal !== undefined ? !!game.gameFinal : gameFinal;
 
     /**
      * True only when inning 1 is active, the opponent is at bat, and no
