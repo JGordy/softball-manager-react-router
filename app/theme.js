@@ -40,9 +40,10 @@ const theme = createTheme({
     },
     variantColorResolver: (input) => {
         const defaultResolved = defaultVariantColorsResolver(input);
+        const baseColor = input.color?.split(".")[0];
 
         if (input.variant === "filled") {
-            if (input.color === "lime" || input.color === "primary") {
+            if (baseColor === "lime" || input.color === "primary") {
                 return {
                     ...defaultResolved,
                     background: "var(--mantine-color-lime-filled)",
@@ -53,37 +54,15 @@ const theme = createTheme({
         }
 
         if (input.variant === "light") {
-            const customColors = {
-                lime: {
-                    bg: "var(--soft-lime-bg)",
-                    hover: "var(--soft-lime-hover)",
-                    color: "var(--soft-lime-color)",
-                },
-                blue: {
-                    bg: "var(--soft-blue-bg)",
-                    hover: "var(--soft-blue-hover)",
-                    color: "var(--soft-blue-color)",
-                },
-                red: {
-                    bg: "var(--soft-red-bg)",
-                    hover: "var(--soft-red-hover)",
-                    color: "var(--soft-red-color)",
-                },
-                orange: {
-                    bg: "var(--soft-orange-bg)",
-                    hover: "var(--soft-orange-hover)",
-                    color: "var(--soft-orange-color)",
-                },
-            };
+            const SOFT_COLORS = ["lime", "blue", "red", "orange"];
+            const colorKey = input.color === "primary" ? "lime" : baseColor;
 
-            const colorKey = input.color === "primary" ? "lime" : input.color;
-            const soft = customColors[colorKey];
-            if (soft) {
+            if (SOFT_COLORS.includes(colorKey)) {
                 return {
                     ...defaultResolved,
-                    background: soft.bg,
-                    hover: soft.hover,
-                    color: soft.color,
+                    background: `var(--soft-${colorKey}-bg)`,
+                    hover: `var(--soft-${colorKey}-hover)`,
+                    color: `var(--soft-${colorKey}-color)`,
                 };
             }
         }
