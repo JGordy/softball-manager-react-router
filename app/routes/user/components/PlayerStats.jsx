@@ -11,7 +11,7 @@ import {
     Table,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { IconMap2, IconRadar } from "@tabler/icons-react";
+import { IconMap2, IconRadar, IconTrendingUp } from "@tabler/icons-react";
 
 import DeferredLoader from "@/components/DeferredLoader";
 import ContactSprayChart from "@/components/ContactSprayChart";
@@ -22,12 +22,15 @@ import { calculatePlayerStats } from "@/utils/stats";
 import GameStatsCard from "./stats/GameStatsCard";
 import StatsDetailDrawer from "./stats/StatsDetailDrawer";
 import PlayerRadarChart from "./stats/PlayerRadarChart";
+import PlayerProgressionChart from "./stats/PlayerProgressionChart";
 
 export default function PlayerStats({ statsPromise, isDesktop }) {
     const [opened, { open, close }] = useDisclosure(false);
     const [sprayOpened, { open: openSpray, close: closeSpray }] =
         useDisclosure(false);
     const [radarOpened, { open: openRadar, close: closeRadar }] =
+        useDisclosure(false);
+    const [trendsOpened, { open: openTrends, close: closeTrends }] =
         useDisclosure(false);
     const [selectedGame, setSelectedGame] = useState(null);
 
@@ -147,10 +150,31 @@ export default function PlayerStats({ statsPromise, isDesktop }) {
                 return (
                     <Stack gap="md" mt="md">
                         <Paper withBorder p="md" radius="md">
-                            <Text fw={700} mb="xs">
-                                Last {recentGameIds.length} Games
-                            </Text>
-                            <Group my="md" grow>
+                            <Group
+                                justify="space-between"
+                                align="center"
+                                mb="xs"
+                            >
+                                <Text fw={700}>
+                                    Last {recentGameIds.length} Games
+                                </Text>
+                                <Button
+                                    variant="subtle"
+                                    color="lime"
+                                    size="xs"
+                                    leftSection={<IconTrendingUp size={14} />}
+                                    onClick={openTrends}
+                                >
+                                    Trends
+                                </Button>
+                            </Group>
+                            <Group
+                                my="md"
+                                grow
+                                style={{ cursor: "pointer" }}
+                                onClick={openTrends}
+                                title="Click to view stats over time"
+                            >
                                 <Stack gap={0} align="center">
                                     <Text
                                         size="xs"
@@ -283,6 +307,25 @@ export default function PlayerStats({ statsPromise, isDesktop }) {
                             logs={selectedGame?.logs}
                             userId={userId}
                         />
+
+                        <DrawerContainer
+                            opened={trendsOpened}
+                            onClose={closeTrends}
+                            title={
+                                recentGameIds.length >= 2
+                                    ? `Batting Trends over ${recentGameIds.length} games`
+                                    : "Batting Trends"
+                            }
+                            size={isDesktop ? "md" : "xl"}
+                        >
+                            <PlayerProgressionChart
+                                logs={logs}
+                                games={games}
+                                teams={teams}
+                                userId={userId}
+                                gameIds={recentGameIds}
+                            />
+                        </DrawerContainer>
 
                         <DrawerContainer
                             opened={radarOpened}

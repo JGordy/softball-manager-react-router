@@ -38,6 +38,10 @@ jest.mock("../stats/StatsDetailDrawer", () => () => (
     <div data-testid="stats-detail-drawer" />
 ));
 
+jest.mock("../stats/PlayerProgressionChart", () => () => (
+    <div data-testid="player-progression-chart" />
+));
+
 describe("PlayerStats Component", () => {
     const mockFetcher = {
         load: jest.fn(),
@@ -99,8 +103,57 @@ describe("PlayerStats Component", () => {
 
         expect(screen.getByText(/Last 1 Games/i)).toBeInTheDocument();
         expect(screen.getAllByText("AVG").length).toBeGreaterThan(0);
+        expect(screen.getByText("Trends")).toBeInTheDocument();
         expect(screen.getByText("Performance")).toBeInTheDocument();
         expect(screen.getByText("Spray Chart")).toBeInTheDocument();
+    });
+
+    it("opens batting trends drawer when Trends button is clicked", () => {
+        render(<PlayerStats statsPromise={mockStatsData} />);
+
+        const trendsButton = screen.getByText("Trends");
+        fireEvent.click(trendsButton);
+
+        expect(screen.getByText("Batting Trends")).toBeInTheDocument();
+        expect(
+            screen.getByTestId("player-progression-chart"),
+        ).toBeInTheDocument();
+    });
+
+    it("displays dynamic drawer title with game count when 2 or more games exist", () => {
+        const multiGameData = {
+            userId: "player1",
+            logs: [
+                ...mockStatsData.logs,
+                {
+                    gameId: "g2",
+                    playerId: "player1",
+                    eventType: UI_KEYS.SINGLE,
+                    rbi: 1,
+                    angle: 90,
+                    distance: 150,
+                },
+            ],
+            games: [
+                ...mockStatsData.games,
+                {
+                    $id: "g2",
+                    gameDate: "2026-09-20T14:00:00Z",
+                    opponent: "Tigers",
+                    teamId: "t1",
+                },
+            ],
+            teams: mockStatsData.teams,
+        };
+
+        render(<PlayerStats statsPromise={multiGameData} />);
+
+        const trendsButton = screen.getByText("Trends");
+        fireEvent.click(trendsButton);
+
+        expect(
+            screen.getByText("Batting Trends over 2 games"),
+        ).toBeInTheDocument();
     });
 
     it("opens performance radar drawer when button is clicked", () => {
