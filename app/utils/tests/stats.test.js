@@ -5,6 +5,7 @@ import {
     calculateSeasonRadarMetrics,
     calculatePlayerRadarMetrics,
     calculatePlatformBenchmarks,
+    calculatePlayerProgression,
     applyLogToAggregate,
     applyLogToPlatformBenchmark,
     PLAYER_PLATFORM_BENCHMARKS,
@@ -1282,5 +1283,255 @@ describe("applyLogToAggregate and applyLogToPlatformBenchmark", () => {
         expect(afterUndo.totalAB).toBe(20);
         expect(afterUndo.totalTB).toBe(30);
         expect(afterUndo.totalRBIs).toBe(15);
+    });
+});
+
+describe("calculatePlayerProgression", () => {
+    it("should return empty progression and summary when logs or userId are missing", () => {
+        expect(calculatePlayerProgression({})).toEqual({
+            progression: [],
+            summary: {
+                totalGames: 0,
+                current: null,
+                highs: {},
+                lows: {},
+                netChanges: {},
+            },
+        });
+        expect(calculatePlayerProgression({ logs: [], userId: "u1" })).toEqual({
+            progression: [],
+            summary: {
+                totalGames: 0,
+                current: null,
+                highs: {},
+                lows: {},
+                netChanges: {},
+            },
+        });
+    });
+
+    it("should accurately calculate progression and deltas matching the user scenario", () => {
+        // Game 1: 34 hits in 48 ABs -> .708 AVG
+        // Game 2: 3 hits in 6 ABs (with 1 double, 2 runs, 1 rbi) -> cumulative 37 in 54 -> .685 AVG (-.023)
+        // Game 3: 3 hits in 3 ABs (with 1 double, 2 runs, 1 rbi) -> cumulative 40 in 57 -> .702 AVG (+.017)
+        const games = [
+            {
+                $id: "g1",
+                gameDate: "2026-09-13T14:00:00Z",
+                opponent: "Thunder",
+                teamId: "team1",
+            },
+            {
+                $id: "g2",
+                gameDate: "2026-09-20T14:00:00Z",
+                opponent: "Decatur Raiders",
+                teamId: "team1",
+            },
+            {
+                $id: "g3",
+                gameDate: "2026-09-27T14:00:00Z",
+                opponent: "Edgewood",
+                teamId: "team1",
+            },
+        ];
+
+        const teams = [{ $id: "team1", name: "O.P. Sliders" }];
+
+        // Generate logs for Game 1 (34 hits, 14 outs = 48 ABs)
+        const g1Logs = [];
+        for (let i = 0; i < 34; i++) {
+            g1Logs.push({
+                gameId: "g1",
+                playerId: "user1",
+                eventType: "single",
+            });
+        }
+        for (let i = 0; i < 14; i++) {
+            g1Logs.push({ gameId: "g1", playerId: "user1", eventType: "out" });
+        }
+
+        // Generate logs for Game 2 (3 hits: 1 double, 2 singles; 3 outs = 6 ABs, 2 runs, 1 rbi)
+        const g2Logs = [
+            {
+                gameId: "g2",
+                playerId: "user1",
+                eventType: "double",
+                rbi: 1,
+                scored: ["user1"],
+            },
+            {
+                gameId: "g2",
+                playerId: "user1",
+                eventType: "single",
+                scored: ["user1"],
+            },
+            { gameId: "g2", playerId: "user1", eventType: "single" },
+            { gameId: "g2", playerId: "user1", eventType: "out" },
+            { gameId: "g2", playerId: "user1", eventType: "out" },
+            { gameId: "g2", playerId: "user1", eventType: "out" },
+        ];
+
+        // Generate logs for Game 3 (3 hits: 1 double, 2 singles = 3 ABs, 2 runs, 1 rbi)
+        const g3Logs = [
+            {
+                gameId: "g3",
+                playerId: "user1",
+                eventType: "double",
+                rbi: 1,
+                scored: ["user1"],
+            },
+            {
+                gameId: "g3",
+                playerId: "user1",
+                eventType: "single",
+                scored: ["user1"],
+            },
+            { gameId: "g3", playerId: "user1", eventType: "single" },
+        ];
+
+        // Intentionally provide logs in mixed/unordered order to verify chronological sorting
+        const allLogs = [...g3Logs, ...g1Logs, ...g2Logs];
+
+        const result = calculatePlayerProgression({
+            logs: allLogs,
+            games,
+            teams,
+            userId: "user1",
+        });
+
+        expect(result.progression.length).toBe(3);
+
+        // Game 1
+        const pt1 = result.progression[0];
+        expect(pt1.gameId).toBe("g1");
+        expect(pt1.opponent).toBe("Thunder");
+        expect(pt1.cumulative.ab).toBe(48);
+        expect(pt1.cumulative.hits).toBe(34);
+        expect(pt1.cumulative.avg).toBe(".708");
+        expect(pt1.AVG).toBe(0.708);
+        expect(pt1.deltas.avg).toBe(0);
+
+        // Game 2
+        const pt2 = result.progression[1];
+        expect(pt2.gameId).toBe("g2");
+        expect(pt2.opponent).toBe("Decatur Raiders");
+        expect(pt2.gameStats.line).toBe("3/6");
+        expect(pt2.cumulative.ab).toBe(54);
+        expect(pt2.cumulative.hits).toBe(37);
+        expect(pt2.cumulative.avg).toBe(".685");
+        expect(pt2.AVG).toBe(0.685);
+        expect(pt2.deltas.avg).toBe(-0.023);
+
+        // Game 3
+        const pt3 = result.progression[2];
+        expect(pt3.gameId).toBe("g3");
+        expect(pt3.opponent).toBe("Edgewood");
+        expect(pt3.gameStats.line).toBe("3/3");
+        expect(pt3.cumulative.ab).toBe(57);
+        expect(pt3.cumulative.hits).toBe(40);
+        expect(pt3.cumulative.avg).toBe(".702");
+        expect(pt3.AVG).toBe(0.702);
+        expect(pt3.deltas.avg).toBe(0.017);
+
+        // Summary checks
+        expect(result.summary.totalGames).toBe(3);
+        expect(result.summary.current.avg).toBe(".702");
+        expect(result.summary.highs.avg).toBe(0.708);
+        expect(result.summary.lows.avg).toBe(0.685);
+        expect(result.summary.netChanges.avg).toBe(-0.006); // .702 - .708
+    });
+
+    it("should correctly compute ISO and walks in progression", () => {
+        const games = [
+            {
+                $id: "g1",
+                gameDate: "2026-09-01T12:00:00Z",
+                opponent: "Tigers",
+            },
+        ];
+
+        // 1 HR (4 bases, 1 AB) and 1 BB
+        const logs = [
+            { gameId: "g1", playerId: "u1", eventType: "homerun" },
+            { gameId: "g1", playerId: "u1", eventType: "walk" },
+        ];
+
+        const result = calculatePlayerProgression({
+            logs,
+            games,
+            userId: "u1",
+        });
+
+        const pt = result.progression[0];
+        // AB = 1, H = 1, BB = 1, totalBases = 4
+        // AVG = 1.000, SLG = 4.000, OBP = (1+1)/(1+1) = 1.000, OPS = 5.000
+        // ISO = SLG - AVG = 3.000
+        expect(pt.cumulative.ab).toBe(1);
+        expect(pt.cumulative.hits).toBe(1);
+        expect(pt.cumulative.avg).toBe("1.000");
+        expect(pt.cumulative.obp).toBe("1.000");
+        expect(pt.cumulative.slg).toBe("4.000");
+        expect(pt.cumulative.ops).toBe("5.000");
+        expect(pt.cumulative.iso).toBe("3.000");
+    });
+
+    it("should filter progression to only specified gameIds", () => {
+        const games = [
+            { $id: "g1", gameDate: "2026-09-01T12:00:00Z", opponent: "Opp 1" },
+            { $id: "g2", gameDate: "2026-09-08T12:00:00Z", opponent: "Opp 2" },
+            { $id: "g3", gameDate: "2026-09-15T12:00:00Z", opponent: "Opp 3" },
+        ];
+
+        const logs = [
+            { gameId: "g1", playerId: "u1", eventType: "single" },
+            { gameId: "g2", playerId: "u1", eventType: "single" },
+            { gameId: "g3", playerId: "u1", eventType: "single" },
+        ];
+
+        const result = calculatePlayerProgression({
+            logs,
+            games,
+            userId: "u1",
+            gameIds: ["g1", "g3"],
+        });
+
+        expect(result.progression).toHaveLength(2);
+        expect(result.progression[0].gameId).toBe("g1");
+        expect(result.progression[1].gameId).toBe("g3");
+        expect(result.summary.totalGames).toBe(2);
+    });
+
+    it("should skip games with missing or invalid gameDate and handle 0 at-bats games gracefully", () => {
+        const games = [
+            { $id: "g1", gameDate: null, opponent: "No Date" },
+            {
+                $id: "g2",
+                gameDate: "2026-09-10T12:00:00Z",
+                opponent: "Walks Only",
+            },
+        ];
+
+        // Player only walked in g2 -> 0 AB, 0 H, 1 BB
+        const logs = [
+            { gameId: "g1", playerId: "u1", eventType: "single" },
+            { gameId: "g2", playerId: "u1", eventType: "walk" },
+        ];
+
+        const result = calculatePlayerProgression({
+            logs,
+            games,
+            userId: "u1",
+        });
+
+        // g1 skipped because of no gameDate
+        expect(result.progression).toHaveLength(1);
+        const pt = result.progression[0];
+        expect(pt.gameId).toBe("g2");
+        expect(pt.cumulative.ab).toBe(0);
+        expect(pt.cumulative.hits).toBe(0);
+        expect(pt.AVG).toBe(0);
+        expect(pt.cumulative.avg).toBe(".000");
+        expect(pt.cumulative.obp).toBe("1.000");
+        expect(pt.cumulative.slg).toBe(".000");
     });
 });
