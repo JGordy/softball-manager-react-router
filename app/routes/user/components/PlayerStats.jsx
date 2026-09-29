@@ -18,6 +18,7 @@ import ContactSprayChart from "@/components/ContactSprayChart";
 import DrawerContainer from "@/components/DrawerContainer";
 
 import { calculatePlayerStats } from "@/utils/stats";
+import { trackEvent } from "@/utils/analytics";
 
 import GameStatsCard from "./stats/GameStatsCard";
 import StatsDetailDrawer from "./stats/StatsDetailDrawer";
@@ -147,6 +148,38 @@ export default function PlayerStats({ statsPromise, isDesktop }) {
                     (log) => log.playerId === userId,
                 );
 
+                /**
+                 * Tracks and opens the batting trends drawer.
+                 */
+                const handleOpenTrends = () => {
+                    trackEvent("player-trends-opened", {
+                        userId,
+                        gameCount: recentGameIds.length,
+                    });
+                    openTrends();
+                };
+
+                /**
+                 * Tracks and opens the performance radar drawer.
+                 */
+                const handleOpenRadar = () => {
+                    trackEvent("player-radar-opened", {
+                        userId,
+                        gameCount: recentGameIds.length,
+                    });
+                    openRadar();
+                };
+
+                /**
+                 * Tracks and opens the contact spray chart drawer.
+                 */
+                const handleOpenSpray = () => {
+                    trackEvent("player-spray-chart-opened", {
+                        userId,
+                    });
+                    openSpray();
+                };
+
                 return (
                     <Stack gap="md" mt="md">
                         <Paper withBorder p="md" radius="md">
@@ -163,7 +196,7 @@ export default function PlayerStats({ statsPromise, isDesktop }) {
                                     color="lime"
                                     size="xs"
                                     leftSection={<IconTrendingUp size={14} />}
-                                    onClick={openTrends}
+                                    onClick={handleOpenTrends}
                                 >
                                     Trends
                                 </Button>
@@ -172,7 +205,7 @@ export default function PlayerStats({ statsPromise, isDesktop }) {
                                 my="md"
                                 grow
                                 style={{ cursor: "pointer" }}
-                                onClick={openTrends}
+                                onClick={handleOpenTrends}
                                 title="Click to view stats over time"
                             >
                                 <Stack gap={0} align="center">
@@ -267,14 +300,14 @@ export default function PlayerStats({ statsPromise, isDesktop }) {
                                     leftSection={<IconRadar size={16} />}
                                     variant="light"
                                     color="lime"
-                                    onClick={openRadar}
+                                    onClick={handleOpenRadar}
                                 >
                                     Performance
                                 </Button>
                                 <Button
                                     leftSection={<IconMap2 size={16} />}
                                     variant="light"
-                                    onClick={openSpray}
+                                    onClick={handleOpenSpray}
                                 >
                                     Spray Chart
                                 </Button>

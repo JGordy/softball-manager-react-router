@@ -20,6 +20,7 @@ import {
 
 import { BATTING_METRIC_CONFIGS } from "@/constants/metrics";
 import { calculatePlayerProgression } from "@/utils/stats";
+import { trackEvent } from "@/utils/analytics";
 
 const METRIC_CONFIGS = BATTING_METRIC_CONFIGS;
 
@@ -230,6 +231,19 @@ export default function PlayerProgressionChart({
 }) {
     const [selectedMetric, setSelectedMetric] = useState("All");
 
+    /**
+     * Handles switching the selected metric filter.
+     *
+     * @param {string} val - Next selected metric (e.g. 'All', 'AVG', 'OBP')
+     */
+    const handleMetricChange = (val) => {
+        setSelectedMetric(val);
+        trackEvent("player-trends-metric-changed", {
+            userId,
+            metric: val,
+        });
+    };
+
     // Compute game-by-game progression data
     const { progression, summary } = useMemo(() => {
         return calculatePlayerProgression({
@@ -312,7 +326,7 @@ export default function PlayerProgressionChart({
             {/* Metric Selector Controls highlighted in brand lime */}
             <SegmentedControl
                 value={selectedMetric}
-                onChange={setSelectedMetric}
+                onChange={handleMetricChange}
                 color="lime"
                 fullWidth
                 size="xs"

@@ -1,5 +1,10 @@
 import { render, screen, fireEvent } from "@/utils/test-utils";
 import PlayerProgressionChart from "../PlayerProgressionChart";
+import { trackEvent } from "@/utils/analytics";
+
+jest.mock("@/utils/analytics", () => ({
+    trackEvent: jest.fn(),
+}));
 
 // Mock @mantine/charts AreaChart and LineChart
 jest.mock("@mantine/charts", () => ({
@@ -220,5 +225,35 @@ describe("PlayerProgressionChart Component", () => {
         expect(screen.getByText("vs Thunder")).toBeInTheDocument();
         expect(screen.getByText("Cumulative")).toBeInTheDocument();
         expect(screen.getByText("0.000")).toBeInTheDocument(); // First game delta is 0
+    });
+
+    it("tracks player-trends-metric-changed Umami event when selecting different metrics", () => {
+        jest.clearAllMocks();
+        render(
+            <PlayerProgressionChart
+                logs={mockLogs}
+                games={mockGames}
+                teams={mockTeams}
+                userId="u1"
+            />,
+        );
+
+        fireEvent.click(screen.getByRole("radio", { name: "AVG" }));
+        expect(trackEvent).toHaveBeenCalledWith(
+            "player-trends-metric-changed",
+            {
+                userId: "u1",
+                metric: "AVG",
+            },
+        );
+
+        fireEvent.click(screen.getByRole("radio", { name: "OPS" }));
+        expect(trackEvent).toHaveBeenCalledWith(
+            "player-trends-metric-changed",
+            {
+                userId: "u1",
+                metric: "OPS",
+            },
+        );
     });
 });
