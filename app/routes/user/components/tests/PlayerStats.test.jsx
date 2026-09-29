@@ -4,6 +4,11 @@ import { UI_KEYS } from "@/constants/scoring";
 
 import PlayerStats from "../PlayerStats";
 import ContactSprayChart from "@/components/ContactSprayChart";
+import { trackEvent } from "@/utils/analytics";
+
+jest.mock("@/utils/analytics", () => ({
+    trackEvent: jest.fn(),
+}));
 
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
@@ -108,16 +113,32 @@ describe("PlayerStats Component", () => {
         expect(screen.getByText("Spray Chart")).toBeInTheDocument();
     });
 
-    it("opens batting trends drawer when Trends button is clicked", () => {
+    it("opens batting trends drawer and tracks player-trends-opened when Trends button is clicked", () => {
         render(<PlayerStats statsPromise={mockStatsData} />);
 
         const trendsButton = screen.getByText("Trends");
         fireEvent.click(trendsButton);
 
+        expect(trackEvent).toHaveBeenCalledWith("player-trends-opened", {
+            userId: "player1",
+            gameCount: 1,
+        });
         expect(screen.getByText("Batting Trends")).toBeInTheDocument();
         expect(
             screen.getByTestId("player-progression-chart"),
         ).toBeInTheDocument();
+    });
+
+    it("tracks player-trends-opened when clicking stats summary group", () => {
+        render(<PlayerStats statsPromise={mockStatsData} />);
+
+        const statsGroup = screen.getByTitle("Click to view stats over time");
+        fireEvent.click(statsGroup);
+
+        expect(trackEvent).toHaveBeenCalledWith("player-trends-opened", {
+            userId: "player1",
+            gameCount: 1,
+        });
     });
 
     it("displays dynamic drawer title with game count when 2 or more games exist", () => {
@@ -151,28 +172,39 @@ describe("PlayerStats Component", () => {
         const trendsButton = screen.getByText("Trends");
         fireEvent.click(trendsButton);
 
+        expect(trackEvent).toHaveBeenCalledWith("player-trends-opened", {
+            userId: "player1",
+            gameCount: 2,
+        });
         expect(
             screen.getByText("Batting Trends over 2 games"),
         ).toBeInTheDocument();
     });
 
-    it("opens performance radar drawer when button is clicked", () => {
+    it("opens performance radar drawer and tracks player-radar-opened when button is clicked", () => {
         render(<PlayerStats statsPromise={mockStatsData} />);
 
         const radarButton = screen.getByText("Performance");
         fireEvent.click(radarButton);
 
+        expect(trackEvent).toHaveBeenCalledWith("player-radar-opened", {
+            userId: "player1",
+            gameCount: 1,
+        });
         expect(
             screen.getByText("Hitting Performance Radar"),
         ).toBeInTheDocument();
     });
 
-    it("opens spray chart drawer when button is clicked", () => {
+    it("opens spray chart drawer and tracks player-spray-chart-opened when button is clicked", () => {
         render(<PlayerStats statsPromise={mockStatsData} />);
 
         const sprayButton = screen.getByText("Spray Chart");
         fireEvent.click(sprayButton);
 
+        expect(trackEvent).toHaveBeenCalledWith("player-spray-chart-opened", {
+            userId: "player1",
+        });
         expect(screen.getByTestId("spray-chart")).toBeInTheDocument();
     });
 

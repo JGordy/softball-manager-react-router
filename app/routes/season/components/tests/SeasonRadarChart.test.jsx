@@ -1,5 +1,10 @@
 import { render, screen, fireEvent } from "@/utils/test-utils";
 import SeasonRadarChart from "../SeasonRadarChart";
+import { trackEvent } from "@/utils/analytics";
+
+jest.mock("@/utils/analytics", () => ({
+    trackEvent: jest.fn(),
+}));
 
 // Mock @mantine/charts
 jest.mock("@mantine/charts", () => ({
@@ -65,9 +70,11 @@ describe("SeasonRadarChart Component", () => {
         expect(screen.getByText("Spring 2025")).toBeInTheDocument();
     });
 
-    it("allows toggling between platform average and previous season", () => {
+    it("allows toggling between platform average and previous season and tracks event", () => {
+        jest.clearAllMocks();
         render(
             <SeasonRadarChart
+                seasonId="season-123"
                 games={mockGames}
                 logs={mockLogs}
                 players={mockPlayers}
@@ -78,7 +85,26 @@ describe("SeasonRadarChart Component", () => {
         const platformBtn = screen.getByText("vs. Avg Team");
         fireEvent.click(platformBtn);
 
+        expect(trackEvent).toHaveBeenCalledWith(
+            "season-radar-benchmark-changed",
+            {
+                seasonId: "season-123",
+                benchmark: "platform",
+            },
+        );
         expect(screen.getByText("Average Team")).toBeInTheDocument();
+
+        const prevBtn = screen.getByText("vs. Prev Season");
+        fireEvent.click(prevBtn);
+
+        expect(trackEvent).toHaveBeenCalledWith(
+            "season-radar-benchmark-changed",
+            {
+                seasonId: "season-123",
+                benchmark: "prev",
+            },
+        );
+        expect(screen.getByText("Spring 2025")).toBeInTheDocument();
     });
 
     it("correctly calculates hitting metrics and deltas for previous season from logs", () => {

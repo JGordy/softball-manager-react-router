@@ -24,12 +24,14 @@ import {
     calculateSeasonRadarMetrics,
     PLATFORM_BENCHMARKS,
 } from "@/utils/stats";
+import { trackEvent } from "@/utils/analytics";
 
 /**
  * Interactive Radar Chart component for comparing a season's performance metrics
  * against a previous season or platform-wide benchmarks.
  *
  * @param {Object} props - Component props
+ * @param {string} [props.seasonId] - Season ID
  * @param {Array} props.games - Current season games
  * @param {Array} props.logs - Current season game logs
  * @param {Array} props.players - Current season roster players
@@ -38,6 +40,7 @@ import {
  * @returns {JSX.Element} The rendered season radar chart card
  */
 export default function SeasonRadarChart({
+    seasonId,
     games = [],
     logs = [],
     players = [],
@@ -47,6 +50,19 @@ export default function SeasonRadarChart({
     const [comparisonMode, setComparisonMode] = useState(
         hasPrevSeason ? "prev" : "platform",
     );
+
+    /**
+     * Handles switching comparison benchmark (platform average vs previous season).
+     *
+     * @param {string} val - Benchmark target ('platform' | 'prev')
+     */
+    const handleComparisonModeChange = (val) => {
+        setComparisonMode(val);
+        trackEvent("season-radar-benchmark-changed", {
+            seasonId,
+            benchmark: val,
+        });
+    };
 
     useEffect(() => {
         if (hasPrevSeason) {
@@ -243,7 +259,7 @@ export default function SeasonRadarChart({
                     <SegmentedControl
                         size="xs"
                         value={comparisonMode}
-                        onChange={setComparisonMode}
+                        onChange={handleComparisonModeChange}
                         data={[
                             {
                                 label: "vs. Avg Team",
@@ -285,7 +301,7 @@ export default function SeasonRadarChart({
                             justify-content: center !important;
                             align-items: center !important;
                         }
-                        .recharts-wrapper {
+                        .mantine-RadarChart-root .recharts-wrapper {
                             margin: 0 auto !important;
                             left: 0 !important;
                             right: 0 !important;

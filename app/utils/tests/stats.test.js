@@ -6,6 +6,7 @@ import {
     calculatePlayerRadarMetrics,
     calculatePlatformBenchmarks,
     calculatePlayerProgression,
+    calculateTeamProgression,
     applyLogToAggregate,
     applyLogToPlatformBenchmark,
     PLAYER_PLATFORM_BENCHMARKS,
@@ -1533,5 +1534,168 @@ describe("calculatePlayerProgression", () => {
         expect(pt.cumulative.avg).toBe(".000");
         expect(pt.cumulative.obp).toBe("1.000");
         expect(pt.cumulative.slg).toBe(".000");
+    });
+});
+
+describe("calculateTeamProgression", () => {
+    it("should return empty progression and default summary when logs are empty", () => {
+        expect(calculateTeamProgression({})).toEqual({
+            progression: [],
+            summary: {
+                totalGames: 0,
+                current: null,
+                highs: {},
+                lows: {},
+                netChanges: {},
+                record: { wins: 0, losses: 0, ties: 0 },
+            },
+        });
+        expect(calculateTeamProgression({ logs: [] })).toEqual({
+            progression: [],
+            summary: {
+                totalGames: 0,
+                current: null,
+                highs: {},
+                lows: {},
+                netChanges: {},
+                record: { wins: 0, losses: 0, ties: 0 },
+            },
+        });
+    });
+
+    it("should accurately track game-by-game cumulative team progression and outcomes", () => {
+        const games = [
+            {
+                $id: "g1",
+                gameDate: "2026-09-06T14:00:00Z",
+                opponent: "Tigers",
+                score: 12,
+                opponentScore: 4, // Win
+            },
+            {
+                $id: "g2",
+                gameDate: "2026-09-13T14:00:00Z",
+                opponent: "Bears",
+                score: 5,
+                opponentScore: 8, // Loss
+            },
+        ];
+
+        const players = [
+            { $id: "p1", firstName: "Alice" },
+            { $id: "p2", firstName: "Bob" },
+        ];
+
+        // Game 1: 10 hits in 20 ABs (.500 AVG)
+        const g1Logs = [];
+        for (let i = 0; i < 10; i++) {
+            g1Logs.push({ gameId: "g1", playerId: "p1", eventType: "single" });
+        }
+        for (let i = 0; i < 10; i++) {
+            g1Logs.push({ gameId: "g1", playerId: "p2", eventType: "out" });
+        }
+
+        // Game 2: 5 hits (including 2 HRs) in 10 ABs (.500 in game, cumulative 15 in 30 = .500)
+        const g2Logs = [
+            { gameId: "g2", playerId: "p1", eventType: "homerun", rbi: 2 },
+            { gameId: "g2", playerId: "p1", eventType: "homerun", rbi: 2 },
+            { gameId: "g2", playerId: "p2", eventType: "single" },
+            { gameId: "g2", playerId: "p2", eventType: "single" },
+            { gameId: "g2", playerId: "p2", eventType: "single" },
+            { gameId: "g2", playerId: "p1", eventType: "out" },
+            { gameId: "g2", playerId: "p1", eventType: "out" },
+            { gameId: "g2", playerId: "p2", eventType: "out" },
+            { gameId: "g2", playerId: "p2", eventType: "out" },
+            { gameId: "g2", playerId: "p2", eventType: "out" },
+        ];
+
+        const result = calculateTeamProgression({
+            logs: [...g2Logs, ...g1Logs], // Unordered to test chronological sorting
+            games,
+            players,
+        });
+
+        expect(result.progression).toHaveLength(2);
+
+        // Game 1 verification
+        const g1Pt = result.progression[0];
+        expect(g1Pt.gameId).toBe("g1");
+        expect(g1Pt.outcome).toBe("W");
+        expect(g1Pt.scoreText).toBe("W 12-4");
+        expect(g1Pt.cumulative.ab).toBe(20);
+        expect(g1Pt.cumulative.hits).toBe(10);
+        expect(g1Pt.cumulative.avg).toBe(".500");
+        expect(g1Pt.AVG).toBe(0.5);
+
+        // Game 2 verification
+        const g2Pt = result.progression[1];
+        expect(g2Pt.gameId).toBe("g2");
+        expect(g2Pt.outcome).toBe("L");
+        expect(g2Pt.scoreText).toBe("L 5-8");
+        expect(g2Pt.cumulative.ab).toBe(30);
+        expect(g2Pt.cumulative.hits).toBe(15);
+        expect(g2Pt.cumulative.avg).toBe(".500");
+        // SLG should increase because of 2 HRs (8 total bases) + 3 singles (3) = 11 total bases in g2, 10 in g1 -> 21/30 = .700
+        expect(g2Pt.cumulative.slg).toBe(".700");
+        expect(g2Pt.deltas.slg).toBe(0.2); // .700 - .500
+
+        // Single-game outputs in progression
+        expect(g1Pt.singleGame.avg).toBe(".500");
+        expect(g1Pt.singleGame.slg).toBe(".500");
+        expect(g1Pt.gameAVG).toBe(0.5);
+        expect(g1Pt.gameSLG).toBe(0.5);
+
+        // Game 2 single-game outputs: 11 total bases / 10 AB = 1.100 SLG
+        expect(g2Pt.singleGame.avg).toBe(".500");
+        expect(g2Pt.singleGame.slg).toBe("1.100");
+        expect(g2Pt.gameAVG).toBe(0.5);
+        expect(g2Pt.gameSLG).toBe(1.1);
+
+        // Summary checks
+        expect(result.summary.totalGames).toBe(2);
+        expect(result.summary.record).toEqual({ wins: 1, losses: 1, ties: 0 });
+        expect(result.summary.highs.slg).toBe(0.7);
+        expect(result.summary.lows.slg).toBe(0.5);
+        expect(result.summary.gameHighs.slg).toBe(1.1);
+        expect(result.summary.gameLows.slg).toBe(0.5);
+        expect(result.summary.seasonTotals.avg).toBe(".500");
+        expect(result.summary.seasonTotals.slg).toBe(".700");
+        expect(result.summary.seasonTotals.raw.slg).toBe(0.7);
+    });
+
+    it("should respect explicit game.result when present and filter by gameIds", () => {
+        const games = [
+            {
+                $id: "g1",
+                gameDate: "2026-09-01T12:00:00Z",
+                result: "W",
+                score: 0,
+                opponentScore: 0,
+            },
+            {
+                $id: "g2",
+                gameDate: "2026-09-08T12:00:00Z",
+                result: "T",
+                score: 5,
+                opponentScore: 5,
+            },
+        ];
+
+        const logs = [
+            { gameId: "g1", playerId: "p1", eventType: "single" },
+            { gameId: "g2", playerId: "p1", eventType: "single" },
+        ];
+
+        const result = calculateTeamProgression({
+            logs,
+            games,
+            gameIds: ["g2"],
+        });
+
+        expect(result.progression).toHaveLength(1);
+        expect(result.progression[0].gameId).toBe("g2");
+        expect(result.progression[0].outcome).toBe("T");
+        expect(result.summary.record.ties).toBe(1);
+        expect(result.summary.record.wins).toBe(0);
     });
 });
