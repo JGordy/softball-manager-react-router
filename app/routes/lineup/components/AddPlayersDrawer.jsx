@@ -122,6 +122,8 @@ export default function AddPlayersDrawer({
                         firstName: player.firstName,
                         lastName: player.lastName,
                         gender: player.gender,
+                        bats: player.bats,
+                        defaultBats: player.defaultBats,
                         positions: [],
                     });
                 }
