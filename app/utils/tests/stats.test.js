@@ -1535,6 +1535,49 @@ describe("calculatePlayerProgression", () => {
         expect(pt.cumulative.obp).toBe("1.000");
         expect(pt.cumulative.slg).toBe(".000");
     });
+
+    it("should compute per-game rates (gameAVG, gameSLG, etc.) and seasonTotals benchmark", () => {
+        const games = [
+            { $id: "g1", gameDate: "2026-09-01T12:00:00Z", opponent: "Opp 1" },
+            { $id: "g2", gameDate: "2026-09-08T12:00:00Z", opponent: "Opp 2" },
+        ];
+        const logs = [
+            // Game 1: 2 hits in 2 AB (1 single, 1 double) -> 1.000 AVG, 1.500 SLG
+            { gameId: "g1", playerId: "u1", eventType: "single" },
+            { gameId: "g1", playerId: "u1", eventType: "double" },
+            // Game 2: 0 hits in 2 AB -> .000 AVG, .000 SLG
+            { gameId: "g2", playerId: "u1", eventType: "out" },
+            { gameId: "g2", playerId: "u1", eventType: "out" },
+        ];
+
+        const result = calculatePlayerProgression({
+            logs,
+            games,
+            userId: "u1",
+        });
+
+        expect(result.progression).toHaveLength(2);
+        // Game 1 single game stats
+        expect(result.progression[0].gameAVG).toBe(1.0);
+        expect(result.progression[0].gameSLG).toBe(1.5);
+        expect(result.progression[0].singleGame.avg).toBe("1.000");
+        expect(result.progression[0].singleGame.slg).toBe("1.500");
+
+        // Game 2 single game stats
+        expect(result.progression[1].gameAVG).toBe(0.0);
+        expect(result.progression[1].gameSLG).toBe(0.0);
+        expect(result.progression[1].singleGame.avg).toBe(".000");
+
+        // Running cumulative stats
+        expect(result.progression[0].AVG).toBe(1.0);
+        expect(result.progression[1].AVG).toBe(0.5);
+
+        // Overall season/window totals
+        expect(result.summary.seasonTotals).toBeDefined();
+        expect(result.summary.seasonTotals.avg).toBe(".500");
+        expect(result.summary.gameHighs.avg).toBe(1.0);
+        expect(result.summary.gameLows.avg).toBe(0.0);
+    });
 });
 
 describe("calculateTeamProgression", () => {

@@ -39,6 +39,7 @@ describe("Batting Metrics Constants", () => {
                 expect(config.formula).toBeDefined();
                 expect(config.summary).toBeDefined();
                 expect(typeof config.format).toBe("function");
+                expect(typeof config.max).toBe("number");
 
                 // Test formatter output
                 const formatted = config.format(0.5);
@@ -49,6 +50,9 @@ describe("Batting Metrics Constants", () => {
             expect(BATTING_METRIC_CONFIGS.OPS.format(0.85)).toBe("0.850");
             // AVG strips leading zero (.500)
             expect(BATTING_METRIC_CONFIGS.AVG.format(0.5)).toBe(".500");
+            // Rate metrics like AVG and OBP are strictly bounded by 1.0
+            expect(BATTING_METRIC_CONFIGS.AVG.max).toBe(1.0);
+            expect(BATTING_METRIC_CONFIGS.OBP.max).toBe(1.0);
         });
     });
 });

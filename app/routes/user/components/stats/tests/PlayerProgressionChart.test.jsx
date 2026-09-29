@@ -6,13 +6,26 @@ jest.mock("@/utils/analytics", () => ({
     trackEvent: jest.fn(),
 }));
 
-// Mock @mantine/charts AreaChart and LineChart
+// Mock @mantine/charts CompositeChart, AreaChart and LineChart
 jest.mock("@mantine/charts", () => ({
-    AreaChart: ({ data, series, withYAxis, tooltipProps }) => (
-        <div data-testid="mantine-area-chart">
+    CompositeChart: ({
+        data,
+        series,
+        withYAxis,
+        tooltipProps,
+        referenceLines,
+        yAxisProps,
+    }) => (
+        <div data-testid="mantine-composite-chart">
             <span data-testid="series-count">{series.length}</span>
             <span data-testid="data-count">{data.length}</span>
             <span data-testid="with-y-axis">{String(withYAxis)}</span>
+            <span data-testid="y-axis-domain-max">
+                {yAxisProps?.domain ? yAxisProps.domain[1] : ""}
+            </span>
+            <span data-testid="reference-lines-count">
+                {referenceLines?.length || 0}
+            </span>
             {tooltipProps?.content && data.length > 0 && (
                 <div data-testid="tooltip-preview">
                     {tooltipProps.content({
@@ -20,6 +33,13 @@ jest.mock("@mantine/charts", () => ({
                     })}
                 </div>
             )}
+        </div>
+    ),
+    AreaChart: ({ data, series, withYAxis, tooltipProps }) => (
+        <div data-testid="mantine-area-chart">
+            <span data-testid="series-count">{series.length}</span>
+            <span data-testid="data-count">{data.length}</span>
+            <span data-testid="with-y-axis">{String(withYAxis)}</span>
         </div>
     ),
     LineChart: ({ data, series, withYAxis, tooltipProps }) => (
@@ -71,7 +91,7 @@ describe("PlayerProgressionChart Component", () => {
             screen.getByText(/at least 2 logged games with hitting stats/i),
         ).toBeInTheDocument();
         expect(
-            screen.queryByTestId("mantine-area-chart"),
+            screen.queryByTestId("mantine-composite-chart"),
         ).not.toBeInTheDocument();
     });
 
@@ -85,7 +105,9 @@ describe("PlayerProgressionChart Component", () => {
             />,
         );
 
-        expect(screen.getByTestId("mantine-area-chart")).toBeInTheDocument();
+        expect(
+            screen.getByTestId("mantine-composite-chart"),
+        ).toBeInTheDocument();
         expect(screen.getByTestId("data-count")).toHaveTextContent("2");
         expect(screen.getByTestId("series-count")).toHaveTextContent("5");
         // In All mode, Y-axis is scale-free (withYAxis={false})
@@ -109,7 +131,7 @@ describe("PlayerProgressionChart Component", () => {
         expect(screen.getByText(/Game: 1\/2/i)).toBeInTheDocument();
     });
 
-    it("switches to single metric view (e.g. AVG), enables Y-axis, and shows explainer", () => {
+    it("switches to single metric view (e.g. AVG), enables Y-axis, and composite series (bar + line)", () => {
         render(
             <PlayerProgressionChart
                 logs={mockLogs}
@@ -122,9 +144,11 @@ describe("PlayerProgressionChart Component", () => {
         const avgTab = screen.getByRole("radio", { name: "AVG" });
         fireEvent.click(avgTab);
 
-        // When single metric is selected, series count is 1 and withYAxis is true
-        expect(screen.getByTestId("series-count")).toHaveTextContent("1");
+        // When single metric is selected, series count is 2 (game bar + running line)
+        expect(screen.getByTestId("series-count")).toHaveTextContent("2");
         expect(screen.getByTestId("with-y-axis")).toHaveTextContent("true");
+        // Batting average domain max is strictly capped at 1.000 (never 1.100)
+        expect(screen.getByTestId("y-axis-domain-max")).toHaveTextContent("1");
 
         // Single metric KPI titles
         expect(screen.getByText("High")).toBeInTheDocument();
@@ -151,7 +175,7 @@ describe("PlayerProgressionChart Component", () => {
         const isoTab = screen.getByRole("radio", { name: "ISO" });
         fireEvent.click(isoTab);
 
-        expect(screen.getByTestId("series-count")).toHaveTextContent("1");
+        expect(screen.getByTestId("series-count")).toHaveTextContent("2");
         expect(screen.getByTestId("with-y-axis")).toHaveTextContent("true");
         expect(screen.getByText("Slugging - Batting Avg")).toBeInTheDocument();
         expect(
