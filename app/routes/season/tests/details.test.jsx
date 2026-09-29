@@ -45,6 +45,8 @@ jest.mock("@tabler/icons-react", () => ({
     IconArrowDownRight: () => <div data-testid="icon-down" />,
     IconMinus: () => <div data-testid="icon-minus" />,
     IconShare: () => <div data-testid="icon-share" />,
+    IconChartLine: () => <div data-testid="icon-chart-line" />,
+    IconTrophy: () => <div data-testid="icon-trophy" />,
 }));
 
 // Mock loaders and actions
