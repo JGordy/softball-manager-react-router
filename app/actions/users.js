@@ -50,8 +50,10 @@ export async function createPlayer({ values, teamId, userId, client }) {
               ]
             : [];
 
-        const defaultBats =
-            values.bats === "Switch" ? values.defaultBats || "right" : null;
+        const isSwitch = values.bats?.toLowerCase() === "switch";
+        const defaultBats = isSwitch
+            ? (values.defaultBats || "right").toLowerCase()
+            : null;
 
         const player = await createDocument(
             "users",
@@ -89,11 +91,15 @@ export async function updateUser({ values, userId, client }) {
     }
 
     if (dataToUpdate.bats) {
-        if (dataToUpdate.bats === "Switch") {
-            dataToUpdate.defaultBats = dataToUpdate.defaultBats || "right";
+        if (dataToUpdate.bats.toLowerCase() === "switch") {
+            dataToUpdate.defaultBats = (
+                dataToUpdate.defaultBats || "right"
+            ).toLowerCase();
         } else {
             dataToUpdate.defaultBats = null;
         }
+    } else if (dataToUpdate.defaultBats) {
+        dataToUpdate.defaultBats = dataToUpdate.defaultBats.toLowerCase();
     }
 
     try {

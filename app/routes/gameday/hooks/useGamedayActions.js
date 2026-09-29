@@ -167,7 +167,19 @@ export function useGamedayActions({
                 y: null,
             };
             const hitLocation = payload?.hitLocation || null;
-            const battingSide = payload?.battingSide || "right";
+
+            // Resolve the active player for this slot (may be a substitute)
+            const activePlayer = isOurBatting
+                ? getActivePlayerInSlot(currentBatter)
+                : currentBatter;
+            const activePlayerId = activePlayer?.playerId ?? activePlayer?.$id;
+
+            const isSwitchHitter =
+                activePlayer?.bats?.toLowerCase() === "switch";
+            const defaultBatterSide = isSwitchHitter
+                ? activePlayer?.defaultBats?.toLowerCase() || "right"
+                : activePlayer?.bats?.toLowerCase() || "right";
+            const battingSide = payload?.battingSide || defaultBatterSide;
 
             // Resolve combined Fly/Pop Out
             let actionType = actionTypeInput;
@@ -177,12 +189,6 @@ export function useGamedayActions({
                     hitCoordinates.y,
                 );
             }
-
-            // Resolve the active player for this slot (may be a substitute)
-            const activePlayer = isOurBatting
-                ? getActivePlayerInSlot(currentBatter)
-                : currentBatter;
-            const activePlayerId = activePlayer.playerId ?? activePlayer.$id;
             const batterName =
                 `${activePlayer.firstName || ""}${activePlayer.lastName ? " " + activePlayer.lastName : ""}`.trim();
 
@@ -335,6 +341,8 @@ export function useGamedayActions({
                 playerId: incomingPlayer.$id,
                 firstName: incomingPlayer.firstName,
                 lastName: incomingPlayer.lastName,
+                bats: incomingPlayer.bats,
+                defaultBats: incomingPlayer.defaultBats,
                 entryInning: inning,
             };
 

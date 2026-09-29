@@ -337,16 +337,49 @@ export async function getEventById({ eventId, client, ...options }) {
         teamPrefs,
     } = baseData;
 
+    const parsedChart = parsePlayerChart(playerChart) ?? null;
+
+    const extraPlayerIdSet = new Set();
+    (parsedChart || []).forEach((slot) => {
+        if (!slot || typeof slot !== "object") return;
+        const starterId = slot.$id;
+        if (
+            typeof starterId === "string" &&
+            starterId.trim() !== "" &&
+            !userIds.some((u) => u.userId === starterId)
+        ) {
+            extraPlayerIdSet.add(starterId);
+        }
+        if (Array.isArray(slot.substitutions)) {
+            slot.substitutions.forEach((sub) => {
+                if (!sub || typeof sub !== "object") return;
+                const subId = sub.playerId;
+                if (
+                    typeof subId === "string" &&
+                    subId.trim() !== "" &&
+                    !userIds.some((u) => u.userId === subId)
+                ) {
+                    extraPlayerIdSet.add(subId);
+                }
+            });
+        }
+    });
+
+    const allUserIds = [...userIds];
+    extraPlayerIdSet.forEach((id) => {
+        if (!allUserIds.some((u) => u.userId === id)) {
+            allUserIds.push({ userId: id, role: "player" });
+        }
+    });
+
     // Build deferred data object (promises for lazy loading in the UI)
     const deferredData = makeDeferredData({
         eventId,
-        userIds,
+        userIds: allUserIds,
         parkId,
         options: deferredOptions,
         client: client,
     });
-
-    const parsedChart = parsePlayerChart(playerChart) ?? null;
 
     // Enrich playerChart with jersey numbers (using teamPrefs from loadGameBase)
     const enrichedChart = enrichPlayerChartWithJerseyNumbers(
@@ -362,7 +395,7 @@ export async function getEventById({ eventId, client, ...options }) {
             playerChart: enrichedChart,
         },
         location,
-        userIds,
+        userIds: allUserIds,
         managerIds,
         scorekeeperIds,
         season,

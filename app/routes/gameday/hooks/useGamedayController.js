@@ -57,13 +57,15 @@ export function useGamedayController({
         enabled: true,
     });
 
-    // Enrich playerChart with live data (like avatarUrl) from the players (user documents) array
+    // Enrich playerChart with live data (avatarUrl, bats, defaultBats) from the players (user documents) array
     const playerChart = useMemo(() => {
         const playerMap = new Map(players.map((p) => [p.$id, p]));
         return lineup.map((slot) => {
             const playerDoc = playerMap.get(slot.$id);
             const enrichedSlot = {
                 ...slot,
+                bats: playerDoc?.bats || slot.bats,
+                defaultBats: playerDoc?.defaultBats ?? slot.defaultBats,
                 avatarUrl: playerDoc?.avatarUrl || slot.avatarUrl,
             };
 
@@ -72,6 +74,8 @@ export function useGamedayController({
                     const subDoc = playerMap.get(sub.playerId);
                     return {
                         ...sub,
+                        bats: subDoc?.bats || sub.bats,
+                        defaultBats: subDoc?.defaultBats ?? sub.defaultBats,
                         avatarUrl: subDoc?.avatarUrl || sub.avatarUrl,
                     };
                 });

@@ -154,6 +154,36 @@ describe("useGamedayActions", () => {
         expect(defaultProps.setBattingOrderIndex).toHaveBeenCalledWith(1);
     });
 
+    it("defaults battingSide to defaultBats for switch hitters in completeAction when no payload is provided", () => {
+        const switchHitterProps = {
+            ...defaultProps,
+            currentBatter: {
+                $id: "p1",
+                firstName: "Alice",
+                lastName: "Player",
+                bats: "Switch",
+                defaultBats: "left",
+            },
+        };
+
+        const { result } = renderHook(() =>
+            useGamedayActions(switchHitterProps),
+        );
+
+        act(() => {
+            result.current.completeAction("K");
+        });
+
+        expect(mockSubmit).toHaveBeenCalledWith(
+            expect.objectContaining({
+                _action: "log-game-event",
+                eventType: "K",
+                battingSide: "left",
+            }),
+            { method: "post" },
+        );
+    });
+
     it("resolves Fly/Pop Out to Fly Out or Pop Out based on payload coordinates in completeAction", () => {
         const { result } = renderHook(() => useGamedayActions(defaultProps));
 
@@ -253,6 +283,45 @@ describe("useGamedayActions", () => {
             },
             { method: "post" },
         );
+    });
+
+    it("handles handleSubCurrentBatter and preserves bats and defaultBats in substitution entry", () => {
+        const { result } = renderHook(() => useGamedayActions(defaultProps));
+        const mockChartUpdate = jest.fn();
+
+        const incomingPlayer = {
+            $id: "sub1",
+            firstName: "Sam",
+            lastName: "Sub",
+            bats: "Switch",
+            defaultBats: "left",
+        };
+
+        act(() => {
+            result.current.handleSubCurrentBatter(
+                incomingPlayer,
+                0,
+                defaultProps.playerChart,
+                mockChartUpdate,
+            );
+        });
+
+        expect(mockChartUpdate).toHaveBeenCalledWith([
+            expect.objectContaining({
+                $id: "p1",
+                substitutions: [
+                    expect.objectContaining({
+                        playerId: "sub1",
+                        firstName: "Sam",
+                        lastName: "Sub",
+                        bats: "Switch",
+                        defaultBats: "left",
+                        entryInning: 1,
+                    }),
+                ],
+            }),
+            expect.anything(),
+        ]);
     });
 
     describe("updateAction", () => {

@@ -243,4 +243,42 @@ describe("MobilePlayActionDrawer", () => {
         );
         expect(screen.getByLabelText("Right")).toBeChecked();
     });
+
+    it("defaults battingSide correctly when defaultBats is capitalized ('Left')", () => {
+        const switchHitterCapitalized = {
+            ...defaultProps.currentBatter,
+            bats: "Switch",
+            defaultBats: "Left",
+        };
+        render(
+            <MobilePlayActionDrawer
+                {...defaultProps}
+                currentBatter={switchHitterCapitalized}
+            />,
+        );
+        expect(screen.getByLabelText("Left")).toBeChecked();
+    });
+
+    it("defaults battingSide based on active substitute's defaultBats", () => {
+        const starterRightWithSubSwitchLeft = {
+            ...defaultProps.currentBatter,
+            bats: "Right",
+            substitutions: [
+                {
+                    playerId: "sub1",
+                    firstName: "Sub",
+                    lastName: "Player",
+                    bats: "Switch",
+                    defaultBats: "left",
+                },
+            ],
+        };
+        render(
+            <MobilePlayActionDrawer
+                {...defaultProps}
+                currentBatter={starterRightWithSubSwitchLeft}
+            />,
+        );
+        expect(screen.getByLabelText("Left")).toBeChecked();
+    });
 });
