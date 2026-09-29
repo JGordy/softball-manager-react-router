@@ -54,9 +54,17 @@ export default function AddPlayer({
         initialPreferred,
     );
 
+    const normalizeBats = (val) => {
+        if (!val) return "Right";
+        const lower = val.toLowerCase();
+        if (lower === "switch") return "Switch";
+        if (lower === "left") return "Left";
+        return "Right";
+    };
+
     const [preferred, setPreferred] = useState(initialPreferred);
     const [disliked, setDisliked] = useState(initialDisliked);
-    const [bats, setBats] = useState(defaults.bats || "Right");
+    const [bats, setBats] = useState(() => normalizeBats(defaults.bats));
 
     return (
         <FormWrapper
@@ -152,7 +160,9 @@ export default function AddPlayer({
                             name="defaultBats"
                             label="Default Batting Side"
                             description="Select which side you default to as a switch hitter"
-                            defaultValue={defaults.defaultBats || "right"}
+                            defaultValue={
+                                defaults.defaultBats?.toLowerCase() || "right"
+                            }
                             size="md"
                         >
                             <Group mt="xs">
