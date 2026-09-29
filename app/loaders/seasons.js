@@ -161,17 +161,62 @@ export async function getSeasonById({ seasonId, client }) {
                     }
                     teamPlayers = []; // Clear current roster to protect PII
                 } else {
-                    // Filter team players to only those who are on the season roster
-                    players = teamPlayers.filter((p) =>
-                        seasonPlayerIds.includes(p.$id),
-                    );
+                    // Filter team players to only those who are on the season roster, or fallback to teamPlayers
+                    players =
+                        seasonPlayerIds.length > 0
+                            ? teamPlayers.filter((p) =>
+                                  seasonPlayerIds.includes(p.$id),
+                              )
+                            : teamPlayers;
                 }
 
                 const gameIds = season.games.map((g) => g.$id);
                 if (gameIds.length > 0) {
-                    logs = (teamInfo.teamLogs || []).filter((log) =>
-                        gameIds.includes(log.gameId),
-                    );
+                    try {
+                        const batchSize = 25;
+                        const fetchedLogs = [];
+                        for (let i = 0; i < gameIds.length; i += batchSize) {
+                            const batch = gameIds.slice(i, i + batchSize);
+                            let offset = 0;
+                            const limit = 100;
+                            let hasMore = true;
+                            while (hasMore) {
+                                const res = await listDocuments(
+                                    "game_logs",
+                                    [
+                                        Query.equal("gameId", batch),
+                                        Query.limit(limit),
+                                        Query.offset(offset),
+                                    ],
+                                    activeClient,
+                                ).catch(() => null);
+
+                                const rows = res?.rows || [];
+                                fetchedLogs.push(...rows);
+
+                                if (
+                                    rows.length < limit ||
+                                    fetchedLogs.length >= (res?.total || 0)
+                                ) {
+                                    hasMore = false;
+                                } else {
+                                    offset += rows.length;
+                                }
+                            }
+                        }
+
+                        if (fetchedLogs.length > 0) {
+                            logs = fetchedLogs;
+                        } else if (teamInfo.teamLogs?.length > 0) {
+                            logs = teamInfo.teamLogs.filter((log) =>
+                                gameIds.includes(log.gameId),
+                            );
+                        }
+                    } catch (_logErr) {
+                        logs = (teamInfo.teamLogs || []).filter((log) =>
+                            gameIds.includes(log.gameId),
+                        );
+                    }
                 }
             } catch (err) {
                 console.error(

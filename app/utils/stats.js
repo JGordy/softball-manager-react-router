@@ -1629,3 +1629,426 @@ export const calculatePlayerProgression = ({
         },
     };
 };
+
+/**
+ * Calculate game-by-game cumulative batting progression over time for a team/season.
+ *
+ * @param {Object} params
+ * @param {Array} params.logs - Game logs
+ * @param {Array|Object} params.games - Array of game objects or map of games
+ * @param {Array} [params.players=[]] - Array of roster player objects
+ * @param {Array<string>} [params.gameIds] - Optional list of game IDs to restrict to
+ * @returns {Object} Progression dataset and summary KPIs including team record
+ */
+export const calculateTeamProgression = ({
+    logs = [],
+    games = [],
+    players = [],
+    gameIds = null,
+}) => {
+    if (!logs.length) {
+        return {
+            progression: [],
+            summary: {
+                totalGames: 0,
+                current: null,
+                highs: {},
+                lows: {},
+                netChanges: {},
+                record: { wins: 0, losses: 0, ties: 0 },
+            },
+        };
+    }
+
+    // 1. Group logs by gameId
+    const logsByGame = logs.reduce((acc, log) => {
+        if (!acc[log.gameId]) {
+            acc[log.gameId] = [];
+        }
+        acc[log.gameId].push(log);
+        return acc;
+    }, {});
+
+    // 2. Build games lookup map
+    const gamesMap = Array.isArray(games)
+        ? games.reduce((acc, g) => {
+              if (g?.$id) {
+                  acc[g.$id] = g;
+              }
+              return acc;
+          }, {})
+        : games || {};
+
+    // 3. Determine candidate game IDs
+    const candidateIds = gameIds
+        ? gameIds.filter((id) => logsByGame[id])
+        : Object.keys(logsByGame);
+
+    // Helper to extract a date from a game or fallback log
+    const getGameDate = (g, id) => {
+        return (
+            g?.gameDate ||
+            g?.dateTime ||
+            g?.date ||
+            logsByGame[id]?.[0]?.$createdAt ||
+            logsByGame[id]?.[0]?.createdAt ||
+            null
+        );
+    };
+
+    // 4. Sort games chronologically (earliest game first)
+    const sortedGames = candidateIds
+        .map((id) => {
+            const game = gamesMap[id] || {
+                $id: id,
+                opponent: "Opponent",
+                gameDate:
+                    logsByGame[id]?.[0]?.$createdAt ||
+                    logsByGame[id]?.[0]?.createdAt,
+            };
+            return { id, game };
+        })
+        .filter((item) => getGameDate(item.game, item.id))
+        .sort((a, b) => {
+            const dateA = new Date(getGameDate(a.game, a.id));
+            const dateB = new Date(getGameDate(b.game, b.id));
+            return dateA - dateB;
+        });
+
+    if (!sortedGames.length) {
+        return {
+            progression: [],
+            summary: {
+                totalGames: 0,
+                current: null,
+                highs: {},
+                lows: {},
+                netChanges: {},
+                record: { wins: 0, losses: 0, ties: 0 },
+            },
+        };
+    }
+
+    // 5. Track running cumulative counts
+    let cumHits = 0;
+    let cumAB = 0;
+    let cumRuns = 0;
+    let cumRBI = 0;
+    let cum1B = 0;
+    let cum2B = 0;
+    let cum3B = 0;
+    let cumHR = 0;
+    let cumBB = 0;
+    let cumSF = 0;
+    let cumGames = 0;
+
+    let wins = 0;
+    let losses = 0;
+    let ties = 0;
+
+    const progression = [];
+
+    sortedGames.forEach(({ id, game }) => {
+        const gameLogs = logsByGame[id] || [];
+        const playerStats = calculateGameStats(
+            gameLogs,
+            players,
+            false,
+            undefined, // Use undefined so home/away halfInning fallback doesn't discard team hits
+            true,
+        );
+        const gameTotals = calculateTeamTotals(playerStats);
+
+        // If the game had no team at-bats or plate appearances for our team, skip it
+        if (!gameTotals.AB && !gameTotals.BB && !gameTotals.SF) {
+            return;
+        }
+
+        cumHits += gameTotals.H;
+        cumAB += gameTotals.AB;
+        cumRuns += gameTotals.R;
+        cumRBI += gameTotals.RBI;
+        cum1B += gameTotals["1B"] || 0;
+        cum2B += gameTotals["2B"] || 0;
+        cum3B += gameTotals["3B"] || 0;
+        cumHR += gameTotals.HR || 0;
+        cumBB += gameTotals.BB || 0;
+        cumSF += gameTotals.SF || 0;
+        cumGames += 1;
+
+        // Running cumulative rates
+        const avgNum = cumAB > 0 ? cumHits / cumAB : 0;
+        const obpDenom = cumAB + cumBB + cumSF;
+        const obpNum = obpDenom > 0 ? (cumHits + cumBB) / obpDenom : 0;
+        const totalBases = cum1B + 2 * cum2B + 3 * cum3B + 4 * cumHR;
+        const slgNum = cumAB > 0 ? totalBases / cumAB : 0;
+        const opsNum = obpNum + slgNum;
+        const isoNum = Math.max(0, slgNum - avgNum);
+        const hpgNum = cumGames > 0 ? cumHits / cumGames : 0;
+        const rbipgNum = cumGames > 0 ? cumRBI / cumGames : 0;
+
+        // Single game rates
+        const gameAvgNum = gameTotals.AB > 0 ? gameTotals.H / gameTotals.AB : 0;
+        const gameObpDenom = gameTotals.AB + gameTotals.BB + gameTotals.SF;
+        const gameObpNum =
+            gameObpDenom > 0
+                ? (gameTotals.H + gameTotals.BB) / gameObpDenom
+                : 0;
+        const gameTotalBases =
+            (gameTotals["1B"] || 0) +
+            2 * (gameTotals["2B"] || 0) +
+            3 * (gameTotals["3B"] || 0) +
+            4 * (gameTotals.HR || 0);
+        const gameSlgNum =
+            gameTotals.AB > 0 ? gameTotalBases / gameTotals.AB : 0;
+        const gameOpsNum = gameObpNum + gameSlgNum;
+        const gameIsoNum = Math.max(0, gameSlgNum - gameAvgNum);
+
+        // Formatting
+        const avgFormatted = formatStat(avgNum.toFixed(3));
+        const obpFormatted = formatStat(obpNum.toFixed(3));
+        const slgFormatted = formatStat(slgNum.toFixed(3));
+        const opsFormatted = formatStat(opsNum.toFixed(3));
+        const isoFormatted = formatStat(isoNum.toFixed(3));
+
+        const singleGame = {
+            ab: gameTotals.AB,
+            hits: gameTotals.H,
+            runs: gameTotals.R,
+            rbi: gameTotals.RBI,
+            avg: formatStat(gameAvgNum.toFixed(3)),
+            obp: formatStat(gameObpNum.toFixed(3)),
+            slg: formatStat(gameSlgNum.toFixed(3)),
+            ops: formatStat(gameOpsNum.toFixed(3)),
+            iso: formatStat(gameIsoNum.toFixed(3)),
+            raw: {
+                avg: gameAvgNum,
+                obp: gameObpNum,
+                slg: gameSlgNum,
+                ops: gameOpsNum,
+                iso: gameIsoNum,
+            },
+        };
+
+        // Date and opponent
+        let dateLabel = `Game ${cumGames}`;
+        let fullDate = "";
+        const rawDate = getGameDate(game, id);
+        try {
+            const dt = DateTime.fromISO(rawDate);
+            if (dt.isValid) {
+                dateLabel = dt.toFormat("MMM d");
+                fullDate = dt.toLocaleString(DateTime.DATE_MED);
+            } else if (rawDate) {
+                const jsDate = new Date(rawDate);
+                if (!isNaN(jsDate.getTime())) {
+                    dateLabel = jsDate.toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                    });
+                    fullDate = jsDate.toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                    });
+                }
+            }
+        } catch (_e) {}
+
+        const opponent = game?.opponent || "Opponent";
+
+        // Determine Game Outcome: Win / Loss / Tie and scores
+        const scoreFor =
+            game?.score !== undefined && game?.score !== null
+                ? Number(game.score)
+                : game?.ourScore !== undefined && game?.ourScore !== null
+                  ? Number(game.ourScore)
+                  : null;
+        const scoreAgainst =
+            game?.opponentScore !== undefined && game?.opponentScore !== null
+                ? Number(game.opponentScore)
+                : null;
+        let outcome = null;
+        if (
+            game?.result === "W" ||
+            game?.result === "L" ||
+            game?.result === "T"
+        ) {
+            outcome = game.result;
+        } else if (
+            scoreFor !== null &&
+            scoreAgainst !== null &&
+            !isNaN(scoreFor) &&
+            !isNaN(scoreAgainst)
+        ) {
+            if (scoreFor > scoreAgainst) outcome = "W";
+            else if (scoreFor < scoreAgainst) outcome = "L";
+            else outcome = "T";
+        }
+
+        if (outcome === "W") wins++;
+        else if (outcome === "L") losses++;
+        else if (outcome === "T") ties++;
+
+        let scoreText = "";
+        if (outcome && scoreFor !== null && scoreAgainst !== null) {
+            scoreText = `${outcome} ${scoreFor}-${scoreAgainst}`;
+        } else if (outcome) {
+            scoreText = outcome;
+        }
+
+        // Single-game extra base text
+        const extras = [];
+        if (gameTotals["2B"] > 0) extras.push(`${gameTotals["2B"]} 2B`);
+        if (gameTotals["3B"] > 0) extras.push(`${gameTotals["3B"]} 3B`);
+        if (gameTotals.HR > 0) extras.push(`${gameTotals.HR} HR`);
+        const extraText = extras.length > 0 ? `[${extras.join(", ")}]` : "";
+
+        // Deltas vs previous game in progression
+        const prev = progression[progression.length - 1];
+        const rawValues = {
+            avg: avgNum,
+            obp: obpNum,
+            slg: slgNum,
+            ops: opsNum,
+            iso: isoNum,
+            hpg: hpgNum,
+            rbipg: rbipgNum,
+        };
+
+        const rateMetrics = ["avg", "obp", "slg", "ops", "iso"];
+        const deltas = {};
+        const gameDeltas = {};
+        rateMetrics.forEach((key) => {
+            deltas[key] = prev
+                ? parseFloat((rawValues[key] - prev.raw[key]).toFixed(3))
+                : 0;
+            gameDeltas[key] = prev
+                ? parseFloat(
+                      (singleGame.raw[key] - prev.singleGame.raw[key]).toFixed(
+                          3,
+                      ),
+                  )
+                : 0;
+        });
+
+        progression.push({
+            gameId: id,
+            gameIndex: cumGames,
+            dateLabel,
+            fullDate,
+            opponent,
+            outcome,
+            scoreFor,
+            scoreAgainst,
+            scoreText,
+            gameLabel: `${dateLabel} vs ${opponent}`,
+            singleGame,
+            // Single-game chart keys (direct numbers for AreaChart when in single-game view)
+            gameAVG: parseFloat(gameAvgNum.toFixed(3)),
+            gameOBP: parseFloat(gameObpNum.toFixed(3)),
+            gameSLG: parseFloat(gameSlgNum.toFixed(3)),
+            gameOPS: parseFloat(gameOpsNum.toFixed(3)),
+            gameISO: parseFloat(gameIsoNum.toFixed(3)),
+            gameStats: {
+                ab: gameTotals.AB,
+                hits: gameTotals.H,
+                runs: gameTotals.R,
+                rbi: gameTotals.RBI,
+                doubles: gameTotals["2B"] || 0,
+                triples: gameTotals["3B"] || 0,
+                homeruns: gameTotals.HR || 0,
+                bb: gameTotals.BB || 0,
+                line: `${gameTotals.H}/${gameTotals.AB}`,
+                extraText,
+            },
+            cumulative: {
+                ab: cumAB,
+                hits: cumHits,
+                runs: cumRuns,
+                rbi: cumRBI,
+                games: cumGames,
+                avg: avgFormatted,
+                obp: obpFormatted,
+                slg: slgFormatted,
+                ops: opsFormatted,
+                iso: isoFormatted,
+                hpg: hpgNum.toFixed(2),
+                rbipg: rbipgNum.toFixed(2),
+            },
+            raw: rawValues,
+            AVG: parseFloat(avgNum.toFixed(3)),
+            OBP: parseFloat(obpNum.toFixed(3)),
+            SLG: parseFloat(slgNum.toFixed(3)),
+            OPS: parseFloat(opsNum.toFixed(3)),
+            ISO: parseFloat(isoNum.toFixed(3)),
+            HPG: parseFloat(hpgNum.toFixed(2)),
+            RBIPG: parseFloat(rbipgNum.toFixed(2)),
+            deltas,
+            gameDeltas,
+        });
+    });
+
+    const totalGames = progression.length;
+    const current =
+        totalGames > 0 ? progression[totalGames - 1].cumulative : null;
+
+    const rateMetrics = ["avg", "obp", "slg", "ops", "iso"];
+    const highs = {};
+    const lows = {};
+    const netChanges = {};
+    const gameHighs = {};
+    const gameLows = {};
+
+    rateMetrics.forEach((key) => {
+        const upperKey = key.toUpperCase();
+        const gameKey = `game${upperKey}`;
+        if (totalGames > 0) {
+            highs[key] = Math.max(...progression.map((p) => p[upperKey]));
+            lows[key] = Math.min(...progression.map((p) => p[upperKey]));
+            gameHighs[key] = Math.max(...progression.map((p) => p[gameKey]));
+            gameLows[key] = Math.min(...progression.map((p) => p[gameKey]));
+        }
+        netChanges[key] =
+            totalGames > 1
+                ? parseFloat(
+                      (
+                          progression[totalGames - 1][upperKey] -
+                          progression[0][upperKey]
+                      ).toFixed(3),
+                  )
+                : 0;
+    });
+
+    const seasonTotals = current
+        ? {
+              avg: current.avg,
+              obp: current.obp,
+              slg: current.slg,
+              ops: current.ops,
+              iso: current.iso,
+              raw: {
+                  avg: totalGames > 0 ? progression[totalGames - 1].raw.avg : 0,
+                  obp: totalGames > 0 ? progression[totalGames - 1].raw.obp : 0,
+                  slg: totalGames > 0 ? progression[totalGames - 1].raw.slg : 0,
+                  ops: totalGames > 0 ? progression[totalGames - 1].raw.ops : 0,
+                  iso: totalGames > 0 ? progression[totalGames - 1].raw.iso : 0,
+              },
+          }
+        : null;
+
+    return {
+        progression,
+        summary: {
+            totalGames,
+            current,
+            seasonTotals,
+            highs,
+            lows,
+            gameHighs,
+            gameLows,
+            netChanges,
+            record: { wins, losses, ties },
+        },
+    };
+};

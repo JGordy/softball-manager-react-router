@@ -298,6 +298,11 @@ export const isOpponentPlay = (log, isHomeGame) => {
     // Explicit eventType check
     if (log.eventType === "opponent_run") return true;
 
+    // Explicit isOpponent field check on log document
+    if (log.isOpponent !== undefined && log.isOpponent !== null) {
+        return Boolean(log.isOpponent);
+    }
+
     // Check custom JSON metadata in baseState
     if (log.baseState) {
         try {
