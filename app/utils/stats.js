@@ -1472,6 +1472,26 @@ export const calculatePlayerProgression = ({
         const gameLogs = logsByGame[id] || [];
         const gameStats = calculatePlayerStats(gameLogs, userId);
 
+        // Single-game rates for this game
+        const gameAvgNum = gameStats.ab > 0 ? gameStats.hits / gameStats.ab : 0;
+        const gameObpDenom =
+            gameStats.ab +
+            (gameStats.details["BB"] || 0) +
+            (gameStats.details["SF"] || 0);
+        const gameObpNum =
+            gameObpDenom > 0
+                ? (gameStats.hits + (gameStats.details["BB"] || 0)) /
+                  gameObpDenom
+                : 0;
+        const gameTotalBases =
+            (gameStats.details["1B"] || 0) +
+            2 * (gameStats.details["2B"] || 0) +
+            3 * (gameStats.details["3B"] || 0) +
+            4 * (gameStats.details["HR"] || 0);
+        const gameSlgNum = gameStats.ab > 0 ? gameTotalBases / gameStats.ab : 0;
+        const gameOpsNum = gameObpNum + gameSlgNum;
+        const gameIsoNum = Math.max(0, gameSlgNum - gameAvgNum);
+
         cumHits += gameStats.hits;
         cumAB += gameStats.ab;
         cumRuns += gameStats.runs;
@@ -1565,6 +1585,20 @@ export const calculatePlayerProgression = ({
                 line: `${gameStats.hits}/${gameStats.ab}`,
                 extraText,
             },
+            singleGame: {
+                avg: formatStat(gameAvgNum.toFixed(3)),
+                obp: formatStat(gameObpNum.toFixed(3)),
+                slg: formatStat(gameSlgNum.toFixed(3)),
+                ops: formatStat(gameOpsNum.toFixed(3)),
+                iso: formatStat(gameIsoNum.toFixed(3)),
+                raw: {
+                    avg: gameAvgNum,
+                    obp: gameObpNum,
+                    slg: gameSlgNum,
+                    ops: gameOpsNum,
+                    iso: gameIsoNum,
+                },
+            },
             cumulative: {
                 ab: cumAB,
                 hits: cumHits,
@@ -1580,7 +1614,7 @@ export const calculatePlayerProgression = ({
                 rbipg: rbipgNum.toFixed(2),
             },
             raw: rawValues,
-            // Direct keys for @mantine/charts LineChart
+            // Direct keys for @mantine/charts LineChart & CompositeChart
             AVG: parseFloat(avgNum.toFixed(3)),
             OBP: parseFloat(obpNum.toFixed(3)),
             SLG: parseFloat(slgNum.toFixed(3)),
@@ -1588,6 +1622,12 @@ export const calculatePlayerProgression = ({
             ISO: parseFloat(isoNum.toFixed(3)),
             HPG: parseFloat(hpgNum.toFixed(2)),
             RBIPG: parseFloat(rbipgNum.toFixed(2)),
+            // Single-game keys for CompositeChart bar series
+            gameAVG: parseFloat(gameAvgNum.toFixed(3)),
+            gameOBP: parseFloat(gameObpNum.toFixed(3)),
+            gameSLG: parseFloat(gameSlgNum.toFixed(3)),
+            gameOPS: parseFloat(gameOpsNum.toFixed(3)),
+            gameISO: parseFloat(gameIsoNum.toFixed(3)),
             deltas,
         });
     });
@@ -1599,13 +1639,18 @@ export const calculatePlayerProgression = ({
     const rateMetrics = ["avg", "obp", "slg", "ops", "iso"];
     const highs = {};
     const lows = {};
+    const gameHighs = {};
+    const gameLows = {};
     const netChanges = {};
 
     rateMetrics.forEach((key) => {
         const upperKey = key.toUpperCase();
+        const gameKey = `game${upperKey}`;
         if (totalGames > 0) {
             highs[key] = Math.max(...progression.map((p) => p[upperKey]));
             lows[key] = Math.min(...progression.map((p) => p[upperKey]));
+            gameHighs[key] = Math.max(...progression.map((p) => p[gameKey]));
+            gameLows[key] = Math.min(...progression.map((p) => p[gameKey]));
         }
         netChanges[key] =
             totalGames > 1
@@ -1618,6 +1663,30 @@ export const calculatePlayerProgression = ({
                 : 0;
     });
 
+    // Overall season/window totals
+    const totalAvg = cumAB > 0 ? cumHits / cumAB : 0;
+    const totalObpDenom = cumAB + cumBB + cumSF;
+    const totalObp = totalObpDenom > 0 ? (cumHits + cumBB) / totalObpDenom : 0;
+    const totalBases = cum1B + 2 * cum2B + 3 * cum3B + 4 * cumHR;
+    const totalSlg = cumAB > 0 ? totalBases / cumAB : 0;
+    const totalOps = totalObp + totalSlg;
+    const totalIso = Math.max(0, totalSlg - totalAvg);
+
+    const seasonTotals = {
+        avg: formatStat(totalAvg.toFixed(3)),
+        obp: formatStat(totalObp.toFixed(3)),
+        slg: formatStat(totalSlg.toFixed(3)),
+        ops: formatStat(totalOps.toFixed(3)),
+        iso: formatStat(totalIso.toFixed(3)),
+        raw: {
+            avg: totalAvg,
+            obp: totalObp,
+            slg: totalSlg,
+            ops: totalOps,
+            iso: totalIso,
+        },
+    };
+
     return {
         progression,
         summary: {
@@ -1625,7 +1694,10 @@ export const calculatePlayerProgression = ({
             current,
             highs,
             lows,
+            gameHighs,
+            gameLows,
             netChanges,
+            seasonTotals,
         },
     };
 };

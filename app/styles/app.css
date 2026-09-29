@@ -67,6 +67,18 @@
         rgba(249, 115, 22, 0.25)
     );
     --soft-orange-color: light-dark(#9a3412, #fb923c);
+
+    /* Chart Colors */
+    --chart-bar-color: light-dark(
+        rgba(0, 0, 0, 0.12),
+        rgba(255, 255, 255, 0.14)
+    );
+    /* Progression Chart Metric Colors (WCAG AA contrast in light mode, vibrant in dark mode) */
+    --metric-avg-color: light-dark(#2e7d32, #a9e34b);
+    --metric-obp-color: light-dark(#0284c7, #22b8cf);
+    --metric-slg-color: light-dark(#7c3aed, #cc5de8);
+    --metric-ops-color: light-dark(#c2410c, #ff922b);
+    --metric-iso-color: light-dark(#b45309, #fab005);
 }
 
 :root[data-mantine-color-scheme="light"] {

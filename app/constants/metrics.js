@@ -27,51 +27,56 @@ export const BATTING_METRIC_CONFIGS = {
     AVG: {
         label: "Batting Avg",
         shortLabel: "AVG",
-        color: "lime.5",
+        color: "var(--metric-avg-color)",
         badgeColor: "lime",
         formula: "Hits / At-Bats",
         summary:
             "Measures hitting frequency. Shows how often you get a base hit per official at-bat.",
         format: (val) => formatMetricValue(val, 3, true),
+        max: 1.0,
     },
     OBP: {
         label: "On-Base %",
         shortLabel: "OBP",
-        color: "cyan.5",
+        color: "var(--metric-obp-color)",
         badgeColor: "cyan",
         formula: "(Hits + BB) / (AB + BB + SF)",
         summary:
             "Measures how often you reach base safely without making an out (including walks).",
         format: (val) => formatMetricValue(val, 3, true),
+        max: 1.0,
     },
     SLG: {
         label: "Slugging %",
         shortLabel: "SLG",
-        color: "grape.5",
+        color: "var(--metric-slg-color)",
         badgeColor: "grape",
         formula: "Total Bases / At-Bats",
         summary:
             "Measures hitting power. Doubles (2), triples (3), and home runs (4) weigh more than singles (1).",
         format: (val) => formatMetricValue(val, 3, true),
+        max: 4.0,
     },
     OPS: {
         label: "OPS",
         shortLabel: "OPS",
-        color: "orange.5",
+        color: "var(--metric-ops-color)",
         badgeColor: "orange",
         formula: "On-Base + Slugging",
         summary:
             "Combines getting on base (OBP) and hitting for power (SLG) into a single offensive rating.",
         format: (val) => formatMetricValue(val, 3, false),
+        max: 5.0,
     },
     ISO: {
         label: "ISO Power",
         shortLabel: "ISO",
-        color: "yellow.5",
+        color: "var(--metric-iso-color)",
         badgeColor: "yellow",
         formula: "Slugging - Batting Avg",
         summary:
             "Isolated Power measures pure extra-base thump, removing singles to evaluate true extra-base ability.",
         format: (val) => formatMetricValue(val, 3, true),
+        max: 3.0,
     },
 };
