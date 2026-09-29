@@ -256,6 +256,65 @@ describe("useGamedayController", () => {
         expect(janeSlot.avatarUrl).toBe("http://avatar.url/p2");
     });
 
+    it("enriches playerChart, currentBatter, and substitutions with bats and defaultBats from players array", () => {
+        const chartWithSub = [
+            {
+                $id: "p1",
+                firstName: "John",
+                lastName: "Doe",
+                // Stale or missing bats in chart slot
+                bats: "Right",
+                defaultBats: "right",
+                substitutions: [
+                    {
+                        playerId: "sub1",
+                        firstName: "Substitute",
+                        lastName: "Player",
+                        entryInning: 3,
+                    },
+                ],
+            },
+        ];
+
+        const livePlayers = [
+            {
+                $id: "p1",
+                firstName: "John",
+                lastName: "Doe",
+                bats: "Switch",
+                defaultBats: "left",
+            },
+            {
+                $id: "sub1",
+                firstName: "Substitute",
+                lastName: "Player",
+                bats: "Switch",
+                defaultBats: "left",
+            },
+        ];
+
+        const { result } = renderHook(() =>
+            useGamedayController({
+                game: mockGame,
+                playerChart: chartWithSub,
+                team: mockTeam,
+                players: livePlayers,
+            }),
+        );
+
+        // Starter slot enriched with latest bats and defaultBats
+        expect(result.current.currentBatter.bats).toBe("Switch");
+        expect(result.current.currentBatter.defaultBats).toBe("left");
+
+        // Substitution also enriched with latest bats and defaultBats
+        expect(result.current.currentBatter.substitutions[0].bats).toBe(
+            "Switch",
+        );
+        expect(result.current.currentBatter.substitutions[0].defaultBats).toBe(
+            "left",
+        );
+    });
+
     it("returns updateAction from useGamedayActions", () => {
         const mockUpdateAction = jest.fn();
         useGamedayActions.mockReturnValue({

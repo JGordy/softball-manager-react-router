@@ -22,6 +22,7 @@ import FieldHighlight from "./FieldHighlight";
 
 import { useRunnerProjection } from "../hooks/useRunnerProjection";
 import { getDrawerTitle, getActionColor } from "../utils/drawerUtils";
+import { getActivePlayerInSlot } from "../utils/gamedayUtils";
 import { UI_KEYS } from "@/constants/scoring";
 import {
     getFieldZone,
@@ -41,10 +42,11 @@ export default function DesktopPlayActionDrawer({
     currentBatter,
     outs,
 }) {
-    const isSwitchHitter = currentBatter?.bats?.toLowerCase() === "switch";
+    const activeBatter = getActivePlayerInSlot(currentBatter);
+    const isSwitchHitter = activeBatter?.bats?.toLowerCase() === "switch";
     const bats = isSwitchHitter
-        ? currentBatter?.defaultBats || "right"
-        : currentBatter?.bats?.toLowerCase() || "right";
+        ? activeBatter?.defaultBats?.toLowerCase() || "right"
+        : activeBatter?.bats?.toLowerCase() || "right";
 
     const [selectedPosition, setSelectedPosition] = useState(null);
     const [battingSide, setBattingSide] = useState(bats || "right");
@@ -106,6 +108,8 @@ export default function DesktopPlayActionDrawer({
             setIsLocked(false);
             setShowConfirmation(false);
             setIsDragging(false);
+        } else {
+            setBattingSide(bats || "right");
         }
     }, [opened, bats]);
 
