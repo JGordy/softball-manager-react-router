@@ -10,7 +10,7 @@ import {
     Text,
     Badge,
 } from "@mantine/core";
-import { AreaChart } from "@mantine/charts";
+import { CompositeChart } from "@mantine/charts";
 import {
     IconArrowUpRight,
     IconArrowDownRight,
@@ -27,7 +27,9 @@ import { trackEvent } from "@/utils/analytics";
 const METRIC_CONFIGS = BATTING_METRIC_CONFIGS;
 
 const getMantineColorVar = (colorToken) =>
-    `var(--mantine-color-${colorToken.replace(".", "-")})`;
+    colorToken?.startsWith("var(")
+        ? colorToken
+        : `var(--mantine-color-${colorToken.replace(".", "-")})`;
 
 const CARD_SURFACE_STYLE = {
     backgroundColor:
@@ -36,24 +38,12 @@ const CARD_SURFACE_STYLE = {
         "light-dark(var(--mantine-color-gray-3), rgba(255, 255, 255, 0.08))",
 };
 
-const ALL_SERIES_GAME = Object.entries(METRIC_CONFIGS).map(([key, config]) => ({
-    name: `game${key}`,
+const ALL_SERIES = Object.entries(METRIC_CONFIGS).map(([key, config]) => ({
+    name: key,
     label: config.shortLabel,
     color: config.color,
+    type: "line",
 }));
-
-const ALL_SERIES_CUMULATIVE = Object.entries(METRIC_CONFIGS).map(
-    ([key, config]) => ({
-        name: key,
-        label: config.shortLabel,
-        color: config.color,
-    }),
-);
-
-const VIEW_MODE_OPTIONS = [
-    { label: "Per Game", value: "game" },
-    { label: "Cumulative", value: "cumulative" },
-];
 
 const SEGMENTED_CONTROL_DATA = [
     { label: "All", value: "All" },
@@ -70,7 +60,6 @@ const SEGMENTED_CONTROL_DATA = [
 function CustomTeamProgressionTooltip({
     payload,
     selectedMetric,
-    viewMode = "game",
     seasonTotals = null,
 }) {
     if (!payload || !payload.length) return null;
@@ -189,28 +178,15 @@ function CustomTeamProgressionTooltip({
             {/* Rates Section */}
             <Stack gap={4} mt="xs">
                 <Text size="10px" c="dimmed" fw={700} tt="uppercase">
-                    {viewMode === "game"
-                        ? `Game Hitting Rates (${gameStats.line})`
-                        : `Cumulative to Date (${cumulative.hits}/${cumulative.ab})`}
+                    Averages to Date ({cumulative.hits}/{cumulative.ab})
                 </Text>
 
                 {selectedMetric === "All" ? (
                     <SimpleGrid cols={2} spacing="4px">
                         {Object.entries(METRIC_CONFIGS).map(([key, config]) => {
                             const lowKey = key.toLowerCase();
-                            const val =
-                                viewMode === "game"
-                                    ? singleGame?.[lowKey]
-                                    : cumulative?.[lowKey];
-                            const diffFromSeason =
-                                seasonTotals && singleGame?.raw
-                                    ? singleGame.raw[lowKey] -
-                                      seasonTotals.raw[lowKey]
-                                    : 0;
-                            const delta =
-                                viewMode === "game"
-                                    ? diffFromSeason
-                                    : deltas?.[lowKey];
+                            const val = cumulative?.[lowKey];
+                            const delta = deltas?.[lowKey];
 
                             return (
                                 <Group
@@ -232,43 +208,71 @@ function CustomTeamProgressionTooltip({
                         })}
                     </SimpleGrid>
                 ) : (
-                    <Group justify="space-between" align="center">
-                        <Stack gap={0}>
-                            <Text
-                                size="sm"
-                                fw={700}
-                                c={METRIC_CONFIGS[selectedMetric]?.color}
-                            >
-                                {METRIC_CONFIGS[selectedMetric]?.label}
-                            </Text>
-                            <Text size="10px" c="dimmed">
-                                {viewMode === "game"
-                                    ? "Game Output"
-                                    : "Cumulative"}
-                            </Text>
-                        </Stack>
-                        <Stack gap={0} align="flex-end">
-                            <Text size="md" fw={700}>
-                                {viewMode === "game"
-                                    ? singleGame?.[selectedMetric.toLowerCase()]
-                                    : cumulative?.[
-                                          selectedMetric.toLowerCase()
-                                      ]}
-                            </Text>
-                            {(() => {
-                                const lowKey = selectedMetric.toLowerCase();
-                                if (viewMode === "game") {
+                    <Stack gap={6}>
+                        <Group justify="space-between" align="center">
+                            <Stack gap={0}>
+                                <Text size="xs" fw={600} c="dimmed">
+                                    Game{" "}
+                                    {METRIC_CONFIGS[selectedMetric]?.shortLabel}
+                                </Text>
+                                <Text size="10px" c="dimmed">
+                                    This Game
+                                </Text>
+                            </Stack>
+                            <Stack gap={0} align="flex-end">
+                                <Text size="sm" fw={700}>
+                                    {singleGame?.[
+                                        selectedMetric.toLowerCase()
+                                    ] ||
+                                        (dataPoint[`game${selectedMetric}`] !==
+                                        undefined
+                                            ? METRIC_CONFIGS[
+                                                  selectedMetric
+                                              ]?.format(
+                                                  dataPoint[
+                                                      `game${selectedMetric}`
+                                                  ],
+                                              )
+                                            : "—")}
+                                </Text>
+                                {(() => {
+                                    const lowKey = selectedMetric.toLowerCase();
                                     const diff =
-                                        seasonTotals && singleGame?.raw
+                                        seasonTotals?.raw &&
+                                        singleGame?.raw &&
+                                        singleGame.raw[lowKey] !== undefined &&
+                                        seasonTotals.raw[lowKey] !== undefined
                                             ? singleGame.raw[lowKey] -
                                               seasonTotals.raw[lowKey]
                                             : 0;
                                     return renderDelta(diff, "vs Avg");
-                                }
-                                return renderDelta(deltas?.[lowKey]);
-                            })()}
-                        </Stack>
-                    </Group>
+                                })()}
+                            </Stack>
+                        </Group>
+                        <Group justify="space-between" align="center">
+                            <Stack gap={0}>
+                                <Text
+                                    size="xs"
+                                    fw={700}
+                                    c={METRIC_CONFIGS[selectedMetric]?.color}
+                                >
+                                    Running{" "}
+                                    {METRIC_CONFIGS[selectedMetric]?.shortLabel}
+                                </Text>
+                                <Text size="10px" c="dimmed">
+                                    Cumulative
+                                </Text>
+                            </Stack>
+                            <Stack gap={0} align="flex-end">
+                                <Text size="md" fw={700}>
+                                    {cumulative?.[selectedMetric.toLowerCase()]}
+                                </Text>
+                                {renderDelta(
+                                    deltas?.[selectedMetric.toLowerCase()],
+                                )}
+                            </Stack>
+                        </Group>
+                    </Stack>
                 )}
             </Stack>
         </Paper>
@@ -292,22 +296,7 @@ function OutcomeDot({ cx, cy, payload, stroke }) {
           ? "#fa5252" // red-5 (Loss)
           : stroke || "#868e96";
 
-    return (
-        <circle
-            cx={cx}
-            cy={cy}
-            r={5}
-            fill={fillColor}
-            stroke="#1F2937"
-            strokeWidth={1.5}
-            style={{
-                filter:
-                    isWin || isLoss
-                        ? "drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45))"
-                        : undefined,
-            }}
-        />
-    );
+    return <circle cx={cx} cy={cy} r={4.5} fill={fillColor} />;
 }
 
 /**
@@ -321,22 +310,15 @@ function ActiveOutcomeDot({ cx, cy, payload, stroke }) {
     const isLoss = outcome === "L";
 
     const fillColor = isWin
-        ? "#20c997"
+        ? "#20c997" // teal-5 (Win)
         : isLoss
-          ? "#fa5252"
+          ? "#fa5252" // red-5 (Loss)
           : stroke || "#868e96";
 
     return (
         <g>
-            <circle cx={cx} cy={cy} r={8.5} fill={fillColor} opacity={0.3} />
-            <circle
-                cx={cx}
-                cy={cy}
-                r={6}
-                fill={fillColor}
-                stroke="#ffffff"
-                strokeWidth={2}
-            />
+            <circle cx={cx} cy={cy} r={8.5} fill={fillColor} opacity={0.25} />
+            <circle cx={cx} cy={cy} r={6} fill={fillColor} />
         </g>
     );
 }
@@ -362,21 +344,7 @@ export default function SeasonProgressionChart({
     primaryColor = "lime",
     isActive = true,
 }) {
-    const [viewMode, setViewMode] = useState("game");
     const [selectedMetric, setSelectedMetric] = useState("All");
-
-    /**
-     * Handles switching between Per Game and Cumulative view modes.
-     *
-     * @param {string} val - Next view mode ('game' | 'cumulative')
-     */
-    const handleViewModeChange = (val) => {
-        setViewMode(val);
-        trackEvent("season-trends-mode-changed", {
-            seasonId,
-            viewMode: val,
-        });
-    };
 
     /**
      * Handles switching the selected metric filter.
@@ -388,7 +356,6 @@ export default function SeasonProgressionChart({
         trackEvent("season-trends-metric-changed", {
             seasonId,
             metric: val,
-            viewMode,
         });
     };
 
@@ -415,28 +382,28 @@ export default function SeasonProgressionChart({
 
     const activeConfig = METRIC_CONFIGS[selectedMetric];
 
-    // Series definition based on view mode and selected metric
+    // Series definition based on selected metric: composite bar + line for single metric, lines only for All
     const series = useMemo(() => {
-        const isGameMode = viewMode === "game";
         if (selectedMetric === "All") {
-            return isGameMode ? ALL_SERIES_GAME : ALL_SERIES_CUMULATIVE;
+            return ALL_SERIES;
         }
-        const config = METRIC_CONFIGS[selectedMetric];
-        const seriesName = isGameMode
-            ? `game${selectedMetric}`
-            : selectedMetric;
-        return config
+        return activeConfig
             ? [
                   {
-                      name: seriesName,
-                      label: config.label,
-                      color: config.color,
+                      name: `game${selectedMetric}`,
+                      label: `Game ${activeConfig.shortLabel}`,
+                      type: "bar",
+                      color: "var(--chart-bar-color)",
+                  },
+                  {
+                      name: selectedMetric,
+                      label: `Running ${activeConfig.shortLabel}`,
+                      type: "line",
+                      color: activeConfig.color,
                   },
               ]
-            : isGameMode
-              ? ALL_SERIES_GAME
-              : ALL_SERIES_CUMULATIVE;
-    }, [selectedMetric, viewMode]);
+            : ALL_SERIES;
+    }, [selectedMetric, activeConfig]);
 
     // Calculate dynamic Y-axis domain when an individual metric is chosen
     const yAxisDomain = useMemo(() => {
@@ -444,56 +411,27 @@ export default function SeasonProgressionChart({
             return [0, "auto"];
         }
 
-        const dataKey =
-            viewMode === "game" ? `game${selectedMetric}` : selectedMetric;
-        const values = progression
-            .map((p) => p[dataKey])
+        const lineValues = progression
+            .map((p) => p[selectedMetric])
             .filter((v) => typeof v === "number" && !isNaN(v));
 
-        if (
-            viewMode === "game" &&
-            summary?.seasonTotals?.raw?.[selectedMetric.toLowerCase()] !==
-                undefined
-        ) {
-            values.push(summary.seasonTotals.raw[selectedMetric.toLowerCase()]);
+        const barValues = progression
+            .map((p) => p[`game${selectedMetric}`])
+            .filter((v) => typeof v === "number" && !isNaN(v));
+
+        const allValues = [...lineValues, ...barValues];
+        if (!allValues.length) return [0, 1];
+
+        const max = Math.max(...allValues);
+        const padding = max === 0 ? 0.1 : Math.max(0.05, max * 0.1);
+        let domainMax = parseFloat((max + padding).toFixed(3));
+
+        if (activeConfig?.max != null) {
+            domainMax = Math.min(activeConfig.max, domainMax);
         }
 
-        if (!values.length) return [0, 1];
-
-        const min = Math.min(...values);
-        const max = Math.max(...values);
-        const range = max - min;
-        const padding = range === 0 ? 0.05 : Math.max(0.02, range * 0.2);
-
-        const domainMin = Math.max(0, parseFloat((min - padding).toFixed(3)));
-        const domainMax = parseFloat((max + padding).toFixed(3));
-
-        return [domainMin, domainMax];
-    }, [selectedMetric, viewMode, progression, hasEnoughData, summary]);
-
-    // Season benchmark reference line for Single Game mode
-    const referenceLines = useMemo(() => {
-        if (
-            viewMode !== "game" ||
-            selectedMetric === "All" ||
-            !summary?.seasonTotals
-        ) {
-            return [];
-        }
-        const lowKey = selectedMetric.toLowerCase();
-        const avgVal = summary.seasonTotals.raw?.[lowKey];
-        if (typeof avgVal !== "number" || isNaN(avgVal)) return [];
-
-        return [
-            {
-                y: avgVal,
-                label: `Season ${activeConfig?.shortLabel}: ${summary.seasonTotals[lowKey]}`,
-                color: "gray.5",
-                strokeDasharray: "4 4",
-                labelPosition: "insideTopRight",
-            },
-        ];
-    }, [viewMode, selectedMetric, summary, activeConfig]);
+        return [0, domainMax];
+    }, [selectedMetric, progression, hasEnoughData, activeConfig]);
 
     if (!hasEnoughData) {
         return (
@@ -517,16 +455,7 @@ export default function SeasonProgressionChart({
         );
     }
 
-    const {
-        current,
-        highs,
-        lows,
-        gameHighs,
-        gameLows,
-        netChanges,
-        record,
-        seasonTotals,
-    } = summary;
+    const { current, gameHighs, gameLows, netChanges, record } = summary;
 
     return (
         <Card
@@ -553,16 +482,6 @@ export default function SeasonProgressionChart({
                     </Group>
                 )}
 
-                {/* View Mode Toggle: Per Game Output vs Cumulative Progression */}
-                <SegmentedControl
-                    value={viewMode}
-                    onChange={handleViewModeChange}
-                    color={primaryColor}
-                    size="xs"
-                    fullWidth
-                    data={VIEW_MODE_OPTIONS}
-                />
-
                 {/* Metric Selector Controls filling full card width */}
                 <SegmentedControl
                     value={selectedMetric}
@@ -580,15 +499,8 @@ export default function SeasonProgressionChart({
                             const config = METRIC_CONFIGS[metricKey];
                             const lowKey = metricKey.toLowerCase();
                             const change = netChanges[lowKey];
-                            const isGame = viewMode === "game";
-                            const value = isGame
-                                ? seasonTotals?.[lowKey] ||
-                                  current?.[lowKey] ||
-                                  ".000"
-                                : current?.[lowKey] || ".000";
-                            const subText = isGame
-                                ? `Best: ${gameHighs?.[lowKey] !== undefined ? config.format(gameHighs[lowKey]) : ".000"}`
-                                : `${change >= 0 ? "+" : ""}${change?.toFixed(3)} net`;
+                            const value = current?.[lowKey] || ".000";
+                            const subText = `${change >= 0 ? "+" : ""}${change?.toFixed(3)} net`;
 
                             return (
                                 <Paper
@@ -599,8 +511,7 @@ export default function SeasonProgressionChart({
                                     ta="center"
                                 >
                                     <Text size="11px" c="dimmed" fw={600}>
-                                        {isGame ? "Season" : "Team"}{" "}
-                                        {config.shortLabel}
+                                        Team {config.shortLabel}
                                     </Text>
                                     <Text size="md" fw={700} c={config.color}>
                                         {value}
@@ -617,10 +528,7 @@ export default function SeasonProgressionChart({
                         {/* Hero Row: Current Team Metric */}
                         <Box py="xs" ta="center">
                             <Text size="sm" fw={600}>
-                                {viewMode === "game"
-                                    ? "Season"
-                                    : "Current Team"}{" "}
-                                {activeConfig?.label}
+                                Current Team {activeConfig?.label}
                             </Text>
                             <Text
                                 fw={800}
@@ -629,86 +537,43 @@ export default function SeasonProgressionChart({
                                 my={2}
                                 c={activeConfig?.color}
                             >
-                                {viewMode === "game"
-                                    ? seasonTotals?.[
-                                          selectedMetric.toLowerCase()
-                                      ] ||
-                                      activeConfig?.format(
-                                          current?.[
-                                              selectedMetric.toLowerCase()
-                                          ],
-                                      )
-                                    : activeConfig?.format(
-                                          current?.[
-                                              selectedMetric.toLowerCase()
-                                          ],
-                                      )}
+                                {activeConfig?.format(
+                                    current?.[selectedMetric.toLowerCase()],
+                                )}
                             </Text>
                         </Box>
 
-                        {/* Secondary Row: High, Low, Trend / Best Game, Lowest Game, Latest Game */}
+                        {/* Secondary Row: Best Game, Lowest Game, Net Trend */}
                         {(() => {
                             const metricKey = selectedMetric.toLowerCase();
-                            const isGame = viewMode === "game";
-
-                            const secondaryMetrics = isGame
-                                ? [
-                                      {
-                                          label: "Best Game",
-                                          value:
-                                              gameHighs?.[metricKey] !==
-                                              undefined
-                                                  ? activeConfig?.format(
-                                                        gameHighs[metricKey],
-                                                    )
-                                                  : "-",
-                                          color: "teal.4",
-                                      },
-                                      {
-                                          label: "Lowest Game",
-                                          value:
-                                              gameLows?.[metricKey] !==
-                                              undefined
-                                                  ? activeConfig?.format(
-                                                        gameLows[metricKey],
-                                                    )
-                                                  : "-",
-                                          color: "red.4",
-                                      },
-                                      {
-                                          label: "Latest Game",
-                                          value:
-                                              progression[
-                                                  progression.length - 1
-                                              ]?.singleGame?.[metricKey] || "-",
-                                          color:
-                                              activeConfig?.color || "lime.4",
-                                      },
-                                  ]
-                                : [
-                                      {
-                                          label: "High",
-                                          value: activeConfig?.format(
-                                              highs[metricKey],
-                                          ),
-                                          color: "teal.4",
-                                      },
-                                      {
-                                          label: "Low",
-                                          value: activeConfig?.format(
-                                              lows[metricKey],
-                                          ),
-                                          color: "red.4",
-                                      },
-                                      {
-                                          label: "Net Trend",
-                                          value: `${(netChanges[metricKey] ?? 0) >= 0 ? "+" : ""}${(netChanges[metricKey] ?? 0).toFixed(3)}`,
-                                          color:
-                                              (netChanges[metricKey] ?? 0) >= 0
-                                                  ? "teal.4"
-                                                  : "red.4",
-                                      },
-                                  ];
+                            const change = netChanges[metricKey] ?? 0;
+                            const secondaryMetrics = [
+                                {
+                                    label: "Best Game",
+                                    value:
+                                        gameHighs?.[metricKey] !== undefined
+                                            ? activeConfig?.format(
+                                                  gameHighs[metricKey],
+                                              )
+                                            : "-",
+                                    color: "teal.4",
+                                },
+                                {
+                                    label: "Lowest Game",
+                                    value:
+                                        gameLows?.[metricKey] !== undefined
+                                            ? activeConfig?.format(
+                                                  gameLows[metricKey],
+                                              )
+                                            : "-",
+                                    color: "red.4",
+                                },
+                                {
+                                    label: "Net Trend",
+                                    value: `${change >= 0 ? "+" : ""}${change.toFixed(3)}`,
+                                    color: change >= 0 ? "teal.4" : "red.4",
+                                },
+                            ];
 
                             return (
                                 <SimpleGrid cols={3} spacing="xs">
@@ -782,7 +647,7 @@ export default function SeasonProgressionChart({
                     </Paper>
                 )}
 
-                {/* Area Chart with Win/Loss outcome dot indicators */}
+                {/* Composite Chart with Win/Loss outcome dot indicators on the line */}
                 <Box
                     style={{
                         width: "100%",
@@ -790,38 +655,40 @@ export default function SeasonProgressionChart({
                         minWidth: 0,
                         minHeight: 260,
                         overflow: "hidden",
+                        "--chart-bar-color":
+                            "light-dark(rgba(0, 0, 0, 0.12), rgba(255, 255, 255, 0.14))",
                     }}
                 >
                     <style>{`
-                        .mantine-AreaChart-root {
+                        .mantine-CompositeChart-root {
                             width: 100% !important;
                             max-width: 100% !important;
                         }
-                        .mantine-AreaChart-container {
+                        .mantine-CompositeChart-container {
                             width: 100% !important;
                             max-width: 100% !important;
                         }
-                        .mantine-AreaChart-container > div {
+                        .mantine-CompositeChart-container > div {
                             width: 100% !important;
                             max-width: 100% !important;
                         }
-                        .mantine-AreaChart-root .recharts-responsive-container {
+                        .mantine-CompositeChart-root .recharts-responsive-container {
                             width: 100% !important;
                             max-width: 100% !important;
                         }
-                        .mantine-AreaChart-root .recharts-wrapper {
+                        .mantine-CompositeChart-root .recharts-wrapper {
                             width: 100% !important;
                             max-width: 100% !important;
                             left: 0 !important;
                             right: 0 !important;
                             margin: 0 auto !important;
                         }
-                        .mantine-AreaChart-root .recharts-surface {
+                        .mantine-CompositeChart-root .recharts-surface {
                             width: 100% !important;
                             max-width: 100% !important;
                         }
                     `}</style>
-                    <AreaChart
+                    <CompositeChart
                         h={260}
                         w="100%"
                         data={progression}
@@ -829,20 +696,20 @@ export default function SeasonProgressionChart({
                         series={series}
                         curveType="monotone"
                         gridAxis="x"
+                        maxBarWidth={14}
+                        barProps={{ radius: [4, 4, 0, 0] }}
                         withDots={false}
-                        areaProps={{
+                        lineProps={{
                             dot: (dotProps) => <OutcomeDot {...dotProps} />,
                             activeDot: (activeProps) => (
                                 <ActiveOutcomeDot {...activeProps} />
                             ),
+                            strokeWidth: 2.5,
                         }}
-                        strokeWidth={2.5}
-                        fillOpacity={0.2}
                         withLegend={false}
                         withXAxis
                         withYAxis={selectedMetric !== "All"}
-                        referenceLines={referenceLines}
-                        areaChartProps={{
+                        composedChartProps={{
                             margin: { top: 10, right: 10, left: 10, bottom: 0 },
                         }}
                         xAxisProps={{
@@ -865,7 +732,6 @@ export default function SeasonProgressionChart({
                                 <CustomTeamProgressionTooltip
                                     payload={payload}
                                     selectedMetric={selectedMetric}
-                                    viewMode={viewMode}
                                     seasonTotals={summary?.seasonTotals}
                                 />
                             ),
@@ -882,10 +748,7 @@ export default function SeasonProgressionChart({
                         px="xs"
                         mt="xs"
                     >
-                        {(viewMode === "game"
-                            ? ALL_SERIES_GAME
-                            : ALL_SERIES_CUMULATIVE
-                        ).map((item) => (
+                        {ALL_SERIES.map((item) => (
                             <Group key={item.name} gap={6} align="center">
                                 <Box
                                     w={8}
@@ -963,9 +826,9 @@ export default function SeasonProgressionChart({
                 )}
 
                 <Text size="xs" c="dimmed" fs="italic" ta="center">
-                    {viewMode === "game"
-                        ? "* Green dots indicate Wins, Red dots indicate Losses. Touch or hover over any point to inspect single-game box output, outcome, and variance vs season average."
-                        : "* Green dots indicate Wins, Red dots indicate Losses. Touch or hover over any point to inspect cumulative team rates, outcome, and running season progression."}
+                    * Green dots indicate Wins, Red dots indicate Losses. Touch
+                    or hover over any point to inspect single-game output (bars)
+                    alongside running trajectory (line).
                 </Text>
             </Stack>
         </Card>

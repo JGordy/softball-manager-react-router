@@ -6,32 +6,36 @@ jest.mock("@/utils/analytics", () => ({
     trackEvent: jest.fn(),
 }));
 
-// Mock @mantine/charts AreaChart
+// Mock @mantine/charts CompositeChart
 jest.mock("@mantine/charts", () => ({
-    AreaChart: ({
+    CompositeChart: ({
         data,
         series,
         withYAxis,
         tooltipProps,
         referenceLines,
-        areaProps,
+        lineProps,
+        yAxisProps,
     }) => (
-        <div data-testid="mantine-area-chart">
+        <div data-testid="mantine-composite-chart">
             <span data-testid="series-count">{series.length}</span>
             <span data-testid="data-count">{data.length}</span>
             <span data-testid="with-y-axis">{String(withYAxis)}</span>
+            <span data-testid="y-axis-domain-max">
+                {yAxisProps?.domain ? yAxisProps.domain[1] : ""}
+            </span>
             <span data-testid="reference-lines-count">
                 {referenceLines ? referenceLines.length : 0}
             </span>
             <span data-testid="first-series-name">{series[0]?.name || ""}</span>
-            {areaProps?.dot && data.length > 0 && (
+            {lineProps?.dot && data.length > 0 && (
                 <svg data-testid="custom-dots-svg">
                     {data.map((item, index) => (
                         <g
                             key={item.gameId || index}
                             data-testid={`dot-${item.outcome}`}
                         >
-                            {areaProps.dot({
+                            {lineProps.dot({
                                 cx: 10 + index * 20,
                                 cy: 50,
                                 payload: item,
@@ -106,11 +110,11 @@ describe("SeasonProgressionChart Component", () => {
             screen.getByText(/at least 2 logged games with hitting stats/i),
         ).toBeInTheDocument();
         expect(
-            screen.queryByTestId("mantine-area-chart"),
+            screen.queryByTestId("mantine-composite-chart"),
         ).not.toBeInTheDocument();
     });
 
-    it("renders in 'Per Game' mode by default with single-game series and KPI cards", () => {
+    it("renders progression chart and summary metrics in 'All' mode by default", () => {
         render(
             <SeasonProgressionChart
                 logs={mockLogs}
@@ -119,28 +123,24 @@ describe("SeasonProgressionChart Component", () => {
             />,
         );
 
-        expect(screen.getByTestId("mantine-area-chart")).toBeInTheDocument();
+        expect(
+            screen.getByTestId("mantine-composite-chart"),
+        ).toBeInTheDocument();
         expect(screen.getByTestId("data-count")).toHaveTextContent("2");
         expect(screen.getByTestId("series-count")).toHaveTextContent("5");
         expect(screen.getByTestId("first-series-name")).toHaveTextContent(
-            "gameAVG",
+            "AVG",
         );
         expect(screen.getByTestId("with-y-axis")).toHaveTextContent("false");
-
-        // View mode toggle options exist and "Per Game" is checked
-        expect(screen.getByRole("radio", { name: "Per Game" })).toBeChecked();
-        expect(
-            screen.getByRole("radio", { name: "Cumulative" }),
-        ).not.toBeChecked();
 
         // Team record badge (1 win, 1 loss)
         expect(screen.getByText("Record: 1-1-0")).toBeInTheDocument();
 
-        // KPI cards for All mode in game view
-        expect(screen.getByText("Season AVG")).toBeInTheDocument();
-        expect(screen.getByText("Season OBP")).toBeInTheDocument();
-        expect(screen.getByText("Season SLG")).toBeInTheDocument();
-        expect(screen.getByText("Season OPS")).toBeInTheDocument();
+        // KPI cards for All mode
+        expect(screen.getByText("Team AVG")).toBeInTheDocument();
+        expect(screen.getByText("Team OBP")).toBeInTheDocument();
+        expect(screen.getByText("Team SLG")).toBeInTheDocument();
+        expect(screen.getByText("Team OPS")).toBeInTheDocument();
 
         // Custom balanced legend items
         expect(screen.getAllByText("SLG").length).toBeGreaterThan(0);
@@ -155,7 +155,7 @@ describe("SeasonProgressionChart Component", () => {
         expect(screen.getByText(/Game: 3\/4/i)).toBeInTheDocument();
     });
 
-    it("switches to single metric view (e.g. AVG) in default Per Game mode, showing season average reference line", () => {
+    it("switches to single metric view (e.g. AVG), showing composite series (bar + line), and KPIs", () => {
         render(
             <SeasonProgressionChart
                 logs={mockLogs}
@@ -167,21 +167,24 @@ describe("SeasonProgressionChart Component", () => {
         const avgTab = screen.getByRole("radio", { name: "AVG" });
         fireEvent.click(avgTab);
 
-        // Series count is 1, series name is gameAVG, Y-axis active, reference line active
-        expect(screen.getByTestId("series-count")).toHaveTextContent("1");
+        // Series count is 2 (gameAVG bar + running AVG line), Y-axis active
+        expect(screen.getByTestId("series-count")).toHaveTextContent("2");
         expect(screen.getByTestId("first-series-name")).toHaveTextContent(
             "gameAVG",
         );
         expect(screen.getByTestId("with-y-axis")).toHaveTextContent("true");
-        expect(screen.getByTestId("reference-lines-count")).toHaveTextContent(
-            "1",
-        );
+        // AVG rate domain max must never exceed 1.000
+        expect(
+            Number(screen.getByTestId("y-axis-domain-max").textContent),
+        ).toBeLessThanOrEqual(1.0);
 
-        // Hero row and secondary stats for single game mode
-        expect(screen.getByText("Season Batting Avg")).toBeInTheDocument();
+        // Hero row and secondary stats
+        expect(
+            screen.getByText("Current Team Batting Avg"),
+        ).toBeInTheDocument();
         expect(screen.getByText("Best Game")).toBeInTheDocument();
         expect(screen.getByText("Lowest Game")).toBeInTheDocument();
-        expect(screen.getByText("Latest Game")).toBeInTheDocument();
+        expect(screen.getByText("Net Trend")).toBeInTheDocument();
 
         // Metric Explainer card
         expect(screen.getByText("Hits / At-Bats")).toBeInTheDocument();
@@ -189,55 +192,10 @@ describe("SeasonProgressionChart Component", () => {
             screen.getByText(/Measures hitting frequency/i),
         ).toBeInTheDocument();
 
-        // Tooltip has single-game delta vs average
-        expect(screen.getByText("Game Output")).toBeInTheDocument();
+        // Tooltip has both This Game and Cumulative
+        expect(screen.getByText("This Game")).toBeInTheDocument();
+        expect(screen.getByText("Cumulative")).toBeInTheDocument();
         expect(screen.getByText(/vs Avg/i)).toBeInTheDocument();
-    });
-
-    it("toggles to Cumulative mode and updates series, KPIs, and tooltip", () => {
-        render(
-            <SeasonProgressionChart
-                logs={mockLogs}
-                games={mockGames}
-                players={mockPlayers}
-            />,
-        );
-
-        // Switch view mode to Cumulative
-        const cumulativeToggle = screen.getByRole("radio", {
-            name: "Cumulative",
-        });
-        fireEvent.click(cumulativeToggle);
-        expect(cumulativeToggle).toBeChecked();
-
-        // Select AVG metric
-        const avgTab = screen.getByRole("radio", { name: "AVG" });
-        fireEvent.click(avgTab);
-
-        // Series name becomes AVG (not gameAVG) and reference line is 0
-        expect(screen.getByTestId("series-count")).toHaveTextContent("1");
-        expect(screen.getByTestId("first-series-name")).toHaveTextContent(
-            "AVG",
-        );
-        expect(screen.getByTestId("reference-lines-count")).toHaveTextContent(
-            "0",
-        );
-
-        // Hero row and cumulative secondary stats
-        expect(
-            screen.getByText("Current Team Batting Avg"),
-        ).toBeInTheDocument();
-        expect(screen.getByText("High")).toBeInTheDocument();
-        expect(screen.getByText("Low")).toBeInTheDocument();
-        expect(screen.getByText("Net Trend")).toBeInTheDocument();
-
-        // Game 1 team AVG was .750, Game 2 cumulative drops to .500 (-0.250)
-        expect(screen.getByText("-0.250")).toBeInTheDocument();
-
-        // Tooltip shows cumulative rate
-        expect(screen.getByTestId("tooltip-preview")).toHaveTextContent(
-            "Cumulative",
-        );
     });
 
     it("switches to ISO metric and shows ISO formula and explanation", () => {
@@ -252,7 +210,7 @@ describe("SeasonProgressionChart Component", () => {
         const isoTab = screen.getByRole("radio", { name: "ISO" });
         fireEvent.click(isoTab);
 
-        expect(screen.getByTestId("series-count")).toHaveTextContent("1");
+        expect(screen.getByTestId("series-count")).toHaveTextContent("2");
         expect(screen.getByTestId("with-y-axis")).toHaveTextContent("true");
         expect(screen.getByText("Slugging - Batting Avg")).toBeInTheDocument();
         expect(
@@ -293,6 +251,10 @@ describe("SeasonProgressionChart Component", () => {
             />,
         );
 
+        // Select a single metric to activate the line with outcome dots
+        const avgTab = screen.getByRole("radio", { name: "AVG" });
+        fireEvent.click(avgTab);
+
         const winDotGroup = screen.getByTestId("dot-W");
         const lossDotGroup = screen.getByTestId("dot-L");
 
@@ -306,7 +268,7 @@ describe("SeasonProgressionChart Component", () => {
         expect(lossCircle).toHaveAttribute("fill", "#fa5252");
     });
 
-    it("tracks season-trends-mode-changed and season-trends-metric-changed Umami events", () => {
+    it("tracks season-trends-metric-changed Umami event", () => {
         jest.clearAllMocks();
         render(
             <SeasonProgressionChart
@@ -317,32 +279,23 @@ describe("SeasonProgressionChart Component", () => {
             />,
         );
 
-        // 1. Change metric to AVG while in default Per Game mode
+        // Change metric to AVG
         fireEvent.click(screen.getByRole("radio", { name: "AVG" }));
         expect(trackEvent).toHaveBeenCalledWith(
             "season-trends-metric-changed",
             {
                 seasonId: "season-100",
                 metric: "AVG",
-                viewMode: "game",
             },
         );
 
-        // 2. Change view mode to Cumulative
-        fireEvent.click(screen.getByRole("radio", { name: "Cumulative" }));
-        expect(trackEvent).toHaveBeenCalledWith("season-trends-mode-changed", {
-            seasonId: "season-100",
-            viewMode: "cumulative",
-        });
-
-        // 3. Change metric to OBP while in Cumulative mode
-        fireEvent.click(screen.getByRole("radio", { name: "OBP" }));
+        // Change metric to OPS
+        fireEvent.click(screen.getByRole("radio", { name: "OPS" }));
         expect(trackEvent).toHaveBeenCalledWith(
             "season-trends-metric-changed",
             {
                 seasonId: "season-100",
-                metric: "OBP",
-                viewMode: "cumulative",
+                metric: "OPS",
             },
         );
     });

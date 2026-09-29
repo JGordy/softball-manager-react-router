@@ -9,7 +9,7 @@ import {
     Text,
     Badge,
 } from "@mantine/core";
-import { AreaChart } from "@mantine/charts";
+import { CompositeChart } from "@mantine/charts";
 import {
     IconArrowUpRight,
     IconArrowDownRight,
@@ -25,7 +25,9 @@ import { trackEvent } from "@/utils/analytics";
 const METRIC_CONFIGS = BATTING_METRIC_CONFIGS;
 
 const getMantineColorVar = (colorToken) =>
-    `var(--mantine-color-${colorToken.replace(".", "-")})`;
+    colorToken?.startsWith("var(")
+        ? colorToken
+        : `var(--mantine-color-${colorToken.replace(".", "-")})`;
 
 const CARD_SURFACE_STYLE = {
     backgroundColor:
@@ -38,6 +40,7 @@ const ALL_SERIES = Object.entries(METRIC_CONFIGS).map(([key, config]) => ({
     name: key,
     label: config.shortLabel,
     color: config.color,
+    type: "line",
 }));
 
 const SEGMENTED_CONTROL_DATA = [
@@ -183,26 +186,50 @@ function CustomProgressionTooltip({ payload, selectedMetric }) {
                         })}
                     </SimpleGrid>
                 ) : (
-                    <Group justify="space-between" align="center">
-                        <Stack gap={0}>
-                            <Text
-                                size="sm"
-                                fw={700}
-                                c={METRIC_CONFIGS[selectedMetric]?.color}
-                            >
-                                {METRIC_CONFIGS[selectedMetric]?.label}
+                    <Stack gap={6}>
+                        <Group justify="space-between" align="center">
+                            <Stack gap={0}>
+                                <Text size="xs" fw={600} c="dimmed">
+                                    Game{" "}
+                                    {METRIC_CONFIGS[selectedMetric]?.shortLabel}
+                                </Text>
+                                <Text size="10px" c="dimmed">
+                                    This Game
+                                </Text>
+                            </Stack>
+                            <Text size="sm" fw={700}>
+                                {dataPoint[`game${selectedMetric}`] !==
+                                undefined
+                                    ? METRIC_CONFIGS[selectedMetric]?.format(
+                                          dataPoint[`game${selectedMetric}`],
+                                      )
+                                    : "—"}
                             </Text>
-                            <Text size="10px" c="dimmed">
-                                Cumulative
-                            </Text>
-                        </Stack>
-                        <Stack gap={0} align="flex-end">
-                            <Text size="md" fw={700}>
-                                {cumulative[selectedMetric.toLowerCase()]}
-                            </Text>
-                            {renderDelta(deltas[selectedMetric.toLowerCase()])}
-                        </Stack>
-                    </Group>
+                        </Group>
+                        <Group justify="space-between" align="center">
+                            <Stack gap={0}>
+                                <Text
+                                    size="xs"
+                                    fw={700}
+                                    c={METRIC_CONFIGS[selectedMetric]?.color}
+                                >
+                                    Running{" "}
+                                    {METRIC_CONFIGS[selectedMetric]?.shortLabel}
+                                </Text>
+                                <Text size="10px" c="dimmed">
+                                    Cumulative
+                                </Text>
+                            </Stack>
+                            <Stack gap={0} align="flex-end">
+                                <Text size="md" fw={700}>
+                                    {cumulative[selectedMetric.toLowerCase()]}
+                                </Text>
+                                {renderDelta(
+                                    deltas[selectedMetric.toLowerCase()],
+                                )}
+                            </Stack>
+                        </Group>
+                    </Stack>
                 )}
             </Stack>
         </Paper>
@@ -256,23 +283,30 @@ export default function PlayerProgressionChart({
     }, [logs, games, teams, userId, gameIds]);
 
     const hasEnoughData = progression.length >= 2;
+    const activeConfig = METRIC_CONFIGS[selectedMetric];
 
-    // Series definition based on selected metric
+    // Series definition based on selected metric: composite bar + line for single metric, lines only for All
     const series = useMemo(() => {
         if (selectedMetric === "All") {
             return ALL_SERIES;
         }
-        const config = METRIC_CONFIGS[selectedMetric];
-        return config
+        return activeConfig
             ? [
                   {
+                      name: `game${selectedMetric}`,
+                      label: `Game ${activeConfig.shortLabel}`,
+                      type: "bar",
+                      color: "var(--chart-bar-color)",
+                  },
+                  {
                       name: selectedMetric,
-                      label: config.label,
-                      color: config.color,
+                      label: `Running ${activeConfig.shortLabel}`,
+                      type: "line",
+                      color: activeConfig.color,
                   },
               ]
             : ALL_SERIES;
-    }, [selectedMetric]);
+    }, [selectedMetric, activeConfig]);
 
     // Calculate dynamic Y-axis domain when an individual metric is chosen
     const yAxisDomain = useMemo(() => {
@@ -280,22 +314,27 @@ export default function PlayerProgressionChart({
             return [0, "auto"];
         }
 
-        const values = progression
+        const lineValues = progression
             .map((p) => p[selectedMetric])
             .filter((v) => typeof v === "number" && !isNaN(v));
 
-        if (!values.length) return [0, 1];
+        const barValues = progression
+            .map((p) => p[`game${selectedMetric}`])
+            .filter((v) => typeof v === "number" && !isNaN(v));
 
-        const min = Math.min(...values);
-        const max = Math.max(...values);
-        const range = max - min;
-        const padding = range === 0 ? 0.05 : Math.max(0.02, range * 0.2);
+        const allValues = [...lineValues, ...barValues];
+        if (!allValues.length) return [0, 1];
 
-        const domainMin = Math.max(0, parseFloat((min - padding).toFixed(3)));
-        const domainMax = parseFloat((max + padding).toFixed(3));
+        const max = Math.max(...allValues);
+        const padding = max === 0 ? 0.1 : Math.max(0.05, max * 0.1);
+        let domainMax = parseFloat((max + padding).toFixed(3));
 
-        return [domainMin, domainMax];
-    }, [selectedMetric, progression, hasEnoughData]);
+        if (activeConfig?.max != null) {
+            domainMax = Math.min(activeConfig.max, domainMax);
+        }
+
+        return [0, domainMax];
+    }, [selectedMetric, progression, hasEnoughData, activeConfig]);
 
     if (!hasEnoughData) {
         return (
@@ -319,7 +358,6 @@ export default function PlayerProgressionChart({
     }
 
     const { current, highs, lows, netChanges } = summary;
-    const activeConfig = METRIC_CONFIGS[selectedMetric];
 
     return (
         <Stack gap="md" w="100%">
@@ -464,19 +502,33 @@ export default function PlayerProgressionChart({
                 </Paper>
             )}
 
-            {/* Area Chart */}
-            <Box style={{ width: "100%", minHeight: 260 }}>
-                <AreaChart
+            {/* Progression Composite Chart */}
+            <Box
+                style={{
+                    width: "100%",
+                    minHeight: 260,
+                    "--chart-bar-color":
+                        "light-dark(rgba(0, 0, 0, 0.12), rgba(255, 255, 255, 0.14))",
+                }}
+            >
+                <CompositeChart
                     h={260}
                     data={progression}
                     dataKey="dateLabel"
                     series={series}
                     curveType="monotone"
+                    maxBarWidth={14}
+                    barProps={{ radius: [4, 4, 0, 0] }}
                     withDots
-                    dotProps={{ r: 4, strokeWidth: 1 }}
-                    activeDotProps={{ r: 6, strokeWidth: 2 }}
+                    dotProps={{
+                        r: 4,
+                        strokeWidth: 0,
+                    }}
+                    activeDotProps={{
+                        r: 6,
+                        strokeWidth: 0,
+                    }}
                     strokeWidth={2.5}
-                    fillOpacity={0.2}
                     withLegend={false}
                     withXAxis
                     withYAxis={selectedMetric !== "All"}
@@ -576,8 +628,8 @@ export default function PlayerProgressionChart({
             )}
 
             <Text size="xs" c="dimmed" fs="italic" ta="center">
-                * Touch or hover over any point to inspect that game’s box score
-                and running career/window averages.
+                * Touch or hover over any point to inspect single-game output
+                (bars) alongside running trajectory (line).
             </Text>
         </Stack>
     );
