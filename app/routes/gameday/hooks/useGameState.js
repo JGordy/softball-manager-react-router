@@ -222,18 +222,7 @@ export function useGameState({
                         typeof lastLog.baseState === "string"
                             ? JSON.parse(lastLog.baseState)
                             : lastLog.baseState;
-                    if (
-                        parsedBaseState &&
-                        (parsedBaseState.first !== undefined ||
-                            parsedBaseState.second !== undefined ||
-                            parsedBaseState.third !== undefined)
-                    ) {
-                        currentRunners = {
-                            first: parsedBaseState.first || null,
-                            second: parsedBaseState.second || null,
-                            third: parsedBaseState.third || null,
-                        };
-                    }
+                    currentRunners = parsedBaseState;
                 }
             } catch (_e) {
                 console.warn("Failed to parse base state from log", lastLog);
