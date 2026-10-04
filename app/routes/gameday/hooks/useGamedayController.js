@@ -124,6 +124,7 @@ export function useGamedayController({
         game: gameData,
         playerChart,
         opponentChart,
+        opponentScoringMode,
     });
     const {
         inning,

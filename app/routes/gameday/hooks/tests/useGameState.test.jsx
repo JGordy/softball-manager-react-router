@@ -1,4 +1,4 @@
-import { renderHook } from "@testing-library/react";
+import { renderHook, act } from "@testing-library/react";
 import { useGameState } from "../useGameState";
 
 describe("useGameState", () => {
@@ -331,5 +331,110 @@ describe("useGameState", () => {
         // Even though log2 happened, it's an INJURY_REMOVE, so the engine should correctly see log1
         // as the last at-bat and remain on index 1 for p2.
         expect(result.current.battingOrderIndex).toBe(1);
+    });
+
+    it("preserves local opponent outs when an opponent_run event is added in the same half-inning", () => {
+        const homeGame = {
+            ...defaultGame,
+            $id: "game1",
+            isHomeGame: true, // Opponent bats in top half
+        };
+
+        const { result, rerender } = renderHook(
+            ({ logs }) =>
+                useGameState({
+                    logs,
+                    game: homeGame,
+                    playerChart,
+                }),
+            { initialProps: { logs: [] } },
+        );
+
+        expect(result.current.halfInning).toBe("top");
+        expect(result.current.outs).toBe(0);
+
+        // Scorekeeper records an out locally for the opponent
+        act(() => {
+            result.current.setOuts(1);
+        });
+
+        // Opponent then scores a run which adds an opponent_run log (outsOnPlay: 0)
+        const newLogs = [
+            {
+                $id: "opp_run_1",
+                inning: 1,
+                halfInning: "top",
+                eventType: "opponent_run",
+                rbi: 1,
+                outsOnPlay: 0,
+                baseState: JSON.stringify({ isOpponent: true, currentOuts: 1 }),
+            },
+        ];
+
+        rerender({ logs: newLogs });
+
+        // Outs should remain 1 and not be wiped to 0
+        expect(result.current.outs).toBe(1);
+        expect(result.current.opponentScore).toBe(1);
+    });
+
+    it("restores opponent outs from baseState.currentOuts on fresh mount", () => {
+        const homeGame = {
+            ...defaultGame,
+            $id: "game1",
+            isHomeGame: true,
+        };
+
+        const logs = [
+            {
+                $id: "opp_run_1",
+                inning: 1,
+                halfInning: "top",
+                eventType: "opponent_run",
+                rbi: 2,
+                outsOnPlay: 0,
+                baseState: JSON.stringify({ isOpponent: true, currentOuts: 2 }),
+            },
+        ];
+
+        const { result } = renderHook(() =>
+            useGameState({
+                logs,
+                game: homeGame,
+                playerChart,
+            }),
+        );
+
+        expect(result.current.outs).toBe(2);
+        expect(result.current.opponentScore).toBe(2);
+    });
+
+    it("restores opponent outs from sessionStorage when present", () => {
+        const homeGame = {
+            ...defaultGame,
+            $id: "game_session_1",
+            isHomeGame: true,
+        };
+
+        sessionStorage.setItem(
+            "gameday_opponent_outs_game_session_1",
+            JSON.stringify({
+                gameId: "game_session_1",
+                inning: 1,
+                halfInning: "top",
+                outs: 1,
+            }),
+        );
+
+        const { result } = renderHook(() =>
+            useGameState({
+                logs: [],
+                game: homeGame,
+                playerChart,
+            }),
+        );
+
+        expect(result.current.outs).toBe(1);
+        sessionStorage.removeItem("gameday_opponent_outs_game_session_1");
     });
 });

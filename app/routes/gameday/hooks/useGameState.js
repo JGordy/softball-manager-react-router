@@ -5,7 +5,24 @@ import {
     getFirstBatterIndex,
 } from "../utils/gamedayUtils";
 
-export function useGameState({ logs, game, playerChart, opponentChart }) {
+/**
+ * Custom hook managing the primary live game scoring state derived from logs and local actions.
+ *
+ * @param {Object} props
+ * @param {Array<Object>} props.logs - Array of game event log documents.
+ * @param {Object} props.game - Game document containing team, score, and settings.
+ * @param {Array<Object>} props.playerChart - Active batting lineup chart for our team.
+ * @param {Array<Object>} [props.opponentChart] - Opponent batting lineup chart.
+ * @param {string} [props.opponentScoringMode] - Current opponent scoring mode ('Basic' or 'Detailed').
+ * @returns {Object} Game state values and setters.
+ */
+export function useGameState({
+    logs,
+    game,
+    playerChart,
+    opponentChart,
+    opponentScoringMode: _opponentScoringMode,
+}) {
     const [inning, setInning] = useState(1);
     const [halfInning, setHalfInning] = useState("top");
     const [outs, setOuts] = useState(0);
@@ -20,6 +37,14 @@ export function useGameState({ logs, game, playerChart, opponentChart }) {
     });
     const [battingOrderIndex, setBattingOrderIndex] = useState(0);
     const [opponentOrderIndex, setOpponentOrderIndex] = useState(0);
+
+    // Track active game state in a ref to preserve local outs across log revalidations
+    const currentGameStateRef = useRef({
+        inning: 1,
+        halfInning: "top",
+        outs: 0,
+    });
+    currentGameStateRef.current = { inning, halfInning, outs };
 
     // Use a ref to avoid re-syncing from old data during fetcher submission
     const lastSyncLogId = useRef(null);
@@ -190,21 +215,72 @@ export function useGameState({ logs, game, playerChart, opponentChart }) {
             );
 
             let currentRunners = { first: null, second: null, third: null };
+            let parsedBaseState = null;
             try {
                 if (lastLog.baseState) {
-                    currentRunners =
+                    parsedBaseState =
                         typeof lastLog.baseState === "string"
                             ? JSON.parse(lastLog.baseState)
                             : lastLog.baseState;
+                    currentRunners = parsedBaseState;
                 }
             } catch (_e) {
                 console.warn("Failed to parse base state from log", lastLog);
+            }
+
+            // Check if this half inning is for the opponent
+            const isOpponentHalf = game.isHomeGame
+                ? currentHalf === "top"
+                : currentHalf === "bottom";
+
+            if (isOpponentHalf) {
+                const isSameHalfInning =
+                    currentGameStateRef.current.inning === currentInning &&
+                    currentGameStateRef.current.halfInning === currentHalf;
+
+                let sessionStoredOuts = 0;
+                if (typeof window !== "undefined" && game?.$id) {
+                    try {
+                        const storedRaw = sessionStorage.getItem(
+                            `gameday_opponent_outs_${game.$id}`,
+                        );
+                        if (storedRaw) {
+                            const stored = JSON.parse(storedRaw);
+                            if (
+                                stored.gameId === game.$id &&
+                                stored.inning === currentInning &&
+                                stored.halfInning === currentHalf
+                            ) {
+                                sessionStoredOuts = Number(stored.outs) || 0;
+                            }
+                        }
+                    } catch (_e) {}
+                }
+
+                const baseStateOuts = Number(parsedBaseState?.currentOuts) || 0;
+                const localOuts = isSameHalfInning
+                    ? currentGameStateRef.current.outs
+                    : 0;
+
+                currentOuts = Math.max(
+                    currentOuts,
+                    localOuts,
+                    baseStateOuts,
+                    sessionStoredOuts,
+                );
             }
 
             // If the last play ended the half inning, advance it
             if (currentOuts >= 3) {
                 currentOuts = 0;
                 currentRunners = { first: null, second: null, third: null };
+                if (typeof window !== "undefined" && game?.$id) {
+                    try {
+                        sessionStorage.removeItem(
+                            `gameday_opponent_outs_${game.$id}`,
+                        );
+                    } catch (_e) {}
+                }
                 if (currentHalf === "top") {
                     currentHalf = "bottom";
                 } else {
@@ -218,9 +294,28 @@ export function useGameState({ logs, game, playerChart, opponentChart }) {
             setOuts(currentOuts);
             setRunners(currentRunners);
         } else {
+            let initialOuts = 0;
+            const isOpponentHalf = !!game.isHomeGame; // Top 1st is opponent if home game
+            if (isOpponentHalf && typeof window !== "undefined" && game?.$id) {
+                try {
+                    const storedRaw = sessionStorage.getItem(
+                        `gameday_opponent_outs_${game.$id}`,
+                    );
+                    if (storedRaw) {
+                        const stored = JSON.parse(storedRaw);
+                        if (
+                            stored.gameId === game.$id &&
+                            stored.inning === 1 &&
+                            stored.halfInning === "top"
+                        ) {
+                            initialOuts = Number(stored.outs) || 0;
+                        }
+                    }
+                } catch (_e) {}
+            }
             setInning(1);
             setHalfInning("top"); // Standard start
-            setOuts(0);
+            setOuts(initialOuts);
             setRunners({ first: null, second: null, third: null });
         }
 
@@ -234,6 +329,7 @@ export function useGameState({ logs, game, playerChart, opponentChart }) {
         game.opponentLineupLocked,
         game.score,
         game.opponentScore,
+        game.$id,
     ]);
 
     return {

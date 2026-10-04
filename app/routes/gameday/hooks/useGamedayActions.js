@@ -61,13 +61,18 @@ export function useGamedayActions({
     const advanceHalfInning = useCallback(() => {
         setOuts(0);
         setRunners({ first: null, second: null, third: null });
+        if (typeof window !== "undefined" && game?.$id) {
+            try {
+                sessionStorage.removeItem(`gameday_opponent_outs_${game.$id}`);
+            } catch (_e) {}
+        }
         if (halfInning === "top") {
             setHalfInning("bottom");
         } else {
             setHalfInning("top");
             setInning((prev) => prev + 1);
         }
-    }, [halfInning, setHalfInning, setInning, setOuts, setRunners]);
+    }, [game, halfInning, setHalfInning, setInning, setOuts, setRunners]);
 
     const handleOpponentRun = useCallback(
         (runs = 1) => {
@@ -86,7 +91,10 @@ export function useGamedayActions({
                     rbi: increment,
                     outsOnPlay: 0,
                     description: `${game?.opponent || "Opponent"} scored ${increment} ${increment === 1 ? "run" : "runs"}`,
-                    baseState: JSON.stringify({ isOpponent: true }),
+                    baseState: JSON.stringify({
+                        isOpponent: true,
+                        currentOuts: outs,
+                    }),
                 },
                 { method: "post" },
             );
@@ -102,6 +110,7 @@ export function useGamedayActions({
             halfInning,
             inning,
             isScorekeeper,
+            outs,
             setOpponentScore,
             team?.$id,
         ],
@@ -150,13 +159,26 @@ export function useGamedayActions({
                 isInningOver = true;
                 return 0;
             }
+            if (typeof window !== "undefined" && game?.$id) {
+                try {
+                    sessionStorage.setItem(
+                        `gameday_opponent_outs_${game.$id}`,
+                        JSON.stringify({
+                            gameId: game.$id,
+                            inning,
+                            halfInning,
+                            outs: next,
+                        }),
+                    );
+                } catch (_e) {}
+            }
             return next;
         });
 
         if (isInningOver || outs + 1 >= 3) {
             advanceHalfInning();
         }
-    }, [advanceHalfInning, outs, setOuts]);
+    }, [advanceHalfInning, game, halfInning, inning, outs, setOuts]);
 
     const completeAction = useCallback(
         (actionTypeInput, payload = null) => {

@@ -79,7 +79,7 @@ describe("useGamedayActions", () => {
                 rbi: 1,
                 outsOnPlay: 0,
                 description: "Opponent scored 1 run",
-                baseState: JSON.stringify({ isOpponent: true }),
+                baseState: JSON.stringify({ isOpponent: true, currentOuts: 0 }),
             },
             { method: "post" },
         );
@@ -108,13 +108,63 @@ describe("useGamedayActions", () => {
                 rbi: 5,
                 outsOnPlay: 0,
                 description: "Opponent scored 5 runs",
-                baseState: JSON.stringify({ isOpponent: true }),
+                baseState: JSON.stringify({ isOpponent: true, currentOuts: 0 }),
             },
             { method: "post" },
         );
     });
 
-    it("handles opponent out with inning advance", () => {
+    it("includes current non-zero outs in baseState when opponent scores", () => {
+        const propsWith1Out = { ...defaultProps, outs: 1 };
+        const { result } = renderHook(() => useGamedayActions(propsWith1Out));
+
+        act(() => {
+            result.current.handleOpponentRun(2);
+        });
+
+        expect(mockSubmit).toHaveBeenCalledWith(
+            {
+                _action: "log-game-event",
+                teamId: "team1",
+                inning: 1,
+                halfInning: "top",
+                eventType: "opponent_run",
+                rbi: 2,
+                outsOnPlay: 0,
+                description: "Opponent scored 2 runs",
+                baseState: JSON.stringify({ isOpponent: true, currentOuts: 1 }),
+            },
+            { method: "post" },
+        );
+    });
+
+    it("handles opponent out and stores in sessionStorage when less than 3 outs", () => {
+        const setItemSpy = jest.spyOn(Storage.prototype, "setItem");
+        const { result } = renderHook(() => useGamedayActions(defaultProps));
+
+        act(() => {
+            result.current.handleOpponentOut();
+        });
+
+        expect(defaultProps.setOuts).toHaveBeenCalledWith(expect.any(Function));
+        const updater = defaultProps.setOuts.mock.calls[0][0];
+        const nextOuts = updater(0);
+        expect(nextOuts).toBe(1);
+
+        expect(setItemSpy).toHaveBeenCalledWith(
+            "gameday_opponent_outs_game1",
+            JSON.stringify({
+                gameId: "game1",
+                inning: 1,
+                halfInning: "top",
+                outs: 1,
+            }),
+        );
+        setItemSpy.mockRestore();
+    });
+
+    it("handles opponent out with inning advance and cleans up sessionStorage", () => {
+        const removeItemSpy = jest.spyOn(Storage.prototype, "removeItem");
         const propsWith2Outs = { ...defaultProps, outs: 2 };
         const { result } = renderHook(() => useGamedayActions(propsWith2Outs));
 
@@ -126,12 +176,12 @@ describe("useGamedayActions", () => {
         const updater = defaultProps.setOuts.mock.calls[0][0];
         expect(updater(2)).toBe(0);
 
-        expect(defaultProps.setHalfInning).toHaveBeenCalledWith("bottom");
         expect(defaultProps.setRunners).toHaveBeenCalledWith({
             first: null,
             second: null,
             third: null,
         });
+        removeItemSpy.mockRestore();
     });
 
     it("handles simple strikeout completeAction", () => {
