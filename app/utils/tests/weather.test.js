@@ -127,8 +127,80 @@ describe("getWeatherData", () => {
             mockClient,
         );
 
-        expect(global.fetch).toHaveBeenCalled();
+        expect(global.fetch).toHaveBeenCalledWith(
+            expect.stringMatching(/hours=(12|13)/),
+        );
         expect(result).toHaveProperty("hourly");
         expect(result.hourly.length).toBeGreaterThan(0);
+    });
+
+    it("should gracefully use game.dateTime fallback if gameDate is missing", async () => {
+        readDocument.mockResolvedValueOnce(mockPark);
+
+        const dateTime = DateTime.utc().plus({ hours: 10 }).toISO();
+        const sixHoursBefore = DateTime.fromISO(dateTime, { zone: "utc" })
+            .minus({ hours: 6 })
+            .toISO();
+
+        global.fetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                forecastHours: [
+                    {
+                        interval: { startTime: sixHoursBefore },
+                        temperature: { degrees: 77 },
+                    },
+                    {
+                        interval: { startTime: dateTime },
+                        temperature: { degrees: 79 },
+                    },
+                ],
+            }),
+        });
+
+        const result = await getWeatherData(
+            mockParkId,
+            { dateTime },
+            mockClient,
+        );
+
+        expect(result).toHaveProperty("hourly");
+        expect(result.hourly.length).toBeGreaterThan(0);
+    });
+
+    it("should include weather during the game duration (up to 3 hours after start)", async () => {
+        readDocument.mockResolvedValueOnce(mockPark);
+
+        const gameDate = DateTime.utc().minus({ hours: 4 }).toISO();
+        const duringGame = DateTime.fromISO(gameDate, { zone: "utc" })
+            .plus({ hours: 1.5 })
+            .toISO();
+
+        global.fetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                historyHours: [
+                    {
+                        interval: { startTime: gameDate },
+                        temperature: { degrees: 72 },
+                        precipitation: { qpf: { quantity: 0.2 } },
+                    },
+                    {
+                        interval: { startTime: duringGame },
+                        temperature: { degrees: 70 },
+                        precipitation: { qpf: { quantity: 0.3 } },
+                    },
+                ],
+            }),
+        });
+
+        const result = await getWeatherData(
+            mockParkId,
+            { gameDate },
+            mockClient,
+        );
+
+        expect(result).toHaveProperty("hourly");
+        expect(result.hourly.length).toBe(2);
     });
 });
