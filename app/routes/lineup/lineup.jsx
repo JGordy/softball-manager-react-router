@@ -7,8 +7,10 @@ import { useListState, useDisclosure } from "@mantine/hooks";
 import { IconDeviceAnalytics } from "@tabler/icons-react";
 
 import { getEventById, getEventWithPlayerCharts } from "@/loaders/games";
+import { getTeamGuestPlayers } from "@/loaders/guests";
 
 import { savePlayerChart } from "@/actions/lineups";
+import { convertGuestToMember } from "@/actions/guests";
 
 import BackButton from "@/components/BackButton";
 
@@ -42,7 +44,6 @@ export async function loader({ params, context }) {
     let guestPlayers = [];
     if (teamId) {
         try {
-            const { getTeamGuestPlayers } = await import("@/loaders/guests");
             guestPlayers = await getTeamGuestPlayers({ teamId, client });
         } catch (_err) {
             guestPlayers = [];
@@ -188,7 +189,6 @@ export async function action({ request, params, context }) {
             };
         }
 
-        const { convertGuestToMember } = await import("@/actions/guests");
         const result = await convertGuestToMember({
             guestPlayerId: values.guestPlayerId,
             teamId,
@@ -196,8 +196,8 @@ export async function action({ request, params, context }) {
             firstName: values.firstName,
             lastName: values.lastName,
             gender: values.gender,
+            newUserId: values.newUserId,
             client,
-            requestUrl: request.url,
         });
 
         if (result.success && result.player) {

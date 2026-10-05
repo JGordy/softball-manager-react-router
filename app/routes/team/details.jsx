@@ -37,8 +37,10 @@ import {
     invitePlayersServer,
     syncInvitedPlayersServer,
 } from "@/actions/invitations";
+import { convertGuestToMember } from "@/actions/guests";
 
 import { getTeamById } from "@/loaders/teams";
+import { getTeamGuestPlayers } from "@/loaders/guests";
 
 import { useResponseNotification } from "@/utils/showNotification";
 
@@ -85,7 +87,6 @@ export async function loader({ request, params, context }) {
     }
 
     const teamDataResult = await getTeamById({ teamId, client });
-    const { getTeamGuestPlayers } = await import("@/loaders/guests");
     const guestPlayers = await getTeamGuestPlayers({
         teamId,
         client,
@@ -163,7 +164,6 @@ export async function action({ request, params, context }) {
     }
 
     if (_action === "convert-guest-player") {
-        const { convertGuestToMember } = await import("@/actions/guests");
         return convertGuestToMember({
             guestPlayerId: values.guestPlayerId,
             teamId,
@@ -171,8 +171,8 @@ export async function action({ request, params, context }) {
             firstName: values.firstName,
             lastName: values.lastName,
             gender: values.gender,
+            newUserId: values.newUserId,
             client,
-            requestUrl: request.url,
         });
     }
 
