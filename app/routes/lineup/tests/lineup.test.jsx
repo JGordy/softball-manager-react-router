@@ -37,6 +37,12 @@ jest.mock("@/utils/appwrite/server", () => ({
 jest.mock("@/actions/users", () => ({
     createTemporaryPlayer: jest.fn(),
 }));
+jest.mock("@/actions/guests", () => ({
+    convertGuestToMember: jest.fn().mockResolvedValue({
+        success: true,
+        player: { $id: "new-user-1", firstName: "Alex", lastName: "Morgan" },
+    }),
+}));
 
 // Mock child components
 jest.mock("../components/LineupContainer", () => () => (
@@ -244,6 +250,53 @@ describe("Lineup Route", () => {
 
             expect(result.status).toBe(404);
             expect(result.message).toBe("This event has been deleted.");
+        });
+
+        it("handles add-existing-guest action", async () => {
+            const formData = new FormData();
+            formData.append("_action", "add-existing-guest");
+            formData.append("guestPlayerId", "guest-99");
+            formData.append("firstName", "Sam");
+            formData.append("lastName", "Sub");
+            formData.append("gender", "Female");
+
+            const result = await action({
+                request: { formData: () => Promise.resolve(formData) },
+                params: { eventId: "evt1" },
+                context: mockContext,
+            });
+
+            expect(result.success).toBe(true);
+            expect(result.response.player.$id).toBe("guest-99");
+            expect(result.response.player.firstName).toBe("Sam");
+        });
+
+        it("handles convert-guest-player action", async () => {
+            gamesLoaders.getEventById.mockResolvedValueOnce({
+                gameDeleted: false,
+                game: { $id: "evt1" },
+                teams: [{ $id: "team1" }],
+            });
+
+            const formData = new FormData();
+            formData.append("_action", "convert-guest-player");
+            formData.append("guestPlayerId", "guest-99");
+            formData.append("email", "sam@example.com");
+            formData.append("firstName", "Sam");
+            formData.append("lastName", "Sub");
+            formData.append("gender", "Female");
+
+            const result = await action({
+                request: {
+                    url: "https://example.com/events/evt1/lineup",
+                    formData: () => Promise.resolve(formData),
+                },
+                params: { eventId: "evt1" },
+                context: mockContext,
+            });
+
+            expect(result.success).toBe(true);
+            expect(result.response.player.$id).toBe("new-user-1");
         });
     });
 

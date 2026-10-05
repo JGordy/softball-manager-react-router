@@ -13,6 +13,7 @@ import {
     IconSettings,
     IconShirtSport,
     IconUserMinus,
+    IconUserStar,
     IconTags,
     IconTrash,
 } from "@tabler/icons-react";
@@ -32,8 +33,15 @@ import PreferencesDrawer from "./PreferencesDrawer";
 import BulkJerseyNumberModal from "./BulkJerseyNumberModal";
 import RemoveTeamDrawer from "./RemoveTeamDrawer";
 import RemovePlayersDrawer from "./RemovePlayersDrawer";
+import GuestPlayersDrawer from "./GuestPlayersDrawer";
 
-export default function TeamMenu({ userId, team, ownerView, players }) {
+export default function TeamMenu({
+    userId,
+    team,
+    ownerView,
+    players,
+    guestPlayers = [],
+}) {
     const navigate = useNavigate();
     const { openModal } = useModal();
     const [rolesOpened, { open: openRoles, close: closeRoles }] =
@@ -48,6 +56,10 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
         useDisclosure(false);
     const [removeTeamOpened, { open: openRemoveTeam, close: closeRemoveTeam }] =
         useDisclosure(false);
+    const [
+        guestPlayersOpened,
+        { open: openGuestPlayers, close: closeGuestPlayers },
+    ] = useDisclosure(false);
 
     const { $id: teamId, name: teamName, seasons, primaryColor } = team;
 
@@ -182,6 +194,12 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                     content: <Text>Assign Numbers</Text>,
                 },
                 {
+                    key: "guest-players",
+                    onClick: openGuestPlayers,
+                    leftSection: <IconUserStar size={18} />,
+                    content: <Text>Guest Players</Text>,
+                },
+                {
                     key: "remove-players",
                     onClick: openRemove,
                     leftSection: <IconUserMinus size={18} />,
@@ -226,6 +244,13 @@ export default function TeamMenu({ userId, team, ownerView, players }) {
                 players={players}
                 teamId={teamId}
                 userId={userId}
+            />
+            <GuestPlayersDrawer
+                opened={guestPlayersOpened}
+                onClose={closeGuestPlayers}
+                guestPlayers={guestPlayers}
+                teamId={teamId}
+                buttonColor={primaryColor}
             />
             <PreferencesDrawer
                 opened={preferencesOpened}

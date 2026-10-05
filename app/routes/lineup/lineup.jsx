@@ -7,8 +7,10 @@ import { useListState, useDisclosure } from "@mantine/hooks";
 import { IconDeviceAnalytics } from "@tabler/icons-react";
 
 import { getEventById, getEventWithPlayerCharts } from "@/loaders/games";
+import { getTeamGuestPlayers } from "@/loaders/guests";
 
 import { savePlayerChart } from "@/actions/lineups";
+import { convertGuestToMember } from "@/actions/guests";
 
 import BackButton from "@/components/BackButton";
 
@@ -36,7 +38,22 @@ import { validateLineup } from "./utils/validateLineup";
 export async function loader({ params, context }) {
     const { eventId } = params;
     const client = context.get(appwriteClientContext);
-    return await getEventWithPlayerCharts({ eventId, client });
+    const eventData = await getEventWithPlayerCharts({ eventId, client });
+
+    const teamId = eventData?.teams?.[0]?.$id;
+    let guestPlayers = [];
+    if (teamId) {
+        try {
+            guestPlayers = await getTeamGuestPlayers({ teamId, client });
+        } catch (_err) {
+            guestPlayers = [];
+        }
+    }
+
+    return {
+        ...eventData,
+        guestPlayers,
+    };
 }
 
 export async function action({ request, params, context }) {
@@ -124,6 +141,73 @@ export async function action({ request, params, context }) {
             client,
         });
     }
+
+    if (_action === "add-existing-guest") {
+        return {
+            success: true,
+            status: 200,
+            response: {
+                player: {
+                    $id: values.guestPlayerId,
+                    userId: values.guestPlayerId,
+                    firstName: values.firstName,
+                    lastName: values.lastName,
+                    gender: values.gender,
+                },
+            },
+            message: `Added ${values.firstName} ${values.lastName} to lineup.`,
+        };
+    }
+
+    if (_action === "convert-guest-player") {
+        const eventData = await getEventById({
+            eventId,
+            client,
+            includePlayers: false,
+            includeAttendance: false,
+            includePark: false,
+            includeAwards: false,
+            includeVotes: false,
+            includeLogs: false,
+            includeWeather: false,
+        });
+
+        if (eventData.gameDeleted || !eventData.game) {
+            return {
+                success: false,
+                status: 404,
+                message: "This event has been deleted.",
+            };
+        }
+
+        const teamId = eventData.teams?.[0]?.$id;
+        if (!teamId) {
+            return {
+                success: false,
+                status: 400,
+                message: "Could not determine team for this event.",
+            };
+        }
+
+        const result = await convertGuestToMember({
+            guestPlayerId: values.guestPlayerId,
+            teamId,
+            email: values.email,
+            firstName: values.firstName,
+            lastName: values.lastName,
+            gender: values.gender,
+            newUserId: values.newUserId,
+            client,
+        });
+
+        if (result.success && result.player) {
+            return {
+                ...result,
+                response: { player: result.player },
+            };
+        }
+        return result;
+    }
 }
 
 function Lineup({ loaderData, actionData }) {
@@ -142,6 +226,7 @@ function Lineup({ loaderData, actionData }) {
         players,
         attendance,
         teams,
+        guestPlayers = [],
         // season,
         ...rest
     } = loaderData;
@@ -268,6 +353,7 @@ function Lineup({ loaderData, actionData }) {
                                     team={team}
                                     actionUrl={`/events/${eventId}/lineup`}
                                     players={playersWithAvailability}
+                                    guestPlayers={guestPlayers}
                                     lineupState={lineupState}
                                     lineupHandlers={lineupHandlers}
                                     setHasBeenEdited={setHasBeenEdited}
@@ -286,6 +372,7 @@ function Lineup({ loaderData, actionData }) {
                                     team={team}
                                     actionUrl={`/events/${eventId}/lineup`}
                                     players={playersWithAvailability}
+                                    guestPlayers={guestPlayers}
                                     lineupState={lineupState}
                                     lineupHandlers={lineupHandlers}
                                     setHasBeenEdited={setHasBeenEdited}

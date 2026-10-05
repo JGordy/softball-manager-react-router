@@ -107,4 +107,35 @@ describe("AddGuestPlayerModal", () => {
         const formWrapper = screen.getByTestId("form-wrapper");
         expect(formWrapper.getAttribute("data-loading")).toBe("true");
     });
+
+    it("renders previous guests list when guestPlayers are provided", () => {
+        const guestPlayers = [
+            {
+                $id: "g1",
+                firstName: "Alex",
+                lastName: "Sub",
+                gender: "Female",
+                gameCount: 2,
+            },
+        ];
+
+        render(
+            <MemoryRouter>
+                <AddGuestPlayerModal
+                    {...defaultProps}
+                    guestPlayers={guestPlayers}
+                />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByText("Previous Guests")).toBeInTheDocument();
+        expect(screen.getByText("Alex Sub")).toBeInTheDocument();
+        expect(screen.getByText(/2 games played/i)).toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: /Add/i }),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByRole("button", { name: /Invite/i }),
+        ).toBeInTheDocument();
+    });
 });
