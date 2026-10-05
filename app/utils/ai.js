@@ -15,14 +15,14 @@ function initializeAI() {
 /**
  * Create a generative model configuration container
  * @param {Object} params - Configuration options
- * @param {string} params.modelName - The name of the model to use (default: "gemini-3.5-flash")
+ * @param {string} params.modelName - The name of the model to use (default: "gemini-3.8-flash")
  * @param {Object} params.generationConfig - Configuration for the model generation
  * @param {string} params.systemInstruction - Optional system instructions
  * @param {string} params.thinking - Thinking level for the model (default: "low")
  * @returns {Object} The model configuration container
  */
 export function createModel({
-    modelName = "gemini-3.5-flash",
+    modelName = "gemini-3.8-flash",
     generationConfig = {},
     systemInstruction,
     thinking = "low",
