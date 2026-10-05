@@ -308,7 +308,7 @@ export const getWeatherData = (parkId, game, client) => {
             gameTime.plus({ hours: 3 }).toMillis(),
             gameTime.toMillis(),
         );
-        const filteredData = hourlyData.filter((hour) => {
+        let filteredData = hourlyData.filter((hour) => {
             const hourTimestamp = DateTime.fromISO(hour.interval.startTime, {
                 zone: "utc",
             }).toMillis();
@@ -317,6 +317,28 @@ export const getWeatherData = (parkId, game, client) => {
                 hourTimestamp <= gameEndTimestamp
             );
         });
+
+        // If the game took place in the past and Google Weather returned no hours
+        // within the game window, fall back to Open-Meteo historical archive.
+        if (filteredData.length === 0 && gameTime.toMillis() < now.toMillis()) {
+            const archiveData = await fetchOpenMeteoArchive(
+                park,
+                gameTime,
+                sixHoursBefore,
+            );
+            filteredData = archiveData.filter((hour) => {
+                const hourTimestamp = DateTime.fromISO(
+                    hour.interval.startTime,
+                    {
+                        zone: "utc",
+                    },
+                ).toMillis();
+                return (
+                    hourTimestamp >= sixHoursBeforeTimestamp &&
+                    hourTimestamp <= gameEndTimestamp
+                );
+            });
+        }
 
         return { hourly: filteredData };
     })();

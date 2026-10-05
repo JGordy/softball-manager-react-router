@@ -266,23 +266,48 @@ export async function generateGameRecapBackground({ eventId, client }) {
             }
         }
 
-        // Attempt to fetch park and weather details
-        if (game.parkId) {
+        // Attempt to fetch park and weather details (fall back to season park/location if needed)
+        let effectiveParkId = game.parkId;
+        let effectiveLocation = game.location;
+
+        if ((!effectiveParkId || !effectiveLocation) && game.seasonId) {
+            try {
+                const season = await readDocument(
+                    "seasons",
+                    game.seasonId,
+                    [],
+                    client,
+                );
+                if (season) {
+                    effectiveParkId = effectiveParkId || season.parkId;
+                    effectiveLocation = effectiveLocation || season.location;
+                }
+            } catch (err) {
+                console.warn(
+                    "generateGameRecapBackground: Failed to fetch season context for park/location fallback.",
+                    err.message,
+                );
+            }
+        }
+
+        if (effectiveParkId) {
             try {
                 const park = await readDocument(
                     "parks",
-                    game.parkId,
+                    effectiveParkId,
                     [],
                     client,
                 );
                 if (park) {
                     gameDetailsContext.location =
                         park.formattedAddress ||
+                        park.displayName ||
                         [park.city, park.state].filter(Boolean).join(", ") ||
+                        effectiveLocation ||
                         "Unknown Location";
 
                     const weatherData = await getWeatherData(
-                        game.parkId,
+                        effectiveParkId,
                         game,
                         client,
                     );
@@ -299,6 +324,8 @@ export async function generateGameRecapBackground({ eventId, client }) {
                     err.message,
                 );
             }
+        } else if (effectiveLocation) {
+            gameDetailsContext.location = effectiveLocation;
         }
 
         // Format play-by-play narrative context into clean lines

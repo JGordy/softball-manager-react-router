@@ -469,4 +469,62 @@ describe("getWeatherData", () => {
         expect(result).toHaveProperty("hourly");
         expect(result.hourly.length).toBe(2);
     });
+
+    it("should fall back to Open-Meteo Archive if Google history returned hours that do not cover the game window", async () => {
+        readDocument.mockResolvedValueOnce(mockPark);
+
+        const gameDate = DateTime.utc().minus({ hours: 16 }).toISO();
+        const sixHoursBefore = DateTime.fromISO(gameDate, { zone: "utc" })
+            .minus({ hours: 6 })
+            .toISO();
+
+        // Google Weather history returns hours outside the game window (e.g. from just 2 hours ago)
+        global.fetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                historyHours: [
+                    {
+                        interval: {
+                            startTime: DateTime.utc()
+                                .minus({ hours: 2 })
+                                .toISO(),
+                        },
+                        temperature: { degrees: 60 },
+                    },
+                ],
+            }),
+        });
+
+        // Open-Meteo Archive returns hours covering the game window
+        global.fetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+                hourly: {
+                    time: [sixHoursBefore, gameDate],
+                    temperature_2m: [68, 66],
+                    apparent_temperature: [70, 68],
+                    precipitation: [0.1, 0.3],
+                    weather_code: [63, 63],
+                    wind_speed_10m: [5, 6],
+                    wind_direction_10m: [120, 120],
+                },
+            }),
+        });
+
+        const result = await getWeatherData(
+            mockParkId,
+            { gameDate },
+            mockClient,
+        );
+
+        expect(global.fetch).toHaveBeenCalledTimes(2);
+        expect(global.fetch).toHaveBeenLastCalledWith(
+            expect.stringContaining(
+                "https://archive-api.open-meteo.com/v1/archive",
+            ),
+        );
+        expect(result).toHaveProperty("hourly");
+        expect(result.hourly.length).toBeGreaterThan(0);
+        expect(result.hourly[0].temperature.degrees).toBe(68);
+    });
 });
