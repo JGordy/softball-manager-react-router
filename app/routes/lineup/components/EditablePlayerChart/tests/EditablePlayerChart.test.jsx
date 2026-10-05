@@ -213,4 +213,32 @@ describe("EditablePlayerChart Component", () => {
         // "Pitcher" should still be there (in disliked or other, but sanitized)
         expect(options).toContain("Pitcher");
     });
+
+    it("renders guest badge when player is temporary", () => {
+        const props = {
+            ...defaultProps,
+            playerChart: [
+                {
+                    $id: "guest-1",
+                    firstName: "Alex",
+                    lastName: "Morgan",
+                    positions: ["LF"],
+                    isTemporary: true,
+                },
+            ],
+            players: [
+                {
+                    $id: "guest-1",
+                    firstName: "Alex",
+                    lastName: "Morgan",
+                    isTemporary: true,
+                },
+            ],
+        };
+
+        render(<EditablePlayerChart {...props} />);
+
+        expect(screen.getByText("Alex Morgan")).toBeInTheDocument();
+        expect(screen.getByText("Guest")).toBeInTheDocument();
+    });
 });
