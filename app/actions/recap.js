@@ -216,10 +216,35 @@ export async function generateGameRecapBackground({ eventId, client }) {
             weather: "Unknown / Not recorded",
         };
 
-        const gameEndTime =
-            game.gameFinal && game.$updatedAt
-                ? game.$updatedAt
-                : game.gameDate || game.dateTime || DateTime.utc().toISO();
+        let gameEndTime;
+        const scheduledStart = game.gameDate || game.dateTime;
+        const startDt = scheduledStart
+            ? DateTime.fromISO(scheduledStart, { zone: "utc" })
+            : null;
+
+        if (startDt && startDt.isValid) {
+            const lastLog = logs[logs.length - 1];
+            const lastLogDt = lastLog?.$createdAt
+                ? DateTime.fromISO(lastLog.$createdAt, { zone: "utc" })
+                : null;
+
+            if (
+                lastLogDt &&
+                lastLogDt.isValid &&
+                lastLogDt.toMillis() >= startDt.toMillis() &&
+                lastLogDt.diff(startDt, "hours").hours <= 4
+            ) {
+                gameEndTime = lastLogDt.toISO();
+            } else {
+                // Approximate standard softball game conclusion (2 hours after start)
+                gameEndTime = startDt.plus({ hours: 2 }).toISO();
+            }
+        } else {
+            gameEndTime =
+                game.gameFinal && game.$updatedAt
+                    ? game.$updatedAt
+                    : DateTime.utc().toISO();
+        }
 
         // Attempt to fetch actual team details for a friendlier recap name
         if (game.teamId) {
