@@ -84,7 +84,18 @@ export async function loader({ request, params, context }) {
         client = createAdminClient();
     }
 
-    return getTeamById({ teamId, client });
+    const teamDataResult = await getTeamById({ teamId, client });
+    const { getTeamGuestPlayers } = await import("@/loaders/guests");
+    const guestPlayers = await getTeamGuestPlayers({
+        teamId,
+        client,
+        teamLogs: teamDataResult?.teamLogs,
+    });
+
+    return {
+        ...teamDataResult,
+        guestPlayers,
+    };
 }
 
 export async function action({ request, params, context }) {
@@ -148,6 +159,20 @@ export async function action({ request, params, context }) {
             teamId,
             url: inviteUrl,
             client,
+        });
+    }
+
+    if (_action === "convert-guest-player") {
+        const { convertGuestToMember } = await import("@/actions/guests");
+        return convertGuestToMember({
+            guestPlayerId: values.guestPlayerId,
+            teamId,
+            email: values.email,
+            firstName: values.firstName,
+            lastName: values.lastName,
+            gender: values.gender,
+            client,
+            requestUrl: request.url,
         });
     }
 
@@ -276,6 +301,7 @@ export default function TeamDetails({ actionData, loaderData }) {
         ownerIds,
         teamLogs,
         isArchiveView,
+        guestPlayers = [],
     } = loaderData;
 
     const userId = user && user.$id;
@@ -299,6 +325,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                             userId={user.$id}
                             ownerView={ownerView}
                             players={players}
+                            guestPlayers={guestPlayers}
                         />
                     </Box>
                 )}
