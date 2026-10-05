@@ -312,8 +312,8 @@ Follow these guidelines:
 Recap:
 `;
 
-        // 4. Initialize Gemini Model (defaults to gemini-3.8-flash and low thinking)
-        const model = createModel();
+        // 4. Initialize Gemini Model with medium thinking for deep narrative reasoning and guardrail adherence
+        const model = createModel({ thinking: "medium" });
 
         // 5. Generate content using the new SDK wrapper
         const generatedRecap = await generateContent(model, promptText);

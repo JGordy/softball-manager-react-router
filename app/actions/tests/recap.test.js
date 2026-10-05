@@ -180,7 +180,7 @@ describe("generateGameRecapBackground Action", () => {
             mockClient,
         );
 
-        expect(createModel).toHaveBeenCalledWith();
+        expect(createModel).toHaveBeenCalledWith({ thinking: "medium" });
 
         // Verify prompt text has play info, score details, weather, and guidelines
         const promptText = generateContent.mock.calls[0][1];
