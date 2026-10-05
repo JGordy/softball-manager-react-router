@@ -265,6 +265,108 @@ describe("generateGameRecapBackground Action", () => {
         );
     });
 
+    it("should fall back to season parkId and fetch weather when game.parkId is missing", async () => {
+        const mockGame = {
+            $id: "game123",
+            teamId: "team456",
+            seasonId: "season456",
+            opponent: "Grant Park - United",
+            score: "3",
+            opponentScore: "25",
+            result: "lost",
+            gameDate: "2026-10-04T22:30:00Z",
+            parkId: null,
+            location: null,
+        };
+        readDocument.mockResolvedValueOnce(mockGame); // Game fetch
+
+        const mockTeam = {
+            $id: "team456",
+            name: "Ormewood Park Sliders",
+        };
+        readDocument.mockResolvedValueOnce(mockTeam); // Team fetch
+
+        const mockSeason = {
+            $id: "season456",
+            parkId: "parkSeason789",
+            location: "Grant Park Field 1",
+        };
+        readDocument.mockResolvedValueOnce(mockSeason); // Season fetch
+
+        const mockPark = {
+            $id: "parkSeason789",
+            formattedAddress: "840 Cherokee Ave SE, Atlanta, GA",
+        };
+        readDocument.mockResolvedValueOnce(mockPark); // Park fetch
+
+        listDocuments.mockResolvedValueOnce({
+            rows: [
+                {
+                    inning: 1,
+                    halfInning: "top",
+                    description: "Grant Park scores",
+                    $createdAt: "2026-10-04T22:45:00Z",
+                },
+            ],
+        }); // Logs fetch
+
+        getWeatherData.mockResolvedValueOnce({
+            hourly: [
+                {
+                    interval: { startTime: "2026-10-04T22:00:00Z" },
+                    temperature: { degrees: 68 },
+                    precipitation: { qpf: { quantity: 0.25 } },
+                    weatherCondition: {
+                        type: "RAIN",
+                        description: { text: "Rain" },
+                    },
+                },
+                {
+                    interval: { startTime: "2026-10-04T23:00:00Z" },
+                    temperature: { degrees: 66 },
+                    precipitation: { qpf: { quantity: 0.15 } },
+                    weatherCondition: {
+                        type: "RAIN",
+                        description: { text: "Rain" },
+                    },
+                },
+            ],
+        });
+
+        createModel.mockReturnValueOnce({ modelName: "gemini-3.8-flash" });
+        generateContent.mockResolvedValueOnce("Rainy battle at Grant Park");
+
+        await generateGameRecapBackground({
+            eventId: "game123",
+            client: mockClient,
+        });
+
+        expect(readDocument).toHaveBeenCalledWith(
+            "seasons",
+            "season456",
+            [],
+            mockClient,
+        );
+        expect(readDocument).toHaveBeenCalledWith(
+            "parks",
+            "parkSeason789",
+            [],
+            mockClient,
+        );
+        expect(getWeatherData).toHaveBeenCalledWith(
+            "parkSeason789",
+            mockGame,
+            mockClient,
+        );
+
+        const promptText = generateContent.mock.calls[0][1];
+        expect(promptText).toContain("840 Cherokee Ave SE, Atlanta, GA");
+        expect(promptText).toContain("Rain");
+        expect(promptText).toContain("68°F");
+        expect(promptText).toContain("0.25 in precip over 2 hrs");
+        expect(promptText).toContain("Sloppy and muddy field conditions.");
+    });
+
     describe("formatRecapWeatherSummary", () => {
         it("should return fallback when weatherData is missing or empty", () => {
             expect(formatRecapWeatherSummary({})).toBe(
