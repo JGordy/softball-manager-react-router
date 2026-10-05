@@ -57,18 +57,16 @@ describe("convertGuestToMember Action", () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        mockClient = {
-            teams: {
-                createMembership: jest.fn().mockResolvedValue({
-                    $id: "membership-1",
-                    userId: "new-user-123",
-                }),
-            },
-        };
+        mockClient = {};
 
         mockAdminClient = {
             users: {
                 list: jest.fn().mockResolvedValue({ users: [] }),
+            },
+            teams: {
+                listMemberships: jest.fn().mockResolvedValue({
+                    memberships: [],
+                }),
             },
         };
         mockCreateAdminClient.mockReturnValue(mockAdminClient);
@@ -119,8 +117,7 @@ describe("convertGuestToMember Action", () => {
         expect(result.status).toBe(403);
     });
 
-    it("successfully invites new player and re-attributes logs, games, and stats", async () => {
-        // Mock guest doc
+    it("successfully attributes logs, games, and stats when newUserId is provided", async () => {
         mockReadDocument.mockImplementation((collection, id) => {
             if (collection === "users" && id === "guest-1") {
                 return Promise.resolve({
@@ -134,20 +131,9 @@ describe("convertGuestToMember Action", () => {
             if (collection === "users" && id === "new-user-123") {
                 return Promise.reject(new Error("Not found"));
             }
-            if (
-                collection === "user_stats_summary" &&
-                id.startsWith("guest-1")
-            ) {
-                return Promise.resolve({
-                    hits: 2,
-                    ab: 4,
-                    tb: 3,
-                });
-            }
             return Promise.reject(new Error("Not found"));
         });
 
-        // Mock listDocuments
         mockListDocuments.mockImplementation((collection) => {
             if (collection === "game_logs") {
                 return Promise.resolve({
@@ -188,24 +174,13 @@ describe("convertGuestToMember Action", () => {
             firstName: "John",
             lastName: "Doe",
             gender: "Male",
+            newUserId: "new-user-123",
             client: mockClient,
-            requestUrl: "https://example.com/team/team-1",
         });
 
         expect(result.success).toBe(true);
         expect(result.status).toBe(200);
         expect(result.player.userId).toBe("new-user-123");
-
-        // Verify invite was sent
-        expect(mockClient.teams.createMembership).toHaveBeenCalledWith(
-            "team-1",
-            ["player"],
-            "guest@example.com",
-            undefined,
-            undefined,
-            "https://example.com/team/team-1/accept-invite",
-            "John Doe",
-        );
 
         // Verify permanent user was created
         expect(mockCreateDocument).toHaveBeenCalledWith(
@@ -263,12 +238,7 @@ describe("convertGuestToMember Action", () => {
         });
     });
 
-    it("handles 409 conflict when user already exists in Appwrite", async () => {
-        mockClient.teams.createMembership.mockRejectedValueOnce({
-            code: 409,
-            message: "User already exists",
-        });
-
+    it("resolves existing user via user list lookup if newUserId was not provided", async () => {
         mockAdminClient.users.list.mockResolvedValueOnce({
             users: [
                 { $id: "existing-user-456", email: "existing@example.com" },
