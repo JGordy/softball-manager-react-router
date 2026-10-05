@@ -1,4 +1,5 @@
 import { Query } from "node-appwrite";
+import { DateTime } from "luxon";
 import { createModel, generateContent } from "@/utils/ai";
 import {
     listDocuments,
@@ -6,10 +7,156 @@ import {
     updateDocument,
 } from "@/utils/databases.js";
 import { getWeatherData } from "@/utils/weather.js";
-import getGameDateWeather from "@/routes/events/utils/getGameDateWeather.js";
 
 /**
- * Background action to generate a game recap using Gemini 3.5 Flash and write it to the games collection.
+ * Condense weather data into a token-efficient summary representing the game end
+ * and the 2 hours immediately preceding it, capturing cumulative precipitation.
+ *
+ * @param {Object} params
+ * @param {Object} params.weatherData - The weather response from getWeatherData containing hourly array
+ * @param {string|DateTime} [params.gameEndTime] - The ISO string or Luxon DateTime of the game end
+ * @returns {string} Ultra-compact weather summary string (~10-25 tokens)
+ */
+export function formatRecapWeatherSummary({ weatherData, gameEndTime }) {
+    if (
+        !weatherData?.hourly ||
+        !Array.isArray(weatherData.hourly) ||
+        weatherData.hourly.length === 0
+    ) {
+        return "Unknown / Not recorded";
+    }
+
+    const endDt = gameEndTime
+        ? typeof gameEndTime === "string"
+            ? DateTime.fromISO(gameEndTime, { zone: "utc" })
+            : gameEndTime
+        : DateTime.utc();
+    const validEndDt = endDt && endDt.isValid ? endDt : DateTime.utc();
+    const endMillis = validEndDt.toMillis();
+    const twoHoursBeforeMillis = validEndDt.minus({ hours: 2 }).toMillis();
+
+    // Select hours falling in the 2-hour window up to game end
+    let windowHours = weatherData.hourly.filter((h) => {
+        const startMillis = DateTime.fromISO(h.interval.startTime, {
+            zone: "utc",
+        }).toMillis();
+        return startMillis >= twoHoursBeforeMillis && startMillis <= endMillis;
+    });
+
+    // If no hours strictly fell within the 2-hour window, fall back to the hour closest to game end
+    if (windowHours.length === 0) {
+        let closestHour = null;
+        let minDiff = Number.POSITIVE_INFINITY;
+        for (const h of weatherData.hourly) {
+            const startMillis = DateTime.fromISO(h.interval.startTime, {
+                zone: "utc",
+            }).toMillis();
+            const diff = Math.abs(endMillis - startMillis);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closestHour = h;
+            }
+        }
+        if (closestHour) {
+            windowHours = [closestHour];
+        }
+    }
+
+    if (windowHours.length === 0) {
+        return "Unknown / Not recorded";
+    }
+
+    // 1. Condition: Pick the most representative condition.
+    // If the latest hour experienced rain/precipitation, use latestHour;
+    // otherwise, if an earlier hour in the 2-hr window experienced rain, use the most recent rain hour.
+    const latestHour = windowHours[windowHours.length - 1];
+    const isPrecipType = (type) =>
+        type === "RAIN" ||
+        type === "DRIZZLE" ||
+        type === "THUNDERSTORM" ||
+        type === "SNOW";
+
+    const latestIsPrecip = isPrecipType(latestHour.weatherCondition?.type);
+    const rainHour = [...windowHours]
+        .reverse()
+        .find((h) => isPrecipType(h.weatherCondition?.type));
+    const conditionHour = latestIsPrecip ? latestHour : rainHour || latestHour;
+    const conditionText =
+        conditionHour.weatherCondition?.description?.text ||
+        "Unknown Condition";
+
+    // 2. Temperature & feels-like from the latest hour (at game conclusion)
+    const temp =
+        latestHour.temperature?.degrees != null
+            ? `${Math.round(latestHour.temperature.degrees)}°F`
+            : null;
+    const feelsLike =
+        latestHour.feelsLikeTemperature?.degrees != null
+            ? `${Math.round(latestHour.feelsLikeTemperature.degrees)}°F`
+            : null;
+    const tempPart = temp
+        ? feelsLike && feelsLike !== temp
+            ? `${temp} (feels like ${feelsLike})`
+            : temp
+        : null;
+
+    // 3. Cumulative precipitation across the 2-hour window
+    const totalRainQpf = windowHours.reduce((acc, h) => {
+        return acc + (h.precipitation?.qpf?.quantity || 0);
+    }, 0);
+    const maxPop = Math.max(
+        ...windowHours.map((h) => h.precipitation?.probability?.percent || 0),
+        0,
+    );
+
+    const hasRain = totalRainQpf > 0 || rainHour != null || maxPop >= 40;
+    let precipPart = "";
+    if (hasRain) {
+        const rainDetails = [];
+        if (totalRainQpf > 0) {
+            rainDetails.push(
+                `${parseFloat(totalRainQpf.toFixed(2))} in precip over 2 hrs`,
+            );
+        }
+        if (maxPop > 0) {
+            rainDetails.push(`${Math.round(maxPop)}% chance`);
+        }
+        if (rainDetails.length > 0) {
+            precipPart = ` (${rainDetails.join(", ")})`;
+        }
+    }
+
+    // 4. Wind info (from representative/latest hour)
+    let windPart = "";
+    const windSpeed = conditionHour.wind?.speed?.value;
+    const windDir = conditionHour.wind?.direction?.cardinal;
+    if (windSpeed != null && windSpeed >= 5) {
+        windPart = `Wind ${Math.round(windSpeed)} mph${windDir ? ` ${windDir}` : ""}`;
+    }
+
+    // 5. Field conditions note
+    let fieldNote = "";
+    if (totalRainQpf >= 0.25) {
+        fieldNote = "Sloppy and muddy field conditions.";
+    } else if (hasRain || totalRainQpf > 0) {
+        fieldNote = "Wet field conditions.";
+    }
+
+    // Assemble parts
+    const coreDetails = [`${conditionText}${precipPart}`];
+    if (tempPart) coreDetails.push(tempPart);
+    if (windPart) coreDetails.push(windPart);
+
+    let summary = coreDetails.join(", ");
+    if (fieldNote) {
+        summary += `. ${fieldNote}`;
+    }
+
+    return summary;
+}
+
+/**
+ * Background action to generate a game recap using Gemini 3.8 Flash and write it to the games collection.
  * This runs asynchronously in the background so that the scorekeeper's end-game request finishes instantly.
  *
  * @param {Object} params - Parameter container
@@ -66,8 +213,13 @@ export async function generateGameRecapBackground({ eventId, client }) {
             result: game.result || "unknown",
             date: game.gameDate || game.dateTime || "Unknown Date",
             location: "Unknown Location",
-            weather: "Unknown Weather",
+            weather: "Unknown / Not recorded",
         };
+
+        const gameEndTime =
+            game.gameFinal && game.$updatedAt
+                ? game.$updatedAt
+                : game.gameDate || game.dateTime || DateTime.utc().toISO();
 
         // Attempt to fetch actual team details for a friendlier recap name
         if (game.teamId) {
@@ -110,18 +262,10 @@ export async function generateGameRecapBackground({ eventId, client }) {
                         client,
                     );
                     if (weatherData) {
-                        const { hourly } =
-                            getGameDateWeather(
-                                game.gameDate || game.dateTime,
-                                weatherData,
-                            ) || {};
-                        if (
-                            hourly &&
-                            hourly.temperature &&
-                            hourly.weatherCondition
-                        ) {
-                            gameDetailsContext.weather = `${Math.round(hourly.temperature.degrees)}°F, ${hourly.weatherCondition.description.text}`;
-                        }
+                        gameDetailsContext.weather = formatRecapWeatherSummary({
+                            weatherData,
+                            gameEndTime,
+                        });
                     }
                 }
             } catch (err) {
@@ -161,13 +305,14 @@ Follow these guidelines:
 2. **Style**: Editorial sportswriter style—highly engaging, dramatic, yet concise. Highlight key plays, multi-run innings, defensive saves, and game-winning hits.
 3. **Sections**: Use logical sections (e.g. ## Opening Frame, ## Mid-Game Action, ## The Turn, ## Key Performers) to make the text premium and readable.
 4. **Tone**: Balanced, but lean positive and proud for ${gameDetailsContext.teamName} (or matching the final result).
-5. **Length**: Keep it to approximately 3-4 paragraphs plus bullet points for key stars of the game.
-6. **Formatting**: Ensure excellent markdown formatting, using bold text, bullet lists, and nice headings. Do NOT use markdown tables or raw html.
+5. **Weather & Atmosphere**: Accurately incorporate the provided game weather conditions (e.g. rain, wet field, mud, wind, chill, heat, rain accumulation) into the story atmosphere, describing how the elements affected play (e.g. playing through rain, slippery softballs, muddy basepaths). If weather is "Unknown / Not recorded", strictly do NOT invent, guess, or hallucinate atmospheric conditions (never write clichés like "On a crisp autumn evening" or "Under sunny skies"); focus strictly on the action on the field and venue.
+6. **Length**: Keep it to approximately 3-4 paragraphs plus bullet points for key stars of the game.
+7. **Formatting**: Ensure excellent markdown formatting, using bold text, bullet lists, and nice headings. Do NOT use markdown tables or raw html.
 
 Recap:
 `;
 
-        // 4. Initialize Gemini Model (defaults to gemini-3.5-flash and low thinking)
+        // 4. Initialize Gemini Model (defaults to gemini-3.8-flash and low thinking)
         const model = createModel();
 
         // 5. Generate content using the new SDK wrapper

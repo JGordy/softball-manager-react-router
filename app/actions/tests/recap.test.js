@@ -1,9 +1,11 @@
-import { generateGameRecapBackground } from "../recap";
+import {
+    generateGameRecapBackground,
+    formatRecapWeatherSummary,
+} from "../recap";
 import { readDocument, listDocuments, updateDocument } from "@/utils/databases";
 import { createModel, generateContent } from "@/utils/ai";
 import { Query } from "node-appwrite";
 import { getWeatherData } from "@/utils/weather";
-import getGameDateWeather from "@/routes/events/utils/getGameDateWeather";
 
 // Mock dependencies
 jest.mock("@/utils/databases", () => ({
@@ -20,8 +22,6 @@ jest.mock("@/utils/ai", () => ({
 jest.mock("@/utils/weather", () => ({
     getWeatherData: jest.fn(),
 }));
-
-jest.mock("@/routes/events/utils/getGameDateWeather", () => jest.fn());
 
 describe("generateGameRecapBackground Action", () => {
     const mockClient = { tablesDB: { id: "mock-client-db" } };
@@ -127,20 +127,15 @@ describe("generateGameRecapBackground Action", () => {
         getWeatherData.mockResolvedValueOnce({
             hourly: [
                 {
+                    interval: { startTime: "2026-05-22T14:00:00Z" },
                     temperature: { degrees: 85 },
                     weatherCondition: { description: { text: "Sunny" } },
                 },
             ],
         });
-        getGameDateWeather.mockReturnValueOnce({
-            hourly: {
-                temperature: { degrees: 85 },
-                weatherCondition: { description: { text: "Sunny" } },
-            },
-        });
 
         // Mock AI model configuration and content generation
-        const mockModel = { modelName: "gemini-3.5-flash", thinking: "medium" };
+        const mockModel = { modelName: "gemini-3.8-flash", thinking: "low" };
         createModel.mockReturnValueOnce(mockModel);
         generateContent.mockResolvedValueOnce(
             "# Victory at the Diamond\n\nWhat a spectacular victory for Viper Elite against Mud Dogs!",
@@ -187,7 +182,7 @@ describe("generateGameRecapBackground Action", () => {
 
         expect(createModel).toHaveBeenCalledWith();
 
-        // Verify prompt text has play info and score details
+        // Verify prompt text has play info, score details, weather, and guidelines
         const promptText = generateContent.mock.calls[0][1];
         expect(promptText).toContain("Viper Elite");
         expect(promptText).toContain("Mud Dogs");
@@ -197,7 +192,8 @@ describe("generateGameRecapBackground Action", () => {
         expect(promptText).toContain(
             "Location: 123 Softball Field, Atlanta, GA",
         );
-        expect(promptText).toContain("Weather: 85°F, Sunny");
+        expect(promptText).toContain("Weather: Sunny, 85°F");
+        expect(promptText).toContain("Weather & Atmosphere");
         expect(promptText).toContain("John Doe hits a solo home run");
 
         // Verify update document
@@ -267,5 +263,133 @@ describe("generateGameRecapBackground Action", () => {
             { recap: "Fall back recap" },
             mockClient,
         );
+    });
+
+    describe("formatRecapWeatherSummary", () => {
+        it("should return fallback when weatherData is missing or empty", () => {
+            expect(formatRecapWeatherSummary({})).toBe(
+                "Unknown / Not recorded",
+            );
+            expect(
+                formatRecapWeatherSummary({ weatherData: { hourly: [] } }),
+            ).toBe("Unknown / Not recorded");
+        });
+
+        it("should format clear weather compactly", () => {
+            const weatherData = {
+                hourly: [
+                    {
+                        interval: { startTime: "2026-05-22T14:00:00Z" },
+                        temperature: { degrees: 75.2 },
+                        weatherCondition: {
+                            description: { text: "Sunny" },
+                            type: "CLEAR",
+                        },
+                        wind: {
+                            speed: { value: 6.2 },
+                            direction: { cardinal: "SW" },
+                        },
+                    },
+                ],
+            };
+            const result = formatRecapWeatherSummary({
+                weatherData,
+                gameEndTime: "2026-05-22T14:00:00Z",
+            });
+            expect(result).toBe("Sunny, 75°F, Wind 6 mph SW");
+        });
+
+        it("should format rainy weather with cumulative 2-hour precipitation and wet field note", () => {
+            const weatherData = {
+                hourly: [
+                    {
+                        interval: { startTime: "2026-05-22T13:00:00Z" },
+                        temperature: { degrees: 64 },
+                        feelsLikeTemperature: { degrees: 61 },
+                        weatherCondition: {
+                            description: { text: "Light Rain" },
+                            type: "RAIN",
+                        },
+                        precipitation: {
+                            qpf: { quantity: 0.15 },
+                            probability: { percent: 70 },
+                        },
+                        wind: {
+                            speed: { value: 10 },
+                            direction: { cardinal: "NW" },
+                        },
+                    },
+                    {
+                        interval: { startTime: "2026-05-22T14:00:00Z" },
+                        temperature: { degrees: 62 },
+                        feelsLikeTemperature: { degrees: 59 },
+                        weatherCondition: {
+                            description: { text: "Heavy Rain" },
+                            type: "RAIN",
+                        },
+                        precipitation: {
+                            qpf: { quantity: 0.25 },
+                            probability: { percent: 90 },
+                        },
+                        wind: {
+                            speed: { value: 12 },
+                            direction: { cardinal: "NW" },
+                        },
+                    },
+                ],
+            };
+
+            const result = formatRecapWeatherSummary({
+                weatherData,
+                gameEndTime: "2026-05-22T14:00:00Z",
+            });
+
+            expect(result).toContain("Heavy Rain");
+            expect(result).toContain("0.4 in precip over 2 hrs");
+            expect(result).toContain("90% chance");
+            expect(result).toContain("feels like 59°F");
+            expect(result).toContain("Wind 12 mph NW");
+            expect(result).toContain("Sloppy and muddy field conditions.");
+        });
+
+        it("should prioritize rain condition if it rained in the 2-hour window even if the final hour cleared", () => {
+            const weatherData = {
+                hourly: [
+                    {
+                        interval: { startTime: "2026-05-22T13:00:00Z" },
+                        temperature: { degrees: 65 },
+                        weatherCondition: {
+                            description: { text: "Showers" },
+                            type: "RAIN",
+                        },
+                        precipitation: {
+                            qpf: { quantity: 0.1 },
+                            probability: { percent: 60 },
+                        },
+                    },
+                    {
+                        interval: { startTime: "2026-05-22T14:00:00Z" },
+                        temperature: { degrees: 66 },
+                        weatherCondition: {
+                            description: { text: "Cloudy" },
+                            type: "CLOUDY",
+                        },
+                        precipitation: {
+                            qpf: { quantity: 0 },
+                            probability: { percent: 20 },
+                        },
+                    },
+                ],
+            };
+
+            const result = formatRecapWeatherSummary({
+                weatherData,
+                gameEndTime: "2026-05-22T14:00:00Z",
+            });
+
+            expect(result).toContain("Showers");
+            expect(result).toContain("0.1 in precip over 2 hrs");
+            expect(result).toContain("Wet field conditions.");
+        });
     });
 });
