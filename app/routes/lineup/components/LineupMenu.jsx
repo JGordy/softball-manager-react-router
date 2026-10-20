@@ -24,6 +24,7 @@ export default function LineupMenu({
     lineupState,
     lineupHandlers,
     players,
+    guestPlayers = [],
     setHasBeenEdited,
     onOpenAiDrawer,
     onOpenAddPlayers,
@@ -79,6 +80,8 @@ export default function LineupMenu({
                                 actionRoute={actionUrl}
                                 teamId={team.$id}
                                 eventId={game.$id}
+                                guestPlayers={guestPlayers}
+                                currentLineup={lineupState}
                             />
                         ),
                     }),

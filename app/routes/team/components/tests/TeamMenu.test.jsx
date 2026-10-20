@@ -97,6 +97,12 @@ describe("TeamMenu Component", () => {
         );
     });
 
+    it("renders Guest Players menu option", async () => {
+        render(<TeamMenu userId="u1" team={mockTeam} players={mockPlayers} />);
+        fireEvent.click(screen.getByRole("button")); // Open menu
+        expect(await screen.findByText("Guest Players")).toBeInTheDocument();
+    });
+
     it("navigates to lineup page when Set Lineups is clicked", async () => {
         render(<TeamMenu userId="u1" team={mockTeam} players={mockPlayers} />);
         fireEvent.click(screen.getByRole("button")); // Open menu

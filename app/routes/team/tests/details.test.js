@@ -19,11 +19,17 @@ jest.mock("react-router", () => ({
 }));
 
 jest.mock("@/loaders/teams");
+jest.mock("@/loaders/guests", () => ({
+    getTeamGuestPlayers: jest.fn().mockResolvedValue([]),
+}));
 jest.mock("@/actions/games");
 jest.mock("@/actions/users");
 jest.mock("@/actions/seasons");
 jest.mock("@/actions/teams");
 jest.mock("@/actions/invitations");
+jest.mock("@/actions/guests", () => ({
+    convertGuestToMember: jest.fn().mockResolvedValue({ success: true }),
+}));
 jest.mock("@/utils/showNotification");
 jest.mock("@/utils/appwrite/server", () => ({
     __esModule: true,
@@ -251,6 +257,35 @@ describe("TeamDetails Route", () => {
                     values: expect.objectContaining({ opponent: "Opponent" }),
                     teamId: "team1",
                     client: expect.any(Object),
+                }),
+            );
+        });
+
+        it("calls convertGuestToMember for convert-guest-player action", async () => {
+            const guestsActions = require("@/actions/guests");
+            const formData = new FormData();
+            formData.append("_action", "convert-guest-player");
+            formData.append("guestPlayerId", "guest-1");
+            formData.append("email", "guest@example.com");
+            formData.append("firstName", "John");
+            formData.append("lastName", "Doe");
+            formData.append("gender", "Male");
+
+            const request = {
+                url: "https://example.com/team/team1",
+                formData: () => Promise.resolve(formData),
+                headers: { get: jest.fn() },
+            };
+
+            await action({ request, params, context: mockContext });
+            expect(guestsActions.convertGuestToMember).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    guestPlayerId: "guest-1",
+                    teamId: "team1",
+                    email: "guest@example.com",
+                    firstName: "John",
+                    lastName: "Doe",
+                    gender: "Male",
                 }),
             );
         });

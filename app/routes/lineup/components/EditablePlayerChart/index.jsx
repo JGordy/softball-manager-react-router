@@ -67,6 +67,9 @@ const EditablePlayerChart = ({
                     ? `${player.firstName} ${player.lastName}`
                     : player.firstName,
                 isAutoOut,
+                isTemporary: Boolean(
+                    player.isTemporary || playerLookup[player.$id]?.isTemporary,
+                ),
                 hasBattingError: battingErrors?.some(
                     (e) => e.playerId === player.$id,
                 ),
@@ -76,7 +79,7 @@ const EditablePlayerChart = ({
             });
             return row;
         });
-    }, [playerChart, inningPositions, battingErrors]);
+    }, [playerChart, inningPositions, battingErrors, playerLookup]);
 
     const handlePositionChange = useCallback(
         (position, playerId, inning) => {

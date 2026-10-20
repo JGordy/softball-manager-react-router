@@ -37,8 +37,10 @@ import {
     invitePlayersServer,
     syncInvitedPlayersServer,
 } from "@/actions/invitations";
+import { convertGuestToMember } from "@/actions/guests";
 
 import { getTeamById } from "@/loaders/teams";
+import { getTeamGuestPlayers } from "@/loaders/guests";
 
 import { useResponseNotification } from "@/utils/showNotification";
 
@@ -84,7 +86,17 @@ export async function loader({ request, params, context }) {
         client = createAdminClient();
     }
 
-    return getTeamById({ teamId, client });
+    const teamDataResult = await getTeamById({ teamId, client });
+    const guestPlayers = await getTeamGuestPlayers({
+        teamId,
+        client,
+        teamLogs: teamDataResult?.teamLogs,
+    });
+
+    return {
+        ...teamDataResult,
+        guestPlayers,
+    };
 }
 
 export async function action({ request, params, context }) {
@@ -147,6 +159,19 @@ export async function action({ request, params, context }) {
             players,
             teamId,
             url: inviteUrl,
+            client,
+        });
+    }
+
+    if (_action === "convert-guest-player") {
+        return convertGuestToMember({
+            guestPlayerId: values.guestPlayerId,
+            teamId,
+            email: values.email,
+            firstName: values.firstName,
+            lastName: values.lastName,
+            gender: values.gender,
+            newUserId: values.newUserId,
             client,
         });
     }
@@ -276,6 +301,7 @@ export default function TeamDetails({ actionData, loaderData }) {
         ownerIds,
         teamLogs,
         isArchiveView,
+        guestPlayers = [],
     } = loaderData;
 
     const userId = user && user.$id;
@@ -299,6 +325,7 @@ export default function TeamDetails({ actionData, loaderData }) {
                             userId={user.$id}
                             ownerView={ownerView}
                             players={players}
+                            guestPlayers={guestPlayers}
                         />
                     </Box>
                 )}

@@ -1,9 +1,25 @@
 import React from "react";
 import { Draggable } from "@hello-pangea/dnd";
-import { Group, Table, Text, ThemeIcon } from "@mantine/core";
+import { Badge, Group, Table, Text, ThemeIcon } from "@mantine/core";
 import { IconAlertTriangle, IconGripVertical } from "@tabler/icons-react";
 import PositionSelect from "./PositionSelect";
 
+/**
+ * PlayerChartRow renders an individual row in the editable lineup player chart.
+ * Displays drag handles (for managers), player name, guest badge (if temporary),
+ * validation warnings, and position selects per inning.
+ *
+ * @param {object} props
+ * @param {object} props.row - Row data containing player info and inning positions
+ * @param {number} props.index - Row index for drag-and-drop
+ * @param {boolean} props.managerView - Whether manager editing controls are enabled
+ * @param {Array<object>} props.columns - Column definitions
+ * @param {Record<string, object>} props.playerLookup - Map of player IDs to player records
+ * @param {Function} props.getPositionOptions - Function to generate position options
+ * @param {object} [props.fieldingErrors] - Fielding validation errors map
+ * @param {Function} props.handlePositionChange - Callback on position change
+ * @returns {React.ReactElement}
+ */
 const PlayerChartRow = ({
     row,
     index,
@@ -85,6 +101,11 @@ const PlayerChartRow = ({
                                 </Table.Td>
                             );
                         } else if (column.accessor === "player") {
+                            const isGuest = Boolean(
+                                row.isTemporary ||
+                                    playerLookup?.[row.playerId]?.isTemporary,
+                            );
+
                             return (
                                 <Table.Td key={column.accessor}>
                                     <Group gap="xs" wrap="nowrap">
@@ -98,6 +119,15 @@ const PlayerChartRow = ({
                                         >
                                             {row.player}
                                         </Text>
+                                        {isGuest && (
+                                            <Badge
+                                                size="xs"
+                                                color="gray"
+                                                variant="light"
+                                            >
+                                                Guest
+                                            </Badge>
+                                        )}
                                         {row.hasBattingError && (
                                             <ThemeIcon
                                                 color="red"
