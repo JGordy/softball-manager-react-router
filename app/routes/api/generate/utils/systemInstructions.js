@@ -20,6 +20,7 @@ export const getLineupSystemInstruction = (
 
     // Dynamically build "Batting Order Rules"
     const battingRules = [
+        "-   **Roster Inclusion (CRITICAL)**: EVERY player provided in 'availablePlayers' MUST be included in the 'lineup' batting order. Do not drop, bench, or omit any player from the order. If there are N players in 'availablePlayers', the lineup MUST contain exactly all N players.",
         isCoed
             ? `-   **Coed teams**: MAXIMUM ${maxMaleBatters} consecutive males in batting order.`
             : null,
@@ -61,6 +62,7 @@ ${battingRules}
 2.  **Team Preferences**: Prioritize 'team.preferences' for initial positioning.
 3.  **Fair Rotation**: No player sits out > 2 innings. If out in Inning N, play in Inning N+1.
 4.  **Coverage**: All 10 positions must be filled each inning (if 10+ players).
+5.  **Innings Requirement (CRITICAL)**: Each player MUST have an array of exactly 7 fielding positions (for innings 1 through 7). If a player is not fielding in an inning, use 'Out'. Never provide fewer or more than 7 positions.
 
 ## REASONING TONE & STYLE
 ${reasoning}

@@ -3,10 +3,17 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { MantineProvider } from "@mantine/core";
 
 import * as lineupValidation from "@/utils/lineupValidation";
+import * as jsonUtils from "@/utils/json";
+import * as Sentry from "@sentry/react-router";
 
 import AILineupDrawer from "../index";
 
 // Mocks
+jest.mock("@sentry/react-router", () => ({
+    captureException: jest.fn(),
+    addBreadcrumb: jest.fn(),
+}));
+
 jest.mock("react-router", () => ({
     useOutletContext: jest.fn(() => ({ isDesktop: false })),
 }));
@@ -132,9 +139,128 @@ describe("AILineupDrawer Client Integration", () => {
 
         // Verify validateLineup was called
         expect(lineupValidation.validateLineup).toHaveBeenCalled();
+        // Verify Sentry captured the exception
+        expect(Sentry.captureException).toHaveBeenCalledWith(
+            expect.any(Error),
+            expect.objectContaining({
+                tags: expect.objectContaining({
+                    feature: "ai-lineup",
+                    phase: "client_generation",
+                }),
+            }),
+        );
     });
 
-    it("should display error when AI response is invalid JSON", async () => {
+    it("should display informative error in production without falling back to generic message", async () => {
+        process.env = { ...process.env, NODE_ENV: "production" };
+        global.fetch.mockResolvedValueOnce({
+            ok: false,
+            status: 429,
+            text: jest.fn().mockResolvedValue(
+                JSON.stringify({
+                    error: "Failed to generate lineup: AI service rate limit reached. Please wait a minute and try again.",
+                }),
+            ),
+        });
+
+        render(
+            <MantineProvider>
+                <AILineupDrawer {...defaultProps} />
+            </MantineProvider>,
+        );
+
+        fireEvent.click(screen.getByText(/Generate Lineup/i));
+
+        await waitFor(() => {
+            expect(
+                screen.getByText(
+                    /The AI service is busy or rate-limited\. Please wait a minute and try again/i,
+                ),
+            ).toBeInTheDocument();
+        });
+        expect(Sentry.captureException).toHaveBeenCalled();
+    });
+
+    it("should never leak internal database IDs or stack traces to UI in production", async () => {
+        process.env = { ...process.env, NODE_ENV: "production" };
+        global.fetch.mockResolvedValueOnce({
+            ok: false,
+            status: 500,
+            text: jest.fn().mockResolvedValue(
+                JSON.stringify({
+                    error: "Invalid positions array for player with id 64f1a2b3c4d5e6f7a8b9",
+                    details:
+                        "Error at Database.listDocuments (/internal/server.js:42:15)",
+                }),
+            ),
+        });
+
+        render(
+            <MantineProvider>
+                <AILineupDrawer {...defaultProps} />
+            </MantineProvider>,
+        );
+
+        fireEvent.click(screen.getByText(/Generate Lineup/i));
+
+        await waitFor(() => {
+            // Safe message shown
+            expect(
+                screen.getByText(
+                    /The AI was unable to create a valid lineup for the current roster\. Please try again/i,
+                ),
+            ).toBeInTheDocument();
+        });
+
+        // Must NOT leak database ID or stack trace
+        expect(
+            screen.queryByText(/64f1a2b3c4d5e6f7a8b9/i),
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByText(/internal\/server\.js/i),
+        ).not.toBeInTheDocument();
+        expect(Sentry.captureException).toHaveBeenCalled();
+    });
+
+    it("should salvage lineup when JSON parse fails but partial lineup is complete", async () => {
+        const encoder = new TextEncoder();
+        // Cut-off JSON (e.g. truncated during reasoning)
+        const truncatedJson =
+            '{"lineup": [{"$id": "p0", "firstName": "Player", "lastName": "0", "gender": "male", "positions": ["P","P","P","P","P","P","P"]}], "reasoning": "Incomplete...';
+
+        mockRead
+            .mockResolvedValueOnce({
+                done: false,
+                value: encoder.encode(truncatedJson),
+            })
+            .mockResolvedValueOnce({ done: true });
+
+        // tryParsePartialLineup successfully recovers the player objects
+        jsonUtils.tryParsePartialLineup.mockReturnValue([
+            {
+                $id: "p0",
+                firstName: "Player",
+                lastName: "0",
+                gender: "male",
+                positions: Array(7).fill("P"),
+            },
+        ]);
+
+        render(
+            <MantineProvider>
+                <AILineupDrawer {...defaultProps} />
+            </MantineProvider>,
+        );
+
+        fireEvent.click(screen.getByText(/Generate Lineup/i));
+
+        // It should successfully show results view instead of throwing error
+        await waitFor(() => {
+            expect(screen.queryByText(/Error/i)).not.toBeInTheDocument();
+        });
+    });
+
+    it("should display error when AI response is invalid JSON and cannot be salvaged", async () => {
         // Stream invalid JSON
         const encoder = new TextEncoder();
         mockRead
@@ -143,6 +269,8 @@ describe("AILineupDrawer Client Integration", () => {
                 value: encoder.encode("{ invalid json "),
             })
             .mockResolvedValueOnce({ done: true });
+
+        jsonUtils.tryParsePartialLineup.mockReturnValue([]);
 
         render(
             <MantineProvider>

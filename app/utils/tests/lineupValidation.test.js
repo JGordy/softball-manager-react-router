@@ -124,5 +124,78 @@ describe("lineupValidation utils", () => {
                 "Invalid positions array",
             );
         });
+
+        describe("with autoRepair option", () => {
+            it("should pad positions to 7 if fewer than 7", () => {
+                const generated = [
+                    { $id: "p1", positions: ["LF", "CF"] },
+                    { $id: "p2", positions: Array(7).fill("RF") },
+                ];
+                const result = validateLineup(generated, players, {
+                    autoRepair: true,
+                });
+                expect(result[0].positions).toHaveLength(7);
+                expect(result[0].positions.slice(0, 2)).toEqual(["LF", "CF"]);
+                expect(result[0].positions.slice(2)).toEqual([
+                    "Out",
+                    "Out",
+                    "Out",
+                    "Out",
+                    "Out",
+                ]);
+            });
+
+            it("should truncate positions if more than 7", () => {
+                const generated = [
+                    { $id: "p1", positions: Array(10).fill("LF") },
+                    { $id: "p2", positions: Array(7).fill("RF") },
+                ];
+                const result = validateLineup(generated, players, {
+                    autoRepair: true,
+                });
+                expect(result[0].positions).toHaveLength(7);
+            });
+
+            it("should deduplicate player IDs by keeping the first occurrence", () => {
+                const generated = [
+                    { $id: "p1", positions: Array(7).fill("LF") },
+                    { $id: "p1", positions: Array(7).fill("RF") },
+                ];
+                const result = validateLineup(generated, players, {
+                    autoRepair: true,
+                });
+                expect(result).toHaveLength(2); // p1 kept, missing p2 appended
+                expect(result[0].$id).toBe("p1");
+                expect(result[1].$id).toBe("p2");
+                expect(result[1].positions).toEqual(Array(7).fill("Out"));
+            });
+
+            it("should auto-append missing players from roster to end of order", () => {
+                const generated = [
+                    { $id: "p1", positions: Array(7).fill("LF") },
+                ];
+                const result = validateLineup(generated, players, {
+                    autoRepair: true,
+                });
+                expect(result).toHaveLength(2);
+                expect(result[0].$id).toBe("p1");
+                expect(result[1].$id).toBe("p2");
+                expect(result[1].firstName).toBe("C");
+                expect(result[1].positions).toEqual(Array(7).fill("Out"));
+            });
+
+            it("should drop unknown players not on roster", () => {
+                const generated = [
+                    { $id: "unknown", positions: Array(7).fill("P") },
+                    { $id: "p1", positions: Array(7).fill("LF") },
+                ];
+                const result = validateLineup(generated, players, {
+                    autoRepair: true,
+                });
+                expect(result.some((p) => p.$id === "unknown")).toBe(false);
+                expect(result.some((p) => p.$id === "p1")).toBe(true);
+                expect(result.some((p) => p.$id === "p2")).toBe(true);
+            });
+        });
     });
 });

@@ -1,4 +1,5 @@
 import { Query } from "node-appwrite";
+import * as Sentry from "@sentry/react-router";
 
 import { createModel, generateContentStream } from "@/utils/ai";
 import { listDocuments, updateDocument } from "@/utils/databases";
@@ -9,6 +10,7 @@ import { MAX_AI_GENERATIONS_PER_GAME } from "@/constants/ai";
 
 import lineupSchema from "./utils/lineupSchema";
 import { getLineupSystemInstruction } from "./utils/systemInstructions";
+import { getFriendlyErrorMessage } from "./utils/errorHandling";
 
 // Derive minified event codes from the shared scoring constants
 const DB_TO_MINIFIED_EVENT = Object.entries(EVENT_TYPE_MAP).reduce(
@@ -438,6 +440,25 @@ export async function action({ request, context }) {
                         "Error while streaming AI lineup response:",
                         e,
                     );
+
+                    try {
+                        Sentry.captureException(e, {
+                            tags: {
+                                feature: "ai-lineup",
+                                phase: "server_streaming",
+                            },
+                            extra: {
+                                gameId: rollbackGameId,
+                                hasEnqueued,
+                            },
+                        });
+                    } catch (sentryErr) {
+                        console.error(
+                            "Failed to send streaming exception to Sentry:",
+                            sentryErr,
+                        );
+                    }
+
                     if (!hasEnqueued) {
                         // Rollback generation count if immediate failure
                         if (rollbackGameId && rollbackCount !== null) {
@@ -460,8 +481,9 @@ export async function action({ request, context }) {
 
                         const isDevelopment =
                             process.env.NODE_ENV === "development";
+                        const friendlyError = getFriendlyErrorMessage(e);
                         const errorPayload = {
-                            error: "Failed to generate lineup",
+                            error: friendlyError,
                             details:
                                 isDevelopment && e && e.message
                                     ? e.message
@@ -513,10 +535,25 @@ export async function action({ request, context }) {
 
         console.error("Error generating lineup:", error);
 
+        try {
+            Sentry.captureException(error, {
+                tags: {
+                    feature: "ai-lineup",
+                    phase: "server_generation",
+                },
+                extra: {
+                    gameId: rollbackGameId,
+                },
+            });
+        } catch (sentryErr) {
+            console.error(
+                "Failed to send action exception to Sentry:",
+                sentryErr,
+            );
+        }
+
         const isDevelopment = process.env.NODE_ENV === "development";
-        const safeErrorMessage = isDevelopment
-            ? error.message || "Failed to generate lineup"
-            : "Failed to generate lineup";
+        const safeErrorMessage = getFriendlyErrorMessage(error);
 
         return new Response(
             JSON.stringify({

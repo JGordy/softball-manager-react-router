@@ -1,11 +1,15 @@
 import { Query } from "node-appwrite";
 
+import * as Sentry from "@sentry/react-router";
 import { listDocuments, updateDocument } from "@/utils/databases";
 import { createModel, generateContentStream } from "@/utils/ai";
 import { mockContext } from "@/utils/mockContext";
 
 import { action } from "../lineup";
 
+jest.mock("@sentry/react-router", () => ({
+    captureException: jest.fn(),
+}));
 jest.mock("@/utils/databases");
 jest.mock("@/utils/ai");
 
@@ -520,6 +524,17 @@ describe("lineup generation action", () => {
             expect(text).toContain("Failed to generate lineup");
             expect(mockController.close).toHaveBeenCalled();
 
+            // Verify Sentry captured streaming exception
+            expect(Sentry.captureException).toHaveBeenCalledWith(
+                expect.any(Error),
+                expect.objectContaining({
+                    tags: expect.objectContaining({
+                        feature: "ai-lineup",
+                        phase: "server_streaming",
+                    }),
+                }),
+            );
+
             // Verify rollback happened
             // 1. Increment call (g1 comes from beforeEach mock, aiGenerationCount default 0 -> 1)
             expect(updateDocument).toHaveBeenCalledWith(
@@ -569,6 +584,34 @@ describe("lineup generation action", () => {
 
             expect(mockController.error).toHaveBeenCalledWith(
                 expect.any(Error),
+            );
+            expect(Sentry.captureException).toHaveBeenCalled();
+        });
+
+        it("should return friendly rate limit error and report to Sentry when Gemini fails immediately", async () => {
+            generateContentStream.mockRejectedValue(
+                new Error("429 RESOURCE_EXHAUSTED: quota exceeded"),
+            );
+
+            const req = createMockRequest();
+            const response = await action({
+                request: req,
+                context: mockContext,
+            });
+
+            expect(response.status).toBe(500);
+            const data = await response.json();
+            expect(data.error).toContain(
+                "AI service rate limit reached. Please wait a minute and try again.",
+            );
+            expect(Sentry.captureException).toHaveBeenCalledWith(
+                expect.any(Error),
+                expect.objectContaining({
+                    tags: expect.objectContaining({
+                        feature: "ai-lineup",
+                        phase: "server_generation",
+                    }),
+                }),
             );
         });
     });
