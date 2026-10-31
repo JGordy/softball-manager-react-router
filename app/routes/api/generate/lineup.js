@@ -10,6 +10,7 @@ import { MAX_AI_GENERATIONS_PER_GAME } from "@/constants/ai";
 
 import lineupSchema from "./utils/lineupSchema";
 import { getLineupSystemInstruction } from "./utils/systemInstructions";
+import { getFriendlyErrorMessage } from "./utils/errorHandling";
 
 // Derive minified event codes from the shared scoring constants
 const DB_TO_MINIFIED_EVENT = Object.entries(EVENT_TYPE_MAP).reduce(
@@ -565,45 +566,4 @@ export async function action({ request, context }) {
             },
         );
     }
-}
-
-/**
- * Extract a user-friendly error message from AI or system errors
- * @param {Error|any} error - The error thrown
- * @returns {string} A user-friendly error message
- */
-function getFriendlyErrorMessage(error) {
-    if (!error) return "Failed to generate lineup";
-    const msg = error.message || String(error);
-
-    if (
-        msg.includes("429") ||
-        msg.includes("RESOURCE_EXHAUSTED") ||
-        msg.toLowerCase().includes("quota") ||
-        msg.toLowerCase().includes("rate limit")
-    ) {
-        return "Failed to generate lineup: AI service rate limit reached. Please wait a minute and try again.";
-    }
-
-    if (
-        msg.includes("503") ||
-        msg.toLowerCase().includes("overloaded") ||
-        msg.toLowerCase().includes("unavailable")
-    ) {
-        return "Failed to generate lineup: AI service is temporarily overloaded. Please try again in a few moments.";
-    }
-
-    if (
-        msg.includes("401") ||
-        msg.includes("403") ||
-        msg.toLowerCase().includes("api key")
-    ) {
-        return "Failed to generate lineup: AI authentication error.";
-    }
-
-    if (msg.includes("400") || msg.toLowerCase().includes("invalid")) {
-        return "Failed to generate lineup: Invalid request data.";
-    }
-
-    return "Failed to generate lineup. Please try again.";
 }
