@@ -19,15 +19,111 @@ export function sanitizeReasoning(reasoning) {
  * Validate and normalize the generated lineup
  * @param {Array} generatedLineup - The raw lineup array from AI
  * @param {Array} players - The original input players array
+ * @param {Object} [options] - Validation options
+ * @param {boolean} [options.autoRepair=false] - Whether to auto-repair minor discrepancies (e.g. pad innings, append missing players)
  * @returns {Array} The validated and normalized lineup
- * @throws {Error} If validation fails
+ * @throws {Error} If validation fails and cannot be repaired
  */
-export function validateLineup(generatedLineup, players) {
+export function validateLineup(
+    generatedLineup,
+    players = [],
+    { autoRepair = false } = {},
+) {
     // Validate the structure: must be a non-empty array
     if (!Array.isArray(generatedLineup) || generatedLineup.length === 0) {
         throw new Error("AI response does not match expected lineup format");
     }
 
+    const inputPlayerMap = new Map((players || []).map((p) => [p.$id, p]));
+    const inputPlayerIdSet = new Set(inputPlayerMap.keys());
+
+    if (autoRepair) {
+        const seenIds = new Set();
+        const repairedLineup = [];
+
+        for (let i = 0; i < generatedLineup.length; i++) {
+            const rawPlayer = generatedLineup[i];
+            if (!rawPlayer || !rawPlayer.$id) continue;
+
+            const playerId = rawPlayer.$id;
+
+            // Drop duplicates
+            if (seenIds.has(playerId)) {
+                console.warn(
+                    `Duplicate player ID ${playerId} encountered; dropping duplicate.`,
+                );
+                continue;
+            }
+
+            // Drop unknown player IDs not in input roster
+            const originalPlayer = inputPlayerMap.get(playerId);
+            if (!originalPlayer && inputPlayerIdSet.size > 0) {
+                console.warn(
+                    `Unknown player ID ${playerId} not in input roster; skipping.`,
+                );
+                continue;
+            }
+
+            seenIds.add(playerId);
+
+            // Normalize positions to exactly 7 items
+            let positions = Array.isArray(rawPlayer.positions)
+                ? [...rawPlayer.positions]
+                : [];
+
+            if (positions.length < 7) {
+                while (positions.length < 7) {
+                    positions.push("Out");
+                }
+            } else if (positions.length > 7) {
+                positions = positions.slice(0, 7);
+            }
+
+            positions = positions.map((pos) =>
+                typeof pos === "string" && pos.trim() ? pos.trim() : "Out",
+            );
+
+            repairedLineup.push({
+                $id: playerId,
+                firstName:
+                    originalPlayer?.firstName || rawPlayer.firstName || "",
+                lastName: originalPlayer?.lastName || rawPlayer.lastName || "",
+                gender: originalPlayer?.gender || rawPlayer.gender || "",
+                bats: originalPlayer?.bats || rawPlayer.bats || "",
+                ...(rawPlayer.isAutoOut || playerId.startsWith("auto-out")
+                    ? { isAutoOut: true }
+                    : {}),
+                positions,
+            });
+        }
+
+        // Check for any input players missing from the generated lineup and append them
+        for (const [id, originalPlayer] of inputPlayerMap.entries()) {
+            if (!seenIds.has(id)) {
+                console.warn(
+                    `Player ${id} (${originalPlayer.firstName} ${originalPlayer.lastName}) was missing from AI output; appending to end of batting order with Out positions.`,
+                );
+                repairedLineup.push({
+                    $id: id,
+                    firstName: originalPlayer.firstName || "",
+                    lastName: originalPlayer.lastName || "",
+                    gender: originalPlayer.gender || "",
+                    bats: originalPlayer.bats || "",
+                    positions: Array(7).fill("Out"),
+                });
+            }
+        }
+
+        if (repairedLineup.length === 0) {
+            throw new Error(
+                "Generated lineup contains no valid players from the roster",
+            );
+        }
+
+        return repairedLineup;
+    }
+
+    // Strict validation mode (default)
     // Warn (but do not fail) if the lineup length differs from the input players length
     if (generatedLineup.length !== players.length) {
         console.warn(
@@ -65,7 +161,6 @@ export function validateLineup(generatedLineup, players) {
     });
 
     // Validate that the generated lineup player IDs match the input player IDs
-    const inputPlayerIdSet = new Set(players.map((p) => p.$id));
     const lineupPlayerIds = validatedLineup.map((p) => p.$id);
     const lineupPlayerIdSet = new Set(lineupPlayerIds);
 
