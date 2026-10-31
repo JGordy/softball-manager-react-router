@@ -1,4 +1,5 @@
 import { Query } from "node-appwrite";
+import * as Sentry from "@sentry/react-router";
 
 import { createModel, generateContentStream } from "@/utils/ai";
 import { listDocuments, updateDocument } from "@/utils/databases";
@@ -438,6 +439,25 @@ export async function action({ request, context }) {
                         "Error while streaming AI lineup response:",
                         e,
                     );
+
+                    try {
+                        Sentry.captureException(e, {
+                            tags: {
+                                feature: "ai-lineup",
+                                phase: "server_streaming",
+                            },
+                            extra: {
+                                gameId: rollbackGameId,
+                                hasEnqueued,
+                            },
+                        });
+                    } catch (sentryErr) {
+                        console.error(
+                            "Failed to send streaming exception to Sentry:",
+                            sentryErr,
+                        );
+                    }
+
                     if (!hasEnqueued) {
                         // Rollback generation count if immediate failure
                         if (rollbackGameId && rollbackCount !== null) {
@@ -460,8 +480,9 @@ export async function action({ request, context }) {
 
                         const isDevelopment =
                             process.env.NODE_ENV === "development";
+                        const friendlyError = getFriendlyErrorMessage(e);
                         const errorPayload = {
-                            error: "Failed to generate lineup",
+                            error: friendlyError,
                             details:
                                 isDevelopment && e && e.message
                                     ? e.message
@@ -513,10 +534,25 @@ export async function action({ request, context }) {
 
         console.error("Error generating lineup:", error);
 
+        try {
+            Sentry.captureException(error, {
+                tags: {
+                    feature: "ai-lineup",
+                    phase: "server_generation",
+                },
+                extra: {
+                    gameId: rollbackGameId,
+                },
+            });
+        } catch (sentryErr) {
+            console.error(
+                "Failed to send action exception to Sentry:",
+                sentryErr,
+            );
+        }
+
         const isDevelopment = process.env.NODE_ENV === "development";
-        const safeErrorMessage = isDevelopment
-            ? error.message || "Failed to generate lineup"
-            : "Failed to generate lineup";
+        const safeErrorMessage = getFriendlyErrorMessage(error);
 
         return new Response(
             JSON.stringify({
@@ -529,4 +565,45 @@ export async function action({ request, context }) {
             },
         );
     }
+}
+
+/**
+ * Extract a user-friendly error message from AI or system errors
+ * @param {Error|any} error - The error thrown
+ * @returns {string} A user-friendly error message
+ */
+function getFriendlyErrorMessage(error) {
+    if (!error) return "Failed to generate lineup";
+    const msg = error.message || String(error);
+
+    if (
+        msg.includes("429") ||
+        msg.includes("RESOURCE_EXHAUSTED") ||
+        msg.toLowerCase().includes("quota") ||
+        msg.toLowerCase().includes("rate limit")
+    ) {
+        return "Failed to generate lineup: AI service rate limit reached. Please wait a minute and try again.";
+    }
+
+    if (
+        msg.includes("503") ||
+        msg.toLowerCase().includes("overloaded") ||
+        msg.toLowerCase().includes("unavailable")
+    ) {
+        return "Failed to generate lineup: AI service is temporarily overloaded. Please try again in a few moments.";
+    }
+
+    if (
+        msg.includes("401") ||
+        msg.includes("403") ||
+        msg.toLowerCase().includes("api key")
+    ) {
+        return "Failed to generate lineup: AI authentication error.";
+    }
+
+    if (msg.includes("400") || msg.toLowerCase().includes("invalid")) {
+        return "Failed to generate lineup: Invalid request data.";
+    }
+
+    return "Failed to generate lineup. Please try again.";
 }
