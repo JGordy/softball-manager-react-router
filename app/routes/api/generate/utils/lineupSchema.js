@@ -17,7 +17,7 @@ const lineupSchema = {
         lineup: {
             type: Type.ARRAY,
             description:
-                "Array of players in batting order with fielding positions for each inning",
+                "Complete array of ALL available players in batting order with fielding positions for each inning. Must contain every available player.",
             items: {
                 type: Type.OBJECT,
                 description:
@@ -52,7 +52,7 @@ const lineupSchema = {
                     positions: {
                         type: Type.ARRAY,
                         description:
-                            "Array of fielding positions for each inning (7 innings). Use 'Out' if player is not fielding",
+                            "Array of exactly 7 fielding positions (one per inning 1-7). Use 'Out' if player is not fielding",
                         items: {
                             type: Type.STRING,
                             description:
