@@ -61,7 +61,7 @@ jest.mock("../components/DesktopEventDetailsView", () => () => (
 jest.mock("../components/GameMenu", () => ({ openDeleteDrawer }) => (
     <button onClick={openDeleteDrawer}>Open Delete Drawer</button>
 ));
-jest.mock("../components/AvailabilityPromptDrawer", () => (props) => (
+jest.mock("@/components/AvailabilityPromptDrawer", () => (props) => (
     <div data-testid="availability-prompt-drawer">
         {props.opened ? "Prompt Opened" : "Prompt Closed"}
     </div>

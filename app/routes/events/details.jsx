@@ -33,7 +33,7 @@ import GameMenu from "./components/GameMenu";
 import Scoreboard from "./components/Scoreboard";
 import MobileEventDetailsView from "./components/MobileEventDetailsView";
 import DesktopEventDetailsView from "./components/DesktopEventDetailsView";
-import AvailabilityPromptDrawer from "./components/AvailabilityPromptDrawer";
+import AvailabilityPromptDrawer from "@/components/AvailabilityPromptDrawer";
 import AwardsDrawerContents from "./components/AwardsDrawerContents";
 import ShareUrlButton from "@/components/ShareUrlButton";
 import OnboardingTour from "@/components/OnboardingTour";
