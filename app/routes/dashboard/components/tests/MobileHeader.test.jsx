@@ -1,4 +1,5 @@
 import { MemoryRouter } from "react-router";
+import { ModalsProvider } from "@mantine/modals";
 import { render, screen, fireEvent } from "@/utils/test-utils";
 import MobileHeader from "../MobileHeader";
 
@@ -26,14 +27,16 @@ describe("MobileHeader Component", () => {
 
     const renderHeader = (props = {}) => {
         return render(
-            <MemoryRouter>
-                <MobileHeader
-                    user={mockUser}
-                    teamList={mockTeamList}
-                    userId="user-123"
-                    {...props}
-                />
-            </MemoryRouter>,
+            <ModalsProvider>
+                <MemoryRouter>
+                    <MobileHeader
+                        user={mockUser}
+                        teamList={mockTeamList}
+                        userId="user-123"
+                        {...props}
+                    />
+                </MemoryRouter>
+            </ModalsProvider>,
         );
     };
 

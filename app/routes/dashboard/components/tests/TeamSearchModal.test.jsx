@@ -23,7 +23,6 @@ describe("TeamSearchModal Component", () => {
     const renderModal = (props = {}) => {
         return render(
             <TeamSearchModal
-                opened={true}
                 onClose={mockOnClose}
                 teamList={mockTeamList}
                 onSelectTeam={mockOnSelectTeam}
@@ -36,10 +35,9 @@ describe("TeamSearchModal Component", () => {
         jest.clearAllMocks();
     });
 
-    it("renders modal title, search input, and team list", () => {
+    it("renders search input and team list", () => {
         renderModal();
 
-        expect(screen.getByText("Find Team")).toBeInTheDocument();
         expect(
             screen.getByPlaceholderText("Search teams..."),
         ).toBeInTheDocument();

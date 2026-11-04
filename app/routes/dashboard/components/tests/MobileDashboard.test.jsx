@@ -1,4 +1,5 @@
 import { MemoryRouter } from "react-router";
+import { ModalsProvider } from "@mantine/modals";
 import { render, screen, fireEvent, within, waitFor } from "@/utils/test-utils";
 
 import MobileDashboard from "../MobileDashboard";
@@ -36,13 +37,15 @@ describe("MobileDashboard Component", () => {
 
     const renderDashboard = (teamList = mockTeamList, props = {}) => {
         return render(
-            <MemoryRouter>
-                <MobileDashboard
-                    teamList={teamList}
-                    openAddTeamModal={mockOpenAddTeamModal}
-                    {...props}
-                />
-            </MemoryRouter>,
+            <ModalsProvider>
+                <MemoryRouter>
+                    <MobileDashboard
+                        teamList={teamList}
+                        openAddTeamModal={mockOpenAddTeamModal}
+                        {...props}
+                    />
+                </MemoryRouter>
+            </ModalsProvider>,
         );
     };
 

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link } from "react-router";
 import {
     ActionIcon,
@@ -6,11 +5,13 @@ import {
     Box,
     Group,
     Image,
+    Text,
     useComputedColorScheme,
 } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
 
 import branding from "@/constants/branding";
+import useModal from "@/hooks/useModal";
 import DashboardMenu from "./DashboardMenu";
 import TeamSearchModal from "./TeamSearchModal";
 import classes from "./MobileHeader.module.css";
@@ -35,13 +36,33 @@ export default function MobileHeader({
     onSelectTeam,
     userId,
 }) {
-    const [searchOpened, setSearchOpened] = useState(false);
+    const { openModal, closeAllModals } = useModal();
     const computedColorScheme = useComputedColorScheme("dark", {
         getInitialValueInEffect: true,
     });
 
     const headerLogo =
         computedColorScheme === "dark" ? headerLogoDark : headerLogoLight;
+
+    const handleOpenTeamSearch = () => {
+        openModal({
+            title: (
+                <Text fw={700} size="lg" c="#CCFF00">
+                    Find Team
+                </Text>
+            ),
+            transitionProps: { duration: 0 },
+            children: (
+                <TeamSearchModal
+                    teamList={teamList}
+                    onSelectTeam={(teamId) => {
+                        if (onSelectTeam) onSelectTeam(teamId);
+                        closeAllModals();
+                    }}
+                />
+            ),
+        });
+    };
 
     return (
         <>
@@ -95,7 +116,7 @@ export default function MobileHeader({
                         variant="default"
                         radius="xl"
                         size="lg"
-                        onClick={() => setSearchOpened(true)}
+                        onClick={handleOpenTeamSearch}
                         aria-label="Search teams"
                     >
                         <IconSearch size={20} />
@@ -104,14 +125,6 @@ export default function MobileHeader({
                     <DashboardMenu userId={userId} />
                 </Group>
             </Box>
-
-            {/* Quick search modal */}
-            <TeamSearchModal
-                opened={searchOpened}
-                onClose={() => setSearchOpened(false)}
-                teamList={teamList}
-                onSelectTeam={onSelectTeam}
-            />
         </>
     );
 }
