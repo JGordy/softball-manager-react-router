@@ -1,0 +1,45 @@
+.eventCard {
+    background: light-dark(#ffffff, #141c26);
+    border-color: light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.08));
+    position: relative;
+    overflow: visible;
+    box-shadow: light-dark(
+        0 10px 30px rgba(0, 0, 0, 0.07),
+        0 12px 36px rgba(0, 0, 0, 0.45)
+    );
+    transition:
+        transform 150ms ease,
+        border-color 150ms ease,
+        box-shadow 150ms ease;
+}
+
+.eventCard:hover {
+    border-color: light-dark(rgba(0, 0, 0, 0.16), rgba(255, 255, 255, 0.16));
+}
+
+.actionPill,
+.actionCircle {
+    box-shadow: light-dark(
+        0 4px 12px rgba(0, 0, 0, 0.15),
+        0 6px 14px rgba(0, 0, 0, 0.5)
+    );
+    transition:
+        transform 150ms ease,
+        box-shadow 150ms ease;
+}
+
+.actionPill:hover,
+.actionCircle:hover {
+    transform: translateY(-2px);
+}
+
+.actionPill {
+    height: 36px;
+}
+
+.actionPill:hover {
+    box-shadow: light-dark(
+        0 6px 16px rgba(0, 0, 0, 0.2),
+        0 8px 18px rgba(0, 0, 0, 0.6)
+    );
+}

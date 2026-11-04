@@ -44,11 +44,24 @@ const availabilityOptions = [
     },
 ];
 
+/**
+ * AvailabilityPromptDrawer - Single-user RSVP drawer with 3 options (Attending, Not Attending, Maybe).
+ *
+ * @param {Object} props
+ * @param {boolean} props.opened - Whether the drawer is open
+ * @param {() => void} props.onClose - Callback to close the drawer
+ * @param {Object} props.game - Game object with at least $id
+ * @param {Object} [props.player] - Current user/player object with $id
+ * @param {string} [props.userId] - Fallback user ID if player object is not passed
+ * @param {string} [props.teamId] - Team ID for the game
+ * @returns {JSX.Element}
+ */
 export default function AvailabilityPromptDrawer({
     opened,
     onClose,
     game,
     player,
+    userId,
     teamId,
 }) {
     const fetcher = useFetcher();
@@ -72,12 +85,17 @@ export default function AvailabilityPromptDrawer({
     const handleSubmit = () => {
         if (!selected) return;
 
+        const effectivePlayerId = player?.$id || player?.id || userId;
+        const effectiveTeamId = teamId || game?.teamId;
+
         const formData = new FormData();
         formData.append("_action", "update-attendance");
-        formData.append("playerId", player.$id);
+        formData.append("playerId", effectivePlayerId);
         formData.append("status", selected);
-        formData.append("updatedBy", player.$id);
-        formData.append("teamId", teamId);
+        formData.append("updatedBy", effectivePlayerId);
+        if (effectiveTeamId) {
+            formData.append("teamId", effectiveTeamId);
+        }
 
         fetcher.submit(formData, {
             method: "post",

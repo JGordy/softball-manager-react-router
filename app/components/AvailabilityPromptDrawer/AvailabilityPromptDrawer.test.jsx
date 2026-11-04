@@ -1,7 +1,7 @@
 import * as reactRouter from "react-router";
 import { render, screen, fireEvent, waitFor } from "@/utils/test-utils";
 
-import AvailabilityPromptDrawer from "../AvailabilityPromptDrawer";
+import AvailabilityPromptDrawer from "./AvailabilityPromptDrawer";
 
 // Mock react-router hook
 jest.mock("react-router", () => ({
@@ -16,7 +16,7 @@ describe("AvailabilityPromptDrawer Component", () => {
     const defaultProps = {
         opened: true,
         onClose: mockOnClose,
-        game: { $id: "game123" },
+        game: { $id: "game123", teamId: "team789" },
         player: { $id: "player456" },
         teamId: "team789",
     };
@@ -67,6 +67,25 @@ describe("AvailabilityPromptDrawer Component", () => {
         expect(formData.get("playerId")).toBe("player456");
         expect(formData.get("status")).toBe("accepted");
         expect(formData.get("teamId")).toBe("team789");
+    });
+
+    it("uses userId fallback when player object is not provided", () => {
+        render(
+            <AvailabilityPromptDrawer
+                opened={true}
+                onClose={mockOnClose}
+                game={{ $id: "game123" }}
+                userId="fallbackUser"
+                teamId="team789"
+            />,
+        );
+
+        fireEvent.click(screen.getByTestId("availability-option-declined"));
+        fireEvent.click(screen.getByRole("button", { name: /SUBMIT/i }));
+
+        const formData = mockSubmit.mock.calls[0][0];
+        expect(formData.get("playerId")).toBe("fallbackUser");
+        expect(formData.get("status")).toBe("declined");
     });
 
     it("calls onClose when submission is successful", async () => {

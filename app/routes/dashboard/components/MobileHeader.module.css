@@ -1,0 +1,58 @@
+/* Sticky Top Bar: Pinned at top: 0 with 62px height */
+.stickyBar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-sizing: border-box;
+    width: calc(100% + 32px);
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+    height: 62px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    background: light-dark(rgba(240, 245, 247, 0.9), rgba(16, 23, 32, 0.92));
+    border-bottom: 1px solid
+        light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.08));
+    box-shadow: light-dark(
+        0 2px 10px rgba(0, 0, 0, 0.04),
+        0 4px 20px rgba(0, 0, 0, 0.4)
+    );
+}
+
+/* Left: Avatar linking to profile */
+.avatarLink {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    z-index: 105;
+}
+
+.avatarRingSmall {
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    border: 1.5px solid light-dark(var(--mantine-color-lime-8), #ccff00);
+    box-shadow: light-dark(
+        0 0 6px rgba(92, 138, 0, 0.25),
+        0 0 6px rgba(204, 255, 0, 0.35)
+    );
+    pointer-events: none;
+}
+
+/* Center: Dead-centered RostrHQ Branding */
+.brandLogoWrap {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    z-index: 102;
+}

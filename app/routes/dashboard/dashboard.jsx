@@ -13,7 +13,6 @@ import { createTeam } from "@/actions/teams";
 import { getUserTeams } from "@/loaders/teams";
 import { appwriteClientContext } from "@/contexts/router";
 
-import DashboardMenu from "./components/DashboardMenu";
 import MobileDashboard from "./components/MobileDashboard";
 import DesktopDashboard from "./components/DesktopDashboard";
 
@@ -99,7 +98,8 @@ function DesktopHeaderActions({
 
 export default function Dashboard({ loaderData, actionData }) {
     const { openModal } = useModal();
-    const { user } = useOutletContext();
+    const context = useOutletContext();
+    const { user, isVerified } = context || {};
     const userId = user?.$id;
 
     const teams = loaderData?.teams;
@@ -130,19 +130,15 @@ export default function Dashboard({ loaderData, actionData }) {
 
     return (
         <Box px="md">
-            <UserHeader subText="Team and events summary">
-                <Box hiddenFrom="md">
-                    <DashboardMenu userId={userId} />
-                </Box>
-                <DesktopHeaderActions
-                    openAddTeamModal={openAddTeamModal}
-                    teamList={teamList}
-                    activeTeamId={activeTeamId}
-                    setActiveTeamId={setActiveTeamId}
-                />
-            </UserHeader>
-
             <Box visibleFrom="md">
+                <UserHeader subText="Team and events summary">
+                    <DesktopHeaderActions
+                        openAddTeamModal={openAddTeamModal}
+                        teamList={teamList}
+                        activeTeamId={activeTeamId}
+                        setActiveTeamId={setActiveTeamId}
+                    />
+                </UserHeader>
                 <DesktopDashboard
                     teamList={teamList}
                     activeTeamId={activeTeamId}
@@ -154,6 +150,11 @@ export default function Dashboard({ loaderData, actionData }) {
                 <MobileDashboard
                     teamList={teamList}
                     openAddTeamModal={openAddTeamModal}
+                    user={user}
+                    isVerified={isVerified}
+                    userId={userId}
+                    activeTeamId={activeTeamId}
+                    setActiveTeamId={setActiveTeamId}
                 />
             </Box>
         </Box>

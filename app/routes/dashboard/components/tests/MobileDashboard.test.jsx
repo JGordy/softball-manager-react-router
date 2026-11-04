@@ -1,5 +1,6 @@
 import { MemoryRouter } from "react-router";
-import { render, screen, fireEvent } from "@/utils/test-utils";
+import { ModalsProvider } from "@mantine/modals";
+import { render, screen, fireEvent, within, waitFor } from "@/utils/test-utils";
 
 import MobileDashboard from "../MobileDashboard";
 import * as getGamesUtils from "@/utils/getGames";
@@ -7,6 +8,14 @@ import * as dateTimeUtils from "@/utils/dateTime";
 
 jest.mock("@/utils/getGames");
 jest.mock("@/utils/dateTime");
+jest.mock("react-router", () => ({
+    ...jest.requireActual("react-router"),
+    useFetcher: () => ({
+        submit: jest.fn(),
+        state: "idle",
+        data: null,
+    }),
+}));
 
 describe("MobileDashboard Component", () => {
     const mockTeamList = [
@@ -26,14 +35,17 @@ describe("MobileDashboard Component", () => {
 
     const mockOpenAddTeamModal = jest.fn();
 
-    const renderDashboard = (teamList = mockTeamList) => {
+    const renderDashboard = (teamList = mockTeamList, props = {}) => {
         return render(
-            <MemoryRouter>
-                <MobileDashboard
-                    teamList={teamList}
-                    openAddTeamModal={mockOpenAddTeamModal}
-                />
-            </MemoryRouter>,
+            <ModalsProvider>
+                <MemoryRouter>
+                    <MobileDashboard
+                        teamList={teamList}
+                        openAddTeamModal={mockOpenAddTeamModal}
+                        {...props}
+                    />
+                </MemoryRouter>
+            </ModalsProvider>,
         );
     };
 
@@ -72,6 +84,33 @@ describe("MobileDashboard Component", () => {
         renderDashboard();
         expect(screen.getByText(/Upcoming Opponent/i)).toBeInTheDocument();
         expect(screen.getByText("Create Lineup")).toBeInTheDocument();
+    });
+
+    it("opens the RSVP drawer when clicking the RSVP button on the upcoming game card", async () => {
+        getGamesUtils.default.mockReturnValue({
+            futureGames: [
+                {
+                    $id: "game-1",
+                    opponent: "Upcoming Opponent",
+                    gameDate: "2025-01-01",
+                    hasLineup: false,
+                    eventType: "game",
+                },
+            ],
+            pastGames: [],
+        });
+
+        renderDashboard();
+        const rsvpButton = screen.getByRole("button", { name: "RSVP" });
+        expect(rsvpButton).toBeInTheDocument();
+        fireEvent.click(rsvpButton);
+
+        await waitFor(() => {
+            expect(screen.getByText("Submit Availability")).toBeInTheDocument();
+        });
+        expect(screen.getByText("Attending")).toBeInTheDocument();
+        expect(screen.getByText("Not Attending")).toBeInTheDocument();
+        expect(screen.getByText("Maybe")).toBeInTheDocument();
     });
 
     it("displays 'Edit Lineup' when a playerChart exists", () => {
@@ -192,5 +231,39 @@ describe("MobileDashboard Component", () => {
         expect(
             screen.getByRole("link", { name: "Roster" }),
         ).toBeInTheDocument();
+    });
+
+    it("renders a single team card directly when only one team exists", () => {
+        renderDashboard([mockTeamList[0]]);
+        expect(screen.getByText("Team One")).toBeInTheDocument();
+        expect(screen.queryByText("Non-Manager Team")).not.toBeInTheDocument();
+    });
+
+    it("syncs with propActiveTeamId to display the selected team", () => {
+        renderDashboard(mockTeamList, {
+            activeTeamId: "team-non-manager",
+        });
+        expect(screen.getByRole("link", { name: "Seasons" })).toHaveAttribute(
+            "href",
+            "/team/team-non-manager#seasons",
+        );
+    });
+
+    it("switches active team and calls setActiveTeamId when selecting a team via header search", () => {
+        const mockSetActiveTeamId = jest.fn();
+        renderDashboard(mockTeamList, {
+            setActiveTeamId: mockSetActiveTeamId,
+        });
+
+        // Open search modal via header search button
+        const searchBtn = screen.getByRole("button", { name: "Search teams" });
+        fireEvent.click(searchBtn);
+
+        // Select the other team in the modal dialog
+        const dialog = screen.getByRole("dialog");
+        const teamOption = within(dialog).getByText("Non-Manager Team");
+        fireEvent.click(teamOption);
+
+        expect(mockSetActiveTeamId).toHaveBeenCalledWith("team-non-manager");
     });
 });
