@@ -38,7 +38,7 @@ export default function MobileDashboard({
     teamList = [],
     openAddTeamModal,
     user,
-    isVerified = false,
+    _isVerified = false,
     userId,
     activeTeamId: propActiveTeamId,
     setActiveTeamId: propSetActiveTeamId,
@@ -110,8 +110,6 @@ export default function MobileDashboard({
             {/* 1. Dynamic Collapsing Sticky Header */}
             <MobileHeader
                 user={user}
-                isVerified={isVerified}
-                activeTeam={activeTeam}
                 teamList={teamList}
                 onSelectTeam={handleSelectTeam}
                 userId={userId}

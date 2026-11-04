@@ -65,66 +65,64 @@ export default function MobileHeader({
     };
 
     return (
-        <>
-            {/* Top Navigation Bar (52px height) */}
-            <Box className={classes.stickyBar}>
-                {/* Left: User Avatar Linking to Profile */}
-                <Link
-                    to={user?.$id ? `/user/${user.$id}` : "/settings"}
-                    className={classes.avatarLink}
-                    aria-label="User Profile"
+        /* Top Navigation Bar (52px height) */
+        <Box className={classes.stickyBar}>
+            {/* Left: User Avatar Linking to Profile */}
+            <Link
+                to={user?.$id ? `/user/${user.$id}` : "/settings"}
+                className={classes.avatarLink}
+                aria-label="User Profile"
+            >
+                <Box
+                    pos="relative"
+                    w={38}
+                    h={38}
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                    }}
                 >
-                    <Box
-                        pos="relative"
-                        w={38}
-                        h={38}
-                        style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                        }}
-                    >
-                        <div className={classes.avatarRingSmall} />
-                        <Avatar
-                            src={user?.prefs?.avatarUrl}
-                            name={user?.name || "User"}
-                            color="lime"
-                            size={38}
-                            radius="100%"
-                        />
-                    </Box>
-                </Link>
-
-                {/* Center: RostrHQ Branding */}
-                <Link
-                    to="/dashboard"
-                    className={classes.brandLogoWrap}
-                    aria-label={branding.name}
-                >
-                    <Image
-                        src={headerLogo}
-                        alt={branding.name}
-                        h={33}
-                        w="auto"
-                        fit="contain"
+                    <div className={classes.avatarRingSmall} />
+                    <Avatar
+                        src={user?.prefs?.avatarUrl}
+                        name={user?.name || "User"}
+                        color="lime"
+                        size={38}
+                        radius="100%"
                     />
-                </Link>
+                </Box>
+            </Link>
 
-                {/* Right: Search & Menu Actions */}
-                <Group gap={6} style={{ zIndex: 105 }}>
-                    <ActionIcon
-                        variant="default"
-                        radius="xl"
-                        size="lg"
-                        onClick={handleOpenTeamSearch}
-                        aria-label="Search teams"
-                    >
-                        <IconSearch size={20} />
-                    </ActionIcon>
+            {/* Center: RostrHQ Branding */}
+            <Link
+                to="/dashboard"
+                className={classes.brandLogoWrap}
+                aria-label={branding.name}
+            >
+                <Image
+                    src={headerLogo}
+                    alt={branding.name}
+                    h={33}
+                    w="auto"
+                    fit="contain"
+                />
+            </Link>
 
-                    <DashboardMenu userId={userId} />
-                </Group>
-            </Box>
-        </>
+            {/* Right: Search & Menu Actions */}
+            <Group gap={6} style={{ zIndex: 105 }}>
+                <ActionIcon
+                    variant="default"
+                    radius="xl"
+                    size="lg"
+                    onClick={handleOpenTeamSearch}
+                    aria-label="Search teams"
+                >
+                    <IconSearch size={20} />
+                </ActionIcon>
+
+                <DashboardMenu userId={userId} />
+            </Group>
+        </Box>
     );
 }
