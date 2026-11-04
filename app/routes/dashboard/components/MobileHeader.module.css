@@ -1,0 +1,169 @@
+/* Sticky Top Bar: Pinned at top: 0, constant 52px height in document flow */
+.stickyBar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-sizing: border-box;
+    width: calc(100% + 32px);
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid transparent;
+    background: transparent;
+    transition:
+        background-color 220ms ease,
+        backdrop-filter 220ms ease,
+        border-bottom-color 220ms ease,
+        box-shadow 220ms ease;
+}
+
+/* Scrolled state: frosted stadium glass */
+.scrolled {
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    background: light-dark(rgba(240, 245, 247, 0.88), rgba(16, 23, 32, 0.92));
+    border-bottom-color: light-dark(
+        rgba(0, 0, 0, 0.08),
+        rgba(255, 255, 255, 0.08)
+    );
+    box-shadow: light-dark(
+        0 4px 20px rgba(0, 0, 0, 0.06),
+        0 4px 20px rgba(0, 0, 0, 0.45)
+    );
+}
+
+/* Left: Docked Avatar in Sticky Bar (crossfades in cleanly on scroll) */
+.dockedAvatarWrap {
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    transform: scale(0.88);
+    transition:
+        opacity 220ms ease,
+        transform 220ms ease;
+    pointer-events: none;
+    z-index: 110;
+}
+
+.dockedAvatarVisible {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+}
+
+.dockedAvatarLink {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+
+.avatarContainerSmall {
+    position: relative;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatarRingSmall {
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    border: 1.5px solid light-dark(var(--mantine-color-lime-8), #ccff00);
+    box-shadow: light-dark(
+        0 0 6px rgba(92, 138, 0, 0.25),
+        0 0 6px rgba(204, 255, 0, 0.35)
+    );
+    pointer-events: none;
+}
+
+/* Center: Active Team Nickname in Sticky Bar (crossfades in on scroll) */
+.teamNameDisplay {
+    font-family: var(--mantine-font-family, system-ui, sans-serif);
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-size: 1.15rem;
+    color: light-dark(var(--mantine-color-dark-9), #ccff00);
+    text-shadow: light-dark(none, 0 0 15px rgba(204, 255, 0, 0.35));
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 220ms ease;
+}
+
+.teamNameVisible {
+    opacity: 1;
+}
+
+/* Right Actions (Search & Menu) */
+.rightActions {
+    display: flex;
+    align-items: center;
+    z-index: 105;
+}
+
+.actionButton {
+    background: light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.05));
+    border: 1px solid light-dark(rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0.1));
+    color: light-dark(var(--mantine-color-dark-8), #ffffff);
+    transition:
+        background 150ms ease,
+        transform 150ms ease;
+}
+
+.actionButton:hover {
+    background: light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.1));
+    transform: translateY(-1px);
+}
+
+/* In-flow Hero Greeting Section: Fixed flow height (zero layout shift / jitter) */
+.heroSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-top: 14px;
+    padding-bottom: 12px;
+    margin-bottom: 4px;
+}
+
+.heroGreeting {
+    color: light-dark(var(--mantine-color-dark-9), #ffffff);
+}
+
+.heroAvatarLink {
+    text-decoration: none;
+    display: inline-block;
+}
+
+.heroAvatarContainer {
+    position: relative;
+    width: 74px;
+    height: 74px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.heroAvatarRing {
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid light-dark(var(--mantine-color-lime-8), #ccff00);
+    box-shadow: light-dark(
+        0 0 10px rgba(92, 138, 0, 0.25),
+        0 0 12px rgba(204, 255, 0, 0.5)
+    );
+    pointer-events: none;
+}
