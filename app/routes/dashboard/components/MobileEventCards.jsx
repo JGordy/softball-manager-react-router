@@ -1,5 +1,15 @@
 import { Link } from "react-router";
-import { Box, Text, Tooltip } from "@mantine/core";
+import {
+    ActionIcon,
+    Badge,
+    Box,
+    Button,
+    Card,
+    Group,
+    Text,
+    Tooltip,
+    VisuallyHidden,
+} from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import {
     IconCalendar,
@@ -88,103 +98,155 @@ export function UpcomingEventCard({ game, activeTeam, onRsvpClick }) {
     };
 
     return (
-        <Box className={classes.eventCard}>
+        <Card
+            radius={28}
+            p="lg"
+            pb={32}
+            mb={28}
+            withBorder
+            className={classes.eventCard}
+            style={{ overflow: "visible" }}
+        >
             {/* Header: Countdown pill and Date & Time Glass Pill */}
-            <div className={classes.headerRow}>
-                <div
-                    className={`${classes.countdownPill} ${isLive ? classes.countdownPillLive : ""}`}
+            <Group justify="space-between" align="center">
+                <Badge
+                    variant={isLive ? "light" : "default"}
+                    color={isLive ? "lime" : undefined}
+                    radius="xl"
+                    size="md"
+                    fw={800}
+                    tt="uppercase"
                 >
                     {countdownText}
-                </div>
-                <div className={classes.dateTimePill}>
-                    <IconCalendar size={13} stroke={2} />
-                    <span>
-                        {formattedDate || shortDate} • {shortTime}
-                    </span>
-                </div>
-            </div>
+                </Badge>
+                <Badge
+                    variant="default"
+                    radius="xl"
+                    size="md"
+                    fw={700}
+                    leftSection={<IconCalendar size={13} stroke={2} />}
+                >
+                    {formattedDate || shortDate} • {shortTime}
+                </Badge>
+            </Group>
 
             {/* Matchup row */}
-            <div className={classes.matchupRow}>
-                <Text className={classes.matchupTitle}>{matchupTitle}</Text>
-            </div>
+            <Box mt={4} mb={6}>
+                <Text fw={700} size="md" lineClamp={1}>
+                    {matchupTitle}
+                </Text>
+            </Box>
 
             {/* Attached Action Bar */}
             {!isPractice && (
-                <div className={classes.actionBar}>
+                <Group
+                    pos="absolute"
+                    bottom={-18}
+                    right={16}
+                    gap={8}
+                    style={{ zIndex: 10 }}
+                >
                     {/* Primary CTA */}
                     {isManager && (
-                        <Link
+                        <Button
+                            component={Link}
                             to={
                                 isLive
                                     ? `/events/${game.$id}/gameday`
                                     : `/events/${game.$id}/lineup`
                             }
-                            className={`${classes.primaryPillButton} ${isLive ? classes.primaryPillButtonBlue : ""}`}
+                            color={isLive ? "blue" : "lime"}
+                            radius="xl"
+                            size="xs"
+                            fw={900}
+                            tt="uppercase"
+                            className={classes.actionPill}
                         >
                             {isLive
                                 ? "Go Live"
                                 : hasLineup
                                   ? "Edit Lineup"
                                   : "Create Lineup"}
-                        </Link>
+                        </Button>
                     )}
 
                     {!isManager && (
-                        <Link
+                        <Button
+                            component={Link}
                             to={`/events/${game.$id}`}
-                            className={classes.primaryPillButton}
+                            color="lime"
+                            radius="xl"
+                            size="xs"
+                            fw={900}
+                            className={classes.actionPill}
                         >
                             View Details
-                        </Link>
+                        </Button>
                     )}
 
                     {/* Bubble 1: RSVP Button */}
                     <Tooltip label="RSVP for Game" withArrow>
                         {onRsvpClick ? (
-                            <button
+                            <Button
+                                component="button"
                                 type="button"
                                 onClick={onRsvpClick}
-                                className={classes.bubbleButton}
+                                color="lime"
+                                radius="xl"
+                                size="xs"
+                                fw={900}
+                                leftSection={
+                                    <IconCheck
+                                        size={15}
+                                        stroke={3}
+                                        style={{ marginRight: 2 }}
+                                    />
+                                }
+                                className={classes.actionPill}
                                 aria-label="RSVP"
                             >
-                                <IconCheck
-                                    size={15}
-                                    stroke={3}
-                                    style={{ marginRight: 3 }}
-                                />
-                                <span>RSVP</span>
-                            </button>
+                                RSVP
+                            </Button>
                         ) : (
-                            <Link
+                            <Button
+                                component={Link}
                                 to={`/events/${game.$id}`}
-                                className={classes.bubbleButton}
+                                color="lime"
+                                radius="xl"
+                                size="xs"
+                                fw={900}
+                                leftSection={
+                                    <IconCheck
+                                        size={15}
+                                        stroke={3}
+                                        style={{ marginRight: 2 }}
+                                    />
+                                }
+                                className={classes.actionPill}
                                 aria-label="RSVP"
                             >
-                                <IconCheck
-                                    size={15}
-                                    stroke={3}
-                                    style={{ marginRight: 3 }}
-                                />
-                                <span>RSVP</span>
-                            </Link>
+                                RSVP
+                            </Button>
                         )}
                     </Tooltip>
 
                     {/* Bubble 2: Map Pin Button */}
                     <Tooltip label="Open Venue Map" withArrow>
-                        <button
+                        <ActionIcon
                             type="button"
                             onClick={handleOpenMap}
-                            className={classes.bubbleCircleButton}
+                            color="lime"
+                            radius="xl"
+                            size={36}
+                            className={classes.actionCircle}
                             aria-label="Venue location"
                         >
                             <IconMapPin size={17} stroke={2.5} />
-                        </button>
+                        </ActionIcon>
                     </Tooltip>
-                </div>
+                </Group>
             )}
-        </Box>
+        </Card>
     );
 }
 
@@ -213,17 +275,17 @@ export function MostRecentGameCard({ game, activeTeam }) {
         : `${teamName} ${vsPrefix} ${opponentName}`;
 
     // Game result tag
-    let resultPillClass = classes.resultPillMuted;
+    let resultColor = "gray";
     let resultText = "COMPLETED";
 
     if (game.result === "won") {
-        resultPillClass = classes.resultPillWon;
+        resultColor = "lime";
         resultText = `WON ${game.score ?? ""}-${game.opponentScore ?? ""}`;
     } else if (game.result === "lost") {
-        resultPillClass = classes.resultPillLost;
+        resultColor = "red";
         resultText = `LOST ${game.score ?? ""}-${game.opponentScore ?? ""}`;
     } else if (game.result === "tied") {
-        resultPillClass = classes.resultPillMuted;
+        resultColor = "gray";
         resultText = `TIED ${game.score ?? ""}-${game.opponentScore ?? ""}`;
     }
 
@@ -249,62 +311,102 @@ export function MostRecentGameCard({ game, activeTeam }) {
     };
 
     return (
-        <Box className={classes.eventCard}>
+        <Card
+            radius={28}
+            p="lg"
+            pb={32}
+            mb={28}
+            withBorder
+            className={classes.eventCard}
+            style={{ overflow: "visible" }}
+        >
             {/* Header: Date & Time Glass Pill and Result Tag */}
-            <div className={classes.headerRow}>
-                <div className={classes.dateTimePill}>
-                    <IconCalendar size={13} stroke={2} />
-                    <span>
-                        {formattedDate || shortDate} • {shortTime}
-                    </span>
-                </div>
+            <Group justify="space-between" align="center">
+                <Badge
+                    variant="default"
+                    radius="xl"
+                    size="md"
+                    fw={700}
+                    leftSection={<IconCalendar size={13} stroke={2} />}
+                >
+                    {formattedDate || shortDate} • {shortTime}
+                </Badge>
 
                 {!isPractice && (
-                    <div className={resultPillClass}>{resultText}</div>
+                    <Badge
+                        variant="light"
+                        color={resultColor}
+                        radius="xl"
+                        size="md"
+                        fw={800}
+                        tt="uppercase"
+                    >
+                        {resultText}
+                    </Badge>
                 )}
-            </div>
+            </Group>
 
             {/* Matchup row */}
-            <div className={classes.matchupRow}>
-                <Text className={classes.matchupTitle}>{matchupTitle}</Text>
-            </div>
+            <Box mt={4} mb={6}>
+                <Text fw={700} size="md" lineClamp={1}>
+                    {matchupTitle}
+                </Text>
+            </Box>
 
             {/* Attached Action Bar */}
             {!isPractice && (
-                <div className={classes.actionBar}>
+                <Group
+                    pos="absolute"
+                    bottom={-18}
+                    right={16}
+                    gap={8}
+                    style={{ zIndex: 10 }}
+                >
                     {/* Primary CTA: Recap */}
-                    <Link
+                    <Button
+                        component={Link}
                         to={`/events/${game.$id}/gameday`}
-                        className={classes.primaryPillButton}
+                        color="lime"
+                        radius="xl"
+                        size="xs"
+                        fw={900}
+                        className={classes.actionPill}
                     >
                         Recap
-                    </Link>
+                    </Button>
 
                     {/* Bubble 1: Trophy / Awards button */}
                     <Tooltip label="See Awards" withArrow>
-                        <Link
+                        <ActionIcon
+                            component={Link}
                             to={`/events/${game.$id}?open=awards`}
-                            className={classes.bubbleCircleButton}
+                            color="lime"
+                            radius="xl"
+                            size={36}
+                            className={classes.actionCircle}
                             aria-label="See Awards"
                         >
                             <IconTrophy size={17} stroke={2.5} />
-                            <span className={classes.srOnly}>See Awards</span>
-                        </Link>
+                            <VisuallyHidden>See Awards</VisuallyHidden>
+                        </ActionIcon>
                     </Tooltip>
 
                     {/* Bubble 2: Share button */}
                     <Tooltip label="Share Result" withArrow>
-                        <button
+                        <ActionIcon
                             type="button"
                             onClick={handleShare}
-                            className={classes.bubbleCircleButton}
+                            color="lime"
+                            radius="xl"
+                            size={36}
+                            className={classes.actionCircle}
                             aria-label="Share match result"
                         >
                             <IconShare size={17} stroke={2.5} />
-                        </button>
+                        </ActionIcon>
                     </Tooltip>
-                </div>
+                </Group>
             )}
-        </Box>
+        </Card>
     );
 }
