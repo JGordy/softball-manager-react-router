@@ -32,15 +32,6 @@
     z-index: 105;
 }
 
-.avatarContainerSmall {
-    position: relative;
-    width: 38px;
-    height: 38px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
 .avatarRingSmall {
     position: absolute;
     inset: -2px;
@@ -53,7 +44,7 @@
     pointer-events: none;
 }
 
-/* Center: RostrHQ Branding */
+/* Center: Dead-centered RostrHQ Branding */
 .brandLogoWrap {
     position: absolute;
     left: 50%;
@@ -64,31 +55,4 @@
     justify-content: center;
     text-decoration: none;
     z-index: 102;
-}
-
-.brandLogo {
-    height: 33px;
-    width: auto;
-    object-fit: contain;
-}
-
-/* Right Actions (Search & Menu) */
-.rightActions {
-    display: flex;
-    align-items: center;
-    z-index: 105;
-}
-
-.actionButton {
-    background: light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.05));
-    border: 1px solid light-dark(rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0.1));
-    color: light-dark(var(--mantine-color-dark-8), #ffffff);
-    transition:
-        background 150ms ease,
-        transform 150ms ease;
-}
-
-.actionButton:hover {
-    background: light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.1));
-    transform: translateY(-1px);
 }

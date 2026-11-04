@@ -53,7 +53,16 @@ export default function MobileHeader({
                     className={classes.avatarLink}
                     aria-label="User Profile"
                 >
-                    <div className={classes.avatarContainerSmall}>
+                    <Box
+                        pos="relative"
+                        w={38}
+                        h={38}
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                        }}
+                    >
                         <div className={classes.avatarRingSmall} />
                         <Avatar
                             src={user?.prefs?.avatarUrl}
@@ -62,7 +71,7 @@ export default function MobileHeader({
                             size={38}
                             radius="100%"
                         />
-                    </div>
+                    </Box>
                 </Link>
 
                 {/* Center: RostrHQ Branding */}
@@ -74,18 +83,18 @@ export default function MobileHeader({
                     <Image
                         src={headerLogo}
                         alt={branding.name}
-                        className={classes.brandLogo}
+                        h={33}
+                        w="auto"
                         fit="contain"
                     />
                 </Link>
 
                 {/* Right: Search & Menu Actions */}
-                <Group gap={6} className={classes.rightActions}>
+                <Group gap={6} style={{ zIndex: 105 }}>
                     <ActionIcon
-                        variant="subtle"
+                        variant="default"
                         radius="xl"
                         size="lg"
-                        className={classes.actionButton}
                         onClick={() => setSearchOpened(true)}
                         aria-label="Search teams"
                     >

@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { Box, Text, darken, lighten } from "@mantine/core";
+import { Box, Text, VisuallyHidden, darken, lighten } from "@mantine/core";
 import classes from "./MobileTeamCard.module.css";
 
 /**
@@ -343,13 +343,30 @@ export default function MobileTeamCard({ team, isActive = false }) {
 
             {/* Team details centered in card */}
             <div className={classes.contentWrapper}>
-                <span className={classes.srOnly}>{team?.name}</span>
+                <VisuallyHidden>{team?.name}</VisuallyHidden>
                 {prefix && (
-                    <Text className={classes.teamPrefix}>
+                    <Text
+                        size="0.82rem"
+                        fw={700}
+                        tt="uppercase"
+                        c="rgba(255, 255, 255, 0.85)"
+                        style={{ letterSpacing: "2px", lineHeight: 1.2 }}
+                    >
                         {prefix.toUpperCase()}
                     </Text>
                 )}
-                <Text className={classes.teamNickname}>
+                <Text
+                    size="1.85rem"
+                    fw={900}
+                    tt="uppercase"
+                    c="white"
+                    style={{
+                        letterSpacing: "1.5px",
+                        lineHeight: 1.1,
+                        textShadow: "0 2px 16px rgba(0, 0, 0, 0.8)",
+                        whiteSpace: "nowrap",
+                    }}
+                >
                     {nickname.toUpperCase()}
                 </Text>
             </div>
