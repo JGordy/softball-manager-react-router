@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from "@/utils/test-utils";
 
 import { createTeam } from "@/actions/teams";
 import { getUserTeams } from "@/loaders/teams";
+import { getAttendanceByUserId } from "@/loaders/users";
 import useModal from "@/hooks/useModal";
 import { mockContext } from "@/utils/mockContext";
 
@@ -41,6 +42,9 @@ jest.mock("@/utils/appwrite/server", () => ({
 }));
 jest.mock("@/loaders/teams", () => ({
     getUserTeams: jest.fn(),
+}));
+jest.mock("@/loaders/users", () => ({
+    getAttendanceByUserId: jest.fn(),
 }));
 
 // Mock utils
@@ -93,20 +97,29 @@ describe("Dashboard Route", () => {
     });
 
     describe("loader", () => {
-        it("fetches user teams", async () => {
+        it("fetches user teams and attendance", async () => {
+            const mockAttendance = [
+                { $id: "att-1", gameId: "game-101", status: "accepted" },
+            ];
             getUserTeams.mockResolvedValue(mockTeams);
+            getAttendanceByUserId.mockResolvedValue(mockAttendance);
             const result = await loader({
                 request: new Request("http://localhost/"),
                 context: mockContext,
             });
 
             expect(getUserTeams).toHaveBeenCalled();
+            expect(getAttendanceByUserId).toHaveBeenCalledWith({
+                userId: "user-123",
+                client: expect.anything(),
+            });
             expect(result).toEqual({
                 teams: {
                     managing: mockTeams.managing,
                     playing: mockTeams.playing,
                 },
                 userId: "user-123",
+                attendance: mockAttendance,
             });
         });
     });

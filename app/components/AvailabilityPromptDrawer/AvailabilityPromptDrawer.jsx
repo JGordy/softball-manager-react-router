@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFetcher } from "react-router";
 
 import {
@@ -54,6 +54,7 @@ const availabilityOptions = [
  * @param {Object} [props.player] - Current user/player object with $id
  * @param {string} [props.userId] - Fallback user ID if player object is not passed
  * @param {string} [props.teamId] - Team ID for the game
+ * @param {string} [props.initialStatus] - Pre-selected attendance status if already answered
  * @returns {JSX.Element}
  */
 export default function AvailabilityPromptDrawer({
@@ -63,21 +64,33 @@ export default function AvailabilityPromptDrawer({
     player,
     userId,
     teamId,
+    initialStatus = null,
 }) {
     const fetcher = useFetcher();
-    const [selected, setSelected] = useState(null);
+    const isSubmittingRef = useRef(false);
+    const [selected, setSelected] = useState(initialStatus || null);
 
     const isSubmitting = fetcher.state !== "idle";
 
-    // Reset selected state when the drawer is closed
+    // Synchronize selected state with initialStatus when opened changes
     useEffect(() => {
-        if (!opened) {
+        if (opened) {
+            setSelected(initialStatus || null);
+            isSubmittingRef.current = false;
+        } else {
             setSelected(null);
+            isSubmittingRef.current = false;
         }
-    }, [opened]);
+    }, [opened, initialStatus]);
 
+    // Only close drawer if this component instance actively submitted the action
     useEffect(() => {
-        if (fetcher.state === "idle" && fetcher.data?.success) {
+        if (
+            isSubmittingRef.current &&
+            fetcher.state === "idle" &&
+            fetcher.data?.success
+        ) {
+            isSubmittingRef.current = false;
             onClose();
         }
     }, [fetcher.state, fetcher.data, onClose]);
@@ -85,6 +98,7 @@ export default function AvailabilityPromptDrawer({
     const handleSubmit = () => {
         if (!selected) return;
 
+        isSubmittingRef.current = true;
         const effectivePlayerId = player?.$id || player?.id || userId;
         const effectiveTeamId = teamId || game?.teamId;
 
@@ -112,7 +126,9 @@ export default function AvailabilityPromptDrawer({
         <DrawerContainer
             opened={opened}
             onClose={onClose}
-            title="Submit Availability"
+            title={
+                initialStatus ? "Update Availability" : "Submit Availability"
+            }
             size="lg"
         >
             <Stack gap="md" h="100%">
@@ -135,7 +151,7 @@ export default function AvailabilityPromptDrawer({
                                     borderColor:
                                         selected === item.value
                                             ? `var(--mantine-color-${item.color}-6)`
-                                            : "rgba(255, 255, 255, 0.1)",
+                                            : "light-dark(rgba(0, 0, 0, 0.1), rgba(255, 255, 255, 0.1))",
                                     transition: "all 0.2s ease",
                                 })}
                                 data-testid={`availability-option-${item.value}`}
@@ -156,7 +172,7 @@ export default function AvailabilityPromptDrawer({
                                             c={
                                                 selected === item.value
                                                     ? item.color
-                                                    : "white"
+                                                    : undefined
                                             }
                                         >
                                             {item.label}

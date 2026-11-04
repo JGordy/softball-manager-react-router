@@ -10,6 +10,7 @@ import {
 } from "@mantine/core";
 import { IconSearch, IconChevronRight } from "@tabler/icons-react";
 import useModal from "@/hooks/useModal";
+import classes from "./TeamSearchModal.module.css";
 
 /**
  * TeamSearchModal - Allows quick searching and switching between user teams.
@@ -48,15 +49,10 @@ export default function TeamSearchModal({
                 placeholder="Search teams..."
                 value={query}
                 onChange={(e) => setQuery(e.currentTarget.value)}
-                leftSection={<IconSearch size={16} color="#A3E635" />}
+                leftSection={
+                    <IconSearch size={16} color="var(--soft-lime-color)" />
+                }
                 radius="xl"
-                styles={{
-                    input: {
-                        backgroundColor: "rgba(255, 255, 255, 0.05)",
-                        borderColor: "rgba(255, 255, 255, 0.1)",
-                        color: "#ffffff",
-                    },
-                }}
                 autoFocus
             />
 
@@ -70,13 +66,7 @@ export default function TeamSearchModal({
                         <UnstyledButton
                             key={team.$id}
                             onClick={() => handleSelectTeam(team.$id)}
-                            style={{
-                                padding: "10px 14px",
-                                borderRadius: "12px",
-                                backgroundColor: "rgba(255, 255, 255, 0.03)",
-                                border: "1px solid rgba(255, 255, 255, 0.06)",
-                                transition: "background-color 150ms ease",
-                            }}
+                            className={classes.teamItem}
                         >
                             <Group justify="space-between" align="center">
                                 <Group gap="sm">
@@ -84,7 +74,7 @@ export default function TeamSearchModal({
                                         color={team.primaryColor || "#CCFF00"}
                                         size={14}
                                     />
-                                    <Text fw={600} size="sm" c="white">
+                                    <Text fw={600} size="sm">
                                         {team.name}
                                     </Text>
                                 </Group>
@@ -100,7 +90,7 @@ export default function TeamSearchModal({
                                     )}
                                     <IconChevronRight
                                         size={16}
-                                        color="rgba(255, 255, 255, 0.3)"
+                                        className={classes.chevron}
                                     />
                                 </Group>
                             </Group>

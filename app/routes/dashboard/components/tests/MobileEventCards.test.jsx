@@ -71,6 +71,57 @@ describe("MobileEventCards", () => {
             fireEvent.click(rsvpButton);
             expect(handleRsvpClick).toHaveBeenCalledTimes(1);
         });
+
+        it("renders 'Attending' when attendanceStatus is 'accepted'", () => {
+            render(
+                <MemoryRouter>
+                    <UpcomingEventCard
+                        game={mockUpcomingGame}
+                        activeTeam={mockActiveTeam}
+                        attendanceStatus="accepted"
+                        onRsvpClick={jest.fn()}
+                    />
+                </MemoryRouter>,
+            );
+
+            expect(
+                screen.getByRole("button", { name: "Attending" }),
+            ).toBeInTheDocument();
+        });
+
+        it("renders 'Not Attending' when attendanceStatus is 'declined'", () => {
+            render(
+                <MemoryRouter>
+                    <UpcomingEventCard
+                        game={mockUpcomingGame}
+                        activeTeam={mockActiveTeam}
+                        attendanceStatus="declined"
+                        onRsvpClick={jest.fn()}
+                    />
+                </MemoryRouter>,
+            );
+
+            expect(
+                screen.getByRole("button", { name: "Not Attending" }),
+            ).toBeInTheDocument();
+        });
+
+        it("renders 'Maybe' when attendanceStatus is 'tentative'", () => {
+            render(
+                <MemoryRouter>
+                    <UpcomingEventCard
+                        game={mockUpcomingGame}
+                        activeTeam={mockActiveTeam}
+                        attendanceStatus="tentative"
+                        onRsvpClick={jest.fn()}
+                    />
+                </MemoryRouter>,
+            );
+
+            expect(
+                screen.getByRole("button", { name: "Maybe" }),
+            ).toBeInTheDocument();
+        });
     });
 
     describe("MostRecentGameCard", () => {

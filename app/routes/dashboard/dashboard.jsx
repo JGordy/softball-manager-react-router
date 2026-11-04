@@ -11,6 +11,7 @@ import UserHeader from "@/components/UserHeader";
 import AddTeam from "@/forms/AddTeam";
 import { createTeam } from "@/actions/teams";
 import { getUserTeams } from "@/loaders/teams";
+import { getAttendanceByUserId } from "@/loaders/users";
 import { appwriteClientContext } from "@/contexts/router";
 
 import MobileDashboard from "./components/MobileDashboard";
@@ -29,9 +30,13 @@ export async function loader({ context }) {
         client: sessionClient,
         isDashboard: true,
     });
+    const attendance = userId
+        ? await getAttendanceByUserId({ userId, client: sessionClient })
+        : [];
     return {
         teams: { managing, playing },
         userId,
+        attendance,
     };
 }
 
@@ -155,6 +160,7 @@ export default function Dashboard({ loaderData, actionData }) {
                     userId={userId}
                     activeTeamId={activeTeamId}
                     setActiveTeamId={setActiveTeamId}
+                    attendance={loaderData?.attendance}
                 />
             </Box>
         </Box>
