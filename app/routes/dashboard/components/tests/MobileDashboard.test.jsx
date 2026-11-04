@@ -1,5 +1,5 @@
 import { MemoryRouter } from "react-router";
-import { render, screen, fireEvent } from "@/utils/test-utils";
+import { render, screen, fireEvent, within } from "@/utils/test-utils";
 
 import MobileDashboard from "../MobileDashboard";
 import * as getGamesUtils from "@/utils/getGames";
@@ -26,12 +26,13 @@ describe("MobileDashboard Component", () => {
 
     const mockOpenAddTeamModal = jest.fn();
 
-    const renderDashboard = (teamList = mockTeamList) => {
+    const renderDashboard = (teamList = mockTeamList, props = {}) => {
         return render(
             <MemoryRouter>
                 <MobileDashboard
                     teamList={teamList}
                     openAddTeamModal={mockOpenAddTeamModal}
+                    {...props}
                 />
             </MemoryRouter>,
         );
@@ -192,5 +193,39 @@ describe("MobileDashboard Component", () => {
         expect(
             screen.getByRole("link", { name: "Roster" }),
         ).toBeInTheDocument();
+    });
+
+    it("renders a single team card directly when only one team exists", () => {
+        renderDashboard([mockTeamList[0]]);
+        expect(screen.getByText("Team One")).toBeInTheDocument();
+        expect(screen.queryByText("Non-Manager Team")).not.toBeInTheDocument();
+    });
+
+    it("syncs with propActiveTeamId to display the selected team", () => {
+        renderDashboard(mockTeamList, {
+            activeTeamId: "team-non-manager",
+        });
+        expect(screen.getByRole("link", { name: "Seasons" })).toHaveAttribute(
+            "href",
+            "/team/team-non-manager#seasons",
+        );
+    });
+
+    it("switches active team and calls setActiveTeamId when selecting a team via header search", () => {
+        const mockSetActiveTeamId = jest.fn();
+        renderDashboard(mockTeamList, {
+            setActiveTeamId: mockSetActiveTeamId,
+        });
+
+        // Open search modal via header search button
+        const searchBtn = screen.getByRole("button", { name: "Search teams" });
+        fireEvent.click(searchBtn);
+
+        // Select the other team in the modal dialog
+        const dialog = screen.getByRole("dialog");
+        const teamOption = within(dialog).getByText("Non-Manager Team");
+        fireEvent.click(teamOption);
+
+        expect(mockSetActiveTeamId).toHaveBeenCalledWith("team-non-manager");
     });
 });
