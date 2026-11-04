@@ -1,0 +1,257 @@
+.eventCard {
+    background: light-dark(#ffffff, #141c26);
+    border: 1px solid light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.08));
+    border-radius: 28px;
+    padding: 18px 20px 32px 20px;
+    position: relative;
+    box-shadow: light-dark(
+        0 10px 30px rgba(0, 0, 0, 0.07),
+        0 12px 36px rgba(0, 0, 0, 0.45)
+    );
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 28px;
+    transition:
+        transform 150ms ease,
+        border-color 150ms ease,
+        box-shadow 150ms ease;
+}
+
+.eventCard:hover {
+    border-color: light-dark(rgba(0, 0, 0, 0.16), rgba(255, 255, 255, 0.16));
+}
+
+.headerRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.countdownPill {
+    background: light-dark(rgba(0, 0, 0, 0.04), rgba(255, 255, 255, 0.08));
+    border: 1px solid light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.14));
+    border-radius: 9999px;
+    padding: 4px 14px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: light-dark(var(--mantine-color-dark-8), #ffffff);
+}
+
+.countdownPillLive {
+    background: light-dark(rgba(92, 138, 0, 0.12), rgba(204, 255, 0, 0.15));
+    border: 1px solid
+        light-dark(rgba(92, 138, 0, 0.35), rgba(204, 255, 0, 0.45));
+    color: light-dark(var(--mantine-color-lime-9), #ccff00);
+}
+
+.resultPillWon {
+    background: light-dark(rgba(92, 138, 0, 0.12), rgba(204, 255, 0, 0.15));
+    border: 1px solid
+        light-dark(rgba(92, 138, 0, 0.35), rgba(204, 255, 0, 0.35));
+    color: light-dark(var(--mantine-color-lime-9), #ccff00);
+    border-radius: 9999px;
+    padding: 4px 14px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+}
+
+.resultPillLost {
+    background: light-dark(rgba(224, 36, 36, 0.08), rgba(239, 68, 68, 0.15));
+    border: 1px solid
+        light-dark(rgba(224, 36, 36, 0.25), rgba(239, 68, 68, 0.35));
+    color: light-dark(#b91c1c, #f87171);
+    border-radius: 9999px;
+    padding: 4px 14px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+}
+
+.resultPillMuted {
+    background: light-dark(rgba(0, 0, 0, 0.04), rgba(255, 255, 255, 0.08));
+    border: 1px solid light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.15));
+    color: light-dark(var(--mantine-color-gray-7), rgba(255, 255, 255, 0.7));
+    border-radius: 9999px;
+    padding: 4px 14px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+}
+
+.dateTimePill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: light-dark(rgba(0, 0, 0, 0.04), rgba(255, 255, 255, 0.06));
+    border: 1px solid light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.14));
+    border-radius: 9999px;
+    padding: 4px 12px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    color: light-dark(var(--mantine-color-dark-8), rgba(255, 255, 255, 0.9));
+    box-shadow: light-dark(none, 0 2px 8px rgba(0, 0, 0, 0.25));
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.dateTimePill svg {
+    color: light-dark(var(--mantine-color-lime-9), #ccff00);
+    flex-shrink: 0;
+}
+
+.matchupRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 4px;
+    margin-bottom: 6px;
+}
+
+.matchupTitle {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: light-dark(var(--mantine-color-dark-9), #ffffff);
+    line-height: 1.35;
+}
+
+/* Floating Action Bar: smaller bubble buttons right-aligned (justify-end) overlapping card */
+.actionBar {
+    position: absolute;
+    bottom: -18px;
+    left: 16px;
+    right: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    z-index: 10;
+}
+
+.primaryPillButton {
+    flex: 0 0 auto;
+    height: 36px;
+    padding: 0 16px;
+    border-radius: 9999px;
+    background: light-dark(var(--mantine-color-lime-filled), #ccff00);
+    color: #101720;
+    font-size: 0.82rem;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    border: none;
+    box-shadow: light-dark(
+        0 4px 12px rgba(0, 0, 0, 0.15),
+        0 6px 14px rgba(0, 0, 0, 0.5)
+    );
+    transition:
+        transform 150ms ease,
+        background-color 150ms ease,
+        box-shadow 150ms ease;
+    cursor: pointer;
+}
+
+.primaryPillButton:hover {
+    background: light-dark(var(--mantine-color-lime-8), #d4ff33);
+    transform: translateY(-2px);
+    box-shadow: light-dark(
+        0 6px 16px rgba(0, 0, 0, 0.2),
+        0 8px 18px rgba(0, 0, 0, 0.6)
+    );
+}
+
+.primaryPillButtonBlue {
+    background: #3b82f6;
+    color: #ffffff;
+    box-shadow: light-dark(
+        0 4px 12px rgba(59, 130, 246, 0.25),
+        0 6px 14px rgba(0, 0, 0, 0.5)
+    );
+}
+
+.primaryPillButtonBlue:hover {
+    background: #60a5fa;
+    box-shadow: light-dark(
+        0 6px 16px rgba(59, 130, 246, 0.35),
+        0 8px 18px rgba(0, 0, 0, 0.6)
+    );
+}
+
+.bubbleButton {
+    height: 36px;
+    border-radius: 9999px;
+    background: light-dark(var(--mantine-color-lime-filled), #ccff00);
+    color: #101720;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    font-size: 0.76rem;
+    font-weight: 900;
+    text-decoration: none;
+    box-shadow: light-dark(
+        0 4px 12px rgba(0, 0, 0, 0.15),
+        0 6px 14px rgba(0, 0, 0, 0.5)
+    );
+    cursor: pointer;
+    transition:
+        transform 150ms ease,
+        background-color 150ms ease;
+}
+
+.bubbleButton:hover {
+    background: light-dark(var(--mantine-color-lime-8), #d4ff33);
+    transform: translateY(-2px);
+}
+
+.bubbleCircleButton {
+    height: 36px;
+    width: 36px;
+    border-radius: 50%;
+    background: light-dark(var(--mantine-color-lime-filled), #ccff00);
+    color: #101720;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    text-decoration: none;
+    box-shadow: light-dark(
+        0 4px 12px rgba(0, 0, 0, 0.15),
+        0 6px 14px rgba(0, 0, 0, 0.5)
+    );
+    cursor: pointer;
+    transition:
+        transform 150ms ease,
+        background-color 150ms ease;
+}
+
+.bubbleCircleButton:hover {
+    background: light-dark(var(--mantine-color-lime-8), #d4ff33);
+    transform: translateY(-2px);
+}
+
+.srOnly {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
