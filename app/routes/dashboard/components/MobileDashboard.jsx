@@ -120,7 +120,14 @@ export default function MobileDashboard({
             <Grid mt="xs">
                 <Grid.Col span={12}>
                     <Group justify="space-between" align="center" mb="xs">
-                        <Text className={classes.teamsSectionTitle} mt="sm">
+                        <Text
+                            fw={800}
+                            size="sm"
+                            tt="uppercase"
+                            c="lime"
+                            mt="sm"
+                            style={{ letterSpacing: "1.2px" }}
+                        >
                             My Teams ({teamList?.length || 0})
                         </Text>
                     </Group>
@@ -219,7 +226,12 @@ export default function MobileDashboard({
                             <Box>
                                 <Title
                                     order={4}
-                                    className={classes.sectionTitle}
+                                    size="0.82rem"
+                                    fw={800}
+                                    tt="uppercase"
+                                    c="dimmed"
+                                    mb={8}
+                                    style={{ letterSpacing: "1px" }}
                                 >
                                     Upcoming Events
                                 </Title>
@@ -239,7 +251,12 @@ export default function MobileDashboard({
                                 <Box>
                                     <Title
                                         order={4}
-                                        className={classes.sectionTitle}
+                                        size="0.82rem"
+                                        fw={800}
+                                        tt="uppercase"
+                                        c="dimmed"
+                                        mb={8}
+                                        style={{ letterSpacing: "1px" }}
                                     >
                                         Most Recent Game
                                     </Title>
