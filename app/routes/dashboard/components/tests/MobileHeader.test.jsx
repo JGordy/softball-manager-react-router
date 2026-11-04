@@ -15,14 +15,12 @@ describe("MobileHeader Component", () => {
         prefs: { avatarUrl: "https://example.com/avatar.jpg" },
     };
 
-    const mockTeam = {
-        $id: "team-1",
-        name: "Ormewood Park Sliders",
-        primaryColor: "#6B0F1A",
-    };
-
     const mockTeamList = [
-        mockTeam,
+        {
+            $id: "team-1",
+            name: "Ormewood Park Sliders",
+            primaryColor: "#6B0F1A",
+        },
         { $id: "team-2", name: "Atlanta Braves", primaryColor: "#1d4ed8" },
     ];
 
@@ -31,8 +29,6 @@ describe("MobileHeader Component", () => {
             <MemoryRouter>
                 <MobileHeader
                     user={mockUser}
-                    isVerified={true}
-                    activeTeam={mockTeam}
                     teamList={mockTeamList}
                     userId="user-123"
                     {...props}
@@ -41,17 +37,21 @@ describe("MobileHeader Component", () => {
         );
     };
 
-    it("renders user avatar and greeting with first name", () => {
+    it("renders user avatar linking to user profile", () => {
         renderHeader();
-        expect(screen.getByText("Hello, Joe!")).toBeInTheDocument();
         expect(
             screen.getByRole("link", { name: "User Profile" }),
         ).toHaveAttribute("href", "/user/user-123");
     });
 
-    it("renders active team nickname in display typography", () => {
+    it("renders RostrHQ branding logo in the center", () => {
         renderHeader();
-        expect(screen.getByText("SLIDERS")).toBeInTheDocument();
+        const brandingImg = screen.getByRole("img", { name: "RostrHQ" });
+        expect(brandingImg).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "RostrHQ" })).toHaveAttribute(
+            "href",
+            "/dashboard",
+        );
     });
 
     it("opens team search modal when search button is clicked", () => {
