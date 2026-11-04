@@ -118,7 +118,7 @@ export default function MobileDashboard({
             <Grid mt="xs">
                 <Grid.Col span={12}>
                     <Group justify="space-between" align="center" mb="xs">
-                        <Text className={classes.teamsSectionTitle}>
+                        <Text className={classes.teamsSectionTitle} mt="sm">
                             My Teams ({teamList?.length || 0})
                         </Text>
                     </Group>
@@ -154,8 +154,8 @@ export default function MobileDashboard({
                     {teamList?.length >= 2 && (
                         <Box className={classes.carouselWrapper} pb="sm">
                             <Carousel
-                                slideSize="82%"
-                                slideGap="md"
+                                slideSize="74%"
+                                slideGap="xs"
                                 emblaOptions={{
                                     loop: true,
                                     align: "center",

@@ -1,8 +1,8 @@
 .cardContainer {
     position: relative;
     width: 100%;
-    max-width: 290px;
-    height: 340px;
+    max-width: 280px;
+    height: 330px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;

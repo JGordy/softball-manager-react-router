@@ -5,6 +5,11 @@
     text-transform: uppercase;
     color: light-dark(var(--mantine-color-lime-9), #ccff00);
 }
+.carouselWrapper {
+    margin-left: -16px;
+    margin-right: -16px;
+    overflow: hidden;
+}
 
 .carouselWrapper :global(.mantine-Carousel-indicators) {
     bottom: -4px;
