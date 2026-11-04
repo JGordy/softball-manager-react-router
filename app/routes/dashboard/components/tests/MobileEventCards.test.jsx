@@ -26,6 +26,7 @@ describe("MobileEventCards", () => {
                     <UpcomingEventCard
                         game={mockUpcomingGame}
                         activeTeam={mockActiveTeam}
+                        onRsvpClick={jest.fn()}
                     />
                 </MemoryRouter>,
             );
@@ -33,7 +34,7 @@ describe("MobileEventCards", () => {
             expect(screen.getByText(/East Atlanta/i)).toBeInTheDocument();
             expect(screen.getByText("Create Lineup")).toBeInTheDocument();
             expect(
-                screen.getByRole("link", { name: "RSVP" }),
+                screen.getByRole("button", { name: "RSVP" }),
             ).toBeInTheDocument();
             expect(
                 screen.getByRole("button", { name: "Venue location" }),

@@ -24,6 +24,21 @@ import { getGameDayStatus } from "@/utils/dateTime";
 import classes from "./MobileEventCards.module.css";
 
 /**
+ * Computes a standardized matchup title for games and practices.
+ * @param {Object} game - Game/event object
+ * @param {Object} [activeTeam] - Current active team
+ * @returns {string}
+ */
+function getMatchupTitle(game, activeTeam) {
+    const isPractice = game.eventType === "practice";
+    const opponentName = game.opponent || "Opponent";
+    const teamName = game.teamName || activeTeam?.name || "Sliders";
+    return isPractice
+        ? `${teamName} Practice`
+        : `${teamName} ${game.isHomeGame ? "vs" : "@"} ${opponentName}`;
+}
+
+/**
  * Format game date and time safely with timezone support.
  * @param {string} dateIso - ISO date string
  * @param {string} [zone] - Optional timezone
@@ -64,15 +79,13 @@ function parseGameDateTime(dateIso, zone) {
 export function UpcomingEventCard({ game, activeTeam, onRsvpClick }) {
     if (!game) return null;
 
-    const { shortDate, formattedDate, shortTime, daysUntil, isLive } =
-        parseGameDateTime(game.gameDate, game.timeZone);
+    const { formattedDate, shortTime, daysUntil, isLive } = parseGameDateTime(
+        game.gameDate,
+        game.timeZone,
+    );
 
     const isPractice = game.eventType === "practice";
-    const opponentName = game.opponent || "Opponent";
-    const teamName = game.teamName || activeTeam?.name || "Sliders";
-    const matchupTitle = isPractice
-        ? `${teamName} Practice`
-        : `${teamName} ${game.isHomeGame ? "vs" : "@"} ${opponentName}`;
+    const matchupTitle = getMatchupTitle(game, activeTeam);
 
     // Compute countdown text
     let countdownText = `${daysUntil} DAYS AWAY!`;
@@ -126,7 +139,7 @@ export function UpcomingEventCard({ game, activeTeam, onRsvpClick }) {
                     fw={700}
                     leftSection={<IconCalendar size={13} stroke={2} />}
                 >
-                    {formattedDate || shortDate} • {shortTime}
+                    {formattedDate} • {shortTime}
                 </Badge>
             </Group>
 
@@ -186,48 +199,26 @@ export function UpcomingEventCard({ game, activeTeam, onRsvpClick }) {
 
                     {/* Bubble 1: RSVP Button */}
                     <Tooltip label="RSVP for Game" withArrow>
-                        {onRsvpClick ? (
-                            <Button
-                                component="button"
-                                type="button"
-                                onClick={onRsvpClick}
-                                color="lime"
-                                radius="xl"
-                                size="xs"
-                                fw={900}
-                                leftSection={
-                                    <IconCheck
-                                        size={15}
-                                        stroke={3}
-                                        style={{ marginRight: 2 }}
-                                    />
-                                }
-                                className={classes.actionPill}
-                                aria-label="RSVP"
-                            >
-                                RSVP
-                            </Button>
-                        ) : (
-                            <Button
-                                component={Link}
-                                to={`/events/${game.$id}`}
-                                color="lime"
-                                radius="xl"
-                                size="xs"
-                                fw={900}
-                                leftSection={
-                                    <IconCheck
-                                        size={15}
-                                        stroke={3}
-                                        style={{ marginRight: 2 }}
-                                    />
-                                }
-                                className={classes.actionPill}
-                                aria-label="RSVP"
-                            >
-                                RSVP
-                            </Button>
-                        )}
+                        <Button
+                            component="button"
+                            type="button"
+                            onClick={onRsvpClick}
+                            color="lime"
+                            radius="xl"
+                            size="xs"
+                            fw={900}
+                            leftSection={
+                                <IconCheck
+                                    size={15}
+                                    stroke={3}
+                                    style={{ marginRight: 2 }}
+                                />
+                            }
+                            className={classes.actionPill}
+                            aria-label="RSVP"
+                        >
+                            RSVP
+                        </Button>
                     </Tooltip>
 
                     {/* Bubble 2: Map Pin Button */}
@@ -261,18 +252,13 @@ export function UpcomingEventCard({ game, activeTeam, onRsvpClick }) {
 export function MostRecentGameCard({ game, activeTeam }) {
     if (!game) return null;
 
-    const { shortDate, formattedDate, shortTime } = parseGameDateTime(
+    const { formattedDate, shortTime } = parseGameDateTime(
         game.gameDate,
         game.timeZone,
     );
 
     const isPractice = game.eventType === "practice";
-    const opponentName = game.opponent || "Opponent";
-    const teamName = game.teamName || activeTeam?.name || "Sliders";
-    const vsPrefix = game.isHomeGame ? "vs" : "@";
-    const matchupTitle = isPractice
-        ? `${teamName} Practice`
-        : `${teamName} ${vsPrefix} ${opponentName}`;
+    const matchupTitle = getMatchupTitle(game, activeTeam);
 
     // Game result tag
     let resultColor = "gray";
@@ -329,7 +315,7 @@ export function MostRecentGameCard({ game, activeTeam }) {
                     fw={700}
                     leftSection={<IconCalendar size={13} stroke={2} />}
                 >
-                    {formattedDate || shortDate} • {shortTime}
+                    {formattedDate} • {shortTime}
                 </Badge>
 
                 {!isPractice && (
@@ -386,8 +372,8 @@ export function MostRecentGameCard({ game, activeTeam }) {
                             className={classes.actionCircle}
                             aria-label="See Awards"
                         >
-                            <IconTrophy size={17} stroke={2.5} />
                             <VisuallyHidden>See Awards</VisuallyHidden>
+                            <IconTrophy size={17} stroke={2.5} />
                         </ActionIcon>
                     </Tooltip>
 
