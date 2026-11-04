@@ -18,6 +18,7 @@ import { getGameDayStatus } from "@/utils/dateTime";
 import MobileHeader from "./MobileHeader";
 import MobileTeamCard from "./MobileTeamCard";
 import { UpcomingEventCard, MostRecentGameCard } from "./MobileEventCards";
+import AvailabilityPromptDrawer from "@/components/AvailabilityPromptDrawer";
 import classes from "./MobileDashboard.module.css";
 
 /**
@@ -46,6 +47,7 @@ export default function MobileDashboard({
     const [localActiveIndex, setLocalActiveIndex] = useState(
         teamList && teamList.length ? 0 : -1,
     );
+    const [rsvpDrawerOpened, setRsvpDrawerOpened] = useState(false);
 
     const activeTeamIndex =
         propActiveTeamId && teamList?.length
@@ -224,6 +226,9 @@ export default function MobileDashboard({
                                 <UpcomingEventCard
                                     game={nextGame}
                                     activeTeam={activeTeam}
+                                    onRsvpClick={() =>
+                                        setRsvpDrawerOpened(true)
+                                    }
                                 />
                             </Box>
                         )}
@@ -262,6 +267,17 @@ export default function MobileDashboard({
                     </Stack>
                 </Grid.Col>
             </Grid>
+
+            {nextGame && (
+                <AvailabilityPromptDrawer
+                    opened={rsvpDrawerOpened}
+                    onClose={() => setRsvpDrawerOpened(false)}
+                    game={nextGame}
+                    player={user}
+                    userId={userId}
+                    teamId={activeTeam?.$id || nextGame?.teamId}
+                />
+            )}
         </Box>
     );
 }

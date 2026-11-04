@@ -52,6 +52,24 @@ describe("MobileEventCards", () => {
 
             expect(screen.getByText("Edit Lineup")).toBeInTheDocument();
         });
+
+        it("calls onRsvpClick when RSVP button is clicked", () => {
+            const handleRsvpClick = jest.fn();
+            render(
+                <MemoryRouter>
+                    <UpcomingEventCard
+                        game={mockUpcomingGame}
+                        activeTeam={mockActiveTeam}
+                        onRsvpClick={handleRsvpClick}
+                    />
+                </MemoryRouter>,
+            );
+
+            const rsvpButton = screen.getByRole("button", { name: "RSVP" });
+            expect(rsvpButton).toBeInTheDocument();
+            fireEvent.click(rsvpButton);
+            expect(handleRsvpClick).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe("MostRecentGameCard", () => {

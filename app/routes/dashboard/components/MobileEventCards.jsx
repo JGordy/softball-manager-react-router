@@ -48,9 +48,10 @@ function parseGameDateTime(dateIso, zone) {
  * @param {Object} props
  * @param {Object} props.game - Upcoming game object
  * @param {Object} [props.activeTeam] - Current team
+ * @param {() => void} [props.onRsvpClick] - Optional callback to open RSVP drawer
  * @returns {JSX.Element}
  */
-export function UpcomingEventCard({ game, activeTeam }) {
+export function UpcomingEventCard({ game, activeTeam, onRsvpClick }) {
     if (!game) return null;
 
     const { shortDate, formattedDate, shortTime, daysUntil, isLive } =
@@ -140,18 +141,34 @@ export function UpcomingEventCard({ game, activeTeam }) {
 
                     {/* Bubble 1: RSVP Button */}
                     <Tooltip label="RSVP for Game" withArrow>
-                        <Link
-                            to={`/events/${game.$id}`}
-                            className={classes.bubbleButton}
-                            aria-label="RSVP"
-                        >
-                            <IconCheck
-                                size={15}
-                                stroke={3}
-                                style={{ marginRight: 3 }}
-                            />
-                            <span>RSVP</span>
-                        </Link>
+                        {onRsvpClick ? (
+                            <button
+                                type="button"
+                                onClick={onRsvpClick}
+                                className={classes.bubbleButton}
+                                aria-label="RSVP"
+                            >
+                                <IconCheck
+                                    size={15}
+                                    stroke={3}
+                                    style={{ marginRight: 3 }}
+                                />
+                                <span>RSVP</span>
+                            </button>
+                        ) : (
+                            <Link
+                                to={`/events/${game.$id}`}
+                                className={classes.bubbleButton}
+                                aria-label="RSVP"
+                            >
+                                <IconCheck
+                                    size={15}
+                                    stroke={3}
+                                    style={{ marginRight: 3 }}
+                                />
+                                <span>RSVP</span>
+                            </Link>
+                        )}
                     </Tooltip>
 
                     {/* Bubble 2: Map Pin Button */}

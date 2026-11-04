@@ -1,5 +1,5 @@
 import { MemoryRouter } from "react-router";
-import { render, screen, fireEvent, within } from "@/utils/test-utils";
+import { render, screen, fireEvent, within, waitFor } from "@/utils/test-utils";
 
 import MobileDashboard from "../MobileDashboard";
 import * as getGamesUtils from "@/utils/getGames";
@@ -7,6 +7,14 @@ import * as dateTimeUtils from "@/utils/dateTime";
 
 jest.mock("@/utils/getGames");
 jest.mock("@/utils/dateTime");
+jest.mock("react-router", () => ({
+    ...jest.requireActual("react-router"),
+    useFetcher: () => ({
+        submit: jest.fn(),
+        state: "idle",
+        data: null,
+    }),
+}));
 
 describe("MobileDashboard Component", () => {
     const mockTeamList = [
@@ -73,6 +81,33 @@ describe("MobileDashboard Component", () => {
         renderDashboard();
         expect(screen.getByText(/Upcoming Opponent/i)).toBeInTheDocument();
         expect(screen.getByText("Create Lineup")).toBeInTheDocument();
+    });
+
+    it("opens the RSVP drawer when clicking the RSVP button on the upcoming game card", async () => {
+        getGamesUtils.default.mockReturnValue({
+            futureGames: [
+                {
+                    $id: "game-1",
+                    opponent: "Upcoming Opponent",
+                    gameDate: "2025-01-01",
+                    hasLineup: false,
+                    eventType: "game",
+                },
+            ],
+            pastGames: [],
+        });
+
+        renderDashboard();
+        const rsvpButton = screen.getByRole("button", { name: "RSVP" });
+        expect(rsvpButton).toBeInTheDocument();
+        fireEvent.click(rsvpButton);
+
+        await waitFor(() => {
+            expect(screen.getByText("Submit Availability")).toBeInTheDocument();
+        });
+        expect(screen.getByText("Attending")).toBeInTheDocument();
+        expect(screen.getByText("Not Attending")).toBeInTheDocument();
+        expect(screen.getByText("Maybe")).toBeInTheDocument();
     });
 
     it("displays 'Edit Lineup' when a playerChart exists", () => {
