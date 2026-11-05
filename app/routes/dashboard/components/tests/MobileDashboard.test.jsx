@@ -113,6 +113,35 @@ describe("MobileDashboard Component", () => {
         expect(screen.getByText("Maybe")).toBeInTheDocument();
     });
 
+    it("displays 'Attending' on the RSVP button and 'Update Availability' in drawer when user has already accepted", async () => {
+        getGamesUtils.default.mockReturnValue({
+            futureGames: [
+                {
+                    $id: "game-1",
+                    opponent: "Upcoming Opponent",
+                    gameDate: "2025-01-01",
+                    hasLineup: false,
+                    eventType: "game",
+                },
+            ],
+            pastGames: [],
+        });
+
+        renderDashboard(mockTeamList, {
+            attendance: [{ gameId: "game-1", status: "accepted" }],
+        });
+
+        const attendingButton = screen.getByRole("button", {
+            name: "Attending",
+        });
+        expect(attendingButton).toBeInTheDocument();
+        fireEvent.click(attendingButton);
+
+        await waitFor(() => {
+            expect(screen.getByText("Update Availability")).toBeInTheDocument();
+        });
+    });
+
     it("displays 'Edit Lineup' when a playerChart exists", () => {
         getGamesUtils.default.mockReturnValue({
             futureGames: [

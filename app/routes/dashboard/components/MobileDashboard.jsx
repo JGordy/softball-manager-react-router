@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import {
     Box,
@@ -42,12 +42,24 @@ export default function MobileDashboard({
     userId,
     activeTeamId: propActiveTeamId,
     setActiveTeamId: propSetActiveTeamId,
+    attendance = [],
 }) {
     // Determine active index
     const [localActiveIndex, setLocalActiveIndex] = useState(
         teamList && teamList.length ? 0 : -1,
     );
     const [rsvpDrawerOpened, setRsvpDrawerOpened] = useState(false);
+
+    // Map user attendance records by gameId
+    const attendanceMap = useMemo(() => {
+        const map = {};
+        (attendance || []).forEach((item) => {
+            if (item.gameId) {
+                map[item.gameId] = item.status;
+            }
+        });
+        return map;
+    }, [attendance]);
 
     const activeTeamIndex =
         propActiveTeamId && teamList?.length
@@ -88,6 +100,9 @@ export default function MobileDashboard({
     );
 
     const nextGame = liveGame || futureGames?.[0];
+    const nextGameAttendance = nextGame?.$id
+        ? attendanceMap[nextGame.$id]
+        : null;
     const rawMostRecent = pastGames?.[0];
     const mostRecentGame =
         liveGame && rawMostRecent?.$id === liveGame.$id
@@ -236,6 +251,7 @@ export default function MobileDashboard({
                                 <UpcomingEventCard
                                     game={nextGame}
                                     activeTeam={activeTeam}
+                                    attendanceStatus={nextGameAttendance}
                                     onRsvpClick={() =>
                                         setRsvpDrawerOpened(true)
                                     }
@@ -291,6 +307,7 @@ export default function MobileDashboard({
                     player={user}
                     userId={userId}
                     teamId={activeTeam?.$id || nextGame?.teamId}
+                    initialStatus={nextGameAttendance}
                 />
             )}
         </Box>

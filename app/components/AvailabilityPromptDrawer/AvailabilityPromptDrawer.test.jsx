@@ -93,6 +93,10 @@ describe("AvailabilityPromptDrawer Component", () => {
             <AvailabilityPromptDrawer {...defaultProps} />,
         );
 
+        // Select and submit to initiate submission
+        fireEvent.click(screen.getByTestId("availability-option-accepted"));
+        fireEvent.click(screen.getByRole("button", { name: /SUBMIT/i }));
+
         // Mock success state
         reactRouter.useFetcher.mockReturnValue({
             submit: mockSubmit,
@@ -105,6 +109,34 @@ describe("AvailabilityPromptDrawer Component", () => {
         await waitFor(() => {
             expect(mockOnClose).toHaveBeenCalled();
         });
+    });
+
+    it("pre-selects the option and changes title when initialStatus is provided", () => {
+        render(
+            <AvailabilityPromptDrawer
+                {...defaultProps}
+                initialStatus="accepted"
+            />,
+        );
+
+        expect(screen.getByText("Update Availability")).toBeInTheDocument();
+        const submitBtn = screen.getByRole("button", { name: /SUBMIT/i });
+        // Since initialStatus is preselected, SUBMIT is enabled immediately
+        expect(submitBtn).not.toBeDisabled();
+    });
+
+    it("does not call onClose upon opening when fetcher has stale success data", () => {
+        // Stale fetcher from a previous completed submission
+        reactRouter.useFetcher.mockReturnValue({
+            submit: mockSubmit,
+            state: "idle",
+            data: { success: true },
+        });
+
+        render(<AvailabilityPromptDrawer {...defaultProps} />);
+
+        // Should NOT close automatically on open
+        expect(mockOnClose).not.toHaveBeenCalled();
     });
 
     it("calls onClose when Decide Later is clicked", () => {

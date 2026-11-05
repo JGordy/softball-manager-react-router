@@ -14,9 +14,11 @@ import { notifications } from "@mantine/notifications";
 import {
     IconCalendar,
     IconCheck,
+    IconHelpTriangleFilled,
     IconMapPin,
-    IconTrophy,
     IconShare,
+    IconTrophy,
+    IconX,
 } from "@tabler/icons-react";
 import { DateTime } from "luxon";
 
@@ -76,7 +78,12 @@ function parseGameDateTime(dateIso, zone) {
  * @param {() => void} [props.onRsvpClick] - Optional callback to open RSVP drawer
  * @returns {JSX.Element}
  */
-export function UpcomingEventCard({ game, activeTeam, onRsvpClick }) {
+export function UpcomingEventCard({
+    game,
+    activeTeam,
+    onRsvpClick,
+    attendanceStatus,
+}) {
     if (!game) return null;
 
     const { formattedDate, shortTime, daysUntil, isLive } = parseGameDateTime(
@@ -99,6 +106,29 @@ export function UpcomingEventCard({ game, activeTeam, onRsvpClick }) {
 
     const hasLineup = !!game.hasLineup;
     const isManager = !!activeTeam?.isManager;
+
+    // RSVP button configuration based on user's current attendance status
+    let rsvpLabel = "RSVP";
+    let rsvpColor = "lime";
+    let RsvpIcon = IconCheck;
+    let rsvpTooltip = "RSVP for Game";
+
+    if (attendanceStatus === "accepted") {
+        rsvpLabel = "Attending";
+        rsvpColor = "lime";
+        RsvpIcon = IconCheck;
+        rsvpTooltip = "Attending (Tap to update)";
+    } else if (attendanceStatus === "declined") {
+        rsvpLabel = "Not Attending";
+        rsvpColor = "red";
+        RsvpIcon = IconX;
+        rsvpTooltip = "Not Attending (Tap to update)";
+    } else if (attendanceStatus === "tentative") {
+        rsvpLabel = "Maybe";
+        rsvpColor = "orange";
+        RsvpIcon = IconHelpTriangleFilled;
+        rsvpTooltip = "Maybe (Tap to update)";
+    }
 
     const handleOpenMap = (e) => {
         e.preventDefault();
@@ -198,26 +228,26 @@ export function UpcomingEventCard({ game, activeTeam, onRsvpClick }) {
                     )}
 
                     {/* Bubble 1: RSVP Button */}
-                    <Tooltip label="RSVP for Game" withArrow>
+                    <Tooltip label={rsvpTooltip} withArrow>
                         <Button
                             component="button"
                             type="button"
                             onClick={onRsvpClick}
-                            color="lime"
+                            color={rsvpColor}
                             radius="xl"
                             size="xs"
                             fw={900}
                             leftSection={
-                                <IconCheck
+                                <RsvpIcon
                                     size={15}
                                     stroke={3}
                                     style={{ marginRight: 2 }}
                                 />
                             }
                             className={classes.actionPill}
-                            aria-label="RSVP"
+                            aria-label={rsvpLabel}
                         >
-                            RSVP
+                            {rsvpLabel}
                         </Button>
                     </Tooltip>
 
