@@ -150,8 +150,19 @@ export function UpcomingEventCard({
             className={classes.eventCard}
             style={{ overflow: "visible" }}
         >
+            {/* Card Overlay Link to event details */}
+            <Link
+                to={`/events/${game.$id}`}
+                className={classes.cardOverlayLink}
+                aria-label={`View details for ${matchupTitle}`}
+            />
+
             {/* Header: Countdown pill and Date & Time Glass Pill */}
-            <Group justify="space-between" align="center">
+            <Group
+                justify="space-between"
+                align="center"
+                className={classes.cardContent}
+            >
                 <Badge
                     variant={isLive ? "light" : "default"}
                     color={isLive ? "lime" : undefined}
@@ -174,7 +185,7 @@ export function UpcomingEventCard({
             </Group>
 
             {/* Matchup row */}
-            <Box mt={4} mb={6}>
+            <Box mt={4} mb={6} className={classes.cardContent}>
                 <Text fw={700} size="md" lineClamp={1}>
                     {matchupTitle}
                 </Text>
@@ -183,6 +194,7 @@ export function UpcomingEventCard({
             {/* Attached Action Bar */}
             {!isPractice && (
                 <Group
+                    className={classes.actionBar}
                     pos="absolute"
                     bottom={-18}
                     right={16}
@@ -336,8 +348,19 @@ export function MostRecentGameCard({ game, activeTeam }) {
             className={classes.eventCard}
             style={{ overflow: "visible" }}
         >
+            {/* Card Overlay Link to event details */}
+            <Link
+                to={`/events/${game.$id}`}
+                className={classes.cardOverlayLink}
+                aria-label={`View details for ${matchupTitle}`}
+            />
+
             {/* Header: Date & Time Glass Pill and Result Tag */}
-            <Group justify="space-between" align="center">
+            <Group
+                justify="space-between"
+                align="center"
+                className={classes.cardContent}
+            >
                 <Badge
                     variant="default"
                     radius="xl"
@@ -363,7 +386,7 @@ export function MostRecentGameCard({ game, activeTeam }) {
             </Group>
 
             {/* Matchup row */}
-            <Box mt={4} mb={6}>
+            <Box mt={4} mb={6} className={classes.cardContent}>
                 <Text fw={700} size="md" lineClamp={1}>
                     {matchupTitle}
                 </Text>
@@ -372,6 +395,7 @@ export function MostRecentGameCard({ game, activeTeam }) {
             {/* Attached Action Bar */}
             {!isPractice && (
                 <Group
+                    className={classes.actionBar}
                     pos="absolute"
                     bottom={-18}
                     right={16}

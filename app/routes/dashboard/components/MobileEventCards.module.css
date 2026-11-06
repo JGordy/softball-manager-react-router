@@ -11,10 +11,39 @@
         transform 150ms ease,
         border-color 150ms ease,
         box-shadow 150ms ease;
+    cursor: pointer;
 }
 
 .eventCard:hover {
-    border-color: light-dark(rgba(0, 0, 0, 0.16), rgba(255, 255, 255, 0.16));
+    border-color: light-dark(rgba(0, 0, 0, 0.2), rgba(255, 255, 255, 0.2));
+}
+
+.eventCard:has(.cardOverlayLink:focus-visible) {
+    border-color: var(--mantine-color-lime-filled);
+}
+
+.cardOverlayLink {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    text-decoration: none;
+    outline: none;
+}
+
+.cardOverlayLink:focus-visible {
+    outline: 2px solid var(--mantine-color-lime-filled);
+    outline-offset: 2px;
+}
+
+.cardContent {
+    pointer-events: none;
+    position: relative;
+    z-index: 2;
+}
+
+.actionBar {
+    pointer-events: auto;
 }
 
 .actionPill,
