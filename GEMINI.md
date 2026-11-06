@@ -65,10 +65,10 @@ The project uses Appwrite for Auth, Database, and Storage.
 Code is considered "Complete" only when it meets the following criteria:
 
 1.  **Documentation**: All new functions and components must have **JSDoc** blocks.
-2.  **Quality**: `npm run lint` and `npm run format` pass without errors.
+2.  **Quality**: Code passes linting for modified files without errors. Repository-wide `npm run lint` is verified prior to PR creation, and formatting is automatically applied via `lint-staged` on commit.
 3.  **Testing**:
-    - Unit tests (Jest + RTL) exist for core logic and shared components.
-    - Existing test suite passes (`npm run test`).
+    - Scoped unit tests exist and pass for modified logic/components (`npm test -- <path>`).
+    - Full test suite passes during the pre-push hook prior to opening a PR.
 4.  **Verification**: UI changes must be visually verified in the built-in browser tool across mobile and desktop breakpoints.
 5.  **Performance**: Loaders must be optimized (return raw promises for non-critical data to enable streaming) to prevent blocking the UI.
 
@@ -84,3 +84,7 @@ Code is considered "Complete" only when it meets the following criteria:
 - **Deployment Pre-check**: Run `npm run build` locally to ensure SSR bundles are correctly generated before pushing to production.
 - **Full Testing Duration**: Running the full test suite (`npm run test` or during git push hooks) takes **at least 2 minutes (120 seconds)**. AI agents must always set a timer of at least 2 minutes (120 seconds) when waiting for global test suite or git push executions to complete.
 - **NEVER SKIP TESTS ON PUSH**: Under absolutely no circumstances should any developer or AI agent use the `--no-verify` or any other test-skipping flag when committing or pushing. All git hooks and verification suites must run fully to completion. This is a critical quality rule.
+- **Use Approved NPM Scripts Over NPX**: Never invoke `npx` for tools that have pre-configured npm scripts (e.g., do NOT run `npx jest`, `npx prettier`, or `npx eslint`). Always use `npm test -- <path>`, `npm run format -- <path>`, or `npm run lint`. This ensures commands use already-approved permission prefixes and the project's exact dependency configuration.
+- **Targeted Testing During Iteration**: During active development and review loops, only run tests for modified components/files (`npm test -- <path>`). Never run the global test suite (`npm run test`) during turn-by-turn iterations; reserve the full suite for the automated pre-push hook.
+- **Rely on lint-staged for Formatting**: Do not run repository-wide `npm run format` during active development rounds; git commit hooks (`lint-staged`) automatically format staged files on commit.
+- **Scoped Linting**: Limit lint checks during development to modified files only, reserving repository-wide `npm run lint` for final pre-PR verification.
