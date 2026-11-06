@@ -122,6 +122,26 @@ describe("MobileEventCards", () => {
                 screen.getByRole("button", { name: "Maybe" }),
             ).toBeInTheDocument();
         });
+
+        it("renders an accessible overlay link navigating to the event details", () => {
+            render(
+                <MemoryRouter>
+                    <UpcomingEventCard
+                        game={mockUpcomingGame}
+                        activeTeam={mockActiveTeam}
+                    />
+                </MemoryRouter>,
+            );
+
+            const cardLink = screen.getByRole("link", {
+                name: /view details for ormewood park sliders @ east atlanta/i,
+            });
+            expect(cardLink).toBeInTheDocument();
+            expect(cardLink).toHaveAttribute(
+                "href",
+                `/events/${mockUpcomingGame.$id}`,
+            );
+        });
     });
 
     describe("MostRecentGameCard", () => {
@@ -153,6 +173,26 @@ describe("MobileEventCards", () => {
             expect(
                 screen.getByRole("button", { name: "Share match result" }),
             ).toBeInTheDocument();
+        });
+
+        it("renders an accessible overlay link navigating to the event details", () => {
+            render(
+                <MemoryRouter>
+                    <MostRecentGameCard
+                        game={mockPastGame}
+                        activeTeam={mockActiveTeam}
+                    />
+                </MemoryRouter>,
+            );
+
+            const cardLink = screen.getByRole("link", {
+                name: /view details for ormewood park sliders @ edgewood/i,
+            });
+            expect(cardLink).toBeInTheDocument();
+            expect(cardLink).toHaveAttribute(
+                "href",
+                `/events/${mockPastGame.$id}`,
+            );
         });
     });
 });
