@@ -1,11 +1,10 @@
 .carouselWrapper {
     margin-left: -16px;
     margin-right: -16px;
-    overflow: hidden;
 }
 
 .carouselWrapper :global(.mantine-Carousel-indicators) {
-    bottom: -4px;
+    bottom: 8px;
 }
 
 .carouselWrapper :global(.mantine-Carousel-indicator) {

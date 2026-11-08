@@ -174,7 +174,7 @@ export default function MobileDashboard({
 
                     {/* Multiple teams: Carousel with organic asymmetric cards */}
                     {teamList?.length >= 2 && (
-                        <Box className={classes.carouselWrapper} pb="sm">
+                        <Box className={classes.carouselWrapper}>
                             <Carousel
                                 slideSize="74%"
                                 slideGap="xs"
@@ -196,7 +196,7 @@ export default function MobileDashboard({
                                         <Carousel.Slide
                                             key={team.$id}
                                             pt="sm"
-                                            pb="xs"
+                                            pb="xl"
                                         >
                                             <MobileTeamCard
                                                 team={team}
