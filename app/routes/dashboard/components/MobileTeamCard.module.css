@@ -84,8 +84,8 @@
     transform: scale(1.02);
     opacity: 1;
     filter: light-dark(
-        drop-shadow(0 14px 24px rgba(0, 0, 0, 0.18)),
-        drop-shadow(0 20px 30px rgba(0, 0, 0, 0.85))
+        drop-shadow(0 6px 14px rgba(0, 0, 0, 0.12)),
+        drop-shadow(0 8px 16px rgba(0, 0, 0, 0.45))
     );
 }
 
@@ -93,7 +93,7 @@
     transform: scale(0.94);
     opacity: 0.72;
     filter: light-dark(
-        drop-shadow(0 8px 16px rgba(0, 0, 0, 0.12)),
-        drop-shadow(0 10px 20px rgba(0, 0, 0, 0.6))
+        drop-shadow(0 3px 8px rgba(0, 0, 0, 0.08)),
+        drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3))
     );
 }
