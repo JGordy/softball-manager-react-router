@@ -48,6 +48,12 @@ export default [
         // User settings routes
         route("/settings", "routes/settings/index.jsx"),
 
+        // Training routes
+        route(
+            "/training/defensive-playbook",
+            "routes/training/defensive-playbook.jsx",
+        ),
+
         // Admin routes
         route("/admin", "routes/admin/dashboard.jsx"),
 

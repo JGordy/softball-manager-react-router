@@ -21,6 +21,7 @@
             "@components/*": ["./app/components/*"],
             "@constants": ["./app/constants/*"],
             "@contexts": ["./app/contexts/*"],
+            "@data/*": ["./app/data/*"],
             "@form": ["./app/forms/*"],
             "@hooks": ["./app/hooks/*"],
             "@loaders": ["./app/loaders/*"],
