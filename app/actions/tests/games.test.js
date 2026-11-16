@@ -458,6 +458,43 @@ describe("Games Actions", () => {
     });
 
     describe("updateGame", () => {
+        it("should return 400 error when combineDateTime returns null", async () => {
+            const { combineDateTime } = require("@/utils/dateTime");
+            combineDateTime.mockReturnValueOnce(null);
+
+            const result = await updateGame({
+                values: {
+                    gameDate: "invalid",
+                    gameTime: "10:00",
+                },
+                eventId: "game1",
+                client: mockSessionClient,
+            });
+
+            expect(result).toEqual({
+                success: false,
+                status: 400,
+                message: "Invalid game date or start time.",
+            });
+            expect(updateDocument).not.toHaveBeenCalled();
+        });
+
+        it("should return a generic error object instead of throwing when updateDocument fails", async () => {
+            updateDocument.mockRejectedValueOnce(new Error("Appwrite error"));
+
+            const result = await updateGame({
+                values: { opponent: "Updated Team" },
+                eventId: "game1",
+                client: mockSessionClient,
+            });
+
+            expect(result).toEqual({
+                success: false,
+                status: 500,
+                message: "Failed to update game. Please try again.",
+            });
+        });
+
         it("should update game successfully", async () => {
             const mockValues = {
                 opponent: "Updated Team",

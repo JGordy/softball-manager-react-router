@@ -391,11 +391,21 @@ export async function updateGame({ values, eventId, client }) {
     }
 
     if (values.gameDate && values.gameTime) {
-        dataToUpdate.gameDate = combineDateTime(
+        const updatedGameDate = combineDateTime(
             values.gameDate,
             values.gameTime,
             values.timeZone,
         );
+
+        if (!updatedGameDate) {
+            return {
+                success: false,
+                status: 400,
+                message: "Invalid game date or start time.",
+            };
+        }
+
+        dataToUpdate.gameDate = updatedGameDate;
     }
     delete dataToUpdate.gameTime;
 
@@ -610,7 +620,11 @@ export async function updateGame({ values, eventId, client }) {
         };
     } catch (error) {
         console.error("Error updating game:", error);
-        throw error;
+        return {
+            success: false,
+            status: error?.code || 500,
+            message: "Failed to update game. Please try again.",
+        };
     }
 }
 
