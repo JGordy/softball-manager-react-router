@@ -1,3 +1,5 @@
+import * as Sentry from "@sentry/react-router";
+
 import {
     createSingleGame,
     createGames,
@@ -61,6 +63,10 @@ jest.mock("@/utils/appwrite/server", () => ({
 
 jest.mock("../attendance", () => ({
     updatePlayerAttendance: jest.fn().mockResolvedValue({ success: true }),
+}));
+
+jest.mock("@sentry/react-router", () => ({
+    captureException: jest.fn(),
 }));
 
 jest.mock("react-router", () => ({
@@ -161,7 +167,8 @@ describe("Games Actions", () => {
         });
 
         it("should return a generic error object instead of throwing when createDocument fails", async () => {
-            createDocument.mockRejectedValueOnce(new Error("Appwrite error"));
+            const error = new Error("Appwrite error");
+            createDocument.mockRejectedValueOnce(error);
 
             const result = await createSingleGame({
                 values: {
@@ -172,6 +179,10 @@ describe("Games Actions", () => {
                 client: mockSessionClient,
             });
 
+            expect(Sentry.captureException).toHaveBeenCalledWith(error, {
+                tags: { action: "createSingleGame" },
+                extra: { teamId: "team1", seasonId: undefined },
+            });
             expect(result).toEqual({
                 success: false,
                 status: 500,
@@ -480,7 +491,8 @@ describe("Games Actions", () => {
         });
 
         it("should return a generic error object instead of throwing when updateDocument fails", async () => {
-            updateDocument.mockRejectedValueOnce(new Error("Appwrite error"));
+            const error = new Error("Appwrite error");
+            updateDocument.mockRejectedValueOnce(error);
 
             const result = await updateGame({
                 values: { opponent: "Updated Team" },
@@ -488,6 +500,10 @@ describe("Games Actions", () => {
                 client: mockSessionClient,
             });
 
+            expect(Sentry.captureException).toHaveBeenCalledWith(error, {
+                tags: { action: "updateGame" },
+                extra: { eventId: "game1" },
+            });
             expect(result).toEqual({
                 success: false,
                 status: 500,

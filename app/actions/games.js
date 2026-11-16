@@ -1,4 +1,5 @@
 import { ID, Permission, Role, Query } from "node-appwrite";
+import * as Sentry from "@sentry/react-router";
 
 import {
     createDocument,
@@ -243,6 +244,10 @@ export async function createSingleGame({
         };
     } catch (error) {
         console.error("Error creating game:", error);
+        Sentry.captureException(error, {
+            tags: { action: "createSingleGame" },
+            extra: { teamId, seasonId: values?.seasonId },
+        });
         return {
             success: false,
             status: error?.code || 500,
@@ -620,6 +625,10 @@ export async function updateGame({ values, eventId, client }) {
         };
     } catch (error) {
         console.error("Error updating game:", error);
+        Sentry.captureException(error, {
+            tags: { action: "updateGame" },
+            extra: { eventId },
+        });
         return {
             success: false,
             status: error?.code || 500,
