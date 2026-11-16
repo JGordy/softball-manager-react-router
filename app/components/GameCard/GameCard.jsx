@@ -20,7 +20,21 @@ const getGameStatus = (
     opponentScore,
     zone,
     eventType,
+    isMounted = true,
 ) => {
+    const resultBadge = result ? (
+        <Badge color={getGameResultColor(result)} variant="light" size="sm">
+            {`${result.toUpperCase()} ${score}-${opponentScore}`}
+        </Badge>
+    ) : null;
+
+    if (!isMounted) {
+        return {
+            status: result ? "past" : "future",
+            text: resultBadge,
+        };
+    }
+
     // Use getGameDayStatus for day classification in UTC -> then we can refine with hourly precision
     const dayStatus = getGameDayStatus(dateIso, true);
 
@@ -36,19 +50,10 @@ const getGameStatus = (
             };
         }
 
-        if (result) {
-            const resultsText = `${result.toUpperCase()} ${score}-${opponentScore}`;
+        if (resultBadge) {
             return {
                 status: "past",
-                text: (
-                    <Badge
-                        color={getGameResultColor(result)}
-                        variant="light"
-                        size="sm"
-                    >
-                        {resultsText}
-                    </Badge>
-                ),
+                text: resultBadge,
             };
         }
 
@@ -161,27 +166,15 @@ export default function GameCard({
         ? "Practice"
         : `${isHomeGame ? "vs" : "@"} ${opponent || "TBD"}`;
 
-    const gameStatus = isMounted
-        ? getGameStatus(
-              gameDate,
-              result,
-              score,
-              opponentScore,
-              timeZone,
-              eventType,
-          )
-        : {
-              status: "future",
-              text: result ? (
-                  <Badge
-                      color={getGameResultColor(result)}
-                      variant="light"
-                      size="sm"
-                  >
-                      {`${result.toUpperCase()} ${score}-${opponentScore}`}
-                  </Badge>
-              ) : null,
-          };
+    const gameStatus = getGameStatus(
+        gameDate,
+        result,
+        score,
+        opponentScore,
+        timeZone,
+        eventType,
+        isMounted,
+    );
 
     const dt = DateTime.fromISO(gameDate, { zone: "utc" }).setZone(
         timeZone || (isMounted ? "local" : "UTC"),
