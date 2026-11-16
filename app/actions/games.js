@@ -195,6 +195,16 @@ export async function createSingleGame({
             values.timeZone,
         );
 
+        if (!updatedGameDate) {
+            return {
+                success: false,
+                status: 400,
+                message: "Game date and start time are required.",
+            };
+        }
+
+        const resolvedSeasonId = values.seasonId || null;
+
         const updatedGameData = {
             ...gameData,
             location,
@@ -204,8 +214,8 @@ export async function createSingleGame({
             teamId,
             parkId,
             eventType: eventType || "game",
-            seasonId: values.seasonId,
-            seasons: values.seasonId,
+            seasonId: resolvedSeasonId,
+            seasons: resolvedSeasonId,
         };
 
         const createdGame = await createDocument(
@@ -233,7 +243,11 @@ export async function createSingleGame({
         };
     } catch (error) {
         console.error("Error creating game:", error);
-        throw error;
+        return {
+            success: false,
+            status: error?.code || 500,
+            message: "Failed to create game. Please try again.",
+        };
     }
 }
 

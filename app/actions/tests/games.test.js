@@ -139,6 +139,46 @@ describe("Games Actions", () => {
             expect(result.status).toBe(201);
         });
 
+        it("should return 400 error when gameDate or gameTime is missing", async () => {
+            const { combineDateTime } = require("@/utils/dateTime");
+            combineDateTime.mockReturnValueOnce(null);
+
+            const result = await createSingleGame({
+                values: {
+                    gameDate: "",
+                    gameTime: "19:00",
+                    teamId: "team1",
+                },
+                client: mockSessionClient,
+            });
+
+            expect(result).toEqual({
+                success: false,
+                status: 400,
+                message: "Game date and start time are required.",
+            });
+            expect(createDocument).not.toHaveBeenCalled();
+        });
+
+        it("should return a generic error object instead of throwing when createDocument fails", async () => {
+            createDocument.mockRejectedValueOnce(new Error("Appwrite error"));
+
+            const result = await createSingleGame({
+                values: {
+                    gameDate: "2024-01-01",
+                    gameTime: "10:00",
+                    teamId: "team1",
+                },
+                client: mockSessionClient,
+            });
+
+            expect(result).toEqual({
+                success: false,
+                status: 500,
+                message: "Failed to create game. Please try again.",
+            });
+        });
+
         it("should create a practice event successfully", async () => {
             const mockValues = {
                 gameDate: "2024-01-01",
