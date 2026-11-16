@@ -116,8 +116,8 @@ export default function MobileSeasonDetails({
             </Title>
 
             <Text ta="center" c="dimmed" mt="sm" mb="lg">
-                {formatForViewerDate(season.startDate)} -{" "}
-                {formatForViewerDate(season.endDate)}
+                {formatForViewerDate(season.startDate, "UTC")} -{" "}
+                {formatForViewerDate(season.endDate, "UTC")}
             </Text>
 
             <TabsWrapper defaultValue="details" color={primaryColor}>

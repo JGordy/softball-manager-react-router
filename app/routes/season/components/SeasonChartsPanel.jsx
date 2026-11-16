@@ -101,7 +101,7 @@ export default function SeasonChartsPanel({
     const isMobile = useMediaQuery(
         `(max-width: ${theme.breakpoints.sm})`,
         false,
-        { getInitialValueInEffect: false },
+        { getInitialValueInEffect: true },
     );
 
     return (

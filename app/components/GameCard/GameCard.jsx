@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { Badge, Box, Card, Flex, Group, Stack, Text } from "@mantine/core";
 
@@ -153,22 +154,41 @@ export default function GameCard({
     eventType = "game",
     mb = "md",
 }) {
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
     const isPractice = eventType === "practice";
     const formattedHeader = isPractice
         ? "Practice"
         : `${isHomeGame ? "vs" : "@"} ${opponent || "TBD"}`;
 
-    const gameStatus = getGameStatus(
-        gameDate,
-        result,
-        score,
-        opponentScore,
-        timeZone,
-        eventType,
-    );
+    const gameStatus = isMounted
+        ? getGameStatus(
+              gameDate,
+              result,
+              score,
+              opponentScore,
+              timeZone,
+              eventType,
+          )
+        : {
+              status: "future",
+              text: result ? (
+                  <Badge
+                      color={getGameResultColor(result)}
+                      variant="light"
+                      size="sm"
+                  >
+                      {`${result.toUpperCase()} ${score}-${opponentScore}`}
+                  </Badge>
+              ) : null,
+          };
 
     const dt = DateTime.fromISO(gameDate, { zone: "utc" }).setZone(
-        timeZone || "local",
+        timeZone || (isMounted ? "local" : "UTC"),
     );
     const shortDate = dt.toFormat("M/d");
     const shortTime = dt.toLocaleString(DateTime.TIME_SIMPLE);

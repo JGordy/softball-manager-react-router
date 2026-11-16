@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { DateTime } from "luxon";
 import {
     Badge,
     Container,
@@ -49,7 +50,20 @@ export default function DesktopSeasonDetails({
     isArchiveView = false,
     previousSeasonData = null,
 }) {
-    const { futureGames: upcomingGames, pastGames } = splitGames(season.games);
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    const { futureGames: upcomingGames, pastGames } = useMemo(
+        () =>
+            splitGames(
+                season.games,
+                isMounted ? DateTime.local() : DateTime.fromMillis(0),
+            ),
+        [season.games, isMounted],
+    );
 
     const hasGames = season?.games?.length > 0;
 
@@ -92,8 +106,8 @@ export default function DesktopSeasonDetails({
                 <Group align="flex-end">
                     <Title order={2}>{season.seasonName}</Title>
                     <Text c="dimmed" size="lg" mb={4}>
-                        {formatForViewerDate(season.startDate)} -{" "}
-                        {formatForViewerDate(season.endDate)}
+                        {formatForViewerDate(season.startDate, "UTC")} -{" "}
+                        {formatForViewerDate(season.endDate, "UTC")}
                     </Text>
                 </Group>
                 {record && hasGames && (
