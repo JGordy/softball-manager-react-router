@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { Badge, Box, Card, Flex, Group, Stack, Text } from "@mantine/core";
 
 import { DateTime } from "luxon";
 
+import useHydrated from "@/hooks/useHydrated";
 import { getGameDayStatus } from "@/utils/dateTime";
 import { IconBallBaseball, IconRun } from "@tabler/icons-react";
 
@@ -154,11 +154,7 @@ export default function GameCard({
     eventType = "game",
     mb = "md",
 }) {
-    const [isMounted, setIsMounted] = useState(false);
-
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
+    const isMounted = useHydrated();
 
     const isPractice = eventType === "practice";
     const formattedHeader = isPractice
@@ -191,7 +187,9 @@ export default function GameCard({
         timeZone || (isMounted ? "local" : "UTC"),
     );
     const shortDate = dt.toFormat("M/d");
-    const shortTime = dt.toLocaleString(DateTime.TIME_SIMPLE);
+    const shortTime = (isMounted ? dt : dt.setLocale("en-US")).toLocaleString(
+        DateTime.TIME_SIMPLE,
+    );
 
     const brandingColor = primaryColor || (isPractice ? "blue" : "lime");
 

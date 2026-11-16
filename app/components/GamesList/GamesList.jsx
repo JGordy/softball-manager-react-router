@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
 import { Card, Center, ScrollArea, Text, Stack } from "@mantine/core";
+import { DateTime } from "luxon";
 
 import GameCard from "@/components/GameCard";
-import { DateTime } from "luxon";
+import useHydrated from "@/hooks/useHydrated";
 
 export default function GamesList({
     games,
@@ -10,11 +10,7 @@ export default function GamesList({
     height = null,
     sortOrder = "asc",
 }) {
-    const [isMounted, setIsMounted] = useState(false);
-
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
+    const isMounted = useHydrated();
 
     if (!games.length) {
         return (

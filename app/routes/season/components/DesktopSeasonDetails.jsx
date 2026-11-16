@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { DateTime } from "luxon";
 import {
     Badge,
@@ -30,6 +30,7 @@ import SeasonChartsPanel from "./SeasonChartsPanel";
 
 import { splitGames } from "@/utils/getGames";
 import { formatForViewerDate } from "@/utils/dateTime";
+import useHydrated from "@/hooks/useHydrated";
 
 import SeasonMenu from "./SeasonMenu";
 
@@ -50,11 +51,7 @@ export default function DesktopSeasonDetails({
     isArchiveView = false,
     previousSeasonData = null,
 }) {
-    const [isMounted, setIsMounted] = useState(false);
-
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
+    const isMounted = useHydrated();
 
     const { futureGames: upcomingGames, pastGames } = useMemo(
         () =>
