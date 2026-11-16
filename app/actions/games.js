@@ -1,4 +1,5 @@
 import { ID, Permission, Role, Query } from "node-appwrite";
+import * as Sentry from "@sentry/react-router";
 
 import {
     createDocument,
@@ -195,6 +196,16 @@ export async function createSingleGame({
             values.timeZone,
         );
 
+        if (!updatedGameDate) {
+            return {
+                success: false,
+                status: 400,
+                message: "Game date and start time are required.",
+            };
+        }
+
+        const resolvedSeasonId = values.seasonId || null;
+
         const updatedGameData = {
             ...gameData,
             location,
@@ -204,8 +215,8 @@ export async function createSingleGame({
             teamId,
             parkId,
             eventType: eventType || "game",
-            seasonId: values.seasonId,
-            seasons: values.seasonId,
+            seasonId: resolvedSeasonId,
+            seasons: resolvedSeasonId,
         };
 
         const createdGame = await createDocument(
@@ -233,7 +244,15 @@ export async function createSingleGame({
         };
     } catch (error) {
         console.error("Error creating game:", error);
-        throw error;
+        Sentry.captureException(error, {
+            tags: { action: "createSingleGame" },
+            extra: { teamId, seasonId: values?.seasonId },
+        });
+        return {
+            success: false,
+            status: error?.code || 500,
+            message: "Failed to create game. Please try again.",
+        };
     }
 }
 
@@ -377,11 +396,21 @@ export async function updateGame({ values, eventId, client }) {
     }
 
     if (values.gameDate && values.gameTime) {
-        dataToUpdate.gameDate = combineDateTime(
+        const updatedGameDate = combineDateTime(
             values.gameDate,
             values.gameTime,
             values.timeZone,
         );
+
+        if (!updatedGameDate) {
+            return {
+                success: false,
+                status: 400,
+                message: "Invalid game date or start time.",
+            };
+        }
+
+        dataToUpdate.gameDate = updatedGameDate;
     }
     delete dataToUpdate.gameTime;
 
@@ -596,7 +625,15 @@ export async function updateGame({ values, eventId, client }) {
         };
     } catch (error) {
         console.error("Error updating game:", error);
-        throw error;
+        Sentry.captureException(error, {
+            tags: { action: "updateGame" },
+            extra: { eventId },
+        });
+        return {
+            success: false,
+            status: error?.code || 500,
+            message: "Failed to update game. Please try again.",
+        };
     }
 }
 

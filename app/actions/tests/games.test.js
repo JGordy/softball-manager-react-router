@@ -1,3 +1,5 @@
+import * as Sentry from "@sentry/react-router";
+
 import {
     createSingleGame,
     createGames,
@@ -61,6 +63,10 @@ jest.mock("@/utils/appwrite/server", () => ({
 
 jest.mock("../attendance", () => ({
     updatePlayerAttendance: jest.fn().mockResolvedValue({ success: true }),
+}));
+
+jest.mock("@sentry/react-router", () => ({
+    captureException: jest.fn(),
 }));
 
 jest.mock("react-router", () => ({
@@ -137,6 +143,51 @@ describe("Games Actions", () => {
             );
             expect(result.success).toBe(true);
             expect(result.status).toBe(201);
+        });
+
+        it("should return 400 error when gameDate or gameTime is missing", async () => {
+            const { combineDateTime } = require("@/utils/dateTime");
+            combineDateTime.mockReturnValueOnce(null);
+
+            const result = await createSingleGame({
+                values: {
+                    gameDate: "",
+                    gameTime: "19:00",
+                    teamId: "team1",
+                },
+                client: mockSessionClient,
+            });
+
+            expect(result).toEqual({
+                success: false,
+                status: 400,
+                message: "Game date and start time are required.",
+            });
+            expect(createDocument).not.toHaveBeenCalled();
+        });
+
+        it("should return a generic error object instead of throwing when createDocument fails", async () => {
+            const error = new Error("Appwrite error");
+            createDocument.mockRejectedValueOnce(error);
+
+            const result = await createSingleGame({
+                values: {
+                    gameDate: "2024-01-01",
+                    gameTime: "10:00",
+                    teamId: "team1",
+                },
+                client: mockSessionClient,
+            });
+
+            expect(Sentry.captureException).toHaveBeenCalledWith(error, {
+                tags: { action: "createSingleGame" },
+                extra: { teamId: "team1", seasonId: undefined },
+            });
+            expect(result).toEqual({
+                success: false,
+                status: 500,
+                message: "Failed to create game. Please try again.",
+            });
         });
 
         it("should create a practice event successfully", async () => {
@@ -418,6 +469,48 @@ describe("Games Actions", () => {
     });
 
     describe("updateGame", () => {
+        it("should return 400 error when combineDateTime returns null", async () => {
+            const { combineDateTime } = require("@/utils/dateTime");
+            combineDateTime.mockReturnValueOnce(null);
+
+            const result = await updateGame({
+                values: {
+                    gameDate: "invalid",
+                    gameTime: "10:00",
+                },
+                eventId: "game1",
+                client: mockSessionClient,
+            });
+
+            expect(result).toEqual({
+                success: false,
+                status: 400,
+                message: "Invalid game date or start time.",
+            });
+            expect(updateDocument).not.toHaveBeenCalled();
+        });
+
+        it("should return a generic error object instead of throwing when updateDocument fails", async () => {
+            const error = new Error("Appwrite error");
+            updateDocument.mockRejectedValueOnce(error);
+
+            const result = await updateGame({
+                values: { opponent: "Updated Team" },
+                eventId: "game1",
+                client: mockSessionClient,
+            });
+
+            expect(Sentry.captureException).toHaveBeenCalledWith(error, {
+                tags: { action: "updateGame" },
+                extra: { eventId: "game1" },
+            });
+            expect(result).toEqual({
+                success: false,
+                status: 500,
+                message: "Failed to update game. Please try again.",
+            });
+        });
+
         it("should update game successfully", async () => {
             const mockValues = {
                 opponent: "Updated Team",

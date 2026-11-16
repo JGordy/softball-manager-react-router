@@ -1,4 +1,4 @@
-import { screen, cleanup } from "@testing-library/react";
+import { screen, cleanup, fireEvent } from "@testing-library/react";
 import { render } from "@/utils/test-utils";
 
 import DatePicker from "./DatePicker";
@@ -35,5 +35,26 @@ describe("DatePicker Component", () => {
         // Verify the formatted date text is visible
         // Mantine default format is typically "MMMM D, YYYY" (e.g., January 1, 2023)
         expect(screen.getByText(/January 1, 2023/i)).toBeInTheDocument();
+    });
+
+    it("renders error message when error prop is provided", () => {
+        render(<DatePicker label="Game Date" error="Please select a date" />);
+        expect(screen.getByText("Please select a date")).toBeInTheDocument();
+    });
+
+    it("forwards onChange when a date is selected", async () => {
+        const handleChange = jest.fn();
+        render(
+            <DatePicker
+                label="Game Date"
+                defaultValue={new Date(2023, 0, 15)}
+                onChange={handleChange}
+            />,
+        );
+
+        fireEvent.click(screen.getByRole("button", { name: /Game Date/i }));
+        fireEvent.click(await screen.findByText("16"));
+
+        expect(handleChange).toHaveBeenCalled();
     });
 });

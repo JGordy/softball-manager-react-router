@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 import { ActionIcon, Group, Radio, TextInput, Select } from "@mantine/core";
 import { TimeInput } from "@mantine/dates";
@@ -30,16 +30,31 @@ export default function AddSingleGame({
     teamId,
 }) {
     const ref = useRef();
+    const [dateError, setDateError] = useState(null);
     const eventType = isPractice ? "practice" : defaults.eventType || "game";
+    const isDateRequired = action === "add-single-game";
 
     const currentTimeZone = getUserTimeZone();
 
-    const seasonOptions = seasons
+    const hasSeasonOptions = seasons?.length > 0;
+    const seasonOptions = hasSeasonOptions
         ? seasons.map((season) => ({
               label: season.seasonName,
               value: season.$id,
           }))
         : null;
+
+    const handleFormSubmit = (event) => {
+        if (!isDateRequired) return true;
+        const formData = new FormData(event.currentTarget);
+        const selectedDate = formData.get("gameDate");
+        if (!selectedDate) {
+            setDateError("Please select a date");
+            return false;
+        }
+        setDateError(null);
+        return true;
+    };
 
     const pickerControl = (
         <ActionIcon
@@ -57,8 +72,9 @@ export default function AddSingleGame({
             actionRoute={actionRoute}
             buttonColor={buttonColor}
             confirmText={confirmText}
+            onSubmit={handleFormSubmit}
         >
-            {seasonId && (
+            {seasonId && !hasSeasonOptions && (
                 <input type="hidden" name="seasonId" value={seasonId} />
             )}
             <input type="hidden" name="teamId" value={teamId} />
@@ -110,12 +126,13 @@ export default function AddSingleGame({
                 radius="md"
                 size="md"
             />
-            {seasons?.length > 0 && (
+            {hasSeasonOptions && (
                 <Select
                     className={classes.inputs}
                     label="Which season are we adding to?"
                     name="seasonId"
                     data={seasonOptions}
+                    defaultValue={seasonId || undefined}
                     mb="sm"
                     // searchable
                     radius="md"
@@ -126,13 +143,17 @@ export default function AddSingleGame({
                 label={eventType === "practice" ? "Practice Date" : "Game Date"}
                 name="gameDate"
                 placeholder="When should this be scheduled?"
+                error={dateError}
+                onChange={() => {
+                    if (dateError) setDateError(null);
+                }}
                 defaultValue={
                     defaults.gameDate &&
                     DateTime.fromISO(defaults.gameDate, {
                         zone: "utc",
                     }).toJSDate()
                 }
-                required={action === "add-single-game"}
+                required={isDateRequired}
                 radius="md"
                 size="md"
             />

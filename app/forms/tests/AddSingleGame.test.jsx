@@ -98,8 +98,26 @@ describe("AddSingleGame", () => {
         expect(screen.getByLabelText(/location notes/i)).toHaveValue("Field 3");
     });
 
-    it("submits the form with correct data", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it("prevents submission and shows an error when gameDate is missing", () => {
         render(<AddSingleGame teamId="team123" />);
+
+        fireEvent.click(screen.getByRole("button", { name: /create game/i }));
+
+        expect(mockSubmit).not.toHaveBeenCalled();
+        expect(screen.getByText("Please select a date")).toBeInTheDocument();
+    });
+
+    it("submits the form with correct data", () => {
+        render(
+            <AddSingleGame
+                teamId="team123"
+                defaults={{ gameDate: "2026-11-20T12:00:00Z" }}
+            />,
+        );
 
         fireEvent.change(screen.getByLabelText(/opponent's name/i), {
             target: { value: "Wildcats" },
@@ -115,6 +133,7 @@ describe("AddSingleGame", () => {
         const formData = mockSubmit.mock.calls[0][0];
         expect(formData.get("opponent")).toBe("Wildcats");
         expect(formData.get("teamId")).toBe("team123");
+        expect(formData.get("gameDate")).toBe("2026-11-20");
         expect(formData.get("_action")).toBe("add-single-game");
     });
 
@@ -133,7 +152,13 @@ describe("AddSingleGame", () => {
     });
 
     it("submits the correct practice data when isPractice={true}", () => {
-        render(<AddSingleGame teamId="team123" isPractice={true} />);
+        render(
+            <AddSingleGame
+                teamId="team123"
+                isPractice={true}
+                defaults={{ gameDate: "2026-11-20T12:00:00Z" }}
+            />,
+        );
 
         fireEvent.click(screen.getByRole("button", { name: /create game/i }));
 

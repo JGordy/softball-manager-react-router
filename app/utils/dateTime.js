@@ -87,9 +87,21 @@ export function formatTime(dateString, timeZone = "UTC") {
 }
 
 export const combineDateTime = (gameDate, gameTime, userTimeZone) => {
+    if (!gameDate || !gameTime) return null;
+
     // Parse date components from YYYY-MM-DD
-    const [year, month, day] = gameDate.split("-").map(Number);
-    const [hour, minute] = gameTime.split(":").map(Number);
+    const [year, month, day] = String(gameDate).split("-").map(Number);
+    const [hour, minute] = String(gameTime).split(":").map(Number);
+
+    if (
+        !Number.isFinite(year) ||
+        !Number.isFinite(month) ||
+        !Number.isFinite(day) ||
+        !Number.isFinite(hour) ||
+        !Number.isFinite(minute)
+    ) {
+        return null;
+    }
 
     const zone = userTimeZone || getUserTimeZone() || "UTC";
 
@@ -99,7 +111,7 @@ export const combineDateTime = (gameDate, gameTime, userTimeZone) => {
         { zone },
     );
 
-    return dt.toUTC().toISO();
+    return dt.isValid ? dt.toUTC().toISO() : null;
 };
 
 export function getGameDayStatus(

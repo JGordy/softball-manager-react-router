@@ -102,6 +102,18 @@ describe("dateTime utility", () => {
             const result = combineDateTime(gameDate, gameTime, userTimeZone);
             expect(result).toBe("2023-10-27T14:30:00.000Z");
         });
+
+        it("should return null when gameDate or gameTime is missing", () => {
+            expect(combineDateTime("", "10:30", "UTC")).toBeNull();
+            expect(combineDateTime("2023-10-27", "", "UTC")).toBeNull();
+            expect(combineDateTime(null, "10:30", "UTC")).toBeNull();
+        });
+
+        it("should return null for malformed date or time inputs", () => {
+            expect(combineDateTime("invalid-date", "10:30", "UTC")).toBeNull();
+            expect(combineDateTime("2023-10-27", "bad:time", "UTC")).toBeNull();
+            expect(combineDateTime("2023-13-45", "10:30", "UTC")).toBeNull();
+        });
     });
 
     describe("getGameDayStatus", () => {
