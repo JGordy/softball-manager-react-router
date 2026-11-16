@@ -27,8 +27,8 @@ export default function FormWrapper({
     const handleSubmit = (event) => {
         event.preventDefault();
 
-        if (onSubmit) {
-            onSubmit(event);
+        if (onSubmit && onSubmit(event) === false) {
+            return;
         }
 
         const formData = new FormData(event.currentTarget);

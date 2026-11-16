@@ -6,8 +6,10 @@ import classes from "@/styles/inputs.module.css";
 
 export default function DatePicker({
     defaultValue,
+    error,
     label,
     name,
+    onChange,
     placeholder = "Pick a date",
     required = false,
 }) {
@@ -22,11 +24,13 @@ export default function DatePicker({
             size="md"
             className={classes.inputs}
             defaultValue={defaultValue}
+            error={error}
             firstDayOfWeek={0}
             highlightToday
             leftSection={<IconCalendar {...iconProps} />}
             label={label}
             name={name}
+            onChange={onChange}
             placeholder={placeholder}
             popoverProps={{ position: "top" }}
             required={required}
