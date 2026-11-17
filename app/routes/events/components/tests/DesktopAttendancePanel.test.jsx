@@ -1,6 +1,12 @@
 import { render, screen } from "@/utils/test-utils";
 import DesktopAttendancePanel from "../DesktopAttendancePanel";
 
+jest.mock("@/utils/avatars", () => ({
+    getUserPhotoUrl: jest.fn(({ userId }) =>
+        userId ? `https://mock-appwrite.io/avatars/${userId}` : undefined,
+    ),
+}));
+
 jest.mock("react-router", () => ({
     useOutletContext: jest.fn(() => ({ user: { $id: "user-p1" } })),
     useFetcher: jest.fn(() => ({
@@ -145,5 +151,18 @@ describe("DesktopAttendancePanel", () => {
         // Both rows editable — should have multiple Yes/No/Maybe buttons
         const noButtons = screen.getAllByText("No");
         expect(noButtons.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it("renders player avatars via getUserPhotoUrl", () => {
+        render(
+            <DesktopAttendancePanel
+                deferredData={Promise.resolve({})}
+                game={defaultGame}
+                managerView={false}
+                team={{ $id: "team1" }}
+            />,
+        );
+        const avatars = screen.getAllByRole("img");
+        expect(avatars.length).toBeGreaterThanOrEqual(2);
     });
 });

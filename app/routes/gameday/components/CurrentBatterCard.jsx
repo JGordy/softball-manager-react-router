@@ -14,6 +14,7 @@ import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
 import { HITS, WALKS, getUILabel } from "@/constants/scoring";
 import { getActivePlayerInSlot } from "../utils/gamedayUtils";
 import MiniSprayChart from "@/components/MiniSprayChart/MiniSprayChart";
+import { getUserPhotoUrl } from "@/utils/avatars";
 
 export default function CurrentBatterCard({
     currentBatter,
@@ -73,7 +74,15 @@ export default function CurrentBatterCard({
             <Group justify="space-between" wrap="nowrap">
                 <Group wrap="nowrap" gap="md" style={{ minWidth: 0, flex: 1 }}>
                     <Avatar
-                        src={activePlayer.avatarUrl}
+                        src={
+                            !isOpponent
+                                ? getUserPhotoUrl({
+                                      userId: activePlayer.$id,
+                                      name: `${activePlayer.firstName || ""} ${activePlayer.lastName || ""}`.trim(),
+                                      size: 56,
+                                  })
+                                : undefined
+                        }
                         alt={`${activePlayer.firstName}${
                             activePlayer.lastName
                                 ? ` ${activePlayer.lastName}`

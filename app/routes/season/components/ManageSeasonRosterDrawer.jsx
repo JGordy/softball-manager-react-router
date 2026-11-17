@@ -12,6 +12,7 @@ import {
 import { IconCheck, IconSquare } from "@tabler/icons-react";
 import DrawerContainer from "@/components/DrawerContainer";
 import FormWrapper from "@/forms/FormWrapper";
+import { getUserPhotoUrl } from "@/utils/avatars";
 import classes from "@/styles/CheckboxCard.module.css";
 
 /**
@@ -137,7 +138,11 @@ export default function ManageSeasonRosterDrawer({
                                             color={primaryColor}
                                         />
                                         <Avatar
-                                            src={player.avatarUrl}
+                                            src={getUserPhotoUrl({
+                                                userId: player.$id,
+                                                name: getPlayerName(player),
+                                                size: 26,
+                                            })}
                                             name={getPlayerName(player)}
                                             radius="xl"
                                             size="sm"

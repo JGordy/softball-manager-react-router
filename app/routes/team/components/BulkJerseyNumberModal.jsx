@@ -7,6 +7,7 @@ import {
     ScrollArea,
 } from "@mantine/core";
 import FormWrapper from "@/forms/FormWrapper";
+import { getUserPhotoUrl } from "@/utils/avatars";
 
 export default function BulkJerseyNumberModal({
     players,
@@ -43,7 +44,11 @@ export default function BulkJerseyNumberModal({
                             >
                                 <Group gap="sm" wrap="nowrap">
                                     <Avatar
-                                        src={player.avatarUrl}
+                                        src={getUserPhotoUrl({
+                                            userId: player.$id,
+                                            name: fullName,
+                                            size: 26,
+                                        })}
                                         name={fullName}
                                         radius="xl"
                                         size="sm"

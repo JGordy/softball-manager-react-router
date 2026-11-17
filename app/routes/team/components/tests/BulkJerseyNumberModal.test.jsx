@@ -29,6 +29,12 @@ jest.mock(
         ),
 );
 
+jest.mock("@/utils/avatars", () => ({
+    getUserPhotoUrl: jest.fn(({ userId }) =>
+        userId ? `https://mock-appwrite.io/avatars/${userId}` : undefined,
+    ),
+}));
+
 const mockPlayers = [
     { $id: "p1", firstName: "Zebra", lastName: "Last" },
     { $id: "p2", firstName: "Apple", lastName: "First" },
@@ -70,5 +76,19 @@ describe("BulkJerseyNumberModal", () => {
 
         const form = screen.getByTestId("form-wrapper");
         expect(form).toHaveAttribute("method", "post");
+    });
+
+    it("should render player avatars via getUserPhotoUrl", () => {
+        render(<BulkJerseyNumberModal {...defaultProps} />);
+
+        const avatars = screen.getAllByRole("img");
+        expect(avatars[0]).toHaveAttribute(
+            "src",
+            "https://mock-appwrite.io/avatars/p2",
+        );
+        expect(avatars[1]).toHaveAttribute(
+            "src",
+            "https://mock-appwrite.io/avatars/p1",
+        );
     });
 });
