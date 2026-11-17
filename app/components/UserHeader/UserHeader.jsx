@@ -19,6 +19,7 @@ import { IconRosetteDiscountCheckFilled } from "@tabler/icons-react";
 import classes from "./UserHeader.module.css";
 import UserStatsRow from "../UserStatsRow";
 import DeferredLoader from "@/components/DeferredLoader";
+import { getUserPhotoUrl } from "@/utils/avatars";
 
 function UserStatsRowSkeleton() {
     return (
@@ -91,7 +92,11 @@ export default function UserHeader({ children, subText, stats }) {
                         <Box className={classes.avatarWrapper}>
                             <div className={classes.ring} />
                             <Avatar
-                                src={user?.prefs?.avatarUrl}
+                                src={getUserPhotoUrl({
+                                    userId: user?.$id,
+                                    name: user?.name || user?.email,
+                                    size: 80,
+                                })}
                                 color="lime"
                                 name={user?.name}
                                 alt={user?.name}
@@ -144,7 +149,11 @@ export default function UserHeader({ children, subText, stats }) {
                     <Box className={classes.avatarWrapper}>
                         <div className={classes.ring} />
                         <Avatar
-                            src={user?.prefs?.avatarUrl}
+                            src={getUserPhotoUrl({
+                                userId: user?.$id,
+                                name: user?.name || user?.email,
+                                size: 80,
+                            })}
                             color="lime"
                             name={user?.name}
                             alt={user?.name}

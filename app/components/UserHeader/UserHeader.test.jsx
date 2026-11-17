@@ -10,6 +10,10 @@ jest.mock("react-router", () => ({
     useFetcher: jest.fn(),
 }));
 
+jest.mock("@/utils/avatars", () => ({
+    getUserPhotoUrl: jest.fn(() => "http://avatar.com/img.png"),
+}));
+
 describe("UserHeader Component", () => {
     afterEach(() => {
         cleanup();
@@ -17,8 +21,8 @@ describe("UserHeader Component", () => {
     });
 
     const mockUser = {
+        $id: "user-123",
         name: "Test User",
-        prefs: { avatarUrl: "http://avatar.com/img.png" },
     };
 
     it("renders user name and avatar", () => {

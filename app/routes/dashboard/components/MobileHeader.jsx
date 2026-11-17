@@ -12,6 +12,7 @@ import { IconSearch } from "@tabler/icons-react";
 
 import branding from "@/constants/branding";
 import useModal from "@/hooks/useModal";
+import { getUserPhotoUrl } from "@/utils/avatars";
 import DashboardMenu from "./DashboardMenu";
 import TeamSearchModal from "./TeamSearchModal";
 import classes from "./MobileHeader.module.css";
@@ -85,8 +86,13 @@ export default function MobileHeader({
                 >
                     <div className={classes.avatarRingSmall} />
                     <Avatar
-                        src={user?.prefs?.avatarUrl}
+                        src={getUserPhotoUrl({
+                            userId: user?.$id,
+                            name: user?.name || user?.email,
+                            size: 38,
+                        })}
                         name={user?.name || "User"}
+                        alt={user?.name || "User"}
                         color="lime"
                         size={38}
                         radius="100%"

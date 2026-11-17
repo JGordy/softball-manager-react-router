@@ -1,8 +1,8 @@
 import { useMemo } from "react";
-import { appwriteConfig } from "@/utils/appwrite/config";
+import { getUserPhotoUrl } from "@/utils/avatars";
 
 /**
- * Reusable User Avatar component with Appwrite Initials fallback.
+ * Reusable User Avatar component backed by Appwrite `avatars.getPhoto()`.
  *
  * @param {Object} props
  * @param {Object} props.user - The user object from Appwrite account.get()
@@ -11,16 +11,15 @@ import { appwriteConfig } from "@/utils/appwrite/config";
  */
 export default function UserAvatar({ user, size = 40, className = "" }) {
     const avatarUrl = useMemo(() => {
-        // 1. Check if user has a provider-supplied avatar in preferences
-        if (user?.prefs?.avatarUrl) {
-            return user.prefs.avatarUrl;
-        }
+        const userId = user?.$id;
+        const name =
+            user?.name || user?.email || (!userId ? "User" : undefined);
 
-        // 2. Fallback: Use Appwrite Avatars API to generate initials
-        // We use the account's name or a fallback
-        const name = user?.name || user?.email || "User";
-        const baseUrl = `${appwriteConfig.endpoint}/avatars/initials`;
-        return `${baseUrl}?name=${encodeURIComponent(name)}&width=${size}&height=${size}`;
+        return getUserPhotoUrl({
+            userId,
+            name,
+            size,
+        });
     }, [user, size]);
 
     return (

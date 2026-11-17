@@ -50,6 +50,12 @@ jest.mock("@/context/NotificationsContext", () => ({
     }),
 }));
 
+jest.mock("@/utils/avatars", () => ({
+    getUserPhotoUrl: jest.fn(({ userId }) =>
+        userId ? `https://mock-appwrite.io/avatars/${userId}` : undefined,
+    ),
+}));
+
 describe("DesktopSettingsDashboard", () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -71,6 +77,10 @@ describe("DesktopSettingsDashboard", () => {
         expect(screen.getByText("Login Options")).toBeInTheDocument();
         expect(screen.getByText("Notifications")).toBeInTheDocument();
         expect(screen.getByText("Resources & Support")).toBeInTheDocument();
+        expect(screen.getByRole("img")).toHaveAttribute(
+            "src",
+            "https://mock-appwrite.io/avatars/user-123",
+        );
     });
 
     it("opens the update contact modal when pencil icon is clicked", () => {
