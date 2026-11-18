@@ -1,6 +1,7 @@
 import {
     parseSessionCookie,
     createSessionClientFromSecret,
+    createAdminClient,
 } from "@/utils/appwrite/server";
 
 /**
@@ -17,7 +18,9 @@ export async function loader({ request }) {
 
     try {
         const { account } = createSessionClientFromSecret(session);
-        const jwtResponse = await account.createJWT();
+        const user = await account.get();
+        const { users } = createAdminClient();
+        const jwtResponse = await users.createJWT({ userId: user.$id });
         return Response.json({ jwt: jwtResponse.jwt });
     } catch (error) {
         console.error("Failed to create JWT:", error);
