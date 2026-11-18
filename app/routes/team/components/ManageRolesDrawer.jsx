@@ -2,6 +2,7 @@ import { Fragment, useMemo } from "react";
 import { useFetcher, useOutletContext } from "react-router";
 import { Avatar, Divider, Group, Select, Stack, Text } from "@mantine/core";
 import DrawerContainer from "@/components/DrawerContainer";
+import { getUserPhotoUrl } from "@/utils/avatars";
 
 const getRoleWeight = (roles) => {
     if (roles.includes("owner")) return 4;
@@ -77,6 +78,11 @@ export default function ManageRolesDrawer({
                             <Group justify="space-between" wrap="nowrap">
                                 <Group wrap="nowrap">
                                     <Avatar
+                                        src={getUserPhotoUrl({
+                                            userId: player.$id,
+                                            name: `${player.firstName} ${player.lastName}`,
+                                            size: 26,
+                                        })}
                                         name={`${player.firstName} ${player.lastName}`}
                                         radius="xl"
                                         size="sm"

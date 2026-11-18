@@ -28,6 +28,7 @@ import {
 } from "@tabler/icons-react";
 
 import fieldingPositions from "@/constants/positions";
+import { getUserPhotoUrl } from "@/utils/avatars";
 import { PREFERENCE_CONFIG } from "@/constants/positionPreferences";
 import DrawerContainer from "@/components/DrawerContainer";
 
@@ -143,6 +144,11 @@ const DraggablePlayerItem = ({
                     </div>
                 )}
                 <Avatar
+                    src={getUserPhotoUrl({
+                        userId: player.$id,
+                        name: `${player.firstName} ${player.lastName}`,
+                        size: 26,
+                    })}
                     radius="xl"
                     size="sm"
                     color="initials"

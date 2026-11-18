@@ -27,6 +27,7 @@ import {
     IconLock,
     IconLockOpen,
 } from "@tabler/icons-react";
+import { getUserPhotoUrl } from "@/utils/avatars";
 
 import images from "@/constants/images";
 import fieldingPositions from "@/constants/positions";
@@ -194,6 +195,11 @@ function DraggableFielderItem({
                         </div>
                     )}
                     <Avatar
+                        src={getUserPhotoUrl({
+                            userId: player.$id,
+                            name: `${player.firstName} ${player.lastName}`,
+                            size: 26,
+                        })}
                         radius="xl"
                         size="sm"
                         color="initials"
