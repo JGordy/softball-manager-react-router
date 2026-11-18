@@ -1,14 +1,9 @@
 import {
     createAdminClient,
-    createSessionClientFromSecret,
     serializeSessionCookie,
 } from "@/utils/appwrite/server";
 
-import {
-    readDocument,
-    createDocument,
-    updateDocument,
-} from "@/utils/databases";
+import { readDocument, createDocument } from "@/utils/databases";
 
 import { loader } from "../callback";
 
@@ -31,18 +26,16 @@ const getRedirectUrl = (res) => res.headers.get("Location");
 
 jest.mock("@/utils/appwrite/server", () => ({
     createAdminClient: jest.fn(),
-    createSessionClientFromSecret: jest.fn(),
     serializeSessionCookie: jest.fn(),
 }));
 
 jest.mock("@/utils/databases", () => ({
     readDocument: jest.fn(),
     createDocument: jest.fn(),
-    updateDocument: jest.fn(),
 }));
 
 describe("OAuth Callback Route Loader", () => {
-    let mockAdminAccount, mockAdminUsers, mockSessionAccount;
+    let mockAdminAccount, mockAdminUsers;
 
     beforeEach(() => {
         mockAdminAccount = {
@@ -51,19 +44,11 @@ describe("OAuth Callback Route Loader", () => {
         mockAdminUsers = {
             get: jest.fn(),
         };
-        mockSessionAccount = {
-            listIdentities: jest.fn(),
-            updatePrefs: jest.fn(),
-        };
         createAdminClient.mockReturnValue({
             account: mockAdminAccount,
             users: mockAdminUsers,
         });
-        createSessionClientFromSecret.mockReturnValue({
-            account: mockSessionAccount,
-        });
 
-        global.fetch = jest.fn();
         jest.clearAllMocks();
     });
 
@@ -91,7 +76,6 @@ describe("OAuth Callback Route Loader", () => {
             name: "John Doe",
             email: "john@doe.com",
         });
-        mockSessionAccount.listIdentities.mockResolvedValue({ identities: [] });
         serializeSessionCookie.mockReturnValue("cookie-string");
 
         try {
@@ -117,55 +101,6 @@ describe("OAuth Callback Route Loader", () => {
             );
             expect(getRedirectUrl(error)).toBe("/");
             expect(error.headers.get("Set-Cookie")).toBe("cookie-string");
-        }
-    });
-
-    it("fetches and saves Google avatar if applicable", async () => {
-        const url =
-            "http://localhost/auth/callback?userId=user1&secret=secret123";
-        const request = new Request(url);
-
-        mockAdminAccount.createSession.mockResolvedValue({
-            secret: "session-secret",
-        });
-        readDocument.mockResolvedValue({}); // User exists
-
-        mockSessionAccount.listIdentities.mockResolvedValue({
-            identities: [
-                { provider: "google", providerAccessToken: "google-token" },
-            ],
-        });
-
-        global.fetch.mockResolvedValue({
-            ok: true,
-            json: async () => ({ picture: "http://google.com/photo.jpg" }),
-        });
-
-        serializeSessionCookie.mockReturnValue("cookie-string");
-
-        try {
-            await loader({ request });
-            throw new Error("Should have thrown redirect");
-        } catch (error) {
-            expect(isRedirect(error)).toBe(true);
-            expect(global.fetch).toHaveBeenCalledWith(
-                "https://www.googleapis.com/oauth2/v3/userinfo",
-                expect.any(Object),
-            );
-            expect(mockSessionAccount.updatePrefs).toHaveBeenCalledWith({
-                prefs: {
-                    avatarUrl: "http://google.com/photo.jpg",
-                },
-            });
-            expect(updateDocument).toHaveBeenCalledWith(
-                "users",
-                "user1",
-                {
-                    avatarUrl: "http://google.com/photo.jpg",
-                },
-                expect.any(Object),
-            );
-            expect(getRedirectUrl(error)).toBe("/");
         }
     });
 

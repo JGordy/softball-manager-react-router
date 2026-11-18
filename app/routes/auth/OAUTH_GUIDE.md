@@ -12,8 +12,7 @@ Created server-side routes to handle the OAuth handshake securely using HttpOnly
 - **[callback.jsx](./callback.jsx)**:
     - Exchanges the OAuth token for a persistent session.
     - **Idempotent User Setup**: Automatically creates a User document in the database if it doesn't exist.
-    - **Avatar Sync**: Fetches the user's Google profile picture (via Google Identity API) and persists it to both the user's preferences and the database document.
-    - Sets the `appwrite-session` HttpOnly cookie for SSR support.
+    - Sets the `appwrite-session` HttpOnly cookie for SSR support. (OAuth2 profile photos are managed and refreshed automatically by Appwrite's User Photos API.)
 
 ### 2. Profile Onboarding Flow
 
@@ -33,7 +32,7 @@ Extended the auth suite with standard recovery and verification routes:
 
 ### 4. UI & Components
 
-- **[UserAvatar.jsx](../../components/UserAvatar.jsx)**: Dynamically renders avatars using the synced `avatarUrl` from Google or falling back to the Appwrite Avatars (Initials) API.
+- **[UserAvatar.jsx](../../components/UserAvatar/UserAvatar.jsx)**: Dynamically renders avatars via Appwrite's `avatars.getPhoto()` API (`getUserPhotoUrl`).
 - **Google Integration**: Added `GoogleButton` to **[login.jsx](./login.jsx)** and **[register.jsx](./register.jsx)**.
 - **Bad Word Validation**: **[register.jsx](./register.jsx)** includes server-side validation to prevent inappropriate names during account creation.
 
