@@ -271,6 +271,7 @@ describe("useGamedayController", () => {
         // Starter slot enriched with latest bats and defaultBats
         expect(result.current.currentBatter.bats).toBe("Switch");
         expect(result.current.currentBatter.defaultBats).toBe("left");
+        expect(result.current.currentBatter.isTemporary).toBe(false);
 
         // Substitution also enriched with latest bats and defaultBats
         expect(result.current.currentBatter.substitutions[0].bats).toBe(
@@ -279,6 +280,89 @@ describe("useGamedayController", () => {
         expect(result.current.currentBatter.substitutions[0].defaultBats).toBe(
             "left",
         );
+        expect(result.current.currentBatter.substitutions[0].isTemporary).toBe(
+            false,
+        );
+    });
+
+    it("enriches isTemporary on slots and substitutions without passing it to sub/remove actions", () => {
+        const mockHandleSubAction = jest.fn();
+        const mockHandleRemoveAction = jest.fn();
+        useGamedayActions.mockReturnValue({
+            updateAction: jest.fn(),
+            undoLast: jest.fn(),
+            handleSubCurrentBatter: mockHandleSubAction,
+            handleRemovePlayer: mockHandleRemoveAction,
+            fetcher: { data: null, state: "idle" },
+        });
+
+        const rawChart = [
+            {
+                $id: "temp1",
+                firstName: "Temp",
+                lastName: "Starter",
+                substitutions: [
+                    {
+                        playerId: "tempSub1",
+                        firstName: "Temp",
+                        lastName: "Sub",
+                        entryInning: 2,
+                    },
+                ],
+            },
+        ];
+
+        const livePlayers = [
+            {
+                $id: "temp1",
+                firstName: "Temp",
+                lastName: "Starter",
+                isTemporary: true,
+            },
+            {
+                $id: "tempSub1",
+                firstName: "Temp",
+                lastName: "Sub",
+                isTemporary: true,
+            },
+        ];
+
+        const { result } = renderHook(() =>
+            useGamedayController({
+                game: mockGame,
+                playerChart: rawChart,
+                team: mockTeam,
+                players: livePlayers,
+            }),
+        );
+
+        expect(result.current.playerChart[0].isTemporary).toBe(true);
+        expect(result.current.playerChart[0].substitutions[0].isTemporary).toBe(
+            true,
+        );
+
+        const incoming = { $id: "p2", firstName: "New", lastName: "Player" };
+        result.current.handleSubCurrentBatter(incoming);
+        expect(mockHandleSubAction).toHaveBeenCalledWith(
+            incoming,
+            0,
+            rawChart,
+            expect.any(Function),
+        );
+        expect(
+            mockHandleSubAction.mock.calls[0][2][0].isTemporary,
+        ).toBeUndefined();
+
+        result.current.handleRemovePlayer(0, "skip");
+        expect(mockHandleRemoveAction).toHaveBeenCalledWith(
+            0,
+            "skip",
+            rawChart,
+            expect.any(Function),
+        );
+        expect(
+            mockHandleRemoveAction.mock.calls[0][2][0].isTemporary,
+        ).toBeUndefined();
     });
 
     it("returns updateAction from useGamedayActions", () => {

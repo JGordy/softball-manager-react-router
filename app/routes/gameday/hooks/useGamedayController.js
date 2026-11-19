@@ -57,7 +57,7 @@ export function useGamedayController({
         enabled: true,
     });
 
-    // Enrich playerChart with live data (bats, defaultBats) from the players (user documents) array
+    // Enrich playerChart with live data (bats, defaultBats, isTemporary) from the players (user documents) array
     const playerChart = useMemo(() => {
         const playerMap = new Map(players.map((p) => [p.$id, p]));
         return lineup.map((slot) => {
@@ -66,6 +66,7 @@ export function useGamedayController({
                 ...slot,
                 bats: playerDoc?.bats || slot.bats,
                 defaultBats: playerDoc?.defaultBats ?? slot.defaultBats,
+                isTemporary: Boolean(playerDoc?.isTemporary),
             };
 
             if (slot.substitutions) {
@@ -75,6 +76,7 @@ export function useGamedayController({
                         ...sub,
                         bats: subDoc?.bats || sub.bats,
                         defaultBats: subDoc?.defaultBats ?? sub.defaultBats,
+                        isTemporary: Boolean(subDoc?.isTemporary),
                     };
                 });
             }
@@ -233,23 +235,18 @@ export function useGamedayController({
             handleSubAction(
                 incomingPlayer,
                 battingOrderIndex,
-                playerChart,
+                lineup,
                 setPlayerChart,
             );
         },
-        [handleSubAction, battingOrderIndex, playerChart],
+        [handleSubAction, battingOrderIndex, lineup],
     );
 
     const handleRemovePlayer = useCallback(
         (slotIndex, removalType) => {
-            handleRemoveAction(
-                slotIndex,
-                removalType,
-                playerChart,
-                setPlayerChart,
-            );
+            handleRemoveAction(slotIndex, removalType, lineup, setPlayerChart);
         },
-        [handleRemoveAction, playerChart],
+        [handleRemoveAction, lineup],
     );
 
     const handleUndoLast = useCallback(() => {
@@ -258,7 +255,7 @@ export function useGamedayController({
         if (!lastLog || !lastLog.$id) return;
 
         if (lastLog.eventType === "SUB") {
-            const revertedChart = playerChart.map((slot) => {
+            const revertedChart = lineup.map((slot) => {
                 if (!slot.substitutions || slot.substitutions.length === 0)
                     return slot;
                 const lastSub =
@@ -274,7 +271,7 @@ export function useGamedayController({
             setPlayerChart(revertedChart);
             undoLast(revertedChart);
         } else if (lastLog.eventType === "INJURY_REMOVE") {
-            const revertedChart = playerChart.map((slot) => {
+            const revertedChart = lineup.map((slot) => {
                 if (getActivePlayerId(slot) === lastLog.playerId) {
                     const {
                         removed: _removed,
@@ -291,7 +288,7 @@ export function useGamedayController({
         } else {
             undoLast();
         }
-    }, [isScorekeeper, logs, playerChart, setPlayerChart, undoLast]);
+    }, [isScorekeeper, logs, lineup, setPlayerChart, undoLast]);
 
     const saveOpponentChart = useCallback(
         (updatedChart) => {

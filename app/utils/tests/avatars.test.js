@@ -154,4 +154,29 @@ describe("getPlayerPhotoUrl", () => {
             height: 52,
         });
     });
+
+    it("resolves userId from playerId for substitute players", () => {
+        getPlayerPhotoUrl(
+            { playerId: "sub-1", firstName: "Sub", lastName: "Player" },
+            { size: 40 },
+        );
+
+        expect(avatars.getPhoto).toHaveBeenCalledWith({
+            userId: "sub-1",
+            name: "Sub Player",
+            width: 80,
+            height: 80,
+        });
+    });
+
+    it("returns undefined for temporary substitute players with playerId", () => {
+        expect(
+            getPlayerPhotoUrl({
+                playerId: "temp-sub-1",
+                firstName: "Temp",
+                isTemporary: true,
+            }),
+        ).toBeUndefined();
+        expect(avatars.getPhoto).not.toHaveBeenCalled();
+    });
 });

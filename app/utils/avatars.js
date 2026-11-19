@@ -99,7 +99,7 @@ export function getPlayerPhotoUrl(player, { size = 40, quality } = {}) {
     }
 
     return getUserPhotoUrl({
-        userId: player.$id,
+        userId: player.$id || player.playerId,
         name: getPlayerDisplayName(player),
         size,
         quality,
