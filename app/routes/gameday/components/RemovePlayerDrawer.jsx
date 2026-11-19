@@ -14,7 +14,7 @@ import {
 import { IconUserMinus, IconAlertTriangle } from "@tabler/icons-react";
 
 import DrawerContainer from "@/components/DrawerContainer/DrawerContainer";
-import { getUserPhotoUrl } from "@/utils/avatars";
+import { getPlayerPhotoUrl } from "@/utils/avatars";
 import { getActivePlayerInSlot } from "../utils/gamedayUtils";
 
 /**
@@ -136,11 +136,10 @@ export default function RemovePlayerDrawer({
                                                 style={{ flexShrink: 0 }}
                                                 leftSection={
                                                     <Avatar
-                                                        src={getUserPhotoUrl({
-                                                            userId: activePlayer.$id,
-                                                            name: activeName,
-                                                            size: 26,
-                                                        })}
+                                                        src={getPlayerPhotoUrl(
+                                                            activePlayer,
+                                                            { size: 26 },
+                                                        )}
                                                         size="sm"
                                                         color="blue"
                                                         radius="xl"

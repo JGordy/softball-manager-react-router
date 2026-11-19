@@ -19,7 +19,6 @@ describe("MobileHeader Component", () => {
     const mockUser = {
         $id: "user-123",
         name: "Joe Dimaggio",
-        prefs: { avatarUrl: "https://example.com/avatar.jpg" },
     };
 
     const mockTeamList = [

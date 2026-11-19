@@ -6,7 +6,7 @@ import { IconShieldCheck } from "@tabler/icons-react";
 import PlayerDetailsDrawer from "./PlayerDetailsDrawer";
 
 import classes from "@/styles/desktopRosterTable.module.css";
-import { getUserPhotoUrl } from "@/utils/avatars";
+import { getPlayerDisplayName, getPlayerPhotoUrl } from "@/utils/avatars";
 import PlayerPositions from "./PlayerPositions";
 
 export default function DesktopRosterTable({
@@ -59,13 +59,9 @@ export default function DesktopRosterTable({
                 <Table.Td>
                     <Group gap="sm">
                         <Avatar
-                            src={getUserPhotoUrl({
-                                userId: player.$id,
-                                name: `${player.firstName} ${player.lastName}`,
-                                size: 38,
-                            })}
+                            src={getPlayerPhotoUrl(player, { size: 38 })}
                             color="initials"
-                            name={`${player.firstName} ${player.lastName}`}
+                            name={getPlayerDisplayName(player)}
                             radius="xl"
                             variant="light"
                         />

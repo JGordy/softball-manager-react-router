@@ -2,8 +2,10 @@ import { render, screen } from "@/utils/test-utils";
 import DesktopAttendancePanel from "../DesktopAttendancePanel";
 
 jest.mock("@/utils/avatars", () => ({
-    getUserPhotoUrl: jest.fn(({ userId }) =>
-        userId ? `https://mock-appwrite.io/avatars/${userId}` : undefined,
+    getPlayerPhotoUrl: jest.fn((player) =>
+        player?.$id && !player.isTemporary
+            ? `https://mock-appwrite.io/avatars/${player.$id}`
+            : undefined,
     ),
 }));
 

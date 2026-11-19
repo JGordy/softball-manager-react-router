@@ -1,5 +1,9 @@
 import { avatars, client } from "@/utils/appwrite/client";
-import { getUserPhotoUrl } from "../avatars";
+import {
+    getPlayerDisplayName,
+    getPlayerPhotoUrl,
+    getUserPhotoUrl,
+} from "../avatars";
 
 jest.mock("@/utils/appwrite/client", () => ({
     client: {
@@ -17,6 +21,25 @@ jest.mock("@/utils/appwrite/client", () => ({
         ),
     },
 }));
+
+describe("getPlayerDisplayName", () => {
+    it("returns empty string for null/undefined", () => {
+        expect(getPlayerDisplayName(null)).toBe("");
+        expect(getPlayerDisplayName(undefined)).toBe("");
+    });
+
+    it("prefers player.name when present", () => {
+        expect(getPlayerDisplayName({ name: "  Jane Doe  " })).toBe("Jane Doe");
+    });
+
+    it("safely concatenates firstName and lastName without undefined", () => {
+        expect(getPlayerDisplayName({ firstName: "Jane" })).toBe("Jane");
+        expect(getPlayerDisplayName({ lastName: "Doe" })).toBe("Doe");
+        expect(
+            getPlayerDisplayName({ firstName: "Jane", lastName: "Doe" }),
+        ).toBe("Jane Doe");
+    });
+});
 
 describe("getUserPhotoUrl", () => {
     beforeEach(() => {
@@ -50,6 +73,20 @@ describe("getUserPhotoUrl", () => {
         });
         expect(url).toContain("/avatars/photo?");
         expect(url).toContain("userId=user-123");
+    });
+
+    it("omits userId when isTemporary is true", () => {
+        getUserPhotoUrl({
+            userId: "temp-guest-1",
+            isTemporary: true,
+            name: "Guest Player",
+        });
+
+        expect(avatars.getPhoto).toHaveBeenCalledWith({
+            name: "Guest Player",
+            width: 80,
+            height: 80,
+        });
     });
 
     it("clamps dimensions to Appwrite maximum of 2000px", () => {
@@ -86,5 +123,35 @@ describe("getUserPhotoUrl", () => {
         });
 
         expect(getUserPhotoUrl({ userId: "user-123" })).toBeUndefined();
+    });
+});
+
+describe("getPlayerPhotoUrl", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        client.config.endpoint = "https://mock-appwrite.io/v1";
+        client.config.project = "mock-project-id";
+    });
+
+    it("returns undefined for temporary guest players", () => {
+        expect(
+            getPlayerPhotoUrl({
+                $id: "temp-1",
+                firstName: "Guest",
+                isTemporary: true,
+            }),
+        ).toBeUndefined();
+        expect(avatars.getPhoto).not.toHaveBeenCalled();
+    });
+
+    it("builds photo URL for regular players using safe display name", () => {
+        getPlayerPhotoUrl({ $id: "p1", firstName: "Jane" }, { size: 26 });
+
+        expect(avatars.getPhoto).toHaveBeenCalledWith({
+            userId: "p1",
+            name: "Jane",
+            width: 52,
+            height: 52,
+        });
     });
 });

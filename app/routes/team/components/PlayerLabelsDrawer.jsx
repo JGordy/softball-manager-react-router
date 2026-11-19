@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useFetcher } from "react-router";
 import { Avatar, Button, Group, Stack, Text, Divider } from "@mantine/core";
 import DrawerContainer from "@/components/DrawerContainer";
-import { getUserPhotoUrl } from "@/utils/avatars";
+import { getPlayerDisplayName, getPlayerPhotoUrl } from "@/utils/avatars";
 
 export default function PlayerLabelsDrawer({ opened, onClose, team, players }) {
     const fetcher = useFetcher();
@@ -79,12 +79,10 @@ export default function PlayerLabelsDrawer({ opened, onClose, team, players }) {
                             >
                                 <Group wrap="nowrap">
                                     <Avatar
-                                        src={getUserPhotoUrl({
-                                            userId: player.$id,
-                                            name: `${player.firstName} ${player.lastName}`,
+                                        src={getPlayerPhotoUrl(player, {
                                             size: 26,
                                         })}
-                                        name={`${player.firstName} ${player.lastName}`}
+                                        name={getPlayerDisplayName(player)}
                                         radius="xl"
                                         size="sm"
                                         color="initials"

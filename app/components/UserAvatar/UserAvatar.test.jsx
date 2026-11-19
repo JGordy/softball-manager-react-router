@@ -70,9 +70,9 @@ describe("UserAvatar Component", () => {
         expect(img.getAttribute("src")).toContain("name=User");
     });
 
-    it("applies custom size styles", () => {
+    it("applies custom size", () => {
         render(<UserAvatar size={100} />);
         const img = screen.getByRole("img");
-        expect(img).toHaveStyle({ width: "100px", height: "100px" });
+        expect(img.getAttribute("src")).toContain("width=200");
     });
 });

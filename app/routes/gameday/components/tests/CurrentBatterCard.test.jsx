@@ -2,8 +2,10 @@ import { render, screen, fireEvent } from "@/utils/test-utils";
 import CurrentBatterCard from "../CurrentBatterCard";
 
 jest.mock("@/utils/avatars", () => ({
-    getUserPhotoUrl: jest.fn(({ userId }) =>
-        userId ? `http://avatar.url/${userId}` : undefined,
+    getPlayerPhotoUrl: jest.fn((player) =>
+        player?.$id && !player.isTemporary
+            ? `http://avatar.url/${player.$id}`
+            : undefined,
     ),
 }));
 
