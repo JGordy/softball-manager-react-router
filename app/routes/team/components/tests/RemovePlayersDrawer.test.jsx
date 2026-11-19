@@ -2,6 +2,12 @@ import { useFetcher } from "react-router";
 import { render, screen, fireEvent } from "@/utils/test-utils";
 import RemovePlayersDrawer from "../RemovePlayersDrawer";
 
+jest.mock("@/utils/avatars", () => ({
+    getUserPhotoUrl: jest.fn(({ userId }) =>
+        userId ? `https://mock-appwrite.io/avatars/${userId}` : undefined,
+    ),
+}));
+
 jest.mock("react-router", () => ({
     ...jest.requireActual("react-router"),
     useFetcher: jest.fn(),
@@ -165,5 +171,22 @@ describe("RemovePlayersDrawer Component", () => {
             "Remove Players",
         );
         expect(screen.getByText("John Doe (You)")).toBeInTheDocument();
+    });
+
+    it("renders player avatars using getUserPhotoUrl", () => {
+        render(
+            <RemovePlayersDrawer
+                opened={true}
+                onClose={jest.fn()}
+                players={mockPlayers}
+                teamId="t1"
+                userId="u1"
+            />,
+        );
+        const avatars = screen.getAllByRole("img");
+        expect(avatars[0]).toHaveAttribute(
+            "src",
+            "https://mock-appwrite.io/avatars/u1",
+        );
     });
 });

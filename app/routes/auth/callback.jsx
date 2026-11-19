@@ -2,13 +2,8 @@ import { redirect } from "react-router";
 import {
     serializeSessionCookie,
     createAdminClient,
-    createSessionClientFromSecret,
 } from "@/utils/appwrite/server";
-import {
-    createDocument,
-    readDocument,
-    updateDocument,
-} from "@/utils/databases";
+import { createDocument, readDocument } from "@/utils/databases";
 import { Permission, Role } from "node-appwrite";
 
 /**
@@ -79,71 +74,6 @@ export async function loader({ request }) {
             }
         }
         // -----------------------------------------------
-
-        // --- Fetch and Save Google Avatar while token is fresh ---
-        try {
-            const { account: sessionAccount } = createSessionClientFromSecret(
-                session.secret,
-            );
-            const identities = await sessionAccount.listIdentities();
-            const googleIdentity = identities.identities.find(
-                (i) => i.provider === "google",
-            );
-
-            if (googleIdentity?.providerAccessToken) {
-                const response = await fetch(
-                    "https://www.googleapis.com/oauth2/v3/userinfo",
-                    {
-                        headers: {
-                            Authorization: `Bearer ${googleIdentity.providerAccessToken}`,
-                        },
-                        signal: AbortSignal.timeout(5000),
-                    },
-                );
-
-                if (!response.ok) {
-                    console.error(
-                        "Google API error:",
-                        response.status,
-                        response.statusText,
-                    );
-                    throw new Error("Failed to fetch Google user info");
-                }
-
-                const googleUser = await response.json();
-
-                if (googleUser.picture) {
-                    // 1. Update preferences
-                    await sessionAccount.updatePrefs({
-                        prefs: {
-                            avatarUrl: googleUser.picture,
-                        },
-                    });
-                    // 2. Update database
-                    try {
-                        await updateDocument(
-                            "users",
-                            userId,
-                            {
-                                avatarUrl: googleUser.picture,
-                            },
-                            adminVars,
-                        );
-                    } catch (dbErr) {
-                        console.warn(
-                            "Callback loader - DB sync failed:",
-                            dbErr.message,
-                        );
-                    }
-                }
-            }
-        } catch (avatarErr) {
-            console.warn(
-                "Callback loader - Avatar fetch failed:",
-                avatarErr.message,
-            );
-        }
-        // --------------------------------------------------------
 
         // Prepare the session cookie using the NEW persistent session secret
         const cookieHeader = serializeSessionCookie(session.secret);

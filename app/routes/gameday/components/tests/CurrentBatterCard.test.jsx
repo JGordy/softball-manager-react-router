@@ -1,6 +1,14 @@
 import { render, screen, fireEvent } from "@/utils/test-utils";
 import CurrentBatterCard from "../CurrentBatterCard";
 
+jest.mock("@/utils/avatars", () => ({
+    getPlayerPhotoUrl: jest.fn((player) =>
+        player?.$id && !player.isTemporary
+            ? `http://avatar.url/${player.$id}`
+            : undefined,
+    ),
+}));
+
 describe("CurrentBatterCard", () => {
     const mockBatter = {
         $id: "p1",
@@ -79,10 +87,9 @@ describe("CurrentBatterCard", () => {
         expect(screen.getByText("#42")).toBeInTheDocument();
     });
 
-    it("renders avatar image with the provided URL and jersey number", () => {
+    it("renders avatar image with the resolved getUserPhotoUrl and jersey number", () => {
         const batterWithAvatar = {
             ...mockBatter,
-            avatarUrl: "http://avatar.url",
             jerseyNumber: "42",
         };
         render(
@@ -92,7 +99,7 @@ describe("CurrentBatterCard", () => {
         // Assert that the avatar image is rendered with the correct src
         const avatarImage = screen.getByRole("img", { name: "John Doe" });
         expect(avatarImage).toBeInTheDocument();
-        expect(avatarImage).toHaveAttribute("src", "http://avatar.url");
+        expect(avatarImage).toHaveAttribute("src", "http://avatar.url/p1");
     });
 
     it("renders notes input for opponents and updates/clears on batter change", () => {

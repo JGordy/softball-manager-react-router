@@ -26,6 +26,7 @@ import {
 } from "@tabler/icons-react";
 
 import useModal from "@/hooks/useModal";
+import { getUserPhotoUrl } from "@/utils/avatars";
 import UpdateContactInfo from "@/forms/UpdateContactInfo";
 import UpdatePassword from "@/forms/UpdatePassword";
 
@@ -170,7 +171,16 @@ export default function DesktopSettingsDashboard({ actionData, teams }) {
                 >
                     <Stack gap="lg">
                         <Group wrap="nowrap" align="flex-start" gap="lg">
-                            <Avatar size="xl" radius="md" color="lime">
+                            <Avatar
+                                src={getUserPhotoUrl({
+                                    userId: user?.$id,
+                                    name: user?.name || user?.email,
+                                    size: 84,
+                                })}
+                                size="xl"
+                                radius="md"
+                                color="lime"
+                            >
                                 {initials || "U"}
                             </Avatar>
                             <Stack gap="xs">

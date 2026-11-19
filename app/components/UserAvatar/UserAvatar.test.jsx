@@ -2,10 +2,20 @@ import { screen, cleanup } from "@testing-library/react";
 import { render } from "@/utils/test-utils";
 import UserAvatar from "./UserAvatar";
 
-// Mock the config ensures predictable endpoint
-jest.mock("@/utils/appwrite/config", () => ({
-    appwriteConfig: {
-        endpoint: "https://mock-appwrite.io/v1",
+jest.mock("@/utils/appwrite/client", () => ({
+    client: {
+        config: {
+            endpoint: "https://mock-appwrite.io/v1",
+            project: "mock-project",
+        },
+    },
+    avatars: {
+        getPhoto: jest.fn((params) => {
+            const query = new URLSearchParams(
+                Object.entries(params).map(([k, v]) => [k, String(v)]),
+            ).toString();
+            return `https://mock-appwrite.io/v1/avatars/photo?${query}`;
+        }),
     },
 }));
 
@@ -14,41 +24,41 @@ describe("UserAvatar Component", () => {
         cleanup();
     });
 
-    it("renders user preference avatar URL when available", () => {
+    it("renders Appwrite getPhoto URL using userId when available", () => {
         const user = {
+            $id: "user-123",
             name: "Test User",
-            prefs: {
-                avatarUrl: "https://example.com/my-avatar.png",
-            },
         };
         render(<UserAvatar user={user} />);
 
         const img = screen.getByRole("img");
-        expect(img).toHaveAttribute("src", "https://example.com/my-avatar.png");
+        expect(img).toHaveAttribute(
+            "src",
+            "https://mock-appwrite.io/v1/avatars/photo?width=80&height=80&userId=user-123&name=Test+User",
+        );
         expect(img).toHaveAttribute("alt", "Test User");
     });
 
-    it("generates initials avatar URL using name fallback", () => {
+    it("uses name fallback when userId is missing", () => {
         const user = {
             name: "John Doe",
-            prefs: {},
         };
         render(<UserAvatar user={user} size={50} />);
 
         const img = screen.getByRole("img");
-        const expectedUrl = `https://mock-appwrite.io/v1/avatars/initials?name=John%20Doe&width=50&height=50`;
-        expect(img).toHaveAttribute("src", expectedUrl);
+        expect(img).toHaveAttribute(
+            "src",
+            "https://mock-appwrite.io/v1/avatars/photo?width=100&height=100&name=John+Doe",
+        );
     });
 
-    it("generates initials avatar using email when name is missing", () => {
+    it("uses email when name and userId are missing", () => {
         const user = {
             email: "john@example.com",
-            prefs: {},
         };
         render(<UserAvatar user={user} />);
 
         const img = screen.getByRole("img");
-        // Check contains part of the URL since query params order is deterministic but safer to verify params
         expect(img.getAttribute("src")).toContain("name=john%40example.com");
     });
 
@@ -60,9 +70,9 @@ describe("UserAvatar Component", () => {
         expect(img.getAttribute("src")).toContain("name=User");
     });
 
-    it("applies custom size styles", () => {
+    it("applies custom size", () => {
         render(<UserAvatar size={100} />);
         const img = screen.getByRole("img");
-        expect(img).toHaveStyle({ width: "100px", height: "100px" });
+        expect(img.getAttribute("src")).toContain("width=200");
     });
 });

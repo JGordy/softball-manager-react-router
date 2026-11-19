@@ -267,34 +267,7 @@ async function resolvePlayers(userIds, client) {
         };
     });
 
-    // 2. Fetch associated account information (specifically preferences) from the Users management API
-    // This requires an admin client to read preferences of other users.
-    try {
-        const { users: adminUsers } = createAdminClient();
-        const accountResult = await adminUsers.list([
-            Query.equal("$id", validUserIdList),
-        ]);
-        const accounts = accountResult.users || [];
-
-        // 3. Create a map of account preferences for O(1) lookup
-        const accountMap = new Map(accounts.map((a) => [a.$id, a]));
-
-        // 4. Merge account preferences (like avatarUrl) into the database documents
-        return players.map((p) => {
-            const acc = accountMap.get(p.$id);
-            // Account preferences take precedence for display data like avatars
-            return {
-                ...p,
-                avatarUrl: acc?.prefs?.avatarUrl || p.avatarUrl,
-            };
-        });
-    } catch (e) {
-        console.warn(
-            "resolvePlayers: Failed to fetch account preferences for enrichment. Falling back to database collection data.",
-            e.message,
-        );
-        return players;
-    }
+    return players;
 }
 
 export async function getEventById({ eventId, client, ...options }) {

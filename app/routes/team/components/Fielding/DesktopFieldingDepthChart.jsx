@@ -27,6 +27,7 @@ import {
     IconLock,
     IconLockOpen,
 } from "@tabler/icons-react";
+import { getPlayerDisplayName, getPlayerPhotoUrl } from "@/utils/avatars";
 
 import images from "@/constants/images";
 import fieldingPositions from "@/constants/positions";
@@ -194,10 +195,11 @@ function DraggableFielderItem({
                         </div>
                     )}
                     <Avatar
+                        src={getPlayerPhotoUrl(player, { size: 26 })}
                         radius="xl"
                         size="sm"
                         color="initials"
-                        name={`${player.firstName} ${player.lastName}`}
+                        name={getPlayerDisplayName(player)}
                         variant="light"
                     />
                     <Text size="sm">

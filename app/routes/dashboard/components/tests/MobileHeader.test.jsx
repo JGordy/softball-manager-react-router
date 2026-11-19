@@ -9,11 +9,16 @@ jest.mock("../DashboardMenu", () => ({
     default: () => <div data-testid="dashboard-menu" />,
 }));
 
+jest.mock("@/utils/avatars", () => ({
+    getUserPhotoUrl: jest.fn(({ userId }) =>
+        userId ? `https://mock-appwrite.io/avatars/${userId}` : undefined,
+    ),
+}));
+
 describe("MobileHeader Component", () => {
     const mockUser = {
         $id: "user-123",
         name: "Joe Dimaggio",
-        prefs: { avatarUrl: "https://example.com/avatar.jpg" },
     };
 
     const mockTeamList = [
@@ -45,6 +50,11 @@ describe("MobileHeader Component", () => {
         expect(
             screen.getByRole("link", { name: "User Profile" }),
         ).toHaveAttribute("href", "/user/user-123");
+        const avatarImg = screen.getByAltText("Joe Dimaggio");
+        expect(avatarImg).toHaveAttribute(
+            "src",
+            "https://mock-appwrite.io/avatars/user-123",
+        );
     });
 
     it("renders RostrHQ branding logo in the center", () => {

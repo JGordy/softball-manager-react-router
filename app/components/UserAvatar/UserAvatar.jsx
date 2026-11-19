@@ -1,8 +1,10 @@
 import { useMemo } from "react";
-import { appwriteConfig } from "@/utils/appwrite/config";
+import { Avatar } from "@mantine/core";
+import { getUserPhotoUrl } from "@/utils/avatars";
 
 /**
- * Reusable User Avatar component with Appwrite Initials fallback.
+ * Reusable User Avatar component backed by Appwrite `avatars.getPhoto()`.
+ * Falls back to Mantine `<Avatar>` initials if no photo URL is resolved.
  *
  * @param {Object} props
  * @param {Object} props.user - The user object from Appwrite account.get()
@@ -10,31 +12,30 @@ import { appwriteConfig } from "@/utils/appwrite/config";
  * @param {string} [props.className] - Optional CSS class
  */
 export default function UserAvatar({ user, size = 40, className = "" }) {
-    const avatarUrl = useMemo(() => {
-        // 1. Check if user has a provider-supplied avatar in preferences
-        if (user?.prefs?.avatarUrl) {
-            return user.prefs.avatarUrl;
-        }
+    const userId = user?.$id;
+    const userName = user?.name;
+    const userEmail = user?.email;
+    const displayName = userName || userEmail || "User";
 
-        // 2. Fallback: Use Appwrite Avatars API to generate initials
-        // We use the account's name or a fallback
-        const name = user?.name || user?.email || "User";
-        const baseUrl = `${appwriteConfig.endpoint}/avatars/initials`;
-        return `${baseUrl}?name=${encodeURIComponent(name)}&width=${size}&height=${size}`;
-    }, [user, size]);
+    const avatarUrl = useMemo(() => {
+        const name = userName || userEmail || (!userId ? "User" : undefined);
+
+        return getUserPhotoUrl({
+            userId,
+            name,
+            size,
+        });
+    }, [userId, userName, userEmail, size]);
 
     return (
-        <img
+        <Avatar
             src={avatarUrl}
-            alt={user?.name || "User Avatar"}
+            name={displayName}
+            alt={userName || "User Avatar"}
+            size={size}
+            radius="100%"
+            color="lime"
             className={className}
-            style={{
-                borderRadius: "50%",
-                width: size,
-                height: size,
-                objectFit: "cover",
-                display: "block",
-            }}
         />
     );
 }

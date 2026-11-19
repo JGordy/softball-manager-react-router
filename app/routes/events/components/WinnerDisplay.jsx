@@ -11,6 +11,7 @@ import {
     Badge,
 } from "@mantine/core";
 import { calculateWinners } from "@/utils/awards";
+import { getPlayerPhotoUrl } from "@/utils/avatars";
 
 // Hook returns a startConfetti function. Caller should call it when the active award
 // changes and the caller determines it's the right time to run confetti.
@@ -347,6 +348,10 @@ export default function WinnerDisplay({
                                         <Group key={id} justify="space-between">
                                             <Group gap="sm">
                                                 <Avatar
+                                                    src={getPlayerPhotoUrl(
+                                                        player,
+                                                        { size: 38 },
+                                                    )}
                                                     color="gray"
                                                     radius="xl"
                                                 >

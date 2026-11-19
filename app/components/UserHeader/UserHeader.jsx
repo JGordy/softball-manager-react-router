@@ -19,6 +19,7 @@ import { IconRosetteDiscountCheckFilled } from "@tabler/icons-react";
 import classes from "./UserHeader.module.css";
 import UserStatsRow from "../UserStatsRow";
 import DeferredLoader from "@/components/DeferredLoader";
+import { getUserPhotoUrl } from "@/utils/avatars";
 
 function UserStatsRowSkeleton() {
     return (
@@ -77,6 +78,26 @@ export default function UserHeader({ children, subText, stats }) {
         return <UserStatsRow stats={stats} />;
     };
 
+    const avatarUrl = getUserPhotoUrl({
+        userId: user?.$id,
+        name: user?.name || user?.email,
+        size: 80,
+    });
+
+    const avatarElement = (
+        <Box className={classes.avatarWrapper}>
+            <div className={classes.ring} />
+            <Avatar
+                src={avatarUrl}
+                color="lime"
+                name={user?.name}
+                alt={user?.name}
+                size={80}
+                radius="100%"
+            />
+        </Box>
+    );
+
     return (
         <Box pos="relative" mt="md" mb={isDesktop ? "xl" : "lg"}>
             {!isDesktop && children && (
@@ -88,17 +109,7 @@ export default function UserHeader({ children, subText, stats }) {
             {isDesktop ? (
                 <Flex direction="row" align="center" justify="space-between">
                     <Group gap="md" wrap="nowrap" style={{ flex: 1 }}>
-                        <Box className={classes.avatarWrapper}>
-                            <div className={classes.ring} />
-                            <Avatar
-                                src={user?.prefs?.avatarUrl}
-                                color="lime"
-                                name={user?.name}
-                                alt={user?.name}
-                                size={80}
-                                radius="100%"
-                            />
-                        </Box>
+                        {avatarElement}
 
                         <Stack align="flex-start" gap={2}>
                             <Title order={2} className={classes.name}>
@@ -141,17 +152,7 @@ export default function UserHeader({ children, subText, stats }) {
                 </Flex>
             ) : (
                 <Stack align="center" gap="md">
-                    <Box className={classes.avatarWrapper}>
-                        <div className={classes.ring} />
-                        <Avatar
-                            src={user?.prefs?.avatarUrl}
-                            color="lime"
-                            name={user?.name}
-                            alt={user?.name}
-                            size={80}
-                            radius="100%"
-                        />
-                    </Box>
+                    {avatarElement}
 
                     <Stack align="center" gap={2}>
                         <Title order={2} className={classes.name}>

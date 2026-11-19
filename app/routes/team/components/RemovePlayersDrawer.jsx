@@ -16,6 +16,7 @@ import {
 } from "@tabler/icons-react";
 import DrawerContainer from "@/components/DrawerContainer";
 import FormWrapper from "@/forms/FormWrapper";
+import { getUserPhotoUrl } from "@/utils/avatars";
 import classes from "@/styles/CheckboxCard.module.css";
 
 /**
@@ -121,7 +122,11 @@ export default function RemovePlayersDrawer({
                                         >
                                             <Checkbox.Indicator color="red" />
                                             <Avatar
-                                                src={player.avatarUrl}
+                                                src={getUserPhotoUrl({
+                                                    userId: player.$id,
+                                                    name: getPlayerName(player),
+                                                    size: 26,
+                                                })}
                                                 name={getPlayerName(player)}
                                                 radius="xl"
                                                 size="sm"
@@ -184,7 +189,11 @@ export default function RemovePlayersDrawer({
                             {selectedPlayers.map((player) => (
                                 <Group key={player.membershipId} gap="sm">
                                     <Avatar
-                                        src={player.avatarUrl}
+                                        src={getUserPhotoUrl({
+                                            userId: player.$id,
+                                            name: getPlayerName(player),
+                                            size: 16,
+                                        })}
                                         name={getPlayerName(player)}
                                         radius="xl"
                                         size="xs"

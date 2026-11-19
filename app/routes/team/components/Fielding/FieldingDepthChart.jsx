@@ -28,6 +28,7 @@ import {
 } from "@tabler/icons-react";
 
 import fieldingPositions from "@/constants/positions";
+import { getPlayerDisplayName, getPlayerPhotoUrl } from "@/utils/avatars";
 import { PREFERENCE_CONFIG } from "@/constants/positionPreferences";
 import DrawerContainer from "@/components/DrawerContainer";
 
@@ -143,10 +144,11 @@ const DraggablePlayerItem = ({
                     </div>
                 )}
                 <Avatar
+                    src={getPlayerPhotoUrl(player, { size: 26 })}
                     radius="xl"
                     size="sm"
                     color="initials"
-                    name={`${player.firstName} ${player.lastName}`}
+                    name={getPlayerDisplayName(player)}
                     variant="light"
                 />
                 <Text size="sm">

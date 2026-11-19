@@ -6,6 +6,7 @@ import { Stack, Text, Button, Group, Avatar, Badge } from "@mantine/core";
 import { IconArrowsExchange } from "@tabler/icons-react";
 
 import DrawerContainer from "@/components/DrawerContainer/DrawerContainer";
+import { getPlayerPhotoUrl } from "@/utils/avatars";
 
 import { getActivePlayerInSlot } from "../utils/gamedayUtils";
 
@@ -91,6 +92,9 @@ export default function SubPlayerDrawer({
                                     p="xs"
                                     leftSection={
                                         <Avatar
+                                            src={getPlayerPhotoUrl(player, {
+                                                size: 26,
+                                            })}
                                             size="sm"
                                             color="blue"
                                             radius="xl"

@@ -1,6 +1,12 @@
 import { render, screen, fireEvent } from "@/utils/test-utils";
 import ManageSeasonRosterDrawer from "../ManageSeasonRosterDrawer";
 
+jest.mock("@/utils/avatars", () => ({
+    getUserPhotoUrl: jest.fn(({ userId }) =>
+        userId ? `https://mock-appwrite.io/avatars/${userId}` : undefined,
+    ),
+}));
+
 const mockUseNavigation = jest.fn(() => ({ state: "idle", formData: null }));
 
 jest.mock("react-router", () => ({
@@ -160,5 +166,20 @@ describe("ManageSeasonRosterDrawer", () => {
 
         const formWrapper = screen.getByTestId("form-wrapper");
         expect(formWrapper).toHaveAttribute("data-loading", "true");
+    });
+
+    it("renders player rows cleanly with getUserPhotoUrl", () => {
+        render(
+            <ManageSeasonRosterDrawer
+                opened={true}
+                onClose={mockOnClose}
+                teamPlayers={mockTeamPlayers}
+                currentPlayers={mockCurrentPlayers}
+                teamId="team-123"
+                seasonId="season-456"
+            />,
+        );
+        const avatars = screen.getAllByRole("img");
+        expect(avatars.length).toBeGreaterThanOrEqual(2);
     });
 });

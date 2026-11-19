@@ -19,6 +19,7 @@ import InlineError from "@/components/InlineError";
 
 import positions from "@/constants/positions";
 import { trackEvent } from "@/utils/analytics";
+import { getPlayerPhotoUrl } from "@/utils/avatars";
 import addPlayerAvailability from "@/utils/addPlayerAvailability";
 
 // ── Status config ────────────────────────────────────────────────────────────
@@ -89,6 +90,7 @@ function AttendanceRow({
                 {/* Left: avatar + position + name */}
                 <Group gap="sm" wrap="nowrap">
                     <Avatar
+                        src={getPlayerPhotoUrl(player, { size: 26 })}
                         size="sm"
                         radius="xl"
                         color={current.color}

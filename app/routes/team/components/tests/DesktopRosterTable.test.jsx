@@ -22,6 +22,16 @@ jest.mock("@/components/PersonalDetails", () => () => (
 jest.mock("@/components/ContactSprayChart", () => () => (
     <div data-testid="contact-spray-chart" />
 ));
+jest.mock("@/utils/avatars", () => ({
+    getPlayerDisplayName: jest.fn((player) =>
+        `${player?.firstName || ""} ${player?.lastName || ""}`.trim(),
+    ),
+    getPlayerPhotoUrl: jest.fn((player) =>
+        player?.$id && !player.isTemporary
+            ? `https://mock-appwrite.io/avatars/${player.$id}`
+            : undefined,
+    ),
+}));
 
 describe("DesktopRosterTable Component", () => {
     const mockPlayers = [
@@ -77,6 +87,17 @@ describe("DesktopRosterTable Component", () => {
 
         // Check overflow positions for Jane (+2)
         expect(screen.getByText("+2")).toBeInTheDocument();
+
+        // Check resolved player avatars
+        const avatars = screen.getAllByRole("img");
+        expect(avatars[0]).toHaveAttribute(
+            "src",
+            "https://mock-appwrite.io/avatars/p1",
+        );
+        expect(avatars[1]).toHaveAttribute(
+            "src",
+            "https://mock-appwrite.io/avatars/p2",
+        );
     });
 
     it("opens player details drawer on row click", () => {
