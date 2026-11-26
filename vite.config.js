@@ -36,6 +36,7 @@ export default defineConfig({
             "@components": "/app/components",
             "@constants": "/app/constants",
             "@contexts": "/app/contexts",
+            "@data": "/app/data",
             "@forms": "/app/forms",
             "@hooks": "/app/hooks",
             "@loaders": "/app/loaders",

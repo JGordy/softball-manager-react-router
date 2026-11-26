@@ -1,0 +1,259 @@
+/* Defensive Playbook CSS Module - Velocity Dark Design System */
+
+.container {
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    max-width: 680px;
+    margin: 0 auto;
+}
+
+.neonText {
+    color: #ccff33;
+    text-shadow: 0 0 10px rgba(204, 255, 51, 0.4);
+}
+
+/* Situation Section - Unboxed Clean Editorial */
+.situationContainer {
+    max-width: 560px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 0 4px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+.diamondWrapper {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.selectScenarioPill {
+    background: rgba(204, 255, 51, 0.1) !important;
+    color: #ccff33 !important;
+    border: 1px solid rgba(204, 255, 51, 0.3) !important;
+    font-weight: 700 !important;
+    transition: all 0.2s ease;
+}
+
+.selectScenarioPill:hover {
+    background: rgba(204, 255, 51, 0.2) !important;
+    border-color: #ccff33 !important;
+    box-shadow: 0 0 10px rgba(204, 255, 51, 0.3);
+}
+
+.outDotActive {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #fb923c;
+    box-shadow: 0 0 6px rgba(251, 146, 60, 0.9);
+    display: inline-block;
+}
+
+.outDotInactive {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    display: inline-block;
+}
+
+.playHeadline {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+}
+
+/* Authentic Softball Field Container - Box without border or shadow */
+.fieldBox,
+.fieldCard {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: var(--mantine-radius-md);
+    overflow: hidden;
+    width: 100%;
+    max-width: 560px;
+    margin: 0 auto;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.fieldImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+    user-select: none;
+    display: block;
+}
+
+.svgOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    z-index: 2;
+}
+
+/* Playback Control Bar */
+.controlBar {
+    background: rgba(31, 41, 55, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: var(--mantine-radius-md);
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+    backdrop-filter: blur(10px);
+    max-width: 560px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.fielderNode {
+    cursor: pointer;
+    transition:
+        transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+        filter 0.2s ease;
+}
+
+.fielderNode:hover {
+    transform: scale(1.2);
+    filter: drop-shadow(0 0 8px #ccff33);
+}
+
+.fielderNodeActive {
+    transform: scale(1.3);
+    filter: drop-shadow(0 0 12px #ccff33) drop-shadow(0 0 4px #ffffff);
+}
+
+.playListItem {
+    cursor: pointer;
+    border-radius: var(--mantine-radius-sm);
+    padding: 6px 10px;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    background: rgba(31, 41, 55, 0.5);
+}
+
+.playListItem:hover {
+    background: rgba(31, 41, 55, 0.8);
+    border-color: rgba(204, 255, 51, 0.3);
+    transform: translateX(2px);
+}
+
+.playListItemActive {
+    background: rgba(31, 41, 55, 0.95);
+    border-color: #ccff33;
+    box-shadow:
+        inset 3px 0 0 #ccff33,
+        0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.categoryTab {
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.filterScrollArea {
+    max-height: 440px;
+    overflow-y: auto;
+}
+
+.filterScrollArea::-webkit-scrollbar {
+    width: 5px;
+}
+
+.filterScrollArea::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+.coachingCard {
+    background: rgba(31, 41, 55, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--mantine-radius-md);
+    padding: var(--mantine-spacing-sm);
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
+
+.coachingCardActive {
+    background: rgba(31, 41, 55, 0.95);
+    border-color: #ccff33;
+    box-shadow: 0 0 15px rgba(204, 255, 51, 0.15);
+}
+
+.badgePrimary {
+    background: rgba(204, 255, 51, 0.15);
+    color: #ccff33;
+    border: 1px solid rgba(204, 255, 51, 0.4);
+}
+
+.badgeCutoff {
+    background: rgba(249, 115, 22, 0.15);
+    color: #fb923c;
+    border: 1px solid rgba(249, 115, 22, 0.4);
+}
+
+.badgeCoverage {
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.badgeBackup {
+    background: rgba(168, 85, 247, 0.15);
+    color: #c084fc;
+    border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+.diamondRunnerActive {
+    fill: #ccff33;
+    stroke: #ffffff;
+    stroke-width: 1.2;
+    filter: drop-shadow(0 0 6px #ccff33);
+}
+
+.diamondRunnerEmpty {
+    fill: rgba(255, 255, 255, 0.15);
+    stroke: rgba(255, 255, 255, 0.4);
+    stroke-width: 1;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 4px 6px;
+        padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+        max-width: 100%;
+    }
+
+    .fieldBox,
+    .fieldCard {
+        max-width: 100%;
+        border-radius: var(--mantine-radius-md);
+    }
+
+    .controlBar {
+        max-width: 100%;
+        padding: 6px 8px;
+    }
+
+    .situationContainer {
+        max-width: 100%;
+    }
+
+    .fabGroup {
+        right: 14px;
+        bottom: calc(115px + env(safe-area-inset-bottom, 0px));
+    }
+}
